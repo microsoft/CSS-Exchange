@@ -84,12 +84,12 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.0"
+$healthCheckerVersion = "2.1"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
     - There is no more than a 1:1 Physical Core to Virtual CPU ratio (no oversubscribing)
-    - If Hyper-Threading is enabled do not count Hyper-Threaded cores as physical cores
+    - If Hyper-Threading is enabled do NOT count Hyper-Threaded cores as physical cores
     - Do not oversubscribe memory or use dynamic memory allocation
     
 Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.  VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.  For further details, please review the virtualization recommendations on TechNet at https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq.  Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
@@ -369,7 +369,7 @@ param(
 [Parameter(Mandatory=$true)][string]$OS_Version
 )
 
-    Write-VerboseOutput("Calling Get-OperatingSystemVersion")
+    Write-VerboseOutput("Calling: Get-OperatingSystemVersion")
     Write-VerboseOutput("Passed: $OS_Version")
     
     switch($OS_Version)
@@ -389,7 +389,7 @@ Function Get-PageFileObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling Get-PageFileObject")
+    Write-VerboseOutput("Calling: Get-PageFileObject")
     Write-Verbose("Passed: $Machine_Name")
     [HealthChecker.PageFileObject]$page_obj = New-Object HealthChecker.PageFileObject
     $pagefile = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PageFileSetting
@@ -413,7 +413,7 @@ param(
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersion
 )
 
-    Write-VerboseOutput("Calling Build-NICInformationObject")
+    Write-VerboseOutput("Calling: Build-NICInformationObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersion")
 
@@ -464,7 +464,7 @@ param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
  
-    Write-VerboseOutput("Calling Build-OperatingSystemObject")
+    Write-VerboseOutput("Calling: Build-OperatingSystemObject")
     Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.OperatingSystemObject]$os_obj = New-Object HealthChecker.OperatingSystemObject
@@ -498,7 +498,7 @@ Function Get-ServerType {
 param(
 [Parameter(Mandatory=$true)][string]$ServerType
 )
-    Write-VerboseOutput("Calling Get-ServerType")
+    Write-VerboseOutput("Calling: Get-ServerType")
     Write-VerboseOutput("Passed: $serverType")
 
 
@@ -515,7 +515,7 @@ Function Get-ProcessorInformationObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling Get-ProcessorInformationObject")
+    Write-VerboseOutput("Calling: Get-ProcessorInformationObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     [HealthChecker.ProcessorInformationObject]$processor_info_object = New-Object HealthChecker.ProcessorInformationObject
     $wmi_obj_processor = Get-WmiObject -ComputerName $Machine_Name -Class Win32_Processor
@@ -561,7 +561,7 @@ Function Build-HardwareObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling Build-HardwareObject")
+    Write-VerboseOutput("Calling: Build-HardwareObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     [HealthChecker.HardwareObject]$hardware_obj = New-Object HealthChecker.HardwareObject
     $system = Get-WmiObject -ComputerName $Machine_Name -Class Win32_ComputerSystem
@@ -642,7 +642,7 @@ Function Build-NetFrameWorkVersionObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling Build-NetFrameWorkVersionObject")
+    Write-VerboseOutput("Calling: Build-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
 
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$Machine_Name)
@@ -859,9 +859,9 @@ param(
         [HealthChecker.NetVersionCheckObject]$NetCheckObj = New-Object -TypeName HealthChecker.NetVersionCheckObject
         $NetCheckObj.RecommendedNetVersion = $true 
         Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
-        Write-VerboseOutput("Passed Current Net Version: " + $CurrentNetVersion.ToString())
-        Write-VerboseOutput("Passed Min Support Net Version: " + $MinSupportNetVersion.ToString())
-        Write-VerboseOutput("Passed Recommnded/Max Net Version: " + $RecommendedNetVersion.ToString())
+        Write-VerboseOutput("Passed: Current Net Version: " + $CurrentNetVersion.ToString())
+        Write-VerboseOutput("Passed: Min Support Net Version: " + $MinSupportNetVersion.ToString())
+        Write-VerboseOutput("Passed: Recommnded/Max Net Version: " + $RecommendedNetVersion.ToString())
 
         #If we are on the recommended/supported version of .net then we should be okay 
         if($CurrentNetVersion -eq $RecommendedNetVersion)
@@ -1031,7 +1031,7 @@ param(
 )
     $Machine_Name = $HealthExSvrObj.ServerName
     $OSVersionName = $HealthExSvrObj.OSVersion.OSVersion
-    Write-VerboseOutput("Calling Build-ExchangeInformationObject")
+    Write-VerboseOutput("Calling: Build-ExchangeInformationObject")
     Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.ExchangeInformationObject]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformationObject
@@ -1331,8 +1331,8 @@ param(
 [Parameter(Mandatory=$true)][HealthChecker.HardwareObject]$hardware_obj
 )
     Write-VerboseOutput("Calling: Verify-PagefileEqualMemoryPlus10")
-    Write-VerboseOutput("Passed total memory: " + $hardware_obj.TotalMemory)
-    Write-VerboseOutput("Passed max page file size: " + $page_obj.MaxPageSize)
+    Write-VerboseOutput("Passed: total memory: " + $hardware_obj.TotalMemory)
+    Write-VerboseOutput("Passed: max page file size: " + $page_obj.MaxPageSize)
     $sReturnString = "Good"
     $iMemory = [System.Math]::Round(($hardware_obj.TotalMemory / 1048576) + 10)
     Write-VerboseOutput("Server Memory Plus 10 MB: " + $iMemory) 
@@ -1356,7 +1356,7 @@ Function Display-ResultsToScreen {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
 )
-    Write-VerboseOutput("Calling Display-ResultsToScreen")
+    Write-VerboseOutput("Calling: Display-ResultsToScreen")
     Write-VerboseOutput("For Server: " + $HealthExSvrObj.ServerName)
 
     ####################
@@ -1627,7 +1627,7 @@ param(
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
     if($HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR perfomance issue of a server.")
+        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
     }
     else
     {
@@ -1742,7 +1742,7 @@ Function Main {
     $iErrorStartCount = $Error.Count #useful for debugging 
     $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-    Write-VerboseOutput("Calling main Script Execution")
+    Write-VerboseOutput("Calling: main Script Execution")
 
     if($LoadBalancingReport)
     {
@@ -1767,7 +1767,6 @@ Function Main {
     $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     $OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
-    Write-VerboseOutput("Calling main Script Execution")
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject 
     if($MailboxReport)
