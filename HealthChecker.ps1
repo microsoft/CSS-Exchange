@@ -499,6 +499,8 @@ param(
 
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue)
 
+    $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
+
     return $os_obj
 }
 
@@ -1363,11 +1365,13 @@ param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
-    $LSAKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    If (Get-ItemProperty $LSAKey -Name LmCompatibilityLevel -ErrorAction SilentlyContinue)
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
+    $RegValue = $RegKey.GetValue("LmCompatibilityLevel")
+    If ($RegValue)
     {
-        Return (Get-ItemProperty $LSAKey -Name LmCompatibilityLevel -ErrorAction SilentlyContinue).LmCompatibilityLevel
+        Return $RegValue
     }
     Else
     {
