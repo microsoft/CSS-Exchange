@@ -2,7 +2,8 @@
 .NOTES
 	Name: HealthChecker.ps1
 	Original Author: Marc Nivens
-    Author: David Paulson 
+    Author: David Paulson
+    contributor: Jason Shinbaum 
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
 	Version History:
@@ -266,7 +267,8 @@ Add-Type -TypeDefinition @"
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
-            public PageFileObject PageFile; 
+            public PageFileObject PageFile;
+            public ServerLmCompatibilityLevel LmCompat;
 
         }
 
@@ -307,6 +309,12 @@ Add-Type -TypeDefinition @"
             public double MaxPageSize; //value to hold the information of what our page file is set to 
         }
 
+        public class ServerLmCompatibilityLevel
+        {
+            public int LmCompatibilityLevel;  //The LmCompatibilityLevel for the server (INT 1 - 5)
+            public string LmCompatibilityLevelDescription; //The description of the lmcompat that the server is set too
+            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx)
+        }
     }
 
 "@
@@ -1105,7 +1113,7 @@ param(
     $HealthExSvrObj.ServerName = $Machine_Name 
     $HealthExSvrObj.HardwareInfo = Build-HardwareObject -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Build-OperatingSystemObject -Machine_Name $Machine_Name  
-    $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj 
+    $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
 }
@@ -1350,7 +1358,48 @@ param(
 
 }
 
+Function Get-LmCompatibilityLevel {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+    $LSAKey = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+    #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
+    If (Get-ItemProperty $LSAKey -Name LmCompatibilityLevel -ErrorAction SilentlyContinue)
+    {
+        Return (Get-ItemProperty $LSAKey -Name LmCompatibilityLevel -ErrorAction SilentlyContinue).LmCompatibilityLevel
+    }
+    Else
+    {
+        Return 3
+    }
 
+}
+
+Function Build-LmCompatibilityLevel {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+
+    Write-VerboseOutput("Calling: Build-LmCompatibilityLevel")
+    Write-VerboseOutput("Passed: $Machine_Name")
+
+    [HealthChecker.ServerLmCompatibilityLevel]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevel
+    
+    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://technet.microsoft.com/en-us/library/cc960646.aspx"
+    $ServerLmCompatObject.LmCompatibilityLevel    = Get-LmCompatibilityLevel $Machine_Name
+    Switch ($ServerLmCompatObject.LmCompatibilityLevel)
+    {
+        0 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        1 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        2 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controller accepts LM, NTLM, and NTLMv2 authentication." }
+        3 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        4 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM authentication responses, but it accepts NTLM and NTLMv2." }
+        5 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
+    }
+
+    Return $ServerLmCompatObject
+}
 
 Function Display-ResultsToScreen {
 param(
@@ -1660,6 +1709,14 @@ param(
     {
         Write-Green("The TCP KeepAliveTime value is configured optimally (" + $HealthExSvrObj.OSVersion.TCPKeepAlive + ")")
     }
+
+    ###############################
+	#LmCompatibilityLevel Settings#
+	###############################
+    Write-Grey("`r`nLmCompatibilityLevel Settings:")
+    Write-Grey("`tLmCompatibilityLevel is set to: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel)
+    Write-Grey("`tLmCompatibilityLevel Description: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevelDescription)
+    Write-Grey("`tLmCompatibilityLevel Ref: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevelRef)
 
 	##############
 	#Hotfix Check#
