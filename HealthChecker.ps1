@@ -72,7 +72,7 @@
 param(
     #Default to use the local computer 
     [string]$Server=($env:COMPUTERNAME),
-    [ValidateScript({-not $_.ToStriong().EndsWith('\')})]$OutputFilePath = ".",
+    [ValidateScript({-not $_.ToString().EndsWith('\')})]$OutputFilePath = ".",
     [switch]$MailboxReport,
     [switch]$LoadBalancingReport,
     $CasServerList = $null,
@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.3"
+$healthCheckerVersion = "2.4"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -100,6 +100,7 @@ Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, 
 #this is to set the verbose information to a different color 
 if($PSBoundParameters["Verbose"]){
     #Write verose output in cyan since we already use yellow for warnings 
+    $Script:VerboseEnabled = $true
     $VerboseForeground = $Host.PrivateData.VerboseForegroundColor #ToDo add a way to add the default setings back 
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
@@ -351,7 +352,7 @@ function Write-Grey($message)
 function Write-VerboseOutput($message)
 {
     Write-Verbose $message
-    if($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
+    if($Script:VerboseEnabled)
     {
         $message | Out-File ($OutputFullPath) -Append
     }
@@ -433,6 +434,7 @@ param(
         $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
         foreach($adapter in $NetworkCards)
         {
+            Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
             $RSS_Settings = $adapter | Get-netAdapterRss
             [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
             $nicObject.Description = $adapter.InterfaceDescription
@@ -1563,7 +1565,7 @@ param(
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
                 }
                 Write-Grey("`t`tDriver Date: " + $adapter.DriverDate)
-                Write-Grey("`t`tDriver Date: " + $adapter.DriverVersionString)
+                Write-Grey("`t`tDriver Version: " + $adapter.DriverVersion)
                 Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
             else
@@ -1703,7 +1705,7 @@ param(
     Write-Grey("`r`nTCP/IP Settings:")
     if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
     {
-        Write-Yellow("The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Red("The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
