@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.4"
+$healthCheckerVersion = "2.5"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -1037,6 +1037,36 @@ param(
     return $null
 }
 
+Function Get-ServerRole {
+param(
+[Parameter(Mandatory=$true)][object]$ExchangeServerObj
+)
+    Write-VerboseOutput("Calling: Get-ServerRole")
+    $roles = $ExchangeServerObj.ServerRole.ToString()
+    Write-VerboseOutput("Roll: " + $roles)
+    #Need to change this to like because of Exchange 2010 with AIO with the hub role.
+    if($roles -like "Mailbox, ClientAccess*")
+    {
+        return [HealthChecker.ServerRole]::MultiRole
+    }
+    elseif($roles -eq "Mailbox")
+    {
+        return [HealthChecker.ServerRole]::Mailbox
+    }
+    elseif($roles -eq "Edge")
+    {
+        return [HealthChecker.ServerRole]::Edge
+    }
+    elseif($roles -like "*ClientAccess*")
+    {
+        return [HealthChecker.ServerRole]::ClientAccess
+    }
+    else
+    {
+        return [HealthChecker.ServerRole]::None
+    }
+}
+
 Function Build-ExchangeInformationObject {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -1049,6 +1079,7 @@ param(
     [HealthChecker.ExchangeInformationObject]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformationObject
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
     $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
+    $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
 
     #Exchange 2013 and 2016 things to check 
     if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
@@ -1355,7 +1386,7 @@ param(
     }
     elseif($page_obj.MaxPageSize -gt $iMemory)
     {
-        $sReturnString = "Page file is set to (" + $page_obj.MaxPageSize + ") which appears to be More than the Total System Memory plus 10 MB which is (" + $iMemory + ") this appears to be set incrrectly." 
+        $sReturnString = "Page file is set to (" + $page_obj.MaxPageSize + ") which appears to be More than the Total System Memory plus 10 MB which is (" + $iMemory + ") this appears to be set incorrectly." 
     }
 
     return $sReturnString
@@ -1445,7 +1476,7 @@ param(
     Write-Grey("`tBuild Number: " + $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber)
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime($HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $Dif_Days = ((Get-Date) - ([DateTime][System.Convert]::ToDateTime($HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         Write-Red("`tOut of date Cumulative Update.  Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is " + $Dif_Days + " Days old")
     }
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
@@ -1465,6 +1496,10 @@ param(
     if($HealthExSvrObj.HardwareInfo.AutoPageFile) 
     {
         Write-Red("`tError: System is set to automatically manage the pagefile size. This is not recommended.") 
+    }
+    elseif($HealthExSvrObj.OSVersion.PageFile.PageFile.Count -gt 1)
+    {
+        Write-Red("`tError: Multiple page files detected. This has been known to cause performance issues please address this.")
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010) 
     {
@@ -1692,12 +1727,18 @@ param(
     ################
 	#Service Health#
 	################
-	$services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
-	if($services.length -gt 0)
-	{
-		Write-Yellow("`r`nThe following services are not running:")
-		$services | %{Write-Grey($_)}
-	}
+    #We don't want to run if the server is 2013 CAS role or if the Role = None
+    if(-not(($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::None) -or 
+        (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
+        ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
+    {
+	    $services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
+	    if($services.length -gt 0)
+	    {
+		    Write-Yellow("`r`nThe following services are not running:")
+		    $services | %{Write-Grey($_)}
+	    }
+    }
 
     #################
 	#TCP/IP Settings#
