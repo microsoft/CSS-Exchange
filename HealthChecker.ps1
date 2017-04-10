@@ -281,6 +281,7 @@ Add-Type -TypeDefinition @"
             public string DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
             public string RSSEanbled;  //bool to determine if RSS is enabled 
+            public string Name;        //name of the adapter 
             public object NICObject; //objec to store the adapter info 
              
         }
@@ -443,6 +444,7 @@ param(
             $nicObject.DriverVersion = $adapter.DriverVersionString
             $nicObject.LinkSpeed = (($adapter.Speed)/1000000).ToString() + " Mbps"
             $nicObject.RSSEanbled = $RSS_Settings.Enabled
+            $nicObject.Name = $adapter.Name
             $nicObject.NICObject = $adapter 
             $aNICObjects += $nicObject
         }
@@ -480,18 +482,35 @@ param(
 
     [HealthChecker.OperatingSystemObject]$os_obj = New-Object HealthChecker.OperatingSystemObject
     $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
-    $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
+    try
+    {
+        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
+    }
+    catch
+    {
+        $plan = $null
+    }
     $os_obj.OSVersionBuild = $os.Version
     $os_obj.OSVersion = (Get-OperatingSystemVersion -OS_Version $os_obj.OSVersionBuild)
     $os_obj.OperatingSystemName = $os.Caption
     $os_obj.OperatingSystem = $os
     
-    if($plan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}")
+    if($plan -ne $null)
     {
-        Write-VerboseOutput("High Performance Power Plan is set to true")
-        $os_obj.HighPerformanceSet = $true
+        if($plan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}")
+        {
+            Write-VerboseOutput("High Performance Power Plan is set to true")
+            $os_obj.HighPerformanceSet = $true
+        }
+        $os_obj.PowerPlanSetting = $plan.ElementName
+        
     }
-    $os_obj.PowerPlanSetting = $plan.ElementName
+    else
+    {
+        Write-VerboseOutput("Power Plan Information could not be read")
+        $os_obj.HighPerformanceSet = $false
+        $os_obj.PowerPlanSetting = "N/A"
+    }
     $os_obj.PowerPlan = $plan 
     $os_obj.PageFile = (Get-PageFileObject -Machine_Name $Machine_Name)
     $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion) 
@@ -1581,6 +1600,10 @@ param(
     {
         Write-Green("`tPower Plan: " + $HealthExSvrObj.OSVersion.PowerPlanSetting)
     }
+    elseif($HealthExSvrObj.OSVersion.PowerPlan -eq $null) 
+    {
+        Write-Red("`tPower Plan: Not Accessible")
+    }
     else
     {
         Write-Red("`tPower Plan: " + $HealthExSvrObj.OSVersion.PowerPlanSetting + " --- Error: High Performance Power Plan is recommended")
@@ -1595,7 +1618,7 @@ param(
     {
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-            Write-Grey("`tInterface Description: " + $adapter.Description)
+            Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
                 if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate) -lt [int]-365)
@@ -1881,8 +1904,6 @@ Function Main {
         Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
     }
     Write-Grey("Output file written to " + $OutputFullPath)
-    Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
-    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
     if($Error.Count -gt $iErrorStartCount)
     {
         Write-Grey(" ");Write-Grey(" ")
@@ -1896,6 +1917,8 @@ Function Main {
         Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
         
     }
+    Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
+    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
 }
 
 Main 
