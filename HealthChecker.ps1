@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.7"
+$healthCheckerVersion = "2.8"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -219,7 +219,8 @@ Add-Type -TypeDefinition @"
 			Net4d6 = 393297,
 			Net4d6d1 = 394271,
             Net4d6d1wFix = 394294,
-			Net4d6d2 = 394748
+			Net4d6d2 = 394806,
+            Net4d7 = 460805
         }
 
         public class HardwareObject
@@ -269,6 +270,7 @@ Add-Type -TypeDefinition @"
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
+			public string HttpProxy;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
 
@@ -375,6 +377,39 @@ function Exit-Script
 ############################################################
 ############################################################
 
+Function Load-ExShell {
+	#Verify that we are on Exchange 2010 or newer 
+	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+	{
+		#If we are on Exchange Server, we need to make sure that Exchange Management Snapin is loaded 
+		try
+		{
+			Get-ExchangeServer | Out-Null
+		}
+		catch
+		{
+			Write-Host "Loading Exchange PowerShell Module..."
+			Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
+		}
+	}
+	else
+	{
+		Write-Host "Not on Exchange 2010 or newer. Going to exit."
+		sleep 2
+		exit
+	}
+}
+
+Function Is-Admin {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
+    If( $currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
+        return $true
+    }
+    else {
+        return $false
+    }
+}
+
 Function Get-OperatingSystemVersion {
 param(
 [Parameter(Mandatory=$true)][string]$OS_Version
@@ -406,7 +441,10 @@ param(
     $pagefile = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PageFileSetting
     if($pagefile -ne $null) 
     { 
-        $page_obj.MaxPageSize = $pagefile.MaximumSize
+        if($pagefile.Count -gt 1)
+        {
+            $page_obj.MaxPageSize = $pagefile.MaximumSize
+        }
         $page_obj.PageFile = $pagefile
     }
     else
@@ -471,6 +509,71 @@ param(
 
 }
 
+Function Get-HttpPorxySetting {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+	$httpProxy32 = [String]::Empty
+	$httpProxy64 = [String]::Empty
+	Write-VerboseOutput("Calling  Get-HttpPorxySetting")
+	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+	$orgErrorPref = $ErrorActionPreference
+	$ErrorActionPreference = "Stop"
+	try
+	{
+		$httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
+			$Connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+			if(($Connections | gm).Name -contains "WinHttpSettings")
+			{
+				$Proxy = [string]::Empty
+				foreach($Byte in $Connections.WinHttpSettings)
+				{
+					if($Byte -ge 48)
+					{
+						$Proxy += [CHAR]$Byte
+					}
+				}
+			}
+			return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
+		}
+		Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
+		$httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
+			$connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+			if(($connections | gm).Name -contains "WinHttpSettings")
+			{
+				$proxy = [string]::Empty
+				foreach($byte in $connections.WinHttpSettings)
+				{
+					if($byte -ge 48)
+					{
+						$proxy += [CHAR]$byte
+					}
+				}
+			}
+			return $(if ($proxy -eq [String]::Empty){"<None>"} else {$proxy})
+		}
+		Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
+	}
+
+	catch
+	{
+		Write-Yellow("Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
+	}
+	finally
+	{
+		$ErrorActionPreference = $orgErrorPref
+	}
+
+	if($httpProxy32 -ne "<None>")
+	{
+		return $httpProxy32
+	}
+	else
+	{
+		return $httpProxy64
+	}
+
+}
 
 Function Build-OperatingSystemObject {
 param(
@@ -518,7 +621,7 @@ param(
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
     $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
     $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
-
+	$os_obj.HttpProxy = Get-HttpPorxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue)
 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
@@ -652,11 +755,16 @@ param(
         $versionObject.FriendlyName = "4.6.1 with Hotfix 3146716/3146714/3146715"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d1wFix
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d2)
+    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d2) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7))
     {
         $versionObject.FriendlyName = "4.6.2"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d2
     }
+	elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7)
+	{
+		$versionObject.FriendlyName = "4.7"
+		$versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7
+	}
     else
     {
         $versionObject.FriendlyName = "Unknown" 
@@ -862,6 +970,21 @@ https://technet.microsoft.com/en-us/library/aa996719(v=exchg.150).aspx
 Exchange 2016 Support 
 https://technet.microsoft.com/en-us/library/aa996719(v=exchg.160).aspx
 
+Team Blog Articles 
+
+.NET Framework 4.7 and Exchange Server
+https://blogs.technet.microsoft.com/exchange/2017/06/13/net-framework-4-7-and-exchange-server/
+
+Released: December 2016 Quarterly Exchange Updates
+https://blogs.technet.microsoft.com/exchange/2016/12/13/released-december-2016-quarterly-exchange-updates/
+
+Released: September 2016 Quarterly Exchange Updates
+https://blogs.technet.microsoft.com/exchange/2016/09/20/released-september-2016-quarterly-exchange-updates/
+
+Released: June 2016 Quarterly Exchange Updates
+https://blogs.technet.microsoft.com/exchange/2016/06/21/released-june-2016-quarterly-exchange-updates/
+
+
 Summary:
 Exchange 2013 CU15 & 2016 CU4 .Net Framework 4.6.2 Supported on All OSs
 Exchange 2016 CU3 .NET Framework 4.6.2 Supported on Windows 2016 OS - however, stuff is broke on this OS. 
@@ -905,12 +1028,21 @@ param(
         }
         elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
         {
-            Write-VerboseOutput("Current version of .NET equals 4.6 while the recommended version of .NET is greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6")
+            Write-VerboseOutput("Current version of .NET equals 4.6 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
             [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
             $NetCheckObj.DisplayWording = "On .NET 4.6 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
         }
+		elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6d1 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
+		{
+			Write-VerboseOutput("Current version of .NET equals 4.6.1 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6.1 without the hotfix")
+			$NetCheckObj.Supported = $false
+            $NetCheckObj.RecommendedNetVersion = $false
+			[HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+			$NetCheckObj.DisplayWording = "On .NET 4.6.1 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
+		}
+
         #this catch is for when you are on a version of exchange where we can be on let's say 4.5.2 without fix, but there isn't a better option available.
         elseif($CurrentNetVersion -lt $MinSupportNetVersion -and $MinSupportNetVersion -eq $RecommendedNetVersion)
         {
@@ -964,8 +1096,8 @@ param(
         ([HealthChecker.ExchangeVersion]::Exchange2013)
             {
                 Write-VerboseOutput("Exchange 2013 Detected...checking .NET version")
-
-                if($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU12) 
+				#change -lt to -le as we don't support CU12 with 4.6.1 
+                if($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU12) 
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
                 }
@@ -1609,6 +1741,20 @@ param(
         Write-Red("`tPower Plan: " + $HealthExSvrObj.OSVersion.PowerPlanSetting + " --- Error: High Performance Power Plan is recommended")
     }
 
+	#####################
+	#Http Proxy Settings#
+	#####################
+
+	Write-Grey("Http Porxy Setting:")
+	if($HealthExSvrObj.OSVersion.HttpProxy -eq "<None>")
+	{
+		Write-Green("`tSetting: {0}" -f $HealthExSvrObj.OSVersion.HttpProxy)
+	}
+	else
+	{
+		Write-Yellow("`tSetting: {0}" -f $HealthExSvrObj.OSVersion.HttpProxy)
+	}
+
     ##################
     #Network Settings#
     ##################
@@ -1621,7 +1767,7 @@ param(
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate) -lt [int]-365)
+                if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
                 {
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
                 }
@@ -1776,7 +1922,7 @@ param(
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
-        Write-Yellow("The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $KeepAliveValue + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Yellow("The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
     }
     else
     {
@@ -1862,8 +2008,13 @@ param(
 
 Function Main {
     
-    
-
+    if(-not (Is-Admin))
+	{
+		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
+		sleep 2;
+		exit
+	}
+	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
