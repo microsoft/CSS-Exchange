@@ -400,6 +400,16 @@ Function Load-ExShell {
 	}
 }
 
+Function Is-Admin {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
+    If( $currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
+        return $true
+    }
+    else {
+        return $false
+    }
+}
+
 Function Get-OperatingSystemVersion {
 param(
 [Parameter(Mandatory=$true)][string]$OS_Version
@@ -1998,7 +2008,12 @@ param(
 
 Function Main {
     
-    
+    if(-not (Is-Admin))
+	{
+		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
+		sleep 2;
+		exit
+	}
 	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
