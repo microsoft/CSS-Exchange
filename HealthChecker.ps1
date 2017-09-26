@@ -1956,12 +1956,16 @@ param(
         Write-Grey("`tMegacycles Per Core: " + $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore)
     }
     
-    #Memory Going to check for greater than 96GB of memory
+    #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
-    if($HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
     {
-        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
+     $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
+    {
+        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
     }
     else
     {
