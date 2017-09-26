@@ -285,7 +285,7 @@ Add-Type -TypeDefinition @"
             public string LinkSpeed;    //speed of the adapter 
             public string DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
-            public string RSSEanbled;  //bool to determine if RSS is enabled 
+            public string RSSEnabled;  //bool to determine if RSS is enabled 
             public string Name;        //name of the adapter 
             public object NICObject; //objec to store the adapter info 
              
@@ -478,13 +478,21 @@ param(
         foreach($adapter in $NetworkCards)
         {
             Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
-            $RSS_Settings = $adapter | Get-netAdapterRss
             [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+            try
+            {
+                $RSS_Settings = $adapter | Get-netAdapterRss -ErrorAction Stop
+                $nicObject.RSSEnabled = $RSS_Settings.Enabled
+            }
+            catch 
+            {
+                Write-Yellow("Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
+                $nicObject.RSSEnabled = "NoRSS"
+            }
             $nicObject.Description = $adapter.InterfaceDescription
             $nicObject.DriverDate = $adapter.DriverDate
             $nicObject.DriverVersion = $adapter.DriverVersionString
             $nicObject.LinkSpeed = (($adapter.Speed)/1000000).ToString() + " Mbps"
-            $nicObject.RSSEanbled = $RSS_Settings.Enabled
             $nicObject.Name = $adapter.Name
             $nicObject.NICObject = $adapter 
             $aNICObjects += $nicObject
@@ -1809,7 +1817,11 @@ param(
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualized hardware")
             }
-            if($adapter.RSSEanbled)
+            if($adapter.RSSEnabled -eq "NoRSS")
+            {
+                Write-Yellow("`t`tRSS: No RSS Feature Detected.")
+            }
+            elseif($adapter.RSSEnabled)
             {
                 Write-Green("`t`tRSS: Enabled")
             }
