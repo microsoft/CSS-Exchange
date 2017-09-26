@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.10"
+$healthCheckerVersion = "2.11"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -285,7 +285,7 @@ Add-Type -TypeDefinition @"
             public string LinkSpeed;    //speed of the adapter 
             public string DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
-            public string RSSEanbled;  //bool to determine if RSS is enabled 
+            public string RSSEnabled;  //bool to determine if RSS is enabled 
             public string Name;        //name of the adapter 
             public object NICObject; //objec to store the adapter info 
              
@@ -478,13 +478,21 @@ param(
         foreach($adapter in $NetworkCards)
         {
             Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
-            $RSS_Settings = $adapter | Get-netAdapterRss
             [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+            try
+            {
+                $RSS_Settings = $adapter | Get-netAdapterRss -ErrorAction Stop
+                $nicObject.RSSEnabled = $RSS_Settings.Enabled
+            }
+            catch 
+            {
+                Write-Yellow("Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
+                $nicObject.RSSEnabled = "NoRSS"
+            }
             $nicObject.Description = $adapter.InterfaceDescription
             $nicObject.DriverDate = $adapter.DriverDate
             $nicObject.DriverVersion = $adapter.DriverVersionString
             $nicObject.LinkSpeed = (($adapter.Speed)/1000000).ToString() + " Mbps"
-            $nicObject.RSSEanbled = $RSS_Settings.Enabled
             $nicObject.Name = $adapter.Name
             $nicObject.NICObject = $adapter 
             $aNICObjects += $nicObject
@@ -1809,7 +1817,11 @@ param(
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualized hardware")
             }
-            if($adapter.RSSEanbled)
+            if($adapter.RSSEnabled -eq "NoRSS")
+            {
+                Write-Yellow("`t`tRSS: No RSS Feature Detected.")
+            }
+            elseif($adapter.RSSEnabled)
             {
                 Write-Green("`t`tRSS: Enabled")
             }
@@ -1944,12 +1956,20 @@ param(
         Write-Grey("`tMegacycles Per Core: " + $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore)
     }
     
-    #Memory Going to check for greater than 96GB of memory
+    #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
-    if($HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
+        $HealthExSvrObj.HardwareInfo.TotalMemory -gt 206158430208)
     {
-        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
+        Write-Yellow("`tPhysical Memory: {0} GB --- We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory)
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
+     $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
+    {
+        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
     }
     else
     {
