@@ -1203,12 +1203,23 @@ param(
 
 Function Get-ExchangeUpdates {
 param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
+[Parameter(Mandatory=$true)][string]$Machine_Name,
+[Parameter(Mandatory=$true)][HealthChecker.ExchangeVersion]$ExchangeVersion
 )
     Write-VerboseOutput("Calling: Get-ExchangeUpdates")
     Write-VerboseOutput("Passed: " + $Machine_Name)
+    Write-VerboseOutput("Passed: {0}" -f $ExchangeVersion.ToString())
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey= $Reg.OpenSubKey("SOFTWARE\Microsoft\Updates\Exchange 2013\SP1")
+    $RegLocation = $null 
+    if([HealthChecker.ExchangeVersion]::Exchange2013 -eq $ExchangeVersion)
+    {
+        $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2013"
+    }
+    else 
+    {
+        $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2016"
+    }
+    $RegKey= $Reg.OpenSubKey($RegLocation)
     if($RegKey -ne $null)
     {
         $IU = $RegKey.GetSubKeyNames()
@@ -1218,7 +1229,7 @@ param(
             $fixes = @()
             foreach($key in $IU)
             {
-                $IUKey = $Reg.OpenSubKey("SOFTWARE\Microsoft\Updates\Exchange 2013\SP1\" + $key)
+                $IUKey = $Reg.OpenSubKey($RegLocation + "\" + $key)
                 $IUName = $IUKey.GetValue("PackageName")
                 Write-VerboseOutput("Found: " + $IUName)
                 $fixes += $IUName
@@ -1308,7 +1319,7 @@ param(
             Write-Yellow "couldn't get acturate information on server: $Machine_Name"
         }
 
-        $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name
+        $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
     }
     elseif($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -1666,6 +1677,16 @@ param(
     Write-Grey("`tOperating System: " + $HealthExSvrObj.OSVersion.OperatingSystemName)
     Write-Grey("`tExchange: " + $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName)
     Write-Grey("`tBuild Number: " + $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber)
+    #If IU or Security Hotfix detected
+    if($HealthExSvrObj.ExchangeInformation.KBsInstalled -ne $null)
+    {
+        Write-Grey("`tExchange IU or Security Hotfix Detected")
+        foreach($kb in $HealthExSvrObj.ExchangeInformation.KBsInstalled)
+        {
+            Write-Yellow("`t`t{0}" -f $kb)
+        }
+    }
+
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
         $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
