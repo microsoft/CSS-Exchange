@@ -1892,12 +1892,12 @@ param(
         if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
             Write-Yellow("`tHyper-Threading Enabled: Yes")
-            Write-Red("`tMore than 24 logical cores detected.  Please disable Hyper-Threading.  For details see`r`n`thttp://http://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
+            Write-Red("`tMore than 24 logical cores detected.  Please disable Hyper-Threading.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
         }
         else
         {
             Write-Green("`tHyper-Threading Enabled: No")
-            Write-Red("`tMore than 24 physical cores detected.  This is not recommended.  For details see`r`n`thttp://http://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
+            Write-Red("`tMore than 24 physical cores detected.  This is not recommended.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
         }
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
