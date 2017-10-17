@@ -2064,7 +2064,7 @@ param(
                 if($Hotfixes.Contains($check) -eq $false)
                 {
                     $hotfixesneeded = $true
-                    Write-Yellow("Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues.")
+                    Write-Yellow("Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues. --- Note that this KB update may be superseded by another KB update. To verify, check the file versions in the KB against your machine. This is a temporary workaround till the script gets properly updated for all KB checks.")
                 }
             }
             if($hotfixesneeded -eq $false)
