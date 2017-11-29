@@ -11,10 +11,13 @@ Prior to collecting the data, we check to make sure that there is at least 15GB 
 Examples: 
 
 This cmdlet will collect all default logs of the local Exchange Server and store them in the default location of “C:\MS_Logs_Collection” 
+
 *.\ExchangeLogCollector.ps1 -AllPossibleLogs*
 
 This cmdlet will collect all relevant data regarding database failovers from server EXCH1 and EXCH2 and store them at Z:\Data\Logs. Note: at the end of the collection, the script will copy over the data to the local host execution server to make data collection even easier. 
+
 *.\ExchangeLogCollector.ps1 -DatabaseFailoverIssue -Servers EXCH1,EXCH2 -FilePath Z:\Data\Logs*
 
 This cmdlet will collect all relevant data regarding IIS Logs (within the last 3 days by default) and all RPC type logs from the servers EXCH1 and EXCH2 and store them at the default location of “C:\MS_Logs_Collection”
+
 *.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs*
