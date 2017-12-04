@@ -1844,7 +1844,7 @@ param(
 
                 if($Script:this_ServerObject.CAS)
                 {
-                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\HttpProxy\Ecp"), ($Script:RootCopyToDirectory + "\ECP_Proxy_Logs"))
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\HttpProxy\Mapi"), ($Script:RootCopyToDirectory + "\MAPI_Proxy_Logs"))
                     if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
                     else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
                 }
