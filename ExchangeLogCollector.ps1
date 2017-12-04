@@ -1850,6 +1850,22 @@ param(
                 }
             }
 
+            if($PassedInfo.ECPLogs)
+            {
+                if($Script:this_ServerObject.Mailbox)
+                {
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\ECP"), ($Script:RootCopyToDirectory + "\ECP_Logs"))
+                    if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                    else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                }
+                if($Script:this_ServerObject.CAS)
+                {
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\HttpProxy\Ecp"), ($Script:RootCopyToDirectory + "\ECP_Proxy_Logs"))
+                    if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                    else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                }
+            }
+
             if($Script:this_ServerObject.Mailbox -and $PassedInfo.SearchLogs)
             {
                 $info = ($copyInfo -f ($Script:this_ExBin + "Search\Ceres\Diagnostics\Logs"), ($Script:RootCopyToDirectory + "\Search_Diag_Logs"))
