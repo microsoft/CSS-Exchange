@@ -1728,7 +1728,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
@@ -1742,7 +1742,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB")
+            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
         }
     }
     #Exchange 2013 with page file size that should match total memory plus 10 MB 
@@ -1755,7 +1755,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
