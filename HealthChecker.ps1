@@ -199,6 +199,7 @@ Add-Type -TypeDefinition @"
             public string FriendlyName;  //string of the friendly name 
             public bool SupportedVersion; //bool to determine if the .net framework is on a supported build for the version of Exchange that we are running 
             public string DisplayWording; //used to display what is going on
+            public int NetRegValue; //store the registry value 
         }
 
         public class NetVersionCheckObject
@@ -800,6 +801,7 @@ param(
         $versionObject.FriendlyName = "Unknown" 
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Unknown
     }
+    $versionObject.NetRegValue = $NetVersionKey
 
 
     Write-VerboseOutput("Returned: " + $versionObject.FriendlyName)
@@ -1765,9 +1767,17 @@ param(
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
     {
         Write-Grey(".NET Framework:")
-        if($HealthExSvrObj.NetVersionInfo.SupportedVersion)
+        
+        if($HealthExSvrObj.NetVersionInfo.SupportedVersion -or 
+            ($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802))
         {
-            if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
+            if($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802)
+            {
+                Write-Green("`tVersion: Windows Server 2016 .NET 4.6.2")
+            }
+            elseif($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
             {
                 Write-Green("`tVersion: " + $HealthExSvrObj.NetVersionInfo.FriendlyName)
             }
@@ -1778,7 +1788,7 @@ param(
         }
         else
         {
-            Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
+                Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
         }
 
     }
