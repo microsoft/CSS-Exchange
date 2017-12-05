@@ -487,6 +487,7 @@ param(
             }
             catch 
             {
+                $Script:iErrorExcluded++
                 Write-Yellow("Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -569,6 +570,7 @@ param(
 
 	catch
 	{
+        $Script:iErrorExcluded++
 		Write-Yellow("Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -603,6 +605,8 @@ param(
     }
     catch
     {
+        Write-VerboseOutput("Unable to get power plan from the server")
+        $Script:iErrorExcluded++
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -711,6 +715,7 @@ param(
 	}
 	catch
 	{
+        $Script:iErrorExcluded++
 		Write-Red("Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -2132,6 +2137,7 @@ Function Main {
         exit 
     }
     $iErrorStartCount = $Error.Count #useful for debugging 
+    $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
     $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     Write-VerboseOutput("Calling: main Script Execution")
@@ -2169,14 +2175,25 @@ Function Main {
     if($Error.Count -gt $iErrorStartCount)
     {
         Write-Grey(" ");Write-Grey(" ")
-
-        $index = 0; 
-        "Errors that occurred" | Out-File ($OutputFullPath) -Append
-        while($index -lt ($Error.Count - $iErrorStartCount))
-        {
-            $Error[$index++] | Out-File ($OutputFullPath) -Append
+        Function Write-Errors {
+            $index = 0; 
+            "Errors that occurred" | Out-File ($OutputFullPath) -Append
+            while($index -lt ($Error.Count - $iErrorStartCount))
+            {
+                $Error[$index++] | Out-File ($OutputFullPath) -Append
+            }
         }
-        Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+        #Now to determine if the errors are expected or not 
+        if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
+        {
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+            Write-Errors
+        }
+        elseif($Script:VerboseEnabled)
+        {
+            Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
+            Write-Errors
+        }
         
     }
     Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
