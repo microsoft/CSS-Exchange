@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.12"
+$healthCheckerVersion = "2.13"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -199,6 +199,7 @@ Add-Type -TypeDefinition @"
             public string FriendlyName;  //string of the friendly name 
             public bool SupportedVersion; //bool to determine if the .net framework is on a supported build for the version of Exchange that we are running 
             public string DisplayWording; //used to display what is going on
+            public int NetRegValue; //store the registry value 
         }
 
         public class NetVersionCheckObject
@@ -222,7 +223,8 @@ Add-Type -TypeDefinition @"
 			Net4d6d1 = 394271,
             Net4d6d1wFix = 394294,
 			Net4d6d2 = 394806,
-            Net4d7 = 460805
+            Net4d7 = 460805,
+            Net4d7d1 = 461310
         }
 
         public class HardwareObject
@@ -273,10 +275,25 @@ Add-Type -TypeDefinition @"
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
+            public System.Array HotFixInfo;     //objec to store hotfix information
 			public string HttpProxy;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
 
+        }
+
+        public class HotfixObject
+        {
+            public string KBName; //KB that we are using to check against 
+            public System.Array FileInformation; //store FileVersion information
+            public bool ValidFileLevelCheck;  
+        }
+
+        public class FileVersionCheckObject 
+        {
+            public string FriendlyFileName;
+            public string FullPath; 
+            public string BuildVersion;
         }
 
         public class NICInformationObject 
@@ -486,6 +503,7 @@ param(
             }
             catch 
             {
+                $Script:iErrorExcluded++
                 Write-Yellow("Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -568,6 +586,7 @@ param(
 
 	catch
 	{
+        $Script:iErrorExcluded++
 		Write-Yellow("Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -586,6 +605,153 @@ param(
 
 }
 
+Function New-FileLevelHotfixObject {
+param(
+[parameter(Mandatory=$true)][string]$FriendlyName,
+[parameter(Mandatory=$true)][string]$FullFilePath, 
+[Parameter(Mandatory=$true)][string]$BuildVersion
+)
+    #Write-VerboseOutput("Calling Function: New-FileLevelHotfixObject")
+    #Write-VerboseOutput("Passed - FriendlyName: {0} FullFilePath: {1} BuldVersion: {2}" -f $FriendlyName, $FullFilePath, $BuildVersion)
+    [HealthChecker.FileVersionCheckObject]$FileVersion_obj = New-Object HealthChecker.FileVersionCheckObject
+    $FileVersion_obj.FriendlyFileName = $FriendlyName
+    $FileVersion_obj.FullPath = $FullFilePath
+    $FileVersion_obj.BuildVersion = $BuildVersion
+    return $FileVersion_obj
+}
+
+Function Get-HotFixListInfo{
+param(
+[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
+)
+    $hotfix_objs = @()
+    switch ($OS_Version)
+    {
+        ([HealthChecker.OSVersionName]::Windows2008R2)
+        {
+            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            $hotfix_obj.KBName = "KB3004383"
+            $hotfix_obj.ValidFileLevelCheck = $true
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Appidapi.dll" -FullFilePath "C:\Windows\SysWOW64\Appidapi.dll" -BuildVersion "6.1.7601.22823")
+            #For this check, we are only going to check for one file, becuase there are a ridiculous amount in this KB. Hopefullly we don't see many false positives 
+            $hotfix_objs += $hotfix_obj
+            return $hotfix_objs
+        }
+        ([HealthChecker.OSVersionName]::Windows2012R2)
+        {
+            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            $hotfix_obj.KBName = "KB3041832"
+            $hotfix_obj.ValidFileLevelCheck = $true
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Hwebcore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Hwebcore.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Iiscore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Iiscore.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "W3dt.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\W3dt.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_objs += $hotfix_obj
+            
+            return $hotfix_objs
+        }
+        ([HealthChecker.OSVersionName]::Windows2016)
+        {
+            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            $hotfix_obj.KBName = "KB3206632"
+            $hotfix_obj.ValidFileLevelCheck = $false
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "clusport.sys" -FullFilePath "C:\Windows\System32\drivers\clusport.sys" -BuildVersion "10.0.14393.576")
+            $hotfix_objs += $hotfix_obj
+            return $hotfix_objs
+        }
+    }
+
+    return $null
+}
+
+Function Remote-GetFileVersionInfo {
+param(
+[Parameter(Mandatory=$true)][object]$PassedObject 
+)
+    $KBsInfo = $PassedObject.KBCheckList
+    $ReturnList = @()
+    foreach($KBInfo in $KBsInfo)
+    {
+        $main_obj = New-Object PSCustomObject
+        $main_obj | Add-Member -MemberType NoteProperty -Name KBName -Value $KBInfo.KBName 
+        $kb_info_List = @()
+        foreach($FilePath in $KBInfo.KBInfo)
+        {
+            $obj = New-Object PSCustomObject
+            $obj | Add-Member -MemberType NoteProperty -Name FriendlyName -Value $FilePath.FriendlyName
+            $obj | Add-Member -MemberType NoteProperty -Name FilePath -Value $FilePath.FilePath
+            $obj | Add-Member -MemberType NoteProperty -Name Error -Value $false
+            if(Test-Path -Path $FilePath.FilePath)
+            {
+            $info = Get-childItem $FilePath.FilePath
+            $obj | Add-Member -MemberType NoteProperty -Name ChildItemInfo -Value $info 
+            $buildVersion = "{0}.{1}.{2}.{3}" -f $info.VersionInfo.FileMajorPart, $info.VersionInfo.FileMinorPart, $info.VersionInfo.FileBuildPart, $info.VersionInfo.FilePrivatePart
+            $obj | Add-Member -MemberType NoteProperty -Name BuildVersion -Value $buildVersion
+            
+            }
+            else 
+            {
+                $obj.Error = $true
+            }
+            $kb_info_List += $obj
+        }
+        $main_obj | Add-Member -MemberType NoteProperty -Name KBInfo -Value $kb_info_List
+        $ReturnList += $main_obj
+    }
+
+    return $ReturnList
+}
+
+Function Get-RemoteHotFixInforamtion {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name,
+[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
+)
+    $HotfixListObjs = Get-HotFixListInfo -OS_Version $OS_Version
+    if($HotfixListObjs -ne $null)    
+    {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "stop"
+        try 
+        {
+            $script_block = ${Function:Remote-GetFileVersionInfo}
+            $kbList = @() 
+            $results = @()
+            foreach($HotfixListObj in $HotfixListObjs)
+            {
+                #HotfixListObj contains all files that we should check for that particluar KB to make sure we are on the correct build 
+                $kb_obj = New-Object PSCustomObject
+                $kb_obj | Add-Member -MemberType NoteProperty -Name KBName -Value $HotfixListObj.KBName
+                $list = @()
+                foreach($FileCheck in $HotfixListObj.FileInformation)
+                {
+                    $obj = New-Object PSCustomObject
+                    $obj | Add-Member -MemberType NoteProperty -Name FilePath -Value $FileCheck.FullPath
+                    $obj | Add-Member -MemberType NoteProperty -Name FriendlyName -Value $FileCheck.FriendlyFileName
+                    $list += $obj
+                    #$results += Invoke-Command -ComputerName $Machine_Name -ScriptBlock $script_block -ArgumentList $FileCheck.FullPath
+                }
+                $kb_obj | Add-Member -MemberType NoteProperty -Name KBInfo -Value $list   
+                $kbList += $kb_obj             
+            }
+            $argList = New-Object PSCustomObject
+            $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
+            
+            $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $script_block -ArgumentList $argList
+            
+            return $results
+        }
+        catch 
+        {
+            $Script:iErrorExcluded++ 
+        }
+        finally
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+        
+    }
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -602,6 +768,8 @@ param(
     }
     catch
     {
+        Write-VerboseOutput("Unable to get power plan from the server")
+        $Script:iErrorExcluded++
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -633,7 +801,8 @@ param(
     $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
     $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
-    $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue)
+    $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
+    $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
 
@@ -710,6 +879,7 @@ param(
 	}
 	catch
 	{
+        $Script:iErrorExcluded++
 		Write-Red("Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -790,16 +960,22 @@ param(
         $versionObject.FriendlyName = "4.6.2"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d2
     }
-	elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7)
+	elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7d1))
 	{
 		$versionObject.FriendlyName = "4.7"
 		$versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7
-	}
+    }
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d1)
+    {
+        $versionObject.FriendlyName = "4.7.1"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
+    }
     else
     {
         $versionObject.FriendlyName = "Unknown" 
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Unknown
     }
+    $versionObject.NetRegValue = $NetVersionKey
 
 
     Write-VerboseOutput("Returned: " + $versionObject.FriendlyName)
@@ -1135,15 +1311,15 @@ param(
             {
                 Write-VerboseOutput("Exchange 2013 Detected...checking .NET version")
 				#change -lt to -le as we don't support CU12 with 4.6.1 
-                if($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU12) 
+                if($exBuildObj.CU -le ([HealthChecker.ExchangeCULevel]::CU12))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
                 }
-                elseif($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU15)
+                elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU15))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix
                 }
-                elseif($exBuildObj.CU -eq [HealthChecker.ExchangeCULevel]::CU15)
+                elseif($exBuildObj.CU -eq ([HealthChecker.ExchangeCULevel]::CU15))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU16 we will require .NET 4.6.2 before you can install this version of Exchange." 
@@ -1404,6 +1580,61 @@ param(
 
 }
 
+#This function will return a true if the version level is the same or greater than the CheckVersionObject - keeping it simple so it can be done remotely as well 
+Function Get-BuildLevelVersionCheck {
+param(
+[Parameter(Mandatory=$true)][object]$ActualVersionObject,
+[Parameter(Mandatory=$true)][object]$CheckVersionObject,
+[Parameter(Mandatory=$false)][bool]$DebugFunction = $false
+)
+Add-Type -TypeDefinition @"
+public enum VersionDetection 
+{
+    Unknown,
+    Lower,
+    Equal,
+    Greater
+}
+"@
+    #unsure of how we do build numbers for all types of DLLs on the OS, but we are going to try to cover all bases here and it is up to the caller to make sure that we are passing the correct values to be checking 
+    #FileMajorPart
+    if($ActualVersionObject.FileMajorPart -lt $CheckVersionObject.FileMajorPart){$FileMajorPart = [VersionDetection]::Lower}
+    elseif($ActualVersionObject.FileMajorPart -eq $CheckVersionObject.FileMajorPart){$FileMajorPart = [VersionDetection]::Equal}
+    elseif($ActualVersionObject.FileMajorPart -gt $CheckVersionObject.FileMajorPart){$FileMajorPart = [VersionDetection]::Greater}
+    else{$FileMajorPart =  [VersionDetection]::Unknown}
+
+    if($ActualVersionObject.FileMinorPart -lt $CheckVersionObject.FileMinorPart){$FileMinorPart = [VersionDetection]::Lower}
+    elseif($ActualVersionObject.FileMinorPart -eq $CheckVersionObject.FileMinorPart){$FileMinorPart = [VersionDetection]::Equal}
+    elseif($ActualVersionObject.FileMinorPart -gt $CheckVersionObject.FileMinorPart){$FileMinorPart = [VersionDetection]::Greater}
+    else{$FileMinorPart = [VersionDetection]::Unknown}
+
+    if($ActualVersionObject.FileBuildPart -lt $CheckVersionObject.FileBuildPart){$FileBuildPart = [VersionDetection]::Lower}
+    elseif($ActualVersionObject.FileBuildPart -eq $CheckVersionObject.FileBuildPart){$FileBuildPart = [VersionDetection]::Equal}
+    elseif($ActualVersionObject.FileBuildPart -gt $CheckVersionObject.FileBuildPart){$FileBuildPart = [VersionDetection]::Greater}
+    else{$FileBuildPart = [VersionDetection]::Unknown}
+
+    
+    if($ActualVersionObject.FilePrivatePart -lt $CheckVersionObject.FilePrivatePart){$FilePrivatePart = [VersionDetection]::Lower}
+    elseif($ActualVersionObject.FilePrivatePart -eq $CheckVersionObject.FilePrivatePart){$FilePrivatePart = [VersionDetection]::Equal}
+    elseif($ActualVersionObject.FilePrivatePart -gt $CheckVersionObject.FilePrivatePart){$FilePrivatePart = [VersionDetection]::Greater}
+    else{$FilePrivatePart = [VersionDetection]::Unknown}
+
+    if($DebugFunction)
+    {
+        Write-VerboseOutput("ActualVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $ActualVersionObject.FileMajorPart, 
+        $ActualVersionObject.FileMinorPart, $ActualVersionObject.FileBuildPart, $ActualVersionObject.FilePrivatePart)
+        Write-VerboseOutput("CheckVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $CheckVersionObject.FileMajorPart,
+        $CheckVersionObject.FileMinorPart, $CheckVersionObject.FileBuildPart, $CheckVersionObject.FilePrivatePart)
+        Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
+    }
+
+    if($FileMajorPart -eq [VersionDetection]::Greater){return $true}
+    if($FileMinorPart -eq [VersionDetection]::Greater){return $true}
+    if($FileBuildPart -eq [VersionDetection]::Greater){return $true}
+    if($FilePrivatePart -ge [VersionDetection]::Equal){return $true}
+
+    return $false
+}
 
 Function Get-CASLoadBalancingReport {
 
@@ -1641,6 +1872,190 @@ param(
     Return $ServerLmCompatObject
 }
 
+Function Display-KBHotfixCheckFailSafe {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+)
+
+    Write-Grey("`r`nHotfix Check:")
+    $2008HotfixList = $null
+  $2008R2HotfixList = @("KB3004383")
+  $2012HotfixList = $null
+  $2012R2HotfixList = @("KB3041832")
+  $2016HotfixList = @("KB3206632")
+  
+  
+  Function Check-Hotfix 
+  {
+      param(
+      [Parameter(Mandatory=$true)][Array]$Hotfixes,
+      [Parameter(Mandatory=$true)][Array]$CheckListHotFixes
+      )
+      $hotfixesneeded = $false
+      foreach($check in $CheckListHotFixes)
+      {
+          if($Hotfixes.Contains($check) -eq $false)
+          {
+              $hotfixesneeded = $true
+              Write-Yellow("Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues. --- Note that this KB update may be superseded by another KB update. To verify, check the file versions in the KB against your machine. This is a temporary workaround till the script gets properly updated for all KB checks.")
+          }
+      }
+      if($hotfixesneeded -eq $false)
+      {
+          Write-Grey("Hotfix check complete.  No action required.")
+      }
+  }
+
+  switch($HealthExSvrObj.OSVersion.OSVersion) 
+  {
+      ([HealthChecker.OSVersionName]::Windows2008)
+      {
+          if($2008HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2008HotfixList}
+      }
+      ([HealthChecker.OSVersionName]::Windows2008R2)
+      {
+          if($2008R2HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2008R2HotfixList}
+      }
+      ([HealthChecker.OSVersionName]::Windows2012)
+      {
+          if($2012HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2012HotfixList}
+      }
+      ([HealthChecker.OSVersionName]::Windows2012R2)
+      {
+          if($2012R2HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2012R2HotfixList}
+      }
+      ([HealthChecker.OSVersionName]::Windows2016)
+      {
+          if($2016HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2016HotfixList}
+      }
+
+      default {}
+  }
+}
+
+Function Get-BuildVersionObjectFromString {
+param(
+[Parameter(Mandatory=$true)][string]$BuildString 
+)
+    $aBuild = $BuildString.Split(".")
+    if($aBuild.Count -ge 4)
+    {
+        $obj = New-Object PSCustomObject 
+        $obj | Add-Member -MemberType NoteProperty -Name FileMajorPart -Value ([System.Convert]::ToInt32($aBuild[0]))
+        $obj | Add-Member -MemberType NoteProperty -Name FileMinorPart -Value ([System.Convert]::ToInt32($aBuild[1]))
+        $obj | Add-Member -MemberType NoteProperty -Name FileBuildPart -Value ([System.Convert]::ToInt32($aBuild[2]))
+        $obj | Add-Member -MemberType NoteProperty -Name FilePrivatePart -Value ([System.Convert]::ToInt32($aBuild[3]))
+        return $obj 
+    }
+    else 
+    {
+        Return "Error"    
+    }
+}
+
+Function Display-KBHotfixCheck {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+)
+    Write-VerboseOutput("Calling: Display-KBHotfixCheck")
+    Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
+    
+    $HotFixInfo = $HealthExSvrObj.OSVersion.HotFixInfo
+    $KBsToCheckAgainst = Get-HotFixListInfo -OS_Version $HealthExSvrObj.OSVersion.OSVersion 
+    $FailSafe = $false
+    if($KBsToCheckAgainst -ne $null)
+    {
+        foreach($KB in $HotFixInfo)
+        {
+            $KBName = $KB.KBName 
+            foreach($KBInfo in $KB.KBInfo)
+            {
+                if(-not ($KBInfo.Error))
+                {
+                    #First need to find the correct KB to compare against 
+                    $i = 0 
+                    $iMax = $KBsToCheckAgainst.Count 
+                    while($i -lt $iMax)
+                    {
+                        if($KBsToCheckAgainst[$i].KBName -eq $KBName)
+                        {
+                            break; 
+                        }
+                        else 
+                        {
+                            $i++ 
+                        }
+                    }
+                    $allPass = $true 
+                    foreach($CheckFile in $KBInfo)
+                    {
+                        $ii = 0 
+                        $iMax = $KBsToCheckAgainst[$i].FileInformation.Count 
+                        while($ii -lt $iMax)
+                        {
+                            if($KBsToCheckAgainst[$i].FileInformation[$ii].FriendlyFileName -eq $CheckFile.FriendlyName)
+                            {
+                                break; 
+                            }
+                            else 
+                            {
+                                $ii++    
+                            }
+                        }
+                        
+                        $ServerBuild = Get-BuildVersionObjectFromString -BuildString $CheckFile.BuildVersion 
+                        $CheckVersion = Get-BuildVersionObjectFromString -BuildString $KBsToCheckAgainst[$i].FileInformation[$ii].BuildVersion
+                        if(-not (Get-BuildLevelVersionCheck -ActualVersionObject $ServerBuild -CheckVersionObject $CheckVersion -DebugFunction $false))
+                        {
+                            $allPass = $false
+                        }
+
+                    }
+                    
+                    $KBInfo | Add-Member -MemberType NoteProperty -Name Passed -Value $allPass   
+                }
+                else 
+                {
+                    #If an error has occurred, that means we failed to find the files 
+                    $FailSafe = $true 
+                    break;    
+                }
+            }
+        }
+        if($FailSafe)
+        {
+            Display-KBHotfixCheckFailSafe -HealthExSvrObj $HealthExSvrObj
+        }
+        else 
+        {
+            Write-Grey("`r`nHotfix Check:")
+            foreach($KBInfo in $HotFixInfo)
+            {
+                
+                $allPass = $true 
+                foreach($KBs in $KBInfo.KBInfo)
+                {
+                    if(-not ($KBs.Passed))
+                    {
+                        $allPass = $false
+                    }
+                }
+                $dString = if($allPass){"is Installed"}else{"is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues."}
+                if($allPass)
+                {
+                    Write-Grey("{0} {1}" -f $KBInfo.KBName, ($dString))
+                }
+                else 
+                {
+                    Write-Yellow("{0} {1}" -f $KBInfo.KBName, ($dString))    
+                }
+                
+            }
+        }
+    }
+
+}
+
 Function Display-ResultsToScreen {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -1726,7 +2141,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
@@ -1740,7 +2155,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB")
+            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
         }
     }
     #Exchange 2013 with page file size that should match total memory plus 10 MB 
@@ -1753,7 +2168,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
@@ -1765,9 +2180,17 @@ param(
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
     {
         Write-Grey(".NET Framework:")
-        if($HealthExSvrObj.NetVersionInfo.SupportedVersion)
+        
+        if($HealthExSvrObj.NetVersionInfo.SupportedVersion -or 
+            ($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802))
         {
-            if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
+            if($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802)
+            {
+                Write-Green("`tVersion: Windows Server 2016 .NET 4.6.2")
+            }
+            elseif($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
             {
                 Write-Green("`tVersion: " + $HealthExSvrObj.NetVersionInfo.FriendlyName)
             }
@@ -1778,7 +2201,7 @@ param(
         }
         else
         {
-            Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
+                Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
         }
 
     }
@@ -2044,61 +2467,7 @@ param(
     
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        Write-Grey("`r`nHotfix Check:")
-      	$2008HotfixList = $null
-	    $2008R2HotfixList = @("KB3004383")
-	    $2012HotfixList = $null
-	    $2012R2HotfixList = @("KB3041832")
-        $2016HotfixList = @("KB3206632")
-	    
-        
-        Function Check-Hotfix 
-        {
-            param(
-            [Parameter(Mandatory=$true)][Array]$Hotfixes,
-            [Parameter(Mandatory=$true)][Array]$CheckListHotFixes
-            )
-            $hotfixesneeded = $false
-            foreach($check in $CheckListHotFixes)
-            {
-                if($Hotfixes.Contains($check) -eq $false)
-                {
-                    $hotfixesneeded = $true
-                    Write-Yellow("Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues. --- Note that this KB update may be superseded by another KB update. To verify, check the file versions in the KB against your machine. This is a temporary workaround till the script gets properly updated for all KB checks.")
-                }
-            }
-            if($hotfixesneeded -eq $false)
-            {
-                Write-Grey("Hotfix check complete.  No action required.")
-            }
-        }
-
-        switch($HealthExSvrObj.OSVersion.OSVersion) 
-        {
-            ([HealthChecker.OSVersionName]::Windows2008)
-            {
-                if($2008HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2008HotfixList}
-            }
-            ([HealthChecker.OSVersionName]::Windows2008R2)
-            {
-                if($2008R2HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2008R2HotfixList}
-            }
-            ([HealthChecker.OSVersionName]::Windows2012)
-            {
-                if($2012HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2012HotfixList}
-            }
-            ([HealthChecker.OSVersionName]::Windows2012R2)
-            {
-                if($2012R2HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2012R2HotfixList}
-            }
-            ([HealthChecker.OSVersionName]::Windows2016)
-            {
-                if($2016HotfixList -ne $null) {Check-Hotfix -Hotfixes $HealthExSvrObj.OSVersion.HotFixes.Hotfixid -CheckListHotFixes $2016HotfixList}
-            }
-
-            default {}
-        }
-
+        Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj
     }
 
 
@@ -2122,6 +2491,7 @@ Function Main {
         exit 
     }
     $iErrorStartCount = $Error.Count #useful for debugging 
+    $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
     $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     Write-VerboseOutput("Calling: main Script Execution")
@@ -2159,14 +2529,25 @@ Function Main {
     if($Error.Count -gt $iErrorStartCount)
     {
         Write-Grey(" ");Write-Grey(" ")
-
-        $index = 0; 
-        "Errors that occurred" | Out-File ($OutputFullPath) -Append
-        while($index -lt ($Error.Count - $iErrorStartCount))
-        {
-            $Error[$index++] | Out-File ($OutputFullPath) -Append
+        Function Write-Errors {
+            $index = 0; 
+            "Errors that occurred" | Out-File ($OutputFullPath) -Append
+            while($index -lt ($Error.Count - $iErrorStartCount))
+            {
+                $Error[$index++] | Out-File ($OutputFullPath) -Append
+            }
         }
-        Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+        #Now to determine if the errors are expected or not 
+        if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
+        {
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+            Write-Errors
+        }
+        elseif($Script:VerboseEnabled)
+        {
+            Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
+            Write-Errors
+        }
         
     }
     Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
