@@ -587,6 +587,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DailyPerformanceLogs = $true
         $Script:HighAvailabilityLogs = $true 
         $Script:ManagedAvailability = $true 
+        $Script:DAGInformation = $true
     }
     
     #See if any transport logging is enabled. 
