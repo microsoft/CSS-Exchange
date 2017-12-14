@@ -23,7 +23,7 @@ This cmdlet will collect all relevant data regarding IIS Logs (within the last 3
 *.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs*
 
 
-#Parameters 
+# Parameters 
 
 FilePath - The Location of where you would like the data to be copied over to. This location must be the same and accessible on all servers if you use the Servers parameter. 
 
