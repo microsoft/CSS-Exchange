@@ -21,3 +21,92 @@ This cmdlet will collect all relevant data regarding database failovers from ser
 This cmdlet will collect all relevant data regarding IIS Logs (within the last 3 days by default) and all RPC type logs from the servers EXCH1 and EXCH2 and store them at the default location of “C:\MS_Logs_Collection”
 
 *.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs*
+
+
+#Parameters 
+
+FilePath - The Location of where you would like the data to be copied over to. This location must be the same and accessible on all servers if you use the Servers parameter. 
+
+Servers - An array of servers that you would like to collect data from. 
+
+EWSLogs - Collects the EWS Logs from the Exchange Server. 
+
+IISLogs - Collects the IIS Logs from the Exchange Server, this will also collect the Httperr logs from the server as well. On Exchange 2010, we collect it only from the default IIS log location. 
+
+DailyPerformanceLogs - Collects the daily performance logs.
+
+ManagedAvailability - Collects Managed Availability (MA) Logs.
+
+Experfwiz - Collects Experfwiz data from the server. It will only be able to do this if we can find the path from logman. 
+
+RPCLogs - Collects the RPC Logs from the Server. 
+
+EASLogs - Collects the Exchange Active Sync Logs. 
+
+ECPLogs - Collects the ECP Logs from the Server. 
+
+AutoDLogs - Collects the AutoD Logs from the Server. 
+
+OWALogs - Collects the OWA Logs from the Server. 
+
+ADDriverLogs - Collects the AD Driver Logs from the Server. 
+
+SearchLogs - Collects the Search Logs from the Server. 
+
+HighAvailabilityLogs - Collects the High Availability Logs from the Server.
+
+MapiLogs - Collects the Mapi Logs from the Server. 
+
+MessageTrackingLogs - Collects the Message Tracking Logs from the Server. 
+
+HubProtocolLogs - Collects the Hub Protocol Logs from the Server. 
+
+HubConnectivityLogs - Collects the Hub Connectivity Logs from the Server. 
+
+FrontEndConnectivityLogs - Collects the Front End Connectivity Logs from the Server. 
+
+FrontEndProtocolLogs - Collects the Front End Protocol Logs from the Server. 
+
+MailboxConnectivityLogs - Collects the Mailbox Connectivity Logs from the Server. 
+
+MailboxProtocolLogs - Collects the Mailbox Protocol Logs from the Server. 
+
+QueueInformationThisServer - Collects the Queue Information from the Server. 
+
+ReceiveConnectors - Collects the Recive Connector Information from the Server. 
+
+SendConnectors - Collects the Send Connector Information from the ORG. 
+
+DAGInformation - Collects DAG Information from the Server. 
+
+GetVdirs - Collects the Virtual Directories of the environment. 
+
+TransportConfig - Collects the Transport Configuration from the Server. 
+
+DefaultTransportLogging - Collects the default logging enabled on an out of the box Exchange Server. 
+
+Exmon - Collects Exmon information from the Server. 
+
+ServerInfo - Collects general server information from the server. 
+
+CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
+
+DiskCheckOverride - Overrides the process of checking for enough free space on the server before collecting the data. As this collection of data can get rather large. 
+
+AppSysLogs - Collects the Application, System, and MSExchange Management. 
+
+AllPossibleLogs - Enables the collection of all default logging collection on the Server. 
+
+NoZip - Disables the ability to automatically zip up the data on the server. 
+
+SkipEndCopyOver - If the Servers parameter is used, by default we will attempt to collect all the data back over to the local server after all the data was collected on each server. 
+
+DaysWorth - The number of days to go back from today for log collection. 
+
+DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, Managed Availability logs, and DAG Information collections. 
+
+Experfwiz_LogmanName - Sets the name of how to collect Experfwiz data from logman. Use only if a different log collection name is used within the experfwiz script. 
+
+Exmon_LogmanName - Sets the name of how to collect Exmon data from logman. Use only if a different log collection name is used within the experfwiz script. 
+
+AcceptEULA - Bypass the disclaimer for using the script.
