@@ -135,7 +135,6 @@ Param (
 [switch]$ADDriverLogs,
 [switch]$SearchLogs,
 [switch]$HighAvailabilityLogs,
-[switch]$ClusterLogs,
 [switch]$MapiLogs,
 [switch]$MessageTrackingLogs,
 [switch]$HubProtocolLogs,
