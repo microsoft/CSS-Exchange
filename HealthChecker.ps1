@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.13"
+$healthCheckerVersion = "2.14"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -178,7 +178,8 @@ Add-Type -TypeDefinition @"
             CU15,
             CU16,
             CU17,
-            CU18
+            CU18,
+            CU19
 
         }
 
@@ -1060,7 +1061,8 @@ param(
         elseif($buildRevision -lt 845.34) {if($buildRevision -gt 669.32){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU4}
         elseif($buildRevision -lt 1034.26) {if($buildRevision -gt 845.34){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU5}
         elseif($buildRevision -lt 1261.35) {if($buildRevision -gt 1034.26){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU6}
-        elseif($buildRevision -ge 1261.35) {if($buildRevision -gt 1261.35){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU7}
+        elseif($buildRevision -lt 1415.2) {if($buildRevision -gt 1261.35){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU7}
+        elseif($buildRevision -ge 1415.2) {if($buildRevision -gt 1415.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU8}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -1085,7 +1087,8 @@ param(
         elseif($buildRevision -lt 1293.2) {if($buildRevision -gt 1263.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU15}
         elseif($buildRevision -lt 1320.4) {if($buildRevision -gt 1293.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU16}
         elseif($buildRevision -lt 1347.2) {if($buildRevision -gt 1320.4){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU17}
-        elseif($buildRevision -ge 1347.2) {if($buildRevision -gt 1347.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU18}
+        elseif($buildRevision -lt 1365.1) {if($buildRevision -gt 1347.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU18}
+        elseif($buildRevision -ge 1365.1) {if($buildRevision -gt 1365.1){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU19}
     }
     else
     {
@@ -1128,8 +1131,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU3) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU3"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/20/2016"; break}
                     ([HealthChecker.ExchangeCULevel]::CU4) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU4"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/13/2016"; break}
                     ([HealthChecker.ExchangeCULevel]::CU5) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU5"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/21/2017"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU6) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU6"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/24/2017"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU6) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU6"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU7) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU7"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/16/2017"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU8) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU8"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/19/2017"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -1156,8 +1160,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU14) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU14"; $tempObject.ReleaseDate = "09/20/2016"; break}
                     ([HealthChecker.ExchangeCULevel]::CU15) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU15"; $tempObject.ReleaseDate = "12/13/2016"; break}
                     ([HealthChecker.ExchangeCULevel]::CU16) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU16"; $tempObject.ReleaseDate = "03/21/2017"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU17) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU17"; $tempObject.ReleaseDate = "06/24/2017"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU17) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU17"; $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU18) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU18"; $tempObject.ReleaseDate = "09/16/2017"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU19) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU19"; $tempObject.ReleaseDate = "12/19/2017"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Unknown Exchange 2013 build was detected"; $tempObject.Error = $TRUE; break;}
                 }
                 break;
@@ -1198,8 +1203,11 @@ https://blogs.technet.microsoft.com/exchange/2016/09/20/released-september-2016-
 Released: June 2016 Quarterly Exchange Updates
 https://blogs.technet.microsoft.com/exchange/2016/06/21/released-june-2016-quarterly-exchange-updates/
 
+Released: December 2017 Quarterly Exchange Updates
+https://blogs.technet.microsoft.com/exchange/2017/12/19/released-december-2017-quarterly-exchange-updates/
 
 Summary:
+Exchange 2013 CU19 & 2016 CU8 .NET Framework 4.7.1 Supported on all OSs 
 Exchange 2013 CU15 & 2016 CU4 .Net Framework 4.6.2 Supported on All OSs
 Exchange 2016 CU3 .NET Framework 4.6.2 Supported on Windows 2016 OS - however, stuff is broke on this OS. 
 
@@ -1324,9 +1332,13 @@ param(
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU16 we will require .NET 4.6.2 before you can install this version of Exchange." 
                 }
-                else
+                elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU19))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
 
 
@@ -1362,9 +1374,13 @@ param(
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2 
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU5 we will require .NET 4.6.2 before you can install this version of Exchange."
                 }
-                else
+                elseif($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU8)
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2 
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
                 
 
