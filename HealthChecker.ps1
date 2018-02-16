@@ -85,7 +85,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.14"
+$healthCheckerVersion = "2.15"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -505,7 +505,7 @@ param(
             catch 
             {
                 $Script:iErrorExcluded++
-                Write-Yellow("Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
+                Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
             $nicObject.Description = $adapter.InterfaceDescription
@@ -588,7 +588,7 @@ param(
 	catch
 	{
         $Script:iErrorExcluded++
-		Write-Yellow("Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
+		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
 	{
@@ -866,7 +866,7 @@ param(
             $processor_info_object.ProcessorIsThrottled = $true 
         }
 
-        if($processor.Name -ne $processor_info_object.ProcessorName -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Different Processors are detected. This shouldn't occur")}
+        if($processor.Name -ne $processor_info_object.ProcessorName -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
     }
 
 	Write-VerboseOutput("Trying to get the System.Environment ProcessorCount")
@@ -881,7 +881,7 @@ param(
 	catch
 	{
         $Script:iErrorExcluded++
-		Write-Red("Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
+		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
 	finally
@@ -1092,7 +1092,7 @@ param(
     }
     else
     {
-        Write-Red "Didn't know how to process the Admin Display Version Provided"
+        Write-Red "Error: Didn't know how to process the Admin Display Version Provided"
         
     }
 
@@ -1134,7 +1134,7 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU6) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU6"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU7) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU7"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/16/2017"; $tempObject.SupportedCU = $true; break}
                     ([HealthChecker.ExchangeCULevel]::CU8) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU8"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/19/2017"; $tempObject.SupportedCU = $true; break}
-                    default {Write-Red "Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
+                    default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
             }
@@ -1163,12 +1163,12 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU17) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU17"; $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU18) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU18"; $tempObject.ReleaseDate = "09/16/2017"; $tempObject.SupportedCU = $true; break}
                     ([HealthChecker.ExchangeCULevel]::CU19) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU19"; $tempObject.ReleaseDate = "12/19/2017"; $tempObject.SupportedCU = $true; break}
-                    default {Write-Red "Unknown Exchange 2013 build was detected"; $tempObject.Error = $TRUE; break;}
+                    default {Write-Red "Error: Unknown Exchange 2013 build was detected"; $tempObject.Error = $TRUE; break;}
                 }
                 break;
             }
             
-        default {$tempObject.Error = $true; Write-Red "Unknown error in Get-ExchangeBuildInformation"}   
+        default {$tempObject.Error = $true; Write-Red "Error: Unknown error in Get-ExchangeBuildInformation"}   
        }
     }
 
@@ -1495,7 +1495,7 @@ param(
             [HealthChecker.NetVersionCheckObject]$NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSVersionName $OSVersionName -NetVersion $versionObject.NetVersion
             if($NetCheckObj.Error)
             {
-                Write-Yellow "unlabed to determine if .NET is supported"
+                Write-Yellow "Warnign: Unable to determine if .NET is supported"
             }
             else
             {
@@ -1508,7 +1508,7 @@ param(
         }
         else
         {
-            Write-Yellow "couldn't get acturate information on server: $Machine_Name"
+            Write-Yellow "Warning: Couldn't get acturate information on server: $Machine_Name"
         }
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
@@ -1521,7 +1521,7 @@ param(
     }
     else
     {
-        Write-Red "unknown version of Exchange detected for server: $Machine_Name"
+        Write-Red "Error: Unknown version of Exchange detected for server: $Machine_Name"
        
     }
 
@@ -1694,7 +1694,7 @@ Function Get-CASLoadBalancingReport {
 
 	if($CASServers.Count -eq 0)
 	{
-		Write-Red("No CAS servers found using the specified search criteria.")
+		Write-Red("Error: No CAS servers found using the specified search criteria.")
 		Exit
 	}
 
@@ -1913,7 +1913,7 @@ param(
           if($Hotfixes.Contains($check) -eq $false)
           {
               $hotfixesneeded = $true
-              Write-Yellow("Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues. --- Note that this KB update may be superseded by another KB update. To verify, check the file versions in the KB against your machine. This is a temporary workaround till the script gets properly updated for all KB checks.")
+              Write-Yellow("Warning: Hotfix " + $check + " is recommended for this OS and was not detected.  Please consider installing it to prevent performance issues. --- Note that this KB update may be superseded by another KB update. To verify, check the file versions in the KB against your machine. This is a temporary workaround till the script gets properly updated for all KB checks.")
           }
       }
       if($hotfixesneeded -eq $false)
@@ -2121,7 +2121,7 @@ param(
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
         $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
-        Write-Red("`tOut of date Cumulative Update.  Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is " + $Dif_Days + " Days old")
+        Write-Red("`tError: Out of date Cumulative Update.  Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is " + $Dif_Days + " Days old")
     }
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
     {
@@ -2157,7 +2157,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
@@ -2184,7 +2184,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
             Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
         }
     }
@@ -2212,12 +2212,12 @@ param(
             }
             else
             {
-                Write-Yellow("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
+                Write-Yellow("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- Warning: " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
             }
         }
         else
         {
-                Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
+                Write-Red("`tDetected Version: " + $HealthExSvrObj.NetVersionInfo.FriendlyName + " --- Error: " + $HealthExSvrObj.NetVersionInfo.DisplayWording)
         }
 
     }
@@ -2232,7 +2232,7 @@ param(
     }
     elseif($HealthExSvrObj.OSVersion.PowerPlan -eq $null) 
     {
-        Write-Red("`tPower Plan: Not Accessible")
+        Write-Red("`tPower Plan: Not Accessible --- Error")
     }
     else
     {
@@ -2250,7 +2250,7 @@ param(
 	}
 	else
 	{
-		Write-Yellow("`tSetting: {0}" -f $HealthExSvrObj.OSVersion.HttpProxy)
+		Write-Yellow("`tSetting: {0} --- Warning: This could cause connectivity issues." -f $HealthExSvrObj.OSVersion.HttpProxy)
 	}
 
     ##################
@@ -2281,7 +2281,7 @@ param(
             {
                 Write-Yellow("`t`tRSS: No RSS Feature Detected.")
             }
-            elseif($adapter.RSSEnabled)
+            elseif($adapter.RSSEnabled -eq "True")
             {
                 Write-Green("`t`tRSS: Enabled")
             }
@@ -2330,20 +2330,20 @@ param(
     {
         if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
-            Write-Yellow("`tHyper-Threading Enabled: Yes")
-            Write-Red("`tMore than 24 logical cores detected.  Please disable Hyper-Threading.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
+            Write-Red("`tHyper-Threading Enabled: Yes --- Error")
+            Write-Red("`tError: More than 24 logical cores detected.  Please disable Hyper-Threading.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
         }
         else
         {
             Write-Green("`tHyper-Threading Enabled: No")
-            Write-Red("`tMore than 24 physical cores detected.  This is not recommended.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
+            Write-Red("`tError: More than 24 physical cores detected.  This is not recommended.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
         }
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
         if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
         {
-            Write-Yellow("`tHyper-Threading Enabled: Yes")
+            Write-Yellow("`tHyper-Threading Enabled: Yes --- Warning: Enabling Hyper-Threading is not recommended")
             Write-Yellow("`tThis script may incorrectly report that Hyper-Threading is enabled on certain AMD processors.  Check with the manufacturer to see if your model supports SMT.")
         }
         else
@@ -2370,11 +2370,11 @@ param(
 	{
 		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
 		{
-			Write-Yellow("`tNUMA Group Size Optimization: Unable to determine")
+			Write-Yellow("`tNUMA Group Size Optimization: Unable to determine --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server")
 		}
 		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
 		{
-			Write-Red("`tNUMA Group Size Optimization: BIOS Set to Clustered")
+			Write-Red("`tNUMA Group Size Optimization: BIOS Set to Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues.")
 		}
 		else
 		{
@@ -2385,11 +2385,11 @@ param(
 	{
 		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
 		{
-			Write-Yellow("`tAll Processor Cores Visible: Unable to determine")
+			Write-Yellow("`tAll Processor Cores Visible: Unable to determine --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues.")
 		}
 		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
 		{
-			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visable to Exchange and this will cause a performance impact")
+			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visable to Exchange and this will cause a performance impact --- Error")
 		}
 		else
 		{
@@ -2401,15 +2401,15 @@ param(
         #We are set correctly at the OS layer
         if($HealthExSvrObj.OSVersion.HighPerformanceSet)
         {
-            Write-Red("`tProcessor speed is being throttled. Power plan is set to `"High performance`", so it is likely that we are throttling in the BIOS of the computer settings")
+            Write-Red("`tError: Processor speed is being throttled. Power plan is set to `"High performance`", so it is likely that we are throttling in the BIOS of the computer settings")
         }
         else
         {
-            Write-Red("`tProcessor speed is being throttled. Power plan isn't set to `"High performance`". Change this ASAP because you are throttling your CPU and is likely causing issues.")
-            Write-Red("`tNote: This change doesn't require a reboot and takes affect right away. Re-run the script after doing so")
+            Write-Red("`tError: Processor speed is being throttled. Power plan isn't set to `"High performance`". Change this ASAP because you are throttling your CPU and is likely causing issues.")
+            Write-Yellow("`tNote: This change doesn't require a reboot and takes affect right away. Re-run the script after doing so")
         }
-        Write-Red("`tCurrent Processor Speed: " + $HealthExSvrObj.HardwareInfo.Processor.CurrentMegacyclesPerCore)
-        Write-Red("`tMax Processor Speed: " + $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore)
+        Write-Red("`tCurrent Processor Speed: " + $HealthExSvrObj.HardwareInfo.Processor.CurrentMegacyclesPerCore + " --- Error: Processor appears to be throttled. This will cause performance issues. See Max Processor Speed to see what this should be at.")
+        Write-Red("`tMax Processor Speed: " + $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore )
     }
     else
     {
@@ -2429,7 +2429,7 @@ param(
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
      $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
     {
-        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
+        Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- Warning: We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
     }
     else
     {
@@ -2447,7 +2447,7 @@ param(
 	    $services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
 	    if($services.length -gt 0)
 	    {
-		    Write-Yellow("`r`nThe following services are not running:")
+		    Write-Yellow("`r`nWarning: The following services are not running:")
 		    $services | %{Write-Grey($_)}
 	    }
     }
@@ -2458,11 +2458,11 @@ param(
     Write-Grey("`r`nTCP/IP Settings:")
     if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
     {
-        Write-Red("The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Red("Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
-        Write-Yellow("The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Yellow("Warning: The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
     }
     else
     {
