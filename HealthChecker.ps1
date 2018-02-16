@@ -2281,7 +2281,7 @@ param(
             {
                 Write-Yellow("`t`tRSS: No RSS Feature Detected.")
             }
-            elseif($adapter.RSSEnabled)
+            elseif($adapter.RSSEnabled -eq "True")
             {
                 Write-Green("`t`tRSS: Enabled")
             }
