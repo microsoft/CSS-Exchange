@@ -133,6 +133,8 @@ Add-Type -TypeDefinition @"
             public bool RecommendedNetVersion; //RecommendNetVersion Info includes all the factors. Windows Version & CU. 
             public ExchangeBuildObject ExchangeBuildObject; //Store the build object
             public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
+            public bool MapiHttpEnabled; //Stored from ogranzation config 
+            public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
             
         }
 
@@ -1393,6 +1395,45 @@ param(
 
 }
 
+Function Get-MapiFEAppPoolGCMode{
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-MapiFEAppPoolGCMode")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegLocation = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\"
+    $RegKey = $Reg.OpenSubKey($RegLocation)
+    $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $RegKey.GetValue("MsiInstallPath"))
+    Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
+    $mapiGCMode = "Unknown"
+    try 
+    {
+        $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
+            param(
+                [Parameter(Mandatory=$true)][string]$ConfigPath
+            )
+            if(Test-Path $ConfigPath)
+            {
+                $xml = [xml](Get-Content $ConfigPath)
+                $rString =  $xml.configuration.runtime.gcServer.enabled
+                return $rString
+            }
+            else 
+            {
+                Return "Unknown"    
+            }
+        } -ArgumentList $MapiConfig
+    }
+    catch
+    {
+        #don't need to do anything here
+    }
+
+    Write-VerboseOutput("Returning GC Mode: {0}" -f $mapiGCMode)
+    return $mapiGCMode
+}
+
 Function Get-ExchangeUpdates {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
@@ -1509,6 +1550,13 @@ param(
         else
         {
             Write-Yellow "Warning: Couldn't get acturate information on server: $Machine_Name"
+        }
+
+        
+        $exchInfoObject.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
+        if($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and $exchInfoObject.MapiHttpEnabled)
+        {
+            $exchInfoObject.MapiFEAppGCEnabled = Get-MapiFEAppPoolGCMode -Machine_Name $Machine_Name
         }
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
@@ -2130,6 +2178,32 @@ param(
     else
     {
         Write-Grey("`tServer Role: " + $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString())
+    }
+
+    #MAPI/HTTP
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        Write-Grey("`tMAPI/HTTP Enabled: {0}" -f $HealthExSvrObj.ExchangeInformation.MapiHttpEnabled)
+        if($HealthExSvrObj.ExchangeInformation.MapiHttpEnabled -eq $true -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013)
+        {
+            if($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "false" -and 
+            $HealthExSvrObj.HardwareInfo.TotalMemory -ge 21474836480)
+            {
+                Write-Red("`t`tMAPI Front End App Pool GC Mode: Workstation --- Error")
+            }
+            elseif($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "false")
+            {
+                Write-Yellow("`t`tMapi Front End App Pool GC Mode: Workstation --- Warning")
+            }
+            elseif($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "true")
+            {
+                Write-Green("`t`tMapi Front End App Pool GC Mode: Server")
+            }
+            else 
+            {
+                Write-Yellow("Mapi Front End App Pool GC Mode: Unknown --- Warning")    
+            }
+        }
     }
 
     ###########
