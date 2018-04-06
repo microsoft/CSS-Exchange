@@ -2137,7 +2137,7 @@ param(
     ####################
 
     Write-Green("Exchange Health Checker version " + $healthCheckerVersion)
-    Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + (Get-Date)) 
+    Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + $date) 
     Write-Break
     Write-Break
     ###############################
@@ -2173,7 +2173,7 @@ param(
 
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $Dif_Days = ($date - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         Write-Red("`tError: Out of date Cumulative Update.  Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is " + $Dif_Days + " Days old")
     }
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
@@ -2344,7 +2344,7 @@ param(
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
+                if((New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
                 }
@@ -2587,7 +2587,9 @@ Function Main {
     }
     $iErrorStartCount = $Error.Count #useful for debugging 
     $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
+    $Script:date = (Get-Date)
+    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
+    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     Write-VerboseOutput("Calling: main Script Execution")
 
@@ -2596,10 +2598,10 @@ Function Main {
         [int]$iMajor = (Get-ExchangeServer $Server).AdminDisplayVersion.Major
         if($iMajor -gt 14)
         {
-            $OutputFileName = "LoadBalancingReport" + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
+            $OutputFileName = "LoadBalancingReport" + "-" + $dateTimeStringFormat + ".log"
             $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
             Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
-            Write-Green("Client Access Load Balancing Report on " + (Get-Date))
+            Write-Green("Client Access Load Balancing Report on " + $date)
             Get-CASLoadBalancingReport
             Write-Grey("Output file written to " + $OutputFullPath)
             Write-Break
@@ -2611,7 +2613,7 @@ Function Main {
         }
     }
     
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
+    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     $OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
     $HealthObject = Build-HealthExchangeServerObject $Server
