@@ -80,7 +80,7 @@ param(
     [switch]$ServerReport,
     $ServerList,
     [switch]$BuildAllServersReport,
-    [string]$ReportFile="ExchangeAllServersReport.html"
+    [string]$HtmlReportFile="ExchangeAllServersReport.html"
 )
 
 <#
@@ -2619,6 +2619,7 @@ Function Build-ServerObject
     {
         $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         $ServerObject | Add-Member –MemberType NoteProperty –Name BuildDaysOld –Value $Dif_Days
+		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
     }
 
 
@@ -2954,6 +2955,7 @@ Function Build-ServerObject
 	    if($services.length -gt 0)
 	    {
 		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name ServicesImpacted -Value $services
 	    }
         else
         {
@@ -3058,8 +3060,7 @@ Function Main {
 
         Foreach($ExchangeServer in $AllExchangeServersList)
         {
-			write-host "Running Foreach against " $ExchangeServer.ServerName
-		
+					
 			If(Test-Connection $ExchangeServer -Count 1 -ea 0 -quiet)
 			{
 				Write-Debug "Running Build-HealthExchangeServerObject against $ExchangeServer" 
@@ -3098,7 +3099,8 @@ Function Main {
                 td.info{background: #85D4FF;}
                 </style>
                 <body>
-                <h1 align=""center"">Exchange Health Checker Report</h1>"
+                <h1 align=""center"">Exchange Health Checker Overview</h1>
+				<p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
 		
 
 		$HtmlTableHeader = "<p>
@@ -3107,8 +3109,6 @@ Function Main {
 							<th>Server Name</th>
 							<th>Virtual Server</th>
 							<th>Hardware Type</th>
-							<th>Manufacturer</th>
-							<th>Model</th>
 							<th>OS</th>
 							<th>Exchange Version</th>
 							<th>Build Number</th>
@@ -3125,7 +3125,7 @@ Function Main {
 							<th>TCP Keep Alive</th>
 							</tr>"
 							
-		$serverhealthhtmltable = $serverhealthhtmltable + $htmltableheader 
+		$ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltableheader 
 							
 		foreach($ServerArrayItem in $AllServersOutputObject)
 		{
@@ -3134,20 +3134,24 @@ Function Main {
 			$HtmlTableRow += "<td>$($ServerArrayItem.ServerName)</td>"	
 			$HtmlTableRow += "<td>$($ServerArrayItem.VirtualServer)</td>"	
 			$HtmlTableRow += "<td>$($ServerArrayItem.HardwareType)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.Manufacturer)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.Model)</td>"	
 			$HtmlTableRow += "<td>$($ServerArrayItem.OperatingSystem)</td>"	
 			$HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
 			$HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
 			
-			If($ServerArrayItem.BuildDaysOld -gt 365) 
+			If(!$ServerArrayItem.SupportedExchangeBuild) 
 			{
 				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
 			}
-			Else
+			ElseIf($ServerArrayItem.SupportedExchangeBuild)
 			{
 				$HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
 			}
+			
+			ElseIf($ServerArrayItem.SupportedExchangeBuild -eq $null)
+			{
+				$HtmlTableRow += "<td class=""warn"">Undetermined</td>"
+			}
+			
 			$HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
 			
 			If($ServerArrayItem.AutoPageFile -eq "Yes")
@@ -3227,23 +3231,49 @@ Function Main {
 			{
 				$HtmlTableRow += "<td>$($ServerArrayItem.TCPKeepAlive)</td>"	
 			}
-			
 
 			$HtmlTableRow += "</tr>"
 						
 						
-			$serverhealthhtmltable = $serverhealthhtmltable + $htmltablerow
+			$ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltablerow
 			
 		}
 		
-		$serverhealthhtmltable = $serverhealthhtmltable + "</table></p>"
+		$ServersHealthHtmlTable = $ServersHealthHtmlTable + "</table></p>"
+		
+		
+		Foreach($ServerArrayItem in $AllServersOutputObject)
+		{
+			$ServerDetailsHtmlTable += "<p><table>"
+			$ServerDetailsHtmlTable += "<tr><td>Server Name</td><td><strong>$($ServerArrayItem.ServerName)</strong></td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Manufacturer</td><td>$($ServerArrayItem.Manufacturer)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Model</td><td>$($ServerArrayItem.Model)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Hardware Type</td><td>$($ServerArrayItem.HardwareType)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Operating System</td><td>$($ServerArrayItem.ServerName)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Exchange</td><td>$($ServerArrayItem.Exchange)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Build Number</td><td>$($ServerArrayItem.BuildNumber)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Server Role</td><td>$($ServerArrayItem.ServerRole)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfCores)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
+			$ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
+			$ServerDetailsHtmlTable += "</table></p>"
+
+			
+		}
+		
 		
 		$htmltail = "</body>
 		</html>"
 
-		$htmlreport = $htmlhead  + $serverhealthhtmltable + $htmltail
+		$htmlreport = $htmlhead  + $ServersHealthHtmlTable + $ServerDetailsHtmlTable  + $htmltail
 		
-		$htmlreport | Out-File $ReportFile -Encoding UTF8
+		$htmlreport | Out-File $HtmlReportFile -Encoding UTF8
 		
     }
 
