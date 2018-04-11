@@ -142,6 +142,7 @@ Add-Type -TypeDefinition @"
             public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
             public bool MapiHttpEnabled; //Stored from ogranzation config 
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
+			public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             
         }
 
@@ -1596,6 +1597,8 @@ param(
         Write-Red "Error: Unknown version of Exchange detected for server: $Machine_Name"
        
     }
+	
+	$exchInfoObject.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Machine_Name | %{$_.ServicesNotRunning}
 
     $HealthExSvrObj.ExchangeInformation = $exchInfoObject
     return $HealthExSvrObj
@@ -2542,12 +2545,12 @@ param(
         (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
         ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
     {
-	    $services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
-	    if($services.length -gt 0)
+		if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
 		    Write-Yellow("`r`nWarning: The following services are not running:")
-		    $services | %{Write-Grey($_)}
+			$HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning | %{Write-Grey($_)}
 	    }
+
     }
 
     #################
@@ -2968,11 +2971,11 @@ Function Build-ServerObject
         (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
         ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
     {
-	    $services = 0 #Issue: Error if not done on an Exchange Server Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
-	    if($services.length -gt 0)
+	    
+	    if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
 		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name ServicesImpacted -Value $services
+			$ServerObject | Add-Member –MemberType NoteProperty –Name ServicesImpacted -Value $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning
 	    }
         else
         {
@@ -3101,7 +3104,7 @@ Function Build-HtmlServerReport {
     }
 
     Write-Host "All servers object"
-    $AllServersOutputObject 
+    #$AllServersOutputObject 
     
     Write-Debug "Building HTML report from AllServersOutputObject"
     
@@ -3162,7 +3165,7 @@ Function Build-HtmlServerReport {
         $HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
         $HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
         
-        If(!$ServerArrayItem.SupportedExchangeBuild) 
+        If(!$ServerArrayItem.SupportedExchangeBuild -or $ServerArrayItem.SupportedExchangeBuild -eq $null) 
         {
             $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
         }
@@ -3170,11 +3173,7 @@ Function Build-HtmlServerReport {
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
         }
-        
-        ElseIf($ServerArrayItem.SupportedExchangeBuild -eq $null)
-        {
-            $HtmlTableRow += "<td class=""warn"">Undetermined</td>"
-        }
+
         
         $HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
         
