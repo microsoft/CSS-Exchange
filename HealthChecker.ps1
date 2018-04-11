@@ -3,7 +3,8 @@
 	Name: HealthChecker.ps1
 	Original Author: Marc Nivens
     Author: David Paulson
-    contributor: Jason Shinbaum 
+    Contributor: Jason Shinbaum 
+	Contributor: Michael Schatte
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
 	Version History:
