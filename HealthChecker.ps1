@@ -3099,7 +3099,7 @@ Function Main {
                 td.info{background: #85D4FF;}
                 </style>
                 <body>
-                <h1 align=""center"">Exchange Health Checker Overview</h1>
+                <h1 align=""center"">Exchange Health Checker</h1>
 				<p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
 		
 
@@ -3246,22 +3246,16 @@ Function Main {
 		
 		$ServersHealthHtmlTable += "</table></p>"
 		
-		$WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2>"
+		$WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
 		
 		# Still playin with this.. 
 		
-		Foreach($ServerArrayItem in $AllServersOutputObject)
+		If($AllServersOutputObject.VirtualServer -contains "Yes")
 		{
-			If($VirtualServer -eq "Yes")
-			{
-				$WarningsErrorsHtmlTable += "<table><tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr></table>" 
-			}
-			ElseIf($VirtualServer -eq "No")
-			{
-				Break;
-			}
+				$WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
 		}
 		
+		$WarningsErrorsHtmlTable += "</table>"
 		
 		$ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
 		
