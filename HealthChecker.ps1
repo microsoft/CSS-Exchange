@@ -78,7 +78,8 @@ param(
     $CasServerList = $null,
     $SiteName = $null,
     [switch]$ServerReport,
-    [switch]$BuildAllServersReport,
+    [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
+    [switch]$BuildHtmlServersReport,
     [string]$HtmlReportFile="ExchangeAllServersReport.html"
 )
 
@@ -2950,7 +2951,7 @@ Function Build-ServerObject
         (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
         ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
     {
-	    $services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
+	    $services = 0 #Issue: Error if not done on an Exchange Server Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
 	    if($services.length -gt 0)
 	    {
 		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
@@ -2988,13 +2989,18 @@ Function Build-ServerObject
 	#Hotfix Check#
 	##############
     
-    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
-    {
-        If((Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj) -like "*Installed*")
-        {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name KB3041832 -Value "Installed"
-        }
-    }
+    #Issue: throws errors 
+    <#
+    Add-Member : Cannot add a member with the name "Passed" because a member with that name already exists. To overwrite
+    the member anyway, add the Force parameter to your command.
+    #>
+    #if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    #{
+        #If((Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj) -like "*Installed*")
+        #{
+       #     $ServerObject | Add-Member –MemberType NoteProperty –Name KB3041832 -Value "Installed"
+        #}
+    #}
 
 
     #Write-debug "ServersObject: " 
@@ -3003,6 +3009,294 @@ Function Build-ServerObject
 }
 
 
+Function Get-HealthCheckFilesItemsFromLocation{
+    $items = Get-ChildItem $XMLDirectoryPath | Where-Object{$_.Name -like "HealthCheck-*-*.xml"}
+    if($items -eq $null)
+    {
+        Write-Host("Doesn't appear to be any Health Check XML files here....stopping the script")
+        exit 
+    }
+    return $items
+}
+
+Function Get-OnlyRecentUniqueServersXMLs {
+param(
+[Parameter(Mandatory=$true)][array]$FileItems 
+)   
+
+    $aObject = @() 
+    foreach($item in $FileItems)
+    {
+        $obj = New-Object PSCustomobject 
+        [string]$itemName = $item.Name
+        $ServerName = $itemName.Substring(($itemName.IndexOf("-") + 1), ($itemName.LastIndexOf("-") - $itemName.IndexOf("-") - 1))
+        $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
+        $obj | Add-Member -MemberType NoteProperty -Name FileName -Value $itemName
+        $obj | Add-Member -MemberType NoteProperty -Name FileObject -Value $item 
+        $aObject += $obj
+    }
+
+    $grouped = $aObject | Group-Object ServerName 
+
+    $FilePathList = @()
+    foreach($gServer in $grouped)
+    {
+        
+        if($gServer.Count -gt 1)
+        {
+            #going to only use the most current file for this server providing that they are using the newest updated version of Health Check we only need to sort by name
+            $groupData = $gServer.Group #because of win2008
+            $FilePathList += ($groupData | Sort-Object FileName -Descending | Select-Object -First 1).FileObject.VersionInfo.FileName
+
+        }
+        else {
+            $FilePathList += ($gServer.Group).FileObject.VersionInfo.FileName
+        }
+        
+    }
+
+    return $FilePathList
+}
+
+Function Import-MyData {
+param(
+[Parameter(Mandatory=$true)][array]$FilePaths
+)
+    [System.Collections.Generic.List[System.Object]]$myData = New-Object -TypeName System.Collections.Generic.List[System.Object]
+    foreach($filePath in $FilePaths)
+    {
+        $importData = Import-Clixml -Path $filePath
+        $myData.Add($importData)
+    }
+    return $myData
+}
+
+Function Build-HtmlServerReport {
+
+    $Files = Get-HealthCheckFilesItemsFromLocation
+    $FullPaths = Get-OnlyRecentUniqueServersXMLs $Files
+    $ImportData = Import-MyData -FilePaths $FullPaths
+
+    $AllServersOutputObject = @()
+    foreach($data in $ImportData)
+    {
+        $AllServersOutputObject += Build-ServerObject $data
+    }
+
+    Write-Host "All servers object"
+    $AllServersOutputObject 
+    
+    Write-Debug "Building HTML report from AllServersOutputObject"
+    
+    $htmlhead="<html>
+            <style>
+            BODY{font-family: Arial; font-size: 8pt;}
+            H1{font-size: 16px;}
+            H2{font-size: 14px;}
+            H3{font-size: 12px;}
+            TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt;}
+            TH{border: 1px solid black; background: #dddddd; padding: 5px; color: #000000;}
+            TD{border: 1px solid black; padding: 5px; }
+            td.pass{background: #7FFF00;}
+            td.warn{background: #FFE600;}
+            td.fail{background: #FF0000; color: #ffffff;}
+            td.info{background: #85D4FF;}
+            </style>
+            <body>
+            <h1 align=""center"">Exchange Health Checker</h1>
+            <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
+    
+
+    $HtmlTableHeader = "<p>
+                        <table>
+                        <tr>
+                        <th>Server Name</th>
+                        <th>Virtual Server</th>
+                        <th>Hardware Type</th>
+                        <th>OS</th>
+                        <th>Exchange Version</th>
+                        <th>Build Number</th>
+                        <th>Build Days Old</th>
+                        <th>Server Role</th>
+                        <th>Auto Page File</th>
+                        <th>Multiple Page Files</th>
+                        <th>Page File Size</th>
+                        <th>.Net Version</th>
+                        <th>Power Plan</th>
+                        <th>Hyper-Threading</th>
+                        <th>Processor Speed</th>
+                        <th>Service Health</th>
+                        <th>TCP Keep Alive</th>
+                        <th>LmCompatibilityLevel</th>
+                        </tr>"
+                        
+    $ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltableheader 
+    
+    $ServersHealthHtmlTable += "<H2>Servers Overview</H2>"
+                        
+    foreach($ServerArrayItem in $AllServersOutputObject)
+    {
+        Write-Debug $ServerArrayItem
+        $HtmlTableRow = "<tr>"
+        $HtmlTableRow += "<td>$($ServerArrayItem.ServerName)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.VirtualServer)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.HardwareType)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.OperatingSystem)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
+        $HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
+        
+        If(!$ServerArrayItem.SupportedExchangeBuild) 
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
+        }
+        ElseIf($ServerArrayItem.SupportedExchangeBuild)
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
+        }
+        
+        ElseIf($ServerArrayItem.SupportedExchangeBuild -eq $null)
+        {
+            $HtmlTableRow += "<td class=""warn"">Undetermined</td>"
+        }
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
+        
+        If($ServerArrayItem.AutoPageFile -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.AutoPageFile)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.AutoPageFile)</td>"	
+        }
+                    
+        If($ServerArrayItem.MultiplePageFiles -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MultiplePageFiles)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.MultiplePageFiles)</td>"	
+        }
+        
+        If($ServerArrayItem.PagefileSizeSetRight -eq "No")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PageFileSize)</td>"	
+        }
+        ElseIf ($ServerArrayItem.PagefileSizeSetRight -eq "Yes")
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.PageFileSize)</td>"	
+        }
+        ElseIf (!$ServerArrayItem.PagefileSizeSetRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">Undetermined</td>"	
+        }
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.DotNetVersion)</td>"			
+        
+        If($ServerArrayItem.PowerPlan -ne "High performance")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PowerPlan)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.PowerPlan)</td>"	
+        }
+        
+        If($ServerArrayItem.HyperThreading -eq "Yes" -or $ServerArrayItem.AMD_HyperThreading -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
+        }
+        
+        If($ServerArrayItem.ProcessorSpeed -like "Throttled*")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MaxProcessorSpeed)/$($ServerArrayItem.CurrentProcessorSpeed)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.MaxMegacyclesPerCore)</td>"	
+        }
+        
+        If($ServerArrayItem.ServiceHealth -like "Impacted*")
+        {
+            $HtmlTableRow += "<td class=""fail"">Impacted</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>Healthy</td>"	
+        }
+        
+        If($ServerArrayItem.TCPKeepAlive -ne "Optimal")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.LmCompatibilityLevel)</td>"	
+
+        $HtmlTableRow += "</tr>"
+                    
+                    
+        $ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltablerow
+        
+    }
+    
+    $ServersHealthHtmlTable += "</table></p>"
+    
+    $WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
+    
+    # Still playin with this.. 
+    
+    If($AllServersOutputObject.VirtualServer -contains "Yes")
+    {
+            $WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
+    }
+    
+    $WarningsErrorsHtmlTable += "</table>"
+    
+    $ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
+    
+    Foreach($ServerArrayItem in $AllServersOutputObject)
+    {
+
+        $ServerDetailsHtmlTable += "<tr><th>Server Name</th><th>$($ServerArrayItem.ServerName)</th></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Manufacturer</td><td>$($ServerArrayItem.Manufacturer)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Model</td><td>$($ServerArrayItem.Model)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Hardware Type</td><td>$($ServerArrayItem.HardwareType)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Operating System</td><td>$($ServerArrayItem.OperatingSystem)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Exchange</td><td>$($ServerArrayItem.Exchange)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Build Number</td><td>$($ServerArrayItem.BuildNumber)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Server Role</td><td>$($ServerArrayItem.ServerRole)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.ProcessorName)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
+
+
+        
+    }
+    
+    $ServerDetailsHtmlTable += "</table></p>"
+    
+    $htmltail = "</body>
+    </html>"
+
+    $htmlreport = $htmlhead  + $ServersHealthHtmlTable + $WarningsErrorsHtmlTable + $ServerDetailsHtmlTable  + $htmltail
+    
+    $htmlreport | Out-File $HtmlReportFile -Encoding UTF8
+}
 
 Function Main {
     
@@ -3011,7 +3305,15 @@ Function Main {
 		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
 		sleep 2;
 		exit
-	}
+    }
+    
+    if($BuildHtmlServersReport)
+    {
+        Build-HtmlServerReport
+        sleep 2;
+        exit
+    }
+
 	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
@@ -3046,257 +3348,7 @@ Function Main {
         }
     }
 
-    If($BuildAllServersReport)
-    {
-        #Write-Green "`-BuildAllServersReport has been specified. Running against all Exchange servers."
-
-        $AllExchangeServersList = Get-ExchangeServer
-
-        $AllServersOutputObject = @()
-
-
-        Write-Debug "Beginning foreach for servers list."
-
-        Foreach($ExchangeServer in $AllExchangeServersList)
-        {
-					
-			If(Test-Connection $ExchangeServer -Count 1 -ea 0 -quiet)
-			{
-				Write-Debug "Running Build-HealthExchangeServerObject against $ExchangeServer" 
-
-				$HealthObject = Build-HealthExchangeServerObject $ExchangeServer
-
-				Write-debug "Running Build-ServersObject against $ExchangeServer" 
-
-				$AllServersOutputObject += (Build-ServerObject $HealthObject)
-			}
-			
-			else
-			{
-				Write-Red $ExchangeServer "is offline"
-			}
-            
-        }
-
-        Write-Host "All servers object"
-        $AllServersOutputObject 
-		
-		Write-Debug "Building HTML report from AllServersOutputObject"
-		
-		$htmlhead="<html>
-                <style>
-                BODY{font-family: Arial; font-size: 8pt;}
-                H1{font-size: 16px;}
-                H2{font-size: 14px;}
-                H3{font-size: 12px;}
-                TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt;}
-                TH{border: 1px solid black; background: #dddddd; padding: 5px; color: #000000;}
-                TD{border: 1px solid black; padding: 5px; }
-                td.pass{background: #7FFF00;}
-                td.warn{background: #FFE600;}
-                td.fail{background: #FF0000; color: #ffffff;}
-                td.info{background: #85D4FF;}
-                </style>
-                <body>
-                <h1 align=""center"">Exchange Health Checker</h1>
-				<p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
-		
-
-		$HtmlTableHeader = "<p>
-							<table>
-							<tr>
-							<th>Server Name</th>
-							<th>Virtual Server</th>
-							<th>Hardware Type</th>
-							<th>OS</th>
-							<th>Exchange Version</th>
-							<th>Build Number</th>
-							<th>Build Days Old</th>
-							<th>Server Role</th>
-							<th>Auto Page File</th>
-							<th>Multiple Page Files</th>
-							<th>Page File Size</th>
-							<th>.Net Version</th>
-							<th>Power Plan</th>
-							<th>Hyper-Threading</th>
-							<th>Processor Speed</th>
-							<th>Service Health</th>
-							<th>TCP Keep Alive</th>
-							<th>LmCompatibilityLevel</th>
-							</tr>"
-							
-		$ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltableheader 
-		
-		$ServersHealthHtmlTable += "<H2>Servers Overview</H2>"
-							
-		foreach($ServerArrayItem in $AllServersOutputObject)
-		{
-			Write-Debug $ServerArrayItem
-			$HtmlTableRow = "<tr>"
-			$HtmlTableRow += "<td>$($ServerArrayItem.ServerName)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.VirtualServer)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.HardwareType)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.OperatingSystem)</td>"	
-			$HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
-			$HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
-			
-			If(!$ServerArrayItem.SupportedExchangeBuild) 
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
-			}
-			ElseIf($ServerArrayItem.SupportedExchangeBuild)
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
-			}
-			
-			ElseIf($ServerArrayItem.SupportedExchangeBuild -eq $null)
-			{
-				$HtmlTableRow += "<td class=""warn"">Undetermined</td>"
-			}
-			
-			$HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
-			
-			If($ServerArrayItem.AutoPageFile -eq "Yes")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.AutoPageFile)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.AutoPageFile)</td>"	
-			}
-						
-			If($ServerArrayItem.MultiplePageFiles -eq "Yes")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MultiplePageFiles)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.MultiplePageFiles)</td>"	
-			}
-			
-			If($ServerArrayItem.PagefileSizeSetRight -eq "No")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PageFileSize)</td>"	
-			}
-			ElseIf ($ServerArrayItem.PagefileSizeSetRight -eq "Yes")
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.PageFileSize)</td>"	
-			}
-			ElseIf (!$ServerArrayItem.PagefileSizeSetRight)
-			{
-				$HtmlTableRow += "<td class=""warn"">Undetermined</td>"	
-			}
-			
-			$HtmlTableRow += "<td>$($ServerArrayItem.DotNetVersion)</td>"			
-			
-			If($ServerArrayItem.PowerPlan -ne "High performance")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PowerPlan)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.PowerPlan)</td>"	
-			}
-			
-			If($ServerArrayItem.HyperThreading -eq "Yes" -or $ServerArrayItem.AMD_HyperThreading -eq "Yes")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
-			}
-			
-			If($ServerArrayItem.ProcessorSpeed -like "Throttled*")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MaxProcessorSpeed)/$($ServerArrayItem.CurrentProcessorSpeed)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.MaxMegacyclesPerCore)</td>"	
-			}
-			
-			If($ServerArrayItem.ServiceHealth -like "Impacted*")
-			{
-				$HtmlTableRow += "<td class=""fail"">Impacted</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>Healthy</td>"	
-			}
-			
-			If($ServerArrayItem.TCPKeepAlive -ne "Optimal")
-			{
-				$HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.TCPKeepAlive)</td>"	
-			}
-			Else
-			{
-				$HtmlTableRow += "<td>$($ServerArrayItem.TCPKeepAlive)</td>"	
-			}
-			
-			$HtmlTableRow += "<td>$($ServerArrayItem.LmCompatibilityLevel)</td>"	
-
-			$HtmlTableRow += "</tr>"
-						
-						
-			$ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltablerow
-			
-		}
-		
-		$ServersHealthHtmlTable += "</table></p>"
-		
-		$WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
-		
-		# Still playin with this.. 
-		
-		If($AllServersOutputObject.VirtualServer -contains "Yes")
-		{
-				$WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
-		}
-		
-		$WarningsErrorsHtmlTable += "</table>"
-		
-		$ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
-		
-		Foreach($ServerArrayItem in $AllServersOutputObject)
-		{
-
-			$ServerDetailsHtmlTable += "<tr><th>Server Name</th><th>$($ServerArrayItem.ServerName)</th></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Manufacturer</td><td>$($ServerArrayItem.Manufacturer)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Model</td><td>$($ServerArrayItem.Model)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Hardware Type</td><td>$($ServerArrayItem.HardwareType)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Operating System</td><td>$($ServerArrayItem.OperatingSystem)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Exchange</td><td>$($ServerArrayItem.Exchange)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Build Number</td><td>$($ServerArrayItem.BuildNumber)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Server Role</td><td>$($ServerArrayItem.ServerRole)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.ProcessorName)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
-			$ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
-
-
-			
-		}
-		
-		$ServerDetailsHtmlTable += "</table></p>"
-		
-		$htmltail = "</body>
-		</html>"
-
-		$htmlreport = $htmlhead  + $ServersHealthHtmlTable + $WarningsErrorsHtmlTable + $ServerDetailsHtmlTable  + $htmltail
-		
-		$htmlreport | Out-File $HtmlReportFile -Encoding UTF8
-		
-    }
-
-    ElseIf(!$BuildAllServersReport)
-    {
-    
+   
     $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
 	$OutputFullPath = $OutputFilePath + "\" + $OutputFileName
 	$OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
@@ -3333,7 +3385,7 @@ Function Main {
 	}
 	Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
 	$HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
-	}
+	
 }
 
 Main 
