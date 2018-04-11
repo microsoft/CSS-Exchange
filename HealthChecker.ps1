@@ -107,6 +107,10 @@ if($PSBoundParameters["Verbose"]){
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
+$oldErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Stop"
+
+try{
 
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
@@ -349,6 +353,18 @@ Add-Type -TypeDefinition @"
     }
 
 "@
+
+}
+
+catch {
+    Write-Warning "There was an error trying to add custom classes to the current PowerShell session. You need to close this session and open a new one to have the script properly work."
+    sleep 5
+    exit 
+}
+
+finally {
+    $ErrorActionPreference = $oldErrorAction
+}
 
 ##################
 #Helper Functions#
