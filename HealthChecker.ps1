@@ -2637,11 +2637,14 @@ Function Build-ServerObject
 
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $Dif_Days = ($date - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         $ServerObject | Add-Member –MemberType NoteProperty –Name BuildDaysOld –Value $Dif_Days
 		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
     }
-
+	else
+	{
+		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $True
+	}
 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
     {
@@ -3102,9 +3105,6 @@ Function Build-HtmlServerReport {
     {
         $AllServersOutputObject += Build-ServerObject $data
     }
-
-    Write-Host "All servers object"
-    #$AllServersOutputObject 
     
     Write-Debug "Building HTML report from AllServersOutputObject"
     
@@ -3165,11 +3165,11 @@ Function Build-HtmlServerReport {
         $HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
         $HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
         
-        If(!$ServerArrayItem.SupportedExchangeBuild -or $ServerArrayItem.SupportedExchangeBuild -eq $null) 
+        If(!$ServerArrayItem.SupportedExchangeBuild) 
         {
             $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
         }
-        ElseIf($ServerArrayItem.SupportedExchangeBuild)
+        Else
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
         }
