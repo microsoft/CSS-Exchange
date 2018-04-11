@@ -78,7 +78,6 @@ param(
     $CasServerList = $null,
     $SiteName = $null,
     [switch]$ServerReport,
-    $ServerList,
     [switch]$BuildAllServersReport,
     [string]$HtmlReportFile="ExchangeAllServersReport.html"
 )
