@@ -2637,7 +2637,7 @@ Function Build-ServerObject
 
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        $Dif_Days = ($date - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         $ServerObject | Add-Member –MemberType NoteProperty –Name BuildDaysOld –Value $Dif_Days
 		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
     }
@@ -3272,8 +3272,21 @@ Function Build-HtmlServerReport {
     
     If($AllServersOutputObject.VirtualServer -contains "Yes")
     {
-            $WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
+        $WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
     }
+	If($AllServersOutputObject.SupportedExchangeBuild -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td>Old Build</td><td>Error: Out of date Cumulative Update detected. Please upgrade to one of the two most recently released Cumulative Updates.</td></tr>"
+	}
+	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td>Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
+	}
+	If(!($AllServersOutputObject.PowerPlan -Contains "High Performance"))
+	{
+		$WarningsErrorsHtmlTable += "<tr><td>Power Plan</td><td>Error: High Performance Power Plan is recommended</td></tr>"
+	}
+	
     
     $WarningsErrorsHtmlTable += "</table>"
     
