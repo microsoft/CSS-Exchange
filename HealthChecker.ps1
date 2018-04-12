@@ -2798,40 +2798,43 @@ Function Build-ServerObject
     {
         if((($HealthExSvrObj.OSVersion.NetworkAdapters).count) -gt 1)
         {
-        
+			$i = 1
+			
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
 
             foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_Name -Value $adapter.Name
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_Description -Value $adapter.Description
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_$($i) -Value $adapter.Name
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_$($i) -Value $adapter.Description
 
                 if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
                 {
                     if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
                     {
-                        $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_Driver -Value "Outdated (>1 Year Old)"
+                        $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Driver_$($i) -Value "Outdated (>1 Year Old)"
                     }
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_DriverDate -Value $adapter.DriverDate
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_DriverVersion -Value $adapter.DriverVersion
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_LinkSpeed -Value $adapter.LinkSpeed
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverDate_$($i) -Value $adapter.DriverDate
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverVersion_$($i) -Value $adapter.DriverVersion
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value $adapter.LinkSpeed
                 }
                 else
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_LinkSpeed -Value "VM - Not Applicable"
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value "VM - Not Applicable"
                 }
                 if($adapter.RSSEnabled -eq "NoRSS")
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_RSS -Value "NoRSS"
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "NoRSS"
                 }
                 elseif($adapter.RSSEnabled)
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_RSS -Value  "Enabled"
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value  "Enabled"
                 }
                 else
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_$($adapter.Name)_RSS -Value "Disabled"
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "Disabled"
                 }
-
+				
+				$i++
             }
 
                
@@ -2844,14 +2847,15 @@ Function Build-ServerObject
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name NICDescription -Value $adapter.Description
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_1 -Value $adapter.Name
+            $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_1 -Value $adapter.Description
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NICLinkSpeed -Value $adapter.LinkSpeed
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value $adapter.LinkSpeed
             }
             else 
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NICLinkSpeed -Value "VM - Not Applicable"  
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value "VM - Not Applicable"  
             }
         }
         
@@ -3111,6 +3115,8 @@ Function Build-HtmlServerReport {
     
     Write-Debug "Building HTML report from AllServersOutputObject"
     
+	$AllServersOutputObject 
+	
     $htmlhead="<html>
             <style>
             BODY{font-family: Arial; font-size: 8pt;}
@@ -3309,7 +3315,8 @@ Function Build-HtmlServerReport {
 	}
     
     $WarningsErrorsHtmlTable += "</table>"
-    
+
+	
     $ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
     
     Foreach($ServerArrayItem in $AllServersOutputObject)
@@ -3333,8 +3340,15 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
-
-
+		# If($ServerArrayItem.NumberNICs -gt 1)
+		# {
+			# $a = ($ServerArrayItem.NumberNICs)
+			# while($a -gt 1)
+			# {
+				# $ServerDetailsHtmlTable += "<tr><td>NIC Name</td><td>$($ServerArrayItem.NIC_Name_$a)</td></tr>"
+				# $a--
+			# }
+		# }
         
     }
     
