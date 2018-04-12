@@ -1255,9 +1255,20 @@ param(
         }
 
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
-        fltmc > "$copyTo\FilterDrivers.txt"
+        
 
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
+        #IP Config
+        ipconfig /all > "$copyTo\IPConfiguration.txt"
+
+        #Netstat -ano 
+        netstat -ano > "$copyTo\NetStat_ANO.txt"
+
+        #FLTMC
+        fltmc > "$copyTo\FilterDrivers.txt"
+        fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
+        fltmc instances > "$copyTo\FLTMC_Instances.txt"
+
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
     }
