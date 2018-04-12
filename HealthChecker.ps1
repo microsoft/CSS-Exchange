@@ -2768,14 +2768,17 @@ Function Build-ServerObject
     if($HealthExSvrObj.OSVersion.HighPerformanceSet)
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value $HealthExSvrObj.OSVersion.PowerPlanSetting
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $True
     }
     elseif($HealthExSvrObj.OSVersion.PowerPlan -eq $null) 
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "Not Accessible"
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
     }
     else
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "$($HealthExSvrObj.OSVersion.PowerPlanSetting)"
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
     }
 
 
@@ -3246,7 +3249,11 @@ Function Build-HtmlServerReport {
             $HtmlTableRow += "<td>Healthy</td>"	
         }
         
-        If($ServerArrayItem.TCPKeepAlive -ne "Optimal")
+        If($ServerArrayItem.TCPKeepAlive -eq "Not Optimal")
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+		ElseIf($ServerArrayItem.TCPKeepAlive -eq "Not Set")
         {
             $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.TCPKeepAlive)</td>"	
         }
@@ -3269,24 +3276,37 @@ Function Build-HtmlServerReport {
     $WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
     
     # Still playin with this.. 
-    
-    If($AllServersOutputObject.VirtualServer -contains "Yes")
-    {
-        $WarningsErrorsHtmlTable += "<tr><td>Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
-    }
+    If($AllServersOutputObject.PowerPlanSetRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Power Plan</td><td>Error: High Performance Power Plan is recommended</td></tr>"
+	}	
 	If($AllServersOutputObject.SupportedExchangeBuild -contains $False)
 	{
-		$WarningsErrorsHtmlTable += "<tr><td>Old Build</td><td>Error: Out of date Cumulative Update detected. Please upgrade to one of the two most recently released Cumulative Updates.</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Old Build</td><td>Error: Out of date Cumulative Update detected. Please upgrade to one of the two most recently released Cumulative Updates.</td></tr>"
 	}
+	If($AllServersOutputObject.TCPKeepAlive -contains "Not Set")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+	}
+	If($AllServersOutputObject.TCPKeepAlive -contains "Not Optimal")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+	}
+
+    If($AllServersOutputObject.VirtualServer -contains "Yes")
+    {
+        $WarningsErrorsHtmlTable += "<tr><td class=""warn"">Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
+    }
+
 	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td>Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
 	}
-	If(!($AllServersOutputObject.PowerPlan -Contains "High Performance"))
+
+	If($AllServersOutputObject.E2013MultipleNICs -contains "Yes")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td>Power Plan</td><td>Error: High Performance Power Plan is recommended</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR</td></tr>"
 	}
-	
     
     $WarningsErrorsHtmlTable += "</table>"
     
@@ -3311,6 +3331,7 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
 
 
