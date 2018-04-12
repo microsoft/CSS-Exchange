@@ -3339,18 +3339,24 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
-        $ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Services Down</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
 		
 		#NIC 
 		$a = ($ServerArrayItem.NumberNICs)
 		 while($a -ge 1)
 		 {
-            
             $name = "NIC_Name_{0}" -f $a 
 		    $ServerDetailsHtmlTable += "<tr><td>NIC Name</td><td>$($ServerArrayItem.$name)</td></tr>"
+			$description = "NIC_Description_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Description</td><td>$($ServerArrayItem.$description)</td></tr>"
+			$driver = "NIC_Driver_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Driver</td><td>$($ServerArrayItem.$driver)</td></tr>"
+			$linkspeed = "NIC_LinkSpeed_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC LinkSpeed</td><td>$($ServerArrayItem.$linkspeed)</td></tr>"
+			$rss = "NIC_RSS_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>RSS</td><td>$($ServerArrayItem.$rss)</td></tr>"
 			$a--
 		 }
-        
     }
     
     $ServerDetailsHtmlTable += "</table></p>"
