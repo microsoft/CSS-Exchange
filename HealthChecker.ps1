@@ -3340,15 +3340,16 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Services Impacted</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
-		# If($ServerArrayItem.NumberNICs -gt 1)
-		# {
-			# $a = ($ServerArrayItem.NumberNICs)
-			# while($a -gt 1)
-			# {
-				# $ServerDetailsHtmlTable += "<tr><td>NIC Name</td><td>$($ServerArrayItem.NIC_Name_$a)</td></tr>"
-				# $a--
-			# }
-		# }
+		
+		#NIC 
+		$a = ($ServerArrayItem.NumberNICs)
+		 while($a -ge 1)
+		 {
+            
+            $name = "NIC_Name_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Name</td><td>$($ServerArrayItem.$name)</td></tr>"
+			$a--
+		 }
         
     }
     
