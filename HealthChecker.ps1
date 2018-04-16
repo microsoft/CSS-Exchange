@@ -2825,7 +2825,7 @@ Function Build-ServerObject
                 {
                     $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "NoRSS"
                 }
-                elseif($adapter.RSSEnabled)
+                elseif($adapter.RSSEnabled -eq $True)
                 {
                     $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value  "Enabled"
                 }
@@ -3313,6 +3313,21 @@ Function Build-HtmlServerReport {
 	{
 		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR</td></tr>"
 	}
+	
+	$a = ($ServerArrayItem.NumberNICs)
+	 while($a -ge 1)
+	 {
+		$rss = "NIC_RSS_{0}" -f $a 
+		
+		If($AllServersOutputObject.$rss -contains "NoRSS")
+		{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Warning: Enabling RSS is recommended.</td></tr>"
+		break;
+		}	
+	 }
+
+
+	
     
     $WarningsErrorsHtmlTable += "</table>"
 
