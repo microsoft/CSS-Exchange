@@ -2972,7 +2972,6 @@ Function Build-ServerObject
 
     $ServerObject | Add-Member –MemberType NoteProperty –Name TotalPhysicalMemory -Value "$totalPhysicalMemory GB"
 
-
     ################
 	#Service Health#
 	################
@@ -3319,14 +3318,37 @@ Function Build-HtmlServerReport {
 	 {
 		$rss = "NIC_RSS_{0}" -f $a 
 		
-		If($AllServersOutputObject.$rss -contains "NoRSS")
+		If($AllServersOutputObject.$rss -contains "Disabled")
 		{
-		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Warning: Enabling RSS is recommended.</td></tr>"
-		break;
+			$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">RSS</td><td>Enabling RSS is recommended.</td></tr>"
+			break;
 		}	
+		ElseIf($AllServersOutputObject.$rss -contains "NoRSS")
+		{
+			$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">RSS</td><td>Enabling RSS is recommended.</td></tr>"
+			break;
+		}	
+		
+		$a--
 	 }
-
-
+	 
+	If($AllServersOutputObject.NUMAGroupSize -contains "Undetermined")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">NUMA Group Size Optimization</td><td>Unable to determine --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server</td></tr>"
+	}
+	ElseIf($AllServersOutputObject.NUMAGroupSize -contains "Clustered")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">NUMA Group Size Optimization</td><td>BIOS Set to Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues.</td></tr>"
+	}
+	
+	If($AllServersOutputObject.AllProcCoresVisible -contains "Undetermined")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">All Processor Cores Visible</td><td>Unable to determine --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues.</td></tr>"
+	}
+	ElseIf($AllServersOutputObject.AllProcCoresVisible -contains "No")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">All Processor Cores Visible</td><td>Not all Processor Cores are visable to Exchange and this will cause a performance impact</td></tr>"
+	}
 	
     
     $WarningsErrorsHtmlTable += "</table>"
@@ -3345,6 +3367,7 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Exchange</td><td>$($ServerArrayItem.Exchange)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Build Number</td><td>$($ServerArrayItem.BuildNumber)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Server Role</td><td>$($ServerArrayItem.ServerRole)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
@@ -3352,6 +3375,8 @@ Function Build-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>NUMA Group Size</td><td>$($ServerArrayItem.NUMAGroupSize)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>All Procs Visible</td><td>$($ServerArrayItem.AllProcCoresVisible)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Services Down</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
@@ -3372,6 +3397,7 @@ Function Build-HtmlServerReport {
 		    $ServerDetailsHtmlTable += "<tr><td>RSS</td><td>$($ServerArrayItem.$rss)</td></tr>"
 			$a--
 		 }
+		 
     }
     
     $ServerDetailsHtmlTable += "</table></p>"
