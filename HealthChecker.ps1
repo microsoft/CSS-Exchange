@@ -3048,8 +3048,8 @@ Function Build-ServerObject
     #}
 
 
-    #Write-debug "ServersObject: " 
-    $ServerObject
+    Write-debug "Building ServersObject " #$ServerObject
+    
 
 }
 
@@ -3128,9 +3128,10 @@ Function Build-HtmlServerReport {
         $AllServersOutputObject += Build-ServerObject $data
     }
     
-    Write-Debug "Building HTML report from AllServersOutputObject"
+    Write-Debug "Building HTML report from AllServersOutputObject" 
+	#Write-Debug $AllServersOutputObject 
     
-	$AllServersOutputObject 
+	
 	
     $htmlhead="<html>
             <style>
