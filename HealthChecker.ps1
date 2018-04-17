@@ -3150,7 +3150,8 @@ Function Build-HtmlServerReport {
             </style>
             <body>
             <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
-            <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
+            <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>
+            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .log file of the Health Checker script results</p>"
     
 
     $HtmlTableHeader = "<p>
