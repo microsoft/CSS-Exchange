@@ -3503,6 +3503,8 @@ Function Main {
         {
             Write-Yellow("-LoadBalancingReport is only supported for Exchange 2013 and greater")
         }
+        #Load balancing report only needs to be the thing that runs
+        exit
     }
 
    
