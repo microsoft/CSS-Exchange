@@ -2971,6 +2971,22 @@ Function Build-ServerObject
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
 
     $ServerObject | Add-Member –MemberType NoteProperty –Name TotalPhysicalMemory -Value "$totalPhysicalMemory GB"
+	
+	if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
+        $HealthExSvrObj.HardwareInfo.TotalMemory -gt 206158430208)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $False
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
+     $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $False
+    }
+	else
+	{
+		$ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $True
+		$ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $True
+	}
 
     ################
 	#Service Health#
@@ -3147,6 +3163,7 @@ Function Build-HtmlServerReport {
                         <th>Build Days Old</th>
                         <th>Server Role</th>
                         <th>Auto Page File</th>
+						<th>System Memory</th>
                         <th>Multiple Page Files</th>
                         <th>Page File Size</th>
                         <th>.Net Version</th>
@@ -3193,6 +3210,22 @@ Function Build-HtmlServerReport {
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.AutoPageFile)</td>"	
         }
+		
+		
+		If(!$ServerArrayItem.E2013MemoryRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+        ElseIf (!$ServerArrayItem.E2016MemoryRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+		
+		
                     
         If($ServerArrayItem.MultiplePageFiles -eq "Yes")
         {
@@ -3280,7 +3313,6 @@ Function Build-HtmlServerReport {
     
     $WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
     
-    # Still playin with this.. 
     If($AllServersOutputObject.PowerPlanSetRight -contains $False)
 	{
 		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Power Plan</td><td>Error: High Performance Power Plan is recommended</td></tr>"
@@ -3293,20 +3325,21 @@ Function Build-HtmlServerReport {
 	{
 		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
 	}
+	
 	If($AllServersOutputObject.TCPKeepAlive -contains "Not Optimal")
 	{
 		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+	}
+	
+	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
 	}
 
     If($AllServersOutputObject.VirtualServer -contains "Yes")
     {
         $WarningsErrorsHtmlTable += "<tr><td class=""warn"">Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
     }
-
-	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
-	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
-	}
 
 	If($AllServersOutputObject.E2013MultipleNICs -contains "Yes")
 	{
@@ -3350,7 +3383,18 @@ Function Build-HtmlServerReport {
 		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">All Processor Cores Visible</td><td>Not all Processor Cores are visable to Exchange and this will cause a performance impact</td></tr>"
 	}
 	
+	If($AllServersOutputObject.E2016MemoryRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Exchange 2016 Memory</td><td>Memory greater than 192GB. We recommend for the best performance to be scaled at or below 192 GB of Memory.</td></tr>"
+	}
+	
+	If($AllServersOutputObject.E2013MemoryRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Exchange 2013 Memory</td><td>Memory greater than 96GB. We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.</td></tr>"
+	}	
     
+	$WarningsErrorsHtmlTable += "$($AllServersOutputObject.E2013MemoryRight)"
+	
     $WarningsErrorsHtmlTable += "</table>"
 
 	
