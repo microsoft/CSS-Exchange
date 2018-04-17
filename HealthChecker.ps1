@@ -3048,7 +3048,8 @@ Function Build-ServerObject
     #}
 
 
-    Write-debug "Building ServersObject " #$ServerObject
+    Write-debug "Building ServersObject " 
+	$ServerObject
     
 
 }
@@ -3393,8 +3394,6 @@ Function Build-HtmlServerReport {
 	{
 		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Exchange 2013 Memory</td><td>Memory greater than 96GB. We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.</td></tr>"
 	}	
-    
-	$WarningsErrorsHtmlTable += "$($AllServersOutputObject.E2013MemoryRight)"
 	
     $WarningsErrorsHtmlTable += "</table>"
 
