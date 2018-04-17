@@ -3149,7 +3149,7 @@ Function Build-HtmlServerReport {
             td.info{background: #85D4FF;}
             </style>
             <body>
-            <h1 align=""center"">Exchange Health Checker</h1>
+            <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
             <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>"
     
 
