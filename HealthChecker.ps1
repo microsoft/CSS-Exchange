@@ -2825,7 +2825,7 @@ Function Build-ServerObject
                 {
                     $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "NoRSS"
                 }
-                elseif($adapter.RSSEnabled -eq $True)
+                elseif($adapter.RSSEnabled -eq "True")
                 {
                     $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value  "Enabled"
                 }
