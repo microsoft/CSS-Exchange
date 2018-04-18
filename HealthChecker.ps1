@@ -3,7 +3,8 @@
 	Name: HealthChecker.ps1
 	Original Author: Marc Nivens
     Author: David Paulson
-    contributor: Jason Shinbaum 
+    Contributor: Jason Shinbaum 
+	Contributor: Michael Schatte
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
 	Version History:
@@ -77,15 +78,16 @@ param(
     [switch]$LoadBalancingReport,
     $CasServerList = $null,
     $SiteName = $null,
-    [switch]$ServerReport,
-    $ServerList
+    [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
+    [switch]$BuildHtmlServersReport,
+    [string]$HtmlReportFile="ExchangeAllServersReport.html"
 )
 
 <#
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.17"
+$healthCheckerVersion = "2.18"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -105,6 +107,10 @@ if($PSBoundParameters["Verbose"]){
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
+$oldErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Stop"
+
+try{
 
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
@@ -135,7 +141,8 @@ Add-Type -TypeDefinition @"
             public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
             public bool MapiHttpEnabled; //Stored from ogranzation config 
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
-            
+            public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
+           
         }
 
         public class ExchangeInformationTempObject 
@@ -347,6 +354,18 @@ Add-Type -TypeDefinition @"
     }
 
 "@
+
+}
+
+catch {
+    Write-Warning "There was an error trying to add custom classes to the current PowerShell session. You need to close this session and open a new one to have the script properly work."
+    sleep 5
+    exit 
+}
+
+finally {
+    $ErrorActionPreference = $oldErrorAction
+}
 
 ##################
 #Helper Functions#
@@ -1577,6 +1596,8 @@ param(
         Write-Red "Error: Unknown version of Exchange detected for server: $Machine_Name"
        
     }
+	
+	$exchInfoObject.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Machine_Name | %{$_.ServicesNotRunning}
 
     $HealthExSvrObj.ExchangeInformation = $exchInfoObject
     return $HealthExSvrObj
@@ -2137,7 +2158,7 @@ param(
     ####################
 
     Write-Green("Exchange Health Checker version " + $healthCheckerVersion)
-    Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + (Get-Date)) 
+    Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + $date) 
     Write-Break
     Write-Break
     ###############################
@@ -2173,7 +2194,7 @@ param(
 
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $Dif_Days = ($date - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
         Write-Red("`tError: Out of date Cumulative Update.  Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is " + $Dif_Days + " Days old")
     }
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
@@ -2344,7 +2365,7 @@ param(
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
+                if((New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
                 }
@@ -2523,12 +2544,12 @@ param(
         (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
         ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
     {
-	    $services = Test-ServiceHealth -Server $HealthExSvrObj.ServerName | %{$_.ServicesNotRunning}
-	    if($services.length -gt 0)
+		if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
 		    Write-Yellow("`r`nWarning: The following services are not running:")
-		    $services | %{Write-Grey($_)}
+        $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning | %{Write-Grey($_)}
 	    }
+
     }
 
     #################
@@ -2570,6 +2591,872 @@ param(
 
 }
 
+Function Build-ServerObject
+{
+    param(
+    [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+    )
+
+    $ServerObject = New-Object –TypeName PSObject
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name ServerName –Value $HealthExSvrObj.ServerName
+
+    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare -or $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::HyperV)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name VirtualServer –Value "Yes"
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name VirtualServer –Value "No"
+    }
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name HardwareType –Value $HealthExSvrObj.HardwareInfo.ServerType.ToString()
+
+    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name Manufacturer –Value $HealthExSvrObj.HardwareInfo.Manufacturer
+        $ServerObject | Add-Member –MemberType NoteProperty –Name Model –Value $HealthExSvrObj.HardwareInfo.Model
+    }
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name OperatingSystem –Value $HealthExSvrObj.OSVersion.OperatingSystemName
+    $ServerObject | Add-Member –MemberType NoteProperty –Name Exchange –Value $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName
+    $ServerObject | Add-Member –MemberType NoteProperty –Name BuildNumber –Value $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber
+
+    #If IU or Security Hotfix detected
+    if($HealthExSvrObj.ExchangeInformation.KBsInstalled -ne $null)
+    {
+        $KBArray = = @()
+        foreach($kb in $HealthExSvrObj.ExchangeInformation.KBsInstalled)
+        {
+            $KBArray += $kb
+        }
+
+        $ServerObject | Add-Member –MemberType NoteProperty –Name InterimUpdatesInstalled -Value $KBArray
+    }
+
+    if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
+        $ServerObject | Add-Member –MemberType NoteProperty –Name BuildDaysOld –Value $Dif_Days
+		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
+    }
+	else
+	{
+		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $True
+	}
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name ServerRole -Value "Not Multirole"
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name ServerRole -Value $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString()
+    }
+
+
+    ###########
+    #Page File#
+    ###########
+
+    if($HealthExSvrObj.HardwareInfo.AutoPageFile) 
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name AutoPageFile -Value "Yes"
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name AutoPageFile -Value "No"
+    }
+    
+    if($HealthExSvrObj.OSVersion.PageFile.PageFile.Count -gt 1)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name MultiplePageFiles -Value "Yes"
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name MultiplePageFiles -Value "No"
+    }
+    
+    
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010) 
+    {
+        #Exchange 2010, we still recommend that we have the page file set to RAM + 10 MB 
+        #Page File Size is Less than Physical Memory Size Plus 10 MB 
+        #https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx
+        $sDisplay = Verify-PagefileEqualMemoryPlus10 -page_obj $HealthExSvrObj.OSVersion.PageFile -hardware_obj $HealthExSvrObj.HardwareInfo
+        if($sDisplay -eq "Good")
+        {
+
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+      			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+        }
+    }
+
+    #Exchange 2013+ with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
+    #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
+    elseif($HealthExSvrObj.HardwareInfo.TotalMemory -ge 34359738368)
+
+    {
+        if($HealthExSvrObj.OSVersion.PageFile.MaxPageSize -eq 32778)
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+        }
+    }
+    #Exchange 2013 with page file size that should match total memory plus 10 MB 
+    else
+    {
+        $sDisplay = Verify-PagefileEqualMemoryPlus10 -page_obj $HealthExSvrObj.OSVersion.PageFile -hardware_obj $HealthExSvrObj.HardwareInfo
+        if($sDisplay -eq "Good")
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+        }
+    }
+
+    ################
+    #.NET FrameWork#
+    ################
+    
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+
+        
+        if($HealthExSvrObj.NetVersionInfo.SupportedVersion -or 
+            ($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802))
+        {
+            if($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
+            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802)
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "Win 2016 .NET 4.6.2"
+            }
+            elseif($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value $HealthExSvrObj.NetVersionInfo.FriendlyName
+            }
+            else
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
+            }
+        }
+        else
+        {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
+        }
+
+    }
+
+
+    ################
+    #Power Settings#
+    ################
+
+    if($HealthExSvrObj.OSVersion.HighPerformanceSet)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value $HealthExSvrObj.OSVersion.PowerPlanSetting
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $True
+    }
+    elseif($HealthExSvrObj.OSVersion.PowerPlan -eq $null) 
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "Not Accessible"
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "$($HealthExSvrObj.OSVersion.PowerPlanSetting)"
+		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
+    }
+
+
+
+    #####################
+	#Http Proxy Settings#
+	#####################
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name HTTPProxy -Value $HealthExSvrObj.OSVersion.HttpProxy
+
+
+    ##################
+    #Network Settings#
+    ##################
+
+    if($HealthExSvrObj.OSVersion.OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
+    {
+        if((($HealthExSvrObj.OSVersion.NetworkAdapters).count) -gt 1)
+        {
+			$i = 1
+			
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
+
+            foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_$($i) -Value $adapter.Name
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_$($i) -Value $adapter.Description
+
+                if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+                {
+                    if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
+                    {
+                        $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Driver_$($i) -Value "Outdated (>1 Year Old)"
+                    }
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverDate_$($i) -Value $adapter.DriverDate
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverVersion_$($i) -Value $adapter.DriverVersion
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value $adapter.LinkSpeed
+                }
+                else
+                {
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value "VM - Not Applicable"
+                }
+                if($adapter.RSSEnabled -eq "NoRSS")
+                {
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "NoRSS"
+                }
+                elseif($adapter.RSSEnabled -eq "True")
+                {
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value  "Enabled"
+                }
+                else
+                {
+                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "Disabled"
+                }
+				
+				$i++
+            }
+
+               
+
+             
+        }
+    }
+    else
+    {
+        
+        foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
+        {
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_1 -Value $adapter.Name
+            $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_1 -Value $adapter.Description
+            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value $adapter.LinkSpeed
+            }
+            else 
+            {
+                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value "VM - Not Applicable"  
+            }
+        }
+        
+    }
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        if($HealthExSvrObj.OSVersion.NetworkAdapters.Count -gt 1 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Mailbox -or $HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::MultiRole))
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name E2013MultipleNICs -Value "Yes"
+        }
+    }
+
+    #######################
+    #Processor Information#
+    #######################
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
+
+    #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
+        }
+    }
+    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    {
+        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Enabled"
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Disabled"
+        }
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
+    }
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors
+
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+    }
+	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
+	{
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Undetermined"
+		}
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Clustered"
+		}
+		else
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Flat"
+		}
+	}
+	else
+	{
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Undetermined"
+		}
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "No"
+		}
+		else
+		{
+			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Yes"
+		}
+	}
+    if($HealthExSvrObj.HardwareInfo.Processor.ProcessorIsThrottled)
+    {
+        #We are set correctly at the OS layer
+        if($HealthExSvrObj.OSVersion.HighPerformanceSet)
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorSpeed -Value "Throttled, Not Power Plan"
+        }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorSpeed -Value "Throttled, Power Plan"
+        }
+        $ServerObject | Add-Member –MemberType NoteProperty –Name CurrentProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.CurrentMegacyclesPerCore
+        $ServerObject | Add-Member –MemberType NoteProperty –Name MaxProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name MaxMegacyclesPerCore -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
+    }
+
+
+    #Memory Going to check for greater than 96GB of memory for Exchange 2013
+    #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
+    $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
+
+    $ServerObject | Add-Member –MemberType NoteProperty –Name TotalPhysicalMemory -Value "$totalPhysicalMemory GB"
+	
+	if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
+        $HealthExSvrObj.HardwareInfo.TotalMemory -gt 206158430208)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $False
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
+     $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $False
+    }
+	else
+	{
+		$ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $True
+		$ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $True
+	}
+
+    ################
+	#Service Health#
+	################
+    #We don't want to run if the server is 2013 CAS role or if the Role = None
+    if(-not(($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::None) -or 
+        (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
+        ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
+    {
+	    
+	    if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
+	    {
+		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
+			$ServerObject | Add-Member –MemberType NoteProperty –Name ServicesImpacted -Value $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning
+	    }
+        else
+        {
+            $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Healthy"
+        }
+    }
+
+    #################
+	#TCP/IP Settings#
+	#################
+    if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Not Set" 
+    }
+    elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Not Optimal"
+    }
+    else
+    {
+        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Optimal"
+    }
+
+    ###############################
+	#LmCompatibilityLevel Settings#
+	###############################
+    $ServerObject | Add-Member –MemberType NoteProperty –Name LmCompatibilityLevel -Value $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel
+
+
+	##############
+	#Hotfix Check#
+	##############
+    
+    #Issue: throws errors 
+    <#
+    Add-Member : Cannot add a member with the name "Passed" because a member with that name already exists. To overwrite
+    the member anyway, add the Force parameter to your command.
+    #>
+    #if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    #{
+        #If((Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj) -like "*Installed*")
+        #{
+       #     $ServerObject | Add-Member –MemberType NoteProperty –Name KB3041832 -Value "Installed"
+        #}
+    #}
+
+
+    Write-debug "Building ServersObject " 
+	$ServerObject
+    
+
+}
+
+
+Function Get-HealthCheckFilesItemsFromLocation{
+    $items = Get-ChildItem $XMLDirectoryPath | Where-Object{$_.Name -like "HealthCheck-*-*.xml"}
+    if($items -eq $null)
+    {
+        Write-Host("Doesn't appear to be any Health Check XML files here....stopping the script")
+        exit 
+    }
+    return $items
+}
+
+Function Get-OnlyRecentUniqueServersXMLs {
+param(
+[Parameter(Mandatory=$true)][array]$FileItems 
+)   
+
+    $aObject = @() 
+    foreach($item in $FileItems)
+    {
+        $obj = New-Object PSCustomobject 
+        [string]$itemName = $item.Name
+        $ServerName = $itemName.Substring(($itemName.IndexOf("-") + 1), ($itemName.LastIndexOf("-") - $itemName.IndexOf("-") - 1))
+        $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
+        $obj | Add-Member -MemberType NoteProperty -Name FileName -Value $itemName
+        $obj | Add-Member -MemberType NoteProperty -Name FileObject -Value $item 
+        $aObject += $obj
+    }
+
+    $grouped = $aObject | Group-Object ServerName 
+
+    $FilePathList = @()
+    foreach($gServer in $grouped)
+    {
+        
+        if($gServer.Count -gt 1)
+        {
+            #going to only use the most current file for this server providing that they are using the newest updated version of Health Check we only need to sort by name
+            $groupData = $gServer.Group #because of win2008
+            $FilePathList += ($groupData | Sort-Object FileName -Descending | Select-Object -First 1).FileObject.VersionInfo.FileName
+
+        }
+        else {
+            $FilePathList += ($gServer.Group).FileObject.VersionInfo.FileName
+        }
+        
+    }
+
+    return $FilePathList
+}
+
+Function Import-MyData {
+param(
+[Parameter(Mandatory=$true)][array]$FilePaths
+)
+    [System.Collections.Generic.List[System.Object]]$myData = New-Object -TypeName System.Collections.Generic.List[System.Object]
+    foreach($filePath in $FilePaths)
+    {
+        $importData = Import-Clixml -Path $filePath
+        $myData.Add($importData)
+    }
+    return $myData
+}
+
+Function Build-HtmlServerReport {
+
+    $Files = Get-HealthCheckFilesItemsFromLocation
+    $FullPaths = Get-OnlyRecentUniqueServersXMLs $Files
+    $ImportData = Import-MyData -FilePaths $FullPaths
+
+    $AllServersOutputObject = @()
+    foreach($data in $ImportData)
+    {
+        $AllServersOutputObject += Build-ServerObject $data
+    }
+    
+    Write-Debug "Building HTML report from AllServersOutputObject" 
+	#Write-Debug $AllServersOutputObject 
+    
+	
+	
+    $htmlhead="<html>
+            <style>
+            BODY{font-family: Arial; font-size: 8pt;}
+            H1{font-size: 16px;}
+            H2{font-size: 14px;}
+            H3{font-size: 12px;}
+            TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt;}
+            TH{border: 1px solid black; background: #dddddd; padding: 5px; color: #000000;}
+            TD{border: 1px solid black; padding: 5px; }
+            td.pass{background: #7FFF00;}
+            td.warn{background: #FFE600;}
+            td.fail{background: #FF0000; color: #ffffff;}
+            td.info{background: #85D4FF;}
+            </style>
+            <body>
+            <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
+            <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>
+            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .log file of the Health Checker script results</p>"
+    
+
+    $HtmlTableHeader = "<p>
+                        <table>
+                        <tr>
+                        <th>Server Name</th>
+                        <th>Virtual Server</th>
+                        <th>Hardware Type</th>
+                        <th>OS</th>
+                        <th>Exchange Version</th>
+                        <th>Build Number</th>
+                        <th>Build Days Old</th>
+                        <th>Server Role</th>
+                        <th>Auto Page File</th>
+						<th>System Memory</th>
+                        <th>Multiple Page Files</th>
+                        <th>Page File Size</th>
+                        <th>.Net Version</th>
+                        <th>Power Plan</th>
+                        <th>Hyper-Threading</th>
+                        <th>Processor Speed</th>
+                        <th>Service Health</th>
+                        <th>TCP Keep Alive</th>
+                        <th>LmCompatibilityLevel</th>
+                        </tr>"
+                        
+    $ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltableheader 
+    
+    $ServersHealthHtmlTable += "<H2>Servers Overview</H2>"
+                        
+    foreach($ServerArrayItem in $AllServersOutputObject)
+    {
+        Write-Debug $ServerArrayItem
+        $HtmlTableRow = "<tr>"
+        $HtmlTableRow += "<td>$($ServerArrayItem.ServerName)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.VirtualServer)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.HardwareType)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.OperatingSystem)</td>"	
+        $HtmlTableRow += "<td>$($ServerArrayItem.Exchange)</td>"			
+        $HtmlTableRow += "<td>$($ServerArrayItem.BuildNumber)</td>"	
+        
+        If(!$ServerArrayItem.SupportedExchangeBuild) 
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.BuildDaysOld)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
+        }
+
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
+        
+        If($ServerArrayItem.AutoPageFile -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.AutoPageFile)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.AutoPageFile)</td>"	
+        }
+		
+		
+		If(!$ServerArrayItem.E2013MemoryRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+        ElseIf (!$ServerArrayItem.E2016MemoryRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.TotalPhysicalMemory)</td>"	
+        }
+		
+		
+                    
+        If($ServerArrayItem.MultiplePageFiles -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MultiplePageFiles)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.MultiplePageFiles)</td>"	
+        }
+        
+        If($ServerArrayItem.PagefileSizeSetRight -eq "No")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PageFileSize)</td>"	
+        }
+        ElseIf ($ServerArrayItem.PagefileSizeSetRight -eq "Yes")
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.PageFileSize)</td>"	
+        }
+        ElseIf (!$ServerArrayItem.PagefileSizeSetRight)
+        {
+            $HtmlTableRow += "<td class=""warn"">Undetermined</td>"	
+        }
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.DotNetVersion)</td>"			
+        
+        If($ServerArrayItem.PowerPlan -ne "High performance")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.PowerPlan)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.PowerPlan)</td>"	
+        }
+        
+        If($ServerArrayItem.HyperThreading -eq "Yes" -or $ServerArrayItem.AMD_HyperThreading -eq "Yes")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.HyperThreading)$($ServerArrayItem.AMD_HyperThreading)</td>"	
+        }
+        
+        If($ServerArrayItem.ProcessorSpeed -like "Throttled*")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MaxProcessorSpeed)/$($ServerArrayItem.CurrentProcessorSpeed)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.MaxMegacyclesPerCore)</td>"	
+        }
+        
+        If($ServerArrayItem.ServiceHealth -like "Impacted*")
+        {
+            $HtmlTableRow += "<td class=""fail"">Impacted</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>Healthy</td>"	
+        }
+        
+        If($ServerArrayItem.TCPKeepAlive -eq "Not Optimal")
+        {
+            $HtmlTableRow += "<td class=""warn"">$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+		ElseIf($ServerArrayItem.TCPKeepAlive -eq "Not Set")
+        {
+            $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+        Else
+        {
+            $HtmlTableRow += "<td>$($ServerArrayItem.TCPKeepAlive)</td>"	
+        }
+        
+        $HtmlTableRow += "<td>$($ServerArrayItem.LmCompatibilityLevel)</td>"	
+
+        $HtmlTableRow += "</tr>"
+                    
+                    
+        $ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltablerow
+        
+    }
+    
+    $ServersHealthHtmlTable += "</table></p>"
+    
+    $WarningsErrorsHtmlTable += "<H2>Warnings/Errors in your environment.</H2><table>"
+    
+    If($AllServersOutputObject.PowerPlanSetRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Power Plan</td><td>Error: High Performance Power Plan is recommended</td></tr>"
+	}	
+	If($AllServersOutputObject.SupportedExchangeBuild -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Old Build</td><td>Error: Out of date Cumulative Update detected. Please upgrade to one of the two most recently released Cumulative Updates.</td></tr>"
+	}
+	If($AllServersOutputObject.TCPKeepAlive -contains "Not Set")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+	}
+	
+	If($AllServersOutputObject.TCPKeepAlive -contains "Not Optimal")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+	}
+	
+	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
+	}
+
+    If($AllServersOutputObject.VirtualServer -contains "Yes")
+    {
+        $WarningsErrorsHtmlTable += "<tr><td class=""warn"">Virtual Servers</td><td>$($VirtualizationWarning)</td></tr>" 
+    }
+
+	If($AllServersOutputObject.E2013MultipleNICs -contains "Yes")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR</td></tr>"
+	}
+	
+	$a = ($ServerArrayItem.NumberNICs)
+	 while($a -ge 1)
+	 {
+		$rss = "NIC_RSS_{0}" -f $a 
+		
+		If($AllServersOutputObject.$rss -contains "Disabled")
+		{
+			$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">RSS</td><td>Enabling RSS is recommended.</td></tr>"
+			break;
+		}	
+		ElseIf($AllServersOutputObject.$rss -contains "NoRSS")
+		{
+			$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">RSS</td><td>Enabling RSS is recommended.</td></tr>"
+			break;
+		}	
+		
+		$a--
+	 }
+	 
+	If($AllServersOutputObject.NUMAGroupSize -contains "Undetermined")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">NUMA Group Size Optimization</td><td>Unable to determine --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server</td></tr>"
+	}
+	ElseIf($AllServersOutputObject.NUMAGroupSize -contains "Clustered")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">NUMA Group Size Optimization</td><td>BIOS Set to Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues.</td></tr>"
+	}
+	
+	If($AllServersOutputObject.AllProcCoresVisible -contains "Undetermined")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">All Processor Cores Visible</td><td>Unable to determine --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues.</td></tr>"
+	}
+	ElseIf($AllServersOutputObject.AllProcCoresVisible -contains "No")
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">All Processor Cores Visible</td><td>Not all Processor Cores are visable to Exchange and this will cause a performance impact</td></tr>"
+	}
+	
+	If($AllServersOutputObject.E2016MemoryRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Exchange 2016 Memory</td><td>Memory greater than 192GB. We recommend for the best performance to be scaled at or below 192 GB of Memory.</td></tr>"
+	}
+	
+	If($AllServersOutputObject.E2013MemoryRight -contains $False)
+	{
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Exchange 2013 Memory</td><td>Memory greater than 96GB. We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.</td></tr>"
+	}	
+	
+    $WarningsErrorsHtmlTable += "</table>"
+
+	
+    $ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
+    
+    Foreach($ServerArrayItem in $AllServersOutputObject)
+    {
+
+        $ServerDetailsHtmlTable += "<tr><th>Server Name</th><th>$($ServerArrayItem.ServerName)</th></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Manufacturer</td><td>$($ServerArrayItem.Manufacturer)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Model</td><td>$($ServerArrayItem.Model)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Hardware Type</td><td>$($ServerArrayItem.HardwareType)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Operating System</td><td>$($ServerArrayItem.OperatingSystem)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Exchange</td><td>$($ServerArrayItem.Exchange)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Build Number</td><td>$($ServerArrayItem.BuildNumber)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Server Role</td><td>$($ServerArrayItem.ServerRole)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.ProcessorName)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>NUMA Group Size</td><td>$($ServerArrayItem.NUMAGroupSize)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>All Procs Visible</td><td>$($ServerArrayItem.AllProcCoresVisible)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>System Memory</td><td>$($ServerArrayItem.TotalPhysicalMemory)</td></tr>"
+		$ServerDetailsHtmlTable += "<tr><td>Multiple NICs</td><td>$($ServerArrayItem.E2013MultipleNICs)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Services Down</td><td>$($ServerArrayItem.ServicesImpacted)</td></tr>"
+		
+		#NIC 
+		$a = ($ServerArrayItem.NumberNICs)
+		 while($a -ge 1)
+		 {
+            $name = "NIC_Name_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Name</td><td>$($ServerArrayItem.$name)</td></tr>"
+			$description = "NIC_Description_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Description</td><td>$($ServerArrayItem.$description)</td></tr>"
+			$driver = "NIC_Driver_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC Driver</td><td>$($ServerArrayItem.$driver)</td></tr>"
+			$linkspeed = "NIC_LinkSpeed_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>NIC LinkSpeed</td><td>$($ServerArrayItem.$linkspeed)</td></tr>"
+			$rss = "NIC_RSS_{0}" -f $a 
+		    $ServerDetailsHtmlTable += "<tr><td>RSS</td><td>$($ServerArrayItem.$rss)</td></tr>"
+			$a--
+		 }
+		 
+    }
+    
+    $ServerDetailsHtmlTable += "</table></p>"
+    
+    $htmltail = "</body>
+    </html>"
+
+    $htmlreport = $htmlhead  + $ServersHealthHtmlTable + $WarningsErrorsHtmlTable + $ServerDetailsHtmlTable  + $htmltail
+    
+    $htmlreport | Out-File $HtmlReportFile -Encoding UTF8
+}
 
 Function Main {
     
@@ -2578,7 +3465,15 @@ Function Main {
 		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
 		sleep 2;
 		exit
-	}
+    }
+    
+    if($BuildHtmlServersReport)
+    {
+        Build-HtmlServerReport
+        sleep 2;
+        exit
+    }
+
 	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
@@ -2587,7 +3482,9 @@ Function Main {
     }
     $iErrorStartCount = $Error.Count #useful for debugging 
     $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
+    $Script:date = (Get-Date)
+    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
+    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
     $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
     Write-VerboseOutput("Calling: main Script Execution")
 
@@ -2596,10 +3493,10 @@ Function Main {
         [int]$iMajor = (Get-ExchangeServer $Server).AdminDisplayVersion.Major
         if($iMajor -gt 14)
         {
-            $OutputFileName = "LoadBalancingReport" + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
+            $OutputFileName = "LoadBalancingReport" + "-" + $dateTimeStringFormat + ".log"
             $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
             Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
-            Write-Green("Client Access Load Balancing Report on " + (Get-Date))
+            Write-Green("Client Access Load Balancing Report on " + $date)
             Get-CASLoadBalancingReport
             Write-Grey("Output file written to " + $OutputFullPath)
             Write-Break
@@ -2609,44 +3506,48 @@ Function Main {
         {
             Write-Yellow("-LoadBalancingReport is only supported for Exchange 2013 and greater")
         }
+        #Load balancing report only needs to be the thing that runs
+        exit
     }
-    
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + (get-date).tostring("MMddyyyyHHmmss") + ".log"
-    $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-    $OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
-    $HealthObject = Build-HealthExchangeServerObject $Server
-    Display-ResultsToScreen $healthObject 
-    if($MailboxReport)
-    {
-        Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
-    }
-    Write-Grey("Output file written to " + $OutputFullPath)
-    if($Error.Count -gt $iErrorStartCount)
-    {
-        Write-Grey(" ");Write-Grey(" ")
-        Function Write-Errors {
-            $index = 0; 
-            "Errors that occurred" | Out-File ($OutputFullPath) -Append
-            while($index -lt ($Error.Count - $iErrorStartCount))
-            {
-                $Error[$index++] | Out-File ($OutputFullPath) -Append
-            }
-        }
-        #Now to determine if the errors are expected or not 
-        if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
-        {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
-            Write-Errors
-        }
-        elseif($Script:VerboseEnabled)
-        {
-            Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
-            Write-Errors
-        }
+
+   
+    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
+	$OutputFullPath = $OutputFilePath + "\" + $OutputFileName
+	$OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
+	$HealthObject = Build-HealthExchangeServerObject $Server
+	Display-ResultsToScreen $healthObject 
+	if($MailboxReport)
+	{
+	    Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+	}
+	Write-Grey("Output file written to " + $OutputFullPath)
+	if($Error.Count -gt $iErrorStartCount)
+	{
+	    Write-Grey(" ");Write-Grey(" ")
+	    Function Write-Errors {
+	        $index = 0; 
+	        "Errors that occurred" | Out-File ($OutputFullPath) -Append
+	        while($index -lt ($Error.Count - $iErrorStartCount))
+	        {
+	            $Error[$index++] | Out-File ($OutputFullPath) -Append
+	        }
+	    }
+	    #Now to determine if the errors are expected or not 
+	    if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
+	    {
+	        Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+	        Write-Errors
+	    }
+	    elseif($Script:VerboseEnabled)
+	    {
+	        Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
+	        Write-Errors
+	    }
         
-    }
-    Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
-    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+	}
+	Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
+	$HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+	
 }
 
 Main 
