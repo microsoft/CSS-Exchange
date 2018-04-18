@@ -142,8 +142,8 @@ Add-Type -TypeDefinition @"
             public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
             public bool MapiHttpEnabled; //Stored from ogranzation config 
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
-			public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
-            
+            public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
+           
         }
 
         public class ExchangeInformationTempObject 
@@ -2548,7 +2548,7 @@ param(
 		if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
 		    Write-Yellow("`r`nWarning: The following services are not running:")
-			$HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning | %{Write-Grey($_)}
+        $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning | %{Write-Grey($_)}
 	    }
 
     }
@@ -2687,8 +2687,10 @@ Function Build-ServerObject
         $sDisplay = Verify-PagefileEqualMemoryPlus10 -page_obj $HealthExSvrObj.OSVersion.PageFile -hardware_obj $HealthExSvrObj.HardwareInfo
         if($sDisplay -eq "Good")
         {
+
             $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+      			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+
         }
         else
         {
@@ -2696,9 +2698,11 @@ Function Build-ServerObject
 			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
         }
     }
+
     #Exchange 2013+ with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
     #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
     elseif($HealthExSvrObj.HardwareInfo.TotalMemory -ge 34359738368)
+
     {
         if($HealthExSvrObj.OSVersion.PageFile.MaxPageSize -eq 32778)
         {
