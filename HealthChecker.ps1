@@ -78,7 +78,6 @@ param(
     [switch]$LoadBalancingReport,
     $CasServerList = $null,
     $SiteName = $null,
-    [switch]$ServerReport,
     [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
     [switch]$BuildHtmlServersReport,
     [string]$HtmlReportFile="ExchangeAllServersReport.html"
