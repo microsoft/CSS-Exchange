@@ -409,13 +409,6 @@ Function Write-Break {
     Write-Host ""
 }
 
-function Exit-Script
-{
-    Write-Grey("Output file written to " + $OutputFullPath)
-    Exit
-}
-
-
 
 ############################################################
 ############################################################
