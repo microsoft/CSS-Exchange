@@ -80,7 +80,8 @@ param(
     $SiteName = $null,
     [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
     [switch]$BuildHtmlServersReport,
-    [string]$HtmlReportFile="ExchangeAllServersReport.html"
+    [string]$HtmlReportFile="ExchangeAllServersReport.html",
+    [switch]$DCCoreRatio
 )
 
 <#
@@ -3451,6 +3452,139 @@ Function Build-HtmlServerReport {
     $htmlreport | Out-File $HtmlReportFile -Encoding UTF8
 }
 
+
+##############################################################
+#
+#           DC to Exchange cores Report Functions 
+#
+##############################################################
+
+Function Get-ComputerCoresObject {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ComputerCoresObject")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
+    $returnObj = New-Object pscustomobject 
+    $returnObj | Add-Member -MemberType NoteProperty -Name Error -Value $false
+    $returnObj | Add-Member -MemberType NoteProperty -Name ComputerName -Value $Machine_Name
+    $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value [int]::empty 
+    $returnObj | Add-Member -MemberType NoteProperty -Name Exception -Value ([string]::empty)
+    $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
+    try {
+        $CoresObj = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name -Property "NumberOfCores" | Select-Object -Property "NumberOfCores"
+        $returnObj.NumberOfCores =$CoresObj.NumberOfCores
+        Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
+    }
+    catch {
+        $thisError = $Error[0]
+        if($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException")
+        {
+            Write-Yellow("Unable to get processor information from server {0}. You do not have the correct permissions to get this data from that server. Exception: {1}" -f $Machine_Name, $thisError.ToString())
+        }
+        else 
+        {
+            Write-Yellow("Unable to get processor infomration from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
+        }
+        $returnObj.Exception = $thisError.ToString() 
+        $returnObj.ExceptionType = $thisError.Exception.Gettype().FullName
+        $returnObj.Error = $true
+    }
+    
+    return $returnObj
+}
+
+Function Get-ExchnageDCCoreRatio {
+
+    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.log" -f $OutputFilePath, $dateTimeStringFormat
+    Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
+    Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
+    $coreRatioObj = New-Object pscustomobject 
+    try 
+    {
+        Write-VerboseOutput("Attempting to load Active Directory Module")
+        Import-Module ActiveDirectory 
+        Write-VerboseOutput("Successfully loaded")
+    }
+    catch 
+    {
+        Write-Red("Failed to load Active Directory Module. Stopping the script")
+        exit 
+    }
+
+    $ADSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
+    [array]$DomainControllers = Get-ADDomainController -Filter {isGlobalCatalog -eq $true -and Site -eq $ADSite}
+
+    [System.Collections.Generic.List[System.Object]]$DCList = New-Object System.Collections.Generic.List[System.Object]
+    $DCCoresTotal = 0
+    Write-Break
+    Write-Grey("Collecting data for the Active Directory Environment in Site: {0}" -f $ADSite)
+    $iFailedDCs = 0 
+    foreach($DC in $DomainControllers)
+    {
+        $DCCoreObj = Get-ComputerCoresObject -Machine_Name $DC.Name 
+        $DCList.Add($DCCoreObj)
+        if(-not ($DCCoreObj.Error))
+        {
+            $DCCoresTotal += $DCCoreObj.NumberOfCores
+        }
+        else 
+        {
+            $iFailedDCs++     
+        } 
+    }
+
+    $coreRatioObj | Add-Member -MemberType NoteProperty -Name DCList -Value $DCList
+    if($iFailedDCs -eq $DomainControllers.count)
+    {
+        #Core count is going to be 0, no point to continue the script
+        Write-Red("Failed to collect data from your DC servers in site {0}." -f $ADSite)
+        Write-Yellow("Because we can't determine the ratio, we are going to stop the script. Verify with the above errors as to why we failed to collect the data and address the issue, then run the script again.")
+        exit 
+    }
+
+    [array]$ExchangeServers = Get-ExchangeServer | Where-Object {$_.Site -match $ADSite}
+    $EXCoresTotal = 0
+    [System.Collections.Generic.List[System.Object]]$EXList = New-Object System.Collections.Generic.List[System.Object]
+    Write-Break
+    Write-Grey("Collecting data for the Exchange Environment in Site: {0}" -f $ADSite)
+    foreach($svr in $ExchangeServers)
+    {
+        $EXCoreObj = Get-ComputerCoresObject -Machine_Name $svr.Name 
+        $EXList.Add($EXCoreObj)
+        if(-not ($EXCoreObj.Error))
+        {
+            $EXCoresTotal += $EXCoreObj.NumberOfCores
+        }
+    }
+    $coreRatioObj | Add-Member -MemberType NoteProperty -Name ExList -Value $EXList
+
+    $CoreRatio = $EXCoresTotal / $DCCoresTotal
+    Write-Grey("Total DC/GC Cores: {0}" -f $DCCoresTotal)
+    Write-Grey("Total Exchange Cores: {0}" -f $EXCoresTotal)
+    Write-Grey("You have {0} Exchange Cores for every Domain Controller Global Catalog Server Core" -f $CoreRatio)
+    if($CoreRatio -gt 8)
+    {
+        Write-Break
+        Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
+        Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
+        Write-Yellow("Documentation:")
+        Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
+        Write-Yellow("`thttps://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+
+    }
+    else 
+    {
+        Write-Break
+        Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")    
+    }
+    
+    Write-Grey("Output file written to " + $OutputFullPath)
+    $XMLDirectoryPath = $OutputFullPath.Replace(".log",".xml")
+    $coreRatioObj | Export-Clixml $XMLDirectoryPath 
+}
+
 Function Main {
     
     if(-not (Is-Admin))
@@ -3501,6 +3635,21 @@ Function Main {
         }
         #Load balancing report only needs to be the thing that runs
         exit
+    }
+
+    if($DCCoreRatio)
+    {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        try 
+        {
+            Get-ExchnageDCCoreRatio
+        }
+        finally
+        {
+            $ErrorActionPreference = $oldErrorAction
+            exit 
+        }
     }
 
    
