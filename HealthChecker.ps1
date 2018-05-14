@@ -564,40 +564,47 @@ param(
 	Write-VerboseOutput("Calling  Get-HttpProxySetting")
 	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
 	$orgErrorPref = $ErrorActionPreference
-	$ErrorActionPreference = "Stop"
+    $ErrorActionPreference = "Stop"
+    
+    Function Get-WinHttpSettings {
+    param(
+        [Parameter(Mandatory=$true)][string]$RegistryLocation
+    )
+        $connections = Get-ItemProperty -Path $RegistryLocation
+        if(($Connections | gm).Name -contains "WinHttpSettings")
+        {
+            $Proxy = [string]::Empty
+            foreach($Byte in $Connections.WinHttpSettings)
+            {
+                if($Byte -ge 48)
+                {
+                    $Proxy += [CHAR]$Byte
+                }
+            }
+        }
+        return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
+    }
+
 	try
 	{
-		$httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-			$Connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-			if(($Connections | gm).Name -contains "WinHttpSettings")
-			{
-				$Proxy = [string]::Empty
-				foreach($Byte in $Connections.WinHttpSettings)
-				{
-					if($Byte -ge 48)
-					{
-						$Proxy += [CHAR]$Byte
-					}
-				}
-			}
-			return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
-		}
-		Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
-		$httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-			$connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-			if(($connections | gm).Name -contains "WinHttpSettings")
-			{
-				$proxy = [string]::Empty
-				foreach($byte in $connections.WinHttpSettings)
-				{
-					if($byte -ge 48)
-					{
-						$proxy += [CHAR]$byte
-					}
-				}
-			}
-			return $(if ($proxy -eq [String]::Empty){"<None>"} else {$proxy})
-		}
+        $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+        $httpProxyPath64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+        
+        if($Machine_Name -ne $env:COMPUTERNAME) 
+        {
+            Write-VerboseOutput("Calling Get-WinHttpSettings via Invoke-Command")
+            $httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath32
+            $httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath64
+        }
+        else 
+        {
+            Write-VerboseOutput("Calling Get-WinHttpSettings via local session")
+            $httpProxy32 = Get-WinHttpSettings -RegistryLocation $httpProxyPath32
+            $httpProxy64 = Get-WinHttpSettings -RegistryLocation $httpProxyPath64
+        }
+		
+		
+        Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
 		Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
 	}
 
