@@ -3565,6 +3565,7 @@ Function Get-ExchnageDCCoreRatio {
     }
     $coreRatioObj | Add-Member -MemberType NoteProperty -Name ExList -Value $EXList
 
+    Write-Break
     $CoreRatio = $EXCoresTotal / $DCCoresTotal
     Write-Grey("Total DC/GC Cores: {0}" -f $DCCoresTotal)
     Write-Grey("Total Exchange Cores: {0}" -f $EXCoresTotal)
@@ -3585,9 +3586,11 @@ Function Get-ExchnageDCCoreRatio {
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")    
     }
     
-    Write-Grey("Output file written to " + $OutputFullPath)
     $XMLDirectoryPath = $OutputFullPath.Replace(".log",".xml")
     $coreRatioObj | Export-Clixml $XMLDirectoryPath 
+    Write-Grey("Output file written to {0}" -f $OutputFullPath)
+    Write-Grey("Output XML Object file written to {0}" -f $XMLDirectoryPath)
+
 }
 
 Function Main {
