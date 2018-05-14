@@ -887,12 +887,25 @@ param(
 
 	Write-VerboseOutput("Trying to get the System.Environment ProcessorCount")
 	$oldError = $ErrorActionPreference
-	$ErrorActionPreference = "Stop"
+    $ErrorActionPreference = "Stop"
+    Function Get-ProcessorCount {
+        [System.Environment]::ProcessorCount
+    }
 	try
 	{
-		$processor_info_object.EnvProcessorCount = (
-			Invoke-Command -ComputerName $Machine_Name -ScriptBlock {[System.Environment]::ProcessorCount}
-		)
+        if($Machine_Name -ne $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Getting System.Environment ProcessorCount from Invoke-Command")
+            $processor_info_object.EnvProcessorCount = (
+                Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ProcessorCount}
+            )
+        }
+        else 
+        {
+            Write-VerboseOutput("Getting System.Environment ProcessorCount from local session")
+            $processor_info_object.EnvProcessorCount = Get-ProcessorCount
+        }
+
 	}
 	catch
 	{
