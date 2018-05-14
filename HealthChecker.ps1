@@ -1438,23 +1438,36 @@ param(
     $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $RegKey.GetValue("MsiInstallPath"))
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
+
+    Function Get-MapiConfigGCSetting {
+    param(
+        [Parameter(Mandatory=$true)][string]$ConfigPath
+    )
+        if(Test-Path $ConfigPath)
+        {
+            $xml = [xml](Get-Content $ConfigPath)
+            $rString =  $xml.configuration.runtime.gcServer.enabled
+            return $rString
+        }
+        else 
+        {
+            Return "Unknown"    
+        }
+    }
+
     try 
     {
-        $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-            param(
-                [Parameter(Mandatory=$true)][string]$ConfigPath
-            )
-            if(Test-Path $ConfigPath)
-            {
-                $xml = [xml](Get-Content $ConfigPath)
-                $rString =  $xml.configuration.runtime.gcServer.enabled
-                return $rString
-            }
-            else 
-            {
-                Return "Unknown"    
-            }
-        } -ArgumentList $MapiConfig
+        if($Machine_Name -ne $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via Invoke-Command")
+            $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ArgumentList $MapiConfig
+        }
+        else 
+        {
+            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via local session")
+            $mapiGCMode = Get-MapiConfigGCSetting -ConfigPath $MapiConfig    
+        }
+        
     }
     catch
     {
