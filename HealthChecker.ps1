@@ -737,7 +737,6 @@ param(
         $ErrorActionPreference = "stop"
         try 
         {
-            $script_block = ${Function:Remote-GetFileVersionInfo}
             $kbList = @() 
             $results = @()
             foreach($HotfixListObj in $HotfixListObjs)
@@ -760,7 +759,17 @@ param(
             $argList = New-Object PSCustomObject
             $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
             
-            $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $script_block -ArgumentList $argList
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via Invoke-Command")
+                $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList
+            }
+            else 
+            {
+                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via local session")
+                $results = Remote-GetFileVersionInfo -PassedObject $argList 
+            }
+            
             
             return $results
         }
