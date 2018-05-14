@@ -60,3 +60,5 @@ XMLDirectoryPath - Used in combination with the location of the XML files for wh
 BuildHtmlServersReport - Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location. 
 
 HtmlReportFile - Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
+
+DCCoreRatio - Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.

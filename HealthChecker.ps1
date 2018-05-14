@@ -80,14 +80,15 @@ param(
     $SiteName = $null,
     [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
     [switch]$BuildHtmlServersReport,
-    [string]$HtmlReportFile="ExchangeAllServersReport.html"
+    [string]$HtmlReportFile="ExchangeAllServersReport.html",
+    [switch]$DCCoreRatio
 )
 
 <#
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.18"
+$healthCheckerVersion = "2.19"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -409,13 +410,6 @@ Function Write-Break {
     Write-Host ""
 }
 
-function Exit-Script
-{
-    Write-Grey("Output file written to " + $OutputFullPath)
-    Exit
-}
-
-
 
 ############################################################
 ############################################################
@@ -570,40 +564,47 @@ param(
 	Write-VerboseOutput("Calling  Get-HttpProxySetting")
 	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
 	$orgErrorPref = $ErrorActionPreference
-	$ErrorActionPreference = "Stop"
+    $ErrorActionPreference = "Stop"
+    
+    Function Get-WinHttpSettings {
+    param(
+        [Parameter(Mandatory=$true)][string]$RegistryLocation
+    )
+        $connections = Get-ItemProperty -Path $RegistryLocation
+        if(($Connections | gm).Name -contains "WinHttpSettings")
+        {
+            $Proxy = [string]::Empty
+            foreach($Byte in $Connections.WinHttpSettings)
+            {
+                if($Byte -ge 48)
+                {
+                    $Proxy += [CHAR]$Byte
+                }
+            }
+        }
+        return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
+    }
+
 	try
 	{
-		$httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-			$Connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-			if(($Connections | gm).Name -contains "WinHttpSettings")
-			{
-				$Proxy = [string]::Empty
-				foreach($Byte in $Connections.WinHttpSettings)
-				{
-					if($Byte -ge 48)
-					{
-						$Proxy += [CHAR]$Byte
-					}
-				}
-			}
-			return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
-		}
-		Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
-		$httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-			$connections = Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-			if(($connections | gm).Name -contains "WinHttpSettings")
-			{
-				$proxy = [string]::Empty
-				foreach($byte in $connections.WinHttpSettings)
-				{
-					if($byte -ge 48)
-					{
-						$proxy += [CHAR]$byte
-					}
-				}
-			}
-			return $(if ($proxy -eq [String]::Empty){"<None>"} else {$proxy})
-		}
+        $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+        $httpProxyPath64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
+        
+        if($Machine_Name -ne $env:COMPUTERNAME) 
+        {
+            Write-VerboseOutput("Calling Get-WinHttpSettings via Invoke-Command")
+            $httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath32
+            $httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath64
+        }
+        else 
+        {
+            Write-VerboseOutput("Calling Get-WinHttpSettings via local session")
+            $httpProxy32 = Get-WinHttpSettings -RegistryLocation $httpProxyPath32
+            $httpProxy64 = Get-WinHttpSettings -RegistryLocation $httpProxyPath64
+        }
+		
+		
+        Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
 		Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
 	}
 
@@ -736,7 +737,6 @@ param(
         $ErrorActionPreference = "stop"
         try 
         {
-            $script_block = ${Function:Remote-GetFileVersionInfo}
             $kbList = @() 
             $results = @()
             foreach($HotfixListObj in $HotfixListObjs)
@@ -759,7 +759,17 @@ param(
             $argList = New-Object PSCustomObject
             $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
             
-            $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $script_block -ArgumentList $argList
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via Invoke-Command")
+                $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList
+            }
+            else 
+            {
+                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via local session")
+                $results = Remote-GetFileVersionInfo -PassedObject $argList 
+            }
+            
             
             return $results
         }
@@ -893,12 +903,25 @@ param(
 
 	Write-VerboseOutput("Trying to get the System.Environment ProcessorCount")
 	$oldError = $ErrorActionPreference
-	$ErrorActionPreference = "Stop"
+    $ErrorActionPreference = "Stop"
+    Function Get-ProcessorCount {
+        [System.Environment]::ProcessorCount
+    }
 	try
 	{
-		$processor_info_object.EnvProcessorCount = (
-			Invoke-Command -ComputerName $Machine_Name -ScriptBlock {[System.Environment]::ProcessorCount}
-		)
+        if($Machine_Name -ne $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Getting System.Environment ProcessorCount from Invoke-Command")
+            $processor_info_object.EnvProcessorCount = (
+                Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ProcessorCount}
+            )
+        }
+        else 
+        {
+            Write-VerboseOutput("Getting System.Environment ProcessorCount from local session")
+            $processor_info_object.EnvProcessorCount = Get-ProcessorCount
+        }
+
 	}
 	catch
 	{
@@ -1431,23 +1454,36 @@ param(
     $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $RegKey.GetValue("MsiInstallPath"))
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
+
+    Function Get-MapiConfigGCSetting {
+    param(
+        [Parameter(Mandatory=$true)][string]$ConfigPath
+    )
+        if(Test-Path $ConfigPath)
+        {
+            $xml = [xml](Get-Content $ConfigPath)
+            $rString =  $xml.configuration.runtime.gcServer.enabled
+            return $rString
+        }
+        else 
+        {
+            Return "Unknown"    
+        }
+    }
+
     try 
     {
-        $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {
-            param(
-                [Parameter(Mandatory=$true)][string]$ConfigPath
-            )
-            if(Test-Path $ConfigPath)
-            {
-                $xml = [xml](Get-Content $ConfigPath)
-                $rString =  $xml.configuration.runtime.gcServer.enabled
-                return $rString
-            }
-            else 
-            {
-                Return "Unknown"    
-            }
-        } -ArgumentList $MapiConfig
+        if($Machine_Name -ne $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via Invoke-Command")
+            $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ArgumentList $MapiConfig
+        }
+        else 
+        {
+            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via local session")
+            $mapiGCMode = Get-MapiConfigGCSetting -ConfigPath $MapiConfig    
+        }
+        
     }
     catch
     {
@@ -3458,6 +3494,147 @@ Function Build-HtmlServerReport {
     $htmlreport | Out-File $HtmlReportFile -Encoding UTF8
 }
 
+
+##############################################################
+#
+#           DC to Exchange cores Report Functions 
+#
+##############################################################
+
+Function Get-ComputerCoresObject {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ComputerCoresObject")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
+    $returnObj = New-Object pscustomobject 
+    $returnObj | Add-Member -MemberType NoteProperty -Name Error -Value $false
+    $returnObj | Add-Member -MemberType NoteProperty -Name ComputerName -Value $Machine_Name
+    $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value ([int]::empty)
+    $returnObj | Add-Member -MemberType NoteProperty -Name Exception -Value ([string]::empty)
+    $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
+    try {
+        $wmi_obj_processor = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name
+
+        foreach($processor in $wmi_obj_processor)
+        {
+            $returnObj.NumberOfCores +=$processor.NumberOfCores
+        }
+        
+        Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
+    }
+    catch {
+        $thisError = $Error[0]
+        if($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException")
+        {
+            Write-Yellow("Unable to get processor information from server {0}. You do not have the correct permissions to get this data from that server. Exception: {1}" -f $Machine_Name, $thisError.ToString())
+        }
+        else 
+        {
+            Write-Yellow("Unable to get processor infomration from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
+        }
+        $returnObj.Exception = $thisError.ToString() 
+        $returnObj.ExceptionType = $thisError.Exception.Gettype().FullName
+        $returnObj.Error = $true
+    }
+    
+    return $returnObj
+}
+
+Function Get-ExchnageDCCoreRatio {
+
+    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.log" -f $OutputFilePath, $dateTimeStringFormat
+    Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
+    Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
+    $coreRatioObj = New-Object pscustomobject 
+    try 
+    {
+        Write-VerboseOutput("Attempting to load Active Directory Module")
+        Import-Module ActiveDirectory 
+        Write-VerboseOutput("Successfully loaded")
+    }
+    catch 
+    {
+        Write-Red("Failed to load Active Directory Module. Stopping the script")
+        exit 
+    }
+
+    $ADSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
+    [array]$DomainControllers = (Get-ADForest).Domains | %{ Get-ADDomainController -Filter {isGlobalCatalog -eq $true -and Site -eq $ADSite} -Server $_ }
+
+    [System.Collections.Generic.List[System.Object]]$DCList = New-Object System.Collections.Generic.List[System.Object]
+    $DCCoresTotal = 0
+    Write-Break
+    Write-Grey("Collecting data for the Active Directory Environment in Site: {0}" -f $ADSite)
+    $iFailedDCs = 0 
+    foreach($DC in $DomainControllers)
+    {
+        $DCCoreObj = Get-ComputerCoresObject -Machine_Name $DC.Name 
+        $DCList.Add($DCCoreObj)
+        if(-not ($DCCoreObj.Error))
+        {
+            $DCCoresTotal += $DCCoreObj.NumberOfCores
+        }
+        else 
+        {
+            $iFailedDCs++     
+        } 
+    }
+
+    $coreRatioObj | Add-Member -MemberType NoteProperty -Name DCList -Value $DCList
+    if($iFailedDCs -eq $DomainControllers.count)
+    {
+        #Core count is going to be 0, no point to continue the script
+        Write-Red("Failed to collect data from your DC servers in site {0}." -f $ADSite)
+        Write-Yellow("Because we can't determine the ratio, we are going to stop the script. Verify with the above errors as to why we failed to collect the data and address the issue, then run the script again.")
+        exit 
+    }
+
+    [array]$ExchangeServers = Get-ExchangeServer | Where-Object {$_.Site -match $ADSite}
+    $EXCoresTotal = 0
+    [System.Collections.Generic.List[System.Object]]$EXList = New-Object System.Collections.Generic.List[System.Object]
+    Write-Break
+    Write-Grey("Collecting data for the Exchange Environment in Site: {0}" -f $ADSite)
+    foreach($svr in $ExchangeServers)
+    {
+        $EXCoreObj = Get-ComputerCoresObject -Machine_Name $svr.Name 
+        $EXList.Add($EXCoreObj)
+        if(-not ($EXCoreObj.Error))
+        {
+            $EXCoresTotal += $EXCoreObj.NumberOfCores
+        }
+    }
+    $coreRatioObj | Add-Member -MemberType NoteProperty -Name ExList -Value $EXList
+
+    Write-Break
+    $CoreRatio = $EXCoresTotal / $DCCoresTotal
+    Write-Grey("Total DC/GC Cores: {0}" -f $DCCoresTotal)
+    Write-Grey("Total Exchange Cores: {0}" -f $EXCoresTotal)
+    Write-Grey("You have {0} Exchange Cores for every Domain Controller Global Catalog Server Core" -f $CoreRatio)
+    if($CoreRatio -gt 8)
+    {
+        Write-Break
+        Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
+        Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
+        Write-Yellow("Documentation:")
+        Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
+        Write-Yellow("`thttps://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+
+    }
+    else 
+    {
+        Write-Break
+        Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")    
+    }
+    
+    $XMLDirectoryPath = $OutputFullPath.Replace(".log",".xml")
+    $coreRatioObj | Export-Clixml $XMLDirectoryPath 
+    Write-Grey("Output file written to {0}" -f $OutputFullPath)
+    Write-Grey("Output XML Object file written to {0}" -f $XMLDirectoryPath)
+
+}
+
 Function Main {
     
     if(-not (Is-Admin))
@@ -3508,6 +3685,21 @@ Function Main {
         }
         #Load balancing report only needs to be the thing that runs
         exit
+    }
+
+    if($DCCoreRatio)
+    {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        try 
+        {
+            Get-ExchnageDCCoreRatio
+        }
+        finally
+        {
+            $ErrorActionPreference = $oldErrorAction
+            exit 
+        }
     }
 
    
