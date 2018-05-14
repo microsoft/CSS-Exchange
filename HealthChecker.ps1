@@ -3469,12 +3469,17 @@ param(
     $returnObj = New-Object pscustomobject 
     $returnObj | Add-Member -MemberType NoteProperty -Name Error -Value $false
     $returnObj | Add-Member -MemberType NoteProperty -Name ComputerName -Value $Machine_Name
-    $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value [int]::empty 
+    $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value ([int]::empty)
     $returnObj | Add-Member -MemberType NoteProperty -Name Exception -Value ([string]::empty)
     $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
     try {
-        $CoresObj = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name -Property "NumberOfCores" | Select-Object -Property "NumberOfCores"
-        $returnObj.NumberOfCores =$CoresObj.NumberOfCores
+        $wmi_obj_processor = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name
+
+        foreach($processor in $wmi_obj_processor)
+        {
+            $returnObj.NumberOfCores +=$processor.NumberOfCores
+        }
+        
         Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
     }
     catch {
