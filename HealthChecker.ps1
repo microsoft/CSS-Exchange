@@ -3514,7 +3514,7 @@ Function Get-ExchnageDCCoreRatio {
     }
 
     $ADSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
-    [array]$DomainControllers = Get-ADDomainController -Filter {isGlobalCatalog -eq $true -and Site -eq $ADSite}
+    [array]$DomainControllers = (Get-ADForest).Domains | %{ Get-ADDomainController -Filter {isGlobalCatalog -eq $true -and Site -eq $ADSite} -Server $_ }
 
     [System.Collections.Generic.List[System.Object]]$DCList = New-Object System.Collections.Generic.List[System.Object]
     $DCCoresTotal = 0
