@@ -473,6 +473,12 @@ param(
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false    
         }
 
+        if($ServerInfo -and $sobj.Version -ge 15)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $svr)
+            $sobj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $svr)
+        }
+
         $svrsObject += $sobj 
     }
     $ErrorActionPreference = $oldErrorAction
@@ -1358,6 +1364,16 @@ param(
             $Script:this_ServerObject.CAServerInfo | fl *> "$copyTo\ClientAccessServer.txt"
             $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
         }
+
+        if( $Script:this_ServerObject.Version -ge 15)
+        {
+            $Script:this_ServerObject.HealthReport  > "$copyTo\HealthReport.txt"
+            $Script:this_ServerObject.HealthReport | Export-Clixml "$copyTo\HealthReport.xml"
+
+            $Script:this_ServerObject.ServerComponentState  > "$copyTo\ServerComponentState.txt"
+            $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
+        }
+        
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
