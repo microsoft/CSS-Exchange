@@ -435,8 +435,33 @@ param(
         $sobj | Add-Member -Name Hub -MemberType NoteProperty -Value (IsHub -Value $svrRole -Version $exVersion)
         $sobj | Add-Member -Name Version -MemberType NoteProperty -Value $exVersion
         $sobj | Add-Member -Name DAGMember -MemberType NoteProperty -Value (IsDAGMember -IsMailbox $sobj.Mailbox -ServerName $svr)
+        $sobj | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $exchSvr
+
 
         Display-ScriptDebug ("IsMailbox: {0} IsCas: {1} IsHub: {2} IsDAGMember: {3} exVersion: {4} AnyTransportSwitchesEnabled: {5}" -f ($sobj.Mailbox), ($sobj.CAS), ($sobj.Hub), ($sobj.DAGMember), $exVersion, $Script:AnyTransportSwitchesEnabled)
+
+        if($sobj.Hub)
+        {
+            if($sobj.Version -ge 15)
+            {
+                $hubInfo = Get-TransportService $svr
+            }
+            else 
+            {
+                $hubInfo = Get-TransportServer $svr 
+            }
+            $sobj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
+        }
+
+        if($sobj.CAS)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value (Get-ClientAccessServer $svr)
+        }
+
+        if($sobj.Mailbox)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $svr)
+        }
 
         if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
         {
@@ -1314,6 +1339,25 @@ param(
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
         fltmc instances > "$copyTo\FLTMC_Instances.txt"
+
+        #Exchange Server Information 
+        if($Script:this_ServerObject.Mailbox)
+        {
+            $Script:this_ServerObject.MailboxServerInfo | fl * > "$copyTo\MailboxServer.txt"
+            $Script:this_ServerObject.MailboxServerInfo | Export-Clixml "$copyTo\MailboxServer.xml"
+        }
+
+        if($Script:this_ServerObject.Hub)
+        {
+            $Script:this_ServerObject.TransportServerInfo | fl * > "$copyTo\TransportServer.txt"
+            $Script:this_ServerObject.TransportServerInfo | Export-Clixml "$copyTo\TransportServer.xml"
+        }
+
+        if($Script:this_ServerObject.CAS)
+        {
+            $Script:this_ServerObject.CAServerInfo | fl *> "$copyTo\ClientAccessServer.txt"
+            $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
+        }
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
