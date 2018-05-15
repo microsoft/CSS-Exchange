@@ -135,7 +135,6 @@ Param (
 [switch]$ADDriverLogs,
 [switch]$SearchLogs,
 [switch]$HighAvailabilityLogs,
-[switch]$ClusterLogs,
 [switch]$MapiLogs,
 [switch]$MessageTrackingLogs,
 [switch]$HubProtocolLogs,
@@ -168,7 +167,7 @@ Param (
 
 )
 
-$scriptVersion = 2.3
+$scriptVersion = 2.4
 
 ###############################################
 #                                             #
@@ -436,8 +435,33 @@ param(
         $sobj | Add-Member -Name Hub -MemberType NoteProperty -Value (IsHub -Value $svrRole -Version $exVersion)
         $sobj | Add-Member -Name Version -MemberType NoteProperty -Value $exVersion
         $sobj | Add-Member -Name DAGMember -MemberType NoteProperty -Value (IsDAGMember -IsMailbox $sobj.Mailbox -ServerName $svr)
+        $sobj | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $exchSvr
+
 
         Display-ScriptDebug ("IsMailbox: {0} IsCas: {1} IsHub: {2} IsDAGMember: {3} exVersion: {4} AnyTransportSwitchesEnabled: {5}" -f ($sobj.Mailbox), ($sobj.CAS), ($sobj.Hub), ($sobj.DAGMember), $exVersion, $Script:AnyTransportSwitchesEnabled)
+
+        if($sobj.Hub)
+        {
+            if($sobj.Version -ge 15)
+            {
+                $hubInfo = Get-TransportService $svr
+            }
+            else 
+            {
+                $hubInfo = Get-TransportServer $svr 
+            }
+            $sobj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
+        }
+
+        if($sobj.CAS)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value (Get-ClientAccessServer $svr)
+        }
+
+        if($sobj.Mailbox)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $svr)
+        }
 
         if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
         {
@@ -447,6 +471,12 @@ param(
         else 
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false    
+        }
+
+        if($ServerInfo -and $sobj.Version -ge 15)
+        {
+            $sobj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $svr)
+            $sobj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $svr)
         }
 
         $svrsObject += $sobj 
@@ -1128,27 +1158,81 @@ param(
         Remote-DisplayScriptDebug("Function Enter: Copy-LogsBasedOnTime")
         Remote-DisplayScriptDebug("Passed - LogPath: {0} CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
         New-FolderCreate -Folder $CopyToThisLocation
+
+        Function No-FilesInLocation {
+        param(
+        [Parameter(Mandatory=$true)][string]$CopyFromLocation,
+        [Parameter(Mandatory=$true)][string]$CopyToLocation 
+        )
+            Write-Warning("[{0}] : It doesn't look like you have any data in this location {1}." -f $Script:LocalServerName, $CopyFromLocation)
+            Write-Warning("[{0}] : You should look into the reason as to why, because this shouldn't occur." -f $Script:LocalServerName)
+            #Going to place a file in this location so we know what happened
+            $tempFile = $CopyToLocation + "\NoFilesDetected.txt"
+            New-Item $tempFile -ItemType File -Value $LogPath 
+            Start-Sleep 1
+        }
+
         $date = (Get-Date).AddDays(0-$PassedInfo.DaysWorth)
         $copyFromDate = "$($Date.Month)/$($Date.Day)/$($Date.Year)"
+        Remote-DisplayScriptDebug("Copy From Date: {0}" -f $copyFromDate)
         $SkipCopy = $false 
         #We are not copying files recurse so we need to not include possible directories or we will throw an error 
         $Files = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
         #if we don't have any logs, we want to attempt to copy something 
         if($Files -eq $null)
         {
-            Write-Warning("[{0}] : Oops! Looks like I wasn't able to find what you are looking for, so I am going to attempt to collect the newest log for you" -f $Script:LocalServerName)
-            $Files = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1 
+            #Write-Warning("[{0}] : Oops! Looks like I wasn't able to find what you are looking for, so I am going to attempt to collect the newest log for you" -f $Script:LocalServerName)
+            <#
+                There are a few different reasons to get here
+                1. We don't have any files in the timeframe request in the directory that we are looking at
+                2. We have sub directories that we need to look into and look at those files (Only if we don't have files in the currently location so we aren't pulling files like the index files from message tracking)
+            #>
+            #Debug
+            Remote-DisplayScriptDebug("Copy-LogsBasedOnTime: Failed to find any logs in the directory provided, need to do a deeper look to find some logs that we want.")
+            $allFiles = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending
+            Remote-DisplayScriptDebug("Displaying all items in the directory: {0}" -f $LogPath)
+            foreach($file in $allFiles)
+            {
+                Remote-DisplayScriptDebug("File Name: {0} Last Write Time: {1}" -f $file.Name, $file.LastWriteTime)
+            }
+            
+            #Let's see if we have any files in this location while having directories 
+            $directories = $allFiles | ?{$_.Mode -like "d*"}
+            $filesInDirectory = $allFiles | ?{$_.Mode -notlike "d*"}
+
+            if(($directories -ne $null) -and ($filesInDirectory -eq $null))
+            {
+                #This means we should be looking in the sub directories not the current directory so let's re-do that logic to try to find files in that timeframe. 
+                foreach($dir in $directories)
+                {
+                    $newLogPath = $dir.FullName
+                    $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
+                    $Files = Get-ChildItem $newLogPath| Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
+                    if($Files -eq $null)
+                    {
+                        No-FilesInLocation -CopyFromLocation $newLogPath -CopyToLocation $newCopyToThisLocation
+                    }
+                    else 
+                    {
+                        Remote-DisplayScriptDebug("Found {0} number of files at the location {1}" -f $Files.Count, $newLogPath)
+                        $FilesFullPath = @()
+                        $Files | %{$FilesFullPath += $_.VersionInfo.FileName}
+                        Copy-BulkItems -CopyToLocation $newCopyToThisLocation -ItemsToCopyLocation $FilesFullPath
+                        Zip-Folder -Folder $newCopyToThisLocation
+                    }
+                }
+                Remote-DisplayScriptDebug("Function Exit: Copy-LogsBasedOnTime")
+                return 
+            }
+
+            
+            $Files = $allFiles | ?{$_.LastWriteTime -ge $copyFromDate} | Select-Object -First 1 
 
             #If we are still null, we want to let them know 
             If($Files -eq $null)
             {
                 $SkipCopy = $true 
-                Write-Warning("[{0}] : It doesn't look like you have any data in this location {1}." -f $Script:LocalServerName, $LogPath)
-                Write-Warning("[{0}] : You should look into the reason as to why, because this shouldn't occur." -f $Script:LocalServerName)
-                #Going to place a file in this location so we know what happened
-                $tempFile = $CopyToThisLocation + "\NoFilesDetected.txt"
-                New-Item $tempFile -ItemType File -Value $LogPath 
-                Start-Sleep 5
+                No-FilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
             }
         }
         Remote-DisplayScriptDebug("Found {0} number of files at the location {1}" -f $Files.Count, $LogPath)
@@ -1248,9 +1332,55 @@ param(
         }
 
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
-        fltmc > "$copyTo\FilterDrivers.txt"
+        
 
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
+        #IP Config
+        ipconfig /all > "$copyTo\IPConfiguration.txt"
+
+        #Netstat -ano 
+        netstat -ano > "$copyTo\NetStat_ANO.txt"
+
+        #FLTMC
+        fltmc > "$copyTo\FilterDrivers.txt"
+        fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
+        fltmc instances > "$copyTo\FLTMC_Instances.txt"
+
+        #Exchange Server Information 
+        if($Script:this_ServerObject.Mailbox)
+        {
+            $Script:this_ServerObject.MailboxServerInfo | fl * > "$copyTo\MailboxServer.txt"
+            $Script:this_ServerObject.MailboxServerInfo | Export-Clixml "$copyTo\MailboxServer.xml"
+        }
+
+        if($Script:this_ServerObject.Hub)
+        {
+            $Script:this_ServerObject.TransportServerInfo | fl * > "$copyTo\TransportServer.txt"
+            $Script:this_ServerObject.TransportServerInfo | Export-Clixml "$copyTo\TransportServer.xml"
+        }
+
+        if($Script:this_ServerObject.CAS)
+        {
+            $Script:this_ServerObject.CAServerInfo | fl *> "$copyTo\ClientAccessServer.txt"
+            $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
+        }
+
+        if( $Script:this_ServerObject.Version -ge 15)
+        {
+            $Script:this_ServerObject.HealthReport  > "$copyTo\HealthReport.txt"
+            $Script:this_ServerObject.HealthReport | Export-Clixml "$copyTo\HealthReport.xml"
+
+            $Script:this_ServerObject.ServerComponentState  > "$copyTo\ServerComponentState.txt"
+            $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
+        }
+
+
+        $configFiles = Get-ChildItem $Script:this_ExBin | ?{$_.Name -like "*.config"}
+        $configLocation = "{0}\Config" -f $copyTo
+        New-FolderCreate -Folder $configLocation 
+        $configFiles | %{Copy-Item $_.VersionInfo.FileName $configLocation}
+        
+
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
     }
@@ -1836,11 +1966,17 @@ param(
 
             if($PassedInfo.MapiLogs)
             {
-                if($Script:this_ServerObject.Mailbox)
+                if($Script:this_ServerObject.Mailbox -and $Script:this_ServerObject.Version -eq 15)
                 {
                     $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\MAPI Client Access"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
                     if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
                     else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                }
+                elseif($Script:this_ServerObject.Mailbox)
+                {
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\MapiHttp\Mailbox"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
+                    if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                    else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info} 
                 }
 
                 if($Script:this_ServerObject.CAS)
