@@ -1373,6 +1373,12 @@ param(
             $Script:this_ServerObject.ServerComponentState  > "$copyTo\ServerComponentState.txt"
             $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
         }
+
+
+        $configFiles = Get-ChildItem $Script:this_ExBin | ?{$_.Name -like "*.config"}
+        $configLocation = "{0}\Config" -f $copyTo
+        New-FolderCreate -Folder $configLocation 
+        $configFiles | %{Copy-Item $_.VersionInfo.FileName $configLocation}
         
 
         Zip-Folder -Folder $copyTo
