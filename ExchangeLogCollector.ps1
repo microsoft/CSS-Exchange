@@ -1900,11 +1900,17 @@ param(
 
             if($PassedInfo.MapiLogs)
             {
-                if($Script:this_ServerObject.Mailbox)
+                if($Script:this_ServerObject.Mailbox -and $Script:this_ServerObject.Version -eq 15)
                 {
                     $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\MAPI Client Access"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
                     if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
                     else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                }
+                elseif($Script:this_ServerObject.Mailbox)
+                {
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\MapiHttp\Mailbox"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
+                    if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                    else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info} 
                 }
 
                 if($Script:this_ServerObject.CAS)
