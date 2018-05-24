@@ -1207,6 +1207,7 @@ param(
                 {
                     $newLogPath = $dir.FullName
                     $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
+                    New-FolderCreate -Folder $newCopyToThisLocation
                     $Files = Get-ChildItem $newLogPath| Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
                     if($Files -eq $null)
                     {
@@ -2087,7 +2088,6 @@ param(
                     else {$cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)}
                 }
             }
-            
         }
 
         ############################################
