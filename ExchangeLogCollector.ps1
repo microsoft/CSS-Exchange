@@ -1304,6 +1304,7 @@ param(
             {
                 $logFile = "$($Website.logFile.directory)\W3SVC$($website.id)".replace("%SystemDrive%",$env:SystemDrive)
                 $Script:IISLogDirectory += $logFile + ";"
+                Remote-DisplayScriptDebug("Found Directory: {0}" -f $logFile)
             }
             #remove the last ; 
             $Script:IISLogDirectory = $Script:IISLogDirectory.Substring(0, $Script:IISLogDirectory.Length - 1)
@@ -1340,14 +1341,19 @@ param(
             }
             
         }
-        <#if((-not(Test-Path $Script:IISLogDirectory)) -or (-not(Test-Path ($Script:IISLogDirectory + "\W3SVC1"))))
-        #{
-            #Something bad happened, We don't know where the logs are so we are going to return a false for that we failed
-            Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $Script:LocalServerName)
-            return $false 
+        #Test out the directories that we found. 
+        foreach($directory in $Script:IISLogDirectory.Split(";"))
+        {
+            if(-not (Test-Path $directory))
+            {
+                Remote-DisplayScriptDebug("Failed to find a valid path for at least one of the IIS directories. Test path: {0}" -f $directory)
+                Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo - Failed")
+                Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $Script:LocalServerName)
+                return $false
+            }
         }
-        #>
-        Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo")
+
+        Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo - Passed")
         return $true 
     }
 
