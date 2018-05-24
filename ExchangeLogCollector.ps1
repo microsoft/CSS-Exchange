@@ -1296,23 +1296,57 @@ param(
 
     Function Set-IISDirectoryInfo {
         Remote-DisplayScriptDebug("Function Enter: Set-IISDirectoryInfo")
-        if((Test-CommandExists -command "Get-WebConfigurationProperty"))
+
+        Function Get-IISDirectoryFromGetWebSite 
         {
-            Remote-DisplayScriptDebug("Get-WebConfigurationProperty command exists")
-            $Script:IISLogDirectory = ((Get-WebConfigurationProperty "system.applicationHost/sites/siteDefaults" -Name logFile).directory).Replace("%SystemDrive%",$env:SystemDrive) 
+            Remote-DisplayScriptDebug("Get-WebSite command exists")
+            foreach($WebSite in $(Get-WebSite))
+            {
+                $logFile = "$($Website.logFile.directory)\W3SVC$($website.id)".replace("%SystemDrive%",$env:SystemDrive)
+                $Script:IISLogDirectory += $logFile + ";"
+            }
+            #remove the last ; 
+            $Script:IISLogDirectory = $Script:IISLogDirectory.Substring(0, $Script:IISLogDirectory.Length - 1)
+            #$Script:IISLogDirectory = ((Get-WebConfigurationProperty "system.applicationHost/sites/siteDefaults" -Name logFile).directory).Replace("%SystemDrive%",$env:SystemDrive) 
             Remote-DisplayScriptDebug("Set IISLogDirectory: {0}" -f $Script:IISLogDirectory)
+        }
+
+        Function Get-IISDirectoryFromDefaultSettings 
+        {
+            $Script:IISLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs 
+            Remote-DisplayScriptDebug("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $Script:IISLogDirectory)
+        }
+
+        if((Test-CommandExists -command "Get-WebSite"))
+        {
+            Get-IISDirectoryFromGetWebSite
         }
         else 
         {
-            $Script:IISLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs 
-            Remote-DisplayScriptDebug("Get-WebConfigurationProperty command doesn't exists. Set IISLogDirectory to: {0}" -f $Script:IISLogDirectory)
+            #May need to load the module 
+            try 
+            {
+                Remote-DisplayScriptDebug("Going to attempt to load the WebAdministration Module")
+                Import-Module WebAdministration
+                Remote-DisplayScriptDebug("Successful loading the module")
+                if((Test-CommandExists -command "Get-WebSite"))
+                {
+                    Get-IISDirectoryFromGetWebSite
+                }
+            }
+            catch 
+            {
+                Get-IISDirectoryFromDefaultSettings
+            }
+            
         }
-        if((-not(Test-Path $Script:IISLogDirectory)) -or (-not(Test-Path ($Script:IISLogDirectory + "\W3SVC1"))))
-        {
+        <#if((-not(Test-Path $Script:IISLogDirectory)) -or (-not(Test-Path ($Script:IISLogDirectory + "\W3SVC1"))))
+        #{
             #Something bad happened, We don't know where the logs are so we are going to return a false for that we failed
             Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $Script:LocalServerName)
             return $false 
         }
+        #>
         Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo")
         return $true 
     }
@@ -2027,6 +2061,7 @@ param(
             {
                 if(Set-IISDirectoryInfo)
                 {
+                    <#
                     if(-not(Test-IISMultiW3SVCDirectores))
                     {
                         if($Script:this_ServerObject.CAS)
@@ -2053,9 +2088,19 @@ param(
                             }
                         }
                     }
+                    #> 
+
+                    foreach($directory in $Script:IISLogDirectory.Split(";"))
+                    {
+                        $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
+                        $info = ($copyInfo -f $directory, $copyTo) 
+                        $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+                    }
 
                     $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
+
+                    
                 }
             }
     
@@ -2086,6 +2131,7 @@ param(
 
             if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
             {
+                <#
                 if(-not (Test-IISMultiW3SVCDirectores))
                 {
                     $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC1"), ($Script:RootCopyToDirectory + "\IIS_FE_Logs"))
@@ -2103,6 +2149,16 @@ param(
                         }
                     }
                 }
+                $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
+                #> 
+                foreach($directory in $Script:IISLogDirectory.Split(";"))
+                {
+                    $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
+                    $info = ($copyInfo -f $directory, $copyTo) 
+                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+                }
+
                 $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
             }
