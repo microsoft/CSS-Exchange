@@ -1225,8 +1225,8 @@ param(
                 return 
             }
 
-            
-            $Files = $allFiles | ?{$_.LastWriteTime -ge $copyFromDate} | Select-Object -First 1 
+            #If we get here, we want to find the latest file that isn't a directory.
+            $Files = $allFiles | ?{$_.Mode -notlike "d*"} | Select-Object -First 1 
 
             #If we are still null, we want to let them know 
             If($Files -eq $null)
