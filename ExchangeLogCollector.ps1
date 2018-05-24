@@ -2062,54 +2062,7 @@ param(
             {  
                 $cmdsToRun += 'Collect-ManagedAvailabilityLogs'
             }
-
-            if($PassedInfo.IISLogs)
-            {
-                if(Set-IISDirectoryInfo)
-                {
-                    <#
-                    if(-not(Test-IISMultiW3SVCDirectores))
-                    {
-                        if($Script:this_ServerObject.CAS)
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC1"), ($Script:RootCopyToDirectory + "\IIS_FE_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                        if($Script:this_ServerObject.Mailbox)
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC2"), ($Script:RootCopyToDirectory + "\IIS_BE_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                        
-                    }
-                    else 
-                    {
-                        $Folders = Get-ChildItem $Script:IISLogDirectory
-                        foreach($folder in $Folders.Name)
-                        {
-                            if($folder -like "W3SVC*")
-                            {
-                                $info = ($copyInfo -f ($Script:IISLogDirectory + "\" + $folder), ($Script:RootCopyToDirectory + "\IIS_" + $folder + "_Logs"))
-                                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                            }
-                        }
-                    }
-                    #> 
-
-                    foreach($directory in $Script:IISLogDirectory.Split(";"))
-                    {
-                        $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
-                        $info = ($copyInfo -f $directory, $copyTo) 
-                        $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                    }
-
-                    $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
-
-                    
-                }
-            }
-    
+   
         }
         
         ############################################
@@ -2134,40 +2087,7 @@ param(
                     else {$cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)}
                 }
             }
-
-            if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
-            {
-                <#
-                if(-not (Test-IISMultiW3SVCDirectores))
-                {
-                    $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC1"), ($Script:RootCopyToDirectory + "\IIS_FE_Logs"))
-                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                }
-                else 
-                {
-                    $Folders = Get-ChildItem $Script:IISLogDirectory
-                    foreach($folder in $Folders.Name)
-                    {
-                        if($folder -like "W3SVC*")
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\" + $folder), ($Script:RootCopyToDirectory + "\IIS_" + $folder + "_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                    }
-                }
-                $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
-                #> 
-                foreach($directory in $Script:IISLogDirectory.Split(";"))
-                {
-                    $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
-                    $info = ($copyInfo -f $directory, $copyTo) 
-                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                }
-
-                $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
-            }
+            
         }
 
         ############################################
@@ -2267,6 +2187,20 @@ param(
             }
 
         }
+
+        if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
+        {
+            foreach($directory in $Script:IISLogDirectory.Split(";"))
+            {
+                $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
+                $info = ($copyInfo -f $directory, $copyTo) 
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            }
+
+            $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
+            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
+        }
+
         if($PassedInfo.HighAvailabilityLogs)
         {
             $cmdsToRun += "Collect-HighAvailabilityLogs"
