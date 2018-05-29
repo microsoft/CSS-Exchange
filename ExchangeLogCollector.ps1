@@ -1044,6 +1044,23 @@ param(
     }
 
 }
+
+Function Verify-LocalServerIsUsed {
+param(
+[Parameter(Mandatory=$true)]$Servers
+)
+    foreach($server in $Servers)
+    {
+        if($server -eq $env:COMPUTERNAME)
+        {
+            Display-ScriptDebug ("Local Server {0} is in the list" -f $server)
+            return 
+        }
+    }
+
+    Write-Host("The server that you are running the script from isn't in the list of servers that we are collecting data from, this is currently not supported. Stopping the script.") -ForegroundColor Yellow
+    exit 
+}
    
 
 ###############################################
@@ -2459,6 +2476,7 @@ Function Main {
         {
             $ValidServers = Test-DiskSpace -Servers $ValidServers -Path $FilePath -CheckSize 15
             $remote_ScriptingBlock = ${Function:Remote-Functions}
+            Verify-LocalServerIsUsed $ValidServers
             Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers)
             Write-DataOnlyOnceOnLocalMachine
             $RootPath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
