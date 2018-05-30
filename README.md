@@ -73,7 +73,7 @@ MailboxProtocolLogs - Collects the Mailbox Protocol Logs from the Server.
 
 QueueInformationThisServer - Collects the Queue Information from the Server. 
 
-ReceiveConnectors - Collects the Recive Connector Information from the Server. 
+ReceiveConnectors - Collects the Receive Connector Information from the Server. 
 
 SendConnectors - Collects the Send Connector Information from the ORG. 
 
