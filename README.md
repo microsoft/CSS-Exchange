@@ -81,6 +81,8 @@ DAGInformation - Collects DAG Information from the Server.
 
 GetVdirs - Collects the Virtual Directories of the environment. 
 
+OrganizationConfig - Collects the Organization Configuraiton from the environment.
+
 TransportConfig - Collects the Transport Configuration from the Server. 
 
 DefaultTransportLogging - Collects the default logging enabled on an out of the box Exchange Server. 

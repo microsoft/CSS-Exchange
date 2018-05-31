@@ -75,6 +75,8 @@
     Used to collect the DAG Information for this DAG
 .PARAMETER GetVdirs
     Used to collect the Virtual Directories of the environment 
+.PARAMETER OrganizationConfig
+    Used to collect the Organization Configuration from the environment. 
 .PARAMETER TransportConfig
     Used to collect the Transport Configuration from this Exchange Server 
 .PARAMETER DefaultTransportLogging
@@ -148,6 +150,7 @@ Param (
 [switch]$SendConnectors,
 [switch]$DAGInformation,
 [switch]$GetVdirs,
+[switch]$OrganizationConfig,
 [switch]$TransportConfig,
 [switch]$DefaultTransportLogging,
 [switch]$Exmon,
@@ -591,6 +594,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DAGInformation = $true 
         $Script:DefaultTransportLogging = $true
         $Script:MapiLogs = $true 
+        $Script:OrganizationConfig = $true
     }
 
     if($DefaultTransportLogging)
@@ -649,6 +653,7 @@ Function Test-NoSwitchesProvided {
     $Script:AnyTransportSwitchesEnabled -or
     $DAGInformation -or
     $GetVdirs -or 
+    $OrganizationConfig -or
     $Exmon -or 
     $ServerInfo
     ){return}
@@ -2419,6 +2424,13 @@ Function Write-DataOnlyOnceOnLocalMachine {
         $target = $RootCopyToDirectory  + "\ConfigNC_msExchVirtualDirectory_All.CSV"
         $data = (Get-VdirsLDAP)
         $data | Sort-Object -Property Server | Export-Csv $target -NoTypeInformation
+    }
+
+    if($OrganizationConfig)
+    {
+        $target = $RootCopyToDirectory + "\OrganizationConfig"
+        $data = Get-OrganizationConfig
+        Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $target
     }
 
     if($DAGInformation)
