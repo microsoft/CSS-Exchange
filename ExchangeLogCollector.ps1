@@ -1629,7 +1629,8 @@ param(
     Function Save-DataInfoToFile {
         param(
         $dataIn,
-        $SaveToLocation 
+        $SaveToLocation,
+        $FormatList = $true
         )
             
             $xmlOut = $SaveToLocation + ".xml"
@@ -1637,7 +1638,14 @@ param(
             if($dataIn -ne $null)
             {
                 $dataIn | Export-Clixml $xmlOut -Encoding UTF8
-                $dataIn | fl * | Out-File $txtOut
+                if($FormatList)
+                {
+                    $dataIn | Format-List * | Out-File $txtOut
+                }
+                else 
+                {
+                    $dataIn | Format-Table | Out-File $txtOut
+                }
             }
     }
 
