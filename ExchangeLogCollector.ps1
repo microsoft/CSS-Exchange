@@ -1414,6 +1414,8 @@ param(
 
         arp -a > "$copyTo\Network_ARP.txt"
 
+        netstat -nato > "$copyTo\Netstat_NATO.txt"
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
