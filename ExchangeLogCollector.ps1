@@ -1416,6 +1416,8 @@ param(
 
         netstat -nato > "$copyTo\Netstat_NATO.txt"
 
+        netstat -es > "$copyTo\Netstat_ES.txt" 
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
