@@ -1634,7 +1634,7 @@ param(
             
             $xmlOut = $SaveToLocation + ".xml"
             $txtOut = $SaveToLocation + ".txt"
-            if($data -ne $null)
+            if($dataIn -ne $null)
             {
                 $dataIn | Export-Clixml $xmlOut -Encoding UTF8
                 $dataIn | fl * | Out-File $txtOut
