@@ -1410,6 +1410,8 @@ param(
 
         netstat -anob > "$copyTo\Netstat_ANOB.txt"
 
+        route print > "$copyTo\Network_Routes.txt"
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
