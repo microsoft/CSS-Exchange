@@ -1388,6 +1388,10 @@ param(
             sleep 5;
         }
 
+        #Running Processes #35 
+        $runningProcesses = Get-Process
+        Save-DataInfoToFile -dataIn $runningProcesses -SaveToLocation ("{0}\Running_Processes" -f $copyTo)
+
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
         
 
