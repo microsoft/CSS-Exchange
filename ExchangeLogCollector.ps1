@@ -75,6 +75,8 @@
     Used to collect the DAG Information for this DAG
 .PARAMETER GetVdirs
     Used to collect the Virtual Directories of the environment 
+.PARAMETER OrganizationConfig
+    Used to collect the Organization Configuration from the environment. 
 .PARAMETER TransportConfig
     Used to collect the Transport Configuration from this Exchange Server 
 .PARAMETER DefaultTransportLogging
@@ -148,6 +150,7 @@ Param (
 [switch]$SendConnectors,
 [switch]$DAGInformation,
 [switch]$GetVdirs,
+[switch]$OrganizationConfig,
 [switch]$TransportConfig,
 [switch]$DefaultTransportLogging,
 [switch]$Exmon,
@@ -167,7 +170,7 @@ Param (
 
 )
 
-$scriptVersion = 2.4
+$scriptVersion = 2.5
 
 ###############################################
 #                                             #
@@ -542,10 +545,6 @@ param(
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
-    if($GetVdirs)
-    {
-        $obj | Add-Member -Name VDirsInfo -MemberType NoteProperty -Value (Get-VdirsLDAP)
-    }
     $mbx = $false
     foreach($svr in $svrobjs)
     {
@@ -563,14 +562,12 @@ param(
         $cmd = "Cluster log /g"
         Invoke-Expression -Command $cmd | Out-Null
     }
-    if($DAGInformation)
-    {
-        $obj | Add-Member -MemberType NoteProperty -Name DAGInfoData -Value (Get-DAGInformation)
-    }
     if($SendConnectors)
     {
+        #TODO move this to a different location, but for now this should work. 
         $value = Get-SendConnector 
-        $obj | Add-Member -MemberType NoteProperty -Name SendConnectorData -Value $value
+        $Script:SendConnectorData = $value
+        #$obj | Add-Member -MemberType NoteProperty -Name SendConnectorData -Value $value
     }
 
     
@@ -597,6 +594,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DAGInformation = $true 
         $Script:DefaultTransportLogging = $true
         $Script:MapiLogs = $true 
+        $Script:OrganizationConfig = $true
     }
 
     if($DefaultTransportLogging)
@@ -655,6 +653,7 @@ Function Test-NoSwitchesProvided {
     $Script:AnyTransportSwitchesEnabled -or
     $DAGInformation -or
     $GetVdirs -or 
+    $OrganizationConfig -or
     $Exmon -or 
     $ServerInfo
     ){return}
@@ -1050,6 +1049,23 @@ param(
     }
 
 }
+
+Function Verify-LocalServerIsUsed {
+param(
+[Parameter(Mandatory=$true)]$Servers
+)
+    foreach($server in $Servers)
+    {
+        if($server -eq $env:COMPUTERNAME)
+        {
+            Display-ScriptDebug ("Local Server {0} is in the list" -f $server)
+            return 
+        }
+    }
+
+    Write-Host("The server that you are running the script from isn't in the list of servers that we are collecting data from, this is currently not supported. Stopping the script.") -ForegroundColor Yellow
+    exit 
+}
    
 
 ###############################################
@@ -1207,6 +1223,7 @@ param(
                 {
                     $newLogPath = $dir.FullName
                     $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
+                    New-FolderCreate -Folder $newCopyToThisLocation
                     $Files = Get-ChildItem $newLogPath| Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
                     if($Files -eq $null)
                     {
@@ -1225,8 +1242,8 @@ param(
                 return 
             }
 
-            
-            $Files = $allFiles | ?{$_.LastWriteTime -ge $copyFromDate} | Select-Object -First 1 
+            #If we get here, we want to find the latest file that isn't a directory.
+            $Files = $allFiles | ?{$_.Mode -notlike "d*"} | Select-Object -First 1 
 
             #If we are still null, we want to let them know 
             If($Files -eq $null)
@@ -1296,24 +1313,64 @@ param(
 
     Function Set-IISDirectoryInfo {
         Remote-DisplayScriptDebug("Function Enter: Set-IISDirectoryInfo")
-        if((Test-CommandExists -command "Get-WebConfigurationProperty"))
+
+        Function Get-IISDirectoryFromGetWebSite 
         {
-            Remote-DisplayScriptDebug("Get-WebConfigurationProperty command exists")
-            $Script:IISLogDirectory = ((Get-WebConfigurationProperty "system.applicationHost/sites/siteDefaults" -Name logFile).directory).Replace("%SystemDrive%",$env:SystemDrive) 
+            Remote-DisplayScriptDebug("Get-WebSite command exists")
+            foreach($WebSite in $(Get-WebSite))
+            {
+                $logFile = "$($Website.logFile.directory)\W3SVC$($website.id)".replace("%SystemDrive%",$env:SystemDrive)
+                $Script:IISLogDirectory += $logFile + ";"
+                Remote-DisplayScriptDebug("Found Directory: {0}" -f $logFile)
+            }
+            #remove the last ; 
+            $Script:IISLogDirectory = $Script:IISLogDirectory.Substring(0, $Script:IISLogDirectory.Length - 1)
+            #$Script:IISLogDirectory = ((Get-WebConfigurationProperty "system.applicationHost/sites/siteDefaults" -Name logFile).directory).Replace("%SystemDrive%",$env:SystemDrive) 
             Remote-DisplayScriptDebug("Set IISLogDirectory: {0}" -f $Script:IISLogDirectory)
+        }
+
+        Function Get-IISDirectoryFromDefaultSettings 
+        {
+            $Script:IISLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs 
+            Remote-DisplayScriptDebug("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $Script:IISLogDirectory)
+        }
+
+        if((Test-CommandExists -command "Get-WebSite"))
+        {
+            Get-IISDirectoryFromGetWebSite
         }
         else 
         {
-            $Script:IISLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs 
-            Remote-DisplayScriptDebug("Get-WebConfigurationProperty command doesn't exists. Set IISLogDirectory to: {0}" -f $Script:IISLogDirectory)
+            #May need to load the module 
+            try 
+            {
+                Remote-DisplayScriptDebug("Going to attempt to load the WebAdministration Module")
+                Import-Module WebAdministration
+                Remote-DisplayScriptDebug("Successful loading the module")
+                if((Test-CommandExists -command "Get-WebSite"))
+                {
+                    Get-IISDirectoryFromGetWebSite
+                }
+            }
+            catch 
+            {
+                Get-IISDirectoryFromDefaultSettings
+            }
+            
         }
-        if((-not(Test-Path $Script:IISLogDirectory)) -or (-not(Test-Path ($Script:IISLogDirectory + "\W3SVC1"))))
+        #Test out the directories that we found. 
+        foreach($directory in $Script:IISLogDirectory.Split(";"))
         {
-            #Something bad happened, We don't know where the logs are so we are going to return a false for that we failed
-            Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $Script:LocalServerName)
-            return $false 
+            if(-not (Test-Path $directory))
+            {
+                Remote-DisplayScriptDebug("Failed to find a valid path for at least one of the IIS directories. Test path: {0}" -f $directory)
+                Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo - Failed")
+                Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $Script:LocalServerName)
+                return $false
+            }
         }
-        Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo")
+
+        Remote-DisplayScriptDebug("Function Exit: Set-IISDirectoryInfo - Passed")
         return $true 
     }
 
@@ -1529,6 +1586,7 @@ param(
         }
     }
 
+    #This is in two different location. Make changes to both. 
     Function Set-RootCopyDirectory{
         $date = Get-Date -Format yyyyMd
         $str = "{0}\{1}\{2}" -f $PassedInfo.FilePath, $date, $Script:LocalServerName
@@ -2022,43 +2080,7 @@ param(
             {  
                 $cmdsToRun += 'Collect-ManagedAvailabilityLogs'
             }
-
-            if($PassedInfo.IISLogs)
-            {
-                if(Set-IISDirectoryInfo)
-                {
-                    if(-not(Test-IISMultiW3SVCDirectores))
-                    {
-                        if($Script:this_ServerObject.CAS)
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC1"), ($Script:RootCopyToDirectory + "\IIS_FE_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                        if($Script:this_ServerObject.Mailbox)
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC2"), ($Script:RootCopyToDirectory + "\IIS_BE_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                        
-                    }
-                    else 
-                    {
-                        $Folders = Get-ChildItem $Script:IISLogDirectory
-                        foreach($folder in $Folders.Name)
-                        {
-                            if($folder -like "W3SVC*")
-                            {
-                                $info = ($copyInfo -f ($Script:IISLogDirectory + "\" + $folder), ($Script:RootCopyToDirectory + "\IIS_" + $folder + "_Logs"))
-                                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                            }
-                        }
-                    }
-
-                    $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
-                }
-            }
-    
+   
         }
         
         ############################################
@@ -2082,29 +2104,6 @@ param(
                     if($PassedInfo.CollectAllLogsBasedOnDaysWorth){ $cmdsToRun += ("Copy-LogsBasedOnTime {0}" -f $info)}
                     else {$cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)}
                 }
-            }
-
-            if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
-            {
-                if(-not (Test-IISMultiW3SVCDirectores))
-                {
-                    $info = ($copyInfo -f ($Script:IISLogDirectory + "\W3SVC1"), ($Script:RootCopyToDirectory + "\IIS_FE_Logs"))
-                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                }
-                else 
-                {
-                    $Folders = Get-ChildItem $Script:IISLogDirectory
-                    foreach($folder in $Folders.Name)
-                    {
-                        if($folder -like "W3SVC*")
-                        {
-                            $info = ($copyInfo -f ($Script:IISLogDirectory + "\" + $folder), ($Script:RootCopyToDirectory + "\IIS_" + $folder + "_Logs"))
-                            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
-                        }
-                    }
-                }
-                $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
             }
         }
 
@@ -2205,6 +2204,20 @@ param(
             }
 
         }
+
+        if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
+        {
+            foreach($directory in $Script:IISLogDirectory.Split(";"))
+            {
+                $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
+                $info = ($copyInfo -f $directory, $copyTo) 
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            }
+
+            $info = ($copyInfo -f ($script:LocalsysRoot +"\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
+            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
+        }
+
         if($PassedInfo.HighAvailabilityLogs)
         {
             $cmdsToRun += "Collect-HighAvailabilityLogs"
@@ -2238,7 +2251,7 @@ param(
 
 
 
-        #Dump out the data that only needs to be collected once, on the server that hosted the execution of the script
+        <#Dump out the data that only needs to be collected once, on the server that hosted the execution of the script
         if($Script:LocalServerName -eq ($PassedInfo.HostExeServerName))
         {
             Remote-DisplayScriptDebug("Writting only once data")
@@ -2278,16 +2291,181 @@ param(
                 Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
             }
         }
-        
-        #Zip it all up 
-        Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
+        #>
 
+        if($Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
+        {
+            #Zip it all up 
+            Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
+        }
     }
 
     Remote-Main
     
 }
 
+Function Write-DataOnlyOnceOnLocalMachine {
+    Display-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
+    Display-ScriptDebug("Writting only once data")
+
+    #This is in two different location. Make changes to both. 
+    Function Set-LocalRootCopyDirectory{
+        $date = Get-Date -Format yyyyMd
+        $str = "{0}\{1}\{2}" -f $FilePath, $date, $env:COMPUTERNAME
+        return $str
+    }
+
+    #This is in two different location. Make changes to both. 
+    Function New-LocalFolderCreate {
+        param(
+        [string]$Folder
+        )
+            if(-not (Test-Path -Path $Folder))
+            {
+                Write-Host("[{0}] : Creating Directory {1}" -f $env:COMPUTERNAME, $Folder)
+                [System.IO.Directory]::CreateDirectory($Folder) | Out-Null
+            }
+            else 
+            {
+                Write-Host("[{0}] : Directory {1} is already created!" -f $env:COMPUTERNAME, $Folder)
+            }
+    
+    }
+
+     #This is in two different location. Make changes to both. 
+    Function Save-LocalDataInfoToFile {
+        param(
+        $dataIn,
+        $SaveToLocation 
+        )
+            
+            $xmlOut = $SaveToLocation + ".xml"
+            $txtOut = $SaveToLocation + ".txt"
+            if($data -ne $null)
+            {
+                $dataIn | Export-Clixml $xmlOut -Encoding UTF8
+                $dataIn | fl * | Out-File $txtOut
+            }
+    }
+
+    Function Enable-LocalZipAssembly {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        try 
+        {
+            $Script:LocalZip = $true
+            Add-Type -AssemblyName System.IO.Compression.Filesystem 
+        }
+        catch 
+        {
+            Write-Host("[{0}] : Failed to load .NET Compression assembly. Disable the ability to zip data" -f $Script:LocalServerName)
+            $Script:LocalZip = $false
+        }
+        finally
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+
+    }
+    
+    Function Zip-LocalFolder {
+        param(
+        [string]$Folder,
+        [bool]$ZipItAll
+        )
+    
+            if($Script:LocalZip)
+            {
+                if(-not($ZipItAll))
+                {
+                    #Zip location 
+                    $zipFolder = $Folder + ".zip"
+                    if(Test-Path -Path $zipFolder)
+                    {
+                        #Folder exist for some reason 
+                        [int]$i = 1
+                        do{
+                            $zipFolder = $Folder + "-" + $i + ".zip"
+                            $i++
+                        }while(Test-Path -Path $zipFolder)
+                    }
+                }
+                else 
+                {
+                    $zipFolder = "{0}-{1}.zip" -f $Folder, (Get-Date -Format Md)
+                    if(Test-Path -Path $zipFolder)
+                    {
+                        [int]$i = 1
+                        $date = Get-Date -Format Md
+                        do{
+                            $zipFolder = "{0}-{1}-{2}.zip" -f $Folder, $date, $i
+                            $i++
+                        }while(Test-Path -Path $zipFolder)
+                    }
+    
+                }
+    
+                if(-not($ZipItAll)){Write-Host("[{0}] : Zipping up the folder {1}" -f $env:COMPUTERNAME, $Folder)}
+                else{Write-Host("[{0}] : Zipping up all the data for the server...." -f $env:COMPUTERNAME)}
+                [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
+    
+                if((Test-Path -Path $zipFolder))
+                {
+                    Remove-Item $Folder -Force -Recurse
+                }
+            }
+        }
+
+    Enable-LocalZipAssembly
+    $RootCopyToDirectory = Set-LocalRootCopyDirectory
+
+    if($GetVdirs)
+    {
+        $target = $RootCopyToDirectory  + "\ConfigNC_msExchVirtualDirectory_All.CSV"
+        $data = (Get-VdirsLDAP)
+        $data | Sort-Object -Property Server | Export-Csv $target -NoTypeInformation
+    }
+
+    if($OrganizationConfig)
+    {
+        $target = $RootCopyToDirectory + "\OrganizationConfig"
+        $data = Get-OrganizationConfig
+        Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $target
+    }
+
+    if($DAGInformation)
+    {
+        $data = Get-DAGInformation
+        $dagName = $data.DAGInfo.Name 
+        $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
+        New-LocalFolderCreate -Folder $create 
+        $saveLocation = $create + "\{0}"
+                        
+        Save-LocalDataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
+        
+        Save-LocalDataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
+        
+        foreach($mdb in $data.AllMdbs)
+        {
+            Save-LocalDataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
+            Save-LocalDataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
+        }
+
+        Zip-LocalFolder -Folder $create
+    }
+
+    if($SendConnectors)
+    {
+        $data = Get-SendConnector 
+        $create = $RootCopyToDirectory + "\Connectors"
+        New-LocalFolderCreate $create
+        $saveLocation = $create + "\Send_Connectors"
+        Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $saveLocation
+    }
+
+    Zip-LocalFolder -Folder $RootCopyToDirectory -ZipItAll $true
+    Display-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
+}
 
 
 ##################Main###################
@@ -2310,7 +2488,9 @@ Function Main {
         {
             $ValidServers = Test-DiskSpace -Servers $ValidServers -Path $FilePath -CheckSize 15
             $remote_ScriptingBlock = ${Function:Remote-Functions}
+            Verify-LocalServerIsUsed $ValidServers
             Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers)
+            Write-DataOnlyOnceOnLocalMachine
             $RootPath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
             $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $RootPath
             if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $RootPath))
@@ -2361,6 +2541,7 @@ Function Main {
         Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
         Write-Host("Going to collect the data locally")
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        Write-DataOnlyOnceOnLocalMachine
     }
 
     Display-FeedBack

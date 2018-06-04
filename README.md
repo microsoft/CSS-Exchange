@@ -73,13 +73,15 @@ MailboxProtocolLogs - Collects the Mailbox Protocol Logs from the Server.
 
 QueueInformationThisServer - Collects the Queue Information from the Server. 
 
-ReceiveConnectors - Collects the Recive Connector Information from the Server. 
+ReceiveConnectors - Collects the Receive Connector Information from the Server. 
 
 SendConnectors - Collects the Send Connector Information from the ORG. 
 
 DAGInformation - Collects DAG Information from the Server. 
 
 GetVdirs - Collects the Virtual Directories of the environment. 
+
+OrganizationConfig - Collects the Organization Configuraiton from the environment.
 
 TransportConfig - Collects the Transport Configuration from the Server. 
 
