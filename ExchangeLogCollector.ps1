@@ -1648,7 +1648,7 @@ param(
                 }
                 else 
                 {
-                    $dataIn | Format-Table | Out-File $txtOut
+                    $dataIn | Format-Table -AutoSize | Out-File $txtOut
                 }
             }
     }
