@@ -1404,11 +1404,11 @@ param(
         
 
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
-        #IP Config
+        
+        #TCPIP Networking Information #38
         ipconfig /all > "$copyTo\IPConfiguration.txt"
 
-        #Netstat -ano 
-        netstat -ano > "$copyTo\NetStat_ANO.txt"
+        netstat -anob > "$copyTo\Netstat_ANOB.txt"
 
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
