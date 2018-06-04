@@ -1390,7 +1390,7 @@ param(
 
         #Running Processes #35 
         $runningProcesses = Get-Process
-        Save-DataInfoToFile -dataIn $runningProcesses -SaveToLocation ("{0}\Running_Processes" -f $copyTo)
+        Save-DataInfoToFile -dataIn $runningProcesses -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
 
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
         
