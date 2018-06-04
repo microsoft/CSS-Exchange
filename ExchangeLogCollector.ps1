@@ -1396,6 +1396,10 @@ param(
         $services = Get-Service 
         Save-DataInfoToFile -dataIn $services -SaveToLocation ("{0}\Services_Information" -f $copyTo) -FormatList $false
 
+        #VSSAdmin Information #39
+        $vssWriters = vssadmin list Writers
+        $vssWriters > "$copyTo\VSS_Writers.txt"
+
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
         
 
