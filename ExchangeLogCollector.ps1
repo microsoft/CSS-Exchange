@@ -1388,6 +1388,10 @@ param(
             sleep 5;
         }
 
+        #Running Processes #35 
+        $runningProcesses = Get-Process
+        Save-DataInfoToFile -dataIn $runningProcesses -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
+
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
         
 
@@ -1625,15 +1629,23 @@ param(
     Function Save-DataInfoToFile {
         param(
         $dataIn,
-        $SaveToLocation 
+        $SaveToLocation,
+        $FormatList = $true
         )
             
             $xmlOut = $SaveToLocation + ".xml"
             $txtOut = $SaveToLocation + ".txt"
-            if($data -ne $null)
+            if($dataIn -ne $null)
             {
                 $dataIn | Export-Clixml $xmlOut -Encoding UTF8
-                $dataIn | fl * | Out-File $txtOut
+                if($FormatList)
+                {
+                    $dataIn | Format-List * | Out-File $txtOut
+                }
+                else 
+                {
+                    $dataIn | Format-Table | Out-File $txtOut
+                }
             }
     }
 
