@@ -1412,6 +1412,8 @@ param(
 
         route print > "$copyTo\Network_Routes.txt"
 
+        arp -a > "$copyTo\Network_ARP.txt"
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
