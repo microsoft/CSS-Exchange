@@ -1448,10 +1448,10 @@ param(
 
         if( $Script:this_ServerObject.Version -ge 15)
         {
-            $Script:this_ServerObject.HealthReport  > "$copyTo\HealthReport.txt"
+            $Script:this_ServerObject.HealthReport | fl * > "$copyTo\HealthReport.txt"
             $Script:this_ServerObject.HealthReport | Export-Clixml "$copyTo\HealthReport.xml"
 
-            $Script:this_ServerObject.ServerComponentState  > "$copyTo\ServerComponentState.txt"
+            $Script:this_ServerObject.ServerComponentState | fl * > "$copyTo\ServerComponentState.txt"
             $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
         }
 
