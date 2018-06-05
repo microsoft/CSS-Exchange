@@ -1,7 +1,7 @@
 # HealthChecker
 This script is the Exchange Server Health Checker script that helps detect common configuration issues that are known to cause performance issues within an Exchange Environment. You can run this script against every Exchange Server that is in your environment and it will clearly indicate what you should be addressing. 
 
-#How To Run
+# How To Run
 This script MUST be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server. 
 
 Within the version 2.18 or greater, you are now able to generate a HTML report from the XML files that are created from the initial collection of the Health Checker Script. For this to work, you need to have run the Health Checker Script against all the servers that you would like in the report and have all the XML outputs in a single directory. After this, you can run the Health Checker script again with using the parameter -BuildHtmlServersReport and we will generate a nice HTML report that will combined all the information into a single view. 
