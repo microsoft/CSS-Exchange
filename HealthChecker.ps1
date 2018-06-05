@@ -291,6 +291,7 @@ Add-Type -TypeDefinition @"
 			public string HttpProxy;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
+            public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
 
         }
 
@@ -785,6 +786,142 @@ param(
     }
 }
 
+Function Get-ServerRebootPending {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ServerRebootPending")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
+    $PendingFileReboot = $false
+    $PendingAutoUpdateReboot = $false
+    $PendingCBSReboot = $false #Component-Based Servicing Reboot 
+    $PendingSCCMReboot = $false
+    $ServerPendingReboot = $false
+
+    #Pending File Rename operations 
+    Function Get-PendingFileReboot {
+
+        $PendingFileKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\"
+        $file = Get-ItemProperty -Path $PendingFileKeyPath -Name PendingFileRenameOperations
+        if($file)
+        {
+            return $true
+        }
+        return $false
+    }
+
+    Function Get-PendingAutoUpdateReboot {
+
+        if(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
+        {
+            return $true
+        }
+        return $false
+    }
+
+    Function Get-PendingCBSReboot {
+
+        if(Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
+        {
+            return $true
+        }
+        return $false
+    }
+
+    Function Get-PendingSCCMReboot {
+
+        $SCCMReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending'
+
+        if($SCCMReboot)
+        {
+            If($SCCMReboot.RebootPending -or $SCCMReboot.IsHardRebootPending)
+            {
+                return $true
+            }
+        }
+        return $false
+    }
+
+    Function Execute-ScriptBlock{
+    param(
+    [Parameter(Mandatory=$true)][string]$Machine_Name,
+    [Parameter(Mandatory=$true)][scriptblock]$Script_Block,
+    [Parameter(Mandatory=$true)][string]$Script_Block_Name
+    )
+        Write-VerboseOutput("Calling Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        $returnValue = $false
+        try 
+        {
+            $returnValue = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $Script_Block
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
+            $Script:iErrorExcluded++
+        }
+        finally 
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+        return $returnValue
+    }
+
+    Function Execute-LocalMethods {
+    param(
+    [Parameter(Mandatory=$true)][string]$Machine_Name,
+    [Parameter(Mandatory=$true)][ScriptBlock]$Script_Block,
+    [Parameter(Mandatory=$true)][string]$Script_Block_Name
+    )
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        $returnValue = $false
+        Write-VerboseOutput("Calling Local Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
+        try 
+        {
+            $returnValue = & $Script_Block
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
+            $Script:iErrorExcluded++
+        }
+        finally 
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+        return $returnValue
+    }
+
+    if($Machine_Name -eq $env:COMPUTERNAME)
+    {
+        Write-VerboseOutput("Calling Server Reboot Pending options via local session")
+        $PendingFileReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
+        $PendingAutoUpdateReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
+        $PendingCBSReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
+        $PendingSCCMReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
+    }
+    else 
+    {
+        Write-VerboseOutput("Calling Server Reboot Pending options via Invoke-Command")
+        $PendingFileReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
+        $PendingAutoUpdateReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
+        $PendingCBSReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
+        $PendingSCCMReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
+    }
+
+    Write-VerboseOutput("Results - PendingFileReboot: {0} PendingAutoUpdateReboot: {1} PendingCBSReboot: {2} PendingSCCMReboot: {3}" -f $PendingFileReboot, $PendingAutoUpdateReboot, $PendingCBSReboot, $PendingSCCMReboot)
+    if($PendingFileReboot -or $PendingAutoUpdateReboot -or $PendingCBSReboot -or $PendingSCCMReboot)
+    {
+        $ServerPendingReboot = $true
+    }
+
+    Write-VerboseOutput("Exit: Get-ServerRebootPending")
+    return $ServerPendingReboot
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -836,8 +973,8 @@ param(
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
-
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
+    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
 
     return $os_obj
 }
@@ -2373,6 +2510,21 @@ param(
     else
     {
         Write-Red("`tPower Plan: " + $HealthExSvrObj.OSVersion.PowerPlanSetting + " --- Error: High Performance Power Plan is recommended")
+    }
+
+    ################
+    #Pending Reboot#
+    ################
+
+    Write-Grey("Server Pending Reboot:")
+
+    if($HealthExSvrObj.OSVersion.ServerPendingReboot)
+    {
+        Write-Red("`tTrue --- Error: This can cause issues if files haven't been properly updated.")
+    }
+    else 
+    {
+        Write-Green("`tFalse")    
     }
 
 	#####################
