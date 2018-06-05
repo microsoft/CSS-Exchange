@@ -55,7 +55,7 @@ CasServerList - Used in combination with the LoadBalancingReport switch for lett
 
 SiteName - Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against in the site. 
 
-XMLDirectoryPath - Used in combination with the location of the XML files for which you want to be included in the report. Default location is the current directory. 
+XMLDirectoryPath - Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers which you want to be included in the report. Default location is the current directory.
 
 BuildHtmlServersReport - Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location. 
 
