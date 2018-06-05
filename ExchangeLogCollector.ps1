@@ -1400,6 +1400,10 @@ param(
         $vssWriters = vssadmin list Writers
         $vssWriters > "$copyTo\VSS_Writers.txt"
 
+        #Driver Information #34
+        $drivers = Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}
+        Save-DataInfoToFile -dataIn $drivers -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
+
         Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
         
 
