@@ -47,7 +47,16 @@
     this switch the report will use all 2013/2016 Client Access servers in the organization.
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
-	in the organization.
+    in the organization.
+.PARAMETER XMLDirectoryPath
+    Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers 
+    which you want to be included in the report. Default location is the current directory.
+.PARAMETER BuildHtmlServersReport 
+    Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location.
+.PARAMETER HtmlReportFile 
+    Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
+.PARAMETER DCCoreRatio 
+    Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.
 .PARAMETER Verbose	
 	This optional parameter enables verbose logging.
 .EXAMPLE

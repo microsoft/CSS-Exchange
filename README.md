@@ -1,7 +1,7 @@
 # HealthChecker
 This script is the Exchange Server Health Checker script that helps detect common configuration issues that are known to cause performance issues within an Exchange Environment. You can run this script against every Exchange Server that is in your environment and it will clearly indicate what you should be addressing. 
 
-#How To Run
+# How To Run
 This script MUST be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server. 
 
 Within the version 2.18 or greater, you are now able to generate a HTML report from the XML files that are created from the initial collection of the Health Checker Script. For this to work, you need to have run the Health Checker Script against all the servers that you would like in the report and have all the XML outputs in a single directory. After this, you can run the Health Checker script again with using the parameter -BuildHtmlServersReport and we will generate a nice HTML report that will combined all the information into a single view. 
@@ -55,7 +55,7 @@ CasServerList - Used in combination with the LoadBalancingReport switch for lett
 
 SiteName - Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against in the site. 
 
-XMLDirectoryPath - Used in combination with the location of the XML files for which you want to be included in the report. Default location is the current directory. 
+XMLDirectoryPath - Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers which you want to be included in the report. Default location is the current directory.
 
 BuildHtmlServersReport - Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location. 
 
