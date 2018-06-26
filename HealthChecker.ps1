@@ -2403,10 +2403,12 @@ param(
             $HealthExSvrObj.HardwareInfo.TotalMemory -ge 21474836480)
             {
                 Write-Red("`t`tMAPI Front End App Pool GC Mode: Workstation --- Error")
+                Write-Yellow("`t`tTo Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin direcotry and change the GCServer to true and recycle the MAPI Front End App Pool")
             }
             elseif($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "false")
             {
                 Write-Yellow("`t`tMapi Front End App Pool GC Mode: Workstation --- Warning")
+                Write-Yellow("`t`tYou could be seeing some GC issues within the Mapi Front End App Pool. However, you don't have enough memory installed on the system to recommend switching the GC mode by default without consulting a support professional.")
             }
             elseif($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "true")
             {
