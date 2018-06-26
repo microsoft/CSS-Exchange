@@ -1108,10 +1108,12 @@ param(
 
 Function Get-NetFrameworkVersionFriendlyInfo{
 param(
-[Parameter(Mandatory=$true)][int]$NetVersionKey 
+[Parameter(Mandatory=$true)][int]$NetVersionKey,
+[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName 
 )
     Write-VerboseOutput("Calling: Get-NetFrameworkVersionFriendlyInfo")
     Write-VerboseOutput("Passed: " + $NetVersionKey.ToString())
+    Write-VerboseOutput("Passed: " + $OSVersionName.ToString())
     [HealthChecker.NetVersionObject]$versionObject = New-Object -TypeName HealthChecker.NetVersionObject
         if(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d5d1))
     {
@@ -1142,6 +1144,11 @@ param(
     {
         $versionObject.FriendlyName = "4.6.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d1
+    }
+    elseif($NetVersionKey -eq 394802 -and $OSVersionName -eq [HealthChecker.OSVersionName]::Windows2016)
+    {
+        $versionObject.FriendlyName = "Windows Server 2016 .NET 4.6.2"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d2
     }
     elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d1wFix) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d6d2))
     {
@@ -1180,10 +1187,12 @@ param(
 #Uses registry build numbers from https://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
 Function Build-NetFrameWorkVersionObject {
 param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
+[Parameter(Mandatory=$true)][string]$Machine_Name,
+[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName
 )
     Write-VerboseOutput("Calling: Build-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
+    Write-VerboseOutput("Passed: $OSVersionName")
 
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$Machine_Name)
     $RegKey = $Reg.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full")
@@ -1191,8 +1200,7 @@ param(
     $sNetVersionKey = $NetVersionKey.ToString()
     Write-VerboseOutput("Got $sNetVersionKey from the registry")
 
-    [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey 
-
+    [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     return $versionObject
 
 }
@@ -1453,7 +1461,7 @@ param(
             Write-VerboseOutput("Current version of .NET equals 4.6 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET 4.6 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
         }
 		elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6d1 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
@@ -1461,7 +1469,7 @@ param(
 			Write-VerboseOutput("Current version of .NET equals 4.6.1 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6.1 without the hotfix")
 			$NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-			[HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+			[HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
 			$NetCheckObj.DisplayWording = "On .NET 4.6.1 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
 		}
 
@@ -1471,8 +1479,8 @@ param(
             Write-VerboseOutput("Current version of .NET is less than Min Supported Version. Need to upgrade to this version as soon as possible")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ 
-            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ 
+            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionObject.FriendlyName + ". Upgrade to this version as soon as possible."
         }
         #here we are assuming that we are able to get to a much better version of .NET then the min 
@@ -1481,9 +1489,9 @@ param(
             Write-VerboseOutput("Current Version of .NET is less than Min Supported Version. However, the recommended version is the one we want to upgrade to")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ 
-            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ 
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionObject.FriendlyName + ", but the recommended version is " + $RecommendedNetVersionObject.FriendlyName + ". upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -lt $RecommendedNetVersion)
@@ -1491,8 +1499,8 @@ param(
             Write-VerboseOutput("Current version is less than the recommended version, but we are at or higher than the Min Supported level. Should upgrade to the recommended version as soon as possible.")
             $NetCheckObj.Supported = $true
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ 
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -gt $RecommendedNetVersion)
@@ -1500,8 +1508,8 @@ param(
             Write-VerboseOutput("Current version is greater than the recommended version. This is an unsupported state.")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ 
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__
+            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the max recommnded version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
         }
         else
@@ -1732,7 +1740,7 @@ param(
     if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
     {
         Write-VerboseOutput("Exchange 2013 or greater detected")
-        $HealthExSvrObj.NetVersionInfo = Build-NetFrameWorkVersionObject -Machine_Name $Machine_Name 
+        $HealthExSvrObj.NetVersionInfo = Build-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSVersionName $OSVersionName
         $versionObject =  $HealthExSvrObj.NetVersionInfo 
         [HealthChecker.ExchangeInformationTempObject]$tempObject = Get-ExchangeBuildInformation -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion
         if($tempObject.Error -ne $true) 
@@ -2486,16 +2494,9 @@ param(
     {
         Write-Grey(".NET Framework:")
         
-        if($HealthExSvrObj.NetVersionInfo.SupportedVersion -or 
-            ($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
-            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802))
+        if($HealthExSvrObj.NetVersionInfo.SupportedVersion)
         {
-            if($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
-            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802)
-            {
-                Write-Green("`tVersion: Windows Server 2016 .NET 4.6.2")
-            }
-            elseif($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
+            if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
             {
                 Write-Green("`tVersion: " + $HealthExSvrObj.NetVersionInfo.FriendlyName)
             }
@@ -2941,17 +2942,9 @@ Function Build-ServerObject
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
     {
 
-        
-        if($HealthExSvrObj.NetVersionInfo.SupportedVersion -or 
-            ($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
-            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802))
+        if($HealthExSvrObj.NetVersionInfo.SupportedVersion)
         {
-            if($HealthExSvrObj.OSVersion.OSVersion -eq [HealthChecker.OSVersionName]::Windows2016 -and
-            $HealthExSvrObj.NetVersionInfo.NetRegValue -eq 394802)
-            {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "Win 2016 .NET 4.6.2"
-            }
-            elseif($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
+            if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
             {
                 $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value $HealthExSvrObj.NetVersionInfo.FriendlyName
             }
