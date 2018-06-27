@@ -1,3 +1,6 @@
+# Download 
+To download this script, download the latest version [here](https://github.com/dpaulson45/ExchangeLogCollector/releases)
+
 # ExchangeLogCollector
 This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data. 
 
