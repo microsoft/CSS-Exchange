@@ -1,3 +1,6 @@
+# Download 
+To download this script, download the latest version [here](https://github.com/dpaulson45/HealthChecker/releases)
+
 # HealthChecker
 This script is the Exchange Server Health Checker script that helps detect common configuration issues that are known to cause performance issues within an Exchange Environment. You can run this script against every Exchange Server that is in your environment and it will clearly indicate what you should be addressing. 
 
