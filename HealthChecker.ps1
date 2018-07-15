@@ -2830,7 +2830,7 @@ Function Build-ServerObject
     #If IU or Security Hotfix detected
     if($HealthExSvrObj.ExchangeInformation.KBsInstalled -ne $null)
     {
-        $KBArray = = @()
+        $KBArray = @()
         foreach($kb in $HealthExSvrObj.ExchangeInformation.KBsInstalled)
         {
             $KBArray += $kb
