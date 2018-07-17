@@ -97,7 +97,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.21"
+$healthCheckerVersion = "2.22"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -1789,11 +1789,18 @@ param(
     else
     {
         Write-Red "Error: Unknown version of Exchange detected for server: $Machine_Name"
-       
+    }
+
+    if($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and $exchInfoObject.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess)
+    {
+        Write-VerboseOutput("Exchange 2013 CAS only detected. Not going to run Test-ServiceHealth against this server.")
+    }
+    else 
+    {
+        Write-VerboseOutput("Exchange 2013 CAS only not detected. Going to run Test-ServiceHealth against this server.")
+        $exchInfoObject.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Machine_Name | %{$_.ServicesNotRunning}
     }
 	
-	$exchInfoObject.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Machine_Name | %{$_.ServicesNotRunning}
-
     $HealthExSvrObj.ExchangeInformation = $exchInfoObject
     return $HealthExSvrObj
 
@@ -2830,7 +2837,7 @@ Function Build-ServerObject
     #If IU or Security Hotfix detected
     if($HealthExSvrObj.ExchangeInformation.KBsInstalled -ne $null)
     {
-        $KBArray = = @()
+        $KBArray = @()
         foreach($kb in $HealthExSvrObj.ExchangeInformation.KBsInstalled)
         {
             $KBArray += $kb
