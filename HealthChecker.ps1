@@ -97,7 +97,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.22"
+$healthCheckerVersion = "2.23"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -2245,6 +2245,78 @@ param(
     }
 }
 
+#Addressed issue 69
+Function Display-KBHotFixCompareIssues{
+param(
+[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+)
+    Write-VerboseOutput("Calling: Display-KBHotFixCompareIssues")
+    Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
+
+    $HotFixInfo = $HealthExSvrObj.OSVersion.HotFixes.Hotfixid
+   
+    $serverOS = $HealthExSvrObj.OSVersion.OSVersion
+    if($serverOS -eq ([HealthChecker.OSVersionName]::Windows2008))
+    {
+        Write-VerboseOutput("Windows 2008 detected")
+        $KBHashTable = @{"KB4295656"="KB4345397"}
+    }
+    elseif($serverOS -eq ([HealthChecker.OSVersionName]::Windows2008R2))
+    {
+        Write-VerboseOutput("Windows 2008 R2 detected")
+        $KBHashTable = @{"KB4338823"="KB4345459";"KB4338818"="KB4338821"}
+    }
+    elseif($serverOS -eq ([HealthChecker.OSVersionName]::Windows2012))
+    {
+        Write-VerboseOutput("Windows 2012 detected")
+        $KBHashTable = @{"KB4338820"="KB4345425";"KB4338830"="KB4338816"}
+    }
+    elseif($serverOS -eq ([HealthChecker.OSVersionName]::Windows2012R2))
+    {
+        Write-VerboseOutput("Windows 2012 R2 detected")
+        $KBHashTable = @{"KB4338824"="KB4345424";"KB4338815"="KB4338831"}
+    }
+    elseif($serverOS -eq ([HealthChecker.OSVersionName]::Windows2016))
+    {
+        Write-VerboseOutput("Windows 2016 detected")
+        $KBHashTable = @{"KB4338814"="KB4345418"}
+    }
+
+    if($HotFixInfo -ne $null)
+    {
+        if($KBHashTable -ne $null)
+        {
+            foreach($key in $KBHashTable.Keys)
+            {
+                if($HotFixInfo.Contains($key))
+                {
+                    Write-VerboseOutput("Found Impacted {0}" -f $key)
+                    if($HotFixInfo.Contains($KBHashTable[$key]))
+                    {
+                        Write-VerboseOutput("Found {0} that fixes the issue" -f ($KBHashTable[$key]))
+                    }
+                    else 
+                    {
+                        Write-Break
+                        Write-Break
+                        Write-Red("July Update detected: Error --- Problem {0} detected with the fix {1}. This can cause odd issues to occur on the system. See https://blogs.technet.microsoft.com/exchange/2018/07/16/issue-with-july-updates-for-windows-on-an-exchange-server/" -f $key, ($KBHashTable[$key]))
+                    }
+                }
+            }
+        }
+        else
+        {
+            Write-VerboseOutput("KBHashTable was null. July Update issue not checked.")
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("No hotfixes were detected on the server")    
+    }
+
+    
+}
+
 Function Display-KBHotfixCheck {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -2797,6 +2869,7 @@ param(
     {
         Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj
     }
+    Display-KBHotFixCompareIssues -HealthExSvrObj $HealthExSvrObj
 
 
     Write-Grey("`r`n`r`n")
