@@ -338,7 +338,8 @@ Add-Type -TypeDefinition @"
             Unknown,
             Exchange2010,
             Exchange2013,
-            Exchange2016
+            Exchange2016,
+            Exchange2019
         }
 
         //enum for the OSVersion that we are
@@ -1224,6 +1225,7 @@ param(
         14.3 {Write-VerboseOutput("Returned: Exchange2010"); return [HealthChecker.ExchangeVersion]::Exchange2010}
         15 {Write-VerboseOutput("Returned: Exchange2013"); return [HealthChecker.ExchangeVersion]::Exchange2013}
         15.1{Write-VerboseOutput("Returned: Exchange2016"); return [HealthChecker.ExchangeVersion]::Exchange2016}
+        15.2{Write-VerboseOutput("Returned: Exchange2019"); return [HealthChecker.ExchangeVersion]::Exchange2019}
         default {Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.ExchangeVersion]::Unknown}
     }
 
@@ -1255,7 +1257,13 @@ param(
     Write-VerboseOutput("Build Plus Revision Value: " + $buildRevision)
     #https://technet.microsoft.com/en-us/library/hh135098(v=exchg.150).aspx
 
-    if($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
+    if($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 2)
+    {
+        Write-VerboseOutput("Determined that we are on Exchange 2019")
+        $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2019
+        if($buildRevision -ge 196.0){$exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
+    }
+    elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
         Write-VerboseOutput("Determined that we are on Exchange 2016")
         $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2016
@@ -1319,7 +1327,8 @@ param(
     Write-VerboseOutput("Passed: " + $AdminDisplayVersion.ToString())
     [HealthChecker.ExchangeInformationTempObject]$tempObject = New-Object -TypeName HealthChecker.ExchangeInformationTempObject
     
-    if(($AdminDisplayVersion.Major -eq 15) -and ($AdminDisplayVersion.Minor -eq 0 -or $AdminDisplayVersion.Minor -eq 1))
+    #going to remove the minor checks. Not sure I see a value in keeping them. 
+    if($AdminDisplayVersion.Major -eq 15)
     {
        Write-VerboseOutput("Determined that we are working with Exchange 2013 or greater")
        [HealthChecker.ExchangeBuildObject]$exBuildObj = Get-ExchangeBuildObject -AdminDisplayVersion $AdminDisplayVersion 
@@ -1329,6 +1338,16 @@ param(
        Write-VerboseOutput("Inbetween CUs: " + $exBuildObj.InbetweenCUs.ToString())
        switch($exBuildObj.ExchangeVersion)
        {
+        ([HealthChecker.ExchangeVersion]::Exchange2019)
+            {
+                Write-VerboseOutput("Working with Exchange 2019")
+                switch($exBuildObj.CU)
+                {
+                    ([HealthChecker.ExchangeCULevel]::Preview) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 Preview"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "07/24/2018"; break}
+                    default {Write-Red("Error: Unknown Exchange 2019 Build was detected"); $tempObject.Error = $true; break;}
+                }
+            }
+
         ([HealthChecker.ExchangeVersion]::Exchange2016)
             {
                 Write-VerboseOutput("Working with Exchange 2016")
@@ -1599,6 +1618,15 @@ param(
                 
 
                 break;
+            }
+        ([HealthChecker.ExchangeVersion]::Exchange2019)
+            {
+                Write-VerboseOutput("Exchange 2019 detected...checking .NET version")
+                if($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU2)
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                }
+
             }
         default {$NetCheckObj.Error = $true; Write-VerboseOutput("Error trying to determine major version of Exchange for .NET fix level")}
     }
