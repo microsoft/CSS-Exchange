@@ -350,7 +350,8 @@ Add-Type -TypeDefinition @"
             Windows2008R2,
             Windows2012,
             Windows2012R2,
-            Windows2016
+            Windows2016,
+            Windows2019
         }
 
         public class PageFileObject 
@@ -476,6 +477,7 @@ param(
         "6.2.9200" {Write-VerboseOutput("Returned: Windows2012"); return [HealthChecker.OSVersionName]::Windows2012}
         "6.3.9600" {Write-VerboseOutput("Returned: Windows2012R2"); return [HealthChecker.OSVersionName]::Windows2012R2}
         "10.0.14393" {Write-VerboseOutput("Returned: Windows2016"); return [HealthChecker.OSVersionName]::Windows2016}
+        "10.0.17713" {Write-VerboseOutput("Returned: Windows2019"); return [HealthChecker.OSVersionName]::Windows2019}
         default{Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.OSVersionName]::Unknown}
     }
 
