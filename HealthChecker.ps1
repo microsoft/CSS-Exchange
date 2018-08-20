@@ -246,7 +246,8 @@ Add-Type -TypeDefinition @"
             Net4d6d1wFix = 394294,
 			Net4d6d2 = 394806,
             Net4d7 = 460805,
-            Net4d7d1 = 461310
+            Net4d7d1 = 461310,
+            Net4d7d2 = 461814
         }
 
         public class HardwareObject
@@ -1165,10 +1166,15 @@ param(
 		$versionObject.FriendlyName = "4.7"
 		$versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d1)
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d1 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7d2))
     {
         $versionObject.FriendlyName = "4.7.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
+    }
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2)
+    {
+        $versionObject.FriendlyName = "4.7.2"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d2
     }
     else
     {
