@@ -2745,8 +2745,8 @@ param(
     #######################
     Write-Grey("Processor/Memory Information")
     Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.ProcessorName)
-    #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    #Hyperthreading check
+    <#if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
         if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
@@ -2771,12 +2771,56 @@ param(
             Write-Yellow("`tHyper-Threading Enabled: Yes --- Warning: Enabling Hyper-Threading is not recommended")
         }
     }
+    #>
+
+    Function Check-MaxCoresCount {
+    param(
+    [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+    )
+        if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
+        {
+            Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/")
+        }
+        elseif(($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -or 
+        $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016) -and 
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+        {
+            Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2015/06/19/ask-the-perf-guy-how-big-is-too-big/")
+        }
+    }
+
+    #First, see if we are hyperthreading
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    {
+        #Hyperthreading enabled 
+        Write-Red("`tHyper-Threading Enabled: Yes --- Error: Having Hyper-Threading enabled goes against best practices. Please disable as soon as possible.")
+        #AMD might not have the correct logic here. Throwing warning about this. 
+        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        {
+            Write-Yellow("`tThis script may incorrectly report that Hyper-Threading is enabled on certain AMD processors.  Check with the manufacturer to see if your model supports SMT.")
+        }
+        Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
+    }
     else
     {
         Write-Green("`tHyper-Threading Enabled: No")
+        Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
     }
-    Write-Grey("`tNumber of Processors: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+    #Number of Processors - Number of Processor Sockets. 
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
+    {
+        Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets." -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+    }
+    else 
+    {
+        Write-Green("`tNumber of Processors: {0}" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+    }
+
+    #Core count
+    if(($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and 
+    $HealthExSvrObj.ExchangeInformation.ExchangeVersion -lt [HealthChecker.ExchangeVersion]::Exchange2019) -or 
+    ($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48))
     {
         Write-Yellow("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         Write-Yellow("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
@@ -2786,6 +2830,8 @@ param(
         Write-Green("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         Write-Green("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
     }
+
+    #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box. 
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
 		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
@@ -2840,8 +2886,14 @@ param(
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
     #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
+    #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
-    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and
+        $HealthExSvrObj.HardwareInfo.TotalMemory -gt 274877906944)
+    {
+        Write-Yellow("`tPhysical Memory: {0} GB --- We recommend for the best performance to be scaled at or below 256 GB of Memory." -f $totalPhysicalMemory)
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
         $HealthExSvrObj.HardwareInfo.TotalMemory -gt 206158430208)
     {
         Write-Yellow("`tPhysical Memory: {0} GB --- We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory)
