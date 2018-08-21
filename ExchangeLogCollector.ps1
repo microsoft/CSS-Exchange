@@ -1463,6 +1463,9 @@ param(
         New-FolderCreate -Folder $configLocation 
         $configFiles | %{Copy-Item $_.VersionInfo.FileName $configLocation}
         
+        $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
+        $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
+        $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
