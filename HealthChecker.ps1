@@ -586,9 +586,9 @@ param(
         [Parameter(Mandatory=$true)][string]$RegistryLocation
     )
         $connections = Get-ItemProperty -Path $RegistryLocation
-        if(($Connections | gm).Name -contains "WinHttpSettings")
+        $Proxy = [string]::Empty
+        if(($connections -ne $null) -and ($Connections | gm).Name -contains "WinHttpSettings")
         {
-            $Proxy = [string]::Empty
             foreach($Byte in $Connections.WinHttpSettings)
             {
                 if($Byte -ge 48)
