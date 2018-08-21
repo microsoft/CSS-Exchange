@@ -588,13 +588,15 @@ Function Test-PossibleCommonScenarios {
         $Script:AutoDLogs = $true
         $Script:OWALogs = $true 
         $Script:ADDriverLogs = $true 
-        $Script:HighAvailabilityLogs = $true 
+        $Script:SearchLogs = $true
+        $Script:HighAvailabilityLogs = $true
         $Script:ServerInfo = $true 
         $Script:GetVdirs = $true
         $Script:DAGInformation = $true 
         $Script:DefaultTransportLogging = $true
         $Script:MapiLogs = $true 
         $Script:OrganizationConfig = $true
+        $Script:ECPLogs = $true
     }
 
     if($DefaultTransportLogging)
