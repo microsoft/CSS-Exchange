@@ -458,7 +458,15 @@ param(
 
         if($sobj.CAS)
         {
-            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value (Get-ClientAccessServer $svr)
+            if($sobj.Version -ge 15)
+            {
+                $casInfo = Get-ClientAccessService $svr
+            }
+            else 
+            {
+                $casInfo = Get-ClientAccessServer $svr
+            }
+            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
         }
 
         if($sobj.Mailbox)
@@ -1449,7 +1457,7 @@ param(
 
         if($Script:this_ServerObject.CAS)
         {
-            $Script:this_ServerObject.CAServerInfo | fl *> "$copyTo\ClientAccessServer.txt"
+            $Script:this_ServerObject.CAServerInfo | fl * > "$copyTo\ClientAccessServer.txt"
             $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
         }
 
