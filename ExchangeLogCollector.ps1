@@ -1424,6 +1424,11 @@ param(
 
         netstat -es > "$copyTo\Netstat_ES.txt" 
 
+        #IPsec 
+        netsh ipsec dynamic show all > "$copyTo\IPsec_netsh_dynamic.txt"
+
+        netsh ipsec static show all > "$copyTo\IPsec_netsh_static.txt"
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
