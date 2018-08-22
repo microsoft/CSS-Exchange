@@ -1472,6 +1472,9 @@ param(
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
         $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
 
+        gpresult /R /Z > "$copyTo\GPResult.txt"
+        gpresult /H "$copyTo\GPResult.html"
+
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
     }
