@@ -2289,8 +2289,13 @@ param(
     Write-VerboseOutput("Calling: Display-KBHotFixCompareIssues")
     Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
 
-    $HotFixInfo = $HealthExSvrObj.OSVersion.HotFixes.Hotfixid
-   
+    #$HotFixInfo = $HealthExSvrObj.OSVersion.HotFixes.Hotfixid
+    $HotFixInfo = @() 
+    foreach($Hotfix in $HealthExSvrObj.OSVersion.HotFixes)
+    {
+        $HotFixInfo += $Hotfix.HotfixId 
+    }
+
     $serverOS = $HealthExSvrObj.OSVersion.OSVersion
     if($serverOS -eq ([HealthChecker.OSVersionName]::Windows2008))
     {
@@ -2324,18 +2329,27 @@ param(
         {
             foreach($key in $KBHashTable.Keys)
             {
-                if($HotFixInfo.Contains($key))
+                foreach($problemKB in $HotFixInfo)
                 {
-                    Write-VerboseOutput("Found Impacted {0}" -f $key)
-                    if($HotFixInfo.Contains($KBHashTable[$key]))
+                    if($problemKB -eq $key)
                     {
-                        Write-VerboseOutput("Found {0} that fixes the issue" -f ($KBHashTable[$key]))
-                    }
-                    else 
-                    {
-                        Write-Break
-                        Write-Break
-                        Write-Red("July Update detected: Error --- Problem {0} detected with the fix {1}. This can cause odd issues to occur on the system. See https://blogs.technet.microsoft.com/exchange/2018/07/16/issue-with-july-updates-for-windows-on-an-exchange-server/" -f $key, ($KBHashTable[$key]))
+                        Write-VerboseOutput("Found Impacted {0}" -f $key)
+                        $foundFixKB = $false 
+                        foreach($fixKB in $HotFixInfo)
+                        {
+                            if($fixKB -eq ($KBHashTable[$key]))
+                            {
+                                Write-VerboseOutput("Found {0} that fixes the issue" -f ($KBHashTable[$key]))
+                                $foundFixKB = $true 
+                            }
+
+                        }
+                        if(-not($foundFixKB))
+                        {
+                            Write-Break
+                            Write-Break
+                            Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://blogs.technet.microsoft.com/exchange/2018/07/16/issue-with-july-updates-for-windows-on-an-exchange-server/" -f $key, ($KBHashTable[$key]))
+                        }
                     }
                 }
             }
