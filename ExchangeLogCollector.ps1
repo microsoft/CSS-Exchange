@@ -1483,6 +1483,15 @@ param(
         gpresult /R /Z > "$copyTo\GPResult.txt"
         gpresult /H "$copyTo\GPResult.html"
 
+        #Storage Information 
+        $volume = Get-Volume
+        $disk = Get-Disk 
+        $volume | fl * > "$copyTo\Volume.txt"
+        $volume | Export-Clixml "$copyTo\Volume.xml"
+
+        $disk | fl * > "$copyTo\Disk.txt"
+        $disk | Export-Clixml "$copyTo\Disk.xml"
+
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
     }
