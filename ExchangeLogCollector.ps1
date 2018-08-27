@@ -458,7 +458,15 @@ param(
 
         if($sobj.CAS)
         {
-            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value (Get-ClientAccessServer $svr)
+            if($sobj.Version -ge 15)
+            {
+                $casInfo = Get-ClientAccessService $svr
+            }
+            else 
+            {
+                $casInfo = Get-ClientAccessServer $svr
+            }
+            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
         }
 
         if($sobj.Mailbox)
@@ -1424,6 +1432,11 @@ param(
 
         netstat -es > "$copyTo\Netstat_ES.txt" 
 
+        #IPsec 
+        netsh ipsec dynamic show all > "$copyTo\IPsec_netsh_dynamic.txt"
+
+        netsh ipsec static show all > "$copyTo\IPsec_netsh_static.txt"
+
         #FLTMC
         fltmc > "$copyTo\FilterDrivers.txt"
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
@@ -1444,7 +1457,7 @@ param(
 
         if($Script:this_ServerObject.CAS)
         {
-            $Script:this_ServerObject.CAServerInfo | fl *> "$copyTo\ClientAccessServer.txt"
+            $Script:this_ServerObject.CAServerInfo | fl * > "$copyTo\ClientAccessServer.txt"
             $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
         }
 
@@ -1466,6 +1479,18 @@ param(
         $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
         $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
+
+        gpresult /R /Z > "$copyTo\GPResult.txt"
+        gpresult /H "$copyTo\GPResult.html"
+
+        #Storage Information 
+        $volume = Get-Volume
+        $disk = Get-Disk 
+        $volume | fl * > "$copyTo\Volume.txt"
+        $volume | Export-Clixml "$copyTo\Volume.xml"
+
+        $disk | fl * > "$copyTo\Disk.txt"
+        $disk | Export-Clixml "$copyTo\Disk.xml"
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
