@@ -2367,7 +2367,15 @@ param(
     $ErrorActionPreference = "Stop"
     try 
     {
-        Remote-Main
+        if($PassedInfo.ByPass -ne $true)
+        {
+            Remote-Main
+        }
+        else 
+        {
+            Write-Host "Loading common functions"    
+        }
+        
     }
     catch 
     {
@@ -2557,6 +2565,16 @@ Function Main {
         exit 
     }
     Load-ExShell
+
+    <#
+    Added the ability to call functions from within a bundled function so i don't have to duplicate work. 
+    Loading the functions into memory by using the '.' allows me to do this, 
+    providing that the calling of that function doesn't do anything of value when doing this. 
+    #>
+    $obj = New-Object PSCustomObject 
+    $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true 
+    . Remote-Functions -PassedInfo $obj
+
     if($Servers -ne $null)
     {
         $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
