@@ -510,6 +510,7 @@ param(
     
     $obj = New-Object PSCustomObject 
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
+    $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
     $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
     $obj | Add-Member -Name Zip -MemberType NoteProperty -Value (Get-ZipEnabled)
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
@@ -1643,7 +1644,7 @@ param(
     #This is in two different location. Make changes to both. 
     Function Set-RootCopyDirectory{
         $date = Get-Date -Format yyyyMd
-        $str = "{0}\{1}\{2}" -f $PassedInfo.FilePath, $date, $Script:LocalServerName
+        $str = "{0}\{1}" -f $PassedInfo.RootFilePath, $Script:LocalServerName
         return $str
     }
 
@@ -2558,6 +2559,7 @@ Function Main {
     Load-ExShell
     if($Servers -ne $null)
     {
+        $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
         #possible to return null or only a single server back (localhost)
         $ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
         if($ValidServers -ne $null)
@@ -2578,9 +2580,8 @@ Function Main {
             }
             
             Write-DataOnlyOnceOnLocalMachine
-            $RootPath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-            $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $RootPath
-            if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $RootPath))
+            $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $Script:RootFilePath
+            if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath))
             {
                 Write-Host("")
                 Write-Host("Copying over the data may take some time depending on the network")
@@ -2591,7 +2592,7 @@ Function Main {
                     {
                         $remoteCopyLocation = "\\{0}\{1}" -f $svr.ServerName, ($svr.ZipFolder.Replace(":","$"))
                         Write-Host("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation) 
-                        Copy-Item -Path $remoteCopyLocation -Destination $RootPath
+                        Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
                         Write-Host("[{0}] : Done copying file" -f $svr.ServerName)
                     }
                     
