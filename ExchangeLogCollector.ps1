@@ -2362,8 +2362,22 @@ param(
         }
     }
 
-    Remote-Main
-    
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Stop"
+    try 
+    {
+        Remote-Main
+    }
+    catch 
+    {
+        Write-Host("[{0}] : An error occurred in Remote-Functions" -f $env:COMPUTERNAME) -ForegroundColor Red
+        Write-Host("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor Red
+        Write-Host("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor Red
+    }
+    finally
+    {
+        $ErrorActionPreference = $oldErrorAction
+    }
 }
 
 Function Write-DataOnlyOnceOnLocalMachine {
@@ -2551,7 +2565,18 @@ Function Main {
             $ValidServers = Test-DiskSpace -Servers $ValidServers -Path $FilePath -CheckSize 15
             $remote_ScriptingBlock = ${Function:Remote-Functions}
             Verify-LocalServerIsUsed $ValidServers
-            Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers)
+
+            #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
+            try 
+            {
+                Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers) -ErrorAction Stop
+            }
+            catch 
+            {
+                Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify dpaul@microsoft.com of this issue. Stopping the script."
+                exit
+            }
+            
             Write-DataOnlyOnceOnLocalMachine
             $RootPath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
             $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $RootPath
