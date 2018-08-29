@@ -1095,12 +1095,12 @@ param(
     )
         if(-not (Test-Path -Path $Folder))
         {
-            Write-Host("[{0}] : Creating Directory {1}" -f $Script:LocalServerName, $Folder)
+            Write-Host("[{0}] : Creating Directory {1}" -f $env:COMPUTERNAME, $Folder)
             [System.IO.Directory]::CreateDirectory($Folder) | Out-Null
         }
         else 
         {
-            Write-Host("[{0}] : Directory {1} is already created!" -f $Script:LocalServerName, $Folder)
+            Write-Host("[{0}] : Directory {1} is already created!" -f $env:COMPUTERNAME, $Folder)
         }
 
     }
@@ -2523,7 +2523,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         $data = Get-DAGInformation
         $dagName = $data.DAGInfo.Name 
         $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
-        New-LocalFolderCreate -Folder $create 
+        New-FolderCreate -Folder $create 
         $saveLocation = $create + "\{0}"
                         
         Save-LocalDataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
@@ -2543,7 +2543,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     {
         $data = Get-SendConnector 
         $create = $RootCopyToDirectory + "\Connectors"
-        New-LocalFolderCreate $create
+        New-FolderCreate $create
         $saveLocation = $create + "\Send_Connectors"
         Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $saveLocation
     }
