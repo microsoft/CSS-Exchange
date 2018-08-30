@@ -675,7 +675,8 @@ Function Test-NoSwitchesProvided {
     $GetVdirs -or 
     $OrganizationConfig -or
     $Exmon -or 
-    $ServerInfo
+    $ServerInfo -or
+    $ExchangeServerInfo
     ){return}
     else 
     {
@@ -1098,6 +1099,169 @@ Function Remote-Functions {
 param(
 [Parameter(Mandatory=$true)][object]$PassedInfo
 )
+
+    
+    #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Compress-Folder/Compress-Folder.ps1
+    Function Compress-Folder
+    {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$Folder,
+    [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false,
+    [Parameter(Mandatory=$false)][bool]$IncludeDisplayZipping = $true,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    )
+
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+    Function Enable-IOCompression
+    {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        $successful = $true 
+        Write-VerboseWriter("Calling: Enable-IOCompression")
+        try 
+        {
+            Add-Type -AssemblyName System.IO.Compression.Filesystem 
+        }
+        catch 
+        {
+            Write-HostWriter("Failed to load .NET Compression assembly. Unable to compress up the data.")
+            $successful = $false 
+        }
+        finally 
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+        Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+        return $successful
+    }   
+    Function Confirm-IOCompression 
+    {
+        Write-VerboseWriter("Calling: Confirm-IOCompression")
+        $assemblies = [Appdomain]::CurrentDomain.GetAssemblies()
+        $successful = $false
+        foreach($assembly in $assemblies)
+        {
+            if($assembly.Location -like "*System.IO.Compression.Filesystem*")
+            {
+                $successful = $true 
+                break 
+            }
+        }
+        Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+        return $successful
+    }
+
+    Function Compress-Now
+    {
+        Write-VerboseWriter("Calling: Compress-Now ")
+        $zipFolder = Get-ZipFolderName -Folder $Folder -IncludeMonthDay $IncludeMonthDay
+        if($IncludeDisplayZipping)
+        {
+            Write-HostWriter("Compressing Folder {0}" -f $Folder)
+        }
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
+        $timer.Stop()
+        Write-VerboseWriter("Time took to compress folder {0} seconds" -f $timer.Elapsed.TotalSeconds)
+        if((Test-Path -Path $zipFolder))
+        {
+            Write-VerboseWriter("Compress successful, removing folder.")
+            Remove-Item $Folder -Force -Recurse 
+        }
+    }
+
+    Function Get-ZipFolderName {
+    param(
+    [Parameter(Mandatory=$true)][string]$Folder,
+    [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false
+    )
+        Write-VerboseWriter("Calling: Get-ZipFolderName")
+        Write-VerboseWriter("Passed - [string]Folder:{0} | [bool]IncludeMonthDay:{1}" -f $Folder, $IncludeMonthDay)
+        if($IncludeMonthDay)
+        {
+            $zipFolderNoEXT = "{0}-{1}" -f $Folder, (Get-Date -Format Md)
+        }
+        else 
+        {
+            $zipFolderNoEXT = $Folder
+        }
+        Write-VerboseWriter("[string]zipFolderNoEXT: {0}" -f $zipFolderNoEXT)
+        $zipFolder = "{0}.zip" -f $zipFolderNoEXT
+        if(Test-Path $zipFolder)
+        {
+            [int]$i = 1
+            do{
+                $zipFolder = "{0}-{1}.zip" -f $zipFolderNoEXT,$i 
+                $i++
+            }while(Test-Path $zipFolder)
+        }
+        Write-VerboseWriter("Returned: [string]zipFolder {0}" -f $zipFolder)
+        return $zipFolder
+    }
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+
+    Write-VerboseWriter("Calling: Compress-Folder")
+    Write-VerboseWriter("Passed - [string]Folder: {0} | [bool]IncludeDisplayZipping{1} | [scriptblock]VerboseFunctionCaller:{2} | [scriptblock]HostFunctionCaller:{3}" -f $Folder, 
+    $IncludeDisplayZipping,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
+
+    if(Test-Path $Folder)
+    {
+        if(Confirm-IOCompression)
+        {
+            Compress-Now
+        }
+        else
+        {
+            if(Enable-IOCompression)
+            {
+                Compress-Now
+            }
+            else
+            {
+                Write-HostWriter("Unable to compress folder {0}" -f $Folder)
+                Write-VerboseWriter("Unable to enable IO compression on this system")
+            }
+        }
+    }
+    else
+    {
+        Write-HostWriter("Failed to find the folder {0}" -f $Folder)
+    }
+    }
+
     Function New-FolderCreate {
     param(
     [string]$Folder
@@ -1124,54 +1288,31 @@ param(
         }
     }
 
+    Function Remote-DisplayHostWriter{
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString)
+    }
 
+    
     Function Zip-Folder {
     param(
     [string]$Folder,
     [bool]$ZipItAll
     )
-
-        if($PassedInfo.Zip)
+        if($ZipItAll)
         {
-            if(-not($ZipItAll))
-            {
-                #Zip location 
-                $zipFolder = $Folder + ".zip"
-                if(Test-Path -Path $zipFolder)
-                {
-                    #Folder exist for some reason 
-                    [int]$i = 1
-                    do{
-                        $zipFolder = $Folder + "-" + $i + ".zip"
-                        $i++
-                    }while(Test-Path -Path $zipFolder)
-                }
-            }
-            else 
-            {
-                $zipFolder = "{0}-{1}.zip" -f $Folder, (Get-Date -Format Md)
-                if(Test-Path -Path $zipFolder)
-                {
-                    [int]$i = 1
-                    $date = Get-Date -Format Md
-                    do{
-                        $zipFolder = "{0}-{1}-{2}.zip" -f $Folder, $date, $i
-                        $i++
-                    }while(Test-Path -Path $zipFolder)
-                }
-
-            }
-
-            if(-not($ZipItAll)){Write-Host("[{0}] : Zipping up the folder {1}" -f $Script:LocalServerName, $Folder)}
-            else{Write-Host("[{0}] : Zipping up all the data for the server...." -f $Script:LocalServerName)}
-            [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
-
-            if((Test-Path -Path $zipFolder))
-            {
-                Remove-Item $Folder -Force -Recurse
-            }
+            Compress-Folder -Folder $Folder -IncludeMonthDay $true -VerboseFunctionCaller ${Function:Remote-DisplayScriptDebug} -HostFunctionCaller ${Function:Remote-DisplayHostWriter}
+            
         }
+        else 
+        {
+            Compress-Folder -Folder $Folder -VerboseFunctionCaller ${Function:Remote-DisplayScriptDebug} -HostFunctionCaller ${Function:Remote-DisplayHostWriter}
+        }
+    
     }
+    
 
     Function Copy-FullLogFullPathRecurse {
     param(
@@ -1617,7 +1758,7 @@ param(
     #This is in two different location. Make changes to both. 
     Function Set-RootCopyDirectory{
         $date = Get-Date -Format yyyyMd
-        $str = "{0}\{1}" -f $PassedInfo.RootFilePath, $Script:LocalServerName
+        $str = "{0}{1}" -f $PassedInfo.RootFilePath, $Script:LocalServerName
         return $str
     }
 
@@ -2334,7 +2475,7 @@ param(
         }
         #>
         
-        if((-not($ExchangeServerInfo)) -and $Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
+        if((-not($PassedInfo.ExchangeServerInfo)) -and $Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
         {
             #Zip it all up 
             Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
@@ -2475,9 +2616,9 @@ Function Write-ExchangeDataOnMachines {
         Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Write-ExchangeData} -ArgumentList $argumentList
         if($server.ServerName -ne $env:COMPUTERNAME)
         {
-            #Broken Zip issue
-            #$location = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
-            #Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Zip-LocalFolder} -ArgumentList $location
+            $location = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
+            Remote-DisplayHostWriter("Compressing the server's data...")
+            Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Compress-Folder} -ArgumentList $location, $true, $false
         }
     }
 }
@@ -2641,7 +2782,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $saveLocation
     }
 
-    Zip-LocalFolder -Folder $RootCopyToDirectory -ZipItAll $true
+    Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true
     Display-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }
 
@@ -2667,10 +2808,11 @@ Function Main {
     $obj = New-Object PSCustomObject 
     $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true 
     . Remote-Functions -PassedInfo $obj
+    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
 
     if($Servers -ne $null)
     {
-        $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+        
         #possible to return null or only a single server back (localhost)
         $Script:ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
         if($Script:ValidServers -ne $null)
