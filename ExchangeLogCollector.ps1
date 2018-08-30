@@ -155,6 +155,7 @@ Param (
 [switch]$DefaultTransportLogging,
 [switch]$Exmon,
 [switch]$ServerInfo,
+[switch]$ExchangeServerInfo,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
 [switch]$DiskCheckOverride,
 [switch]$AppSysLogs = $true,
@@ -332,7 +333,7 @@ param(
 
     else 
     {
-        Write-Host("trying to determine transport information for server {0} and was able to determine the correct version type" -f $Server)
+        Write-Host("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server)
         return     
     }
 
@@ -352,6 +353,108 @@ param(
     return $tranportLoggingObject 
 }
 
+Function Get-ExchangeBasicServerObject {
+param(
+[Parameter(Mandatory=$true)][string]$ServerName
+)
+    Display-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
+    Display-ScriptDebug("Passed [string]ServerName: {0}" -f $ServerName)
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Stop"
+    $failure = $false
+    try {
+        $exchServerObject = New-Object PSCustomObject 
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
+        $getExchangeServer = Get-ExchangeServer $ServerName -ErrorAction Stop 
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+    }
+    catch {
+        Write-Host("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ForegroundColor Red
+        $failure = $true 
+    }
+    finally {
+        $ErrorActionPreference = $oldErrorAction
+    }
+
+    if($failure -eq $true)
+    {
+        return $failure
+    }
+
+    $exchAdminDisplayVersion = $exchServerObject.ExchangeServer.AdminDisplayVersion
+    $exchServerRole = $exchServerObject.ExchangeServer.ServerRole 
+    Display-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
+
+    if($exchAdminDisplayVersion.Major -eq 14)
+    {
+        $exchVersion = 14
+    }
+    elseif($exchAdminDisplayVersion.Major -eq 15)
+    {
+        #determine if 2013/2016/2019
+        if($exchAdminDisplayVersion.Minor -eq 0)
+        {
+            $exchVersion = 15
+        }
+        elseif($exchAdminDisplayVersion.Minor -eq 1)
+        {
+            $exchVersion = 16
+        }
+        else
+        {
+            $exchVersion = 19
+        }
+    }
+    else
+    {
+        Write-Host("Failed to determine what version server {0} is. AdminDisplayVersion: {1}." -f $ServerName, $exchAdminDisplayVersion.ToString()) -ForegroundColor Red
+        return $true 
+    }
+
+    Function Confirm-MailboxServer{
+    param([string]$value)
+        if($value -like "*Mailbox*"){return $true} else{ return $false}
+    }
+
+    Function Confirm-CASServer{
+    param([string]$value,[int]$version)
+        if(($version -ge 16) -or ($value -like "*ClientAccess*")){return $true} else{return $false}
+    }
+
+    Function Confirm-HubServer {
+    param([string]$value,[int]$version)
+        if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true}{return $false}
+    }
+
+    Function Confirm-DAGMember{
+    param([bool]$IsMailbox,[string]$ServerName)
+        if($IsMailbox)
+        {
+            if((Get-MailboxServer $ServerName).DatabaseAvailabilityGroup -ne $null){return $true}
+            else{return $false}
+        }
+        else {
+            return $false
+        }
+    }
+
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -value $exchServerRole)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion 
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -IsMailbox $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
+
+    Display-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-DAGMember {3} | Version: {4} | AnyTransportSwitchesEnabled: {5}" -f $exchServerObject.Mailbox,
+    $exchServerObject.CAS,
+    $exchServerObject.Hub,
+    $exchServerObject.DAGMember,
+    $exchServerObject.Version,
+    $Script:AnyTransportSwitchesEnabled
+    )
+
+    return $exchServerObject
+}
+
 Function Get-ServerObjects {
 param(
 [Parameter(Mandatory=$true)][Array]$ValidServers
@@ -360,134 +463,32 @@ param(
     Display-ScriptDebug ("Function Enter: Get-ServerObjects")
     Display-ScriptDebug ("Passed {0} of Servers" -f $ValidServers.Count)
     $svrsObject = @()
+    $validServersList = @() 
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
     foreach($svr in $ValidServers)
     {
         Display-ScriptDebug -stringdata ("Working on Server {0}" -f $svr)
-        try{
-            $exchSvr = Get-ExchangeServer $svr
-        }
-        catch
+
+        $sobj = Get-ExchangeBasicServerObject -ServerName $svr
+        if($sobj -eq $true)
         {
-            Write-Host("Failed to detect server {0} as an Exchange Server" -f $svr) -ForegroundColor Red
-            Write-Host("Removing from the list")
-            continue 
-        }
-        
-        $sobj = New-Object PSCustomObject
-        $sobj | Add-Member -Name ServerName -MemberType NoteProperty -Value ($svr)
-        $svrRole = $exchSvr.ServerRole
-        Display-ScriptDebug ("Pulled out ServerRole: {0}" -f $svrRole.ToString())
-        #Set Exchange Version value 14 Exchange 2010, 15 Exchange 2013, 16 Exchange 2016
-        $svrAdmin = $exchSvr.AdminDisplayVersion
-        Display-ScriptDebug ("Pulled out AdminDisplayVersion: {0}" -f $svrAdmin.ToString())
-        if($svrAdmin.Major -eq 14)
-        {
-            $exVersion = 14
-        }
-        elseif($svrAdmin.Major -eq 15)
-        {
-            if($svrAdmin.Minor -eq 0)
-            {
-                $exVersion = 15
-            }
-            else
-            {
-                $exVersion = 16
-            }
-            
+            Write-Host("Removing Server {0} from the list" -f $svr) -ForegroundColor Red 
+            continue
         }
         else 
         {
-            #don't know what version of Exchange this is, we shouldn't add it 
-            Write-Host("Unable to determine the version of Server {0} so we aren't going to collect data from it" -f $svr)    
-            continue 
-        }
-        
-        Function IsMailbox{
-        param([string]$value)
-            if($value -like "*Mailbox*"){return $true} else{ return $false}
-        }
-
-        Function IsCAS{
-        param([string]$value,[int]$version)
-            if(($version -eq 16) -or ($value -like "*ClientAccess*")){return $true} else{return $false}
-        }
-
-        Function IsHub {
-        param([string]$value,[int]$version)
-            if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true}{return $false}
-        }
-
-        Function IsDAGMember{
-        param([bool]$IsMailbox,[string]$ServerName)
-            if($IsMailbox)
-            {
-                if((Get-MailboxServer $ServerName).DatabaseAvailabilityGroup -ne $null){return $true}
-                else{return $false}
-            }
-            else {
-                return $false
-            }
-        }
-
-
-        $sobj | Add-Member -Name Mailbox -MemberType NoteProperty -Value (IsMailbox -Value $svrRole)
-        $sobj | Add-Member -Name CAS -MemberType NoteProperty -Value (IsCAS -Value $svrRole -Version $exVersion)
-        $sobj | Add-Member -Name Hub -MemberType NoteProperty -Value (IsHub -Value $svrRole -Version $exVersion)
-        $sobj | Add-Member -Name Version -MemberType NoteProperty -Value $exVersion
-        $sobj | Add-Member -Name DAGMember -MemberType NoteProperty -Value (IsDAGMember -IsMailbox $sobj.Mailbox -ServerName $svr)
-        $sobj | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $exchSvr
-
-
-        Display-ScriptDebug ("IsMailbox: {0} IsCas: {1} IsHub: {2} IsDAGMember: {3} exVersion: {4} AnyTransportSwitchesEnabled: {5}" -f ($sobj.Mailbox), ($sobj.CAS), ($sobj.Hub), ($sobj.DAGMember), $exVersion, $Script:AnyTransportSwitchesEnabled)
-
-        if($sobj.Hub)
-        {
-            if($sobj.Version -ge 15)
-            {
-                $hubInfo = Get-TransportService $svr
-            }
-            else 
-            {
-                $hubInfo = Get-TransportServer $svr 
-            }
-            $sobj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
-        }
-
-        if($sobj.CAS)
-        {
-            if($sobj.Version -ge 15)
-            {
-                $casInfo = Get-ClientAccessService $svr
-            }
-            else 
-            {
-                $casInfo = Get-ClientAccessServer $svr
-            }
-            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
-        }
-
-        if($sobj.Mailbox)
-        {
-            $sobj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $svr)
+            $validServersList += $svr 
         }
 
         if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true 
-            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $exVersion )
+            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version )
         }
         else 
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false    
-        }
-
-        if($ServerInfo -and $sobj.Version -ge 15)
-        {
-            $sobj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $svr)
-            $sobj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $svr)
         }
 
         $svrsObject += $sobj 
@@ -498,7 +499,8 @@ param(
         Write-Host("Something wrong happened in Get-ServerObjects stopping script") -ForegroundColor Red
         exit 
     }
-    
+    #Set the valid servers 
+    $Script:ValidServers = $validServersList
     Display-ScriptDebug("Function Exit: Get-ServerObjects")
     Return $svrsObject
 }
@@ -552,6 +554,7 @@ param(
     $obj | Add-Member -Name Exmon -MemberType NoteProperty -Value $Exmon
     $obj | Add-Member -Name Exmon_LogmanName -MemberType NoteProperty -Value $Exmon_LogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
+    $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -606,6 +609,7 @@ Function Test-PossibleCommonScenarios {
         $Script:MapiLogs = $true 
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
+        $Script:ExchangeServerInfo = $true
     }
 
     if($DefaultTransportLogging)
@@ -643,6 +647,11 @@ Function Test-PossibleCommonScenarios {
     $MailboxConnectivityLogs -or
     $MailboxProtocolLogs -or 
     $DefaultTransportLogging){$Script:AnyTransportSwitchesEnabled = $true}
+
+    if($ServerInfo)
+    {
+        $Script:ExchangeServerInfo = $true 
+    }
 
 }
 
@@ -1415,9 +1424,6 @@ param(
         $drivers = Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}
         Save-DataInfoToFile -dataIn $drivers -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
 
-        Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
-        
-
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
         
         #TCPIP Networking Information #38
@@ -1443,39 +1449,6 @@ param(
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
         fltmc instances > "$copyTo\FLTMC_Instances.txt"
 
-        #Exchange Server Information 
-        if($Script:this_ServerObject.Mailbox)
-        {
-            $Script:this_ServerObject.MailboxServerInfo | fl * > "$copyTo\MailboxServer.txt"
-            $Script:this_ServerObject.MailboxServerInfo | Export-Clixml "$copyTo\MailboxServer.xml"
-        }
-
-        if($Script:this_ServerObject.Hub)
-        {
-            $Script:this_ServerObject.TransportServerInfo | fl * > "$copyTo\TransportServer.txt"
-            $Script:this_ServerObject.TransportServerInfo | Export-Clixml "$copyTo\TransportServer.xml"
-        }
-
-        if($Script:this_ServerObject.CAS)
-        {
-            $Script:this_ServerObject.CAServerInfo | fl * > "$copyTo\ClientAccessServer.txt"
-            $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
-        }
-
-        if( $Script:this_ServerObject.Version -ge 15)
-        {
-            $Script:this_ServerObject.HealthReport | fl * > "$copyTo\HealthReport.txt"
-            $Script:this_ServerObject.HealthReport | Export-Clixml "$copyTo\HealthReport.xml"
-
-            $Script:this_ServerObject.ServerComponentState | fl * > "$copyTo\ServerComponentState.txt"
-            $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
-        }
-
-
-        $configFiles = Get-ChildItem $Script:this_ExBin | ?{$_.Name -like "*.config"}
-        $configLocation = "{0}\Config" -f $copyTo
-        New-FolderCreate -Folder $configLocation 
-        $configFiles | %{Copy-Item $_.VersionInfo.FileName $configLocation}
         
         $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
@@ -1648,6 +1621,25 @@ param(
         return $str
     }
 
+    Function Get-ExchangeInstallDirectory
+    {
+        $installDirectory = [string]::Empty
+        if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup'))
+        {
+            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
+        }
+        elseif((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+        {
+            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
+        }
+        else 
+        {
+            Write-Host("[{0}] : Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution" -f $env:COMPUTERNAME) 
+            exit    
+        }
+        return $installDirectory 
+    }
+
     Function Set-InstanceRunningVars
     {
         $Script:LocalServerName = $env:COMPUTERNAME
@@ -1657,21 +1649,7 @@ param(
         #Set the local Server Object Information 
         Get-ThisServerObject 
                 
-        #Set Exchange Install path per running instance 
-        if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup'))
-        {
-            #Exchange 2010 install 
-            $Script:this_Exinstall = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
-        }
-        elseif((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
-        {
-            #Exchange 2013 and 2016
-            $Script:this_Exinstall = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
-        }
-        else {
-            Write-Host("[{0}] : Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution" -f $Script:LocalServerName)
-            exit 
-        }        
+        $Script:this_Exinstall = Get-ExchangeInstallDirectory
         #shortcut to Exbin directory (probably not really needed)
         $Script:this_ExBin = $Script:this_Exinstall + "Bin\"
 
@@ -2355,12 +2333,13 @@ param(
             }
         }
         #>
-
-        if($Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
+        
+        if((-not($ExchangeServerInfo)) -and $Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
         {
             #Zip it all up 
             Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
         }
+        
     }
 
     $oldErrorAction = $ErrorActionPreference
@@ -2386,6 +2365,120 @@ param(
     finally
     {
         $ErrorActionPreference = $oldErrorAction
+    }
+}
+
+Function Get-ExchangeObjectServerData{
+param(
+[Parameter(Mandatory=$true)][array]$Servers 
+)
+    Display-ScriptDebug("Enter Function: Get-ExchangeObjectServerData")
+    $serverObjects = @()
+    foreach($server in $Servers)
+    {
+        $obj = Get-ExchangeBasicServerObject -ServerName $server 
+
+        if($obj.Hub)
+        {
+            if($obj.Version -ge 15)
+            {
+                $hubInfo = Get-TransportService $server 
+            }
+            else 
+            {
+                $hubInfo = Get-TransportServer $server
+            }
+            $obj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
+        }
+        if($obj.CAS)
+        {
+            if($obj.Version -ge 15)
+            {
+                $casInfo = Get-ClientAccessService $server
+            }
+            else 
+            {
+                $casInfo = Get-ClientAccessServer $server 
+            }
+            $obj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
+        }
+        if($obj.Mailbox)
+        {
+            $obj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $server)
+        }
+        if($obj.Version -ge 15)
+        {
+            $obj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $server) 
+            $obj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $server)
+        }
+
+        $serverObjects += $obj 
+    }
+
+    return $serverObjects 
+}
+
+Function Write-ExchangeDataOnMachines {
+
+    $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
+    foreach($server in $exchangeServerData)
+    {
+        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
+        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList $location
+        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList ("{0}\Config" -f $location)
+        $installDirectory = Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Get-ExchangeInstallDirectory}
+        Function Write-ExchangeData {
+        param(
+        [Parameter(Mandatory=$true)][object]$PassedInfo
+        )
+                $server = $PassedInfo.ServerObject 
+                $location = $PassedInfo.Location 
+                Function Write-Data{
+                param(
+                [Parameter(Mandatory=$true)][object]$DataIn, 
+                [Parameter(Mandatory=$true)][string]$FilePathNoEXT
+                )
+                    $DataIn | Format-List * > "$FilePathNoEXT.txt"
+                    $DataIn | Export-Clixml "$FilePathNoEXT.xml"
+                }
+                $exchBin = "{0}\Bin" -f $PassedInfo.InstallDirectory
+                $configFiles = Get-ChildItem $exchBin | Where-Object{$_.Name -like "*.config"}
+                $copyTo = "{0}\Config" -f $location 
+                $configFiles | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $copyTo}
+
+                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT "$location\ExchangeServer"
+
+                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > "$location\GCM.txt"
+
+                if($server.Hub)
+                {
+                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT "$location\TransportServer"
+                }
+                if($server.CAS)
+                {
+                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT "$location\ClientAccessServer"
+                }
+                if($server.Mailbox)
+                {
+                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT "$location\MailboxServer"
+                }
+                if($server.Version -ge 15)
+                {
+                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT "$location\HealthReport"
+                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT "$location\ServerComponentState"
+                }
+        }
+        $argumentList = New-Object PSCustomObject 
+        $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
+        $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
+        $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $installDirectory 
+        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Write-ExchangeData} -ArgumentList $argumentList
+        if($server.ServerName -ne $env:COMPUTERNAME)
+        {
+            #Broken Zip issue
+            #$location = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
+            #Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Zip-LocalFolder} -ArgumentList $location
+        }
     }
 }
 
@@ -2579,17 +2672,18 @@ Function Main {
     {
         $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
         #possible to return null or only a single server back (localhost)
-        $ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
-        if($ValidServers -ne $null)
+        $Script:ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
+        if($Script:ValidServers -ne $null)
         {
-            $ValidServers = Test-DiskSpace -Servers $ValidServers -Path $FilePath -CheckSize 15
+            $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize 15
             $remote_ScriptingBlock = ${Function:Remote-Functions}
-            Verify-LocalServerIsUsed $ValidServers
+            Verify-LocalServerIsUsed $Script:ValidServers
 
+            $argumentList = Get-ArgumentList -Servers $Script:ValidServers
             #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
             try 
             {
-                Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers) -ErrorAction Stop
+                Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList $argumentList -ErrorAction Stop
             }
             catch 
             {
@@ -2597,8 +2691,14 @@ Function Main {
                 exit
             }
             
+            #Write out Exchange Data 
+            if($ExchangeServerInfo)
+            {
+                Write-ExchangeDataOnMachines
+            }
+
             Write-DataOnlyOnceOnLocalMachine
-            $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $Script:RootFilePath
+            $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
             if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath))
             {
                 Write-Host("")
