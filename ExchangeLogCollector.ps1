@@ -1322,8 +1322,16 @@ param(
         Remote-DisplayScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
         Remote-DisplayScriptDebug("Passed - LogPath: {0} CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
         New-FolderCreate -Folder $CopyToThisLocation 
-        Copy-Item $LogPath\* $CopyToThisLocation -Recurse
-        Zip-Folder $CopyToThisLocation
+        if(Test-Path $LogPath)
+        {
+            Copy-Item $LogPath\* $CopyToThisLocation -Recurse
+            Zip-Folder $CopyToThisLocation
+        }
+        else 
+        {
+            Remote-DisplayHostWriter("No Folder at {0}. Unable to copy this data." -f $LogPath)
+            New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath
+        }
         Remote-DisplayScriptDebug("Function Exit: Copy-FullLogFullPathRecurse")
     }
 
