@@ -2764,65 +2764,84 @@ Function Write-ExchangeDataOnMachines {
 
 
     $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
-    
-    #Need to have install directory run through the loop first as it could be different on each server
-    $serversObjectListInstall = @() 
-    foreach($server in $exchangeServerData)
+    #if single server or Exchange 2010 where invoke-command doesn't work 
+    if($Script:ValidServers.count -gt 1)
     {
-        $serverObject = New-Object PSCustomObject 
-        $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-        $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
-        $serversObjectListInstall += $serverObject
-    }
-    $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -NeedReturnData $true 
-    
-    
-    $serverListCreateDirectories = @() 
-    $serverListDumpData = @() 
-    $serverListZipData = @() 
-    
-    foreach($server in $exchangeServerData)
-    {
-        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
-
-        #Create Directory 
-        $serverCreateDirectory = New-Object PSCustomObject 
-        $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-        $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
-        $serverListCreateDirectories += $serverCreateDirectory
-
-        #Write Data 
-        $argumentList = New-Object PSCustomObject 
-        $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
-        $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
-        $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
-        $serverDumpData = New-Object PSCustomObject 
-        $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
-        $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
-        $serverListDumpData += $serverDumpData
-
-        #Zip data if not local cause we might have more stuff to run 
-        if($server.ServerName -ne $env:COMPUTERNAME)
+        #Need to have install directory run through the loop first as it could be different on each server
+        $serversObjectListInstall = @() 
+        foreach($server in $exchangeServerData)
         {
-            $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
-            $parameters = $folder, $true, $false
-            $serverZipData = New-Object PSCustomObject 
-            $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters  
-            $serverListZipData += $serverZipData 
+            $serverObject = New-Object PSCustomObject 
+            $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+            $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
+            $serversObjectListInstall += $serverObject
         }
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -NeedReturnData $true 
+    
+    
+        $serverListCreateDirectories = @() 
+        $serverListDumpData = @() 
+        $serverListZipData = @() 
+    
+        foreach($server in $exchangeServerData)
+        {
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
+
+            #Create Directory 
+            $serverCreateDirectory = New-Object PSCustomObject 
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+            $serverListCreateDirectories += $serverCreateDirectory
+
+            #Write Data 
+            $argumentList = New-Object PSCustomObject 
+            $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
+            $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
+            $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
+            $serverDumpData = New-Object PSCustomObject 
+            $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
+            $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
+            $serverListDumpData += $serverDumpData
+
+            #Zip data if not local cause we might have more stuff to run 
+            if($server.ServerName -ne $env:COMPUTERNAME)
+            {
+                $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
+                $parameters = $folder, $true, $false
+                $serverZipData = New-Object PSCustomObject 
+                $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+                $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters  
+                $serverListZipData += $serverZipData 
+            }
+        }
+
+
+        Display-ScriptDebug("Calling job for folder creation")
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:New-FolderCreate} -VerboseFunctionCaller ${Function:Display-ScriptDebug}
+        Display-ScriptDebug("Calling job for Exchange Data Write")
+        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -DisplayReceiveJob $false 
+        Display-ScriptDebug("Calling job for Zipping the data")
+        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Display-ScriptDebug} 
+
     }
-
-
-    Display-ScriptDebug("Calling job for folder creation")
-    Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:New-FolderCreate} -VerboseFunctionCaller ${Function:Display-ScriptDebug}
-    Display-ScriptDebug("Calling job for Exchange Data Write")
-    Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -DisplayReceiveJob $false 
-    Display-ScriptDebug("Calling job for Zipping the data")
-    Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Display-ScriptDebug} 
-
+    else 
+    {
+        if($exinstall -eq $null)
+        {
+            $exinstall = Get-ExchangeInstallDirectory
+        }
+        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
+        New-FolderCreate -Folder ("{0}\Config" -f $location)
+        $passInfo = New-Object PSCustomObject 
+        $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
+        $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
+        $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $exinstall 
+        Display-ScriptDebug("Writing out the Exchange data")
+        Write-ExchangeData -PassedInfo $passInfo 
+        $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
+                
+    }
 }
-
 Function Write-DataOnlyOnceOnLocalMachine {
     Display-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
     Display-ScriptDebug("Writting only once data")
@@ -3082,6 +3101,9 @@ Function Main {
             if($read -eq "y")
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+                $Script:ValidServers = @($env:COMPUTERNAME)
+                Write-ExchangeDataOnMachines
+                Write-DataOnlyOnceOnLocalMachine
             }
             
         }
@@ -3092,6 +3114,8 @@ Function Main {
         Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
         Write-Host("Going to collect the data locally")
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        $Script:ValidServers = @($env:COMPUTERNAME)
+        Write-ExchangeDataOnMachines
         Write-DataOnlyOnceOnLocalMachine
     }
 
