@@ -2587,6 +2587,7 @@ Function Write-ExchangeDataOnMachines {
     $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
     foreach($server in $exchangeServerData)
     {
+        [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
         Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList $location
         Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList ("{0}\Config" -f $location)
@@ -2595,6 +2596,7 @@ Function Write-ExchangeDataOnMachines {
         param(
         [Parameter(Mandatory=$true)][object]$PassedInfo
         )
+
                 $server = $PassedInfo.ServerObject 
                 $location = $PassedInfo.Location 
                 Function Write-Data{
@@ -2637,12 +2639,15 @@ Function Write-ExchangeDataOnMachines {
         $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
         $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $installDirectory 
         Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Write-ExchangeData} -ArgumentList $argumentList
+        Display-ScriptDebug("Writing out data for server {0} took {1} seconds" -f $server.ServerName, $timer.Elapsed.TotalSeconds)
         if($server.ServerName -ne $env:COMPUTERNAME)
         {
             $location = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
             Remote-DisplayHostWriter("Compressing the server's data...")
             Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Compress-Folder} -ArgumentList $location, $true, $false
         }
+        $timer.Stop()
+        Display-ScriptDebug("Finished Server {0} took {1} seconds" -f $server.ServerName, $timer.Elapsed.TotalSeconds)
     }
 }
 
@@ -2859,7 +2864,10 @@ Function Main {
             #Write out Exchange Data 
             if($ExchangeServerInfo)
             {
+                [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
                 Write-ExchangeDataOnMachines
+                $timer.Stop()
+                Display-ScriptDebug("Write-ExchangeDataOnMachines total time took {0} seconds" -f $timer.Elapsed.TotalSeconds)
             }
 
             Write-DataOnlyOnceOnLocalMachine
