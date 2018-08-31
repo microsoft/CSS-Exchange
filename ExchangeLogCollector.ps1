@@ -1607,13 +1607,28 @@ param(
         gpresult /H "$copyTo\GPResult.html"
 
         #Storage Information 
-        $volume = Get-Volume
-        $disk = Get-Disk 
-        $volume | fl * > "$copyTo\Volume.txt"
-        $volume | Export-Clixml "$copyTo\Volume.xml"
+        if(Test-CommandExists -command "Get-Volume")
+        {
+            $volume = Get-Volume
+            $volume | fl * > "$copyTo\Volume.txt"
+            $volume | Export-Clixml "$copyTo\Volume.xml"
+        }
+        else 
+        {
+            Remote-DisplayScriptDebug("Get-Volume isn't a valid command")    
+        }
 
-        $disk | fl * > "$copyTo\Disk.txt"
-        $disk | Export-Clixml "$copyTo\Disk.xml"
+        if(Test-CommandExists -command "Get-Disk")
+        {
+            $disk = Get-Disk 
+            $disk | fl * > "$copyTo\Disk.txt"
+            $disk | Export-Clixml "$copyTo\Disk.xml"
+        }
+        else 
+        {
+            Remote-DisplayScriptDebug("Get-Disk isn't a valid command")    
+        }
+
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
