@@ -85,6 +85,8 @@
     Used to Collect the Exmon Information 
 .PARAMETER ServerInfo
     Used to collect the general Server information from the server 
+.PARAMETER ExchangeServerInfo 
+    Used to collect Exchange Server data (Get-ExchangeServer, Get-MailboxServer...). Enabled whenever ServerInfo is used as well.
 .PARAMETER MSInfo 
     Old switch that was used for collecting the general Server information 
 .PARAMETER CollectAllLogsBasedOnDaysWorth
