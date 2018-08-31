@@ -94,6 +94,8 @@ Exmon - Collects Exmon information from the Server.
 
 ServerInfo - Collects general server information from the server. 
 
+ExchangeServerInfo - Used to collect Exchange Server data (Get-ExchangeServer, Get-MailboxServer...). Enabled whenever ServerInfo is used as well.
+
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
 DiskCheckOverride - Overrides the process of checking for enough free space on the server before collecting the data. As this collection of data can get rather large. 

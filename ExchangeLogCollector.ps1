@@ -85,6 +85,8 @@
     Used to Collect the Exmon Information 
 .PARAMETER ServerInfo
     Used to collect the general Server information from the server 
+.PARAMETER ExchangeServerInfo 
+    Used to collect Exchange Server data (Get-ExchangeServer, Get-MailboxServer...). Enabled whenever ServerInfo is used as well.
 .PARAMETER MSInfo 
     Old switch that was used for collecting the general Server information 
 .PARAMETER CollectAllLogsBasedOnDaysWorth
@@ -155,6 +157,7 @@ Param (
 [switch]$DefaultTransportLogging,
 [switch]$Exmon,
 [switch]$ServerInfo,
+[switch]$ExchangeServerInfo,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
 [switch]$DiskCheckOverride,
 [switch]$AppSysLogs = $true,
@@ -170,7 +173,7 @@ Param (
 
 )
 
-$scriptVersion = 2.5
+$scriptVersion = 2.6
 
 ###############################################
 #                                             #
@@ -332,7 +335,7 @@ param(
 
     else 
     {
-        Write-Host("trying to determine transport information for server {0} and was able to determine the correct version type" -f $Server)
+        Write-Host("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server)
         return     
     }
 
@@ -352,6 +355,108 @@ param(
     return $tranportLoggingObject 
 }
 
+Function Get-ExchangeBasicServerObject {
+param(
+[Parameter(Mandatory=$true)][string]$ServerName
+)
+    Display-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
+    Display-ScriptDebug("Passed [string]ServerName: {0}" -f $ServerName)
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Stop"
+    $failure = $false
+    try {
+        $exchServerObject = New-Object PSCustomObject 
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
+        $getExchangeServer = Get-ExchangeServer $ServerName -ErrorAction Stop 
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+    }
+    catch {
+        Write-Host("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ForegroundColor Red
+        $failure = $true 
+    }
+    finally {
+        $ErrorActionPreference = $oldErrorAction
+    }
+
+    if($failure -eq $true)
+    {
+        return $failure
+    }
+
+    $exchAdminDisplayVersion = $exchServerObject.ExchangeServer.AdminDisplayVersion
+    $exchServerRole = $exchServerObject.ExchangeServer.ServerRole 
+    Display-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
+
+    if($exchAdminDisplayVersion.Major -eq 14)
+    {
+        $exchVersion = 14
+    }
+    elseif($exchAdminDisplayVersion.Major -eq 15)
+    {
+        #determine if 2013/2016/2019
+        if($exchAdminDisplayVersion.Minor -eq 0)
+        {
+            $exchVersion = 15
+        }
+        elseif($exchAdminDisplayVersion.Minor -eq 1)
+        {
+            $exchVersion = 16
+        }
+        else
+        {
+            $exchVersion = 19
+        }
+    }
+    else
+    {
+        Write-Host("Failed to determine what version server {0} is. AdminDisplayVersion: {1}." -f $ServerName, $exchAdminDisplayVersion.ToString()) -ForegroundColor Red
+        return $true 
+    }
+
+    Function Confirm-MailboxServer{
+    param([string]$value)
+        if($value -like "*Mailbox*"){return $true} else{ return $false}
+    }
+
+    Function Confirm-CASServer{
+    param([string]$value,[int]$version)
+        if(($version -ge 16) -or ($value -like "*ClientAccess*")){return $true} else{return $false}
+    }
+
+    Function Confirm-HubServer {
+    param([string]$value,[int]$version)
+        if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true}{return $false}
+    }
+
+    Function Confirm-DAGMember{
+    param([bool]$IsMailbox,[string]$ServerName)
+        if($IsMailbox)
+        {
+            if((Get-MailboxServer $ServerName).DatabaseAvailabilityGroup -ne $null){return $true}
+            else{return $false}
+        }
+        else {
+            return $false
+        }
+    }
+
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -value $exchServerRole)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion 
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -IsMailbox $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
+
+    Display-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-DAGMember {3} | Version: {4} | AnyTransportSwitchesEnabled: {5}" -f $exchServerObject.Mailbox,
+    $exchServerObject.CAS,
+    $exchServerObject.Hub,
+    $exchServerObject.DAGMember,
+    $exchServerObject.Version,
+    $Script:AnyTransportSwitchesEnabled
+    )
+
+    return $exchServerObject
+}
+
 Function Get-ServerObjects {
 param(
 [Parameter(Mandatory=$true)][Array]$ValidServers
@@ -360,134 +465,32 @@ param(
     Display-ScriptDebug ("Function Enter: Get-ServerObjects")
     Display-ScriptDebug ("Passed {0} of Servers" -f $ValidServers.Count)
     $svrsObject = @()
+    $validServersList = @() 
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
     foreach($svr in $ValidServers)
     {
         Display-ScriptDebug -stringdata ("Working on Server {0}" -f $svr)
-        try{
-            $exchSvr = Get-ExchangeServer $svr
-        }
-        catch
+
+        $sobj = Get-ExchangeBasicServerObject -ServerName $svr
+        if($sobj -eq $true)
         {
-            Write-Host("Failed to detect server {0} as an Exchange Server" -f $svr) -ForegroundColor Red
-            Write-Host("Removing from the list")
-            continue 
-        }
-        
-        $sobj = New-Object PSCustomObject
-        $sobj | Add-Member -Name ServerName -MemberType NoteProperty -Value ($svr)
-        $svrRole = $exchSvr.ServerRole
-        Display-ScriptDebug ("Pulled out ServerRole: {0}" -f $svrRole.ToString())
-        #Set Exchange Version value 14 Exchange 2010, 15 Exchange 2013, 16 Exchange 2016
-        $svrAdmin = $exchSvr.AdminDisplayVersion
-        Display-ScriptDebug ("Pulled out AdminDisplayVersion: {0}" -f $svrAdmin.ToString())
-        if($svrAdmin.Major -eq 14)
-        {
-            $exVersion = 14
-        }
-        elseif($svrAdmin.Major -eq 15)
-        {
-            if($svrAdmin.Minor -eq 0)
-            {
-                $exVersion = 15
-            }
-            else
-            {
-                $exVersion = 16
-            }
-            
+            Write-Host("Removing Server {0} from the list" -f $svr) -ForegroundColor Red 
+            continue
         }
         else 
         {
-            #don't know what version of Exchange this is, we shouldn't add it 
-            Write-Host("Unable to determine the version of Server {0} so we aren't going to collect data from it" -f $svr)    
-            continue 
-        }
-        
-        Function IsMailbox{
-        param([string]$value)
-            if($value -like "*Mailbox*"){return $true} else{ return $false}
-        }
-
-        Function IsCAS{
-        param([string]$value,[int]$version)
-            if(($version -eq 16) -or ($value -like "*ClientAccess*")){return $true} else{return $false}
-        }
-
-        Function IsHub {
-        param([string]$value,[int]$version)
-            if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true}{return $false}
-        }
-
-        Function IsDAGMember{
-        param([bool]$IsMailbox,[string]$ServerName)
-            if($IsMailbox)
-            {
-                if((Get-MailboxServer $ServerName).DatabaseAvailabilityGroup -ne $null){return $true}
-                else{return $false}
-            }
-            else {
-                return $false
-            }
-        }
-
-
-        $sobj | Add-Member -Name Mailbox -MemberType NoteProperty -Value (IsMailbox -Value $svrRole)
-        $sobj | Add-Member -Name CAS -MemberType NoteProperty -Value (IsCAS -Value $svrRole -Version $exVersion)
-        $sobj | Add-Member -Name Hub -MemberType NoteProperty -Value (IsHub -Value $svrRole -Version $exVersion)
-        $sobj | Add-Member -Name Version -MemberType NoteProperty -Value $exVersion
-        $sobj | Add-Member -Name DAGMember -MemberType NoteProperty -Value (IsDAGMember -IsMailbox $sobj.Mailbox -ServerName $svr)
-        $sobj | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $exchSvr
-
-
-        Display-ScriptDebug ("IsMailbox: {0} IsCas: {1} IsHub: {2} IsDAGMember: {3} exVersion: {4} AnyTransportSwitchesEnabled: {5}" -f ($sobj.Mailbox), ($sobj.CAS), ($sobj.Hub), ($sobj.DAGMember), $exVersion, $Script:AnyTransportSwitchesEnabled)
-
-        if($sobj.Hub)
-        {
-            if($sobj.Version -ge 15)
-            {
-                $hubInfo = Get-TransportService $svr
-            }
-            else 
-            {
-                $hubInfo = Get-TransportServer $svr 
-            }
-            $sobj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
-        }
-
-        if($sobj.CAS)
-        {
-            if($sobj.Version -ge 15)
-            {
-                $casInfo = Get-ClientAccessService $svr
-            }
-            else 
-            {
-                $casInfo = Get-ClientAccessServer $svr
-            }
-            $sobj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
-        }
-
-        if($sobj.Mailbox)
-        {
-            $sobj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $svr)
+            $validServersList += $svr 
         }
 
         if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true 
-            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $exVersion )
+            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version )
         }
         else 
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false    
-        }
-
-        if($ServerInfo -and $sobj.Version -ge 15)
-        {
-            $sobj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $svr)
-            $sobj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $svr)
         }
 
         $svrsObject += $sobj 
@@ -498,7 +501,8 @@ param(
         Write-Host("Something wrong happened in Get-ServerObjects stopping script") -ForegroundColor Red
         exit 
     }
-    
+    #Set the valid servers 
+    $Script:ValidServers = $validServersList
     Display-ScriptDebug("Function Exit: Get-ServerObjects")
     Return $svrsObject
 }
@@ -510,6 +514,7 @@ param(
     
     $obj = New-Object PSCustomObject 
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
+    $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
     $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
     $obj | Add-Member -Name Zip -MemberType NoteProperty -Value (Get-ZipEnabled)
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
@@ -551,6 +556,7 @@ param(
     $obj | Add-Member -Name Exmon -MemberType NoteProperty -Value $Exmon
     $obj | Add-Member -Name Exmon_LogmanName -MemberType NoteProperty -Value $Exmon_LogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
+    $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -605,6 +611,7 @@ Function Test-PossibleCommonScenarios {
         $Script:MapiLogs = $true 
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
+        $Script:ExchangeServerInfo = $true
     }
 
     if($DefaultTransportLogging)
@@ -643,6 +650,11 @@ Function Test-PossibleCommonScenarios {
     $MailboxProtocolLogs -or 
     $DefaultTransportLogging){$Script:AnyTransportSwitchesEnabled = $true}
 
+    if($ServerInfo)
+    {
+        $Script:ExchangeServerInfo = $true 
+    }
+
 }
 
 Function Test-NoSwitchesProvided {
@@ -665,7 +677,8 @@ Function Test-NoSwitchesProvided {
     $GetVdirs -or 
     $OrganizationConfig -or
     $Exmon -or 
-    $ServerInfo
+    $ServerInfo -or
+    $ExchangeServerInfo
     ){return}
     else 
     {
@@ -1008,6 +1021,8 @@ param(
 [parameter(Mandatory=$true)][array]$Servers,
 [parameter(Mandatory=$true)][string]$RootPath 
 )
+    Display-ScriptDebug("Calling: Get-RemoteLogLocation")
+    Display-ScriptDebug("Passed: Number of servers {0} | [string]RootPath:{1}" -f $Servers.Count, $RootPath)
     Function Get-ZipLocation 
     {
         param(
@@ -1025,7 +1040,7 @@ param(
     
     $script_block = ${function:Get-ZipLocation}
     $LogInfo = Invoke-Command -ComputerName $Servers -ScriptBlock $script_block -ArgumentList $RootPath 
-
+    
     return $LogInfo
 }
 
@@ -1088,18 +1103,181 @@ Function Remote-Functions {
 param(
 [Parameter(Mandatory=$true)][object]$PassedInfo
 )
+
+    
+    #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Compress-Folder/Compress-Folder.ps1
+    Function Compress-Folder
+    {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$Folder,
+    [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false,
+    [Parameter(Mandatory=$false)][bool]$IncludeDisplayZipping = $true,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    )
+
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+    Function Enable-IOCompression
+    {
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = "Stop"
+        $successful = $true 
+        Write-VerboseWriter("Calling: Enable-IOCompression")
+        try 
+        {
+            Add-Type -AssemblyName System.IO.Compression.Filesystem 
+        }
+        catch 
+        {
+            Write-HostWriter("Failed to load .NET Compression assembly. Unable to compress up the data.")
+            $successful = $false 
+        }
+        finally 
+        {
+            $ErrorActionPreference = $oldErrorAction
+        }
+        Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+        return $successful
+    }   
+    Function Confirm-IOCompression 
+    {
+        Write-VerboseWriter("Calling: Confirm-IOCompression")
+        $assemblies = [Appdomain]::CurrentDomain.GetAssemblies()
+        $successful = $false
+        foreach($assembly in $assemblies)
+        {
+            if($assembly.Location -like "*System.IO.Compression.Filesystem*")
+            {
+                $successful = $true 
+                break 
+            }
+        }
+        Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+        return $successful
+    }
+
+    Function Compress-Now
+    {
+        Write-VerboseWriter("Calling: Compress-Now ")
+        $zipFolder = Get-ZipFolderName -Folder $Folder -IncludeMonthDay $IncludeMonthDay
+        if($IncludeDisplayZipping)
+        {
+            Write-HostWriter("Compressing Folder {0}" -f $Folder)
+        }
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
+        $timer.Stop()
+        Write-VerboseWriter("Time took to compress folder {0} seconds" -f $timer.Elapsed.TotalSeconds)
+        if((Test-Path -Path $zipFolder))
+        {
+            Write-VerboseWriter("Compress successful, removing folder.")
+            Remove-Item $Folder -Force -Recurse 
+        }
+    }
+
+    Function Get-ZipFolderName {
+    param(
+    [Parameter(Mandatory=$true)][string]$Folder,
+    [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false
+    )
+        Write-VerboseWriter("Calling: Get-ZipFolderName")
+        Write-VerboseWriter("Passed - [string]Folder:{0} | [bool]IncludeMonthDay:{1}" -f $Folder, $IncludeMonthDay)
+        if($IncludeMonthDay)
+        {
+            $zipFolderNoEXT = "{0}-{1}" -f $Folder, (Get-Date -Format Md)
+        }
+        else 
+        {
+            $zipFolderNoEXT = $Folder
+        }
+        Write-VerboseWriter("[string]zipFolderNoEXT: {0}" -f $zipFolderNoEXT)
+        $zipFolder = "{0}.zip" -f $zipFolderNoEXT
+        if(Test-Path $zipFolder)
+        {
+            [int]$i = 1
+            do{
+                $zipFolder = "{0}-{1}.zip" -f $zipFolderNoEXT,$i 
+                $i++
+            }while(Test-Path $zipFolder)
+        }
+        Write-VerboseWriter("Returned: [string]zipFolder {0}" -f $zipFolder)
+        return $zipFolder
+    }
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+
+    Write-VerboseWriter("Calling: Compress-Folder")
+    Write-VerboseWriter("Passed - [string]Folder: {0} | [bool]IncludeDisplayZipping{1} | [scriptblock]VerboseFunctionCaller:{2} | [scriptblock]HostFunctionCaller:{3}" -f $Folder, 
+    $IncludeDisplayZipping,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
+
+    if(Test-Path $Folder)
+    {
+        if(Confirm-IOCompression)
+        {
+            Compress-Now
+        }
+        else
+        {
+            if(Enable-IOCompression)
+            {
+                Compress-Now
+            }
+            else
+            {
+                Write-HostWriter("Unable to compress folder {0}" -f $Folder)
+                Write-VerboseWriter("Unable to enable IO compression on this system")
+            }
+        }
+    }
+    else
+    {
+        Write-HostWriter("Failed to find the folder {0}" -f $Folder)
+    }
+    }
+
     Function New-FolderCreate {
     param(
     [string]$Folder
     )
         if(-not (Test-Path -Path $Folder))
         {
-            Write-Host("[{0}] : Creating Directory {1}" -f $Script:LocalServerName, $Folder)
+            Write-Host("[{0}] : Creating Directory {1}" -f $env:COMPUTERNAME, $Folder)
             [System.IO.Directory]::CreateDirectory($Folder) | Out-Null
         }
         else 
         {
-            Write-Host("[{0}] : Directory {1} is already created!" -f $Script:LocalServerName, $Folder)
+            Write-Host("[{0}] : Directory {1} is already created!" -f $env:COMPUTERNAME, $Folder)
         }
 
     }
@@ -1114,54 +1292,31 @@ param(
         }
     }
 
+    Function Remote-DisplayHostWriter{
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString)
+    }
 
+    
     Function Zip-Folder {
     param(
     [string]$Folder,
     [bool]$ZipItAll
     )
-
-        if($PassedInfo.Zip)
+        if($ZipItAll)
         {
-            if(-not($ZipItAll))
-            {
-                #Zip location 
-                $zipFolder = $Folder + ".zip"
-                if(Test-Path -Path $zipFolder)
-                {
-                    #Folder exist for some reason 
-                    [int]$i = 1
-                    do{
-                        $zipFolder = $Folder + "-" + $i + ".zip"
-                        $i++
-                    }while(Test-Path -Path $zipFolder)
-                }
-            }
-            else 
-            {
-                $zipFolder = "{0}-{1}.zip" -f $Folder, (Get-Date -Format Md)
-                if(Test-Path -Path $zipFolder)
-                {
-                    [int]$i = 1
-                    $date = Get-Date -Format Md
-                    do{
-                        $zipFolder = "{0}-{1}-{2}.zip" -f $Folder, $date, $i
-                        $i++
-                    }while(Test-Path -Path $zipFolder)
-                }
-
-            }
-
-            if(-not($ZipItAll)){Write-Host("[{0}] : Zipping up the folder {1}" -f $Script:LocalServerName, $Folder)}
-            else{Write-Host("[{0}] : Zipping up all the data for the server...." -f $Script:LocalServerName)}
-            [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
-
-            if((Test-Path -Path $zipFolder))
-            {
-                Remove-Item $Folder -Force -Recurse
-            }
+            Compress-Folder -Folder $Folder -IncludeMonthDay $true -VerboseFunctionCaller ${Function:Remote-DisplayScriptDebug} -HostFunctionCaller ${Function:Remote-DisplayHostWriter}
+            
         }
+        else 
+        {
+            Compress-Folder -Folder $Folder -VerboseFunctionCaller ${Function:Remote-DisplayScriptDebug} -HostFunctionCaller ${Function:Remote-DisplayHostWriter}
+        }
+    
     }
+    
 
     Function Copy-FullLogFullPathRecurse {
     param(
@@ -1171,8 +1326,16 @@ param(
         Remote-DisplayScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
         Remote-DisplayScriptDebug("Passed - LogPath: {0} CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
         New-FolderCreate -Folder $CopyToThisLocation 
-        Copy-Item $LogPath\* $CopyToThisLocation -Recurse
-        Zip-Folder $CopyToThisLocation
+        if(Test-Path $LogPath)
+        {
+            Copy-Item $LogPath\* $CopyToThisLocation -Recurse
+            Zip-Folder $CopyToThisLocation
+        }
+        else 
+        {
+            Remote-DisplayHostWriter("No Folder at {0}. Unable to copy this data." -f $LogPath)
+            New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath
+        }
         Remote-DisplayScriptDebug("Function Exit: Copy-FullLogFullPathRecurse")
     }
 
@@ -1414,9 +1577,6 @@ param(
         $drivers = Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}
         Save-DataInfoToFile -dataIn $drivers -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
 
-        Gcm exsetup | %{$_.FileVersionInfo} > "$copyTo\GCM.txt"
-        
-
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
         
         #TCPIP Networking Information #38
@@ -1442,39 +1602,6 @@ param(
         fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
         fltmc instances > "$copyTo\FLTMC_Instances.txt"
 
-        #Exchange Server Information 
-        if($Script:this_ServerObject.Mailbox)
-        {
-            $Script:this_ServerObject.MailboxServerInfo | fl * > "$copyTo\MailboxServer.txt"
-            $Script:this_ServerObject.MailboxServerInfo | Export-Clixml "$copyTo\MailboxServer.xml"
-        }
-
-        if($Script:this_ServerObject.Hub)
-        {
-            $Script:this_ServerObject.TransportServerInfo | fl * > "$copyTo\TransportServer.txt"
-            $Script:this_ServerObject.TransportServerInfo | Export-Clixml "$copyTo\TransportServer.xml"
-        }
-
-        if($Script:this_ServerObject.CAS)
-        {
-            $Script:this_ServerObject.CAServerInfo | fl * > "$copyTo\ClientAccessServer.txt"
-            $Script:this_ServerObject.CAServerInfo | Export-Clixml "$copyTo\ClientAccessServer.xml"
-        }
-
-        if( $Script:this_ServerObject.Version -ge 15)
-        {
-            $Script:this_ServerObject.HealthReport | fl * > "$copyTo\HealthReport.txt"
-            $Script:this_ServerObject.HealthReport | Export-Clixml "$copyTo\HealthReport.xml"
-
-            $Script:this_ServerObject.ServerComponentState | fl * > "$copyTo\ServerComponentState.txt"
-            $Script:this_ServerObject.ServerComponentState | Export-Clixml "$copyTo\ServerComponentState.xml"
-        }
-
-
-        $configFiles = Get-ChildItem $Script:this_ExBin | ?{$_.Name -like "*.config"}
-        $configLocation = "{0}\Config" -f $copyTo
-        New-FolderCreate -Folder $configLocation 
-        $configFiles | %{Copy-Item $_.VersionInfo.FileName $configLocation}
         
         $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
@@ -1484,13 +1611,28 @@ param(
         gpresult /H "$copyTo\GPResult.html"
 
         #Storage Information 
-        $volume = Get-Volume
-        $disk = Get-Disk 
-        $volume | fl * > "$copyTo\Volume.txt"
-        $volume | Export-Clixml "$copyTo\Volume.xml"
+        if(Test-CommandExists -command "Get-Volume")
+        {
+            $volume = Get-Volume
+            $volume | fl * > "$copyTo\Volume.txt"
+            $volume | Export-Clixml "$copyTo\Volume.xml"
+        }
+        else 
+        {
+            Remote-DisplayScriptDebug("Get-Volume isn't a valid command")    
+        }
 
-        $disk | fl * > "$copyTo\Disk.txt"
-        $disk | Export-Clixml "$copyTo\Disk.xml"
+        if(Test-CommandExists -command "Get-Disk")
+        {
+            $disk = Get-Disk 
+            $disk | fl * > "$copyTo\Disk.txt"
+            $disk | Export-Clixml "$copyTo\Disk.xml"
+        }
+        else 
+        {
+            Remote-DisplayScriptDebug("Get-Disk isn't a valid command")    
+        }
+
 
         Zip-Folder -Folder $copyTo
         Remote-DisplayScriptDebug("Function Exit: Collect-ServerInfo")
@@ -1643,8 +1785,27 @@ param(
     #This is in two different location. Make changes to both. 
     Function Set-RootCopyDirectory{
         $date = Get-Date -Format yyyyMd
-        $str = "{0}\{1}\{2}" -f $PassedInfo.FilePath, $date, $Script:LocalServerName
+        $str = "{0}{1}" -f $PassedInfo.RootFilePath, $Script:LocalServerName
         return $str
+    }
+
+    Function Get-ExchangeInstallDirectory
+    {
+        $installDirectory = [string]::Empty
+        if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup'))
+        {
+            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
+        }
+        elseif((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+        {
+            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
+        }
+        else 
+        {
+            Write-Host("[{0}] : Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution" -f $env:COMPUTERNAME) 
+            exit    
+        }
+        return $installDirectory 
     }
 
     Function Set-InstanceRunningVars
@@ -1656,21 +1817,7 @@ param(
         #Set the local Server Object Information 
         Get-ThisServerObject 
                 
-        #Set Exchange Install path per running instance 
-        if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup'))
-        {
-            #Exchange 2010 install 
-            $Script:this_Exinstall = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
-        }
-        elseif((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
-        {
-            #Exchange 2013 and 2016
-            $Script:this_Exinstall = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
-        }
-        else {
-            Write-Host("[{0}] : Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution" -f $Script:LocalServerName)
-            exit 
-        }        
+        $Script:this_Exinstall = Get-ExchangeInstallDirectory
         #shortcut to Exbin directory (probably not really needed)
         $Script:this_ExBin = $Script:this_Exinstall + "Bin\"
 
@@ -2354,18 +2501,347 @@ param(
             }
         }
         #>
-
-        if($Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
+        
+        if((-not($PassedInfo.ExchangeServerInfo)) -and $Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
         {
             #Zip it all up 
             Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
         }
+        
     }
 
-    Remote-Main
-    
+    $oldErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Stop"
+    try 
+    {
+        if($PassedInfo.ByPass -ne $true)
+        {
+            Remote-Main
+        }
+        else 
+        {
+            Write-Host "Loading common functions"    
+        }
+        
+    }
+    catch 
+    {
+        Write-Host("[{0}] : An error occurred in Remote-Functions" -f $env:COMPUTERNAME) -ForegroundColor Red
+        Write-Host("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor Red
+        Write-Host("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor Red
+    }
+    finally
+    {
+        $ErrorActionPreference = $oldErrorAction
+    }
 }
 
+Function Get-ExchangeObjectServerData{
+param(
+[Parameter(Mandatory=$true)][array]$Servers 
+)
+    Display-ScriptDebug("Enter Function: Get-ExchangeObjectServerData")
+    $serverObjects = @()
+    foreach($server in $Servers)
+    {
+        $obj = Get-ExchangeBasicServerObject -ServerName $server 
+
+        if($obj.Hub)
+        {
+            if($obj.Version -ge 15)
+            {
+                $hubInfo = Get-TransportService $server 
+            }
+            else 
+            {
+                $hubInfo = Get-TransportServer $server
+            }
+            $obj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
+        }
+        if($obj.CAS)
+        {
+            if($obj.Version -ge 15)
+            {
+                $casInfo = Get-ClientAccessService $server
+            }
+            else 
+            {
+                $casInfo = Get-ClientAccessServer $server 
+            }
+            $obj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
+        }
+        if($obj.Mailbox)
+        {
+            $obj | Add-Member -MemberType NoteProperty -Name MailboxServerInfo -Value (Get-MailboxServer $server)
+        }
+        if($obj.Version -ge 15)
+        {
+            $obj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $server) 
+            $obj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $server)
+        }
+
+        $serverObjects += $obj 
+    }
+
+    return $serverObjects 
+}
+
+#Template Master: https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Start-JobManager/Start-JobManager.ps1
+Function Start-JobManager {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][array]$ServersWithArguments,
+    [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
+    [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
+    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    )
+    
+    #Function Version 1.0
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+    
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+    
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+    
+    Function Start-Jobs {
+        Write-VerboseWriter("Calling Start-Jobs")
+        foreach($serverObject in $ServersWithArguments)
+        {
+            $server = $serverObject.ServerName
+            $argumentList = $serverObject.ArgumentList
+            Write-VerboseWriter("Starting job on server {0}" -f $server)
+            Invoke-Command -ComputerName $server -ScriptBlock $ScriptBlock -ArgumentList $argumentList -AsJob -JobName $server | Out-Null
+        }
+    }
+    
+    Function Confirm-JobsPending {
+        $jobs = Get-Job
+        if($jobs -ne $null)
+        {
+            return $true 
+        }
+        return $false
+    }
+    
+    Function Wait-JobsCompleted {
+        Write-VerboseWriter("Calling Wait-JobsCompleted")
+        [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+        while(Confirm-JobsPending)
+        {
+            $completedJobs = Get-Job | Where-Object {$_.State -ne "Running"}
+            if($completedJobs -eq $null)
+            {
+                Start-Sleep 1 
+                continue 
+            }
+    
+            $returnData = @{}
+            foreach($job in $completedJobs)
+            {
+                Write-VerboseWriter("Job {0} received. State: {1} | HasMoreData: {2}" -f $job.Name, $job.State,$job.HasMoreData)
+                if($NeedReturnData -eq $false -and $DisplayReceiveJob -eq $false -and $job.HasMoreData -eq $true)
+                {
+                    Write-VerboseWriter("This job has data and you provided you didn't want to return it or display it.")
+                }
+                $receiveJob = Receive-Job $job 
+                Remove-Job $job
+                if($DisplayReceiveJob)
+                {
+                    $receiveJob
+                }
+                if($NeedReturnData)
+                {
+                    $returnData.Add($job.Name, $receiveJob)
+                }
+            }
+        }
+        $timer.Stop()
+        Write-VerboseWriter("Waiting for jobs to complete took {0} seconds" -f $timer.Elapsed.TotalSeconds)
+        if($NeedReturnData)
+        {
+            return $returnData
+        }
+        return $null 
+    }
+    
+    [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-VerboseWriter("Calling Start-JobManager")
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [bool]NeedReturnData:{1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $DisplayReceiveJob,
+    $NeedReturnData,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
+    
+    if($NeedReturnData -and $DisplayReceiveJob)
+    {
+        Write-VerboseWriter("Unable to display the job as well as return data. Setting DisplayReceiveJob to false")
+        $DisplayReceiveJob = $false
+    }
+    
+    Start-Jobs
+    $data = Wait-JobsCompleted
+    $timerMain.Stop()
+    Write-VerboseWriter("Exiting: Start-JobManager | Time in Start-JobManager: {0} seconds" -f $timerMain.Elapsed.TotalSeconds)
+    if($NeedReturnData)
+    {
+        return $data
+    }
+    return $null
+}
+
+Function Write-ExchangeDataOnMachines {
+
+    Function Write-ExchangeData {
+        param(
+        [Parameter(Mandatory=$true)][object]$PassedInfo
+        )
+
+                $server = $PassedInfo.ServerObject 
+                $location = $PassedInfo.Location 
+                Function Write-Data{
+                param(
+                [Parameter(Mandatory=$true)][object]$DataIn, 
+                [Parameter(Mandatory=$true)][string]$FilePathNoEXT
+                )
+                    $DataIn | Format-List * > "$FilePathNoEXT.txt"
+                    $DataIn | Export-Clixml "$FilePathNoEXT.xml"
+                }
+                $exchBin = "{0}\Bin" -f $PassedInfo.InstallDirectory
+                $configFiles = Get-ChildItem $exchBin | Where-Object{$_.Name -like "*.config"}
+                $copyTo = "{0}\Config" -f $location 
+                $configFiles | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $copyTo}
+
+                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT "$location\ExchangeServer"
+
+                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > "$location\GCM.txt"
+
+                if($server.Hub)
+                {
+                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT "$location\TransportServer"
+                }
+                if($server.CAS)
+                {
+                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT "$location\ClientAccessServer"
+                }
+                if($server.Mailbox)
+                {
+                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT "$location\MailboxServer"
+                }
+                if($server.Version -ge 15)
+                {
+                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT "$location\HealthReport"
+                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT "$location\ServerComponentState"
+                }
+        }
+
+
+    $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
+    #if single server or Exchange 2010 where invoke-command doesn't work 
+    if($Script:ValidServers.count -gt 1)
+    {
+        #Need to have install directory run through the loop first as it could be different on each server
+        $serversObjectListInstall = @() 
+        foreach($server in $exchangeServerData)
+        {
+            $serverObject = New-Object PSCustomObject 
+            $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+            $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
+            $serversObjectListInstall += $serverObject
+        }
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -NeedReturnData $true 
+    
+    
+        $serverListCreateDirectories = @() 
+        $serverListDumpData = @() 
+        $serverListZipData = @() 
+    
+        foreach($server in $exchangeServerData)
+        {
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
+
+            #Create Directory 
+            $serverCreateDirectory = New-Object PSCustomObject 
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+            $serverListCreateDirectories += $serverCreateDirectory
+
+            #Write Data 
+            $argumentList = New-Object PSCustomObject 
+            $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
+            $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
+            $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
+            $serverDumpData = New-Object PSCustomObject 
+            $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
+            $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
+            $serverListDumpData += $serverDumpData
+
+            #Zip data if not local cause we might have more stuff to run 
+            if($server.ServerName -ne $env:COMPUTERNAME)
+            {
+                $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
+                $parameters = $folder, $true, $false
+                $serverZipData = New-Object PSCustomObject 
+                $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+                $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters  
+                $serverListZipData += $serverZipData 
+            }
+        }
+
+
+        Display-ScriptDebug("Calling job for folder creation")
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:New-FolderCreate} -VerboseFunctionCaller ${Function:Display-ScriptDebug}
+        Display-ScriptDebug("Calling job for Exchange Data Write")
+        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -DisplayReceiveJob $false 
+        Display-ScriptDebug("Calling job for Zipping the data")
+        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Display-ScriptDebug} 
+
+    }
+    else 
+    {
+        if($exinstall -eq $null)
+        {
+            $exinstall = Get-ExchangeInstallDirectory
+        }
+        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
+        New-FolderCreate -Folder ("{0}\Config" -f $location)
+        $passInfo = New-Object PSCustomObject 
+        $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
+        $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
+        $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $exinstall 
+        Display-ScriptDebug("Writing out the Exchange data")
+        Write-ExchangeData -PassedInfo $passInfo 
+        $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
+                
+    }
+}
 Function Write-DataOnlyOnceOnLocalMachine {
     Display-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
     Display-ScriptDebug("Writting only once data")
@@ -2500,7 +2976,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         $data = Get-DAGInformation
         $dagName = $data.DAGInfo.Name 
         $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
-        New-LocalFolderCreate -Folder $create 
+        New-FolderCreate -Folder $create 
         $saveLocation = $create + "\{0}"
                         
         Save-LocalDataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
@@ -2520,12 +2996,12 @@ Function Write-DataOnlyOnceOnLocalMachine {
     {
         $data = Get-SendConnector 
         $create = $RootCopyToDirectory + "\Connectors"
-        New-LocalFolderCreate $create
+        New-FolderCreate $create
         $saveLocation = $create + "\Send_Connectors"
         Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $saveLocation
     }
 
-    Zip-LocalFolder -Folder $RootCopyToDirectory -ZipItAll $true
+    Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true
     Display-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }
 
@@ -2542,20 +3018,52 @@ Function Main {
         exit 
     }
     Load-ExShell
+
+    <#
+    Added the ability to call functions from within a bundled function so i don't have to duplicate work. 
+    Loading the functions into memory by using the '.' allows me to do this, 
+    providing that the calling of that function doesn't do anything of value when doing this. 
+    #>
+    $obj = New-Object PSCustomObject 
+    $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true 
+    . Remote-Functions -PassedInfo $obj
+    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+
     if($Servers -ne $null)
     {
+        
         #possible to return null or only a single server back (localhost)
-        $ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
-        if($ValidServers -ne $null)
+        $Script:ValidServers = Test-RemoteExecutionOfServers -Server_List $Servers
+        if($Script:ValidServers -ne $null)
         {
-            $ValidServers = Test-DiskSpace -Servers $ValidServers -Path $FilePath -CheckSize 15
+            $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize 15
             $remote_ScriptingBlock = ${Function:Remote-Functions}
-            Verify-LocalServerIsUsed $ValidServers
-            Invoke-Command -ComputerName $ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList (Get-ArgumentList -Servers $ValidServers)
+            Verify-LocalServerIsUsed $Script:ValidServers
+
+            $argumentList = Get-ArgumentList -Servers $Script:ValidServers
+            #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
+            try 
+            {
+                Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock $remote_ScriptingBlock -ArgumentList $argumentList -ErrorAction Stop
+            }
+            catch 
+            {
+                Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify dpaul@microsoft.com of this issue. Stopping the script."
+                exit
+            }
+            
+            #Write out Exchange Data 
+            if($ExchangeServerInfo)
+            {
+                [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+                Write-ExchangeDataOnMachines
+                $timer.Stop()
+                Display-ScriptDebug("Write-ExchangeDataOnMachines total time took {0} seconds" -f $timer.Elapsed.TotalSeconds)
+            }
+
             Write-DataOnlyOnceOnLocalMachine
-            $RootPath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-            $LogPaths = Get-RemoteLogLocation -Servers $ValidServers -RootPath $RootPath
-            if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $RootPath))
+            $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
+            if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath))
             {
                 Write-Host("")
                 Write-Host("Copying over the data may take some time depending on the network")
@@ -2566,7 +3074,7 @@ Function Main {
                     {
                         $remoteCopyLocation = "\\{0}\{1}" -f $svr.ServerName, ($svr.ZipFolder.Replace(":","$"))
                         Write-Host("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation) 
-                        Copy-Item -Path $remoteCopyLocation -Destination $RootPath
+                        Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
                         Write-Host("[{0}] : Done copying file" -f $svr.ServerName)
                     }
                     
@@ -2593,6 +3101,9 @@ Function Main {
             if($read -eq "y")
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+                $Script:ValidServers = @($env:COMPUTERNAME)
+                Write-ExchangeDataOnMachines
+                Write-DataOnlyOnceOnLocalMachine
             }
             
         }
@@ -2603,6 +3114,8 @@ Function Main {
         Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
         Write-Host("Going to collect the data locally")
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        $Script:ValidServers = @($env:COMPUTERNAME)
+        Write-ExchangeDataOnMachines
         Write-DataOnlyOnceOnLocalMachine
     }
 
