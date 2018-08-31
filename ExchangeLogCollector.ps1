@@ -1019,6 +1019,8 @@ param(
 [parameter(Mandatory=$true)][array]$Servers,
 [parameter(Mandatory=$true)][string]$RootPath 
 )
+    Display-ScriptDebug("Calling: Get-RemoteLogLocation")
+    Display-ScriptDebug("Passed: Number of servers {0} | [string]RootPath:{1}" -f $Servers.Count, $RootPath)
     Function Get-ZipLocation 
     {
         param(
@@ -1036,7 +1038,7 @@ param(
     
     $script_block = ${function:Get-ZipLocation}
     $LogInfo = Invoke-Command -ComputerName $Servers -ScriptBlock $script_block -ArgumentList $RootPath 
-
+    
     return $LogInfo
 }
 
@@ -2582,17 +2584,140 @@ param(
     return $serverObjects 
 }
 
+#Template Master: https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Start-JobManager/Start-JobManager.ps1
+Function Start-JobManager {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][array]$ServersWithArguments,
+    [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
+    [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
+    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    )
+    
+    #Function Version 1.0
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+    
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+    
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+    
+    Function Start-Jobs {
+        Write-VerboseWriter("Calling Start-Jobs")
+        foreach($serverObject in $ServersWithArguments)
+        {
+            $server = $serverObject.ServerName
+            $argumentList = $serverObject.ArgumentList
+            Write-VerboseWriter("Starting job on server {0}" -f $server)
+            Invoke-Command -ComputerName $server -ScriptBlock $ScriptBlock -ArgumentList $argumentList -AsJob -JobName $server | Out-Null
+        }
+    }
+    
+    Function Confirm-JobsPending {
+        $jobs = Get-Job
+        if($jobs -ne $null)
+        {
+            return $true 
+        }
+        return $false
+    }
+    
+    Function Wait-JobsCompleted {
+        Write-VerboseWriter("Calling Wait-JobsCompleted")
+        [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+        while(Confirm-JobsPending)
+        {
+            $completedJobs = Get-Job | Where-Object {$_.State -ne "Running"}
+            if($completedJobs -eq $null)
+            {
+                Start-Sleep 1 
+                continue 
+            }
+    
+            $returnData = @{}
+            foreach($job in $completedJobs)
+            {
+                Write-VerboseWriter("Job {0} received. State: {1} | HasMoreData: {2}" -f $job.Name, $job.State,$job.HasMoreData)
+                if($NeedReturnData -eq $false -and $DisplayReceiveJob -eq $false -and $job.HasMoreData -eq $true)
+                {
+                    Write-VerboseWriter("This job has data and you provided you didn't want to return it or display it.")
+                }
+                $receiveJob = Receive-Job $job 
+                Remove-Job $job
+                if($DisplayReceiveJob)
+                {
+                    $receiveJob
+                }
+                if($NeedReturnData)
+                {
+                    $returnData.Add($job.Name, $receiveJob)
+                }
+            }
+        }
+        $timer.Stop()
+        Write-VerboseWriter("Waiting for jobs to complete took {0} seconds" -f $timer.Elapsed.TotalSeconds)
+        if($NeedReturnData)
+        {
+            return $returnData
+        }
+        return $null 
+    }
+    
+    [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-VerboseWriter("Calling Start-JobManager")
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [bool]NeedReturnData:{1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $DisplayReceiveJob,
+    $NeedReturnData,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
+    
+    if($NeedReturnData -and $DisplayReceiveJob)
+    {
+        Write-VerboseWriter("Unable to display the job as well as return data. Setting DisplayReceiveJob to false")
+        $DisplayReceiveJob = $false
+    }
+    
+    Start-Jobs
+    $data = Wait-JobsCompleted
+    $timerMain.Stop()
+    Write-VerboseWriter("Exiting: Start-JobManager | Time in Start-JobManager: {0} seconds" -f $timerMain.Elapsed.TotalSeconds)
+    if($NeedReturnData)
+    {
+        return $data
+    }
+    return $null
+}
+
 Function Write-ExchangeDataOnMachines {
 
-    $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
-    foreach($server in $exchangeServerData)
-    {
-        [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
-        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList $location
-        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:New-FolderCreate} -ArgumentList ("{0}\Config" -f $location)
-        $installDirectory = Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Get-ExchangeInstallDirectory}
-        Function Write-ExchangeData {
+    Function Write-ExchangeData {
         param(
         [Parameter(Mandatory=$true)][object]$PassedInfo
         )
@@ -2634,21 +2759,66 @@ Function Write-ExchangeDataOnMachines {
                     Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT "$location\ServerComponentState"
                 }
         }
+
+
+    $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
+    
+    #Need to have install directory run through the loop first as it could be different on each server
+    $serversObjectListInstall = @() 
+    foreach($server in $exchangeServerData)
+    {
+        $serverObject = New-Object PSCustomObject 
+        $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+        $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
+        $serversObjectListInstall += $serverObject
+    }
+    $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -NeedReturnData $true 
+    
+    
+    $serverListCreateDirectories = @() 
+    $serverListDumpData = @() 
+    $serverListZipData = @() 
+    
+    foreach($server in $exchangeServerData)
+    {
+        $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
+
+        #Create Directory 
+        $serverCreateDirectory = New-Object PSCustomObject 
+        $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+        $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+        $serverListCreateDirectories += $serverCreateDirectory
+
+        #Write Data 
         $argumentList = New-Object PSCustomObject 
         $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
         $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
-        $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $installDirectory 
-        Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Write-ExchangeData} -ArgumentList $argumentList
-        Display-ScriptDebug("Writing out data for server {0} took {1} seconds" -f $server.ServerName, $timer.Elapsed.TotalSeconds)
+        $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
+        $serverDumpData = New-Object PSCustomObject 
+        $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
+        $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
+        $serverListDumpData += $serverDumpData
+
+        #Zip data if not local cause we might have more stuff to run 
         if($server.ServerName -ne $env:COMPUTERNAME)
         {
-            $location = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
-            Remote-DisplayHostWriter("Compressing the server's data...")
-            Invoke-Command -ComputerName $server.ServerName -ScriptBlock ${Function:Compress-Folder} -ArgumentList $location, $true, $false
+            $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
+            $parameters = $folder, $true, $false
+            $serverZipData = New-Object PSCustomObject 
+            $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
+            $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters  
+            $serverListZipData += $serverZipData 
         }
-        $timer.Stop()
-        Display-ScriptDebug("Finished Server {0} took {1} seconds" -f $server.ServerName, $timer.Elapsed.TotalSeconds)
     }
+
+
+    Display-ScriptDebug("Calling job for folder creation")
+    Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:New-FolderCreate} -VerboseFunctionCaller ${Function:Display-ScriptDebug}
+    Display-ScriptDebug("Calling job for Exchange Data Write")
+    Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Display-ScriptDebug} -DisplayReceiveJob $false 
+    Display-ScriptDebug("Calling job for Zipping the data")
+    Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Display-ScriptDebug} 
+
 }
 
 Function Write-DataOnlyOnceOnLocalMachine {
