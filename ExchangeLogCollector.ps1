@@ -91,8 +91,6 @@
     Used to collect the Application and System Logs. Default is set to true
 .PARAMETER AllPossibleLogs
     Switch to enable all default logging enabled on the Exchange server. 
-.PARAMETER NoZip
-    Used to not zip up the data by default 
 .PARAMETER SkipEndCopyOver
     Boolean to prevent the copy over after a remote collection.
 #PARAMETER CustomData                             - Might bring this back in later build. 
@@ -156,7 +154,6 @@ Param (
 [switch]$DiskCheckOverride,
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
-[switch]$NoZip,
 [bool]$SkipEndCopyOver,
 [int]$DaysWorth = 3,
 [switch]$DatabaseFailoverIssue,
@@ -265,12 +262,6 @@ param(
     {
         Write-Host("[Script Debug] : {0}" -f $stringdata) -ForegroundColor Cyan
     }
-}
-
-Function Get-ZipEnabled {
-    
-    if($NoZip){return $false}
-    else{return $true}
 }
 
 Function Confirm-LocalEdgeServer{
@@ -534,7 +525,6 @@ param(
     $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
     $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value (Get-ServerObjects -ValidServers $Servers)
     $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
-    $obj | Add-Member -Name Zip -MemberType NoteProperty -Value (Get-ZipEnabled)
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
     $obj | Add-Member -Name EWSLogs -MemberType NoteProperty -Value $EWSLogs
     $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs   
@@ -1765,24 +1755,6 @@ param(
 
     }
 
-    Function Enable-ZipAssembly {
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        try 
-        {
-            Add-Type -AssemblyName System.IO.Compression.Filesystem 
-        }
-        catch 
-        {
-            Write-Host("[{0}] : Failed to load .NET Compression assembly. Disable the ability to zip data" -f $Script:LocalServerName)
-            $PassedInfo.Zip = $false
-        }
-        finally
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-
-    }
 
     Function Get-ThisServerObject {
 
@@ -2143,12 +2115,6 @@ param(
         
 
         Set-InstanceRunningVars
-
-
-        if($PassedInfo.Zip)
-        {
-            Enable-ZipAssembly
-        }
 
         $cmdsToRun = @() 
         #############################################
