@@ -279,10 +279,23 @@ Function Get-ZipEnabled {
     else{return $true}
 }
 
+Function Confirm-LocalEdgeServer{
+    $server = Get-ExchangeBasicServerObject -ServerName $env:COMPUTERNAME
+    if($server.Edge)
+    {
+        return $true 
+    }
+    else 
+    {
+        return $false 
+    }
+}
+
 Function Get-TransportLoggingInformationPerServer {
 param(
 [string]$Server,
-[int]$version 
+[int]$version,
+[bool]$EdgeServer
 )
     Display-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
     Display-ScriptDebug("Passed - Server: {0} Version: {1}" -f $Server, $version)
@@ -301,24 +314,27 @@ param(
         $hubObject | Add-Member -MemberType NoteProperty -Name WlmLogPath -Value ($data.WlmLogPath.PathName)
         $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
 
-        #Front End Transport Layer 
-        $FETransObject = New-Object PSCustomObject
-        $data = Get-FrontendTransportService -Identity $Server
-        $FETransObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
-        $FETransObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
-        $FETransObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
-        $FETransObject | Add-Member -MemberType NoteProperty -Name AgentLogPath -Value ($data.AgentLogPath.PathName)
-        $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
+        if(-not ($EdgeServer))
+        {
+            #Front End Transport Layer 
+            $FETransObject = New-Object PSCustomObject
+            $data = Get-FrontendTransportService -Identity $Server
+            $FETransObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
+            $FETransObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
+            $FETransObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
+            $FETransObject | Add-Member -MemberType NoteProperty -Name AgentLogPath -Value ($data.AgentLogPath.PathName)
+            $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
 
-        #Mailbox Transport Layer 
-        $mbxObject = New-Object PSCustomObject
-        $data = Get-MailboxTransportService -Identity $Server
-        $mbxObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
-        $mbxObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
-        $mbxObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
-        $mbxObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
-        $mbxObject | Add-Member -MemberType NoteProperty -Name MailboxDeliveryThrottlingLogPath -Value ($data.MailboxDeliveryThrottlingLogPath.PathName)
-        $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject 
+            #Mailbox Transport Layer 
+            $mbxObject = New-Object PSCustomObject
+            $data = Get-MailboxTransportService -Identity $Server
+            $mbxObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
+            $mbxObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
+            $mbxObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
+            $mbxObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
+            $mbxObject | Add-Member -MemberType NoteProperty -Name MailboxDeliveryThrottlingLogPath -Value ($data.MailboxDeliveryThrottlingLogPath.PathName)
+            $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject 
+        }
         
     }
 
@@ -415,17 +431,22 @@ param(
 
     Function Confirm-MailboxServer{
     param([string]$value)
-        if($value -like "*Mailbox*"){return $true} else{ return $false}
+        if($value -like "*Mailbox*" -and (-not(Confirm-EdgeServer -Value $value))){return $true} else{ return $false}
     }
 
     Function Confirm-CASServer{
     param([string]$value,[int]$version)
-        if(($version -ge 16) -or ($value -like "*ClientAccess*")){return $true} else{return $false}
+        if((-not(Confirm-EdgeServer -Value $value)) -and (($version -ge 16) -or ($value -like "*ClientAccess*"))){return $true} else{return $false}
     }
 
     Function Confirm-HubServer {
     param([string]$value,[int]$version)
-        if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true}{return $false}
+        if(($version -ge 15) -or ($value -like "*HubTransport*")){return $true} else {return $false}
+    }
+
+    Function Confirm-EdgeServer {
+    param([string]$Value)
+        if($Value -eq "Edge"){return $true}else {return $false}
     }
 
     Function Confirm-DAGMember{
@@ -443,12 +464,14 @@ param(
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Edge -Value (Confirm-EdgeServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion 
     $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -IsMailbox $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
 
-    Display-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-DAGMember {3} | Version: {4} | AnyTransportSwitchesEnabled: {5}" -f $exchServerObject.Mailbox,
+    Display-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-EdgeServer: {3} | Confirm-DAGMember {4} | Version: {5} | AnyTransportSwitchesEnabled: {6}" -f $exchServerObject.Mailbox,
     $exchServerObject.CAS,
     $exchServerObject.Hub,
+    $exchServerObject.Edge,
     $exchServerObject.DAGMember,
     $exchServerObject.Version,
     $Script:AnyTransportSwitchesEnabled
@@ -486,7 +509,7 @@ param(
         if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true 
-            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version )
+            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version -EdgeServer $sobj.Edge)
         }
         else 
         {
@@ -515,11 +538,12 @@ param(
     $obj = New-Object PSCustomObject 
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
     $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
+    $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value (Get-ServerObjects -ValidServers $Servers)
     $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
     $obj | Add-Member -Name Zip -MemberType NoteProperty -Value (Get-ZipEnabled)
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
     $obj | Add-Member -Name EWSLogs -MemberType NoteProperty -Value $EWSLogs
-    $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs
+    $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs   
     $obj | Add-Member -Name RPCLogs -MemberType NoteProperty -Value $RPCLogs 
     $obj | Add-Member -Name EASLogs -MemberType NoteProperty -Value $EASLogs 
     $obj | Add-Member -Name ECPLogs -MemberType NoteProperty -Value $ECPLogs 
@@ -548,8 +572,6 @@ param(
     $obj | Add-Member -Name DaysWorth -MemberType NoteProperty -Value $DaysWorth 
     $obj | Add-Member -Name IISLogs -MemberType NoteProperty -Value $IISLogs 
     $obj | Add-Member -Name AnyTransportSwitchesEnabled -MemberType NoteProperty -Value $script:AnyTransportSwitchesEnabled
-    $svrobjs = Get-ServerObjects -ValidServers $Servers
-    $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value $svrobjs
     $obj | Add-Member -Name HostExeServerName -MemberType NoteProperty -Value ($env:COMPUTERNAME)
     $obj | Add-Member -Name Experfwiz -MemberType NoteProperty -Value $Experfwiz
     $obj | Add-Member -Name Experfwiz_LogmanName -MemberType NoteProperty -Value $Experfwiz_LogmanName
@@ -560,7 +582,7 @@ param(
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
-    foreach($svr in $svrobjs)
+    foreach($svr in $obj.ServerObjects)
     {
         if($svr.ServerName -eq $env:COMPUTERNAME)
         {
@@ -1603,7 +1625,10 @@ param(
         fltmc instances > "$copyTo\FLTMC_Instances.txt"
 
         
-        $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
+        if(-not($Script:this_ServerObject.Edge))
+        {
+            $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
+        }
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
         $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
 
@@ -2176,9 +2201,12 @@ param(
                     
                 }
 
-                $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\RpcHttp"), ($Script:RootCopyToDirectory + "\RPC_Http_Logs"))
-                if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info }
-                else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                if(-not($Script:this_ServerObject.Edge))
+                {
+                    $info = ($copyInfo -f ($Script:this_Exinstall + "Logging\RpcHttp"), ($Script:RootCopyToDirectory + "\RPC_Http_Logs"))
+                    if($PassedInfo.CollectAllLogsBasedOnDaysWorth) {$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info }
+                    else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+                }
             }
 
             if($Script:this_ServerObject.CAS -and $PassedInfo.EASLogs)
@@ -2348,7 +2376,7 @@ param(
                 New-FolderCreate $create 
                 $saveLocation = $create + "\Current_Queue_Info"
                 Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
-                if($Script:this_ServerObject.Version -ge 15)
+                if($Script:this_ServerObject.Version -ge 15 -and $Script:this_ServerObject.TransportInfo.HubLoggingInfo.QueueLogPath -ne $null)
                 {
                     $info = ($copyInfo -f ($Script:this_ServerObject.TransportInfo.HubLoggingInfo.QueueLogPath), ($Script:RootCopyToDirectory + "\Queue_V15_Data"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -2364,7 +2392,7 @@ param(
             }
             if($PassedInfo.TransportConfig)
             {
-                if($Script:this_ServerObject.Version -ge 15)
+                if($Script:this_ServerObject.Version -ge 15 -and (-not($Script:this_ServerObject.Edge)))
                 {
                     $items = @()
                     $items += $Script:this_ExBin + "\EdgeTransport.exe.config" 
@@ -2382,7 +2410,7 @@ param(
                 Copy-BulkItems -CopyToLocation ($Script:RootCopyToDirectory + "\Transport_Configuration") -ItemsToCopyLocation $items
             }
             #Exchange 2013+ only 
-            if($Script:this_ServerObject.Version -ge 15)
+            if($Script:this_ServerObject.Version -ge 15 -and (-not($Script:this_ServerObject.Edge)))
             {
                 if($PassedInfo.FrontEndConnectivityLogs)
                 {
@@ -2957,7 +2985,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     Enable-LocalZipAssembly
     $RootCopyToDirectory = Set-LocalRootCopyDirectory
 
-    if($GetVdirs)
+    if($GetVdirs -and (-not($Script:EdgeRoleDetected)))
     {
         $target = $RootCopyToDirectory  + "\ConfigNC_msExchVirtualDirectory_All.CSV"
         $data = (Get-VdirsLDAP)
@@ -2971,7 +2999,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $target
     }
 
-    if($DAGInformation)
+    if($DAGInformation -and (-not($Script:EdgeRoleDetected)))
     {
         $data = Get-DAGInformation
         $dagName = $data.DAGInfo.Name 
@@ -3028,6 +3056,14 @@ Function Main {
     $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true 
     . Remote-Functions -PassedInfo $obj
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+    if((Confirm-LocalEdgeServer) -and $Servers -ne $null)
+    {
+        #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer. 
+        #Because it isn't a domain joined computer, we can't use remote execution
+        Write-Host("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor Yellow
+        $Script:EdgeRoleDetected = $true 
+        $Servers = $null
+    }
 
     if($Servers -ne $null)
     {
@@ -3111,12 +3147,15 @@ Function Main {
 
     else 
     {
-        Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
-        Write-Host("Going to collect the data locally")
+        if(-not($Script:EdgeRoleDetected))
+        {
+            Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
+            Write-Host("Going to collect the data locally")
+        }
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
         $Script:ValidServers = @($env:COMPUTERNAME)
         Write-ExchangeDataOnMachines
-        Write-DataOnlyOnceOnLocalMachine
+        Write-DataOnlyOnceOnLocalMachine 
     }
 
     Display-FeedBack
