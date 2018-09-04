@@ -93,10 +93,6 @@
     Switch to enable all default logging enabled on the Exchange server. 
 .PARAMETER SkipEndCopyOver
     Boolean to prevent the copy over after a remote collection.
-#PARAMETER CustomData                             - Might bring this back in later build. 
-    Used to collect data from a custom directory 
-#PARAMETER CustomDataDirectory 
-    Tell which directory you would like to collect data from 
 .PARAMETER DaysWorth
     To determine how far back we would like to collect data from 
 .PARAMETER ScriptDebug
@@ -1375,14 +1371,12 @@ param(
         $Files = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
         #if we don't have any logs, we want to attempt to copy something 
         if($Files -eq $null)
-        {
-            #Write-Warning("[{0}] : Oops! Looks like I wasn't able to find what you are looking for, so I am going to attempt to collect the newest log for you" -f $Script:LocalServerName)
+        
             <#
                 There are a few different reasons to get here
                 1. We don't have any files in the timeframe request in the directory that we are looking at
                 2. We have sub directories that we need to look into and look at those files (Only if we don't have files in the currently location so we aren't pulling files like the index files from message tracking)
             #>
-            #Debug
             Remote-DisplayScriptDebug("Copy-LogsBasedOnTime: Failed to find any logs in the directory provided, need to do a deeper look to find some logs that we want.")
             $allFiles = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending
             Remote-DisplayScriptDebug("Displaying all items in the directory: {0}" -f $LogPath)
@@ -2445,51 +2439,7 @@ param(
             Remote-DisplayScriptDebug("cmd: {0}" -f $cmd)
             Invoke-Expression $cmd
         }
-
-
-
-        <#Dump out the data that only needs to be collected once, on the server that hosted the execution of the script
-        if($Script:LocalServerName -eq ($PassedInfo.HostExeServerName))
-        {
-            Remote-DisplayScriptDebug("Writting only once data")
-            if($PassedInfo.GetVdirs)
-            {
-                $target = $Script:RootCopyToDirectory + "\ConfigNC_msExchVirtualDirectory_All.CSV"
-                $PassedInfo.VDirsInfo | Sort-Object -Property Server | Export-Csv $target -NoTypeInformation
-            }
-
-            if($PassedInfo.DAGInformation)
-            {
-                
-                $data = $PassedInfo.DAGInfoData 
-                $dagName = $data.DAGInfo.Name 
-                $create =  $Script:RootCopyToDirectory + "\" + $dagName + "_DAG_MDB_Information"
-                New-FolderCreate -Folder $create 
-                $saveLocation = $create + "\{0}"
-                                
-                Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
-                
-                Save-DataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
-                
-                foreach($mdb in $data.AllMdbs)
-                {
-                    Save-DataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
-                    Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
-                }
-
-            }
-
-            if($PassedInfo.SendConnectors)
-            {
-                $data = $PassedInfo.SendConnectorData
-                $create = $Script:RootCopyToDirectory + "\Connectors"
-                New-FolderCreate $create
-                $saveLocation = $create + "\Send_Connectors"
-                Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
-            }
-        }
-        #>
-        
+ 
         if((-not($PassedInfo.ExchangeServerInfo)) -and $Script:LocalServerName -ne ($PassedInfo.HostExeServerName))
         {
             #Zip it all up 
