@@ -3,13 +3,7 @@
     Name: ExchangeLogCollector.ps1
     Author: David Paulson
     Requires: Powershell on an Exchange 2010+ Server with Adminstrator rights
-    Version History:
-    2.0.0 - Major updates have been made to the script and a new publish of it was done.
-    2.0.1 - Missing HTTPErr Logs to the script.
-    2.0.2 - Fix Bug with loading EMS and search directory
-    2.0.3 - Switch "ClusterLogs" to "High_Availabilty_Logs" and adjust the switch as well to avoid confusion.
-            Added a feature that checks to see if you pass some switches or it throws a warning asking are you sure to continue. 
-    2.1 - Major Updates. Remote Collection now possible with -Server switch. Moved over to github. 
+
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
 	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
