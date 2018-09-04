@@ -1371,7 +1371,7 @@ param(
         $Files = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
         #if we don't have any logs, we want to attempt to copy something 
         if($Files -eq $null)
-        
+        {
             <#
                 There are a few different reasons to get here
                 1. We don't have any files in the timeframe request in the directory that we are looking at
@@ -1766,11 +1766,17 @@ param(
             exit 
         }
     }
-
-    #This is in two different location. Make changes to both. 
+ 
     Function Set-RootCopyDirectory{
-        $date = Get-Date -Format yyyyMd
-        $str = "{0}{1}" -f $PassedInfo.RootFilePath, $Script:LocalServerName
+        if($Script:RootFilePath -eq $null)
+        {
+            $stringValue = $PassedInfo.RootFilePath
+        }
+        else 
+        {
+            $stringValue = $Script:RootFilePath    
+        }
+        $str = "{0}{1}" -f $stringValue, $env:COMPUTERNAME
         return $str
     }
 
@@ -2784,116 +2790,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     Display-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
     Display-ScriptDebug("Writting only once data")
 
-    #This is in two different location. Make changes to both. 
-    Function Set-LocalRootCopyDirectory{
-        $date = Get-Date -Format yyyyMd
-        $str = "{0}\{1}\{2}" -f $FilePath, $date, $env:COMPUTERNAME
-        return $str
-    }
-
-    #This is in two different location. Make changes to both. 
-    Function New-LocalFolderCreate {
-        param(
-        [string]$Folder
-        )
-            if(-not (Test-Path -Path $Folder))
-            {
-                Write-Host("[{0}] : Creating Directory {1}" -f $env:COMPUTERNAME, $Folder)
-                [System.IO.Directory]::CreateDirectory($Folder) | Out-Null
-            }
-            else 
-            {
-                Write-Host("[{0}] : Directory {1} is already created!" -f $env:COMPUTERNAME, $Folder)
-            }
-    
-    }
-
-     #This is in two different location. Make changes to both. 
-    Function Save-LocalDataInfoToFile {
-        param(
-        $dataIn,
-        $SaveToLocation 
-        )
-            
-            $xmlOut = $SaveToLocation + ".xml"
-            $txtOut = $SaveToLocation + ".txt"
-            if($data -ne $null)
-            {
-                $dataIn | Export-Clixml $xmlOut -Encoding UTF8
-                $dataIn | fl * | Out-File $txtOut
-            }
-    }
-
-    Function Enable-LocalZipAssembly {
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        try 
-        {
-            $Script:LocalZip = $true
-            Add-Type -AssemblyName System.IO.Compression.Filesystem 
-        }
-        catch 
-        {
-            Write-Host("[{0}] : Failed to load .NET Compression assembly. Disable the ability to zip data" -f $Script:LocalServerName)
-            $Script:LocalZip = $false
-        }
-        finally
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-
-    }
-    
-    Function Zip-LocalFolder {
-        param(
-        [string]$Folder,
-        [bool]$ZipItAll
-        )
-    
-            if($Script:LocalZip)
-            {
-                if(-not($ZipItAll))
-                {
-                    #Zip location 
-                    $zipFolder = $Folder + ".zip"
-                    if(Test-Path -Path $zipFolder)
-                    {
-                        #Folder exist for some reason 
-                        [int]$i = 1
-                        do{
-                            $zipFolder = $Folder + "-" + $i + ".zip"
-                            $i++
-                        }while(Test-Path -Path $zipFolder)
-                    }
-                }
-                else 
-                {
-                    $zipFolder = "{0}-{1}.zip" -f $Folder, (Get-Date -Format Md)
-                    if(Test-Path -Path $zipFolder)
-                    {
-                        [int]$i = 1
-                        $date = Get-Date -Format Md
-                        do{
-                            $zipFolder = "{0}-{1}-{2}.zip" -f $Folder, $date, $i
-                            $i++
-                        }while(Test-Path -Path $zipFolder)
-                    }
-    
-                }
-    
-                if(-not($ZipItAll)){Write-Host("[{0}] : Zipping up the folder {1}" -f $env:COMPUTERNAME, $Folder)}
-                else{Write-Host("[{0}] : Zipping up all the data for the server...." -f $env:COMPUTERNAME)}
-                [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
-    
-                if((Test-Path -Path $zipFolder))
-                {
-                    Remove-Item $Folder -Force -Recurse
-                }
-            }
-        }
-
-    Enable-LocalZipAssembly
-    $RootCopyToDirectory = Set-LocalRootCopyDirectory
+    $RootCopyToDirectory = Set-RootCopyDirectory
 
     if($GetVdirs -and (-not($Script:EdgeRoleDetected)))
     {
@@ -2906,7 +2803,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     {
         $target = $RootCopyToDirectory + "\OrganizationConfig"
         $data = Get-OrganizationConfig
-        Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $target
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $target
     }
 
     if($DAGInformation -and (-not($Script:EdgeRoleDetected)))
@@ -2917,17 +2814,17 @@ Function Write-DataOnlyOnceOnLocalMachine {
         New-FolderCreate -Folder $create 
         $saveLocation = $create + "\{0}"
                         
-        Save-LocalDataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
+        Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
         
-        Save-LocalDataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
+        Save-DataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
         
         foreach($mdb in $data.AllMdbs)
         {
-            Save-LocalDataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
-            Save-LocalDataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
+            Save-DataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
+            Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
         }
 
-        Zip-LocalFolder -Folder $create
+        Zip-Folder -Folder $create
     }
 
     if($SendConnectors)
@@ -2936,7 +2833,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         $create = $RootCopyToDirectory + "\Connectors"
         New-FolderCreate $create
         $saveLocation = $create + "\Send_Connectors"
-        Save-LocalDataInfoToFile -dataIn $data -SaveToLocation $saveLocation
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
     }
 
     Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true
