@@ -348,7 +348,7 @@ param(
 [bool]$EdgeServer
 )
     Write-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
-    Write-ScriptDebug("Passed - Server: {0} Version: {1}" -f $Server, $Version)
+    Write-ScriptDebug("Passed: [string]Server: | {0} [int]Version: {1} | [bool]EdgeServer" -f $Server, $Version, $EdgeServer)
     $hubObject = New-Object PSCustomObject
     $tranportLoggingObject = New-Object PSCustomObject
     if($Version -ge 15)
@@ -405,7 +405,7 @@ param(
         return     
     }
 
-    Write-ScriptDebug("ReceiveConnectors: {0} QueueInformationThisServer: {1}" -f $ReceiveConnectors, $QueueInformationThisServer)
+    Write-ScriptDebug("ReceiveConnectors: {0} | QueueInformationThisServer: {1}" -f $ReceiveConnectors, $QueueInformationThisServer)
     if($ReceiveConnectors)
     {
         $value = Get-ReceiveConnector -Server $Server 
@@ -426,7 +426,7 @@ param(
 [Parameter(Mandatory=$true)][string]$ServerName
 )
     Write-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
-    Write-ScriptDebug("Passed [string]ServerName: {0}" -f $ServerName)
+    Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
     $failure = $false
@@ -536,7 +536,7 @@ param(
 )
     
     Write-ScriptDebug ("Function Enter: Get-ServerObjects")
-    Write-ScriptDebug ("Passed: {0} of Servers" -f $ValidServers.Count)
+    Write-ScriptDebug ("Passed: {0} number of Servers" -f $ValidServers.Count)
     $svrsObject = @()
     $validServersList = @() 
     $oldErrorAction = $ErrorActionPreference
@@ -925,6 +925,7 @@ param(
 [string]$Server 
 )
     Write-ScriptDebug("Function Enter: Get-ExchangeServerDAGName")
+    Write-ScriptDebug("Passed: [string]Server: {0}" -f $Server)
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
     try {
@@ -1149,7 +1150,7 @@ param(
 [Parameter(Mandatory=$true)][int]$CheckSize
 )
     Write-ScriptDebug("Function Enter: Test-DiskSpace")
-    Write-ScriptDebug("Passed - Path: {0} CheckSize: {1}" -f $Path, $CheckSize)
+    Write-ScriptDebug("Passed: [string]Path: {0} | [int]CheckSize: {1}" -f $Path, $CheckSize)
     Write-Host("Checking the free space on the servers before collecting the data...")
     if(-not ($Path.EndsWith("\")))
     {
@@ -1560,7 +1561,7 @@ param(
     [Parameter(Mandatory=$true)][string]$CopyToThisLocation
     )   
         Write-ScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
-        Write-ScriptDebug("Passed - LogPath: {0} CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
+        Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
         Create-Folder -NewFolder $CopyToThisLocation -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -IncludeDisplayCreate $true
         if(Test-Path $LogPath)
         {
@@ -1581,7 +1582,7 @@ param(
     [Parameter(Mandatory=$true)][string]$CopyToThisLocation
     )
         Write-ScriptDebug("Function Enter: Copy-LogsBasedOnTime")
-        Write-ScriptDebug("Passed - LogPath: {0} CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
+        Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
         Create-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
 
         Function No-FilesInLocation {
