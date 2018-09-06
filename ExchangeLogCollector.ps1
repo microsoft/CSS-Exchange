@@ -1013,24 +1013,133 @@ Function Get-DAGInformation {
     }
 }
 
-#Logic for determining the free space on the drive 
-Function Get-FreeSpaceFromDrives {
-param(
-[Parameter(Mandatory=$true)][string]$RootFullPath,
-[Parameter(Mandatory=$true)][Array]$DrivesWMI
-)
-    $driveLetter = ($RootFullPath.Split("\"))[0]
-    $freeSpace = $DrivesWMI | ?{$_.DriveLetter -eq $driveLetter} | select DriveLetter, label, @{LABEL='GBfreespace';EXPRESSION={$_.freespace/1GB}}
-    return $freeSpace
-}
-
-Function Get-DisksData {
+#Template master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Get-FreeSpace/Get-FreeSpace.ps1
+Function Get-FreeSpace {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    )
     
-    $drives = gwmi win32_volume -Filter 'drivetype = 3'
-    $obj = New-Object PSCustomObject
-    $obj | Add-Member -MemberType NoteProperty -Name Drives -Value $drives
-    $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value ($env:COMPUTERNAME)
-    return $obj
+    
+    #Function Version 1.0
+    Function Write-VerboseWriter {
+        param(
+        [Parameter(Mandatory=$true)][string]$WriteString 
+        )
+            if($VerboseFunctionCaller -eq $null)
+            {
+                Write-Verbose $WriteString
+            }
+            else 
+            {
+                &$VerboseFunctionCaller $WriteString
+            }
+        }
+        
+        Function Write-HostWriter {
+        param(
+        [Parameter(Mandatory=$true)][string]$WriteString 
+        )
+            if($HostFunctionCaller -eq $null)
+            {
+                Write-Host $WriteString
+            }
+            else
+            {
+                &$HostFunctionCaller $WriteString    
+            }
+        }
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+    Write-VerboseWriter("Calling: Get-FreeSpace")
+    Write-VerboseWriter("Passed: [string]FilePath: {0} | [scriptblock]VerboseFunctionCaller: {1} | [scriptblock]HostFunctionCaller: {2}" -f $FilePath,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
+    
+    Function Update-TestPath {
+    param(
+    [Parameter(Mandatory=$true)][string]$FilePath 
+    )
+        $updateFilePath = $FilePath.Substring(0,$FilePath.LastIndexOf("\", $FilePath.Length - 2)+1)
+        return $updateFilePath
+    }
+    
+    Function Get-MountPointItemTarget{
+    param(
+    [Parameter(Mandatory=$true)][string]$FilePath 
+    )
+        $itemTarget = [string]::Empty
+        if(Test-Path $testPath)
+        {
+            $item = Get-Item $FilePath
+            if($item.Target -like "Volume{*}\")
+            {
+                Write-VerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
+                $itemTarget = $item.Target
+            }
+            else {
+                Write-VerboseWriter("Path didn't appear to be a mount point target")    
+            }
+        }
+        else {
+            Write-VerboseWriter("Path isn't a true path yet.")
+        }
+        return $itemTarget    
+    }
+    
+    $drivesList = Get-WmiObject Win32_Volume -Filter "drivetype = 3"
+    $testPath = $FilePath
+    $freeSpaceSize = -1 
+    while($true)
+    {
+        if($testPath -eq [string]::Empty)
+        {
+            Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+            break
+        }
+        Write-VerboseWriter("Trying to find path that matches path: {0}" -f $testPath)
+        foreach($drive in $drivesList)
+        {
+            if($drive.Name -eq $testPath)
+            {
+                Write-VerboseWriter("Found a match")
+                $freeSpaceSize = $drive.FreeSpace / 1GB 
+                Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                return $freeSpaceSize
+            }
+            Write-VerboseWriter("Drive name: '{0}' didn't match" -f $drive.Name)
+        }
+    
+        $itemTarget = Get-MountPointItemTarget -FilePath $testPath
+        if($itemTarget -ne [string]::Empty)
+        {
+            foreach($drive in $drivesList)
+            {
+                if($drive.DeviceID.Contains($itemTarget))
+                {
+                    $freeSpaceSize = $drive.FreeSpace / 1GB 
+                    Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                    return $freeSpaceSize
+                }
+                Write-VerboseWriter("DeviceID didn't appear to match: {0}" -f $drive.DeviceID)
+            }
+            if($freeSpaceSize -eq -1)
+            {
+                Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+                Write-HostWriter("This shouldn't have happened.")
+                break
+            }
+    
+        }
+    
+        $testPath = Update-TestPath -FilePath $testPath
+    }
+    
+    return $freeSpaceSize
 }
 
 Function Test-DiskSpace {
@@ -1042,21 +1151,36 @@ param(
     Write-ScriptDebug("Function Enter: Test-DiskSpace")
     Write-ScriptDebug("Passed - Path: {0} CheckSize: {1}" -f $Path, $CheckSize)
     Write-Host("Checking the free space on the servers before collecting the data...")
+    if(-not ($Path.EndsWith("\")))
+    {
+        $Path = "{0}\" -f $Path
+    }
 
-    $serversData = Invoke-Command -ComputerName $Servers -ScriptBlock ${Function:Get-DisksData}
+    $serverArgs = @()
+    foreach($server in $Servers)
+    {
+        $obj = New-Object PSCustomObject 
+        $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value $server 
+        $obj | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $Path 
+        $serverArgs += $obj
+    }
+
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true 
     $passedServers = @()
 
-    foreach($server in $serversData)
+    foreach($server in $Servers)
     {
-        $freeSpace = Get-FreeSpaceFromDrives -RootFullPath $Path -DrivesWMI $server.Drives
-        if($freeSpace.GBfreespace -gt $CheckSize)
+
+        $freeSpace = $serversData[$server]
+        Write-ScriptDebug("Server {0} detected {1} GB of free space" -f $server, $freeSpace)
+        if($freeSpace -gt $CheckSize)
         {
-            Write-Host("[{0}] : We have more than {1} GB of free space at {2}" -f $server.ServerName, $CheckSize, $Path)
-            $passedServers += $server.ServerName
+            Write-Host("[{0}] : We have more than {1} GB of free space at {2}" -f $server, $CheckSize, $Path)
+            $passedServers += $server
         }
         else 
         {
-            Write-Host("[{0}] : We have less than {1} GB of free space on {2}" -f $server.ServerName, $CheckSize, $Path)
+            Write-Host("[{0}] : We have less than {1} GB of free space on {2}" -f $server, $CheckSize, $Path)
         }
     }
 
@@ -1114,19 +1238,18 @@ param(
     #switch it to GB in size 
     $totalSizeGB = $totalSize / 1GB
     #Get the local free space again 
-    $driveObj = Get-DisksData
-    $freeSpace = Get-FreeSpaceFromDrives -RootFullPath $RootPath -DrivesWMI $driveObj.Drives
+    $freeSpace = Get-FreeSpace -FilePath $RootPath -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
     $extraSpace = 10
-    if($freeSpace.GBfreespace -gt ($totalSizeGB + $extraSpace))
+    if($freeSpace -gt ($totalSizeGB + $extraSpace))
     {
         Write-Host("[{0}] : Looks like we have enough free space at the path to copy over the data" -f $env:COMPUTERNAME)
-        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $freeSpace.GBfreespace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $freeSpace, ($totalSizeGB + $extraSpace), $RootPath)
         return $true
     }
     else 
     {
         Write-Host("[{0}] : Looks like we don't have enough free space to copy over the data" -f $env:COMPUTERNAME) -ForegroundColor Yellow
-        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $FreeSpace.GBfreespace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $FreeSpace, ($totalSizeGB + $extraSpace), $RootPath)
         return $false
     }
 
