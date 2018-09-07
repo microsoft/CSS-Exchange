@@ -1166,9 +1166,8 @@ param(
         $serverArgs += $obj
     }
 
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true 
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true
     $passedServers = @()
-
     foreach($server in $Servers)
     {
 
@@ -2687,7 +2686,7 @@ param(
         }
         else 
         {
-            Write-Host "Loading common functions"    
+            Write-ScriptDebug("Loading common functions")
         }
         
     }
@@ -2760,12 +2759,13 @@ Function Start-JobManager {
     [Parameter(Mandatory=$true)][array]$ServersWithArguments,
     [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
+    [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInVerboseFunction, 
     [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
     [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
     [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
     )
     
-    #Function Version 1.0
+    #Function Version 1.1
     Function Write-VerboseWriter {
     param(
     [Parameter(Mandatory=$true)][string]$WriteString 
@@ -2834,6 +2834,8 @@ Function Start-JobManager {
             $returnData = @{}
             foreach($job in $completedJobs)
             {
+                $receiveJobNull = $false 
+                $jobName = $job.Name 
                 Write-VerboseWriter("Job {0} received. State: {1} | HasMoreData: {2}" -f $job.Name, $job.State,$job.HasMoreData)
                 if($NeedReturnData -eq $false -and $DisplayReceiveJob -eq $false -and $job.HasMoreData -eq $true)
                 {
@@ -2841,9 +2843,18 @@ Function Start-JobManager {
                 }
                 $receiveJob = Receive-Job $job 
                 Remove-Job $job
-                if($DisplayReceiveJob)
+                if($receiveJob -eq $null)
                 {
-                    $receiveJob
+                    $receiveJobNull = $True 
+                    Write-VerboseWriter("Job {0} didn't have any receive job data" -f $jobName)
+                }
+                if($DisplayReceiveJobInVerboseFunction -and(-not($receiveJobNull)))
+                {
+                    Write-VerboseWriter("[JobName: {0}] : {1}" -f $jobName, $receiveJob)
+                }
+                elseif($DisplayReceiveJob -and (-not($receiveJobNull)))
+                {
+                    Write-HostWriter $receiveJob
                 }
                 if($NeedReturnData)
                 {
@@ -2862,16 +2873,11 @@ Function Start-JobManager {
     
     [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
     Write-VerboseWriter("Calling Start-JobManager")
-    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [bool]NeedReturnData:{1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $DisplayReceiveJob,
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [bool]DisplayReceiveJobInVerboseFunction: {1} | [bool]NeedReturnData:{2} | [scriptblock]VerboseFunctionCaller: {3} | [scriptblock]HostFunctionCaller: {4}" -f $DisplayReceiveJob,
+    $DisplayReceiveJobInVerboseFunction,
     $NeedReturnData,
     $passedVerboseFunctionCaller,
     $passedHostFunctionCaller)
-    
-    if($NeedReturnData -and $DisplayReceiveJob)
-    {
-        Write-VerboseWriter("Unable to display the job as well as return data. Setting DisplayReceiveJob to false")
-        $DisplayReceiveJob = $false
-    }
     
     Start-Jobs
     $data = Wait-JobsCompleted
@@ -2943,7 +2949,7 @@ Function Write-ExchangeDataOnMachines {
             $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
             $serversObjectListInstall += $serverObject
         }
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true 
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true
     
     
         $serverListCreateDirectories = @() 
@@ -3074,8 +3080,8 @@ Function Main {
     #>
     $obj = New-Object PSCustomObject 
     $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true 
-    . Remote-Functions -PassedInfo $obj
-    Start-Sleep 1 
+    . Remote-Functions -PassedInfo $obj 
+    Start-Sleep 1
     Write-Disclaimer
     Test-PossibleCommonScenarios
     Test-NoSwitchesProvided
