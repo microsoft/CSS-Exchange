@@ -188,7 +188,7 @@ $display = @"
 "@ -f $scriptVersion
 
     Clear-Host
-    Write-Host $display
+    Write-ScriptHost -WriteString $display -ShowServer $false
 
     if(-not($AcceptEULA))
     {
@@ -401,7 +401,7 @@ param(
 
     else 
     {
-        Write-Host("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server)
+        Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
         return     
     }
 
@@ -437,7 +437,7 @@ param(
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
     }
     catch {
-        Write-Host("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ForegroundColor Red
+        Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
         $failure = $true 
     }
     finally {
@@ -475,7 +475,7 @@ param(
     }
     else
     {
-        Write-Host("Failed to determine what version server {0} is. AdminDisplayVersion: {1}." -f $ServerName, $exchAdminDisplayVersion.ToString()) -ForegroundColor Red
+        Write-ScriptHost -WriteString ("Failed to determine what version server {0} is. AdminDisplayVersion: {1}." -f $ServerName, $exchAdminDisplayVersion.ToString()) -ShowServer $false -ForegroundColor "Red"
         return $true 
     }
 
@@ -548,7 +548,7 @@ param(
         $sobj = Get-ExchangeBasicServerObject -ServerName $svr
         if($sobj -eq $true)
         {
-            Write-Host("Removing Server {0} from the list" -f $svr) -ForegroundColor Red 
+            Write-ScriptHost -WriteString ("Removing Server {0} from the list" -f $svr) -ForegroundColor "Red" -ShowServer $false
             continue
         }
         else 
@@ -571,7 +571,7 @@ param(
     $ErrorActionPreference = $oldErrorAction
     if (($svrsObject -eq $null) -or ($svrsObject.Count -eq 0))
     {
-        Write-Host("Something wrong happened in Get-ServerObjects stopping script") -ForegroundColor Red
+        Write-ScriptHost -WriteString ("Something wrong happened in Get-ServerObjects stopping script") -ShowServer $false -ForegroundColor "Red"
         exit 
     }
     #Set the valid servers 
@@ -641,8 +641,8 @@ param(
     }
     if(($mbx) -and ($HighAvailabilityLogs) -and ($checkSvr.DAGMember))
     {
-        Write-Host("Generating cluster logs for the local server's DAG only")
-        Write-Host("Server: {0}" -f $checkSvr.ServerName)
+        Write-ScriptHost -WriteString ("Generating cluster logs for the local server's DAG only") -ShowServer $false 
+        Write-ScriptHost -WriteString ("Server: {0}" -f $checkSvr.ServerName) -ShowServer $false 
         #Only going to do this for the local server's DAG 
         $cmd = "Cluster log /g"
         Invoke-Expression -Command $cmd | Out-Null
@@ -753,9 +753,8 @@ Function Test-NoSwitchesProvided {
     ){return}
     else 
     {
-        Write-Host ""    
-        Write-Warning "Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs."
-        
+        Write-Host ""
+        Write-ScriptHost -WriteString "WARNING: Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs." -ShowServer $false -ForegroundColor "Yellow"        
         Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction {Write-Host "Okay moving on..."} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
     }
 }
@@ -766,27 +765,27 @@ param(
 )
     Write-ScriptDebug("Function Enter: Test-RemoteExecutionOfServers")
     $serversUp = @() 
-    Write-Host "Checking to see if the servers are up in this list:"
-    foreach($server in $ServerList) {Write-Host $server}
-    Write-Host ""
-    Write-Host "Checking their status...."
+    Write-ScriptHost -WriteString "Checking to see if the servers are up in this list:" -ShowServer $false 
+    foreach($server in $ServerList) {Write-ScriptHost -WriteString $server -ShowServer $false}
+    Write-ScriptHost -WriteString " " -ShowServer $false 
+    Write-ScriptHost -WriteString "Checking their status...." -ShowServer $false 
     foreach($server in $ServerList)
     {
-        Write-Host("Checking server {0}....." -f $server) -NoNewline
+        Write-ScriptHost -WriteString ("Checking server {0}...." -f $server) -ShowServer $false -NoNewLine $true
         if((Test-Connection $server -Quiet))
         {   
-            Write-Host "Online" -ForegroundColor Green
+            Write-ScriptHost -WriteString "Online" -ShowServer $false -ForegroundColor "Green"
             $serversUp += $server
         }
         else 
         {
-            Write-Host "Offline" -ForegroundColor Red
-            Write-Host ("Removing Server {0} from the list to collect data from" -f $server)
+            Write-ScriptHost -WriteString "Offline" -ShowServer $false -ForegroundColor "Red"
+            Write-ScriptHost -WriteString ("Removing Server {0} from the list to collect data from" -f $server) -ShowServer $false 
         }
     }
     #Now we should check to see if can use WRM with invoke-command
-    Write-Host ""
-    Write-Host "For all the servers that are up, we are going to see if remote execution will work"
+    Write-ScriptHost " " -ShowServer $false 
+    Write-ScriptHost -WriteString "For all the servers that are up, we are going to see if remote execution will work" -ShowServer $false 
     #shouldn't need to test if they are Exchange servers, as we should be doing that locally as well. 
     $validServers = @()
     $oldErrorAction = $ErrorActionPreference
@@ -795,15 +794,15 @@ param(
     {
 
         try {
-            Write-Host("Checking Server {0}....." -f $server) -NoNewLine
+            Write-ScriptHost -WriteString ("Checking Server {0}....." -f $server) -ShowServer $false -NoNewLine $true
             Invoke-Command -ComputerName $server -ScriptBlock { Get-Process | Out-Null}
             #if that doesn't fail, we should be okay to add it to the working list 
-            Write-Host("Passed") -ForegroundColor Green
+            Write-ScriptHost -WriteString ("Passed") -ShowServer $false -ForegroundColor "Green" 
             $validServers += $server
         }
         catch {
-            Write-Host("Failed") -ForegroundColor Red
-            Write-Host("Removing Server {0} from the list to collect data from" -f $server)
+            Write-ScriptHost -WriteString "Failed" -ShowServer $false -ForegroundColor "Red" 
+            Write-ScriptHost -WriteString ("Removing Server {0} from the list to collect data from" -f $server) -ShowServer $false 
         }
     }
     Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")
@@ -843,7 +842,7 @@ namespace AuthMethods
 }
 "@
     
-    Write-Host "Collecting Virtual Directory Information..."
+    Write-ScriptHost -WriteString "Collecting Virtual Directory Information..." -ShowServer $false
     Add-Type -TypeDefinition $authTypeEnum -Language CSharp
     
     $objRootDSE = [ADSI]"LDAP://rootDSE"
@@ -935,7 +934,7 @@ param(
         return $dagName
     }
     catch {
-        Write-Host("Looks like this server {0} isn't a Mailbox Server. Unable to get DAG Infomration." -f $Server)
+        Write-ScriptHost -WriteString ("Looks like this server {0} isn't a Mailbox Server. Unable to get DAG Infomration." -f $Server) -ShowServer $false 
         return $null 
     }
     finally
@@ -949,7 +948,7 @@ param(
 [parameter(Mandatory=$true)]$DAGInfo
 )
     Write-ScriptDebug("Function Enter: Get-MailboxDatabaseInformationFromDAG")
-    Write-Host("Getting Database information from {0} DAG member servers" -f $DAGInfo.Name)
+    Write-ScriptHost -WriteString ("Getting Database information from {0} DAG member servers" -f $DAGInfo.Name) -ShowServer $false 
     $allDupMDB = @()
     foreach($serverObj in $DAGInfo.Servers)
     {
@@ -977,10 +976,10 @@ param(
         }
     }
 
-    Write-Host("Found the following databases:")
+    Write-ScriptHost -WriteString ("Found the following databases:") -ShowServer $false 
     foreach($mdb in $MailboxDBS)
     {
-        Write-Host($mdb)
+        Write-ScriptHost -WriteString ($mdb) -ShowServer $false 
     }
 
     $MailboxDBInfo = @() 
@@ -1151,7 +1150,7 @@ param(
 )
     Write-ScriptDebug("Function Enter: Test-DiskSpace")
     Write-ScriptDebug("Passed: [string]Path: {0} | [int]CheckSize: {1}" -f $Path, $CheckSize)
-    Write-Host("Checking the free space on the servers before collecting the data...")
+    Write-ScriptHost -WriteString ("Checking the free space on the servers before collecting the data...") -ShowServer $false 
     if(-not ($Path.EndsWith("\")))
     {
         $Path = "{0}\" -f $Path
@@ -1175,22 +1174,22 @@ param(
         Write-ScriptDebug("Server {0} detected {1} GB of free space" -f $server, $freeSpace)
         if($freeSpace -gt $CheckSize)
         {
-            Write-Host("[{0}] : We have more than {1} GB of free space at {2}" -f $server, $CheckSize, $Path)
+            Write-ScriptHost -WriteString ("[Server: {0}] : We have more than {1} GB of free space at {2}" -f $server, $CheckSize, $Path) -ShowServer $false 
             $passedServers += $server
         }
         else 
         {
-            Write-Host("[{0}] : We have less than {1} GB of free space on {2}" -f $server, $CheckSize, $Path)
+            Write-ScriptHost -WriteString ("[Server: {0}] : We have less than {1} GB of free space on {2}" -f $server, $CheckSize, $Path) -ShowServer $false 
         }
     }
 
     if($passedServers.Count -ne $Servers.Count)
     {
-        Write-Host("Looks like all the servers didn't pass the disk space check.")
-        Write-Host("We will only collect data from these servers: ")
+        Write-ScriptHost -WriteString ("Looks like all the servers didn't pass the disk space check.") -ShowServer $false 
+        Write-ScriptHost -WriteString ("We will only collect data from these servers: ") -ShowServer $false 
         foreach($svr in $passedServers)
         {
-            Write-Host("{0}" -f $svr)
+            Write-ScriptHost -ShowServer $false -WriteString ("{0}" -f $svr)
         }
         Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
     }
@@ -1242,14 +1241,14 @@ param(
     $extraSpace = 10
     if($freeSpace -gt ($totalSizeGB + $extraSpace))
     {
-        Write-Host("[{0}] : Looks like we have enough free space at the path to copy over the data" -f $env:COMPUTERNAME)
-        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $freeSpace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
+        Write-ScriptHost -ShowServer $true -WriteString ("FreeSpace: {0} TestSize: {1} Path: {2}" -f $freeSpace, ($totalSizeGB + $extraSpace), $RootPath)
         return $true
     }
     else 
     {
-        Write-Host("[{0}] : Looks like we don't have enough free space to copy over the data" -f $env:COMPUTERNAME) -ForegroundColor Yellow
-        Write-Host("[{0}] : FreeSpace: {1} TestSize: {2} Path: {3}" -f $env:COMPUTERNAME, $FreeSpace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-ScriptHost -ShowServer $true -WriteString("Looks like we don't have enough free space to copy over the data") -ForegroundColor "Yellow"
+        Write-ScriptHost -ShowServer $true -WriteString("FreeSpace: {0} TestSize: {1} Path: {2}" -f $FreeSpace, ($totalSizeGB + $extraSpace), $RootPath)
         return $false
     }
 
@@ -1268,7 +1267,7 @@ param(
         }
     }
 
-    Write-Host("The server that you are running the script from isn't in the list of servers that we are collecting data from, this is currently not supported. Stopping the script.") -ForegroundColor Yellow
+    Write-ScriptHost -ShowServer $true -WriteString("The server that you are running the script from isn't in the list of servers that we are collecting data from, this is currently not supported. Stopping the script.") -ForegroundColor "Yellow"
     exit 
 }
    
@@ -1524,15 +1523,17 @@ param(
     Function Write-ScriptHost{
     param(
     [Parameter(Mandatory=$true)][string]$WriteString,
-    [Parameter(Mandatory=$false)][bool]$ShowServer = $false
+    [Parameter(Mandatory=$false)][bool]$ShowServer = $true,
+    [Parameter(Mandatory=$false)][string]$ForegroundColor = "Gray",
+    [Parameter(Mandatory=$false)][bool]$NoNewLine = $false
     )
         if($ShowServer)
         {
-            Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString)
+            Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
         }
         else 
         {
-            Write-Host("{0}" -f $WriteString)
+            Write-Host("{0}" -f $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine 
         }
     }
     
@@ -1589,8 +1590,8 @@ param(
         [Parameter(Mandatory=$true)][string]$CopyFromLocation,
         [Parameter(Mandatory=$true)][string]$CopyToLocation 
         )
-            Write-Warning("[{0}] : It doesn't look like you have any data in this location {1}." -f $env:COMPUTERNAME, $CopyFromLocation)
-            Write-Warning("[{0}] : You should look into the reason as to why, because this shouldn't occur." -f $env:COMPUTERNAME)
+            Write-ScriptHost -WriteString ("It doesn't look like you have any data in this location {0}." -f $CopyFromLocation) -ForegroundColor "Yellow"
+            Write-ScriptHost -WriteString ("You should look into the reason as to why, because this shouldn't occur.") -ForegroundColor "Yellow"
             #Going to place a file in this location so we know what happened
             $tempFile = $CopyToLocation + "\NoFilesDetected.txt"
             New-Item $tempFile -ItemType File -Value $LogPath 
@@ -1763,7 +1764,7 @@ param(
             {
                 Write-ScriptDebug("Failed to find a valid path for at least one of the IIS directories. Test path: {0}" -f $directory)
                 Write-ScriptDebug("Function Exit: Set-IISDirectoryInfo - Failed")
-                Write-Host("[{0}] : Failed to determine where the IIS Logs are located at. Unable to collect them." -f $env:COMPUTERNAME)
+                Write-ScriptHost -ShowServer $true -WriteString ("Failed to determine where the IIS Logs are located at. Unable to collect them.") -ForegroundColor "Red"
                 return $false
             }
         }
@@ -1780,7 +1781,7 @@ param(
 
         #Get MSInfo from server 
         msinfo32.exe /nfo $copyTo\msinfo.nfo 
-        Write-Warning("[{0}] : Waiting for msinfo32.exe process to end before moving on..." -f $env:COMPUTERNAME)
+        Write-ScriptHost -WriteString ("Waiting for msinfo32.exe process to end before moving on...") -ForegroundColor "Yellow"
         while((Get-Process | ?{$_.ProcessName -eq "msinfo32"}).ProcessName -eq "msinfo32")
         {
             sleep 5;
@@ -1927,7 +1928,7 @@ param(
             }
             else 
             {
-                Write-Host("[{0}] : unknown server version: {1}" -f $env:COMPUTERNAME, $Script:localServerObject.Version) -ForegroundColor Red
+                Write-ScriptHost -ShowServer $true -WriteString("unknown server version: {0}" -f $Script:localServerObject.Version) -ForegroundColor "Red"
                 return 
             }
             Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $logs 
@@ -1936,7 +1937,7 @@ param(
         }
         else 
         {
-            Write-Host("[{0}] : Doesn't look like this server has the Mailbox Role Installed. Not going to collect the High Availability Logs" -f $env:COMPUTERNAME)
+            Write-ScriptHost -WriteString ("Doesn't look like this server has the Mailbox Role Installed. Not going to collect the High Availability Logs")
         }
     }
 
@@ -1987,7 +1988,7 @@ param(
         if($Script:localServerObject -eq $null -or $Script:localServerObject.ServerName -ne $env:COMPUTERNAME)
         {
             #Something went wrong.... 
-            Write-Host("[{0}] : Something went wrong trying to find the correct Server Object for this server. Stopping this instance of Execution"-f $env:COMPUTERNAME)
+            Write-ScriptHost -WriteString ("Something went wrong trying to find the correct Server Object for this server. Stopping this instance of Execution")
             exit 
         }
     }
@@ -2018,7 +2019,7 @@ param(
         }
         else 
         {
-            Write-Host("[{0}] : Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution" -f $env:COMPUTERNAME) 
+            Write-ScriptHost -WriteString ("Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution") 
             exit    
         }
         return $installDirectory 
@@ -2070,7 +2071,7 @@ param(
     [Parameter(Mandatory=$true)][string]$LogmanName,
     [Parameter(Mandatory=$true)][string]$ServerName
     )
-        Write-Host("Starting Data Collection {0} on server {1}" -f $LogmanName,$ServerName)
+        Write-ScriptHost -WriteString ("Starting Data Collection {0} on server {1}" -f $LogmanName,$ServerName)
         logman start -s $ServerName $LogmanName
     }
     
@@ -2079,7 +2080,7 @@ param(
     [Parameter(Mandatory=$true)][string]$LogmanName,
     [Parameter(Mandatory=$true)][string]$ServerName
     )
-        Write-Host("Stopping Data Collection {0} on server {1}" -f $LogmanName,$ServerName)
+        Write-ScriptHost -WriteString ("Stopping Data Collection {0} on server {1}" -f $LogmanName,$ServerName)
         logman stop -s $ServerName $LogmanName
     }
     
@@ -2107,15 +2108,15 @@ param(
             {
                 foreach($file in $files)
                 {
-                    Write-Host("[{0}] : Copying over file {1}..." -f $env:COMPUTERNAME, $file.VersionInfo.FileName)
+                    Write-ScriptHost -WriteString ("Copying over file {0}..." -f $file.VersionInfo.FileName)
                     copy $file.VersionInfo.FileName $copyTo
                 }
                 Zip-Folder -Folder $copyTo
             }
             else 
             {
-                Write-Host ("[{0}] : Failed to find any files in the directory: '{1}' that was greater than or equal to this time: {2}" -f $env:COMPUTERNAME, $strDirectory, $filterDate) -ForegroundColor Yellow
-                Write-Host ("[{0}] : Going to try to see if there are any files in this directory for you..." -f $env:COMPUTERNAME) -NoNewline
+                Write-ScriptHost -WriteString ("Failed to find any files in the directory: '{0}' that was greater than or equal to this time: {1}" -f $strDirectory, $filterDate) -ForegroundColor "Yellow"
+                Write-ScriptHost -WriteString  ("Going to try to see if there are any files in this directory for you..." ) -NoNewline $true
                 $files = Get-ChildItem $strDirectory | ?{$_.Name -like $wildExt}
                 if($files -ne $null)
                 {
@@ -2124,14 +2125,14 @@ param(
                     $newestFiles = $files | ?{$_.CreationTime -ge $newestFilesTime}
                     foreach($file in $newestFiles)
                     {
-                        Write-Host("[{0}] : Copying over file {1}..." -f $env:COMPUTERNAME, $file.VersionInfo.FileName)
+                        Write-ScriptHost -WriteString ("Copying over file {0}..." -f $file.VersionInfo.FileName)
                         copy $file.VersionInfo.FileName $copyTo
                     }
                     Zip-Folder -Folder $copyTo
                 }
                 else 
                 {
-                    Write-Warning ("[{0}] : Failed to find any files in the directory: '{1}'" -f $env:COMPUTERNAME, $strDirectory)      
+                    Write-ScriptHost -WriteString ("Failed to find any files in the directory: '{0}'" -f $strDirectory) -ForegroundColor "Yellow"
                     $tempFile = $copyTo + "\NoFiles.txt"    
                     New-Item $tempFile -ItemType File -Value $strDirectory
                 }
@@ -2141,7 +2142,7 @@ param(
         }
         else 
         {
-            Write-Warning ("[{0}] : Doesn't look like this Directory is valid. {1}" -f $env:COMPUTERNAME, $strDirectory)
+            Write-ScriptHost -WriteString  ("Doesn't look like this Directory is valid. {0}" -f $strDirectory) -ForegroundColor "Yellow"
             $tempFile = $copyTo + "\NotValidDirectory.txt"
             New-Item $tempFile -ItemType File -Value $strDirectory
         }
@@ -2160,35 +2161,35 @@ param(
             switch ($objLogman.Status) 
             {
                 "Running" {
-                            Write-Host ("[{0}] : Looks like logman {1} is running...." -f $env:COMPUTERNAME, $LogmanName)
-                            Write-Host ("[{0}] : Going to stop {1} to prevent corruption...." -f $env:COMPUTERNAME, $LogmanName)
+                            Write-ScriptHost -WriteString ("Looks like logman {0} is running...." -f $LogmanName)
+                            Write-ScriptHost -WriteString ("Going to stop {0} to prevent corruption...." -f $LogmanName)
                             Stop-Logman -LogmanName $LogmanName -ServerName $ServerName
                             Copy-LogmanData -ObjLogman $objLogman
-                            Write-Host("[{0}] : Starting Logman {1} again for you...." -f $env:COMPUTERNAME, $LogmanName)
+                            Write-ScriptHost -WriteString ("Starting Logman {0} again for you...." -f $LogmanName)
                             Start-Logman -LogmanName $LogmanName -ServerName $ServerName
-                            Write-Host ("[{0}] : Done starting Logman {1} for you" -f $env:COMPUTERNAME, $LogmanName)
+                            Write-ScriptHost -WriteString ("Done starting Logman {0} for you" -f $LogmanName)
                             break;
                             }
                 "Stopped" {
-                            Write-Host ("[{0}] : Doesn't look like Logman {1} is running, so not going to stop it..." -f $env:COMPUTERNAME, $LogmanName)
+                            Write-ScriptHost -WriteString ("Doesn't look like Logman {0} is running, so not going to stop it..." -f $LogmanName)
                             Copy-LogmanData -ObjLogman $objLogman
                             break;
                         }
                 Default {
-                            Write-Host ("[{0}] : Don't know what the status of Logman '{1}' is in" -f $env:COMPUTERNAME, $LogmanName)
-                            Write-Host ("[{0}] : This is the status: {1}" -f $env:COMPUTERNAME, $objLogman.Status)
-                            Write-Host ("[{0}] : Going to try stop it just in case..." -f $env:COMPUTERNAME)
+                            Write-ScriptHost -WriteString  ("Don't know what the status of Logman '{0}' is in" -f $LogmanName)
+                            Write-ScriptHost -WriteString  ("This is the status: {0}" -f $objLogman.Status)
+                            Write-ScriptHost -WriteString ("Going to try stop it just in case...")
                             Stop-Logman -LogmanName $LogmanName -ServerName $ServerName
                             Copy-LogmanData -ObjLogman $objLogman
-                            Write-Host ("[{0}] : Not going to start it back up again...." -f $env:COMPUTERNAME)
-                            Write-Warning ("[{0}] : Please start this logman '{1}' if you need to...." -f $env:COMPUTERNAME, $LogmanName)
+                            Write-ScriptHost -WriteString ("Not going to start it back up again....")
+                            Write-ScriptHost -WriteString ("Please start this logman '{0}' if you need to...." -f $LogmanName) -ForegroundColor "Yellow"
                             break; 
                         }
             }
         }
         else 
         {
-            Write-Host("[{0}] : Can't find {1} on {2} ..... Moving on." -f $env:COMPUTERNAME, $LogmanName, $ServerName)    
+            Write-ScriptHost -WriteString ("Can't find {0} on {1} ..... Moving on." -f $LogmanName, $ServerName)    
         }
     
     }
@@ -2692,9 +2693,9 @@ param(
     }
     catch 
     {
-        Write-Host("[{0}] : An error occurred in Remote-Functions" -f $env:COMPUTERNAME) -ForegroundColor Red
-        Write-Host("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor Red
-        Write-Host("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor Red
+        Write-ScriptHost -WriteString ("An error occurred in Remote-Functions") -ForegroundColor "Red"
+        Write-ScriptHost -WriteString ("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor "Red"
+        Write-ScriptHost -WriteString ("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor "Red"
     }
     finally
     {
@@ -3087,12 +3088,12 @@ Function Main {
     Test-NoSwitchesProvided
     if(-not (Confirm-Administrator))
     {
-        Write-Warning "Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator."
+        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator.") -ForegroundColor "Yellow"
         exit 
     }
     if(-not(Confirm-ExchangeShell))
     {
-        Write-Host("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.")
+        Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false 
         exit
     }
 
@@ -3101,7 +3102,7 @@ Function Main {
     {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer. 
         #Because it isn't a domain joined computer, we can't use remote execution
-        Write-Host("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor Yellow
+        Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"
         $Script:EdgeRoleDetected = $true 
         $Servers = $null
     }
@@ -3141,17 +3142,17 @@ Function Main {
             $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
             if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath))
             {
-                Write-Host("")
-                Write-Host("Copying over the data may take some time depending on the network")
+                Write-ScriptHost -ShowServer $false -WriteString (" ") 
+                Write-ScriptHost -ShowServer $false -WriteString ("Copying over the data may take some time depending on the network")
                 foreach($svr in $LogPaths)
                 {
                     #Don't want to do the local host
                     if($svr.ServerName -ne $env:COMPUTERNAME)
                     {
                         $remoteCopyLocation = "\\{0}\{1}" -f $svr.ServerName, ($svr.ZipFolder.Replace(":","$"))
-                        Write-Host("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation) 
+                        Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation) 
                         Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
-                        Write-Host("[{0}] : Done copying file" -f $svr.ServerName)
+                        Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Done copying file" -f $svr.ServerName)
                     }
                     
                 }
@@ -3159,18 +3160,18 @@ Function Main {
             }
             else 
             {
-                Write-Host("")
-                Write-Host("Please collect the following files from these servers and upload them: ")
+                Write-ScriptHost -ShowServer $false -WriteString (" ")
+                Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
                 foreach($svr in $LogPaths)
                 {
-                    Write-Host("Server: {0} Path: {1}" -f $svr.ServerName, $svr.ZipFolder) 
+                    Write-ScriptHost -ShowServer $false -WriteString ("Server: {0} Path: {1}" -f $svr.ServerName, $svr.ZipFolder) 
                 }
             }
         }
         else 
         {
             #We have failed to do invoke-command on all the servers.... so we are going to do the same logic locally
-            Write-Host("Failed to do remote collection for all the servers in the list...") -ForegroundColor Yellow
+            Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
             if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false} -VerboseFunctionCaller ${Function:Write-ScriptDebug}))
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
@@ -3186,8 +3187,8 @@ Function Main {
     {
         if(-not($Script:EdgeRoleDetected))
         {
-            Write-Host("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor Yellow
-            Write-Host("Going to collect the data locally")
+            Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
+            Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
         $Script:ValidServers = @($env:COMPUTERNAME)
