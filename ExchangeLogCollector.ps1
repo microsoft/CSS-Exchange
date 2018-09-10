@@ -1864,20 +1864,17 @@ param(
         }
 
         #Running Processes #35 
-        $runningProcesses = Get-Process
-        Save-DataInfoToFile -dataIn $runningProcesses -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
+        Save-DataInfoToFile -dataIn (Get-Process) -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
 
         #Services Information #36
-        $services = Get-Service 
-        Save-DataInfoToFile -dataIn $services -SaveToLocation ("{0}\Services_Information" -f $copyTo) -FormatList $false
+        Save-DataInfoToFile -dataIn (Get-Service) -SaveToLocation ("{0}\Services_Information" -f $copyTo) -FormatList $false
 
         #VSSAdmin Information #39
         $vssWriters = vssadmin list Writers
         $vssWriters > "$copyTo\VSS_Writers.txt"
 
         #Driver Information #34
-        $drivers = Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}
-        Save-DataInfoToFile -dataIn $drivers -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
+        Save-DataInfoToFile -dataIn (Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}) -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
 
         Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
         
@@ -1918,8 +1915,7 @@ param(
         #Storage Information 
         if(Test-CommandExists -command "Get-Volume")
         {
-            $volume = Get-Volume
-            Save-DataInfoToFile -DataIn $volume -SaveToLocation ("{0}\Volume" -f $copyTo)
+            Save-DataInfoToFile -DataIn (Get-Volume) -SaveToLocation ("{0}\Volume" -f $copyTo)
         }
         else 
         {
@@ -1928,8 +1924,7 @@ param(
 
         if(Test-CommandExists -command "Get-Disk")
         {
-            $disk = Get-Disk 
-            Save-DataInfoToFile -DataIn $disk -SaveToLocation ("{0}\Disk" -f $copyTo)
+            Save-DataInfoToFile -DataIn (Get-Disk) -SaveToLocation ("{0}\Disk" -f $copyTo)
         }
         else 
         {
@@ -1938,14 +1933,13 @@ param(
 
         if(Test-CommandExists -command "Get-Partition")
         {
-            $partition = Get-Partition
-            Save-DataInfoToFile -DataIn $partition -SaveToLocation ("{0}\Partition" -f $copyTo) 
+            Save-DataInfoToFile -DataIn (Get-Partition) -SaveToLocation ("{0}\Partition" -f $copyTo) 
         }
         else
         {
             Write-ScriptDebug("Get-Partition isn't a valid command")
         }
-        
+
         Zip-Folder -Folder $copyTo
         Write-ScriptDebug("Function Exit: Save-ServerInfoData")
     }
@@ -2184,28 +2178,87 @@ param(
         $Script:localExBin = $Script:localExinstall + "Bin\"
 
     }
-
-    Function Save-DataInfoToFile {
+    #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Save-DataToFile/Save-DataToFile.ps1
+    Function Save-DataToFile {
+        [CmdletBinding()]
         param(
-        $DataIn,
-        $SaveToLocation,
-        $FormatList = $true
+        [Parameter(Mandatory=$true)][object]$DataIn,
+        [Parameter(Mandatory=$true)][string]$SaveToLocation,
+        [Parameter(Mandatory=$false)][bool]$FormatList = $true,
+        [Parameter(Mandatory=$false)][bool]$SaveTextFile = $true,
+        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true,
+        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
         )
-            
-            $xmlOut = $SaveToLocation + ".xml"
-            $txtOut = $SaveToLocation + ".txt"
-            if($DataIn -ne $null)
+        
+        #Function Version 1.0
+        Function Write-VerboseWriter {
+        param(
+        [Parameter(Mandatory=$true)][string]$WriteString 
+        )
+            if($InvokeCommandReturnWriteArray)
             {
-                $DataIn | Export-Clixml $xmlOut -Encoding UTF8
+            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+            }
+            elseif($VerboseFunctionCaller -eq $null)
+            {
+                Write-Verbose $WriteString
+            }
+            else 
+            {
+                &$VerboseFunctionCaller $WriteString
+            }
+        }
+        
+        $passedVerboseFunctionCaller = $false
+        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+        Write-VerboseWriter("Calling: Save-DataToFile")
+        Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3} | [scriptblock]VerboseFunctionCaller: {4}" -f $SaveToLocation,
+        $FormatList,
+        $SaveTextFile,
+        $SaveXMLFile,
+        $passedVerboseFunctionCaller)
+        
+        $xmlSaveLocation = "{0}.xml" -f $SaveToLocation
+        $txtSaveLocation = "{0}.txt" -f $SaveToLocation
+        
+        if($DataIn -ne [string]::Empty)
+        {
+            if($SaveXMLFile)
+            {
+                $DataIn | Export-Clixml $xmlSaveLocation -Encoding UTF8
+            }
+            if($SaveTextFile)
+            {
                 if($FormatList)
                 {
-                    $DataIn | Format-List * | Out-File $txtOut
+                    $DataIn | Format-List * | Out-File $txtSaveLocation
                 }
                 else 
                 {
-                    $DataIn | Format-Table -AutoSize | Out-File $txtOut
+                    $DataIn | Format-Table -AutoSize | Out-File $txtSaveLocation    
                 }
             }
+            
+        }
+        else
+        {
+            Write-VerboseWriter("DataIn was an empty string. Not going to save anything.")
+        }
+    }
+
+    Function Save-DataInfoToFile {
+        param(
+        [Parameter(Mandatory=$false)][object]$DataIn,
+        [Parameter(Mandatory=$true)][string]$SaveToLocation,
+        [Parameter(Mandatory=$false)][bool]$FormatList = $true,
+        [Parameter(Mandatory=$false)][bool]$SaveTextFile = $true,
+        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
+        )
+            [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+            Save-DataToFile -DataIn $DataIn -SaveToLocation $SaveToLocation -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+            $timer.Stop()
+            Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
     }
 
     ###################################
@@ -2701,12 +2754,10 @@ param(
             }
             if($PassedInfo.QueueInformationThisServer)
             {
-                #current queue data 
-                $data = $Script:localServerObject.TransportInfo.QueueData
                 $create = $Script:RootCopyToDirectory + "\Queue_Data"
                 Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
                 $saveLocation = $create + "\Current_Queue_Info"
-                Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
+                Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.QueueData) -SaveToLocation $saveLocation
                 if($Script:localServerObject.Version -ge 15 -and $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath -ne $null)
                 {
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath), ($Script:RootCopyToDirectory + "\Queue_V15_Data"))
@@ -2715,11 +2766,10 @@ param(
             }
             if($PassedInfo.ReceiveConnectors)
             {
-                $data = $Script:localServerObject.TransportInfo.ReceiveConnectorData
                 $create = $Script:RootCopyToDirectory + "\Connectors"
                 Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
                 $saveLocation = ($create + "\{0}_Receive_Connectors") -f $env:COMPUTERNAME
-                Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
+                Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.ReceiveConnectorData) -SaveToLocation $saveLocation
             }
             if($PassedInfo.TransportConfig)
             {
@@ -3221,7 +3271,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     {
         $target = $RootCopyToDirectory + "\OrganizationConfig"
         $data = Get-OrganizationConfig
-        Save-DataInfoToFile -dataIn $data -SaveToLocation $target
+        Save-DataInfoToFile -dataIn (Get-OrganizationConfig) -SaveToLocation $target
     }
 
     if($DAGInformation -and (-not($Script:EdgeRoleDetected)))
@@ -3247,11 +3297,10 @@ Function Write-DataOnlyOnceOnLocalMachine {
 
     if($SendConnectors)
     {
-        $data = Get-SendConnector 
         $create = $RootCopyToDirectory + "\Connectors"
         Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         $saveLocation = $create + "\Send_Connectors"
-        Save-DataInfoToFile -dataIn $data -SaveToLocation $saveLocation
+        Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
 
     Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true
