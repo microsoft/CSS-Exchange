@@ -1446,67 +1446,93 @@ param(
     }
 
     Function Create-Folder{
-    [CmdletBinding()]
-    param(
-    [Parameter(Mandatory=$true)][string]$NewFolder,
-    [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
-    )
-
-    #Function Version 1.0
-    Function Write-VerboseWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($VerboseFunctionCaller -eq $null)
+        [CmdletBinding()]
+        param(
+        [Parameter(Mandatory=$false)][string]$NewFolder,
+        [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
+        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
+        [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject,
+        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        )
+        
+        #Function Version 1.1
+        Function Write-VerboseWriter {
+            param(
+            [Parameter(Mandatory=$true)][string]$WriteString 
+            )
+                if($InvokeCommandReturnWriteArray)
+                {
+                    $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+                }
+                elseif($VerboseFunctionCaller -eq $null)
+                {
+                    Write-Verbose $WriteString
+                }
+                else 
+                {
+                    &$VerboseFunctionCaller $WriteString
+                }
+            }
+            
+            Function Write-HostWriter {
+            param(
+            [Parameter(Mandatory=$true)][string]$WriteString 
+            )
+                if($InvokeCommandReturnWriteArray)
+                {
+                    $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+                }
+                elseif($HostFunctionCaller -eq $null)
+                {
+                    Write-Host $WriteString
+                }
+                else
+                {
+                    &$HostFunctionCaller $WriteString    
+                }
+            }
+        $passedVerboseFunctionCaller = $false
+        $passedHostFunctionCaller = $false
+        $passedPassedParametersObject = $false
+        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+        if($passedPassedParametersObject -ne $null){$passedPassedParametersObject = $true}
+        $stringArray = @() 
+        if($PassedParametersObject -ne $null)
         {
-            Write-Verbose $WriteString
+            $NewFolder = $PassedParametersObject.NewFolder 
+            $InvokeCommandReturnWriteArray = $true 
+        }
+        Write-VerboseWriter("Calling: Create-Folder")
+        Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [bool]InvokeCommandReturnWriteArray: {2} | [object]PassedParametersObject: {3} | [scriptblock]VerboseFunctionCaller: {4} | [scriptblock]HostFunctionCaller: {5}" -f $NewFolder,
+        $IncludeDisplayCreate,
+        $InvokeCommandReturnWriteArray,
+        $passedPassedParametersObject,
+        $passedVerboseFunctionCaller,
+        $passedHostFunctionCaller)
+        
+        if(-not (Test-Path -Path $NewFolder))
+        {
+            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
+            {
+                Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
+            }
+            [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
         }
         else 
         {
-            &$VerboseFunctionCaller $WriteString
+            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
+            {
+                Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
+            }
         }
-    }
-    
-    Function Write-HostWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($HostFunctionCaller -eq $null)
+        if($InvokeCommandReturnWriteArray)
         {
-            Write-Host $WriteString
+            return $stringArray
         }
-        else
-        {
-            &$HostFunctionCaller $WriteString    
-        }
-    }
-    $passedVerboseFunctionCaller = $false
-    $passedHostFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-    Write-VerboseWriter("Calling: Create-Folder")
-    Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $NewFolder,
-    $IncludeDisplayCreate,
-    $passedVerboseFunctionCaller,
-    $passedHostFunctionCaller)
-
-    if(-not (Test-Path -Path $NewFolder))
-    {
-        if($IncludeDisplayCreate)
-        {
-            Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
-        }
-        [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
-    }
-    else 
-    {
-        if($IncludeDisplayCreate)
-        {
-            Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
-        }
-    }
 }
 
     Function Write-ScriptDebug {
@@ -2761,12 +2787,13 @@ Function Start-JobManager {
     [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInVerboseFunction, 
+    [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInCorrectFunction,
     [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
     [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
     [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
     )
     
-    #Function Version 1.1
+    #Function Version 1.2
     Function Write-VerboseWriter {
     param(
     [Parameter(Mandatory=$true)][string]$WriteString 
@@ -2800,6 +2827,27 @@ Function Start-JobManager {
     if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
     if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
     
+    Function Write-ReceiveJobData {
+    param(
+    [Parameter(Mandatory=$true)][array]$ReceiveJobData
+    )
+        foreach($job in $ReceiveJobData)
+        {
+            if($job["Verbose"])
+            {
+                Write-VerboseWriter($job["Verbose"])
+            }
+            elseif($job["Host"])
+            {
+                Write-HostWriter($job["Host"])
+            }
+            else 
+            {
+                Write-VerboseWriter("Unable to determine the key for the return type.")    
+            }
+        }
+    }
+    
     Function Start-Jobs {
         Write-VerboseWriter("Calling Start-Jobs")
         foreach($serverObject in $ServersWithArguments)
@@ -2823,6 +2871,7 @@ Function Start-JobManager {
     Function Wait-JobsCompleted {
         Write-VerboseWriter("Calling Wait-JobsCompleted")
         [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+        $returnData = @{}
         while(Confirm-JobsPending)
         {
             $completedJobs = Get-Job | Where-Object {$_.State -ne "Running"}
@@ -2832,7 +2881,6 @@ Function Start-JobManager {
                 continue 
             }
     
-            $returnData = @{}
             foreach($job in $completedJobs)
             {
                 $receiveJobNull = $false 
@@ -2852,6 +2900,10 @@ Function Start-JobManager {
                 if($DisplayReceiveJobInVerboseFunction -and(-not($receiveJobNull)))
                 {
                     Write-VerboseWriter("[JobName: {0}] : {1}" -f $jobName, $receiveJob)
+                }
+                elseif($DisplayReceiveJobInCorrectFunction -and (-not ($receiveJobNull)))
+                {
+                    Write-ReceiveJobData -ReceiveJobData $receiveJob
                 }
                 elseif($DisplayReceiveJob -and (-not($receiveJobNull)))
                 {
@@ -2964,7 +3016,9 @@ Function Write-ExchangeDataOnMachines {
             #Create Directory 
             $serverCreateDirectory = New-Object PSCustomObject 
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+            $argumentObject = New-Object PSCustomObject 
+            $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolder -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
             $serverListCreateDirectories += $serverCreateDirectory
 
             #Write Data 
@@ -2991,7 +3045,7 @@ Function Write-ExchangeDataOnMachines {
 
 
         Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true 
         Write-ScriptDebug("Calling job for Exchange Data Write")
         Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false 
         Write-ScriptDebug("Calling job for Zipping the data")
