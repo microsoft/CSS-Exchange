@@ -1701,7 +1701,10 @@ param(
     [string]$CopyToLocation,
     [Array]$ItemsToCopyLocation
     )
-        Create-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        if(-not(Test-Path $CopyToLocation))
+        {
+            Create-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        }
         foreach($item in $ItemsToCopyLocation)
         {
             Copy-Item -Path $item -Destination $CopyToLocation -ErrorAction SilentlyContinue
