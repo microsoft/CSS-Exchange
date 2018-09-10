@@ -3015,7 +3015,7 @@ Function Write-ExchangeDataOnMachines {
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
             $argumentObject = New-Object PSCustomObject 
             $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolder -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
-            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
+            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentObject
             $serverListCreateDirectories += $serverCreateDirectory
 
             #Write Data 
