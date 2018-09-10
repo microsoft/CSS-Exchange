@@ -1919,8 +1919,7 @@ param(
         if(Test-CommandExists -command "Get-Volume")
         {
             $volume = Get-Volume
-            $volume | fl * > "$copyTo\Volume.txt"
-            $volume | Export-Clixml "$copyTo\Volume.xml"
+            Save-DataInfoToFile -DataIn $volume -SaveToLocation ("{0}\Volume" -f $copyTo)
         }
         else 
         {
@@ -1930,15 +1929,23 @@ param(
         if(Test-CommandExists -command "Get-Disk")
         {
             $disk = Get-Disk 
-            $disk | fl * > "$copyTo\Disk.txt"
-            $disk | Export-Clixml "$copyTo\Disk.xml"
+            Save-DataInfoToFile -DataIn $disk -SaveToLocation ("{0}\Disk" -f $copyTo)
         }
         else 
         {
             Write-ScriptDebug("Get-Disk isn't a valid command")    
         }
 
-
+        if(Test-CommandExists -command "Get-Partition")
+        {
+            $partition = Get-Partition
+            Save-DataInfoToFile -DataIn $partition -SaveToLocation ("{0}\Partition" -f $copyTo) 
+        }
+        else
+        {
+            Write-ScriptDebug("Get-Partition isn't a valid command")
+        }
+        
         Zip-Folder -Folder $copyTo
         Write-ScriptDebug("Function Exit: Save-ServerInfoData")
     }
