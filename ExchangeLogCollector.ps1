@@ -85,8 +85,6 @@
     Old switch that was used for collecting the general Server information 
 .PARAMETER CollectAllLogsBasedOnDaysWorth
     Used to collect some of the default logging based off Days Worth vs the whole directory 
-.PARAMETER DiskCheckOverride
-    Used to over the Availalbe Disk space required in order this script to run 
 .PARAMETER AppSysLogs
     Used to collect the Application and System Logs. Default is set to true
 .PARAMETER AllPossibleLogs
@@ -147,7 +145,6 @@ Param (
 [switch]$ServerInfo,
 [switch]$ExchangeServerInfo,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
-[switch]$DiskCheckOverride,
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
 [bool]$SkipEndCopyOver,
