@@ -98,13 +98,9 @@ ExchangeServerInfo - Used to collect Exchange Server data (Get-ExchangeServer, G
 
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
-DiskCheckOverride - Overrides the process of checking for enough free space on the server before collecting the data. As this collection of data can get rather large. 
-
 AppSysLogs - Collects the Application, System, and MSExchange Management. 
 
 AllPossibleLogs - Enables the collection of all default logging collection on the Server. 
-
-NoZip - Disables the ability to automatically zip up the data on the server. 
 
 SkipEndCopyOver - If the Servers parameter is used, by default we will attempt to collect all the data back over to the local server after all the data was collected on each server. 
 
