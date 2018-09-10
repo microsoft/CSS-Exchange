@@ -251,16 +251,66 @@ Function Enter-YesNoLoopAction {
 Function Confirm-ExchangeShell{
     [CmdletBinding()]
     param(
-    [bool]$LoadExchangeShell = $true,
-    [bool]$LoadExchangeVariables = $true  
+    [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
+    [Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
+    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
     )
-    #Function Version 1.0
+    #Function Version 1.1
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+        }
+        elseif($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+        
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+        }
+        elseif($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+        
+    $passedVerboseFunctionCaller = $false
+    $passedHostFunctionCaller = $false
+    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+
     $passed = $false 
+    Write-VerboseWriter("Calling: Confirm-ExchangeShell")
+    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $LoadExchangeShell,
+    $LoadExchangeVariables,
+    $passedVerboseFunctionCaller,
+    $passedHostFunctionCaller)
     #Test that we are on Exchange 2010 or newer
     if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
     (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
     {
-        Write-Verbose("We are on Exchange 2010 or newer")
+        Write-VerboseWriter("We are on Exchange 2010 or newer")
         $oldErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = "stop"
         try 
@@ -270,10 +320,10 @@ Function Confirm-ExchangeShell{
         }
         catch 
         {
-            Write-Verbose("Failed to run Get-ExchangeServer")
+            Write-VerboseWriter("Failed to run Get-ExchangeServer")
             if($LoadExchangeShell)
             {
-                Write-Host "Loading Exchange PowerShell Module..."
+                Write-HostWriter "Loading Exchange PowerShell Module..."
                 Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
                 $passed = $true 
             }
@@ -289,24 +339,24 @@ Function Confirm-ExchangeShell{
                     {
                         $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
                     }
-                    else 
+                    else
                     {
                         $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
                     }
-    
+
                     $Global:exbin = $Global:exinstall + "\Bin"
-    
-                    Write-Verbose("Set exinstall: {0}" -f $Global:exinstall)
-                    Write-Verbose("Set exbin: {0}" -f $Global:exbin)
+
+                    Write-VerboseWriter("Set exinstall: {0}" -f $Global:exinstall)
+                    Write-VerboseWriter("Set exbin: {0}" -f $Global:exbin)
                 }
             }
         }
     }
     else 
     {
-        Write-Verbose("Does appear to be an Exchange 2010 or newer server.")
+        Write-VerboseWriter("Does not appear to be an Exchange 2010 or newer server.")
     }
-    
+    Write-VerboseWriter("Returned: {0}" -f $passed)
     return $passed
 }
    
@@ -1162,7 +1212,7 @@ param(
         $serverArgs += $obj
     }
 
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true -JobBatchName "Getting the free space for test disk space"
     $passedServers = @()
     foreach($server in $Servers)
     {
@@ -2032,23 +2082,88 @@ param(
         return $str
     }
 
+    #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
     Function Get-ExchangeInstallDirectory
     {
-        $installDirectory = [string]::Empty
-        if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup'))
-        {
-            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
+        [CmdletBinding()]
+        param(
+        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
+        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
+        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        )
+        
+        #Function Version 1.0
+        Function Write-VerboseWriter {
+        param(
+        [Parameter(Mandatory=$true)][string]$WriteString 
+        )
+            if($InvokeCommandReturnWriteArray)
+            {
+                $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+            }
+            elseif($VerboseFunctionCaller -eq $null)
+            {
+                Write-Verbose $WriteString
+            }
+            else 
+            {
+                &$VerboseFunctionCaller $WriteString
+            }
         }
-        elseif((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+            
+        Function Write-HostWriter {
+        param(
+        [Parameter(Mandatory=$true)][string]$WriteString 
+        )
+            if($InvokeCommandReturnWriteArray)
+            {
+                $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+            }
+            elseif($HostFunctionCaller -eq $null)
+            {
+                Write-Host $WriteString
+            }
+            else
+            {
+                &$HostFunctionCaller $WriteString    
+            }
+        }
+            
+        $passedVerboseFunctionCaller = $false
+        $passedHostFunctionCaller = $false
+        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+        $stringArray = @()
+        Write-VerboseWriter("Calling: Get-ExchangeInstallDirectory")
+        Write-VerboseWriter("Passed: [bool]InvokeCommandReturnWriteArray: {0} | [scriptblock]VerboseFunctionCaller: {1} | [scriptblock]HostFunctionCaller: {2}" -f $InvokeCommandReturnWriteArray, 
+        $passedVerboseFunctionCaller, 
+        $passedHostFunctionCaller)
+        
+        $installDirectory = [string]::Empty
+        if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
         {
-            $installDirectory = (get-itemproperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
+            Write-VerboseWriter("Detected v14")
+            $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath 
+        }
+        elseif(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup')
+        {
+            Write-VerboseWriter("Detected v15")
+            $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
         }
         else 
         {
-            Write-ScriptHost -WriteString ("Something went wrong trying to find the Exchange install path on this server. Stopping this instance of Execution") 
-            exit    
+            Write-HostWriter -WriteString ("Something went wrong trying to find Exchange Install path on this server: {0}" -f $env:COMPUTERNAME)  
         }
-        return $installDirectory 
+        Write-VerboseWriter("Returning: {0}" -f $installDirectory)
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"ReturnObject"=$installDirectory}
+            $stringArray += $hashTable
+            return $stringArray
+        }
+        return $installDirectory
     }
 
     Function Set-InstanceRunningVars
@@ -2057,7 +2172,7 @@ param(
         #Set the local Server Object Information 
         Get-ThisServerObject 
                 
-        $Script:localExinstall = Get-ExchangeInstallDirectory
+        $Script:localExinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         #shortcut to Exbin directory (probably not really needed)
         $Script:localExBin = $Script:localExinstall + "Bin\"
 
@@ -2785,6 +2900,7 @@ Function Start-JobManager {
     param(
     [Parameter(Mandatory=$true)][array]$ServersWithArguments,
     [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
+    [Parameter(Mandatory=$false)][string]$JobBatchName,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInVerboseFunction, 
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInCorrectFunction,
@@ -2793,7 +2909,7 @@ Function Start-JobManager {
     [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
     )
     
-    #Function Version 1.2
+    #Function Version 1.3
     Function Write-VerboseWriter {
     param(
     [Parameter(Mandatory=$true)][string]$WriteString 
@@ -2831,6 +2947,7 @@ Function Start-JobManager {
     param(
     [Parameter(Mandatory=$true)][array]$ReceiveJobData
     )
+        $returnJob = [string]::Empty
         foreach($job in $ReceiveJobData)
         {
             if($job["Verbose"])
@@ -2841,11 +2958,16 @@ Function Start-JobManager {
             {
                 Write-HostWriter($job["Host"])
             }
+            elseif($job["ReturnObject"])
+            {
+                $returnJob = $job["ReturnObject"]
+            }
             else 
             {
                 Write-VerboseWriter("Unable to determine the key for the return type.")    
             }
         }
+        return $returnJob
     }
     
     Function Start-Jobs {
@@ -2903,13 +3025,17 @@ Function Start-JobManager {
                 }
                 elseif($DisplayReceiveJobInCorrectFunction -and (-not ($receiveJobNull)))
                 {
-                    Write-ReceiveJobData -ReceiveJobData $receiveJob
+                    $returnJobData = Write-ReceiveJobData -ReceiveJobData $receiveJob
+                    if($returnJobData -ne $null)
+                    {
+                        $returnData.Add($jobName, $returnJobData)
+                    }
                 }
                 elseif($DisplayReceiveJob -and (-not($receiveJobNull)))
                 {
                     Write-HostWriter $receiveJob
                 }
-                if($NeedReturnData)
+                if($NeedReturnData -and (-not($DisplayReceiveJobInCorrectFunction)))
                 {
                     $returnData.Add($job.Name, $receiveJob)
                 }
@@ -2926,7 +3052,8 @@ Function Start-JobManager {
     
     [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
     Write-VerboseWriter("Calling Start-JobManager")
-    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [bool]DisplayReceiveJobInVerboseFunction: {1} | [bool]NeedReturnData:{2} | [scriptblock]VerboseFunctionCaller: {3} | [scriptblock]HostFunctionCaller: {4}" -f $DisplayReceiveJob,
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3} | [scriptblock]VerboseFunctionCaller: {4} | [scriptblock]HostFunctionCaller: {5}" -f $DisplayReceiveJob,
+    $JobBatchName,
     $DisplayReceiveJobInVerboseFunction,
     $NeedReturnData,
     $passedVerboseFunctionCaller,
@@ -2999,10 +3126,10 @@ Function Write-ExchangeDataOnMachines {
         {
             $serverObject = New-Object PSCustomObject 
             $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value ([string]::Empty)
+            $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $true
             $serversObjectListInstall += $serverObject
         }
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
     
     
         $serverListCreateDirectories = @() 
@@ -3045,18 +3172,18 @@ Function Write-ExchangeDataOnMachines {
 
 
         Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true 
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Exchange Data Write")
-        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false 
+        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Zipping the data")
-        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} 
+        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
 
     }
     else 
     {
         if($exinstall -eq $null)
         {
-            $exinstall = Get-ExchangeInstallDirectory
+            $exinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         }
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
         Create-Folder -NewFolder ("{0}\Config" -f $location) -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
@@ -3145,7 +3272,7 @@ Function Main {
         Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator.") -ForegroundColor "Yellow"
         exit 
     }
-    if(-not(Confirm-ExchangeShell))
+    if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}))
     {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false 
         exit
