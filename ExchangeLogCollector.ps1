@@ -1768,6 +1768,18 @@ param(
         Get-ChildItem $location | Rename-Item -NewName {$_.Name -replace "%4","-"}
     }
 
+    Function Add-ServerNameToFileName{
+    param(
+    [Parameter(Mandatory=$true)][string]$FilePath
+    )
+        Write-ScriptDebug("Calling: Add-ServerNameToFileName")
+        Write-ScriptDebug("Passed: [string]FilePath: {0}" -f $FilePath)
+        $fileName = "{0}_{1}" -f $env:COMPUTERNAME, ($name = $FilePath.Substring($FilePath.LastIndexOf("\") + 1))
+        $filePathWithServerName = $FilePath.Replace($name,$fileName) 
+        Write-ScriptDebug("Returned: {0}" -f $filePathWithServerName)
+        return $filePathWithServerName
+    }
+
     Function Test-CommandExists {
     param(
     [string]$command
@@ -1856,7 +1868,7 @@ param(
         Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
 
         #Get MSInfo from server 
-        msinfo32.exe /nfo $copyTo\msinfo.nfo 
+        msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
         Write-ScriptHost -WriteString ("Waiting for msinfo32.exe process to end before moving on...") -ForegroundColor "Yellow"
         while((Get-Process | ?{$_.ProcessName -eq "msinfo32"}).ProcessName -eq "msinfo32")
         {
@@ -1870,47 +1882,39 @@ param(
         Save-DataInfoToFile -dataIn (Get-Service) -SaveToLocation ("{0}\Services_Information" -f $copyTo) -FormatList $false
 
         #VSSAdmin Information #39
-        $vssWriters = vssadmin list Writers
-        $vssWriters > "$copyTo\VSS_Writers.txt"
+        Save-DataInfoToFile -DataIn (vssadmin list Writers) -SaveToLocation ("{0}\VSS_Writers" -f $copyTo) -SaveXMLFile $false 
 
         #Driver Information #34
         Save-DataInfoToFile -dataIn (Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}) -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
 
-        Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
+        Save-DataInfoToFile -DataIn (Get-HotFix | Select-Object Source, Description, HotFixID, InstalledBy, InstalledOn) -SaveToLocation ("{0}\HotFixInfo" -f $copyTo)
         
         #TCPIP Networking Information #38
-        ipconfig /all > "$copyTo\IPConfiguration.txt"
-
-        netstat -anob > "$copyTo\Netstat_ANOB.txt"
-
-        route print > "$copyTo\Network_Routes.txt"
-
-        arp -a > "$copyTo\Network_ARP.txt"
-
-        netstat -nato > "$copyTo\Netstat_NATO.txt"
-
-        netstat -es > "$copyTo\Netstat_ES.txt" 
+        Save-DataInfoToFile -DataIn (ipconfig /all) -SaveToLocation ("{0}\IPConfiguration" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -anob) -SaveToLocation ("{0}\NetStat_ANOB" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (route print) -SaveToLocation ("{0}\Network_Routes" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (arp -a) -SaveToLocation ("{0}\Network_ARP" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -nato) -SaveToLocation ("{0}\Netstat_NATO" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -es) -SaveToLocation ("{0}\Netstat_ES" -f $copyTo) -SaveXMLFile $false 
 
         #IPsec 
-        netsh ipsec dynamic show all > "$copyTo\IPsec_netsh_dynamic.txt"
-
-        netsh ipsec static show all > "$copyTo\IPsec_netsh_static.txt"
+        Save-DataInfoToFile -DataIn (netsh ipsec dynamic show all) -SaveToLocation ("{0}\IPsec_netsh_dynamic" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netsh ipsec static show all) -SaveToLocation ("{0}\IPsec_netsh_static" -f $copyTo) -SaveXMLFile $false 
 
         #FLTMC
-        fltmc > "$copyTo\FilterDrivers.txt"
-        fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
-        fltmc instances > "$copyTo\FLTMC_Instances.txt"
-
+        Save-DataInfoToFile -DataIn (fltmc) -SaveToLocation ("{0}\FLTMC_FilterDrivers" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (fltmc volumes) -SaveToLocation ("{0}\FLTMC_Volumes" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (fltmc instances) -SaveToLocation ("{0}\FLTMC_Instances" -f $copyTo) -SaveXMLFile $false 
         
         if(-not($Script:localServerObject.Edge))
         {
             $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
         }
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
-        $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
+        Save-DataInfoToFile -DataIn $hiveKey -SaveToLocation ("{0}\Exchange_Registry_Hive" -f $copyTo) -SaveTextFile $false 
 
-        gpresult /R /Z > "$copyTo\GPResult.txt"
-        gpresult /H "$copyTo\GPResult.html"
+        Save-DataInfoToFile -DataIn (gpresult /R /Z) -SaveToLocation ("{0}\GPResult" -f $copyTo) -SaveXMLFile $false 
+        gpresult /H (Add-ServerNameToFileName -FilePath ("{0}\GPResult.html" -f $copyTo))
 
         #Storage Information 
         if(Test-CommandExists -command "Get-Volume")
@@ -2256,7 +2260,7 @@ param(
         [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
             [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-            Save-DataToFile -DataIn $DataIn -SaveToLocation $SaveToLocation -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug} -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
             $timer.Stop()
             Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
     }
@@ -3149,26 +3153,26 @@ Function Write-ExchangeDataOnMachines {
                 $copyTo = "{0}\Config" -f $location 
                 $configFiles | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $copyTo}
 
-                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT "$location\ExchangeServer"
+                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT ("{0}\{1}_ExchangeServer" -f $location, $env:COMPUTERNAME)
 
-                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > "$location\GCM.txt"
+                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
 
                 if($server.Hub)
                 {
-                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT "$location\TransportServer"
+                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT ("{0}\{1}_TransportServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.CAS)
                 {
-                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT "$location\ClientAccessServer"
+                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT ("{0}\{1}_ClientAccessServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.Mailbox)
                 {
-                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT "$location\MailboxServer"
+                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT ("{0}\{1}_MailboxServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.Version -ge 15)
                 {
-                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT "$location\HealthReport"
-                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT "$location\ServerComponentState"
+                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
+                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
                 }
         }
 
