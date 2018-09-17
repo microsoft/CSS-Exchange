@@ -2929,7 +2929,7 @@ param(
         }
         if($obj.CAS)
         {
-            if($obj.Version -ge 15)
+            if($obj.Version -ge 16)
             {
                 $casInfo = Get-ClientAccessService $server
             }
