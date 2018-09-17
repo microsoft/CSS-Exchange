@@ -157,7 +157,7 @@ Param (
 
 )
 
-$scriptVersion = 2.7
+$scriptVersion = 2.8
 
 ###############################################
 #                                             #
@@ -392,45 +392,58 @@ Function Get-TransportLoggingInformationPerServer {
 param(
 [string]$Server,
 [int]$Version,
-[bool]$EdgeServer
+[bool]$EdgeServer,
+[bool]$CASOnly,
+[bool]$MailboxOnly
 )
     Write-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
-    Write-ScriptDebug("Passed: [string]Server: | {0} [int]Version: {1} | [bool]EdgeServer" -f $Server, $Version, $EdgeServer)
+    Write-ScriptDebug("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
     $hubObject = New-Object PSCustomObject
     $tranportLoggingObject = New-Object PSCustomObject
     if($Version -ge 15)
     {
-        #Hub Transport Layer 
-        $data = Get-TransportService -Identity $Server
-        $hubObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
-        $hubObject | Add-Member -MemberType NoteProperty -Name MessageTrackingLogPath -Value ($data.MessageTrackingLogPath.PathName) 
-        $hubObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
-        $hubObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
-        $hubObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
-        $hubObject | Add-Member -MemberType NoteProperty -Name QueueLogPath -Value ($data.QueueLogPath.PathName)
-        $hubObject | Add-Member -MemberType NoteProperty -Name WlmLogPath -Value ($data.WlmLogPath.PathName)
-        $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
+        if(-not($CASOnly))
+        {
+            #Hub Transport Layer 
+            $data = Get-TransportService -Identity $Server
+            $hubObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
+            $hubObject | Add-Member -MemberType NoteProperty -Name MessageTrackingLogPath -Value ($data.MessageTrackingLogPath.PathName) 
+            $hubObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
+            $hubObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
+            $hubObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
+            $hubObject | Add-Member -MemberType NoteProperty -Name QueueLogPath -Value ($data.QueueLogPath.PathName)
+            $hubObject | Add-Member -MemberType NoteProperty -Name WlmLogPath -Value ($data.WlmLogPath.PathName)
+            $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
 
+        }
+        
         if(-not ($EdgeServer))
         {
             #Front End Transport Layer 
-            $FETransObject = New-Object PSCustomObject
-            $data = Get-FrontendTransportService -Identity $Server
-            $FETransObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
-            $FETransObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
-            $FETransObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
-            $FETransObject | Add-Member -MemberType NoteProperty -Name AgentLogPath -Value ($data.AgentLogPath.PathName)
-            $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
+            if(($Version -eq 15 -and (-not ($MailboxOnly))) -or $Version -ge 16)
+            {
+                $FETransObject = New-Object PSCustomObject
+                $data = Get-FrontendTransportService -Identity $Server
+                $FETransObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
+                $FETransObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
+                $FETransObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
+                $FETransObject | Add-Member -MemberType NoteProperty -Name AgentLogPath -Value ($data.AgentLogPath.PathName)
+                $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
+            }
 
-            #Mailbox Transport Layer 
-            $mbxObject = New-Object PSCustomObject
-            $data = Get-MailboxTransportService -Identity $Server
-            $mbxObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
-            $mbxObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
-            $mbxObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
-            $mbxObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
-            $mbxObject | Add-Member -MemberType NoteProperty -Name MailboxDeliveryThrottlingLogPath -Value ($data.MailboxDeliveryThrottlingLogPath.PathName)
-            $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject 
+            if(($Version -eq 15 -and (-not ($CASOnly))) -or $Version -ge 16)
+            {
+                            #Mailbox Transport Layer 
+                $mbxObject = New-Object PSCustomObject
+                $data = Get-MailboxTransportService -Identity $Server
+                $mbxObject | Add-Member -MemberType NoteProperty -Name ConnectivityLogPath -Value ($data.ConnectivityLogPath.PathName)
+                $mbxObject | Add-Member -MemberType NoteProperty -Name ReceiveProtocolLogPath -Value ($data.ReceiveProtocolLogPath.PathName)
+                $mbxObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
+                $mbxObject | Add-Member -MemberType NoteProperty -Name PipelineTracingPath -Value ($data.PipelineTracingPath.PathName)
+                $mbxObject | Add-Member -MemberType NoteProperty -Name MailboxDeliveryThrottlingLogPath -Value ($data.MailboxDeliveryThrottlingLogPath.PathName)
+                $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject 
+            }
+
         }
         
     }
@@ -458,7 +471,7 @@ param(
         $value = Get-ReceiveConnector -Server $Server 
         $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name ReceiveConnectorData -Value $value 
     }
-    if($QueueInformationThisServer)
+    if($QueueInformationThisServer -and (-not($Version -eq 15 -and $CASOnly)))
     {
         $value = Get-Queue -Server $Server 
         $tranportLoggingObject | Add-Member -MemberType NoteProperty -Name QueueData -Value $value 
@@ -536,9 +549,19 @@ param(
         if((-not(Confirm-EdgeServer -Value $Value)) -and (($Version -ge 16) -or ($Value -like "*ClientAccess*"))){return $true} else{return $false}
     }
 
+    Function Confirm-CASOnlyServer{
+    param([string]$Value)
+        if($Value -eq "ClientAccess"){return $true} else {return $false}
+    }
+
+    Function Confirm-MailboxOnlyServer{
+    param([string]$Value)
+        if($Value -eq "Mailbox"){return $true} else {return $false}
+    }
+
     Function Confirm-HubServer {
     param([string]$Value,[int]$Version)
-        if(($Version -ge 15) -or ($Value -like "*HubTransport*")){return $true} else {return $false}
+        if((($Version -ge 15) -and (-not (Confirm-CASOnlyServer -Value $Value))) -or ($Value -like "*HubTransport*")){return $true} else {return $false}
     }
 
     Function Confirm-EdgeServer {
@@ -561,13 +584,17 @@ param(
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -value $exchServerRole -version $exchVersion)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name CASOnly -Value (Confirm-CASOnlyServer -Value $exchServerRole)
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name MailboxOnly -Value (Confirm-MailboxOnlyServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Edge -Value (Confirm-EdgeServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion 
     $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -MailboxServer $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
 
-    Write-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-EdgeServer: {3} | Confirm-DAGMember {4} | Version: {5} | AnyTransportSwitchesEnabled: {6}" -f $exchServerObject.Mailbox,
+    Write-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-CASOnlyServer: {3} | Confirm-MailboxOnlyServer: {4} | Confirm-EdgeServer: {5} | Confirm-DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8}" -f $exchServerObject.Mailbox,
     $exchServerObject.CAS,
     $exchServerObject.Hub,
+    $exchServerObject.CASOnly,
+    $exchServerObject.MailboxOnly,
     $exchServerObject.Edge,
     $exchServerObject.DAGMember,
     $exchServerObject.Version,
@@ -603,10 +630,10 @@ param(
             $validServersList += $svr 
         }
 
-        if($Script:AnyTransportSwitchesEnabled -and $sobj.Hub)
+        if($Script:AnyTransportSwitchesEnabled -and ($sobj.Hub -or $sobj.Version -ge 15))
         {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true 
-            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version -EdgeServer $sobj.Edge)
+            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value (Get-TransportLoggingInformationPerServer -Server $svr -version $sobj.Version -EdgeServer $sobj.Edge -CASOnly $sobj.CASOnly -MailboxOnly $sobj.MailboxOnly)
         }
         else 
         {
@@ -975,7 +1002,7 @@ param(
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
     try {
-        $dagName = (Get-MailboxServer $Server).DatabaseAvailabilityGroup.Name 
+        $dagName = (Get-MailboxServer $Server -ErrorAction Stop).DatabaseAvailabilityGroup.Name 
         Write-ScriptDebug("Returning dagName: {0}" -f $dagName)
         Write-ScriptDebug("Function Exit: Get-ExchangeServerDAGName")
         return $dagName
@@ -1768,6 +1795,18 @@ param(
         Get-ChildItem $location | Rename-Item -NewName {$_.Name -replace "%4","-"}
     }
 
+    Function Add-ServerNameToFileName{
+    param(
+    [Parameter(Mandatory=$true)][string]$FilePath
+    )
+        Write-ScriptDebug("Calling: Add-ServerNameToFileName")
+        Write-ScriptDebug("Passed: [string]FilePath: {0}" -f $FilePath)
+        $fileName = "{0}_{1}" -f $env:COMPUTERNAME, ($name = $FilePath.Substring($FilePath.LastIndexOf("\") + 1))
+        $filePathWithServerName = $FilePath.Replace($name,$fileName) 
+        Write-ScriptDebug("Returned: {0}" -f $filePathWithServerName)
+        return $filePathWithServerName
+    }
+
     Function Test-CommandExists {
     param(
     [string]$command
@@ -1856,7 +1895,7 @@ param(
         Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
 
         #Get MSInfo from server 
-        msinfo32.exe /nfo $copyTo\msinfo.nfo 
+        msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
         Write-ScriptHost -WriteString ("Waiting for msinfo32.exe process to end before moving on...") -ForegroundColor "Yellow"
         while((Get-Process | ?{$_.ProcessName -eq "msinfo32"}).ProcessName -eq "msinfo32")
         {
@@ -1870,47 +1909,45 @@ param(
         Save-DataInfoToFile -dataIn (Get-Service) -SaveToLocation ("{0}\Services_Information" -f $copyTo) -FormatList $false
 
         #VSSAdmin Information #39
-        $vssWriters = vssadmin list Writers
-        $vssWriters > "$copyTo\VSS_Writers.txt"
+        Save-DataInfoToFile -DataIn (vssadmin list Writers) -SaveToLocation ("{0}\VSS_Writers" -f $copyTo) -SaveXMLFile $false 
 
         #Driver Information #34
         Save-DataInfoToFile -dataIn (Get-ChildItem ("{0}\System32\drivers" -f $env:SystemRoot) | Where-Object{$_.Name -like "*.sys"}) -SaveToLocation ("{0}\System32_Drivers" -f $copyTo)
 
-        Get-HotFix | Select Source, Description, HotFixID, InstalledBy, InstalledOn | Export-Clixml "$copyTo\HotFixInfo.xml"
+        Save-DataInfoToFile -DataIn (Get-HotFix | Select-Object Source, Description, HotFixID, InstalledBy, InstalledOn) -SaveToLocation ("{0}\HotFixInfo" -f $copyTo)
         
         #TCPIP Networking Information #38
-        ipconfig /all > "$copyTo\IPConfiguration.txt"
-
-        netstat -anob > "$copyTo\Netstat_ANOB.txt"
-
-        route print > "$copyTo\Network_Routes.txt"
-
-        arp -a > "$copyTo\Network_ARP.txt"
-
-        netstat -nato > "$copyTo\Netstat_NATO.txt"
-
-        netstat -es > "$copyTo\Netstat_ES.txt" 
+        Save-DataInfoToFile -DataIn (ipconfig /all) -SaveToLocation ("{0}\IPConfiguration" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -anob) -SaveToLocation ("{0}\NetStat_ANOB" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (route print) -SaveToLocation ("{0}\Network_Routes" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (arp -a) -SaveToLocation ("{0}\Network_ARP" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -nato) -SaveToLocation ("{0}\Netstat_NATO" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netstat -es) -SaveToLocation ("{0}\Netstat_ES" -f $copyTo) -SaveXMLFile $false 
 
         #IPsec 
-        netsh ipsec dynamic show all > "$copyTo\IPsec_netsh_dynamic.txt"
-
-        netsh ipsec static show all > "$copyTo\IPsec_netsh_static.txt"
+        Save-DataInfoToFile -DataIn (netsh ipsec dynamic show all) -SaveToLocation ("{0}\IPsec_netsh_dynamic" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (netsh ipsec static show all) -SaveToLocation ("{0}\IPsec_netsh_static" -f $copyTo) -SaveXMLFile $false 
 
         #FLTMC
-        fltmc > "$copyTo\FilterDrivers.txt"
-        fltmc volumes > "$copyTo\FLTMC_Volumes.txt"
-        fltmc instances > "$copyTo\FLTMC_Instances.txt"
-
+        Save-DataInfoToFile -DataIn (fltmc) -SaveToLocation ("{0}\FLTMC_FilterDrivers" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (fltmc volumes) -SaveToLocation ("{0}\FLTMC_Volumes" -f $copyTo) -SaveXMLFile $false 
+        Save-DataInfoToFile -DataIn (fltmc instances) -SaveToLocation ("{0}\FLTMC_Instances" -f $copyTo) -SaveXMLFile $false 
         
-        if(-not($Script:localServerObject.Edge))
+        $hiveKey = @()
+        try
         {
-            $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse
+            $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse -ErrorAction Stop 
+        }
+        catch 
+        {
+            #at this point don't do anything besides debug log 
+            Write-ScriptDebug("Failed to get child item on HKLM:\SOFTWARE\Microsoft\Exchange\")
         }
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
-        $hiveKey | Export-Clixml "$copyTo\Exchange_Registry_Hive.xml"
+        Save-DataInfoToFile -DataIn $hiveKey -SaveToLocation ("{0}\Exchange_Registry_Hive" -f $copyTo) -SaveTextFile $false 
 
-        gpresult /R /Z > "$copyTo\GPResult.txt"
-        gpresult /H "$copyTo\GPResult.html"
+        Save-DataInfoToFile -DataIn (gpresult /R /Z) -SaveToLocation ("{0}\GPResult" -f $copyTo) -SaveXMLFile $false 
+        gpresult /H (Add-ServerNameToFileName -FilePath ("{0}\GPResult.html" -f $copyTo))
 
         #Storage Information 
         if(Test-CommandExists -command "Get-Volume")
@@ -2256,7 +2293,7 @@ param(
         [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
             [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-            Save-DataToFile -DataIn $DataIn -SaveToLocation $SaveToLocation -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug} -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
             $timer.Stop()
             Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
     }
@@ -2735,24 +2772,24 @@ param(
         ############################################
         if($PassedInfo.AnyTransportSwitchesEnabled -and $Script:localServerObject.TransportInfoCollect)
         {
-            if($PassedInfo.MessageTrackingLogs)
+            if($PassedInfo.MessageTrackingLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.MessageTrackingLogPath), ($Script:RootCopyToDirectory + "\Message_Tracking_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
 
-            if($PassedInfo.HubProtocolLogs)
+            if($PassedInfo.HubProtocolLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Send_Protocol_Logs"))
             }
-            if($PassedInfo.HubConnectivityLogs)
+            if($PassedInfo.HubConnectivityLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.ConnectivityLogPath), ($Script:RootCopyToDirectory + "\Hub_Connectivity_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
-            if($PassedInfo.QueueInformationThisServer)
+            if($PassedInfo.QueueInformationThisServer -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $create = $Script:RootCopyToDirectory + "\Queue_Data"
                 Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
@@ -2793,27 +2830,31 @@ param(
             #Exchange 2013+ only 
             if($Script:localServerObject.Version -ge 15 -and (-not($Script:localServerObject.Edge)))
             {
-                if($PassedInfo.FrontEndConnectivityLogs)
+                if($PassedInfo.FrontEndConnectivityLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.MailboxOnly)))
                 {
+                    Write-ScriptDebug("Collecting FrontEndConnectivityLogs")
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ConnectivityLogPath), ($Script:RootCopyToDirectory + "\FE_Connectivity_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 }
-                if($PassedInfo.FrontEndProtocolLogs)
+                if($PassedInfo.FrontEndProtocolLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.MailboxOnly)))
                 {
+                    Write-ScriptDebug("Collecting FrontEndProtocolLogs")
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\FE_Receive_Protocol_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\FE_Send_Protocol_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 }
-                if($PassedInfo.MailboxConnectivityLogs)
+                if($PassedInfo.MailboxConnectivityLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
                 {
+                    Write-ScriptDebug("Collecting MailboxConnectivityLogs")
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ConnectivityLogPath + "\Delivery"), ($Script:RootCopyToDirectory + "\MBX_Delivery_Connectivity_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ConnectivityLogPath + "\Submission"), ($Script:RootCopyToDirectory + "\MBX_Submission_Connectivity_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 }
-                if($PassedInfo.MailboxProtocolLogs)
+                if($PassedInfo.MailboxProtocolLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
                 {
+                    Write-ScriptDebug("Collecting MailboxProtocolLogs")
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Receive_Protocol_Logs"))
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                     $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Send_Protocol_Logs"))
@@ -2925,7 +2966,7 @@ param(
         }
         if($obj.CAS)
         {
-            if($obj.Version -ge 15)
+            if($obj.Version -ge 16)
             {
                 $casInfo = Get-ClientAccessService $server
             }
@@ -3149,26 +3190,26 @@ Function Write-ExchangeDataOnMachines {
                 $copyTo = "{0}\Config" -f $location 
                 $configFiles | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $copyTo}
 
-                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT "$location\ExchangeServer"
+                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT ("{0}\{1}_ExchangeServer" -f $location, $env:COMPUTERNAME)
 
-                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > "$location\GCM.txt"
+                Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
 
                 if($server.Hub)
                 {
-                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT "$location\TransportServer"
+                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT ("{0}\{1}_TransportServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.CAS)
                 {
-                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT "$location\ClientAccessServer"
+                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT ("{0}\{1}_ClientAccessServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.Mailbox)
                 {
-                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT "$location\MailboxServer"
+                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT ("{0}\{1}_MailboxServer" -f $location, $env:COMPUTERNAME)
                 }
                 if($server.Version -ge 15)
                 {
-                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT "$location\HealthReport"
-                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT "$location\ServerComponentState"
+                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
+                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
                 }
         }
 
@@ -3277,22 +3318,25 @@ Function Write-DataOnlyOnceOnLocalMachine {
     if($DAGInformation -and (-not($Script:EdgeRoleDetected)))
     {
         $data = Get-DAGInformation
-        $dagName = $data.DAGInfo.Name 
-        $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
-        Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
-        $saveLocation = $create + "\{0}"
-                        
-        Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
-        
-        Save-DataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
-        
-        foreach($mdb in $data.AllMdbs)
+        if($data -ne $null)
         {
-            Save-DataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
-            Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
+            $dagName = $data.DAGInfo.Name 
+            $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
+            Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            $saveLocation = $create + "\{0}"
+                            
+            Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
+            
+            Save-DataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
+            
+            foreach($mdb in $data.AllMdbs)
+            {
+                Save-DataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
+                Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
+            }
+    
+            Zip-Folder -Folder $create
         }
-
-        Zip-Folder -Folder $create
     }
 
     if($SendConnectors)
