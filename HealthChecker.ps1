@@ -2129,6 +2129,23 @@ Function Get-CASLoadBalancingReport {
 
 }
 
+Function Verify-Pagefile25PercentOfTotalMemory {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.PageFileObject]$PageFileObj,
+[Parameter(Mandatory=$true)][HealthChecker.HardwareObject]$HardwareObj
+)
+    Write-VerboseOutput("Calling: Verify-Pagefile25PercentOfTotalMemory")
+    Write-VerboseOutput("Passed: Total Memory: {0}" -f ($totalMemory = $HardwareObj.TotalMemory))
+    Write-VerboseOutput("Passed: Max page file size: {0}" -f ($pageFileSize = $PageFileObj.MaxPageSize))
+    $returnString = "Good"
+    $pageFileSizeMB = [Math]::Truncate((($totalMemoryMB = ($totalMemory / 1MB)) / 4))
+    if($pageFileSize -ne $pageFileSizeMB)
+    {
+        $returnString = "Page File size is set to {0} MB which does not equal 25% of the Total System Memory which is {1} MB. This is set incorrectly." -f $pageFileSizeMB, [Math]::Truncate($totalMemoryMB)
+    }
+
+    return $returnString
+}
 
 Function Verify-PagefileEqualMemoryPlus10{
 param(
@@ -2584,10 +2601,23 @@ param(
         else
         {
             Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
-            Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
-    #Exchange 2013+ with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        $displayString = Verify-Pagefile25PercentOfTotalMemory -PageFileObj $HealthExSvrObj.OSVersion.PageFile -HardwareObj $HealthExSvrObj.HardwareInfo
+        if($displayString -eq "Good")
+        {
+            Write-Grey("`tPagefile Size: {0}" -f $HealthExSvrObj.OSVersion.PageFile.MaxPageSize)
+        }
+        else
+        {
+            Write-Yellow("`tPagefile Size: {0} --- Warning --- See article: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#hardware" -f $displayString)
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.")
+        }
+    }
+    #Exchange 2013/2016 with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
     #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
     elseif($HealthExSvrObj.HardwareInfo.TotalMemory -ge 34359738368)
     {
@@ -2611,7 +2641,7 @@ param(
         else
         {
             Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
-            Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
 
