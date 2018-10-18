@@ -97,7 +97,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.25"
+$healthCheckerVersion = "2.26"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -1280,7 +1280,8 @@ param(
         elseif($buildRevision -lt 1415.2) {if($buildRevision -gt 1261.35){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU7}
         elseif($buildRevision -lt 1466.3) {if($buildRevision -gt 1415.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU8}
         elseif($buildRevision -lt 1531.3) {if($buildRevision -gt 1466.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU9}
-        elseif($buildRevision -ge 1531.3) {if($buildRevision -gt 1531.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU10}
+        elseif($buildRevision -lt 1591.10) {if($buildRevision -gt 1531.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU10}
+        elseif($buildRevision -ge 1591.10) {if($buildRevision -gt 1591.10){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU11}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -1365,8 +1366,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU6) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU6"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU7) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU7"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/16/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU8) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU8"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/19/2017"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU9) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU9"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/20/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU9) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU9"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/20/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU10) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU10"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/19/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -1441,10 +1443,15 @@ https://blogs.technet.microsoft.com/exchange/2016/06/21/released-june-2016-quart
 Released: December 2017 Quarterly Exchange Updates
 https://blogs.technet.microsoft.com/exchange/2017/12/19/released-december-2017-quarterly-exchange-updates/
 
+Released: October 2018 Quarterly Exchange Updates
+https://blogs.technet.microsoft.com/exchange/2018/10/16/released-october-2018-quarterly-exchange-updates/
+
 Summary:
 Exchange 2013 CU19 & 2016 CU8 .NET Framework 4.7.1 Supported on all OSs 
 Exchange 2013 CU15 & 2016 CU4 .Net Framework 4.6.2 Supported on All OSs
 Exchange 2016 CU3 .NET Framework 4.6.2 Supported on Windows 2016 OS - however, stuff is broke on this OS. 
+
+Exchange 2016 CU11 Supports .NET 4.7.2
 
 Exchange 2013 CU13 & Exchange 2016 CU2 .NET Framework 4.6.1 Supported on all OSs
 
@@ -1613,9 +1620,13 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2 
                 }
-                else
+                elseif($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU11)
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
                 
 
@@ -2129,6 +2140,23 @@ Function Get-CASLoadBalancingReport {
 
 }
 
+Function Verify-Pagefile25PercentOfTotalMemory {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.PageFileObject]$PageFileObj,
+[Parameter(Mandatory=$true)][HealthChecker.HardwareObject]$HardwareObj
+)
+    Write-VerboseOutput("Calling: Verify-Pagefile25PercentOfTotalMemory")
+    Write-VerboseOutput("Passed: Total Memory: {0}" -f ($totalMemory = $HardwareObj.TotalMemory))
+    Write-VerboseOutput("Passed: Max page file size: {0}" -f ($pageFileSize = $PageFileObj.MaxPageSize))
+    $returnString = "Good"
+    $pageFileSizeMB = [Math]::Truncate((($totalMemoryMB = ($totalMemory / 1MB)) / 4))
+    if($pageFileSize -ne $pageFileSizeMB)
+    {
+        $returnString = "Page File size is set to {0} MB which does not equal 25% of the Total System Memory which is {1} MB. This is set incorrectly." -f $pageFileSizeMB, [Math]::Truncate($totalMemoryMB)
+    }
+
+    return $returnString
+}
 
 Function Verify-PagefileEqualMemoryPlus10{
 param(
@@ -2584,10 +2612,23 @@ param(
         else
         {
             Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
-            Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
-    #Exchange 2013+ with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        $displayString = Verify-Pagefile25PercentOfTotalMemory -PageFileObj $HealthExSvrObj.OSVersion.PageFile -HardwareObj $HealthExSvrObj.HardwareInfo
+        if($displayString -eq "Good")
+        {
+            Write-Grey("`tPagefile Size: {0}" -f $HealthExSvrObj.OSVersion.PageFile.MaxPageSize)
+        }
+        else
+        {
+            Write-Yellow("`tPagefile Size: {0} --- Warning --- See article: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#hardware" -f $displayString)
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.")
+        }
+    }
+    #Exchange 2013/2016 with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
     #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
     elseif($HealthExSvrObj.HardwareInfo.TotalMemory -ge 34359738368)
     {
@@ -2611,7 +2652,7 @@ param(
         else
         {
             Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
-            Write-Yellow("`tNote: Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available") 
+            Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
 
