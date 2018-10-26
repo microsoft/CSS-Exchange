@@ -1578,9 +1578,13 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2
                 }
-                else
+                elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU21))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
 
 
