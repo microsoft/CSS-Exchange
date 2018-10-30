@@ -529,8 +529,26 @@ param(
     if($OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
     {
         Write-VerboseOutput("Detected OS Version greater than or equal to Windows 2012R2")
-        $cimSession = New-CimSession -ComputerName $Machine_Name
-        $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
+        try 
+        {
+            $cimSession = New-CimSession -ComputerName $Machine_Name
+            $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
+        }
+        catch 
+        {
+            $Script:iErrorExcluded++
+            Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
+            Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
+            $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+            foreach($adapter in $NetworkCards2008)
+            {
+                [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+                $nicObject.Description = $adapter.Description
+                $nicObject.LinkSpeed = $adapter.Speed
+                $nicObject.NICObject = $adapter 
+                $aNICObjects += $nicObject
+            }
+        }
         foreach($adapter in $NetworkCards)
         {
             Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
