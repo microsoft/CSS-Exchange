@@ -97,7 +97,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.26"
+$healthCheckerVersion = "2.27"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -105,7 +105,14 @@ Virtual Machine detected.  Certain settings about the host hardware cannot be de
     - If Hyper-Threading is enabled do NOT count Hyper-Threaded cores as physical cores
     - Do not oversubscribe memory or use dynamic memory allocation
     
-Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.  VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.  For further details, please review the virtualization recommendations on TechNet at https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq.  Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
+Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.  
+
+VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.  
+Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
+
+For further details, please review the virtualization recommendations on TechNet at the following locations: 
+Exchange 2013: https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq.  
+Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019. 
 
 "@
 
@@ -522,8 +529,26 @@ param(
     if($OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
     {
         Write-VerboseOutput("Detected OS Version greater than or equal to Windows 2012R2")
-        $cimSession = New-CimSession -ComputerName $Machine_Name
-        $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
+        try 
+        {
+            $cimSession = New-CimSession -ComputerName $Machine_Name
+            $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
+        }
+        catch 
+        {
+            $Script:iErrorExcluded++
+            Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
+            Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
+            $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+            foreach($adapter in $NetworkCards2008)
+            {
+                [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+                $nicObject.Description = $adapter.Description
+                $nicObject.LinkSpeed = $adapter.Speed
+                $nicObject.NICObject = $adapter 
+                $aNICObjects += $nicObject
+            }
+        }
         foreach($adapter in $NetworkCards)
         {
             Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
@@ -1544,7 +1569,7 @@ param(
             $NetCheckObj.RecommendedNetVersion = $false 
             [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
             [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the max recommnded version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
+            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the max recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
         }
         else
         {
@@ -1578,9 +1603,13 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2
                 }
-                else
+                elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU21))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
 
 
@@ -2863,7 +2892,11 @@ param(
         Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
     }
     #Number of Processors - Number of Processor Sockets. 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+    {
+        Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+    }
+    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
     {
         Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets." -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
     }
@@ -2942,6 +2975,7 @@ param(
     #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
     #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/
+    #For Exchange 2019 we recommend a min of 128GB  for Mailbox and 64GB for Edge - https://docs.microsoft.com/en-us/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#operating-system
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and
         $HealthExSvrObj.HardwareInfo.TotalMemory -gt 274877906944)
@@ -2957,6 +2991,18 @@ param(
      $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
     {
         Write-Yellow ("`tPhysical Memory: " + $totalPhysicalMemory + " GB --- Warning: We recommend for the best performance to be scaled at or below 96GB of Memory. However, having higher memory than this has yet to be linked directly to a MAJOR performance issue of a server.")
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and 
+        $HealthExSvrObj.HardwareInfo.TotalMemory -lt 137438953472 -and 
+        $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge)
+    {
+        Write-Yellow("`tPhysical Memory: {0} GB --- Warning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory)
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and 
+        $HealthExSvrObj.HardwareInfo.TotalMemory -lt 68719476736 -and 
+        $HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Edge)
+    {
+        Write-Yellow("`tPhysical Memory: {0} GB --- Warning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory)
     }
     else
     {
