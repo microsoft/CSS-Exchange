@@ -2874,7 +2874,11 @@ param(
         Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
     }
     #Number of Processors - Number of Processor Sockets. 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+    {
+        Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+    }
+    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
     {
         Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets." -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
     }
