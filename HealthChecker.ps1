@@ -2257,6 +2257,33 @@ param(
     Return $ServerLmCompatObject
 }
 
+Function Display-MSExchangeVulnerabilities {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Display-MSExchangeVulnerabilities")
+    Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
+    
+    Write-Grey("`r`nVulnerability Check:")
+
+    #Check for CVE-2018-8581 vulnerability
+    #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+    #Check if valuename DisableLoopbackCheck exists
+
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
+    $RegValue = $RegKey.GetValue("DisableLoopbackCheck")
+    If ($RegValue)
+    {
+        Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
+    }
+    Else
+    {
+        Write-Green("System NOT vulnerable to CVE-2018-8581.")
+    }
+
+}
+
 Function Display-KBHotfixCheckFailSafe {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -3059,6 +3086,12 @@ param(
         Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj
     }
     Display-KBHotFixCompareIssues -HealthExSvrObj $HealthExSvrObj
+
+    #####################
+    #Vulnerability Check#
+    #####################
+
+    Display-MSExchangeVulnerabilities $HealthExSvrObj.ServerName
 
 
     Write-Grey("`r`n`r`n")
