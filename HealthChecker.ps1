@@ -77,18 +77,27 @@
     https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx
     https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName="HealthChecker")]
 param(
-    #Default to use the local computer 
+[Parameter(Mandatory=$false,ParameterSetName="HealthChecker")]
     [string]$Server=($env:COMPUTERNAME),
-    [ValidateScript({-not $_.ToString().EndsWith('\')})]$OutputFilePath = ".",
+[Parameter(Mandatory=$false)]
+    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$OutputFilePath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="MailboxReport")]
     [switch]$MailboxReport,
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
     [switch]$LoadBalancingReport,
-    $CasServerList = $null,
-    $SiteName = $null,
-    [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [array]$CasServerList = $null,
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [string]$SiteName = ([string]::Empty),
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
+    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$XMLDirectoryPath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [switch]$BuildHtmlServersReport,
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [string]$HtmlReportFile="ExchangeAllServersReport.html",
+[Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
     [switch]$DCCoreRatio
 )
 
@@ -535,7 +544,7 @@ param(
         }
         catch 
         {
-            $Script:iErrorExcluded++
+            $Script:ErrorExcluded++
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
@@ -559,7 +568,7 @@ param(
             }
             catch 
             {
-                $Script:iErrorExcluded++
+                $Script:ErrorExcluded++
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -649,7 +658,7 @@ param(
 
 	catch
 	{
-        $Script:iErrorExcluded++
+        $Script:ErrorExcluded++
 		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -814,7 +823,7 @@ param(
         }
         catch 
         {
-            $Script:iErrorExcluded++ 
+            $Script:ErrorExcluded++ 
         }
         finally
         {
@@ -898,7 +907,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:iErrorExcluded++
+            $Script:ErrorExcluded++
         }
         finally 
         {
@@ -924,7 +933,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:iErrorExcluded++
+            $Script:ErrorExcluded++
         }
         finally 
         {
@@ -977,7 +986,7 @@ param(
     catch
     {
         Write-VerboseOutput("Unable to get power plan from the server")
-        $Script:iErrorExcluded++
+        $Script:ErrorExcluded++
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -1100,7 +1109,7 @@ param(
 	}
 	catch
 	{
-        $Script:iErrorExcluded++
+        $Script:ErrorExcluded++
 		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -2032,7 +2041,7 @@ Function Get-CASLoadBalancingReport {
             $CASServers += (Get-ExchangeServer $cas)
         }
     }
-	elseif($SiteName -ne $null)
+	elseif($SiteName -ne [string]::Empty)
 	{
 		Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in " + $SiteName + " will be used in the report.")
 		$CASServers = Get-ExchangeServer | ?{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") -and ($_.Site.Name -eq $SiteName)}
@@ -4064,6 +4073,69 @@ Function Get-ExchnageDCCoreRatio {
 
 }
 
+Function Set-ScriptLogFileLocation {
+param(
+[Parameter(Mandatory=$true)][string]$FileName,
+[Parameter(Mandatory=$false)][bool]$IncludeServerName = $false 
+)
+    $endName = "-{0}.txt" -f $dateTimeStringFormat
+    if($IncludeServerName)
+    {
+        $endName = "-{0}{1}" -f $Script:Server, $endName
+    }
+    
+    $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
+    $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
+}
+
+Function Get-ErrorsThatOccurred {
+
+    if($Error.Count -gt $Script:ErrorStartCount)
+    {
+        Write-Grey(" "); Write-Grey(" ")
+        Function Write-Errors {
+            $index = 0; 
+            "Errors that occurred" | Out-File ($Script:OutputFullPath) -Append
+            ##TODO: break up expected errors vs not ecpected errors 
+            while($index -lt ($Error.Count - $Script:ErrorStartCount))
+            {
+                $Error[$index++] | Out-File ($Script:OutputFullPath) -Append
+            }
+        }
+
+        if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorExcluded)
+        {
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+	        Write-Errors
+        }
+        elseif($Script:VerboseEnabled)
+        {
+            Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
+	        Write-Errors
+        }
+    }
+}
+
+Function LoadBalancingMain {
+
+    Set-ScriptLogFileLocation -FileName "LoadBalancingReport" 
+    Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
+    Write-Green("Client Access Load Balancing Report on " + $date)
+    Get-CASLoadBalancingReport
+    Write-Grey("Output file written to " + $OutputFullPath)
+    Write-Break
+    Write-Break
+
+}
+Function HealthCheckerMain {
+
+    Set-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true 
+    $HealthObject = Build-HealthExchangeServerObject $Server
+    Display-ResultsToScreen $healthObject
+    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+    Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+    Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
+}
 Function Main {
     
     if(-not (Is-Admin))
@@ -4086,33 +4158,14 @@ Function Main {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
         exit 
     }
-    $iErrorStartCount = $Error.Count #useful for debugging 
-    $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorStartCount = $Error.Count #useful for debugging 
+    $Script:ErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
-    $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-    Write-VerboseOutput("Calling: main Script Execution")
 
     if($LoadBalancingReport)
     {
-        [int]$iMajor = (Get-ExchangeServer $Server).AdminDisplayVersion.Major
-        if($iMajor -gt 14)
-        {
-            $OutputFileName = "LoadBalancingReport" + "-" + $dateTimeStringFormat + ".log"
-            $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-            Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
-            Write-Green("Client Access Load Balancing Report on " + $date)
-            Get-CASLoadBalancingReport
-            Write-Grey("Output file written to " + $OutputFullPath)
-            Write-Break
-            Write-Break
-        }
-        else
-        {
-            Write-Yellow("-LoadBalancingReport is only supported for Exchange 2013 and greater")
-        }
-        #Load balancing report only needs to be the thing that runs
+        LoadBalancingMain
         exit
     }
 
@@ -4131,44 +4184,15 @@ Function Main {
         }
     }
 
-   
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
-	$OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-	$OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
-	$HealthObject = Build-HealthExchangeServerObject $Server
-	Display-ResultsToScreen $healthObject 
 	if($MailboxReport)
 	{
-	    Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+        Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
+        Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+        exit
 	}
-	Write-Grey("Output file written to " + $OutputFullPath)
-	if($Error.Count -gt $iErrorStartCount)
-	{
-	    Write-Grey(" ");Write-Grey(" ")
-	    Function Write-Errors {
-	        $index = 0; 
-	        "Errors that occurred" | Out-File ($OutputFullPath) -Append
-	        while($index -lt ($Error.Count - $iErrorStartCount))
-	        {
-	            $Error[$index++] | Out-File ($OutputFullPath) -Append
-	        }
-	    }
-	    #Now to determine if the errors are expected or not 
-	    if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
-	    {
-	        Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
-	        Write-Errors
-	    }
-	    elseif($Script:VerboseEnabled)
-	    {
-	        Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
-	        Write-Errors
-	    }
-        
-	}
-	Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
-	$HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
-	
+
+	HealthCheckerMain
 }
 
 Main 
