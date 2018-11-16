@@ -7,8 +7,7 @@
 	Contributor: Michael Schatte
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
-	Version History:
-	1.31 - 9/21/2016
+	Major Release History:
 	3/30/2015 - Initial Public Release.
     1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
