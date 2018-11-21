@@ -139,6 +139,7 @@ try{
 
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
+using System.Collections;
     namespace HealthChecker
     {
         public class HealthExchangeServerObject
@@ -167,6 +168,7 @@ Add-Type -TypeDefinition @"
             public bool MapiHttpEnabled; //Stored from ogranzation config 
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
+            public Hashtable ExchangeAppPools; 
            
         }
 
@@ -1685,6 +1687,66 @@ param(
 
 }
 
+Function Get-ExchangeAppPoolsInformation {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+    Function Get-ExchangeAppPoolsScriptBlock 
+    {
+        $windir = $env:windir
+        $Script:appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
+
+        $appPools = &$Script:appCmd list apppool 
+        $exchangeAppPools = @() 
+        foreach($appPool in $appPools)
+        {
+            $startIndex = $appPool.IndexOf('"') + 1
+            $appPoolName = $appPool.Substring($startIndex, ($appPool.Substring($startIndex).IndexOf('"')))
+            if($appPoolName.StartsWith("MSExchange"))
+            {
+                $exchangeAppPools += $appPoolName
+            }
+        }
+
+        $exchAppPools = @{}
+
+        foreach($appPool in $exchangeAppPools)
+        {
+            $status = &$Script:appCmd list apppool $appPool /text:state
+            $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
+            $content = Get-Content $config 
+
+            $statusObj = New-Object pscustomobject 
+            $statusObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
+            $statusObj | Add-Member -MemberType NoteProperty -Name "ConfigPath" -Value $config
+            $statusObj | Add-Member -MemberType NoteProperty -Name "Content" -Value $content 
+
+            $exchAppPools.Add($appPool, $statusObj)
+        }
+        return $exchAppPools
+    }
+    $exchangeAppPoolsInfo = @{}
+    if($Machine_Name -ne $env:COMPUTERNAME)
+    {
+        $exchangeAppPoolsInfo = Get-ExchangeAppPoolsScriptBlock
+    }
+    else 
+    {
+        try 
+        {
+            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock}
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
+            $Script:ErrorExcluded++
+        }
+    }
+    return $exchangeAppPoolsInfo
+}
+
 Function Get-MapiFEAppPoolGCMode{
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1861,6 +1923,8 @@ param(
         {
             $exchInfoObject.MapiFEAppGCEnabled = Get-MapiFEAppPoolGCMode -Machine_Name $Machine_Name
         }
+
+        $exchInfoObject.ExchangeAppPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
     }
@@ -3094,6 +3158,21 @@ param(
         Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj
     }
     Display-KBHotFixCompareIssues -HealthExSvrObj $HealthExSvrObj
+
+    ##########################
+    #Exchange Web App GC Mode#
+    ##########################
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        Write-Grey("`r`nExchange Web App Pools GC Server Mode Enabled")
+        foreach($webAppKey in $HealthExSvrObj.ExchangeInformation.ExchangeAppPools.Keys)
+        {
+            $xmlData = [xml]$HealthExSvrObj.ExchangeInformation.ExchangeAppPools[$webAppKey].Content
+            $enabled = $xmlData.Configuration.runtime.gcServer.enabled
+            Write-Grey("`t{0}: {1}" -f $webAppKey, $enabled)
+        }
+    }
 
     #####################
     #Vulnerability Check#
