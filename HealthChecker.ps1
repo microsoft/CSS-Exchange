@@ -314,6 +314,7 @@ using System.Collections;
             public object PowerPlan;       // object to store the power plan information 
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
+            public double MinimumConnectionTimeout; //value used for the RPC minimum connection timeout. 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
             public System.Array HotFixInfo;     //objec to store hotfix information
 			public string HttpProxy;
@@ -1019,6 +1020,9 @@ param(
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
     $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
     $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
+    $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $regKey = $Reg.OpenSubKey("Software\Policies\Microsoft\Windows NT\RPC\")
+    $os_obj.MinimumConnectionTimeout = $regKey.GetValue("MinimumConnectionTimeout")
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
@@ -3139,6 +3143,19 @@ param(
     else
     {
         Write-Green("The TCP KeepAliveTime value is configured optimally (" + $HealthExSvrObj.OSVersion.TCPKeepAlive + ")")
+    }
+    Write-Grey("`r`nRPC Minimum Connection Timeout:")
+    if($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 0)
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/")
+    }
+    elseif($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 120)
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to 120 which is the recommended value.")
+    }
+    else 
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
     }
 
     ###############################
