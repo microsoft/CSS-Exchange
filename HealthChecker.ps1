@@ -1515,7 +1515,7 @@ param(
         Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
         Write-VerboseOutput("Passed: Current Net Version: " + $CurrentNetVersion.ToString())
         Write-VerboseOutput("Passed: Min Support Net Version: " + $MinSupportNetVersion.ToString())
-        Write-VerboseOutput("Passed: Recommnded/Max Net Version: " + $RecommendedNetVersion.ToString())
+        Write-VerboseOutput("Passed: Recommended/Max Net Version: " + $RecommendedNetVersion.ToString())
 
         #If we are on the recommended/supported version of .net then we should be okay 
         if($CurrentNetVersion -eq $RecommendedNetVersion)
