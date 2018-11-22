@@ -3823,7 +3823,7 @@ Function Build-HtmlServerReport {
             <body>
             <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
             <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>
-            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .log file of the Health Checker script results</p>"
+            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .txt file of the Health Checker script results</p>"
     
 
     $HtmlTableHeader = "<p>
@@ -4177,7 +4177,7 @@ param(
 
 Function Get-ExchnageDCCoreRatio {
 
-    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.log" -f $OutputFilePath, $dateTimeStringFormat
+    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
     Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
@@ -4261,7 +4261,7 @@ Function Get-ExchnageDCCoreRatio {
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")    
     }
     
-    $XMLDirectoryPath = $OutputFullPath.Replace(".log",".xml")
+    $XMLDirectoryPath = $OutputFullPath.Replace(".txt",".xml")
     $coreRatioObj | Export-Clixml $XMLDirectoryPath 
     Write-Grey("Output file written to {0}" -f $OutputFullPath)
     Write-Grey("Output XML Object file written to {0}" -f $XMLDirectoryPath)
@@ -4300,7 +4300,7 @@ Function Get-ErrorsThatOccurred {
 
         if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorExcluded)
         {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to dpaul@microsoft.com.")
 	        Write-Errors
         }
         elseif($Script:VerboseEnabled)
