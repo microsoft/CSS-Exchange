@@ -321,6 +321,7 @@ using System.Collections;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
             public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
+            public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
 
         }
 
@@ -477,6 +478,16 @@ Function Is-Admin {
     else {
         return $false
     }
+}
+
+Function Get-CounterSamples {
+param(
+[Parameter(Mandatory=$true)][array]$MachineNames,
+[Parameter(Mandatory=$true)][array]$Counters
+)
+    Write-VerboseOutput("Calling: Get-CounterSamples")
+    $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+    return $counterSamples 
 }
 
 Function Get-OperatingSystemVersion {
@@ -1027,6 +1038,7 @@ param(
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
+    $os_obj.PacketsReceivedDiscarded = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
 
     return $os_obj
@@ -2864,6 +2876,51 @@ param(
     #Network Settings#
     ##################
 
+    Function Write-NICPacketReceivedDiscarded{
+    param(
+    [Parameter(Mandatory=$true)]$NICInstance 
+    )
+        $cookedValue = 0
+        $foundCounter = $false 
+        foreach($instance in $HealthExSvrObj.OSVersion.PacketsReceivedDiscarded)
+        {
+            $instancePath = $instance.Path 
+            $startIndex = $instancePath.IndexOf("(") + 1
+            $charLength = $instancePath.Substring($startIndex, ($instancePath.IndexOf(")") - $startIndex)).Length
+            $instanceName = $instancePath.Substring($startIndex, $charLength)
+            $possibleInstanceName = $NICInstance.Replace("#","_")
+            if($instanceName -eq $NICInstance -or $instanceName -eq $possibleInstanceName)
+            {
+                $cookedValue = $instance.CookedValue
+                $foundCounter = $true 
+                break 
+            }
+        }
+        if($foundCounter)
+        {
+            if($cookedValue -eq 0)
+            {
+                Write-Green("`t`tPackets Received Discarded: 0")
+            }
+            elseif($cookedValue -lt 1000)
+            {
+                Write-Yellow("`t`tPackets Received Discarded: {0} - Warning: This value should be at 0." -f $cookedValue)
+            }
+            else 
+            {
+                Write-Red("`t`tPackets Received Discarded: {0} - Error: This value should be at 0. We are also seeing this value being rather high so this can cause a performance impacted on a system." -f $cookedValue)    
+            }
+            if($NICInstance -like "*vmxnet3*" -and $cookedValue -gt 0)
+            {
+                Write-Yellow("`t`t`tKnown Issue with vmxnet3: 'Large packet loss at the guest operating system level on the VMXNET3 vNIC in ESXi (2039495)' - https://kb.vmware.com/s/article/2039495")
+            }
+        }
+        else 
+        {
+            Write-VerboseOutput("Could not find counter data for '{0}'" -f $NICInstance)
+        }
+    }
+
     Write-Grey("NIC settings per active adapter:")
     if($HealthExSvrObj.OSVersion.OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
     {
@@ -2896,7 +2953,7 @@ param(
             {
                 Write-Yellow("`t`tRSS: Disabled --- Warning: Enabling RSS is recommended.")
             }
-            
+            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description            
         }
 
     }
@@ -2907,15 +2964,16 @@ param(
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-            Write-Grey("`tInterface Description: " + $adapter.Description)
+            Write-Grey("`tInterface Description: {0}" -f $adapter.Description)
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                Write-Grey("`tLink Speed: " + $adapter.LinkSpeed)
+                Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
             else 
             {
-                Write-Yellow("`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
+                Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
             }
+            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description
         }
         
     }
