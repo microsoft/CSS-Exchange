@@ -2995,9 +2995,17 @@ param(
         Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
     }
     #Number of Processors - Number of Processor Sockets. 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+    if($HealthExSvrObj.HardwareInfo.ServerType -ne [HealthChecker.ServerType]::Physical)
     {
-        Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+        Write-Grey("`tNumber of Processors: {0}" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+        {
+            Write-Grey("`t`tNote: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html")
+        }
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
+        {
+            Write-Grey("`t`tNote: If you are running into a CPU constraint and have a case open with Microsoft Premier Support, feel free to have the case owner reach out to 'David Paulson (Exchange)' if they feel it is needed.")
+        }
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
     {
