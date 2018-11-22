@@ -3182,7 +3182,7 @@ param(
 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        Write-Grey("`r`nExchange Web App Pools GC Server Mode Enabled")
+        Write-Grey("`r`nExchange Web App Pools - GC Server Mode Enabled:")
         foreach($webAppKey in $HealthExSvrObj.ExchangeInformation.ExchangeAppPools.Keys)
         {
             $xmlData = [xml]$HealthExSvrObj.ExchangeInformation.ExchangeAppPools[$webAppKey].Content
