@@ -4436,5 +4436,8 @@ try
 }
 finally 
 {
-    $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+    if($Script:VerboseEnabled)
+    {
+        $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+    }
 }
