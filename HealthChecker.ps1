@@ -128,7 +128,7 @@ Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/vi
 if($PSBoundParameters["Verbose"]){
     #Write verose output in cyan since we already use yellow for warnings 
     $Script:VerboseEnabled = $true
-    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor #ToDo add a way to add the default setings back 
+    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor 
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
@@ -4300,7 +4300,6 @@ Function Get-ErrorsThatOccurred {
         Function Write-Errors {
             $index = 0; 
             "Errors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
-            ##TODO: break up expected errors vs not ecpected errors 
             while($index -lt ($Error.Count - $Script:ErrorStartCount))
             {
                 #for 2008R2 can't use .Contains on an array object, need to do something else. 
@@ -4429,4 +4428,11 @@ Function Main {
 	HealthCheckerMain
 }
 
-Main 
+try 
+{
+    Main 
+}
+finally 
+{
+    $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+}
