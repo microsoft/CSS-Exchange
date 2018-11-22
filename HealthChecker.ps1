@@ -567,6 +567,7 @@ param(
             {
                 [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
                 $nicObject.Description = $adapter.Description
+                $nicObject.Name = $adapter.Name
                 $nicObject.LinkSpeed = $adapter.Speed
                 $nicObject.NICObject = $adapter 
                 $aNICObjects += $nicObject
@@ -608,6 +609,7 @@ param(
         {
             [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
             $nicObject.Description = $adapter.Description
+            $nicObject.Name = $adapter.Name
             $nicObject.LinkSpeed = $adapter.Speed
             $nicObject.NICObject = $adapter 
             $aNICObjects += $nicObject
@@ -2973,7 +2975,7 @@ param(
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-            Write-Grey("`tInterface Description: {0}" -f $adapter.Description)
+            Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
                 Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
