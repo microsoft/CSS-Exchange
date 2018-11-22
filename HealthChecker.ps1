@@ -312,6 +312,7 @@ using System.Collections;
             public bool HighPerformanceSet;  //True/False for the power plan setting being set correctly 
             public string PowerPlanSetting; //string value for the power plan setting being set correctly 
             public object PowerPlan;       // object to store the power plan information 
+            public System.Array NetworkAdaptersConfiguration; // Stores the Win32_NetworkAdapterConfiguration for the server. 
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
             public double MinimumConnectionTimeout; //value used for the RPC minimum connection timeout. 
@@ -322,6 +323,8 @@ using System.Collections;
             public ServerLmCompatibilityLevel LmCompat;
             public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
             public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
+            public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
+            public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
 
         }
 
@@ -347,7 +350,8 @@ using System.Collections;
             public string DriverVersion; // version of the driver that we are on 
             public string RSSEnabled;  //bool to determine if RSS is enabled 
             public string Name;        //name of the adapter 
-            public object NICObject; //objec to store the adapter info 
+            public object NICObject; //object to store the adapter info 
+            public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
              
         }
 
@@ -1035,8 +1039,42 @@ param(
     }
     $os_obj.PowerPlan = $plan 
     $os_obj.PageFile = (Get-PageFileObject -Machine_Name $Machine_Name)
-    $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion) 
-
+    $os_obj.NetworkAdaptersConfiguration = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True"
+    $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion)
+    foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
+    {
+        Write-VerboseOutput("Working on {0}" -f $adapter.Description)
+        $settingID = $adapter.SettingID
+        Write-VerboseOutput("SettingID: {0}" -f $settingID)
+        $IPv6Enabled = $false 
+        foreach($address in $adapter.IPAddress)
+        {
+            if($address.Contains(":"))
+            {
+                Write-VerboseOutput("Determined IPv6 enabled")
+                $IPv6Enabled = $true 
+            }
+        }
+        Write-VerboseOutput("Going to try to find the Network Adapter that goes with this adapter configuration")
+        foreach($nicAdapter in $os_obj.NetworkAdapters)
+        {
+            $nicObject = $nicAdapter.NICObject
+            Write-VerboseOutput("Checking against '{0}'" -f $nicAdapter.Description)
+            Write-VerboseOutput("GUID: '{0}' InterfaceGUID: '{1}'" -f $nicObject.GUID, $nicObject.InterfaceGUID)
+            if($settingID -eq $nicObject.GUID -or $settingID -eq $nicObject.InterfaceGuid)
+            {
+                Write-VerboseOutput("Found setting the ipv6enabled: {0}" -f $IPv6Enabled)
+                $nicAdapter.IPv6Enabled = $IPv6Enabled 
+            }
+        }
+        if(!$IPv6Enabled)
+        {
+            $os_obj.IPv6DisabledOnNICs = $true 
+        }
+    }
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters")
+    $os_obj.DisabledComponents = $RegKey.GetValue("DisabledComponents")
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
     $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
     $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
@@ -2964,13 +3002,21 @@ param(
             {
                 Write-Yellow("`t`tRSS: Disabled --- Warning: Enabling RSS is recommended.")
             }
-            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description            
+            if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
+            {
+                Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
+            }
+            else 
+            {
+                Write-Grey("`t`tIPv6Enabled: {0}" -f $adapter.IPv6Enabled)
+            }
+            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description          
+
         }
 
     }
     else
     {
-        Write-Grey("NIC settings per active adapter:")
         Write-Yellow("`tMore detailed NIC settings can be detected if both the local and target server are running on Windows 2012 R2 or later.")
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
@@ -2984,6 +3030,14 @@ param(
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
             }
+            if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
+            {
+                Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
+            }
+            else 
+            {
+                Write-Grey("`t`tIPv6Enabled: {0}" -f $adapter.IPv6Enabled)
+            }
             Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description
         }
         
@@ -2995,7 +3049,11 @@ param(
             Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR")
         }
     }
-
+    if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $HealthExSvrObj.OSVersion.IPv6DisabledOnNICs)
+    {
+        Write-Break
+        Write-Red("Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://blogs.technet.microsoft.com/rmilne/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way/ `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $HealthExSvrObj.OSVersion.DisabledComponents )
+    }
     #######################
     #Processor Information#
     #######################
