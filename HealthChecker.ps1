@@ -558,7 +558,8 @@ param(
         }
         catch 
         {
-            $Script:ErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
@@ -582,7 +583,8 @@ param(
             }
             catch 
             {
-                $Script:ErrorExcluded++
+                $Script:ErrorsExcludedCount++
+                $Script:ErrorsExcluded += $Error[0]
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -672,7 +674,8 @@ param(
 
 	catch
 	{
-        $Script:ErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
 		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -837,7 +840,8 @@ param(
         }
         catch 
         {
-            $Script:ErrorExcluded++ 
+            $Script:ErrorsExcludedCount++ 
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally
         {
@@ -921,7 +925,8 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally 
         {
@@ -947,7 +952,8 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally 
         {
@@ -1000,7 +1006,8 @@ param(
     catch
     {
         Write-VerboseOutput("Unable to get power plan from the server")
-        $Script:ErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -1127,7 +1134,8 @@ param(
 	}
 	catch
 	{
-        $Script:ErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
 		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -1757,7 +1765,8 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
-            $Script:ErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
         }
     }
     return $exchangeAppPoolsInfo
@@ -4290,24 +4299,48 @@ Function Get-ErrorsThatOccurred {
         Write-Grey(" "); Write-Grey(" ")
         Function Write-Errors {
             $index = 0; 
-            "Errors that occurred" | Out-File ($Script:OutputFullPath) -Append
+            "Errors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
             ##TODO: break up expected errors vs not ecpected errors 
             while($index -lt ($Error.Count - $Script:ErrorStartCount))
             {
-                $Error[$index++] | Out-File ($Script:OutputFullPath) -Append
+                #for 2008R2 can't use .Contains on an array object, need to do something else. 
+                $goodError = $false 
+                foreach($okayErrors in $Script:ErrorsExcluded)
+                {
+                    if($okayErrors.Equals($Error[$index]))
+                    {
+                        $goodError = $true 
+                        break
+                    }
+                }
+                if(!($goodError))
+                {
+                    $Error[$index] | Out-File ($Script:OutputFullPath) -Append
+                }
+                $index++
+            }
+            Write-Grey(" "); Write-Grey(" ")
+            "Errors that were handled" | Out-File ($Script:OutputFullPath) -Append
+            foreach($okayErrors in $Script:ErrorsExcluded)
+            {
+                $okayErrors | Out-File ($Script:OutputFullPath) -Append
             }
         }
 
-        if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorExcluded)
+        if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
         {
             Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to dpaul@microsoft.com.")
 	        Write-Errors
         }
         elseif($Script:VerboseEnabled)
         {
-            Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
+            Write-VerboseOutput("All errors that occurred were in try catch blocks and was handled correctly.")
 	        Write-Errors
         }
+    }
+    else 
+    {
+        Write-VerboseOutput("No errors occurred in the script.")
     }
 }
 
@@ -4318,6 +4351,7 @@ Function LoadBalancingMain {
     Write-Green("Client Access Load Balancing Report on " + $date)
     Get-CASLoadBalancingReport
     Write-Grey("Output file written to " + $OutputFullPath)
+    Get-ErrorsThatOccurred
     Write-Break
     Write-Break
 
@@ -4327,6 +4361,7 @@ Function HealthCheckerMain {
     Set-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true 
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
+    Get-ErrorsThatOccurred
     $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
@@ -4343,6 +4378,7 @@ Function Main {
     if($BuildHtmlServersReport)
     {
         Build-HtmlServerReport
+        Get-ErrorsThatOccurred
         sleep 2;
         exit
     }
@@ -4354,7 +4390,8 @@ Function Main {
         exit 
     }
     $Script:ErrorStartCount = $Error.Count #useful for debugging 
-    $Script:ErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorsExcluded = @() 
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
@@ -4371,6 +4408,7 @@ Function Main {
         try 
         {
             Get-ExchnageDCCoreRatio
+            Get-ErrorsThatOccurred
         }
         finally
         {
@@ -4384,6 +4422,7 @@ Function Main {
         Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
         Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+        Get-ErrorsThatOccurred
         exit
 	}
 
