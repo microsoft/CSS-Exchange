@@ -19,9 +19,9 @@
 	Checks the target Exchange server for various configuration recommendations from the Exchange product group.
 .DESCRIPTION
 	This script checks the Exchange server for various configuration recommendations outlined in the 
-	"Exchange 2013 Performance Recommendations" section on TechNet, found here:
+	"Exchange 2013 Performance Recommendations" section on Microsoft Docs, found here:
 
-	https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx
+	https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
 
 	Informational items are reported in Grey.  Settings found to match the recommendations are
 	reported in Green.  Warnings are reported in yellow.  Settings that can cause performance
@@ -74,8 +74,9 @@
     .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
     Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
 .LINK
-    https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx
-    https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq
+    https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
+    https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization
+    https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019#requirements-for-hardware-virtualization
 #>
 [CmdletBinding(DefaultParameterSetName="HealthChecker")]
 param(
@@ -119,7 +120,7 @@ VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmwar
 Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
 
 For further details, please review the virtualization recommendations on TechNet at the following locations: 
-Exchange 2013: https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq.  
+Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.  
 Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019. 
 
 "@
@@ -4244,10 +4245,10 @@ param(
     return $returnObj
 }
 
-Function Get-ExchnageDCCoreRatio {
+Function Get-ExchangeDCCoreRatio {
 
     $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
-    Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
+    Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
     try 
@@ -4466,7 +4467,7 @@ Function Main {
         $ErrorActionPreference = "Stop"
         try 
         {
-            Get-ExchnageDCCoreRatio
+            Get-ExchangeDCCoreRatio
             Get-ErrorsThatOccurred
         }
         finally
