@@ -4245,10 +4245,10 @@ param(
     return $returnObj
 }
 
-Function Get-ExchnageDCCoreRatio {
+Function Get-ExchangeDCCoreRatio {
 
     $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
-    Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
+    Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
     try 
@@ -4467,7 +4467,7 @@ Function Main {
         $ErrorActionPreference = "Stop"
         try 
         {
-            Get-ExchnageDCCoreRatio
+            Get-ExchangeDCCoreRatio
             Get-ErrorsThatOccurred
         }
         finally
