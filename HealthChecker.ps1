@@ -7,8 +7,7 @@
 	Contributor: Michael Schatte
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
-	Version History:
-	1.31 - 9/21/2016
+	Major Release History:
 	3/30/2015 - Initial Public Release.
     1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
@@ -20,9 +19,9 @@
 	Checks the target Exchange server for various configuration recommendations from the Exchange product group.
 .DESCRIPTION
 	This script checks the Exchange server for various configuration recommendations outlined in the 
-	"Exchange 2013 Performance Recommendations" section on TechNet, found here:
+	"Exchange 2013 Performance Recommendations" section on Microsoft Docs, found here:
 
-	https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx
+	https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
 
 	Informational items are reported in Grey.  Settings found to match the recommendations are
 	reported in Green.  Warnings are reported in yellow.  Settings that can cause performance
@@ -75,21 +74,31 @@
     .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
     Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
 .LINK
-    https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx
-    https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq
+    https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
+    https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization
+    https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019#requirements-for-hardware-virtualization
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName="HealthChecker")]
 param(
-    #Default to use the local computer 
+[Parameter(Mandatory=$false,ParameterSetName="HealthChecker")]
     [string]$Server=($env:COMPUTERNAME),
-    [ValidateScript({-not $_.ToString().EndsWith('\')})]$OutputFilePath = ".",
+[Parameter(Mandatory=$false)]
+    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$OutputFilePath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="MailboxReport")]
     [switch]$MailboxReport,
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
     [switch]$LoadBalancingReport,
-    $CasServerList = $null,
-    $SiteName = $null,
-    [ValidateScript({-not $_.ToString().EndsWith('\')})]$XMLDirectoryPath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [array]$CasServerList = $null,
+[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [string]$SiteName = ([string]::Empty),
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
+    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$XMLDirectoryPath = ".",
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [switch]$BuildHtmlServersReport,
+[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [string]$HtmlReportFile="ExchangeAllServersReport.html",
+[Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
     [switch]$DCCoreRatio
 )
 
@@ -97,7 +106,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.27"
+$healthCheckerVersion = "2.28"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -111,7 +120,7 @@ VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmwar
 Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
 
 For further details, please review the virtualization recommendations on TechNet at the following locations: 
-Exchange 2013: https://technet.microsoft.com/en-us/library/36184b2f-4cd9-48f8-b100-867fe4c6b579(v=exchg.150)#BKMK_Prereq.  
+Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.  
 Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019. 
 
 "@
@@ -120,7 +129,7 @@ Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/vi
 if($PSBoundParameters["Verbose"]){
     #Write verose output in cyan since we already use yellow for warnings 
     $Script:VerboseEnabled = $true
-    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor #ToDo add a way to add the default setings back 
+    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor 
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
@@ -131,6 +140,7 @@ try{
 
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
+using System.Collections;
     namespace HealthChecker
     {
         public class HealthExchangeServerObject
@@ -159,6 +169,7 @@ Add-Type -TypeDefinition @"
             public bool MapiHttpEnabled; //Stored from ogranzation config 
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
+            public Hashtable ExchangeAppPools; 
            
         }
 
@@ -302,14 +313,19 @@ Add-Type -TypeDefinition @"
             public bool HighPerformanceSet;  //True/False for the power plan setting being set correctly 
             public string PowerPlanSetting; //string value for the power plan setting being set correctly 
             public object PowerPlan;       // object to store the power plan information 
+            public System.Array NetworkAdaptersConfiguration; // Stores the Win32_NetworkAdapterConfiguration for the server. 
             public System.Array NetworkAdapters; //array to keep all the nics on the servers 
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
+            public double MinimumConnectionTimeout; //value used for the RPC minimum connection timeout. 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
             public System.Array HotFixInfo;     //objec to store hotfix information
 			public string HttpProxy;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
             public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
+            public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
+            public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
+            public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
 
         }
 
@@ -335,7 +351,8 @@ Add-Type -TypeDefinition @"
             public string DriverVersion; // version of the driver that we are on 
             public string RSSEnabled;  //bool to determine if RSS is enabled 
             public string Name;        //name of the adapter 
-            public object NICObject; //objec to store the adapter info 
+            public object NICObject; //object to store the adapter info 
+            public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
              
         }
 
@@ -468,6 +485,16 @@ Function Is-Admin {
     }
 }
 
+Function Get-CounterSamples {
+param(
+[Parameter(Mandatory=$true)][array]$MachineNames,
+[Parameter(Mandatory=$true)][array]$Counters
+)
+    Write-VerboseOutput("Calling: Get-CounterSamples")
+    $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+    return $counterSamples 
+}
+
 Function Get-OperatingSystemVersion {
 param(
 [Parameter(Mandatory=$true)][string]$OS_Version
@@ -536,7 +563,8 @@ param(
         }
         catch 
         {
-            $Script:iErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
@@ -544,6 +572,7 @@ param(
             {
                 [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
                 $nicObject.Description = $adapter.Description
+                $nicObject.Name = $adapter.Name
                 $nicObject.LinkSpeed = $adapter.Speed
                 $nicObject.NICObject = $adapter 
                 $aNICObjects += $nicObject
@@ -560,7 +589,8 @@ param(
             }
             catch 
             {
-                $Script:iErrorExcluded++
+                $Script:ErrorsExcludedCount++
+                $Script:ErrorsExcluded += $Error[0]
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -584,6 +614,7 @@ param(
         {
             [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
             $nicObject.Description = $adapter.Description
+            $nicObject.Name = $adapter.Name
             $nicObject.LinkSpeed = $adapter.Speed
             $nicObject.NICObject = $adapter 
             $aNICObjects += $nicObject
@@ -650,7 +681,8 @@ param(
 
 	catch
 	{
-        $Script:iErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
 		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -815,7 +847,8 @@ param(
         }
         catch 
         {
-            $Script:iErrorExcluded++ 
+            $Script:ErrorsExcludedCount++ 
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally
         {
@@ -899,7 +932,8 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:iErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally 
         {
@@ -925,7 +959,8 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:iErrorExcluded++
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
         }
         finally 
         {
@@ -978,7 +1013,8 @@ param(
     catch
     {
         Write-VerboseOutput("Unable to get power plan from the server")
-        $Script:iErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -1004,15 +1040,53 @@ param(
     }
     $os_obj.PowerPlan = $plan 
     $os_obj.PageFile = (Get-PageFileObject -Machine_Name $Machine_Name)
-    $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion) 
-
+    $os_obj.NetworkAdaptersConfiguration = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True"
+    $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion)
+    foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
+    {
+        Write-VerboseOutput("Working on {0}" -f $adapter.Description)
+        $settingID = $adapter.SettingID
+        Write-VerboseOutput("SettingID: {0}" -f $settingID)
+        $IPv6Enabled = $false 
+        foreach($address in $adapter.IPAddress)
+        {
+            if($address.Contains(":"))
+            {
+                Write-VerboseOutput("Determined IPv6 enabled")
+                $IPv6Enabled = $true 
+            }
+        }
+        Write-VerboseOutput("Going to try to find the Network Adapter that goes with this adapter configuration")
+        foreach($nicAdapter in $os_obj.NetworkAdapters)
+        {
+            $nicObject = $nicAdapter.NICObject
+            Write-VerboseOutput("Checking against '{0}'" -f $nicAdapter.Description)
+            Write-VerboseOutput("GUID: '{0}' InterfaceGUID: '{1}'" -f $nicObject.GUID, $nicObject.InterfaceGUID)
+            if($settingID -eq $nicObject.GUID -or $settingID -eq $nicObject.InterfaceGuid)
+            {
+                Write-VerboseOutput("Found setting the ipv6enabled: {0}" -f $IPv6Enabled)
+                $nicAdapter.IPv6Enabled = $IPv6Enabled 
+            }
+        }
+        if(!$IPv6Enabled)
+        {
+            $os_obj.IPv6DisabledOnNICs = $true 
+        }
+    }
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters")
+    $os_obj.DisabledComponents = $RegKey.GetValue("DisabledComponents")
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
     $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
     $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
+    $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $regKey = $Reg.OpenSubKey("Software\Policies\Microsoft\Windows NT\RPC\")
+    $os_obj.MinimumConnectionTimeout = $regKey.GetValue("MinimumConnectionTimeout")
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
+    $os_obj.PacketsReceivedDiscarded = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
 
     return $os_obj
@@ -1101,7 +1175,8 @@ param(
 	}
 	catch
 	{
-        $Script:iErrorExcluded++
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
 		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -1507,7 +1582,7 @@ param(
         Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
         Write-VerboseOutput("Passed: Current Net Version: " + $CurrentNetVersion.ToString())
         Write-VerboseOutput("Passed: Min Support Net Version: " + $MinSupportNetVersion.ToString())
-        Write-VerboseOutput("Passed: Recommnded/Max Net Version: " + $RecommendedNetVersion.ToString())
+        Write-VerboseOutput("Passed: Recommended/Max Net Version: " + $RecommendedNetVersion.ToString())
 
         #If we are on the recommended/supported version of .net then we should be okay 
         if($CurrentNetVersion -eq $RecommendedNetVersion)
@@ -1675,6 +1750,67 @@ param(
 
     return $NetCheckObj
 
+}
+
+Function Get-ExchangeAppPoolsInformation {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+    Function Get-ExchangeAppPoolsScriptBlock 
+    {
+        $windir = $env:windir
+        $Script:appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
+
+        $appPools = &$Script:appCmd list apppool 
+        $exchangeAppPools = @() 
+        foreach($appPool in $appPools)
+        {
+            $startIndex = $appPool.IndexOf('"') + 1
+            $appPoolName = $appPool.Substring($startIndex, ($appPool.Substring($startIndex).IndexOf('"')))
+            if($appPoolName.StartsWith("MSExchange"))
+            {
+                $exchangeAppPools += $appPoolName
+            }
+        }
+
+        $exchAppPools = @{}
+
+        foreach($appPool in $exchangeAppPools)
+        {
+            $status = &$Script:appCmd list apppool $appPool /text:state
+            $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
+            $content = Get-Content $config 
+
+            $statusObj = New-Object pscustomobject 
+            $statusObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
+            $statusObj | Add-Member -MemberType NoteProperty -Name "ConfigPath" -Value $config
+            $statusObj | Add-Member -MemberType NoteProperty -Name "Content" -Value $content 
+
+            $exchAppPools.Add($appPool, $statusObj)
+        }
+        return $exchAppPools
+    }
+    $exchangeAppPoolsInfo = @{}
+    if($Machine_Name -ne $env:COMPUTERNAME)
+    {
+        $exchangeAppPoolsInfo = Get-ExchangeAppPoolsScriptBlock
+    }
+    else 
+    {
+        try 
+        {
+            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock}
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
+            $Script:ErrorsExcludedCount++
+            $Script:ErrorsExcluded += $Error[0]
+        }
+    }
+    return $exchangeAppPoolsInfo
 }
 
 Function Get-MapiFEAppPoolGCMode{
@@ -1853,6 +1989,8 @@ param(
         {
             $exchInfoObject.MapiFEAppGCEnabled = Get-MapiFEAppPoolGCMode -Machine_Name $Machine_Name
         }
+
+        $exchInfoObject.ExchangeAppPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
     }
@@ -2033,7 +2171,7 @@ Function Get-CASLoadBalancingReport {
             $CASServers += (Get-ExchangeServer $cas)
         }
     }
-	elseif($SiteName -ne $null)
+	elseif($SiteName -ne [string]::Empty)
 	{
 		Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in " + $SiteName + " will be used in the report.")
 		$CASServers = Get-ExchangeServer | ?{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") -and ($_.Site.Name -eq $SiteName)}
@@ -2255,6 +2393,33 @@ param(
     }
 
     Return $ServerLmCompatObject
+}
+
+Function Display-MSExchangeVulnerabilities {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Display-MSExchangeVulnerabilities")
+    Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
+    
+    Write-Grey("`r`nVulnerability Check:")
+
+    #Check for CVE-2018-8581 vulnerability
+    #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+    #Check if valuename DisableLoopbackCheck exists
+
+    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
+    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
+    $RegValue = $RegKey.GetValue("DisableLoopbackCheck")
+    If ($RegValue)
+    {
+        Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
+    }
+    Else
+    {
+        Write-Green("System NOT vulnerable to CVE-2018-8581.")
+    }
+
 }
 
 Function Display-KBHotfixCheckFailSafe {
@@ -2761,6 +2926,51 @@ param(
     #Network Settings#
     ##################
 
+    Function Write-NICPacketReceivedDiscarded{
+    param(
+    [Parameter(Mandatory=$true)]$NICInstance 
+    )
+        $cookedValue = 0
+        $foundCounter = $false 
+        foreach($instance in $HealthExSvrObj.OSVersion.PacketsReceivedDiscarded)
+        {
+            $instancePath = $instance.Path 
+            $startIndex = $instancePath.IndexOf("(") + 1
+            $charLength = $instancePath.Substring($startIndex, ($instancePath.IndexOf(")") - $startIndex)).Length
+            $instanceName = $instancePath.Substring($startIndex, $charLength)
+            $possibleInstanceName = $NICInstance.Replace("#","_")
+            if($instanceName -eq $NICInstance -or $instanceName -eq $possibleInstanceName)
+            {
+                $cookedValue = $instance.CookedValue
+                $foundCounter = $true 
+                break 
+            }
+        }
+        if($foundCounter)
+        {
+            if($cookedValue -eq 0)
+            {
+                Write-Green("`t`tPackets Received Discarded: 0")
+            }
+            elseif($cookedValue -lt 1000)
+            {
+                Write-Yellow("`t`tPackets Received Discarded: {0} - Warning: This value should be at 0." -f $cookedValue)
+            }
+            else 
+            {
+                Write-Red("`t`tPackets Received Discarded: {0} - Error: This value should be at 0. We are also seeing this value being rather high so this can cause a performance impacted on a system." -f $cookedValue)    
+            }
+            if($NICInstance -like "*vmxnet3*" -and $cookedValue -gt 0)
+            {
+                Write-Yellow("`t`t`tKnown Issue with vmxnet3: 'Large packet loss at the guest operating system level on the VMXNET3 vNIC in ESXi (2039495)' - https://kb.vmware.com/s/article/2039495")
+            }
+        }
+        else 
+        {
+            Write-VerboseOutput("Could not find counter data for '{0}'" -f $NICInstance)
+        }
+    }
+
     Write-Grey("NIC settings per active adapter:")
     if($HealthExSvrObj.OSVersion.OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
     {
@@ -2793,26 +3003,43 @@ param(
             {
                 Write-Yellow("`t`tRSS: Disabled --- Warning: Enabling RSS is recommended.")
             }
-            
+            if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
+            {
+                Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
+            }
+            else 
+            {
+                Write-Grey("`t`tIPv6Enabled: {0}" -f $adapter.IPv6Enabled)
+            }
+            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description          
+
         }
 
     }
     else
     {
-        Write-Grey("NIC settings per active adapter:")
         Write-Yellow("`tMore detailed NIC settings can be detected if both the local and target server are running on Windows 2012 R2 or later.")
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-            Write-Grey("`tInterface Description: " + $adapter.Description)
+            Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                Write-Grey("`tLink Speed: " + $adapter.LinkSpeed)
+                Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
             else 
             {
-                Write-Yellow("`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
+                Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
             }
+            if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
+            {
+                Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
+            }
+            else 
+            {
+                Write-Grey("`t`tIPv6Enabled: {0}" -f $adapter.IPv6Enabled)
+            }
+            Write-NICPacketReceivedDiscarded -NICInstance $adapter.Description
         }
         
     }
@@ -2823,7 +3050,11 @@ param(
             Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR")
         }
     }
-
+    if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $HealthExSvrObj.OSVersion.IPv6DisabledOnNICs)
+    {
+        Write-Break
+        Write-Red("Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://blogs.technet.microsoft.com/rmilne/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way/ `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $HealthExSvrObj.OSVersion.DisabledComponents )
+    }
     #######################
     #Processor Information#
     #######################
@@ -2892,9 +3123,17 @@ param(
         Check-MaxCoresCount -HealthExSvrObj $HealthExSvrObj
     }
     #Number of Processors - Number of Processor Sockets. 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+    if($HealthExSvrObj.HardwareInfo.ServerType -ne [HealthChecker.ServerType]::Physical)
     {
-        Write-Red("`tNumber of Processors: {0} - Error: We recommend only having 2 Processor Sockets. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+        Write-Grey("`tNumber of Processors: {0}" -f $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors)
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2 -and $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare)
+        {
+            Write-Grey("`t`tNote: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html")
+        }
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
+        {
+            Write-Grey("`t`tNote: If you are running into a CPU constraint and have a case open with Microsoft Premier Support, feel free to have the case owner reach out to 'David Paulson (Exchange)' if they feel it is needed.")
+        }
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors -gt 2)
     {
@@ -3041,6 +3280,19 @@ param(
     {
         Write-Green("The TCP KeepAliveTime value is configured optimally (" + $HealthExSvrObj.OSVersion.TCPKeepAlive + ")")
     }
+    Write-Grey("`r`nRPC Minimum Connection Timeout:")
+    if($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 0)
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/")
+    }
+    elseif($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 120)
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to 120 which is the recommended value.")
+    }
+    else 
+    {
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
+    }
 
     ###############################
 	#LmCompatibilityLevel Settings#
@@ -3059,6 +3311,27 @@ param(
         Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj
     }
     Display-KBHotFixCompareIssues -HealthExSvrObj $HealthExSvrObj
+
+    ##########################
+    #Exchange Web App GC Mode#
+    ##########################
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        Write-Grey("`r`nExchange Web App Pools - GC Server Mode Enabled:")
+        foreach($webAppKey in $HealthExSvrObj.ExchangeInformation.ExchangeAppPools.Keys)
+        {
+            $xmlData = [xml]$HealthExSvrObj.ExchangeInformation.ExchangeAppPools[$webAppKey].Content
+            $enabled = $xmlData.Configuration.runtime.gcServer.enabled
+            Write-Grey("`t{0}: {1}" -f $webAppKey, $enabled)
+        }
+    }
+
+    #####################
+    #Vulnerability Check#
+    #####################
+
+    Display-MSExchangeVulnerabilities $HealthExSvrObj.ServerName
 
 
     Write-Grey("`r`n`r`n")
@@ -3620,7 +3893,7 @@ Function Build-HtmlServerReport {
             <body>
             <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
             <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>
-            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .log file of the Health Checker script results</p>"
+            <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .txt file of the Health Checker script results</p>"
     
 
     $HtmlTableHeader = "<p>
@@ -3972,10 +4245,10 @@ param(
     return $returnObj
 }
 
-Function Get-ExchnageDCCoreRatio {
+Function Get-ExchangeDCCoreRatio {
 
-    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.log" -f $OutputFilePath, $dateTimeStringFormat
-    Write-VerboseOutput("Calling: Get-ExchnageDCCoreRatio")
+    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
+    Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
     try 
@@ -4058,13 +4331,101 @@ Function Get-ExchnageDCCoreRatio {
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")    
     }
     
-    $XMLDirectoryPath = $OutputFullPath.Replace(".log",".xml")
+    $XMLDirectoryPath = $OutputFullPath.Replace(".txt",".xml")
     $coreRatioObj | Export-Clixml $XMLDirectoryPath 
     Write-Grey("Output file written to {0}" -f $OutputFullPath)
     Write-Grey("Output XML Object file written to {0}" -f $XMLDirectoryPath)
 
 }
 
+Function Set-ScriptLogFileLocation {
+param(
+[Parameter(Mandatory=$true)][string]$FileName,
+[Parameter(Mandatory=$false)][bool]$IncludeServerName = $false 
+)
+    $endName = "-{0}.txt" -f $dateTimeStringFormat
+    if($IncludeServerName)
+    {
+        $endName = "-{0}{1}" -f $Script:Server, $endName
+    }
+    
+    $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
+    $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
+}
+
+Function Get-ErrorsThatOccurred {
+
+    if($Error.Count -gt $Script:ErrorStartCount)
+    {
+        Write-Grey(" "); Write-Grey(" ")
+        Function Write-Errors {
+            $index = 0; 
+            "Errors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
+            while($index -lt ($Error.Count - $Script:ErrorStartCount))
+            {
+                #for 2008R2 can't use .Contains on an array object, need to do something else. 
+                $goodError = $false 
+                foreach($okayErrors in $Script:ErrorsExcluded)
+                {
+                    if($okayErrors.Equals($Error[$index]))
+                    {
+                        $goodError = $true 
+                        break
+                    }
+                }
+                if(!($goodError))
+                {
+                    $Error[$index] | Out-File ($Script:OutputFullPath) -Append
+                }
+                $index++
+            }
+            Write-Grey(" "); Write-Grey(" ")
+            "Errors that were handled" | Out-File ($Script:OutputFullPath) -Append
+            foreach($okayErrors in $Script:ErrorsExcluded)
+            {
+                $okayErrors | Out-File ($Script:OutputFullPath) -Append
+            }
+        }
+
+        if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
+        {
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to dpaul@microsoft.com.")
+	        Write-Errors
+        }
+        elseif($Script:VerboseEnabled)
+        {
+            Write-VerboseOutput("All errors that occurred were in try catch blocks and was handled correctly.")
+	        Write-Errors
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("No errors occurred in the script.")
+    }
+}
+
+Function LoadBalancingMain {
+
+    Set-ScriptLogFileLocation -FileName "LoadBalancingReport" 
+    Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
+    Write-Green("Client Access Load Balancing Report on " + $date)
+    Get-CASLoadBalancingReport
+    Write-Grey("Output file written to " + $OutputFullPath)
+    Get-ErrorsThatOccurred
+    Write-Break
+    Write-Break
+
+}
+Function HealthCheckerMain {
+
+    Set-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true 
+    $HealthObject = Build-HealthExchangeServerObject $Server
+    Display-ResultsToScreen $healthObject
+    Get-ErrorsThatOccurred
+    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+    Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+    Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
+}
 Function Main {
     
     if(-not (Is-Admin))
@@ -4077,6 +4438,7 @@ Function Main {
     if($BuildHtmlServersReport)
     {
         Build-HtmlServerReport
+        Get-ErrorsThatOccurred
         sleep 2;
         exit
     }
@@ -4087,33 +4449,15 @@ Function Main {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
         exit 
     }
-    $iErrorStartCount = $Error.Count #useful for debugging 
-    $Script:iErrorExcluded = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorStartCount = $Error.Count #useful for debugging 
+    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorsExcluded = @() 
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
-    $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-    Write-VerboseOutput("Calling: main Script Execution")
 
     if($LoadBalancingReport)
     {
-        [int]$iMajor = (Get-ExchangeServer $Server).AdminDisplayVersion.Major
-        if($iMajor -gt 14)
-        {
-            $OutputFileName = "LoadBalancingReport" + "-" + $dateTimeStringFormat + ".log"
-            $OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-            Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
-            Write-Green("Client Access Load Balancing Report on " + $date)
-            Get-CASLoadBalancingReport
-            Write-Grey("Output file written to " + $OutputFullPath)
-            Write-Break
-            Write-Break
-        }
-        else
-        {
-            Write-Yellow("-LoadBalancingReport is only supported for Exchange 2013 and greater")
-        }
-        #Load balancing report only needs to be the thing that runs
+        LoadBalancingMain
         exit
     }
 
@@ -4123,7 +4467,8 @@ Function Main {
         $ErrorActionPreference = "Stop"
         try 
         {
-            Get-ExchnageDCCoreRatio
+            Get-ExchangeDCCoreRatio
+            Get-ErrorsThatOccurred
         }
         finally
         {
@@ -4132,44 +4477,26 @@ Function Main {
         }
     }
 
-   
-    $OutputFileName = "HealthCheck" + "-" + $Server + "-" + $dateTimeStringFormat + ".log"
-	$OutputFullPath = $OutputFilePath + "\" + $OutputFileName
-	$OutXmlFullPath = $OutputFilePath + "\" + ($OutputFileName.Replace(".log",".xml"))
-	$HealthObject = Build-HealthExchangeServerObject $Server
-	Display-ResultsToScreen $healthObject 
 	if($MailboxReport)
 	{
-	    Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+        Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
+        Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+        Get-ErrorsThatOccurred
+        exit
 	}
-	Write-Grey("Output file written to " + $OutputFullPath)
-	if($Error.Count -gt $iErrorStartCount)
-	{
-	    Write-Grey(" ");Write-Grey(" ")
-	    Function Write-Errors {
-	        $index = 0; 
-	        "Errors that occurred" | Out-File ($OutputFullPath) -Append
-	        while($index -lt ($Error.Count - $iErrorStartCount))
-	        {
-	            $Error[$index++] | Out-File ($OutputFullPath) -Append
-	        }
-	    }
-	    #Now to determine if the errors are expected or not 
-	    if(($Error.Count - $iErrorStartCount) -ne $Script:iErrorExcluded)
-	    {
-	        Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .log and .xml file to dpaul@microsoft.com.")
-	        Write-Errors
-	    }
-	    elseif($Script:VerboseEnabled)
-	    {
-	        Write-Grey("All errors that occurred were in try catch blocks and was handled correctly.")
-	        Write-Errors
-	    }
-        
-	}
-	Write-Grey("Exported Data Object written to " + $OutXmlFullPath)
-	$HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
-	
+
+	HealthCheckerMain
 }
 
-Main 
+try 
+{
+    Main 
+}
+finally 
+{
+    if($Script:VerboseEnabled)
+    {
+        $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+    }
+}
