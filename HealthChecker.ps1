@@ -3318,12 +3318,13 @@ param(
 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        Write-Grey("`r`nExchange Web App Pools - GC Server Mode Enabled:")
+        Write-Grey("`r`nExchange Web App Pools - GC Server Mode Enabled | Status:")
         foreach($webAppKey in $HealthExSvrObj.ExchangeInformation.ExchangeAppPools.Keys)
         {
             $xmlData = [xml]$HealthExSvrObj.ExchangeInformation.ExchangeAppPools[$webAppKey].Content
             $enabled = $xmlData.Configuration.runtime.gcServer.enabled
-            Write-Grey("`t{0}: {1}" -f $webAppKey, $enabled)
+            $status = $HealthExSvrObj.ExchangeInformation.ExchangeAppPools[$webAppKey].Status
+            Write-Grey("`t{0}: {1} | {2}" -f $webAppKey, $enabled, $status)
         }
     }
 
