@@ -4418,7 +4418,7 @@ Function LoadBalancingMain {
 }
 Function HealthCheckerMain {
 
-    Set-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true 
+    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
     Get-ErrorsThatOccurred
@@ -4434,9 +4434,16 @@ Function Main {
 		sleep 2;
 		exit
     }
+
+    $Script:ErrorStartCount = $Error.Count #useful for debugging 
+    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
+    $Script:ErrorsExcluded = @() 
+    $Script:date = (Get-Date)
+    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
     
     if($BuildHtmlServersReport)
     {
+        Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport" 
         Build-HtmlServerReport
         Get-ErrorsThatOccurred
         sleep 2;
@@ -4449,11 +4456,6 @@ Function Main {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
         exit 
     }
-    $Script:ErrorStartCount = $Error.Count #useful for debugging 
-    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
-    $Script:ErrorsExcluded = @() 
-    $Script:date = (Get-Date)
-    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
     if($LoadBalancingReport)
     {
