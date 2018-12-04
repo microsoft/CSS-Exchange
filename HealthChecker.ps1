@@ -273,7 +273,7 @@ using System.Collections;
             public string Manufacturer; //String to display the hardware information 
             public ServerType ServerType; //Enum to determine if the hardware is VMware, HyperV, Physical, or Unknown 
             public double TotalMemory; //Stores the total memory available 
-            public object System;   //objec to store the system information that we have collected 
+            public object System;   //object to store the system information that we have collected 
             public ProcessorInformationObject Processor;   //Detailed processor Information 
             public bool AutoPageFile; //True/False if we are using a page file that is being automatically set 
             public string Model; //string to display Model 
@@ -318,7 +318,7 @@ using System.Collections;
             public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
             public double MinimumConnectionTimeout; //value used for the RPC minimum connection timeout. 
             public System.Array HotFixes; //array to keep all the hotfixes of the server
-            public System.Array HotFixInfo;     //objec to store hotfix information
+            public System.Array HotFixInfo;     //object to store hotfix information
 			public string HttpProxy;
             public PageFileObject PageFile;
             public ServerLmCompatibilityLevel LmCompat;
@@ -729,7 +729,7 @@ param(
             $hotfix_obj.KBName = "KB3004383"
             $hotfix_obj.ValidFileLevelCheck = $true
             $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Appidapi.dll" -FullFilePath "C:\Windows\SysWOW64\Appidapi.dll" -BuildVersion "6.1.7601.22823")
-            #For this check, we are only going to check for one file, becuase there are a ridiculous amount in this KB. Hopefullly we don't see many false positives 
+            #For this check, we are only going to check for one file, because there are a ridiculous amount in this KB. Hopefully we don't see many false positives 
             $hotfix_objs += $hotfix_obj
             return $hotfix_objs
         }
@@ -797,7 +797,7 @@ param(
     return $ReturnList
 }
 
-Function Get-RemoteHotFixInforamtion {
+Function Get-RemoteHotFixInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
@@ -813,7 +813,7 @@ param(
             $results = @()
             foreach($HotfixListObj in $HotfixListObjs)
             {
-                #HotfixListObj contains all files that we should check for that particluar KB to make sure we are on the correct build 
+                #HotfixListObj contains all files that we should check for that particular KB to make sure we are on the correct build 
                 $kb_obj = New-Object PSCustomObject
                 $kb_obj | Add-Member -MemberType NoteProperty -Name KBName -Value $HotfixListObj.KBName
                 $list = @()
@@ -1084,7 +1084,7 @@ param(
     $os_obj.MinimumConnectionTimeout = $regKey.GetValue("MinimumConnectionTimeout")
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
-    $os_obj.HotFixInfo = Get-RemoteHotFixInforamtion -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
+    $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
     $os_obj.PacketsReceivedDiscarded = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
@@ -1967,7 +1967,7 @@ param(
             [HealthChecker.NetVersionCheckObject]$NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSVersionName $OSVersionName -NetVersion $versionObject.NetVersion
             if($NetCheckObj.Error)
             {
-                Write-Yellow "Warnign: Unable to determine if .NET is supported"
+                Write-Yellow "Warning: Unable to determine if .NET is supported"
             }
             else
             {
@@ -1980,7 +1980,7 @@ param(
         }
         else
         {
-            Write-Yellow "Warning: Couldn't get acturate information on server: $Machine_Name"
+            Write-Yellow "Warning: Couldn't get accurate information on server: $Machine_Name"
         }
 
         
@@ -2752,7 +2752,7 @@ param(
         Write-Grey("`tServer Role: " + $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString())
     }
 
-    #MAPI/HTTP
+    #MAPI/HTTP 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
         Write-Grey("`tMAPI/HTTP Enabled: {0}" -f $HealthExSvrObj.ExchangeInformation.MapiHttpEnabled)
@@ -2762,7 +2762,7 @@ param(
             $HealthExSvrObj.HardwareInfo.TotalMemory -ge 21474836480)
             {
                 Write-Red("`t`tMAPI Front End App Pool GC Mode: Workstation --- Error")
-                Write-Yellow("`t`tTo Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin direcotry and change the GCServer to true and recycle the MAPI Front End App Pool")
+                Write-Yellow("`t`tTo Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin directory and change the GCServer to true and recycle the MAPI Front End App Pool")
             }
             elseif($HealthExSvrObj.ExchangeInformation.MapiFEAppGCEnabled -eq "false")
             {
@@ -3060,34 +3060,6 @@ param(
     #######################
     Write-Grey("Processor/Memory Information")
     Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.ProcessorName)
-    #Hyperthreading check
-    <#if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
-    {
-        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-        {
-            Write-Red("`tHyper-Threading Enabled: Yes --- Error")
-            Write-Red("`tError: More than 24 logical cores detected.  Please disable Hyper-Threading.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
-        }
-        else
-        {
-            Write-Green("`tHyper-Threading Enabled: No")
-            Write-Red("`tError: More than 24 physical cores detected.  This is not recommended.  For details see`r`n`thttp://blogs.technet.com/b/exchange/archive/2015/06/19/ask-the-perf-guy-how-big-is-too-big.aspx")
-        }
-    }
-    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-    {
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
-        {
-            Write-Yellow("`tHyper-Threading Enabled: Yes --- Warning: Enabling Hyper-Threading is not recommended")
-            Write-Yellow("`tThis script may incorrectly report that Hyper-Threading is enabled on certain AMD processors.  Check with the manufacturer to see if your model supports SMT.")
-        }
-        else
-        {
-            Write-Yellow("`tHyper-Threading Enabled: Yes --- Warning: Enabling Hyper-Threading is not recommended")
-        }
-    }
-    #>
-
     Function Check-MaxCoresCount {
     param(
     [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -3182,7 +3154,7 @@ param(
 		}
 		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
 		{
-			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visable to Exchange and this will cause a performance impact --- Error")
+			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visible to Exchange and this will cause a performance impact --- Error")
 		}
 		else
 		{
@@ -3893,7 +3865,7 @@ Function Build-HtmlServerReport {
             </style>
             <body>
             <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1>
-            <p>This shows a breif overview of known areas of concern. Details about each server are below.</p>
+            <p>This shows a brief overview of known areas of concern. Details about each server are below.</p>
             <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .txt file of the Health Checker script results</p>"
     
 
@@ -4126,7 +4098,7 @@ Function Build-HtmlServerReport {
 	}
 	ElseIf($AllServersOutputObject.AllProcCoresVisible -contains "No")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">All Processor Cores Visible</td><td>Not all Processor Cores are visable to Exchange and this will cause a performance impact</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">All Processor Cores Visible</td><td>Not all Processor Cores are visible to Exchange and this will cause a performance impact</td></tr>"
 	}
 	
 	If($AllServersOutputObject.E2016MemoryRight -contains $False)
@@ -4236,7 +4208,7 @@ param(
         }
         else 
         {
-            Write-Yellow("Unable to get processor infomration from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
+            Write-Yellow("Unable to get processor information from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
         }
         $returnObj.Exception = $thisError.ToString() 
         $returnObj.ExceptionType = $thisError.Exception.Gettype().FullName
