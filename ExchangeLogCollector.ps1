@@ -512,19 +512,25 @@ param(
     $exchAdminDisplayVersion = $exchServerObject.ExchangeServer.AdminDisplayVersion
     $exchServerRole = $exchServerObject.ExchangeServer.ServerRole 
     Write-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
-
-    if($exchAdminDisplayVersion.Major -eq 14)
+    if($exchAdminDisplayVersion.GetType().Name -eq "string")
+    {
+        $start = $exchAdminDisplayVersion.IndexOf(" ")
+        $split = $exchAdminDisplayVersion.Substring( $start + 1, 4).split('.')
+        [int]$major = $split[0]
+        [int]$minor = $split[1]
+    }
+    if($exchAdminDisplayVersion.Major -eq 14 -or $major -eq 14)
     {
         $exchVersion = 14
     }
-    elseif($exchAdminDisplayVersion.Major -eq 15)
+    elseif($exchAdminDisplayVersion.Major -eq 15 -or $major -eq 15)
     {
         #determine if 2013/2016/2019
-        if($exchAdminDisplayVersion.Minor -eq 0)
+        if($exchAdminDisplayVersion.Minor -eq 0 -or $minor -eq 0)
         {
             $exchVersion = 15
         }
-        elseif($exchAdminDisplayVersion.Minor -eq 1)
+        elseif($exchAdminDisplayVersion.Minor -eq 1 -or $minor -eq 1)
         {
             $exchVersion = 16
         }
