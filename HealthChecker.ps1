@@ -491,7 +491,16 @@ param(
 [Parameter(Mandatory=$true)][array]$Counters
 )
     Write-VerboseOutput("Calling: Get-CounterSamples")
-    $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+    try 
+    {
+        $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+    }
+    catch 
+    {
+        $Script:ErrorsExcludedCount++
+        $Script:ErrorsExcluded += $Error[0]
+        Write-VerboseOutput("Failed to get counter samples")
+    }
     return $counterSamples 
 }
 
@@ -1086,7 +1095,11 @@ param(
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
     $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
-    $os_obj.PacketsReceivedDiscarded = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
+    $counterSamples = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
+    if($counterSamples -ne $null)
+    {
+        $os_obj.PacketsReceivedDiscarded = $counterSamples
+    }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
 
     return $os_obj
