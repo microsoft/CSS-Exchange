@@ -353,6 +353,7 @@ using System.Collections;
             public string Name;        //name of the adapter 
             public object NICObject; //object to store the adapter info 
             public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
+            public int MTUSize; //Size of the MTU on the network card. 
              
         }
 
@@ -609,6 +610,7 @@ param(
             $nicObject.LinkSpeed = (($adapter.Speed)/1000000).ToString() + " Mbps"
             $nicObject.Name = $adapter.Name
             $nicObject.NICObject = $adapter 
+            $nicObject.MTUSize = $adapter.MtuSize
             $aNICObjects += $nicObject
         }
 
@@ -3004,6 +3006,7 @@ param(
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualized hardware")
             }
+            Write-Grey("`t`tMTU Size: {0}" -f $adapter.MTUSize)
             if($adapter.RSSEnabled -eq "NoRSS")
             {
                 Write-Yellow("`t`tRSS: No RSS Feature Detected.")
