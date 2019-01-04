@@ -150,7 +150,7 @@ using System.Collections;
             public OperatingSystemObject  OSVersion; // OS Version Object Information 
             public NetVersionObject NetVersionInfo; //.net Framework object information 
             public ExchangeInformationObject ExchangeInformation; //Detailed Exchange Information 
-
+            public double HealthCheckerVersion; //To determine the version of the script on the object.
         }
 
         public class ExchangeInformationObject 
@@ -2049,6 +2049,7 @@ param(
     $HealthExSvrObj.HardwareInfo = Build-HardwareObject -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Build-OperatingSystemObject -Machine_Name $Machine_Name  
     $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj
+    $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
 }
