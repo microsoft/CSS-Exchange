@@ -3,13 +3,13 @@
 	Name: HealthChecker.ps1
 	Original Author: Marc Nivens
     Author: David Paulson
-    Contributor: Jason Shinbaum 
-	Contributor: Michael Schatte
+    Contributor: Jason Shinbaum, Michael Schatte, Lukas Sassl
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
-	Major Release History:
-	3/30/2015 - Initial Public Release.
-    1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
+    Major Release History:
+        1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
+        3/30/2015 - Initial Public Release.
+    
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
 	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
