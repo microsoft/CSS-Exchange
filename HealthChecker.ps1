@@ -399,7 +399,6 @@ using System.Collections;
 
 catch {
     Write-Warning "There was an error trying to add custom classes to the current PowerShell session. You need to close this session and open a new one to have the script properly work."
-    sleep 5
     exit 
 }
 
@@ -453,6 +452,14 @@ Function Write-Break {
 ############################################################
 ############################################################
 
+Function Invoke-CatchActions{
+
+    Write-VerboseOutput("Calling: Invoke-Actions")
+    $Script:ErrorsExcludedCount++
+    $Script:ErrorsExcluded += $Error[0]
+
+}
+
 Function Load-ExShell {
 	#Verify that we are on Exchange 2010 or newer 
 	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
@@ -464,6 +471,7 @@ Function Load-ExShell {
 		}
 		catch
 		{
+            Invoke-CatchActions
 			Write-Host "Loading Exchange PowerShell Module..."
 			Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
 		}
@@ -498,8 +506,7 @@ param(
     }
     catch 
     {
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
         Write-VerboseOutput("Failed to get counter samples")
     }
     return $counterSamples 
@@ -573,8 +580,7 @@ param(
         }
         catch 
         {
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
@@ -599,8 +605,7 @@ param(
             }
             catch 
             {
-                $Script:ErrorsExcludedCount++
-                $Script:ErrorsExcluded += $Error[0]
+                Invoke-CatchActions
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -692,8 +697,7 @@ param(
 
 	catch
 	{
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
 		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -858,8 +862,7 @@ param(
         }
         catch 
         {
-            $Script:ErrorsExcludedCount++ 
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally
         {
@@ -943,8 +946,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally 
         {
@@ -970,8 +972,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally 
         {
@@ -1024,8 +1025,7 @@ param(
     catch
     {
         Write-VerboseOutput("Unable to get power plan from the server")
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -1190,8 +1190,7 @@ param(
 	}
 	catch
 	{
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
 		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -1821,8 +1820,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
     }
     return $exchangeAppPoolsInfo
@@ -1873,7 +1871,7 @@ param(
     }
     catch
     {
-        #don't need to do anything here
+        Invoke-CatchActions
     }
 
     Write-VerboseOutput("Returning GC Mode: {0}" -f $mapiGCMode)
@@ -4218,6 +4216,7 @@ param(
         Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
     }
     catch {
+        Invoke-CatchActions
         $thisError = $Error[0]
         if($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException")
         {
