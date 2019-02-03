@@ -3278,7 +3278,7 @@ param(
     Write-Grey("`r`nRPC Minimum Connection Timeout:")
     if($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 0)
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/")
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/")
     }
     elseif($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 120)
     {
@@ -3286,7 +3286,7 @@ param(
     }
     else 
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
     }
 
     ###############################
