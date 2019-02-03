@@ -460,6 +460,32 @@ Function Invoke-CatchActions{
 
 }
 
+Function Invoke-RegistryHandler {
+param(
+[Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
+[Parameter(Mandatory=$true)][string]$MachineName,
+[Parameter(Mandatory=$true)][string]$SubKey,
+[Parameter(Mandatory=$true)][string]$GetValue,
+[Parameter(Mandatory=$false)][bool]$ErrorExpected
+)
+    Write-VerboseOutput("Calling: Invoke-RegistryHandler")
+    try 
+    {
+        Write-VerboseOutput("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
+        $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
+        Write-VerboseOutput("Attempting to open the Sub Key '{0}'" -f $SubKey)
+        $RegKey= $Reg.OpenSubKey($SubKey)
+        Write-VerboseOutput("Attempting to get the value '{0}'" -f $GetValue)
+        $returnGetValue = $RegKey.GetValue($GetValue)
+    }
+    catch 
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to open the registry")
+    }
+    return $returnGetValue
+}
+
 Function Load-ExShell {
 	#Verify that we are on Exchange 2010 or newer 
 	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
@@ -1084,15 +1110,10 @@ param(
             $os_obj.IPv6DisabledOnNICs = $true 
         }
     }
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters")
-    $os_obj.DisabledComponents = $RegKey.GetValue("DisabledComponents")
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
-    $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
-    $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $regKey = $Reg.OpenSubKey("Software\Policies\Microsoft\Windows NT\RPC\")
-    $os_obj.MinimumConnectionTimeout = $regKey.GetValue("MinimumConnectionTimeout")
+
+    $os_obj.DisabledComponents = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents"
+    $os_obj.TCPKeepAlive = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime"
+    $os_obj.MinimumConnectionTimeout = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout"
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
@@ -1316,16 +1337,10 @@ param(
     Write-VerboseOutput("Calling: Build-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersionName")
-
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$Machine_Name)
-    $RegKey = $Reg.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full")
-    [int]$NetVersionKey = $RegKey.GetValue("Release")
-    $sNetVersionKey = $NetVersionKey.ToString()
-    Write-VerboseOutput("Got $sNetVersionKey from the registry")
-
+    [int]$NetVersionKey = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release"
+    Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
     [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     return $versionObject
-
 }
 
 Function Get-ExchangeVersion {
@@ -1832,10 +1847,8 @@ param(
 )
     Write-VerboseOutput("Calling: Get-MapiFEAppPoolGCMode")
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegLocation = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\"
-    $RegKey = $Reg.OpenSubKey($RegLocation)
-    $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $RegKey.GetValue("MsiInstallPath"))
+    $installPath = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath"
+    $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $installPath)
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
 
@@ -2370,9 +2383,7 @@ param(
 )
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
-    $RegValue = $RegKey.GetValue("LmCompatibilityLevel")
+    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel"
     If ($RegValue)
     {
         Return $RegValue
@@ -2421,10 +2432,7 @@ param(
     #Check for CVE-2018-8581 vulnerability
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename DisableLoopbackCheck exists
-
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
-    $RegValue = $RegKey.GetValue("DisableLoopbackCheck")
+    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck"
     If ($RegValue)
     {
         Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
