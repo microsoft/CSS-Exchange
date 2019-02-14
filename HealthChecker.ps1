@@ -170,6 +170,7 @@ using System.Collections;
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ExchangeAppPools; 
+            public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
            
         }
 
@@ -1976,6 +1977,35 @@ param(
     }
 }
 
+Function Get-ExSetupDetails {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ExSetupDetails")
+    $exSetupDetails = [string]::Empty
+    Function Get-ExSetupDetailsScriptBlock {
+        Get-Command ExSetup | ForEach-Object{$_.FileVersionInfo}
+    }
+    if($Machine_Name -ne $env:COMPUTERNAME)
+    {
+        Write-VerboseOutput("Getting ExSetup remotely")
+        try 
+        {
+            $exSetupDetails = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ErrorAction Stop
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to get ExSetupDetails from server {0}" -f $Machine_Name)
+            Invoke-CatchActions
+        }
+    }
+    else 
+    {
+        $exSetupDetails = Get-ExSetupDetailsScriptBlock 
+    }
+    return $exSetupDetails
+}
+
 Function Build-ExchangeInformationObject {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -1989,6 +2019,7 @@ param(
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
     $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
     $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
+    $exchInfoObject.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $Machine_Name) 
 
     #Exchange 2013 and 2016 things to check 
     if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
