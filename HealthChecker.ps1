@@ -106,7 +106,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.29"
+$healthCheckerVersion = "2.30"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -170,6 +170,7 @@ using System.Collections;
             public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ExchangeAppPools; 
+            public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
            
         }
 
@@ -218,7 +219,8 @@ using System.Collections;
             CU18,
             CU19,
             CU20,
-            CU21
+            CU21,
+            CU22
 
         }
 
@@ -399,7 +401,6 @@ using System.Collections;
 
 catch {
     Write-Warning "There was an error trying to add custom classes to the current PowerShell session. You need to close this session and open a new one to have the script properly work."
-    sleep 5
     exit 
 }
 
@@ -453,6 +454,40 @@ Function Write-Break {
 ############################################################
 ############################################################
 
+Function Invoke-CatchActions{
+
+    Write-VerboseOutput("Calling: Invoke-Actions")
+    $Script:ErrorsExcludedCount++
+    $Script:ErrorsExcluded += $Error[0]
+
+}
+
+Function Invoke-RegistryHandler {
+param(
+[Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
+[Parameter(Mandatory=$true)][string]$MachineName,
+[Parameter(Mandatory=$true)][string]$SubKey,
+[Parameter(Mandatory=$true)][string]$GetValue,
+[Parameter(Mandatory=$false)][bool]$ErrorExpected
+)
+    Write-VerboseOutput("Calling: Invoke-RegistryHandler")
+    try 
+    {
+        Write-VerboseOutput("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
+        $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
+        Write-VerboseOutput("Attempting to open the Sub Key '{0}'" -f $SubKey)
+        $RegKey= $Reg.OpenSubKey($SubKey)
+        Write-VerboseOutput("Attempting to get the value '{0}'" -f $GetValue)
+        $returnGetValue = $RegKey.GetValue($GetValue)
+    }
+    catch 
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to open the registry")
+    }
+    return $returnGetValue
+}
+
 Function Load-ExShell {
 	#Verify that we are on Exchange 2010 or newer 
 	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
@@ -464,6 +499,7 @@ Function Load-ExShell {
 		}
 		catch
 		{
+            Invoke-CatchActions
 			Write-Host "Loading Exchange PowerShell Module..."
 			Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
 		}
@@ -498,8 +534,7 @@ param(
     }
     catch 
     {
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
         Write-VerboseOutput("Failed to get counter samples")
     }
     return $counterSamples 
@@ -573,8 +608,7 @@ param(
         }
         catch 
         {
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
@@ -599,8 +633,7 @@ param(
             }
             catch 
             {
-                $Script:ErrorsExcludedCount++
-                $Script:ErrorsExcluded += $Error[0]
+                Invoke-CatchActions
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
@@ -692,8 +725,7 @@ param(
 
 	catch
 	{
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
 		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
 	}
 	finally
@@ -858,8 +890,7 @@ param(
         }
         catch 
         {
-            $Script:ErrorsExcludedCount++ 
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally
         {
@@ -943,8 +974,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally 
         {
@@ -970,8 +1000,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
         finally 
         {
@@ -1024,8 +1053,7 @@ param(
     catch
     {
         Write-VerboseOutput("Unable to get power plan from the server")
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
         $plan = $null
     }
     $os_obj.OSVersionBuild = $os.Version
@@ -1084,15 +1112,10 @@ param(
             $os_obj.IPv6DisabledOnNICs = $true 
         }
     }
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters")
-    $os_obj.DisabledComponents = $RegKey.GetValue("DisabledComponents")
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey= $Reg.OpenSubKey("SYSTEM\CurrentControlSet\Services\Tcpip\Parameters")
-    $os_obj.TCPKeepAlive = $RegKey.GetValue("KeepAliveTime")
-    $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $regKey = $Reg.OpenSubKey("Software\Policies\Microsoft\Windows NT\RPC\")
-    $os_obj.MinimumConnectionTimeout = $regKey.GetValue("MinimumConnectionTimeout")
+
+    $os_obj.DisabledComponents = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents"
+    $os_obj.TCPKeepAlive = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime"
+    $os_obj.MinimumConnectionTimeout = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout"
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
@@ -1190,8 +1213,7 @@ param(
 	}
 	catch
 	{
-        $Script:ErrorsExcludedCount++
-        $Script:ErrorsExcluded += $Error[0]
+        Invoke-CatchActions
 		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
 		$processor_info_object.EnvProcessorCount = -1 
 	}
@@ -1317,16 +1339,10 @@ param(
     Write-VerboseOutput("Calling: Build-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersionName")
-
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine',$Machine_Name)
-    $RegKey = $Reg.OpenSubKey("SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full")
-    [int]$NetVersionKey = $RegKey.GetValue("Release")
-    $sNetVersionKey = $NetVersionKey.ToString()
-    Write-VerboseOutput("Got $sNetVersionKey from the registry")
-
+    [int]$NetVersionKey = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release"
+    Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
     [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     return $versionObject
-
 }
 
 Function Get-ExchangeVersion {
@@ -1378,7 +1394,9 @@ param(
     {
         Write-VerboseOutput("Determined that we are on Exchange 2019")
         $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2019
-        if($buildRevision -ge 196.0){$exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
+        if($buildRevision -ge 196.0 -and $buildRevision -lt 221.12){if($buildRevision -gt 196.9){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
+        elseif($buildRevision -lt 330.6){if($buildRevision -gt 221.12){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
+        elseif($buildRevision -ge 330.6){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
@@ -1396,7 +1414,8 @@ param(
         elseif($buildRevision -lt 1466.3) {if($buildRevision -gt 1415.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU8}
         elseif($buildRevision -lt 1531.3) {if($buildRevision -gt 1466.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU9}
         elseif($buildRevision -lt 1591.10) {if($buildRevision -gt 1531.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU10}
-        elseif($buildRevision -ge 1591.10) {if($buildRevision -gt 1591.10){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU11}
+        elseif($buildRevision -lt 1713.5) {if($buildRevision -gt 1591.10){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU11}
+        elseif($buildRevision -ge 1713.5) {if($buildRevision -gt 1713.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU12}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -1424,7 +1443,8 @@ param(
         elseif($buildRevision -lt 1365.1) {if($buildRevision -gt 1347.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU18}
         elseif($buildRevision -lt 1367.3) {if($buildRevision -gt 1365.1){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU19}
         elseif($buildRevision -lt 1395.4) {if($buildRevision -gt 1367.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU20}
-        elseif($buildRevision -ge 1395.4) {if($buildRevision -gt 1395.4){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU21}
+        elseif($buildRevision -lt 1473.3) {if($buildRevision -gt 1395.4){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU21}
+        elseif($buildRevision -ge 1473.3) {if($buildRevision -gt 1473.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU22}
     }
     else
     {
@@ -1462,6 +1482,8 @@ param(
                 switch($exBuildObj.CU)
                 {
                     ([HealthChecker.ExchangeCULevel]::Preview) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 Preview"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "07/24/2018"; break}
+                    ([HealthChecker.ExchangeCULevel]::RTM) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 RTM"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/22/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU1) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU1"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red("Error: Unknown Exchange 2019 Build was detected"); $tempObject.Error = $true; break;}
                 }
             }
@@ -1482,8 +1504,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU7) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU7"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/16/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU8) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU8"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/19/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU9) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU9"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/20/2018"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU10) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU10"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/19/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU10) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU10"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/19/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU12) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU12"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -1512,9 +1535,10 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU16) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU16"; $tempObject.ReleaseDate = "03/21/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU17) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU17"; $tempObject.ReleaseDate = "06/24/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU18) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU18"; $tempObject.ReleaseDate = "09/16/2017"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU19) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU19"; $tempObject.ReleaseDate = "12/19/2017"; $tempObject.SupportedCU = $true; break}
-                    ([HealthChecker.ExchangeCULevel]::CU20) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU20"; $tempObject.ReleaseDate = "03/20/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU19) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU19"; $tempObject.ReleaseDate = "12/19/2017"; break}
+                    ([HealthChecker.ExchangeCULevel]::CU20) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU20"; $tempObject.ReleaseDate = "03/20/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU21) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU21"; $tempObject.ReleaseDate = "06/19/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU22) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU22"; $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2013 build was detected"; $tempObject.Error = $TRUE; break;}
                 }
                 break;
@@ -1796,8 +1820,15 @@ param(
         {
             $status = &$Script:appCmd list apppool $appPool /text:state
             $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
-            $content = Get-Content $config 
-
+            if(Test-Path $config)
+            {
+                $content = Get-Content $config 
+            }
+            else 
+            {
+                Write-VerboseOutput("Failed to find config file setting in app pool '{0}'" -f $appPool)
+                $content = $null     
+            }
             $statusObj = New-Object pscustomobject 
             $statusObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
             $statusObj | Add-Member -MemberType NoteProperty -Name "ConfigPath" -Value $config
@@ -1821,8 +1852,7 @@ param(
         catch 
         {
             Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
-            $Script:ErrorsExcludedCount++
-            $Script:ErrorsExcluded += $Error[0]
+            Invoke-CatchActions
         }
     }
     return $exchangeAppPoolsInfo
@@ -1834,10 +1864,8 @@ param(
 )
     Write-VerboseOutput("Calling: Get-MapiFEAppPoolGCMode")
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegLocation = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\"
-    $RegKey = $Reg.OpenSubKey($RegLocation)
-    $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $RegKey.GetValue("MsiInstallPath"))
+    $installPath = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath"
+    $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $installPath)
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
 
@@ -1873,7 +1901,7 @@ param(
     }
     catch
     {
-        #don't need to do anything here
+        Invoke-CatchActions
     }
 
     Write-VerboseOutput("Returning GC Mode: {0}" -f $mapiGCMode)
@@ -1949,6 +1977,35 @@ param(
     }
 }
 
+Function Get-ExSetupDetails {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-ExSetupDetails")
+    $exSetupDetails = [string]::Empty
+    Function Get-ExSetupDetailsScriptBlock {
+        Get-Command ExSetup | ForEach-Object{$_.FileVersionInfo}
+    }
+    if($Machine_Name -ne $env:COMPUTERNAME)
+    {
+        Write-VerboseOutput("Getting ExSetup remotely")
+        try 
+        {
+            $exSetupDetails = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ErrorAction Stop
+        }
+        catch 
+        {
+            Write-VerboseOutput("Failed to get ExSetupDetails from server {0}" -f $Machine_Name)
+            Invoke-CatchActions
+        }
+    }
+    else 
+    {
+        $exSetupDetails = Get-ExSetupDetailsScriptBlock 
+    }
+    return $exSetupDetails
+}
+
 Function Build-ExchangeInformationObject {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
@@ -1962,6 +2019,7 @@ param(
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
     $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
     $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
+    $exchInfoObject.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $Machine_Name) 
 
     #Exchange 2013 and 2016 things to check 
     if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
@@ -2372,9 +2430,7 @@ param(
 )
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
-    $RegValue = $RegKey.GetValue("LmCompatibilityLevel")
+    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel"
     If ($RegValue)
     {
         Return $RegValue
@@ -2413,29 +2469,313 @@ param(
 
 Function Display-MSExchangeVulnerabilities {
 param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
+[Parameter(Mandatory=$true)][object]$HealthExSvrObj
 )
     Write-VerboseOutput("Calling: Display-MSExchangeVulnerabilities")
-    Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
+    Write-VerboseOutput("For Server: {0}" -f ($Machine_Name = $HealthExSvrObj.ServerName))
+
+    Function Test-VulnerabilitiesByBuildNumbersAndDisplay{
+    param(
+    [Parameter(Mandatory=$true)][double]$ExchangeBuildRevision,
+    [Parameter(Mandatory=$true)][double]$SecurityFixedBuild,
+    [Parameter(Mandatory=$true)][string]$CVEName
+    )
+        Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVEName, $SecurityFixedBuild)
+        if($ExchangeBuildRevision -lt $SecurityFixedBuild)
+        {
+            Write-Red("System vulnerable to {0}.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{1} for more information." -f $CVEName, $CVEName)
+            $Script:AllVulnerabilitiesPassed = $false 
+        }
+        else 
+        {
+            Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{1}" -f $CVEName, $CVEName)
+        }
+    }
     
-    Write-Grey("`r`nVulnerability Check:")
+    $Script:AllVulnerabilitiesPassed = $true 
+    Write-Grey("`r`nVulnerability Check:`r`n")
 
     #Check for CVE-2018-8581 vulnerability
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename DisableLoopbackCheck exists
-
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegKey = $reg.OpenSubKey("SYSTEM\CurrentControlSet\Control\Lsa")
-    $RegValue = $RegKey.GetValue("DisableLoopbackCheck")
+    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck"
     If ($RegValue)
     {
         Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
+        $Script:AllVulnerabilitiesPassed = $false 
     }
     Else
     {
-        Write-Green("System NOT vulnerable to CVE-2018-8581.")
+        Write-VerboseOutput("System NOT vulnerable to CVE-2018-8581.")
     }
 
+    #Check for CVE-2010-3190 vulnerability
+    #If installed Exchange server release is prior to October 2018
+    #KB2565063 should be installed to fix vulnerability
+    
+    $KB2565063_RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" 
+    $KB2565063_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate"
+
+    If ($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        If ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate) -lt ([System.Convert]::ToDateTime([DateTime]"1 Oct 2018")))
+        {
+            Write-VerboseOutput("Your Exchange server build is prior to October 2018")
+
+            If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
+            {
+
+                $E15_RegValueInstallData = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate"
+
+                If ($E15_RegValueInstallData -ne $null -and $E15_RegValueInstallData -ne [string]::Empty)
+                {
+                    If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
+                    {
+                        Write-Red("Vulnerable to CVE-2010-3190.")
+                        Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    }
+                    Else
+                    {
+                        Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+                    }
+                }
+                Else
+                {
+                    Write-Yellow("Unable to determine Exchange server install date!")
+                    Write-Yellow("Potentially vulnerable to CVE-2010-3190.")
+                    Write-Yellow("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                }
+            }
+            Else
+            {
+                Write-Red("Vulnerable to CVE-2010-3190.")
+                Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+            }
+        }
+        Else
+        {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+        }
+    }
+    Else
+    {
+        Write-VerboseOutput("`nYour Exchange server version is $($HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName):")
+        
+        If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
+        {
+
+            $E2010_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate"
+
+            If ($E2010_RegValueInstallDate -ne $null -and $E2010_RegValueInstallDate -ne [string]::Empty)
+            {
+                If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
+                {
+                    Write-Red("Potentially Vulnerable to CVE-2010-3190.")
+                    Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                }
+                Else
+                {
+                    Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+                }
+            }
+            Else
+            {
+                Write-Red("Unable to determine Exchange server install date!")
+                Write-Red("Potentially vulnerable to CVE-2010-3190.")
+            }
+        }
+        Else
+        {
+            Write-Red("`nPotentially vulnerable to CVE-2010-3190.")
+            Write-Red("You should check if your build is prior October 2018 and if so, install KB2565063")
+            Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+        }
+    }
+
+    #Check for different vulnerabilities
+    #We run checks based on build revision only for Exchange 2013/2016/2019
+    #We check only for year 2018+ vulnerabilities
+    #https://www.cvedetails.com/vulnerability-list/vendor_id-26/product_id-194/Microsoft-Exchange-Server.html 
+
+    [double]$buildRevision = [System.Convert]::ToDouble(("{0}.{1}" -f $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FileBuildPart, $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FilePrivatePart))
+    Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision) 
+    Write-VerboseOutput("Exchange CU: {0}" -f ($exchangeCU = $HealthExSvrObj.ExchangeInformation.ExchangeBuildObject.CU))
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        #CVE-2018-8302 affects E2010 but we cannot check for them
+        #CVE-2018-8154 affects E2010 but we cannot check for them
+        #CVE-2018-8151 affects E2010 but we cannot check for them
+        #CVE-2018-0940 affects E2010 but we cannot check for them
+        #CVE-2018-16793 affects E2010 but we cannot check for them
+        #CVE-2018-0924 affects E2010 but we cannot check for them
+        #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
+        Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
+        Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        #Need to know which CU we are on, as that would be the best to break up the security patches 
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18)
+        {
+            #CVE-2018-0924
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1347.5 -CVEName "CVE-2018-0924" 
+            #CVE-2018-0940
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1347.5 -CVEName "CVE-2018-0940" 
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU19)
+        {
+            #to avoid duplicates only do these ones if we are equal to the current CU as they would have been caught on the previous CU if we are at a less CU
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU19)
+            {
+                #CVE-2018-0924
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1365.3 -CVEName "CVE-2018-0924" 
+                #CVE-2018-0940
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1365.3 -CVEName "CVE-2018-0940" 
+            }
+            #CVE-2018-8151 
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1365.7 -CVEName "CVE-2018-8151"
+            #CVE-2018-8154
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1365.7 -CVEName "CVE-2018-8154"
+            #CVE-2018-8159
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1365.7 -CVEName "CVE-2018-8159"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU20)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU20)
+            {
+                #CVE-2018-8151
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1367.6 -CVEName "CVE-2018-8151"
+                #CVE-2018-8154
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1367.6 -CVEName "CVE-2018-8154"
+                #CVE-2018-8159 
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1367.6 -CVEName "CVE-2018-8159"
+            }
+            #CVE-2018-8302
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1367.9 -CVEName "CVE-2018-8302"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU21)
+            {
+                #CVE-2018-8302
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.7 -CVEName "CVE-2018-8302"
+            }
+            #CVE-2018-8265
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.8 -CVEName "CVE-2018-8265"
+            #CVE-2018-8448
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.8 -CVEName "CVE-2018-8448"
+            #CVE-2019-0586
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.10 -CVEName "CVE-2019-0586"
+            #CVE-2019-0588
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.10 -CVEName "CVE-2019-0588"
+        }
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
+    {
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7)
+        {
+            #CVE-2018-0924
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1261.39 -CVEName "CVE-2018-0924"
+            #CVE-2018-0940
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1261.39 -CVEName "CVE-2018-0940"
+            #CVE-2018-0941
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1261.39 -CVEName "CVE-2018-0941"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU8)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU8)
+            {
+                #CVE-2018-0924
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.4 -CVEName "CVE-2018-0924"
+                #CVE-2018-0940
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.4 -CVEName "CVE-2018-0940"
+                #CVE-2018-0941
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.4 -CVEName "CVE-2018-0941"
+
+            }
+            #CVE-2018-8151
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8151"
+            #CVE-2018-8152
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8152"
+            #CVE-2018-8153
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8153"
+            #CVE-2018-8154
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8154"
+            #CVE-2018-8159
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8159"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU9)
+            {
+                #CVE-2018-8151
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.8 -CVEName "CVE-2018-8151"
+                #CVE-2018-8152
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.8 -CVEName "CVE-2018-8152"
+                #CVE-2018-8153
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.8 -CVEName "CVE-2018-8153"
+                #CVE-2018-8154
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.8 -CVEName "CVE-2018-8154"
+                #CVE-2018-8159
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.8 -CVEName "CVE-2018-8159"
+            }
+            #CVE-2018-8374
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.9 -CVEName "CVE-2018-8374"
+            #CVE-2018-8302
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1466.9 -CVEName "CVE-2018-8302"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU10)
+            {
+                #CVE-2018-8374
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.6 -CVEName "CVE-2018-8374"
+                #CVE-2018-8302
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.6 -CVEName "CVE-2018-8302"
+            }
+            #CVE-2018-8265
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.8 -CVEName "CVE-2018-8265"
+            #CVE-2018-8448
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.8 -CVEName "CVE-2018-8448"
+            #CVE-2018-8604
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.8 -CVEName "CVE-2018-8604"
+            #CVE-2019-0586
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0586"
+            #CVE-2019-0588
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0588"
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU11)
+            {
+                #CVE-2018-8604
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.11 -CVEName "CVE-2018-8604"
+                #CVE-2019-0586
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.13 -CVEName "CVE-2019-0586"
+                #CVE-2019-0588
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.13 -CVEName "CVE-2019-0588"
+            }
+        }
+    }
+    elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::RTM)
+        {
+            #CVE-2019-0586
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0586"
+            #CVE-2019-0588
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0588"
+        }
+    }
+    else 
+    {
+        Write-Red("`nUnknown Exchange Server Version. Unable to check for vulnerabilities.")     
+    }
+    if($Script:AllVulnerabilitiesPassed)
+    {
+        Write-Grey("All known security issues in this version of the script passed.")
+    }
 }
 
 Function Display-KBHotfixCheckFailSafe {
@@ -3272,7 +3612,7 @@ param(
     Write-Grey("`r`nRPC Minimum Connection Timeout:")
     if($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 0)
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/")
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/")
     }
     elseif($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 120)
     {
@@ -3280,7 +3620,7 @@ param(
     }
     else 
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/ `r`n`thttps://blogs.technet.microsoft.com/david231/2015/03/30/for-exchange-2010-and-2013-do-this-before-calling-microsoft/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
     }
 
     ###############################
@@ -3321,7 +3661,7 @@ param(
     #Vulnerability Check#
     #####################
 
-    Display-MSExchangeVulnerabilities $HealthExSvrObj.ServerName
+    Display-MSExchangeVulnerabilities $HealthExSvrObj
 
 
     Write-Grey("`r`n`r`n")
@@ -4218,6 +4558,7 @@ param(
         Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
     }
     catch {
+        Invoke-CatchActions
         $thisError = $Error[0]
         if($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException")
         {
