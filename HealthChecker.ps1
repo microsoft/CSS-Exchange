@@ -2509,6 +2509,89 @@ param(
         Write-VerboseOutput("System NOT vulnerable to CVE-2018-8581.")
     }
 
+    #Check for CVE-2010-3190 vulnerability
+    #If installed Exchange server release is prior to October 2018
+    #KB2565063 should be installed to fix vulnerability
+    
+    $KB2565063_RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" 
+    $KB2565063_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate"
+
+    If ($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        If ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate) -lt ([System.Convert]::ToDateTime([DateTime]"1 Oct 2018")))
+        {
+            Write-VerboseOutput("Your Exchange server build is prior to October 2018")
+
+            If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
+            {
+
+                $E15_RegValueInstallData = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate"
+
+                If ($E15_RegValueInstallData -ne $null -and $E15_RegValueInstallData -ne [string]::Empty)
+                {
+                    If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
+                    {
+                        Write-Red("Vulnerable to CVE-2010-3190.")
+                        Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    }
+                    Else
+                    {
+                        Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+                    }
+                }
+                Else
+                {
+                    Write-Yellow("Unable to determine Exchange server install date!")
+                    Write-Yellow("Potentially vulnerable to CVE-2010-3190.")
+                    Write-Yellow("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                }
+            }
+            Else
+            {
+                Write-Red("Vulnerable to CVE-2010-3190.")
+                Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+            }
+        }
+        Else
+        {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+        }
+    }
+    Else
+    {
+        Write-VerboseOutput("`nYour Exchange server version is $($HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName):")
+        
+        If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
+        {
+
+            $E2010_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate"
+
+            If ($E2010_RegValueInstallDate -ne $null -and $E2010_RegValueInstallDate -ne [string]::Empty)
+            {
+                If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
+                {
+                    Write-Red("Potentially Vulnerable to CVE-2010-3190.")
+                    Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                }
+                Else
+                {
+                    Write-VerboseOutput("System NOT vulnerable to CVE-2010-3190.")
+                }
+            }
+            Else
+            {
+                Write-Red("Unable to determine Exchange server install date!")
+                Write-Red("Potentially vulnerable to CVE-2010-3190.")
+            }
+        }
+        Else
+        {
+            Write-Red("`nPotentially vulnerable to CVE-2010-3190.")
+            Write-Red("You should check if your build is prior October 2018 and if so, install KB2565063")
+            Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+        }
+    }
+
     #Check for different vulnerabilities
     #We run checks based on build revision only for Exchange 2013/2016/2019
     #We check only for year 2018+ vulnerabilities
