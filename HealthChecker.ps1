@@ -1819,8 +1819,15 @@ param(
         {
             $status = &$Script:appCmd list apppool $appPool /text:state
             $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
-            $content = Get-Content $config 
-
+            if(Test-Path $config)
+            {
+                $content = Get-Content $config 
+            }
+            else 
+            {
+                Write-VerboseOutput("Failed to find config file setting in app pool '{0}'" -f $appPool)
+                $content = $null     
+            }
             $statusObj = New-Object pscustomobject 
             $statusObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
             $statusObj | Add-Member -MemberType NoteProperty -Name "ConfigPath" -Value $config
