@@ -106,7 +106,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.30"
+$healthCheckerVersion = "2.31"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -2609,6 +2609,8 @@ param(
         #CVE-2018-0940 affects E2010 but we cannot check for them
         #CVE-2018-16793 affects E2010 but we cannot check for them
         #CVE-2018-0924 affects E2010 but we cannot check for them
+	#CVE-2019-0686 affects E2010 but we cannot check for them
+	#CVE-2019-0724 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -2670,6 +2672,17 @@ param(
             #CVE-2019-0588
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1395.10 -CVEName "CVE-2019-0588"
         }
+	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22)
+	{
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU22)
+	    {
+	        Write-Verbose("`nThere are no known vulnerabilities within Exchange 2013 CU22.")
+	    }
+	    #CVE-2019-0686
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.3 -CVEName "CVE-2019-0686"
+	    #CVE-2019-0724
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.3 -CVEName "CVE-2019-0724"
+	}
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
     {
@@ -2741,9 +2754,9 @@ param(
             #CVE-2018-8604
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.8 -CVEName "CVE-2018-8604"
             #CVE-2019-0586
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0586"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0586"
             #CVE-2019-0588
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0588"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1531.10 -CVEName "CVE-2019-0588"
         }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11)
         {
@@ -2757,16 +2770,38 @@ param(
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.13 -CVEName "CVE-2019-0588"
             }
         }
+	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
+	{
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU12)
+	    {
+	        Write-Verbose("`nThere are no current known vulnerabilities within Exchange 2016 CU12.")
+	    }
+	    #CVE-2019-0686
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
+	    #CVE-2019-0724
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
+	}
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
     {
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::RTM)
         {
             #CVE-2019-0586
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0586"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0586"
             #CVE-2019-0588
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $EXSetupDetails -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0588"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.14 -CVEName "CVE-2019-0588"
         }
+	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
+	{
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU1)
+	    {
+	        Write-Verbose("`nThere are no current known vulnerabilities within Exchange 2019 CU1.")
+	    }
+	    #CVE-2019-0686
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
+	    #CVE-2019-0724
+	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
+	}
     }
     else 
     {
