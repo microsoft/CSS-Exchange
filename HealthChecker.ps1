@@ -328,6 +328,7 @@ using System.Collections;
             public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
+            public string TimeZone; //value to stores the current timezone of the server. 
 
         }
 
@@ -1126,6 +1127,7 @@ param(
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
+    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
 
     return $os_obj
 }
@@ -3117,6 +3119,7 @@ param(
     }
 
     Write-Grey("`tOperating System: " + $HealthExSvrObj.OSVersion.OperatingSystemName)
+    Write-Grey("`tTime Zone: {0}" -f $HealthExSvrObj.OSVersion.TimeZone)
     Write-Grey("`tExchange: " + $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName)
     Write-Grey("`tBuild Number: " + $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber)
     #If IU or Security Hotfix detected
