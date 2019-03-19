@@ -277,7 +277,6 @@ using System.Collections;
             Unknown = 0,
             VCRedist2012 = 184610406,
             VCRedist2013 = 201367252
-
         }
 
         public class VCRedistObject
@@ -842,8 +841,7 @@ param(
     $Return.vc2013Current = $false
 
     $DetectedVisualCRedistVersions = Get-VisualCRedistributableVersion -MachineName $ExchangeServerObj.ServerName
-
-    ## ToDo: isnullorempty
+    
     if($DetectedVisualCRedistVersions -ne $null)
     {
         if($ExchangeServerObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
