@@ -4838,7 +4838,7 @@ param(
 
 Function Get-ExchangeDCCoreRatio {
 
-    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
+    Set-ScriptLogFileLocation -FileName "HealthCheck-ExchangeDCCoreRatio"
     Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
@@ -4942,6 +4942,7 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
+    Load-ExShell
 }
 
 Function Get-ErrorsThatOccurred {
@@ -5041,7 +5042,6 @@ Function Main {
         exit
     }
 
-	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
