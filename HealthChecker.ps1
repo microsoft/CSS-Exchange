@@ -329,7 +329,8 @@ using System.Collections;
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
             public string TimeZone; //value to stores the current timezone of the server. 
-            public System.Array TLSSettings; 
+            public System.Array TLSSettings;
+            public NetDefaultTlsVersionObject NetDefaultTlsVersion; 
         }
 
         public enum TLSVersion
@@ -342,10 +343,16 @@ using System.Collections;
         public class TLSObject
         {
             public string TLSName; 
-            public string ClientEnabled;
-            public string ClientDisabledByDefault; 
-            public string ServerEnabled;
-            public string ServerDisabledByDefault; 
+            public bool ClientEnabled;
+            public bool ClientDisabledByDefault; 
+            public bool ServerEnabled;
+            public bool ServerDisabledByDefault; 
+        }
+
+        public class NetDefaultTlsVersionObject 
+        {
+            public bool SystemDefaultTlsVersions;
+            public bool WowSystemDefaultTlsVersions; 
         }
 
         public class HotfixObject
@@ -1196,6 +1203,31 @@ param(
     return $tlsSettings
 }
 
+Function Set-NetTLSDefaultVersions2010 {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExchangeServerObject
+)
+    Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
+    $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
+    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    return $HealthExchangeServerObject
+}
+
+Function Get-NetTLSDefaultVersions {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-NetTLSDefaultVersions")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
+    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionObject
+    $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
+    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    return $netTlsVersion
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1288,6 +1320,7 @@ param(
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
     $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
+    $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
     return $os_obj
 }
@@ -2269,6 +2302,10 @@ param(
     $HealthExSvrObj.HardwareInfo = Build-HardwareObject -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Build-OperatingSystemObject -Machine_Name $Machine_Name  
     $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthExchangeServerObject $HealthExSvrObj
+    }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
@@ -3845,6 +3882,13 @@ param(
         {
             Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
         }
+        if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
+            ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
+            $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
+            ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
+            {
+                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
+            }
     }
 
 	##############
