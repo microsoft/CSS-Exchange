@@ -415,7 +415,7 @@ using System.Collections;
         {
             public int LmCompatibilityLevel;  //The LmCompatibilityLevel for the server (INT 1 - 5)
             public string LmCompatibilityLevelDescription; //The description of the lmcompat that the server is set too
-            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx)
+            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx or https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10) )
         }
     }
 
@@ -1647,6 +1647,7 @@ param(
     Write-VerboseOutput("Revision Value: " + $iRevision)
     Write-VerboseOutput("Build Plus Revision Value: " + $buildRevision)
     #https://technet.microsoft.com/en-us/library/hh135098(v=exchg.150).aspx
+    #https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
 
     if($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 2)
     {
@@ -1819,9 +1820,11 @@ param(
 
 Exchange 2013 Support 
 https://technet.microsoft.com/en-us/library/aa996719(v=exchg.150).aspx
+https://docs.microsoft.com/en-us/exchange/exchange-2013-system-requirements-exchange-2013-help
 
 Exchange 2016 Support 
 https://technet.microsoft.com/en-us/library/aa996719(v=exchg.160).aspx
+https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/system-requirements?view=exchserver-2019
 
 Team Blog Articles 
 
@@ -2714,7 +2717,7 @@ param(
 
     [HealthChecker.ServerLmCompatibilityLevel]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevel
     
-    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://technet.microsoft.com/en-us/library/cc960646.aspx"
+    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10)"
     $ServerLmCompatObject.LmCompatibilityLevel    = Get-LmCompatibilityLevel $Machine_Name
     Switch ($ServerLmCompatObject.LmCompatibilityLevel)
     {
@@ -3458,7 +3461,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $sDisplay)
             Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
@@ -3485,7 +3488,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile")
         }
     }
     #Exchange 2013 with page file size that should match total memory plus 10 MB 
@@ -3498,7 +3501,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $sDisplay)
             Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
@@ -3701,7 +3704,7 @@ param(
     {
         if($HealthExSvrObj.OSVersion.NetworkAdapters.Count -gt 1 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Mailbox -or $HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::MultiRole))
         {
-            Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR")
+            Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR")
         }
     }
     if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $HealthExSvrObj.OSVersion.IPv6DisabledOnNICs)
@@ -4730,7 +4733,7 @@ Function Build-HtmlServerReport {
 	
 	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://docs.microsoft.com/en-us/previous-versions/office/exchange-server-analyzer/cc431357(v=exchg.80) - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
 	}
 
     If($AllServersOutputObject.VirtualServer -contains "Yes")
@@ -4740,7 +4743,7 @@ Function Build-HtmlServerReport {
 
 	If($AllServersOutputObject.E2013MultipleNICs -contains "Yes")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR</td></tr>"
 	}
 	
 	$a = ($ServerArrayItem.NumberNICs)
@@ -4975,7 +4978,7 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
         Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
-        Write-Yellow("`thttps://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+        Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
 
     }
     else 
