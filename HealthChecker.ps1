@@ -566,7 +566,7 @@ param(
         if($MachineName -match $env:COMPUTERNAME)
         {
             Write-VerboseOutput("Query software for local machine: {0}" -f $env:COMPUTERNAME)
-            $InstalledSoftware = Invoke-Command -ComputerName $env:COMPUTERNAME -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*}
+            $InstalledSoftware = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
         }
         else
         {
@@ -844,48 +844,34 @@ param(
     
     if($DetectedVisualCRedistVersions -ne $null)
     {
-        if($ExchangeServerObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+        if(($ExchangeServerObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge))
         {
-            if(($ExchangeServerObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Mailbox) -or ($ExchangeServerObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess) -or ($ExchangeServerObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::MultiRole))
-            {
-                Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2012 and 2013")
-                $Return.VC2012Required = $true
-                $Return.VC2013Required = $true
-
-                ForEach($DetectedVisualCRedistVersion in $DetectedVisualCRedistVersions)
-                {
-                    if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
-                    {
-                        $Return.VC2012Current = $true
-                        $Return.VC2012Version = $DetectedVisualCRedistVersion.DisplayVersion
-                    }
-                    
-                    if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
-                    {
-                        $Return.VC2013Current = $true
-                        $Return.VC2013Version = $DetectedVisualCRedistVersion.DisplayVersion
-                    }  
-                }
-            }
-            else
-            {
-                Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2012")
-                $Return.VC2012Required = $true
-
-                ForEach($DetectedVisualCRedistVersion in $DetectedVisualCRedistVersions)
-                {
-                    if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
-                    {
-                        $Return.VC2012Current = $true
-                        $Return.VC2012Version = $DetectedVisualCRedistVersion.DisplayVersion
-                    }
-                }
-            }
+            Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2013")
+            $Return.VC2013Required = $true
         }
-        else
+            
+        Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2012")
+        $Return.VC2012Required = $true
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        ForEach($DetectedVisualCRedistVersion in $DetectedVisualCRedistVersions)
         {
-            Write-VerboseOutput("We can't determin required Visual C++ Redistributable Version")
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $DetectedVisualCRedistVersion.DisplayName, $DetectedVisualCRedistVersion.VersionIdentifier)
+            if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $Return.VC2012Current = $true
+                $Return.VC2012Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }
+            elseif($Return.VC2013Required -eq $true -and $DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $Return.VC2013Current = $true
+                $Return.VC2013Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }  
         }
+    }
+    else
+    {
+        Write-VerboseOutput("We can't determin required Visual C++ Redistributable Version")
     }
     return $Return
 }
@@ -3562,48 +3548,44 @@ param(
     ################
     #  Visual C++  #
     ################
-    Write-Grey("Visual C++ Redistributable Version Check:")
-    $VisualCInfo = Confirm-VisualCRedistributableVersion -ExchangeServerObj $HealthExSvrObj
-
-    if(($VisualCInfo.VC2012Required -eq $true) -and ($VisualCInfo.VC2013Required -eq $true))
+    #Only going to do this for Exchange 2013+ after C++ was required.
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010 -and 
+        ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate)) -ge ([System.Convert]::ToDateTime("06/19/2018")))
     {
-        if(($VisualCInfo.VC2012Current -eq $true) -and ($VisualCInfo.VC2013Current -eq $true))
+        Write-Grey("Visual C++ Redistributable Version Check:")
+        $VisualCInfo = Confirm-VisualCRedistributableVersion -ExchangeServerObj $HealthExSvrObj
+
+        if($VisualCInfo.VC2013Required -eq $true)
         {
-            Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
-            Write-Green("`tVisual C++ 2013 Redistributable Version {0} is current" -f $VisualCInfo.VC2013Version)
+            if($VisualCInfo.VC2013Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2013 Redistributable Version {0} is current" -f $VisualCInfo.VC2013Version)
+            }
+            else
+            {
+                Write-Red("`tVisual C++ 2013 Redistributable is outdated")
+            }
         }
-        elseif(($VisualCInfo.VC2012Current -eq $false) -and ($VisualCInfo.VC2013Current -eq $true))
+        if($VisualCInfo.VC2012Required -eq $true)
         {
-            Write-Red("`tVisual C++ 2012 Redistributable is outdated")
-            Write-Green("`tVisual C++ 2013 Redistributable Version {0} is current" -f $VisualCInfo.VC2013Version)
-        }
-        elseif(($VisualCInfo.VC2012Current -eq $true) -and ($VisualCInfo.VC2013Current -eq $false))
-        {
-            Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
-            Write-Red("`tVisual C++ 2013 Redistributable is outdated")
+            if($VisualCInfo.VC2012Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
+            }
+            else
+            {
+                Write-Red("`tVisual C++ 2012 Redistributable is outdated")
+            }
         }
         else
         {
-            Write-Red("`tVisual C++ 2012 Redistributable is outdated")
-            Write-Red("`tVisual C++ 2013 Redistributable is outdated")
+            Write-Yellow("`tUnable to determin required Visual C++ Redistributable Versions")
         }
     }
-    elseif($VisualCInfo.VC2012Required -eq $true)
+    else 
     {
-        if($VisualCInfo.VC2012Current -eq $true)
-        {
-            Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
-        }
-        else
-        {
-            Write-Red("`tVisual C++ 2012 Redistributable is outdated")
-        }
+        Write-VerboseOutput("Not checking Visual C++ Redistributeable Version.")
     }
-    else
-    {
-        Write-Yellow("`tUnable to determin required Visual C++ Redistributable Versions")
-    }
-
     ################
     #Power Settings#
     ################
