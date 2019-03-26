@@ -486,6 +486,69 @@ Function Invoke-CatchActions{
 
 }
 
+Function Test-ScriptVersion {
+param(
+[Parameter(Mandatory=$true)][string]$ApiUri, 
+[Parameter(Mandatory=$true)][string]$RepoOwner,
+[Parameter(Mandatory=$true)][string]$RepoName,
+[Parameter(Mandatory=$true)][double]$CurrentVersion,
+[Parameter(Mandatory=$true)][int]$DaysOldLimit
+)
+    Write-VerboseOutput("Calling: Test-ScriptVersion")
+
+    $isCurrent = $false 
+    
+    if(Test-Connection -ComputerName $ApiUri -Count 1 -Quiet)
+    {
+        try 
+        {
+            $currentSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $releaseInformation = (ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$apiUri/repos/$RepoOwner/$RepoName/releases/latest")))
+        }
+        catch 
+        {
+            Invoke-CatchActions
+            Write-VerboseOutput("Failed to run Invoke-WebRequest")
+        }
+        finally 
+        {
+            [Net.ServicePointManager]::SecurityProtocol = $currentSecurityProtocol
+        }
+        if($releaseInformation -ne $null)
+        {
+            Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
+            if($CurrentVersion -ge ($latestVersion = [double](($releaseInformation.tag_name).Split("v")[1])))
+            {
+                Write-VerboseOutput("Version '{0}' is the latest version." -f $latestVersion)
+                $isCurrent = $true 
+            }
+            else 
+            {
+                Write-VerboseOutput("Version '{0}' is outdated. Lastest version is '{1}'" -f $CurrentVersion, $latestVersion)
+            }
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("We're offline: Unable to connect to '{0}" -f $ApiUri)
+        Write-VerboseOutput("Unable to determine if this version '{0}' is current. Checking to see if the file is older than {1} days." -f $CurrentVersion, $DaysOldLimit)
+        $writeTime = (Get-ChildItem ($MyInvocation.ScriptName)).LastWriteTime
+        if($writeTime -gt ($testDate = ([datetime]::Now).AddDays(-$DaysOldLimit)))
+        {
+            Write-VerboseOutput("Determined that the script write time '{0}' is new than our our test date '{1}'." -f $writeTime, $testDate)
+            $isCurrent = $true 
+        }
+        else 
+        {
+            Write-VerboseOutput("Script doesn't appear to be on the latest possible version. Script write time '{0}' vs out test date '{1}'" -f $writeTime, $testDate)
+        }
+
+    }
+
+    return $isCurrent
+}
+
 Function Invoke-RegistryHandler {
 param(
 [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
@@ -3293,7 +3356,6 @@ param(
     #Header information#
     ####################
 
-    Write-Green("Exchange Health Checker version " + $healthCheckerVersion)
     Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + $date) 
     Write-Break
     Write-Break
@@ -4996,10 +5058,24 @@ Function Get-ErrorsThatOccurred {
     }
 }
 
+Function Write-HealthCheckerVersion {
+    
+    $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" -RepoName "HealthChecker" -CurrentVersion $healthCheckerVersion -DaysOldLimit 90
+    if($currentVersion)
+    {
+        Write-Green("Exchange Health Checker version {0}" -f $healthCheckerVersion)
+    }
+    else 
+    {
+        Write-Yellow("Exchange Health Checker version {0}. This script is probably outdated. Please verify before relying on the results." -f $healthCheckerVersion)
+    }
+
+}
+
 Function LoadBalancingMain {
 
     Set-ScriptLogFileLocation -FileName "LoadBalancingReport" 
-    Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
+    Write-HealthCheckerVersion
     Write-Green("Client Access Load Balancing Report on " + $date)
     Get-CASLoadBalancingReport
     Write-Grey("Output file written to " + $OutputFullPath)
@@ -5011,6 +5087,7 @@ Function LoadBalancingMain {
 Function HealthCheckerMain {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
+    Write-HealthCheckerVersion
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
     Get-ErrorsThatOccurred
