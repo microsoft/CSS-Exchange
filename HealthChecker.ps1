@@ -554,7 +554,7 @@ param(
     Write-VerboseOutput("Calling: Get-CounterSamples")
     try 
     {
-        $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+        $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters -ErrorAction Stop).CounterSamples
     }
     catch 
     {
