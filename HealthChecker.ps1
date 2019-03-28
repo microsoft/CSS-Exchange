@@ -5046,7 +5046,7 @@ Function Get-ErrorsThatOccurred {
 
         if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
         {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to dpaul@microsoft.com.")
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to ExToolsFeedback@microsoft.com.")
 	        Write-Errors
         }
         elseif($Script:VerboseEnabled)
