@@ -3554,7 +3554,7 @@ param(
     {
         Write-Grey("Visual C++ Redistributable Version Check:")
         $VisualCInfo = Confirm-VisualCRedistributableVersion -ExchangeServerObj $HealthExSvrObj
-
+        $displayNote = $false 
         if($VisualCInfo.VC2013Required -eq $true)
         {
             if($VisualCInfo.VC2013Current -eq $true)
@@ -3563,7 +3563,8 @@ param(
             }
             else
             {
-                Write-Red("`tVisual C++ 2013 Redistributable is outdated")
+                Write-Yellow("`tVisual C++ 2013 Redistributable is outdated")
+                $displayNote = $true 
             }
         }
         if($VisualCInfo.VC2012Required -eq $true)
@@ -3574,12 +3575,18 @@ param(
             }
             else
             {
-                Write-Red("`tVisual C++ 2012 Redistributable is outdated")
+                Write-Yellow("`tVisual C++ 2012 Redistributable is outdated")
+                $displayNote = $true 
             }
         }
         else
         {
             Write-Yellow("`tUnable to determin required Visual C++ Redistributable Versions")
+        }
+        if($displayNote)
+        {
+            Write-Yellow("`tNote: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads")
+            Write-Yellow("`tThis is not a requirement to upgrade, only a notification to bring to your attention.")
         }
     }
     else 
