@@ -270,6 +270,23 @@ using System.Collections;
             Net4d7d2 = 461814
         }
 
+        //enum for the dword values of the latest supported VC++ redistributable releases
+	//https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+        public enum VCRedistVersion
+        {
+            Unknown = 0,
+            VCRedist2012 = 184610406,
+            VCRedist2013 = 201367252
+        }
+
+        public class VCRedistObject
+        {
+            public string DisplayName;
+            public string DisplayVersion;
+            public string InstallDate;
+            public int VersionIdentifier;
+        }
+
         public class HardwareObject
         {
             public string Manufacturer; //String to display the hardware information 
@@ -609,6 +626,32 @@ Function Is-Admin {
     }
 }
 
+Function Get-InstalledSoftware {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling: Get-InstalledSoftware")
+    try
+    {
+        if($MachineName -match $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Query software for local machine: {0}" -f $env:COMPUTERNAME)
+            $InstalledSoftware = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
+        }
+        else
+        {
+            Write-VerboseOutput("Query software for remote machine: {0}" -f $MachineName)
+            $InstalledSoftware = Invoke-Command -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*}
+        }
+    }
+    catch
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to query installed software")
+    }
+    return $InstalledSoftware
+}
+
 Function Get-CounterSamples {
 param(
 [Parameter(Mandatory=$true)][array]$MachineNames,
@@ -829,6 +872,78 @@ param(
 		return $httpProxy64
 	}
 
+}
+
+Function Get-VisualCRedistributableVersion {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling Function: Get-VisualCRedistributableVersion")
+    $Software_objs = @()
+    $InstalledSoftware = Get-InstalledSoftware -MachineName $MachineName
+
+    ForEach($Software in $InstalledSoftware)
+    {
+        if($Software.DisplayName -like "Microsoft Visual C++ *")
+        {
+            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $Software.DisplayName)
+            [HealthChecker.VCRedistObject]$Software_obj = New-Object Healthchecker.VCRedistObject
+            $Software_obj.DisplayName = $Software.DisplayName
+            $Software_obj.DisplayVersion = $Software.DisplayVersion
+            $Software_obj.InstallDate = $Software.InstallDate
+            $Software_obj.VersionIdentifier = $Software.Version
+            $Software_objs += $Software_obj
+        }
+    }
+    return $Software_objs
+}
+
+Function Confirm-VisualCRedistributableVersion {
+param(
+[Parameter(Mandatory=$true)][object]$ExchangeServerObj
+)
+    Write-VerboseOutput("Calling Function: Confirm-VisualCRedistributableVersion")
+
+    [hashtable]$Return = @{}
+    $Return.VC2012Required = $false
+    $Return.vc2013Required = $false
+    $Return.VC2012Current = $false
+    $Return.vc2013Current = $false
+
+    $DetectedVisualCRedistVersions = Get-VisualCRedistributableVersion -MachineName $ExchangeServerObj.ServerName
+    
+    if($DetectedVisualCRedistVersions -ne $null)
+    {
+        if(($ExchangeServerObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge))
+        {
+            Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2013")
+            $Return.VC2013Required = $true
+        }
+            
+        Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2012")
+        $Return.VC2012Required = $true
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        ForEach($DetectedVisualCRedistVersion in $DetectedVisualCRedistVersions)
+        {
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $DetectedVisualCRedistVersion.DisplayName, $DetectedVisualCRedistVersion.VersionIdentifier)
+            if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $Return.VC2012Current = $true
+                $Return.VC2012Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }
+            elseif($Return.VC2013Required -eq $true -and $DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $Return.VC2013Current = $true
+                $Return.VC2013Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }  
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("We can't determin required Visual C++ Redistributable Version")
+    }
+    return $Return
 }
 
 Function New-FileLevelHotfixObject {
@@ -3532,6 +3647,54 @@ param(
 
     }
 
+    ################
+    #  Visual C++  #
+    ################
+    #Only going to do this for Exchange 2013+ after C++ was required.
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010 -and 
+        ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate)) -ge ([System.Convert]::ToDateTime("06/19/2018", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))
+    {
+        Write-Grey("Visual C++ Redistributable Version Check:")
+        $VisualCInfo = Confirm-VisualCRedistributableVersion -ExchangeServerObj $HealthExSvrObj
+        $displayNote = $false 
+        if($VisualCInfo.VC2013Required -eq $true)
+        {
+            if($VisualCInfo.VC2013Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2013 Redistributable Version {0} is current" -f $VisualCInfo.VC2013Version)
+            }
+            else
+            {
+                Write-Yellow("`tVisual C++ 2013 Redistributable is outdated")
+                $displayNote = $true 
+            }
+        }
+        if($VisualCInfo.VC2012Required -eq $true)
+        {
+            if($VisualCInfo.VC2012Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
+            }
+            else
+            {
+                Write-Yellow("`tVisual C++ 2012 Redistributable is outdated")
+                $displayNote = $true 
+            }
+        }
+        else
+        {
+            Write-Yellow("`tUnable to determin required Visual C++ Redistributable Versions")
+        }
+        if($displayNote)
+        {
+            Write-Yellow("`tNote: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads")
+            Write-Yellow("`tThis is not a requirement to upgrade, only a notification to bring to your attention.")
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("Not checking Visual C++ Redistributeable Version.")
+    }
     ################
     #Power Settings#
     ################
