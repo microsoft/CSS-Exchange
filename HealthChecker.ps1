@@ -106,7 +106,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.31"
+$healthCheckerVersion = "2.32"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -270,6 +270,23 @@ using System.Collections;
             Net4d7d2 = 461814
         }
 
+        //enum for the dword values of the latest supported VC++ redistributable releases
+	//https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+        public enum VCRedistVersion
+        {
+            Unknown = 0,
+            VCRedist2012 = 184610406,
+            VCRedist2013 = 201367252
+        }
+
+        public class VCRedistObject
+        {
+            public string DisplayName;
+            public string DisplayVersion;
+            public string InstallDate;
+            public int VersionIdentifier;
+        }
+
         public class HardwareObject
         {
             public string Manufacturer; //String to display the hardware information 
@@ -328,7 +345,31 @@ using System.Collections;
             public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
+            public string TimeZone; //value to stores the current timezone of the server. 
+            public System.Array TLSSettings;
+            public NetDefaultTlsVersionObject NetDefaultTlsVersion; 
+        }
 
+        public enum TLSVersion
+        {
+            TLS10,
+            TLS11,
+            TLS12
+        }
+
+        public class TLSObject
+        {
+            public string TLSName; 
+            public bool ClientEnabled;
+            public bool ClientDisabledByDefault; 
+            public bool ServerEnabled;
+            public bool ServerDisabledByDefault; 
+        }
+
+        public class NetDefaultTlsVersionObject 
+        {
+            public bool SystemDefaultTlsVersions;
+            public bool WowSystemDefaultTlsVersions; 
         }
 
         public class HotfixObject
@@ -391,7 +432,7 @@ using System.Collections;
         {
             public int LmCompatibilityLevel;  //The LmCompatibilityLevel for the server (INT 1 - 5)
             public string LmCompatibilityLevelDescription; //The description of the lmcompat that the server is set too
-            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx)
+            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx or https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10) )
         }
     }
 
@@ -462,6 +503,69 @@ Function Invoke-CatchActions{
 
 }
 
+Function Test-ScriptVersion {
+param(
+[Parameter(Mandatory=$true)][string]$ApiUri, 
+[Parameter(Mandatory=$true)][string]$RepoOwner,
+[Parameter(Mandatory=$true)][string]$RepoName,
+[Parameter(Mandatory=$true)][double]$CurrentVersion,
+[Parameter(Mandatory=$true)][int]$DaysOldLimit
+)
+    Write-VerboseOutput("Calling: Test-ScriptVersion")
+
+    $isCurrent = $false 
+    
+    if(Test-Connection -ComputerName $ApiUri -Count 1 -Quiet)
+    {
+        try 
+        {
+            $currentSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $releaseInformation = (ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$apiUri/repos/$RepoOwner/$RepoName/releases/latest")))
+        }
+        catch 
+        {
+            Invoke-CatchActions
+            Write-VerboseOutput("Failed to run Invoke-WebRequest")
+        }
+        finally 
+        {
+            [Net.ServicePointManager]::SecurityProtocol = $currentSecurityProtocol
+        }
+        if($releaseInformation -ne $null)
+        {
+            Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
+            if($CurrentVersion -ge ($latestVersion = [double](($releaseInformation.tag_name).Split("v")[1])))
+            {
+                Write-VerboseOutput("Version '{0}' is the latest version." -f $latestVersion)
+                $isCurrent = $true 
+            }
+            else 
+            {
+                Write-VerboseOutput("Version '{0}' is outdated. Lastest version is '{1}'" -f $CurrentVersion, $latestVersion)
+            }
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("We're offline: Unable to connect to '{0}" -f $ApiUri)
+        Write-VerboseOutput("Unable to determine if this version '{0}' is current. Checking to see if the file is older than {1} days." -f $CurrentVersion, $DaysOldLimit)
+        $writeTime = (Get-ChildItem ($MyInvocation.ScriptName)).LastWriteTime
+        if($writeTime -gt ($testDate = ([datetime]::Now).AddDays(-$DaysOldLimit)))
+        {
+            Write-VerboseOutput("Determined that the script write time '{0}' is new than our our test date '{1}'." -f $writeTime, $testDate)
+            $isCurrent = $true 
+        }
+        else 
+        {
+            Write-VerboseOutput("Script doesn't appear to be on the latest possible version. Script write time '{0}' vs out test date '{1}'" -f $writeTime, $testDate)
+        }
+
+    }
+
+    return $isCurrent
+}
+
 Function Invoke-RegistryHandler {
 param(
 [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
@@ -522,6 +626,32 @@ Function Is-Admin {
     }
 }
 
+Function Get-InstalledSoftware {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling: Get-InstalledSoftware")
+    try
+    {
+        if($MachineName -match $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Query software for local machine: {0}" -f $env:COMPUTERNAME)
+            $InstalledSoftware = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
+        }
+        else
+        {
+            Write-VerboseOutput("Query software for remote machine: {0}" -f $MachineName)
+            $InstalledSoftware = Invoke-Command -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*}
+        }
+    }
+    catch
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to query installed software")
+    }
+    return $InstalledSoftware
+}
+
 Function Get-CounterSamples {
 param(
 [Parameter(Mandatory=$true)][array]$MachineNames,
@@ -530,7 +660,7 @@ param(
     Write-VerboseOutput("Calling: Get-CounterSamples")
     try 
     {
-        $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters).CounterSamples
+        $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters -ErrorAction Stop).CounterSamples
     }
     catch 
     {
@@ -742,6 +872,78 @@ param(
 		return $httpProxy64
 	}
 
+}
+
+Function Get-VisualCRedistributableVersion {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling Function: Get-VisualCRedistributableVersion")
+    $Software_objs = @()
+    $InstalledSoftware = Get-InstalledSoftware -MachineName $MachineName
+
+    ForEach($Software in $InstalledSoftware)
+    {
+        if($Software.DisplayName -like "Microsoft Visual C++ *")
+        {
+            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $Software.DisplayName)
+            [HealthChecker.VCRedistObject]$Software_obj = New-Object Healthchecker.VCRedistObject
+            $Software_obj.DisplayName = $Software.DisplayName
+            $Software_obj.DisplayVersion = $Software.DisplayVersion
+            $Software_obj.InstallDate = $Software.InstallDate
+            $Software_obj.VersionIdentifier = $Software.Version
+            $Software_objs += $Software_obj
+        }
+    }
+    return $Software_objs
+}
+
+Function Confirm-VisualCRedistributableVersion {
+param(
+[Parameter(Mandatory=$true)][object]$ExchangeServerObj
+)
+    Write-VerboseOutput("Calling Function: Confirm-VisualCRedistributableVersion")
+
+    [hashtable]$Return = @{}
+    $Return.VC2012Required = $false
+    $Return.vc2013Required = $false
+    $Return.VC2012Current = $false
+    $Return.vc2013Current = $false
+
+    $DetectedVisualCRedistVersions = Get-VisualCRedistributableVersion -MachineName $ExchangeServerObj.ServerName
+    
+    if($DetectedVisualCRedistVersions -ne $null)
+    {
+        if(($ExchangeServerObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge))
+        {
+            Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2013")
+            $Return.VC2013Required = $true
+        }
+            
+        Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2012")
+        $Return.VC2012Required = $true
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        ForEach($DetectedVisualCRedistVersion in $DetectedVisualCRedistVersions)
+        {
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $DetectedVisualCRedistVersion.DisplayName, $DetectedVisualCRedistVersion.VersionIdentifier)
+            if($DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $Return.VC2012Current = $true
+                $Return.VC2012Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }
+            elseif($Return.VC2013Required -eq $true -and $DetectedVisualCRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $Return.VC2013Current = $true
+                $Return.VC2013Version = $DetectedVisualCRedistVersion.DisplayVersion
+            }  
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("We can't determin required Visual C++ Redistributable Version")
+    }
+    return $Return
 }
 
 Function New-FileLevelHotfixObject {
@@ -1036,6 +1238,174 @@ param(
     return $ServerPendingReboot
 }
 
+Function Get-TLSSettingsFromRegistry {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name,
+[Parameter(Mandatory=$true)][HealthChecker.TLSVersion]$TLSVersion
+)
+    $regBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
+    switch($TLSVersion)
+    {
+        ([HealthChecker.TLSVersion]::TLS10)
+        {
+            $version = "1.0"
+        }
+        ([HealthChecker.TLSVersion]::TLS11)
+        {
+            $version = "1.1"
+        }
+        ([HealthChecker.TLSVersion]::TLS12)
+        {
+            $version = "1.2"
+        }
+    }
+
+    $regServer = $regBase -f $version, "Server"
+    $regClient = $regBase -f $version, "Client"
+    $serverEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled"
+    $serverDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault"
+    $clientEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled"
+    $clientDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault"
+    
+    if($serverEnabled -eq $null)
+    {
+        Write-Red("Failed to get TLS {0} Server Enabled Key on Server {1}. We are assuming that it is enabled." -f $version, $Machine_Name)
+        Write-Yellow("This can be normal on Windows Server 2008 R2.")
+        $serverEnabled = $true 
+    }
+    else 
+    {
+        Write-VerboseOutput("Server Enabled Value {0}" -f $serverEnabled)
+        if($serverEnabled -eq 1)
+        {
+            $serverEnabled = $true 
+        }
+        else 
+        {
+            $serverEnabled = $false 
+        }
+    }
+    if($serverDisabledByDefault -eq $null)
+    {
+        Write-VerboseOutput("Failed to get Server Disabled By Default value from registry. Setting to false")
+        $serverDisabledByDefault = $false 
+    }
+    else 
+    {
+        Write-VerboseOutput("Server Disabled By Default value {0}" -f $serverDisabledByDefault)
+        if($serverDisabledByDefault -eq 1)
+        {
+            $serverDisabledByDefault = $true 
+        }
+        else 
+        {
+            $serverDisabledByDefault = $false 
+        }
+    }
+    if($clientEnabled -eq $null)
+    {
+        Write-VerboseOutput("Failed to get Client Enabled Key on Server. Setting to true (Enabled) by default.")
+        $clientEnabled = $true 
+    }
+    else 
+    {
+        Write-VerboseOutput("Client Enabled value {0}" -f $clientEnabled)
+        if($clientEnabled -eq 1)
+        {
+            $clientEnabled = $true
+        }
+        else 
+        {
+            $clientEnabled = $false 
+        }
+    }
+    if($clientDisabledByDefault -eq $null)
+    {
+        Write-VerboseOutput("Failed to get Client Disabled By Default Key on Server. Setting to false.")
+        $clientDisabledByDefault = $false 
+    }
+    else 
+    {
+        Write-VerboseOutput("Client Disabled By Default value {0}" -f $clientDisabledByDefault)
+        if($clientDisabledByDefault -eq 1)
+        {
+            $clientDisabledByDefault = $true 
+        }
+        else 
+        {
+            $clientDisabledByDefault = $false 
+        }
+    }
+
+    $returnObj = New-Object pscustomobject 
+    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerEnabled" -Value $serverEnabled
+    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerDisabledByDefault" -Value $serverDisabledByDefault
+    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientEnabled" -Value $clientEnabled 
+    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientDisabledByDefault" -Value $clientDisabledByDefault
+
+    return $returnObj
+}
+
+Function Get-TLSSettings{
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    $tlsSettings = @() 
+    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj.TLSName = "1.0"
+    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS10)
+    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
+    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
+    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
+    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
+    $tlsSettings += $tlsObj
+
+    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj.TLSName = "1.1"
+    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS11)
+    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
+    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
+    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
+    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
+    $tlsSettings += $tlsObj
+
+    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj.TLSName = "1.2"
+    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS12)
+    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
+    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
+    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
+    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
+    $tlsSettings += $tlsObj
+
+    return $tlsSettings
+}
+
+Function Set-NetTLSDefaultVersions2010 {
+param(
+[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExchangeServerObject
+)
+    Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
+    $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
+    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    return $HealthExchangeServerObject
+}
+
+Function Get-NetTLSDefaultVersions {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-NetTLSDefaultVersions")
+    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
+    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionObject
+    $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
+    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    return $netTlsVersion
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1126,6 +1496,9 @@ param(
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
+    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+    $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
+    $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
     return $os_obj
 }
@@ -1389,6 +1762,7 @@ param(
     Write-VerboseOutput("Revision Value: " + $iRevision)
     Write-VerboseOutput("Build Plus Revision Value: " + $buildRevision)
     #https://technet.microsoft.com/en-us/library/hh135098(v=exchg.150).aspx
+    #https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
 
     if($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 2)
     {
@@ -1561,9 +1935,11 @@ param(
 
 Exchange 2013 Support 
 https://technet.microsoft.com/en-us/library/aa996719(v=exchg.150).aspx
+https://docs.microsoft.com/en-us/exchange/exchange-2013-system-requirements-exchange-2013-help
 
 Exchange 2016 Support 
 https://technet.microsoft.com/en-us/library/aa996719(v=exchg.160).aspx
+https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/system-requirements?view=exchserver-2019
 
 Team Blog Articles 
 
@@ -2107,6 +2483,10 @@ param(
     $HealthExSvrObj.HardwareInfo = Build-HardwareObject -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Build-OperatingSystemObject -Machine_Name $Machine_Name  
     $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthExchangeServerObject $HealthExSvrObj
+    }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
@@ -2452,7 +2832,7 @@ param(
 
     [HealthChecker.ServerLmCompatibilityLevel]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevel
     
-    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://technet.microsoft.com/en-us/library/cc960646.aspx"
+    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10)"
     $ServerLmCompatObject.LmCompatibilityLevel    = Get-LmCompatibilityLevel $Machine_Name
     Switch ($ServerLmCompatObject.LmCompatibilityLevel)
     {
@@ -2597,7 +2977,7 @@ param(
     #We check only for year 2018+ vulnerabilities
     #https://www.cvedetails.com/vulnerability-list/vendor_id-26/product_id-194/Microsoft-Exchange-Server.html 
 
-    [double]$buildRevision = [System.Convert]::ToDouble(("{0}.{1}" -f $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FileBuildPart, $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FilePrivatePart))
+    [double]$buildRevision = [System.Convert]::ToDouble(("{0}.{1}" -f $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FileBuildPart, $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FilePrivatePart), [System.Globalization.CultureInfo]::InvariantCulture)
     Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision) 
     Write-VerboseOutput("Exchange CU: {0}" -f ($exchangeCU = $HealthExSvrObj.ExchangeInformation.ExchangeBuildObject.CU))
 
@@ -3094,7 +3474,6 @@ param(
     #Header information#
     ####################
 
-    Write-Green("Exchange Health Checker version " + $healthCheckerVersion)
     Write-Green("System Information Report for " + $HealthExSvrObj.ServerName + " on " + $date) 
     Write-Break
     Write-Break
@@ -3117,6 +3496,7 @@ param(
     }
 
     Write-Grey("`tOperating System: " + $HealthExSvrObj.OSVersion.OperatingSystemName)
+    Write-Grey("`tTime Zone: {0}" -f $HealthExSvrObj.OSVersion.TimeZone)
     Write-Grey("`tExchange: " + $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName)
     Write-Grey("`tBuild Number: " + $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber)
     #If IU or Security Hotfix detected
@@ -3196,7 +3576,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $sDisplay)
             Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
@@ -3223,7 +3603,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+            Write-Yellow("`tPagefile Size: " + $HealthExSvrObj.OSVersion.PageFile.MaxPageSize + " --- Warning: Pagefile should be capped at 32778 MB for 32 GB Plus 10 MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile")
         }
     }
     #Exchange 2013 with page file size that should match total memory plus 10 MB 
@@ -3236,7 +3616,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx" -f $sDisplay)
+            Write-Yellow("`tPagefile Size: {0} --- Warning: Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $sDisplay)
             Write-Yellow("`tNote: We are calculating the page file size based off the WMI Object Win32_ComputerSystem. This is what is available on the OS.") 
         }
     }
@@ -3267,6 +3647,54 @@ param(
 
     }
 
+    ################
+    #  Visual C++  #
+    ################
+    #Only going to do this for Exchange 2013+ after C++ was required.
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010 -and 
+        ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate)) -ge ([System.Convert]::ToDateTime("06/19/2018", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))
+    {
+        Write-Grey("Visual C++ Redistributable Version Check:")
+        $VisualCInfo = Confirm-VisualCRedistributableVersion -ExchangeServerObj $HealthExSvrObj
+        $displayNote = $false 
+        if($VisualCInfo.VC2013Required -eq $true)
+        {
+            if($VisualCInfo.VC2013Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2013 Redistributable Version {0} is current" -f $VisualCInfo.VC2013Version)
+            }
+            else
+            {
+                Write-Yellow("`tVisual C++ 2013 Redistributable is outdated")
+                $displayNote = $true 
+            }
+        }
+        if($VisualCInfo.VC2012Required -eq $true)
+        {
+            if($VisualCInfo.VC2012Current -eq $true)
+            {
+                Write-Green("`tVisual C++ 2012 Redistributable Version {0} is current" -f $VisualCInfo.VC2012Version)
+            }
+            else
+            {
+                Write-Yellow("`tVisual C++ 2012 Redistributable is outdated")
+                $displayNote = $true 
+            }
+        }
+        else
+        {
+            Write-Yellow("`tUnable to determin required Visual C++ Redistributable Versions")
+        }
+        if($displayNote)
+        {
+            Write-Yellow("`tNote: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads")
+            Write-Yellow("`tThis is not a requirement to upgrade, only a notification to bring to your attention.")
+        }
+    }
+    else 
+    {
+        Write-VerboseOutput("Not checking Visual C++ Redistributeable Version.")
+    }
     ################
     #Power Settings#
     ################
@@ -3439,7 +3867,7 @@ param(
     {
         if($HealthExSvrObj.OSVersion.NetworkAdapters.Count -gt 1 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Mailbox -or $HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::MultiRole))
         {
-            Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR")
+            Write-Yellow("`t`tMultiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR")
         }
     }
     if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $HealthExSvrObj.OSVersion.IPv6DisabledOnNICs)
@@ -3665,6 +4093,31 @@ param(
     Write-Grey("`tLmCompatibilityLevel is set to: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel)
     Write-Grey("`tLmCompatibilityLevel Description: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevelDescription)
     Write-Grey("`tLmCompatibilityLevel Ref: " + $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevelRef)
+
+    ################
+    # TLS Settings #
+    ################
+
+    Write-Grey("`r`nTLS Settings:")
+    foreach($TLS in $HealthExSvrObj.OSVersion.TLSSettings)
+    {
+        Write-Grey("`tTLS {0}" -f $TLS.TLSName)
+        Write-Grey("`tServer Enabled: {0}" -f $TLS.ServerEnabled)
+        Write-Grey("`tServer Disabled By Default: {0}" -f $TLS.ServerDisabledByDefault)
+        Write-Grey("`tClient Enabled: {0}" -f $TLS.ClientEnabled)
+        Write-Grey("`tClient Disabled by Default: {0}" -f $TLS.ClientDisabledByDefault)
+        if($TLS.ServerEnabled -ne $TLS.ClientEnabled)
+        {
+            Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
+        }
+        if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
+            ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
+            $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
+            ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
+            {
+                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
+            }
+    }
 
 	##############
 	#Hotfix Check#
@@ -4443,7 +4896,7 @@ Function Build-HtmlServerReport {
 	
 	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://technet.microsoft.com/en-us/library/cc431357(v=exchg.80).aspx - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">Pagefile Size</td><td>Page set incorrectly detected. See https://docs.microsoft.com/en-us/previous-versions/office/exchange-server-analyzer/cc431357(v=exchg.80) - Please double check page file setting, as WMI Object Win32_ComputerSystem doesn't report the best value for total memory available.</td></tr>"
 	}
 
     If($AllServersOutputObject.VirtualServer -contains "Yes")
@@ -4453,7 +4906,7 @@ Function Build-HtmlServerReport {
 
 	If($AllServersOutputObject.E2013MultipleNICs -contains "Yes")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://technet.microsoft.com/en-us/library/29bb0358-fc8e-4437-8feb-d2959ed0f102(v=exchg.150)#NR</td></tr>"
+		$WarningsErrorsHtmlTable += "<tr><td class=""Warn"">Multiple NICs</td><td>Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR</td></tr>"
 	}
 	
 	$a = ($ServerArrayItem.NumberNICs)
@@ -4613,7 +5066,7 @@ param(
 
 Function Get-ExchangeDCCoreRatio {
 
-    $OutputFullPath = "{0}\HealthCheck-ExchangeDCCoreRatio-{1}.txt" -f $OutputFilePath, $dateTimeStringFormat
+    Set-ScriptLogFileLocation -FileName "HealthCheck-ExchangeDCCoreRatio"
     Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $healthCheckerVersion)
     $coreRatioObj = New-Object pscustomobject 
@@ -4688,7 +5141,7 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
         Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
-        Write-Yellow("`thttps://technet.microsoft.com/en-us/library/dn879075(v=exchg.150).aspx")
+        Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
 
     }
     else 
@@ -4717,6 +5170,7 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
+    Load-ExShell
 }
 
 Function Get-ErrorsThatOccurred {
@@ -4755,7 +5209,7 @@ Function Get-ErrorsThatOccurred {
 
         if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
         {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to dpaul@microsoft.com.")
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to ExToolsFeedback@microsoft.com.")
 	        Write-Errors
         }
         elseif($Script:VerboseEnabled)
@@ -4770,10 +5224,24 @@ Function Get-ErrorsThatOccurred {
     }
 }
 
+Function Write-HealthCheckerVersion {
+    
+    $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" -RepoName "HealthChecker" -CurrentVersion $healthCheckerVersion -DaysOldLimit 90
+    if($currentVersion)
+    {
+        Write-Green("Exchange Health Checker version {0}" -f $healthCheckerVersion)
+    }
+    else 
+    {
+        Write-Yellow("Exchange Health Checker version {0}. This script is probably outdated. Please verify before relying on the results." -f $healthCheckerVersion)
+    }
+
+}
+
 Function LoadBalancingMain {
 
     Set-ScriptLogFileLocation -FileName "LoadBalancingReport" 
-    Write-Green("Exchange Health Checker Script version: " + $healthCheckerVersion)
+    Write-HealthCheckerVersion
     Write-Green("Client Access Load Balancing Report on " + $date)
     Get-CASLoadBalancingReport
     Write-Grey("Output file written to " + $OutputFullPath)
@@ -4785,6 +5253,7 @@ Function LoadBalancingMain {
 Function HealthCheckerMain {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
+    Write-HealthCheckerVersion
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
     Get-ErrorsThatOccurred
@@ -4816,7 +5285,6 @@ Function Main {
         exit
     }
 
-	Load-ExShell
     if((Test-Path $OutputFilePath) -eq $false)
     {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
