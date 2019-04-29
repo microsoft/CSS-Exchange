@@ -3815,6 +3815,7 @@ param(
                 if($adapter.DriverDate -ne $null -and (New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
+                    Write-Grey("`t`tDriver Date: " + $adapter.DriverDate)
                 }
                 elseif($adapter.DriverDate -eq $null -or $adapter.DriverDate -eq [DateTime]::MaxValue)
                 {
