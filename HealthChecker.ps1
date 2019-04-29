@@ -753,6 +753,7 @@ param(
             Invoke-CatchActions
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
+            Write-VerboseOutput("NOTE: this means we aren't able to provide the driver date")
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
             foreach($adapter in $NetworkCards2008)
             {
@@ -761,6 +762,7 @@ param(
                 $nicObject.Name = $adapter.Name
                 $nicObject.LinkSpeed = $adapter.Speed
                 $nicObject.NICObject = $adapter 
+                $nicObject.DriverDate = [DateTime]::MaxValue;
                 $aNICObjects += $nicObject
             }
         }
@@ -3810,11 +3812,18 @@ param(
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                if((New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
+                if($adapter.DriverDate -ne $null -and (New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
                     Write-Yellow("`t`tWarning: NIC driver is over 1 year old. Verify you are at the latest version.")
                 }
-                Write-Grey("`t`tDriver Date: " + $adapter.DriverDate)
+                elseif($adapter.DriverDate -eq $null -or $adapter.DriverDate -eq [DateTime]::MaxValue)
+                {
+                    Write-Grey("`t`tDriver Date: Unknown")
+                }
+                else 
+                {
+                    Write-Grey("`t`tDriver Date: " + $adapter.DriverDate)
+                }
                 Write-Grey("`t`tDriver Version: " + $adapter.DriverVersion)
                 Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
