@@ -733,8 +733,20 @@ param(
         Write-VerboseOutput("Detected OS Version greater than or equal to Windows 2012R2")
         try 
         {
-            $cimSession = New-CimSession -ComputerName $Machine_Name -ErrorAction Stop 
-            $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
+            try 
+            {
+                $cimSession = New-CimSession -ComputerName $Machine_Name -ErrorAction Stop 
+                $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
+            }
+            catch 
+            {
+                Invoke-CatchActions
+                Write-VerboseOutput("Failed first attempt to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
+                Write-VerboseOutput("Going to attempt to get the FQDN from Get-ExchangeServer")
+                $fqdn = (Get-ExchangeServer $Machine_Name).FQDN 
+                $cimSession = New-CimSession -ComputerName $fqdn -ErrorAction Stop
+                $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
+            }
         }
         catch 
         {
