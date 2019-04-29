@@ -733,8 +733,8 @@ param(
         Write-VerboseOutput("Detected OS Version greater than or equal to Windows 2012R2")
         try 
         {
-            $cimSession = New-CimSession -ComputerName $Machine_Name
-            $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"}
+            $cimSession = New-CimSession -ComputerName $Machine_Name -ErrorAction Stop 
+            $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
         }
         catch 
         {
