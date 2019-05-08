@@ -347,7 +347,11 @@ using System.Collections;
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
             public string TimeZone; //value to stores the current timezone of the server. 
             public System.Array TLSSettings;
-            public NetDefaultTlsVersionObject NetDefaultTlsVersion; 
+            public NetDefaultTlsVersionObject NetDefaultTlsVersion;
+	    public string BootUpTimeInDays;
+            public string BootUpTimeInHours;
+            public string BootUpTimeInMinutes;
+            public string BootUpTimeInSeconds;
         }
 
         public enum TLSVersion
@@ -1440,10 +1444,16 @@ param(
         Invoke-CatchActions
         $plan = $null
     }
+    $temp_currentdate = Get-Date
+    $temp_uptime = [Management.ManagementDateTimeConverter]::ToDateTime($os.lastbootuptime)
     $os_obj.OSVersionBuild = $os.Version
     $os_obj.OSVersion = (Get-OperatingSystemVersion -OS_Version $os_obj.OSVersionBuild)
     $os_obj.OperatingSystemName = $os.Caption
     $os_obj.OperatingSystem = $os
+    $os_obj.BootUpTimeInDays = ($temp_currentdate - $temp_uptime).Days
+    $os_obj.BootUpTimeInHours = ($temp_currentdate - $temp_uptime).Hours
+    $os_obj.BootUpTimeInMinutes = ($temp_currentdate - $temp_uptime).Minutes
+    $os_obj.BootUpTimeInSeconds = ($temp_currentdate - $temp_uptime).Seconds
     
     if($plan -ne $null)
     {
@@ -3510,6 +3520,7 @@ param(
     }
 
     Write-Grey("`tOperating System: " + $HealthExSvrObj.OSVersion.OperatingSystemName)
+    Write-Grey("`tSystem up since: {0} day(s), {1} hour(s), {2} minute(s), {3} second(s)" -f $HealthExSvrObj.OSVersion.BootUpTimeInDays, $HealthExSvrObj.OSVersion.BootUpTimeInHours, $HealthExSvrObj.OSVersion.BootUpTimeInMinutes, $HealthExSvrObj.OSVersion.BootUpTimeInSeconds)
     Write-Grey("`tTime Zone: {0}" -f $HealthExSvrObj.OSVersion.TimeZone)
     Write-Grey("`tExchange: " + $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName)
     Write-Grey("`tBuild Number: " + $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber)
