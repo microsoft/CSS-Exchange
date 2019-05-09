@@ -493,7 +493,7 @@ param(
     try {
         $exchServerObject = New-Object PSCustomObject 
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
-        $getExchangeServer = Get-ExchangeServer $ServerName -ErrorAction Stop 
+        $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop 
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
     }
     catch {
