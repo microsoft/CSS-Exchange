@@ -1254,6 +1254,41 @@ param(
         $Path = "{0}\" -f $Path
     }
 
+    Function Test-ServerDiskSpace {
+    param(
+    [Parameter(Mandatory=$true)][string]$Server,
+    [Parameter(Mandatory=$true)][int]$FreeSpace,
+    [Parameter(Mandatory=$true)][int]$CheckSize 
+    )
+        Write-ScriptDebug("Calling Test-ServerDiskSpace")
+        Write-ScriptDebug("Passed: [string]Server: {0} | [int]FreeSpace: {1} | [int]CheckSize: {2}" -f $Server, $FreeSpace, $CheckSize)
+
+        if($FreeSpace -gt $CheckSize)
+        {
+            Write-ScriptHost -WriteString ("[Server: {0}] : We have more than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false 
+            return $true 
+        }
+        else 
+        {
+            Write-ScriptHost -WriteString ("[Server: {0}] : We have less than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false 
+            return $false 
+        }
+    }
+
+    if($Servers.Count -eq 1 -and $Servers[0] -eq $env:COMPUTERNAME)
+    {
+        Write-ScriptDebug("Local server only check. Not going to invoke Start-JobManager")
+        $freeSpace = Get-FreeSpace -FilePath $Path -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        if(Test-ServerDiskSpace -Server $Servers[0] -FreeSpace $freeSpace -CheckSize $CheckSize)
+        {
+            return $Servers[0]
+        }
+        else 
+        {
+            return $null 
+        }
+    }
+
     $serverArgs = @()
     foreach($server in $Servers)
     {
@@ -1269,15 +1304,9 @@ param(
     {
 
         $freeSpace = $serversData[$server]
-        Write-ScriptDebug("Server {0} detected {1} GB of free space" -f $server, $freeSpace)
-        if($freeSpace -gt $CheckSize)
+        if(Test-ServerDiskSpace -Server $server -FreeSpace $freeSpace -CheckSize $CheckSize)
         {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have more than {1} GB of free space at {2}" -f $server, $CheckSize, $Path) -ShowServer $false 
-            $passedServers += $server
-        }
-        else 
-        {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have less than {1} GB of free space on {2}" -f $server, $CheckSize, $Path) -ShowServer $false 
+            $passedServers += $server 
         }
     }
 
@@ -3504,6 +3533,12 @@ Function Main {
         {
             #We have failed to do invoke-command on all the servers.... so we are going to do the same logic locally
             Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
+            #want to test local server's free space first before moving to just collecting the data 
+            if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize 15) -eq $null)
+            {
+                Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally as well. We can't continue with the data collection") -ForegroundColor "Yellow" 
+                exit 
+            }
             if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false} -VerboseFunctionCaller ${Function:Write-ScriptDebug}))
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
