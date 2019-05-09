@@ -2239,7 +2239,7 @@ param(
         return $exchAppPools
     }
     $exchangeAppPoolsInfo = @{}
-    if($Machine_Name -ne $env:COMPUTERNAME)
+    if($Machine_Name -eq $env:COMPUTERNAME)
     {
         $exchangeAppPoolsInfo = Get-ExchangeAppPoolsScriptBlock
     }
@@ -2247,7 +2247,7 @@ param(
     {
         try 
         {
-            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock}
+            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ErrorAction stop 
         }
         catch 
         {
