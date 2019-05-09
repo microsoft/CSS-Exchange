@@ -1263,7 +1263,13 @@ param(
         }
     }
 
-    if($passedServers.Count -ne $Servers.Count)
+    if($passedServers.Count -eq 0)
+    {
+        Write-ScriptHost -WriteString("Looks like all the servers didn't pass the disk space check.") -ShowServer $false 
+        Write-ScriptHost -WriteString("Because there are no servers left, we will stop the script.") -ShowServer $false 
+        exit 
+    }
+    elseif($passedServers.Count -ne $Servers.Count)
     {
         Write-ScriptHost -WriteString ("Looks like all the servers didn't pass the disk space check.") -ShowServer $false 
         Write-ScriptHost -WriteString ("We will only collect data from these servers: ") -ShowServer $false 
@@ -3472,6 +3478,10 @@ Function Main {
 
     else 
     {
+        if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize 15) -eq $null)
+        {
+            exit
+        }
         if(-not($Script:EdgeRoleDetected))
         {
             Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
