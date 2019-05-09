@@ -2,7 +2,7 @@
 .NOTES
     Name: ExchangeLogCollector.ps1
     Author: David Paulson
-    Requires: Powershell on an Exchange 2010+ Server with Adminstrator rights
+    Requires: Powershell on an Exchange 2010+ Server with Administrator rights
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
 	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
