@@ -144,6 +144,8 @@ Param (
 [switch]$Exmon,
 [switch]$ServerInfo,
 [switch]$ExchangeServerInfo,
+[switch]$PopLogs,
+[switch]$ImapLogs,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
@@ -646,6 +648,16 @@ param(
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false    
         }
 
+        if($PopLogs)
+        {
+            $sobj | Add-Member -Name PopLogsLocation -MemberType NoteProperty -Value ((Get-PopSettings -Server $svr).LogFileLocation)
+        }
+
+        if($ImapLogs)
+        {
+            $sobj | Add-Member -Name ImapLogsLocation -MemberType NoteProperty -Value ((Get-ImapSettings -Server $svr).LogFileLocation)
+        }
+
         $svrsObject += $sobj 
     }
     $ErrorActionPreference = $oldErrorAction
@@ -708,6 +720,8 @@ param(
     $obj | Add-Member -Name ExmonLogmanName -MemberType NoteProperty -Value $ExmonLogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
     $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
+    $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
+    $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs 
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -763,6 +777,8 @@ Function Test-PossibleCommonScenarios {
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
         $Script:ExchangeServerInfo = $true
+        $Script:PopLogs = $true 
+        $Script:ImapLogs = $true 
     }
 
     if($DefaultTransportLogging)
@@ -829,6 +845,8 @@ Function Test-NoSwitchesProvided {
     $OrganizationConfig -or
     $Exmon -or 
     $ServerInfo -or
+    $PopLogs -or 
+    $ImapLogs -or 
     $ExchangeServerInfo
     ){return}
     else 
@@ -2874,6 +2892,20 @@ param(
                 }
             }
 
+        }
+
+        if($PassedInfo.ImapLogs)
+        {
+            Write-ScriptDebug("Collecting IMAP Logs")
+            $info = ($copyInfo -f ($Script:localServerObject.ImapLogsLocation), ($Script:RootCopyToDirectory + "\Imap_Logs"))
+            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+        }
+
+        if($PassedInfo.PopLogs)
+        {
+            Write-ScriptDebug("Collecting POP Logs")
+            $info = ($copyInfo -f ($Script:localServerObject.PopLogsLocation), ($Script:RootCopyToDirectory + "\Pop_Logs"))
+            $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
         }
 
         if($PassedInfo.IISLogs -and (Set-IISDirectoryInfo))
