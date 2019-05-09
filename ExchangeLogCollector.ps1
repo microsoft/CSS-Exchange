@@ -1732,6 +1732,13 @@ param(
         $copyFromDate = "$($Date.Month)/$($Date.Day)/$($Date.Year)"
         Write-ScriptDebug("Copy From Date: {0}" -f $copyFromDate)
         $skipCopy = $false 
+        if(!(Test-Path $LogPath))
+        {
+            #if the directory isn't there, we need to handle it
+            No-FilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
+            Write-ScriptDebug("Function Exit: Copy-LogsBasedOnTime")
+            return 
+        }
         #We are not copying files recurse so we need to not include possible directories or we will throw an error 
         $files = Get-ChildItem $LogPath | Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
         #if we don't have any logs, we want to attempt to copy something 
