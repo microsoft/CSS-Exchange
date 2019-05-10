@@ -180,11 +180,15 @@ $display = @"
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     -This script will copy over data based off the switches provied. 
-    -We will check for at least 15 GB of free space at the local target directory BEFORE 
-        attempting to copy over the data.
+    -We will check for at least {1} GB of free space at the local target directory BEFORE 
+        attempting to do the remote execution. It will continue to check to make sure that we have 
+        at least {2} GB of free space throughout the data collection. If some data is determined 
+        that if we were to copy it over it would place us over that threshold, we will not copy that
+        data set over. The script will continue to run while still constantly check the free space
+        available before doing a copy action. 
     -Please run this script at your own risk. 
 
-"@ -f $scriptVersion
+"@ -f $scriptVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
 
     Clear-Host
     Write-ScriptHost -WriteString $display -ShowServer $false
@@ -720,6 +724,7 @@ param(
     $obj | Add-Member -Name ExmonLogmanName -MemberType NoteProperty -Value $ExmonLogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
     $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
+    $obj | Add-Member -Name StandardFreeSpaceInGBCheckSize -MemberType NoteProperty $Script:StandardFreeSpaceInGBCheckSize
     $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs 
     
@@ -1242,17 +1247,16 @@ param(
     $totalSizeGB = $totalSize / 1GB
     #Get the local free space again 
     $freeSpace = Get-FreeSpace -FilePath $RootPath -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
-    $extraSpace = 10
-    if($freeSpace -gt ($totalSizeGB + $extraSpace))
+    if($freeSpace -gt ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize))
     {
         Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
-        Write-ScriptHost -ShowServer $true -WriteString ("FreeSpace: {0} TestSize: {1} Path: {2}" -f $freeSpace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-ScriptHost -ShowServer $true -WriteString ("FreeSpace: {0} TestSize: {1} Path: {2}" -f $freeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
         return $true
     }
     else 
     {
         Write-ScriptHost -ShowServer $true -WriteString("Looks like we don't have enough free space to copy over the data") -ForegroundColor "Yellow"
-        Write-ScriptHost -ShowServer $true -WriteString("FreeSpace: {0} TestSize: {1} Path: {2}" -f $FreeSpace, ($totalSizeGB + $extraSpace), $RootPath)
+        Write-ScriptHost -ShowServer $true -WriteString("FreeSpace: {0} TestSize: {1} Path: {2}" -f $FreeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
         return $false
     }
 
@@ -1739,18 +1743,108 @@ param(
     Function Zip-Folder {
     param(
     [string]$Folder,
-    [bool]$ZipItAll
+    [bool]$ZipItAll,
+    [bool]$AddCompressedSize = $true
     )
         if($ZipItAll)
         {
             Compress-Folder -Folder $Folder -IncludeMonthDay $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
-            
         }
         else 
         {
-            Compress-Folder -Folder $Folder -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            $compressedLocation =  Compress-Folder -Folder $Folder -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -ReturnCompressedLocation $AddCompressedSize
+            if($AddCompressedSize -and ($compressedLocation -ne [string]::Empty))
+            {
+                $Script:TotalBytesSizeCompressed += ($size = Get-ItemsSize -FilePaths $compressedLocation)
+                $Script:FreeSpaceMinusCopiedAndCompressedGB -= ($size / 1GB)
+                Write-ScriptDebug("Current Sizes after compression: [double]TotalBytesSizeCompressed: {0} | [double]FreeSpaceMinusCopiedAndCompressedGB: {1}" -f $Script:TotalBytesSizeCompressed,
+                $Script:FreeSpaceMinusCopiedAndCompressedGB)
+            }
         }
+    }
+
+    Function Get-StringDataForNotEnoughFreeSpaceFile{
+    param(
+    [Parameter(Mandatory=$true)][hashtable]$hasher
+    )
+        Write-ScriptDebug("Calling: Get-StringDataForNotEnoughFreeSpaceFile")
+        $reader = [string]::Empty
+        $totalSizeMB = 0
+        foreach($key in $hasher.Keys)
+        {
+            $reader += ("File: {0} | Size: {1} MB`r`n" -f $key, ($keyValue = $hasher[$key]).ToString())
+            $totalSizeMB += $keyValue
+        }
+        $reader += ("`r`nTotal Size Attempted To Copy Over: {0} MB`r`nCurrent Available Free Space: {1} GB" -f $totalSizeMB, $Script:CurrentFreeSpaceGB)
+        return $reader
+    }
+
+    Function Get-ItemsSize {
+    param(
+    [Parameter(Mandatory=$true)][array]$FilePaths
+    )
+        Write-ScriptDebug("Calling: Get-ItemsSize")
+        $totalSize = 0 
+        $hashSizes = @{}
+        foreach($file in $FilePaths)
+        {
+            if(Test-Path $file)
+            {
+                $totalSize += ($fileSize = (Get-Item $file).Length)
+                Write-ScriptDebug("File: {0} | Size: {1} MB" -f $file, ($fileSizeMB = $fileSize / 1MB))
+                $hashSizes.Add($file, ("{0}" -f $fileSizeMB))
+            }
+            else 
+            {
+                Write-ScriptDebug("File no longer exists: {0}" -f $file)    
+            }
+        }
+        Set-Variable -Name ItemSizesHashed -Value $hashSizes -Scope Script
+        Write-ScriptDebug("Returning: {0}" -f $totalSize)
+        return $totalSize
+    }
+
+    Function Test-FreeSpace{
+        param(
+        [Parameter(Mandatory=$true)][array]$FilePaths
+        )
+            Write-ScriptDebug("Calling: Test-FreeSpace")
+            $passed = $true 
+            $currentSizeCopy = Get-ItemsSize -FilePaths $FilePaths 
+            #It is better to be safe than sorry, checking against probably a value way higher than needed. 
+            if(($Script:FreeSpaceMinusCopiedAndCompressedGB - ($currentSizeCopy / 1GB)) -lt $Script:AdditionalFreeSpaceCushionGB)
+            {
+                Write-ScriptDebug("Estimated free space is getting low, going to recalculate.")
+                Write-ScriptDebug("Current values: [double]FreeSpaceMinusCopiedAndCompressedGB: {0} | [double]currentSizeCopy: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3}" -f $Script:FreeSpaceMinusCopiedAndCompressedGB, 
+                ($currentSizeCopy / 1GB), 
+                $Script:AdditionalFreeSpaceCushionGB,
+                $Script:CurrentFreeSpaceGB)
+                $freeSpace = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                Write-ScriptDebug("True current free space: {0}" -f $freeSpace)
+                if($freeSpace -lt ($Script:CurrentFreeSpaceGB - .5))
+                {
+                    #If we off by .5GB, we need to know about this and look at the data to determine if we might have some logical errors. It is possible that the disk is that active, but that wouldn't be good either for this script. 
+                    Write-ScriptDebug("CRIT: Disk Space logic is off. CurrentFreeSpaceGB: {0} | ActualFreeSpace: {1}" -f $Script:CurrentFreeSpaceGB, $freeSpace)
+                }
+
+                $Script:CurrentFreeSpaceGB = $freeSpace 
+                $Script:FreeSpaceMinusCopiedAndCompressedGB = $freeSpace
+
+                $passed = $freeSpace -gt ($addSize =$Script:AdditionalFreeSpaceCushionGB + ($currentSizeCopy / 1GB))
+                if(!($passed))
+                {
+                    Write-ScriptHost("Free space on the drive has appear to be used up past recommended thresholds. Going to stop this execution of the script. If you feel this is an Error, please notify dpaul@microsoft.com") -ShowServer $true -ForegroundColor "Red"
+                    Write-ScriptHost("FilePath: {0} | FreeSpace: {1} | Looking for: {2}" -f $Script:RootCopyToDirectory, $freeSpace, ($freeSpace + $addSize)) -ShowServer $true -ForegroundColor "Red"
+                    return $passed 
+                }
+
+            } 
+            $Script:TotalBytesSizeCopied += $currentSizeCopy
+            $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:FreeSpaceMinusCopiedAndCompressedGB - ($currentSizeCopy / 1GB)
     
+            Write-ScriptDebug("Current values [double]FreeSpaceMinusCopiedAndCompressedGB: {0} | [double]TotalBytesSizeCopied: {1}" -f $Script:FreeSpaceMinusCopiedAndCompressedGB, $Script:TotalBytesSizeCopied)
+            Write-ScriptDebug("Returning: {0}" -f $passed)
+            return $passed
     }
     
 
@@ -1764,8 +1858,34 @@ param(
         Create-Folder -NewFolder $CopyToThisLocation -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -IncludeDisplayCreate $true
         if(Test-Path $LogPath)
         {
-            Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
-            Zip-Folder $CopyToThisLocation
+            $childItems = Get-ChildItem $LogPath -Recurse
+            $items = @() 
+            foreach($childItem in $childItems)
+            {
+                if(!($childItem.Mode.StartsWith("d-")))
+                {
+                    $items += $childItem.VersionInfo.FileName 
+                }
+            }
+            
+            if($items -ne $null)
+            {
+                if(Test-FreeSpace -FilePaths $items)
+                {
+                    Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
+                    Zip-Folder $CopyToThisLocation
+                }
+                else 
+                {
+                    Write-ScriptDebug("Not going to copy over this set of data due to size restrictions.")
+                    New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed)  | Out-Null
+                }
+            }
+            else 
+            {
+                Write-ScriptHost("No data at path '{0}'. Unable to copy this data." -f $LogPath)
+                New-Item -Path ("{0}\NoDataDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
+            }
         }
         else 
         {
@@ -1888,9 +2008,18 @@ param(
         {
             Create-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         }
-        foreach($item in $ItemsToCopyLocation)
+
+        if(Test-FreeSpace -FilePaths $ItemsToCopyLocation)
         {
-            Copy-Item -Path $item -Destination $CopyToLocation -ErrorAction SilentlyContinue
+            foreach($item in $ItemsToCopyLocation)
+            {
+                Copy-Item -Path $item -Destination $CopyToLocation -ErrorAction SilentlyContinue
+            }
+        }
+        else 
+        {
+            Write-ScriptHost("Not enough free space to copy over this data set.")
+            New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
         }
     }
 
@@ -2315,7 +2444,12 @@ param(
         $Script:RootCopyToDirectory = Set-RootCopyDirectory
         #Set the local Server Object Information 
         Get-ThisServerObject 
-                
+        
+        $Script:TotalBytesSizeCopied = 0 
+        $Script:TotalBytesSizeCompressed = 0 
+        $Script:AdditionalFreeSpaceCushionGB = $PassedInfo.StandardFreeSpaceInGBCheckSize
+        $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:CurrentFreeSpaceGB
         $Script:localExinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         #shortcut to Exbin directory (probably not really needed)
         $Script:localExBin = $Script:localExinstall + "Bin\"
@@ -2447,14 +2581,15 @@ param(
         {
             $wildExt = "*" + $objLogman.Ext
             $filterDate = $objLogman.StartDate
-            $files = Get-ChildItem $strDirectory | ?{($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate)}
-            if($files -ne $null)
+            $childItems = Get-ChildItem $strDirectory | ?{($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate)}
+            $items = @()
+            foreach($childItem in $childItems)
             {
-                foreach($file in $files)
-                {
-                    Write-ScriptHost -WriteString ("Copying over file {0}..." -f $file.VersionInfo.FileName)
-                    copy $file.VersionInfo.FileName $copyTo
-                }
+                $items += $childItem.VersionInfo.FileName
+            }
+            if($items -ne $null)
+            {
+                Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $items 
                 Zip-Folder -Folder $copyTo
             }
             else 
@@ -2467,12 +2602,17 @@ param(
                     #only want to get lastest data 
                     $newestFilesTime = ($files | Sort CreationTime -Descending)[0].CreationTime.AddDays(-1)
                     $newestFiles = $files | ?{$_.CreationTime -ge $newestFilesTime}
-                    foreach($file in $newestFiles)
+
+                    $items = @() 
+                    foreach($newestFile in $newestFiles)
                     {
-                        Write-ScriptHost -WriteString ("Copying over file {0}..." -f $file.VersionInfo.FileName)
-                        copy $file.VersionInfo.FileName $copyTo
+                        $items += $newestFile.VersionInfo.FileName
                     }
-                    Zip-Folder -Folder $copyTo
+                    if($items -ne $null)
+                    {
+                        Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $items
+                        Zip-Folder -Folder $copyTo
+                    }
                 }
                 else 
                 {
@@ -2480,8 +2620,6 @@ param(
                     $tempFile = $copyTo + "\NoFiles.txt"    
                     New-Item $tempFile -ItemType File -Value $strDirectory
                 }
-                
-                
             }
         }
         else 
@@ -3031,7 +3169,7 @@ param(
         if((-not($PassedInfo.ExchangeServerInfo)) -and $env:COMPUTERNAME -ne ($PassedInfo.HostExeServerName))
         {
             #Zip it all up 
-            Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true
+            Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false 
         }
         
     }
@@ -3059,6 +3197,12 @@ param(
     finally
     {
         $ErrorActionPreference = $oldErrorAction
+        Write-ScriptDebug("Exiting: Remote-Functions")
+        Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
+        $Script:TotalBytesSizeCompressed, 
+        $Script:AdditionalFreeSpaceCushionGB, 
+        $Script:CurrentFreeSpaceGB, 
+        $Script:FreeSpaceMinusCopiedAndCompressedGB)
     }
 }
 
@@ -3455,7 +3599,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
                 Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
             }
     
-            Zip-Folder -Folder $create
+            Zip-Folder -Folder $create -AddCompressedSize $false 
         }
     }
 
@@ -3467,7 +3611,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
 
-    Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true
+    Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false 
     Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }
 
@@ -3515,7 +3659,7 @@ Function Main {
         $Script:ValidServers = Test-RemoteExecutionOfServers -ServerList $Servers
         if($Script:ValidServers -ne $null)
         {
-            $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize 15
+            $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize
             Verify-LocalServerIsUsed $Script:ValidServers
 
             $argumentList = Get-ArgumentList -Servers $Script:ValidServers
@@ -3574,7 +3718,7 @@ Function Main {
             #We have failed to do invoke-command on all the servers.... so we are going to do the same logic locally
             Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
             #want to test local server's free space first before moving to just collecting the data 
-            if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize 15) -eq $null)
+            if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize) -eq $null)
             {
                 Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally as well. We can't continue with the data collection") -ForegroundColor "Yellow" 
                 exit 
@@ -3592,7 +3736,7 @@ Function Main {
 
     else 
     {
-        if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize 15) -eq $null)
+        if((Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize) -eq $null)
         {
             exit
         }
