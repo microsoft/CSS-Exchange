@@ -1890,7 +1890,7 @@ param(
         else 
         {
             Write-ScriptHost("No Folder at {0}. Unable to copy this data." -f $LogPath)
-            New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath
+            New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
         }
         Write-ScriptDebug("Function Exit: Copy-FullLogFullPathRecurse")
     }
@@ -1913,7 +1913,7 @@ param(
             Write-ScriptHost -WriteString ("You should look into the reason as to why, because this shouldn't occur.") -ForegroundColor "Yellow"
             #Going to place a file in this location so we know what happened
             $tempFile = $CopyToLocation + "\NoFilesDetected.txt"
-            New-Item $tempFile -ItemType File -Value $LogPath 
+            New-Item $tempFile -ItemType File -Value $LogPath | Out-Null
             Start-Sleep 1
         }
 
@@ -2618,7 +2618,7 @@ param(
                 {
                     Write-ScriptHost -WriteString ("Failed to find any files in the directory: '{0}'" -f $strDirectory) -ForegroundColor "Yellow"
                     $tempFile = $copyTo + "\NoFiles.txt"    
-                    New-Item $tempFile -ItemType File -Value $strDirectory
+                    New-Item $tempFile -ItemType File -Value $strDirectory | Out-Null
                 }
             }
         }
@@ -2626,7 +2626,7 @@ param(
         {
             Write-ScriptHost -WriteString  ("Doesn't look like this Directory is valid. {0}" -f $strDirectory) -ForegroundColor "Yellow"
             $tempFile = $copyTo + "\NotValidDirectory.txt"
-            New-Item $tempFile -ItemType File -Value $strDirectory
+            New-Item $tempFile -ItemType File -Value $strDirectory | Out-Null
         }
     
     }
