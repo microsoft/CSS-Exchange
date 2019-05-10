@@ -2459,7 +2459,7 @@ param(
     Function Save-DataToFile {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$true)][object]$DataIn,
+        [Parameter(Mandatory=$false)][object]$DataIn,
         [Parameter(Mandatory=$true)][string]$SaveToLocation,
         [Parameter(Mandatory=$false)][bool]$FormatList = $true,
         [Parameter(Mandatory=$false)][bool]$SaveTextFile = $true,
@@ -2467,7 +2467,7 @@ param(
         [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
         )
         
-        #Function Version 1.0
+        #Function Version 1.1
         Function Write-VerboseWriter {
         param(
         [Parameter(Mandatory=$true)][string]$WriteString 
@@ -2499,7 +2499,7 @@ param(
         $xmlSaveLocation = "{0}.xml" -f $SaveToLocation
         $txtSaveLocation = "{0}.txt" -f $SaveToLocation
         
-        if($DataIn -ne [string]::Empty)
+        if($DataIn -ne [string]::Empty -and $DataIn -ne $null)
         {
             if($SaveXMLFile)
             {
