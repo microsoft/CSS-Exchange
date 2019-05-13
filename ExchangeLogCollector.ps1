@@ -784,6 +784,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ExchangeServerInfo = $true
         $Script:PopLogs = $true 
         $Script:ImapLogs = $true 
+        $Script:Experfwiz = $true
     }
 
     if($DefaultTransportLogging)
@@ -805,6 +806,7 @@ Function Test-PossibleCommonScenarios {
         $Script:HighAvailabilityLogs = $true 
         $Script:ManagedAvailability = $true 
         $Script:DAGInformation = $true
+        $Script:Experfwiz = $true
     }
     
     #See if any transport logging is enabled. 
@@ -2636,8 +2638,8 @@ param(
     )
         switch ($ObjLogman.LogmanName)
         {
-            "Exchange_Perfwiz" {$folderName = "ExPerfWiz_Data"; break}
-            "Exmon_Trace" {$folderName = "ExmonTrace_Data"; break}
+            $PassedInfo.ExperfwizLogmanName {$folderName = "ExPerfWiz_Data"; break}
+            $PassedInfo.ExmonLogmanName {$folderName = "ExmonTrace_Data"; break}
             default {$folderName = "Logman_Data"; break}
         }
     
@@ -2648,6 +2650,18 @@ param(
         {
             $wildExt = "*" + $objLogman.Ext
             $filterDate = $objLogman.StartDate
+            
+            $date = (Get-Date).AddDays(0-$PassedInfo.DaysWorth)
+            $copyFromDate = "$($Date.Month)/$($Date.Day)/$($Date.Year)"
+            
+            Write-ScriptDebug("Copy From Date: {0}" -f $filterDate)
+            
+            if([DateTime]$filterDate -lt [DateTime]$copyFromDate)
+            {
+                $filterDate = $copyFromDate
+                Write-ScriptDebug("Updating Copy From Date to: '{0}'" -f $filterDate)
+            }
+
             $childItems = Get-ChildItem $strDirectory | ?{($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate)}
             $items = @()
             foreach($childItem in $childItems)
