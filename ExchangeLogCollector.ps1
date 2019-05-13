@@ -1622,10 +1622,12 @@ param(
         return $freeSpaceSize
     }
 
-    Function Create-Folder{
+    # Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Create-Folder/Create-Folder.ps1
+    Function Create-Folder {
         [CmdletBinding()]
         param(
         [Parameter(Mandatory=$false)][string]$NewFolder,
+        [Parameter(Mandatory=$false)][array]$NewFolders,
         [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
         [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
         [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject,
@@ -1633,7 +1635,7 @@ param(
         [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
         )
         
-        #Function Version 1.1
+        #Function Version 1.3
         Function Write-VerboseWriter {
             param(
             [Parameter(Mandatory=$true)][string]$WriteString 
@@ -1671,46 +1673,80 @@ param(
                     &$HostFunctionCaller $WriteString    
                 }
             }
+        
+        Function New-Folder {
+        param(
+        [Parameter(Mandatory=$false)][string]$NewFolder
+        )
+            if(-not (Test-Path -Path $NewFolder))
+            {
+                if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
+                {
+                    Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
+                }
+                [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
+            }
+            else 
+            {
+                if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
+                {
+                    Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
+                }
+            }
+        }
         $passedVerboseFunctionCaller = $false
         $passedHostFunctionCaller = $false
         $passedPassedParametersObject = $false
+        $passedMultipleFolders = $false 
         if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
         if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-        if($passedPassedParametersObject -ne $null){$passedPassedParametersObject = $true}
+        if($PassedParametersObject -ne $null){$passedPassedParametersObject = $true}
         $stringArray = @() 
         if($PassedParametersObject -ne $null)
         {
-            $NewFolder = $PassedParametersObject.NewFolder 
+            if($PassedParametersObject.NewFolder -ne $null)
+            {
+                $NewFolder = $PassedParametersObject.NewFolder 
+            }
+            if($PassedParametersObject.NewFolders -ne $null)
+            {
+                $NewFolders = $PassedParametersObject.NewFolders
+            }
             $InvokeCommandReturnWriteArray = $true 
         }
+        if($NewFolders -ne $null){$passedMultipleFolders = $true}
         Write-VerboseWriter("Calling: Create-Folder")
-        Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [bool]InvokeCommandReturnWriteArray: {2} | [object]PassedParametersObject: {3} | [scriptblock]VerboseFunctionCaller: {4} | [scriptblock]HostFunctionCaller: {5}" -f $NewFolder,
+        Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [bool]InvokeCommandReturnWriteArray: {2} | [bool]PassedMultipleFolders: {3} | [object]PassedParametersObject: {4} | [scriptblock]VerboseFunctionCaller: {5} | [scriptblock]HostFunctionCaller: {6}" -f $NewFolder,
         $IncludeDisplayCreate,
         $InvokeCommandReturnWriteArray,
+        $passedMultipleFolders,
         $passedPassedParametersObject,
         $passedVerboseFunctionCaller,
         $passedHostFunctionCaller)
         
-        if(-not (Test-Path -Path $NewFolder))
+        if($NewFolder -ne $null -and $NewFolders -eq $null)
         {
-            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
+            Write-VerboseWriter("Creating a single folder")
+            New-Folder -NewFolder $NewFolder 
+        }
+        elseif($NewFolders -ne $null)
+        {
+            Write-VerboseWriter("Creating multiple folders")
+            foreach($newFolder in $NewFolders)
             {
-                Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
+                New-Folder -NewFolder $newFolder 
             }
-            [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
         }
         else 
         {
-            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
-            {
-                Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
-            }
+            Write-HostWriter("Failed to provide valid options to create a folder.")
         }
+        
         if($InvokeCommandReturnWriteArray)
         {
             return $stringArray
         }
-}
+    }
 
     Function Write-ScriptDebug {
     param(
@@ -3474,6 +3510,47 @@ Function Write-ExchangeDataOnMachines {
                     Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
                     Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
                 }
+
+                #Exchange Web App Pools 
+                $windir = $env:windir
+                $appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
+                if(Test-Path $appCmd)
+                {
+                    $appPools = &$appCmd list apppool 
+                    $exchangeAppPools = @()
+                    foreach($appPool in $appPools)
+                    {
+                        $startIndex = $appPool.IndexOf('"') + 1
+                        $appPoolName = $appPool.SubString($startIndex,
+                            ($appPool.SubString($startIndex).IndexOf('"')))
+                        if($appPoolName.StartsWith("MSExchange"))
+                        {
+                            $exchangeAppPools += $appPoolName
+                        }
+                    }
+
+                    $configFileListLocation = @() 
+                    foreach($exchAppPool in $exchangeAppPools)
+                    {
+                        $config = &$appCmd list apppool $exchAppPool /text:CLRConfigFile
+                        $allResult = &$appCmd list apppool $exchAppPool /text:*
+                        if((Test-Path $config) -and (!($configFileListLocation.Contains($config.ToLower()))))
+                        {
+                            $configFileListLocation += $config.ToLower()
+                        }
+                        $saveLocation = "{0}\WebAppPools\{1}_{2}.txt" -f $location, $env:COMPUTERNAME, $exchAppPool
+                        $allResult | Format-List * > $saveLocation 
+                    }
+
+                    foreach($configFile in $configFileListLocation)
+                    {
+                        $content = Get-Content $configFile
+                        $saveLocation = "{0}\WebAppPools\{1}_{2}" -f $location, $env:COMPUTERNAME,
+                            $configFile.Substring($configFile.LastIndexOf("\") + 1)
+                        $content > $saveLocation
+                    }
+                }
+
         }
 
 
@@ -3505,7 +3582,9 @@ Function Write-ExchangeDataOnMachines {
             $serverCreateDirectory = New-Object PSCustomObject 
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
             $argumentObject = New-Object PSCustomObject 
-            $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolder -Value ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName)
+            [array]$value = "{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName
+            $value += "{0}{1}\Exchange_Server_Data\WebAppPools" -f $Script:RootFilePath, $server.ServerName
+            $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolders -Value $value
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentObject
             $serverListCreateDirectories += $serverCreateDirectory
 
@@ -3547,7 +3626,8 @@ Function Write-ExchangeDataOnMachines {
             $exinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         }
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
-        Create-Folder -NewFolder ("{0}\Config" -f $location) -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        [array]$createFolders = @(("{0}\Config" -f $location),("{0}\WebAppPools" -f $location))
+        Create-Folder -NewFolders $createFolders -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         $passInfo = New-Object PSCustomObject 
         $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
         $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
