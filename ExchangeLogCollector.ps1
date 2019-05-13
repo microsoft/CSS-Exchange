@@ -3566,7 +3566,8 @@ Function Write-ExchangeDataOnMachines {
                     {
                         $config = &$appCmd list apppool $exchAppPool /text:CLRConfigFile
                         $allResult = &$appCmd list apppool $exchAppPool /text:*
-                        if((Test-Path $config) -and (!($configFileListLocation.Contains($config.ToLower()))))
+                        if(($config -ne $null -and $config -ne [string]::Empty) -and 
+                            (Test-Path $config) -and (!($configFileListLocation.Contains($config.ToLower()))))
                         {
                             $configFileListLocation += $config.ToLower()
                         }
