@@ -2172,6 +2172,38 @@ param(
             sleep 5;
         }
 
+        #Include TLS Registry Information #84
+        $tlsSettings = @()
+        try 
+        {
+            $tlsSettings += Get-ChildItem "HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols" -Recurse | ?{$_.Name -like "*TLS*"} -ErrorAction stop 
+        }
+        catch 
+        {
+            Write-ScriptDebug("Failed to get child items of 'HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols'")
+        }
+        try 
+        {
+            $regBaseV4 = "HKLM:SOFTWARE\{0}\.NETFramework\v4.0.30319"
+            $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Microsoft") -ErrorAction stop 
+            $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Wow6432Node\Microsoft") -ErrorAction stop 
+        }
+        catch 
+        {
+            Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        }
+        try 
+        {
+            $regBaseV2 = "HKLM:SOFTWARE\{0}\.NETFramework\v2.0.50727"
+            $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Microsoft") -ErrorAction stop 
+            $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Wow6432Node\Microsoft") -ErrorAction stop 
+        }
+        catch 
+        {
+            Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        }
+        Save-DataInfoToFile -DataIn $tlsSettings -SaveToLocation ("{0}\TLS_RegistrySettings" -f $copyTo) -FormatList $false
+
         #Running Processes #35 
         Save-DataInfoToFile -dataIn (Get-Process) -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
 
