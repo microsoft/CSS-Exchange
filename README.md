@@ -96,6 +96,10 @@ ServerInfo - Collects general server information from the server.
 
 ExchangeServerInfo - Used to collect Exchange Server data (Get-ExchangeServer, Get-MailboxServer...). Enabled whenever ServerInfo is used as well.
 
+PopLogs - Collects POP protocol logs 
+
+ImapLogs - Collects IMAP protocol logs
+
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
 AppSysLogs - Collects the Application, System, and MSExchange Management. 
@@ -106,10 +110,14 @@ SkipEndCopyOver - If the Servers parameter is used, by default we will attempt t
 
 DaysWorth - The number of days to go back from today for log collection. 
 
-DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, Managed Availability logs, and DAG Information collections. 
+DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, Managed Availability logs, Experfiwz, and DAG Information for data collection. 
 
-Experfwiz_LogmanName - Sets the name of how to collect Experfwiz data from logman. Use only if a different log collection name is used within the experfwiz script. 
+PerformanceIssues - Enables Daily Performance Logs, Managed Availability Logs, and Experfwiz for data collection. 
 
-Exmon_LogmanName - Sets the name of how to collect Exmon data from logman. Use only if a different log collection name is used within the experfwiz script. 
+PerformanceMailflowIssues - Enables Daily Performance Logs, Experfwiz, Message Tracking Logs, Transport Configuration, and Local Queue Information on this server. 
+
+ExperfwizLogmanName - Sets the name of how to collect Experfwiz data from logman. Use only if a different log collection name is used within the experfwiz script. 
+
+ExmonLogmanName - Sets the name of how to collect Exmon data from logman. Use only if a different log collection name is used within the experfwiz script. 
 
 AcceptEULA - Bypass the disclaimer for using the script.
