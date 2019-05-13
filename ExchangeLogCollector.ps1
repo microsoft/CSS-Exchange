@@ -214,7 +214,7 @@ Function Write-FeedBack {
     Write-Host ""
     Write-Host ""
     Write-Host ""
-    Write-Host "Looks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out dpaul@microsoft.com."
+    Write-Host "Looks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com."
 }
 
 #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Enter-YesNoLoopAction/Enter-YesNoLoopAction.ps1
@@ -1895,7 +1895,7 @@ param(
                 $passed = $freeSpace -gt ($addSize =$Script:AdditionalFreeSpaceCushionGB + ($currentSizeCopy / 1GB))
                 if(!($passed))
                 {
-                    Write-ScriptHost("Free space on the drive has appear to be used up past recommended thresholds. Going to stop this execution of the script. If you feel this is an Error, please notify dpaul@microsoft.com") -ShowServer $true -ForegroundColor "Red"
+                    Write-ScriptHost("Free space on the drive has appear to be used up past recommended thresholds. Going to stop this execution of the script. If you feel this is an Error, please notify ExToolsFeedback@microsoft.com") -ShowServer $true -ForegroundColor "Red"
                     Write-ScriptHost("FilePath: {0} | FreeSpace: {1} | Looking for: {2}" -f $Script:RootCopyToDirectory, $freeSpace, ($freeSpace + $addSize)) -ShowServer $true -ForegroundColor "Red"
                     return $passed 
                 }
@@ -3820,7 +3820,7 @@ Function Main {
             }
             catch 
             {
-                Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify dpaul@microsoft.com of this issue. Stopping the script."
+                Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
                 exit
             }
             
