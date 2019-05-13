@@ -114,6 +114,8 @@ DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, 
 
 PerformanceIssues - Enables Daily Performance Logs, Managed Availability Logs, and Experfwiz for data collection. 
 
+PerformanceMailflowIssues - Enables Daily Performance Logs, Experfwiz, Message Tracking Logs, Transport Configuration, and Local Queue Information on this server. 
+
 ExperfwizLogmanName - Sets the name of how to collect Experfwiz data from logman. Use only if a different log collection name is used within the experfwiz script. 
 
 ExmonLogmanName - Sets the name of how to collect Exmon data from logman. Use only if a different log collection name is used within the experfwiz script. 
