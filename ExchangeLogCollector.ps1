@@ -97,6 +97,8 @@
     To enable Debug Logging for the script to determine what might be wrong with the script 
 .PARAMETER DatabaseFailoverIssue
     To enable the common switches to assist with determine the cause of database failover issues 
+.PARAMETER PerformanceIssues
+    To enable the common switches for data collection to assist with determing the cause of a Performance issue. 
 .PARAMETER ExperfwizLogmanName
     To be able to set the Experfwiz Logman Name that we would be looking for. By Default "Exchange_Perfwiz"
 .PARAMETER ExmonLogmanName
@@ -152,6 +154,7 @@ Param (
 [bool]$SkipEndCopyOver,
 [int]$DaysWorth = 3,
 [switch]$DatabaseFailoverIssue,
+[switch]$PerformanceIssues,
 [string]$ExperfwizLogmanName = "Exchange_Perfwiz",
 [string]$ExmonLogmanName = "Exmon_Trace",
 [switch]$AcceptEULA,
@@ -806,6 +809,12 @@ Function Test-PossibleCommonScenarios {
         $Script:HighAvailabilityLogs = $true 
         $Script:ManagedAvailability = $true 
         $Script:DAGInformation = $true
+        $Script:Experfwiz = $true
+    }
+    if($PerformanceIssues)
+    {
+        $Script:DailyPerformanceLogs = $true
+        $Script:ManagedAvailability = $true
         $Script:Experfwiz = $true
     }
     
