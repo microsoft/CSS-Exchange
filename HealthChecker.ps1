@@ -144,17 +144,17 @@ Add-Type -TypeDefinition @"
 using System.Collections;
     namespace HealthChecker
     {
-        public class HealthExchangeServerObject
+        public class HealthCheckerExchangeServer
         {
             public string ServerName;        //String of the server that we are working with 
-            public HardwareObject HardwareInfo;  // Hardware Object Information 
-            public OperatingSystemObject  OSVersion; // OS Version Object Information 
-            public NetVersionObject NetVersionInfo; //.net Framework object information 
-            public ExchangeInformationObject ExchangeInformation; //Detailed Exchange Information 
+            public HardwareInformation HardwareInfo;  // Hardware Object Information 
+            public OperatingSystemInformation  OSVersion; // OS Version Object Information 
+            public NetVersionInformation NetVersionInfo; //.net Framework object information 
+            public ExchangeInformation ExchangeInformation; //Detailed Exchange Information 
             public double HealthCheckerVersion; //To determine the version of the script on the object.
         }
 
-        public class ExchangeInformationObject 
+        public class ExchangeInformation 
         {
             public ServerRole ExServerRole;          // Roles that are currently installed - Exchange 2013 makes a note if both roles aren't installed 
             public ExchangeVersion ExchangeVersion;  //Exchange Version (Exchange 2010/2013/2016)
@@ -175,17 +175,7 @@ using System.Collections;
            
         }
 
-        public class ExchangeInformationTempObject 
-        {
-            public string FriendlyName;    //String of the friendly name of the Exchange version 
-            public bool Error;             //To report back an error and address how to handle it
-            public string ExchangeBuildNumber;  //Exchange full build number 
-            public string ReleaseDate;        // The release date of that version of Exchange 
-            public bool SupportedCU;          //bool to determine if we are on a supported build of Exchange 
-            public bool InbetweenCUs;         //Bool to determine if we are inbetween CUs. FIU/Hotfixes 
-            public ExchangeBuildObject ExchangeBuildObject; //Holds the Exchange Build Object for debugging and function use reasons 
-        }
-
+        //TODO: V3.0 See if we can remove this class https://github.com/dpaulson45/HealthChecker/issues/165
         public class ExchangeBuildObject
         {
             public ExchangeVersion ExchangeVersion;  //enum for Exchange 2010/2013/2016 
@@ -236,21 +226,13 @@ using System.Collections;
             None
         }
         
-        public class NetVersionObject 
+        public class NetVersionInformation 
         {
             public NetVersion NetVersion; //NetVersion value 
             public string FriendlyName;  //string of the friendly name 
             public bool SupportedVersion; //bool to determine if the .net framework is on a supported build for the version of Exchange that we are running 
             public string DisplayWording; //used to display what is going on
             public int NetRegValue; //store the registry value 
-        }
-
-        public class NetVersionCheckObject
-        {
-            public bool Error;         //bool for error handling 
-            public bool Supported;     //to provide if we are supported or not. This should throw a red warning if false 
-            public bool RecommendedNetVersion;  //Bool to determine if there is a recommended version that we should be on instead of the supported version 
-            public string DisplayWording;   //string value to display what is wrong with the .NET version that we are on. 
         }
 
         //enum for the dword value of the .NET frame 4 that we are on 
@@ -272,7 +254,7 @@ using System.Collections;
         }
 
         //enum for the dword values of the latest supported VC++ redistributable releases
-	//https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
+        //https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
         public enum VCRedistVersion
         {
             Unknown = 0,
@@ -280,7 +262,7 @@ using System.Collections;
             VCRedist2013 = 201367252
         }
 
-        public class VCRedistObject
+        public class VCRedistInformation
         {
             public string DisplayName;
             public string DisplayVersion;
@@ -288,13 +270,13 @@ using System.Collections;
             public int VersionIdentifier;
         }
 
-        public class HardwareObject
+        public class HardwareInformation
         {
             public string Manufacturer; //String to display the hardware information 
             public ServerType ServerType; //Enum to determine if the hardware is VMware, HyperV, Physical, or Unknown 
             public double TotalMemory; //Stores the total memory available 
             public object System;   //object to store the system information that we have collected 
-            public ProcessorInformationObject Processor;   //Detailed processor Information 
+            public ProcessorInformation Processor;   //Detailed processor Information 
             public bool AutoPageFile; //True/False if we are using a page file that is being automatically set 
             public string Model; //string to display Model 
             
@@ -309,7 +291,7 @@ using System.Collections;
             Unknown
         }
 
-        public class ProcessorInformationObject 
+        public class ProcessorInformation 
         {
             public int NumberOfPhysicalCores;    //Number of Physical cores that we have 
             public int NumberOfLogicalProcessors;  //Number of Logical cores that we have presented to the os 
@@ -324,7 +306,7 @@ using System.Collections;
             
         }
 
-        public class OperatingSystemObject 
+        public class OperatingSystemInformation 
         {
             public OSVersionName  OSVersion; //enum for the version name 
             public string OSVersionBuild;    //string to hold the build number 
@@ -340,16 +322,16 @@ using System.Collections;
             public System.Array HotFixes; //array to keep all the hotfixes of the server
             public System.Array HotFixInfo;     //object to store hotfix information
 			public string HttpProxy;
-            public PageFileObject PageFile;
-            public ServerLmCompatibilityLevel LmCompat;
+            public PageFileInformation PageFile;
+            public ServerLmCompatibilityLevelInformation LmCompat;
             public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
             public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
             public string TimeZone; //value to stores the current timezone of the server. 
             public System.Array TLSSettings;
-            public NetDefaultTlsVersionObject NetDefaultTlsVersion;
-	    public string BootUpTimeInDays;
+            public NetDefaultTlsVersionInformation NetDefaultTlsVersion;
+	        public string BootUpTimeInDays;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
@@ -362,7 +344,7 @@ using System.Collections;
             TLS12
         }
 
-        public class TLSObject
+        public class TlsSettingInformation
         {
             public string TLSName; 
             public bool ClientEnabled;
@@ -371,27 +353,20 @@ using System.Collections;
             public bool ServerDisabledByDefault; 
         }
 
-        public class NetDefaultTlsVersionObject 
+        public class NetDefaultTlsVersionInformation 
         {
             public bool SystemDefaultTlsVersions;
             public bool WowSystemDefaultTlsVersions; 
         }
 
-        public class HotfixObject
+        public class HotfixInformation
         {
             public string KBName; //KB that we are using to check against 
             public System.Array FileInformation; //store FileVersion information
             public bool ValidFileLevelCheck;  
         }
 
-        public class FileVersionCheckObject 
-        {
-            public string FriendlyFileName;
-            public string FullPath; 
-            public string BuildVersion;
-        }
-
-        public class NICInformationObject 
+        public class NICInformation 
         {
             public string Description;  //Friendly name of the adapter 
             public string LinkSpeed;    //speed of the adapter 
@@ -427,13 +402,13 @@ using System.Collections;
             Windows2019
         }
 
-        public class PageFileObject 
+        public class PageFileInformation 
         {
             public object PageFile;  //object to store the information that we got for the page file 
             public double MaxPageSize; //value to hold the information of what our page file is set to 
         }
 
-        public class ServerLmCompatibilityLevel
+        public class ServerLmCompatibilityLevelInformation
         {
             public int LmCompatibilityLevel;  //The LmCompatibilityLevel for the server (INT 1 - 5)
             public string LmCompatibilityLevelDescription; //The description of the lmcompat that the server is set too
@@ -502,7 +477,7 @@ Function Write-Break {
 
 Function Invoke-CatchActions{
 
-    Write-VerboseOutput("Calling: Invoke-Actions")
+    Write-VerboseOutput("Calling: Invoke-CatchActions")
     $Script:ErrorsExcludedCount++
     $Script:ErrorsExcluded += $Error[0]
 
@@ -568,6 +543,7 @@ param(
 
     }
 
+    Write-VerboseOutput("Exiting: Test-ScriptVersion | Returning: {0}" -f $isCurrent)
     return $isCurrent
 }
 
@@ -594,6 +570,7 @@ param(
         Invoke-CatchActions
         Write-VerboseOutput("Failed to open the registry")
     }
+    Write-VerboseOutput("Exiting: Invoke-RegistryHandler | Returning: {0}" -f $returnGetValue)
     return $returnGetValue
 }
 
@@ -654,6 +631,8 @@ param(
         Invoke-CatchActions
         Write-VerboseOutput("Failed to query installed software")
     }
+
+    Write-VerboseOutput("Exiting: Get-InstalledSoftware")
     return $InstalledSoftware
 }
 
@@ -672,6 +651,7 @@ param(
         Invoke-CatchActions
         Write-VerboseOutput("Failed to get counter samples")
     }
+    Write-VerboseOutput("Exiting: Get-CounterSamples")
     return $counterSamples 
 }
 
@@ -697,13 +677,13 @@ param(
 
 }
 
-Function Get-PageFileObject {
+Function Get-PageFileInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling: Get-PageFileObject")
+    Write-VerboseOutput("Calling: Get-PageFileInformation")
     Write-Verbose("Passed: $Machine_Name")
-    [HealthChecker.PageFileObject]$page_obj = New-Object HealthChecker.PageFileObject
+    [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation
     $pagefile = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PageFileSetting
     if($pagefile -ne $null) 
     { 
@@ -718,18 +698,19 @@ param(
         Write-VerboseOutput("Return Null value")
     }
 
+    Write-VerboseOutput("Exiting: Get-PageFileInformation")
     return $page_obj
 }
 
-
-Function Build-NICInformationObject {
+#TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/168
+Function Get-NICInformation {
 param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
+[Parameter(Mandatory=$true)][string]$MachineName,
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersion
 )
 
-    Write-VerboseOutput("Calling: Build-NICInformationObject")
-    Write-VerboseOutput("Passed: $Machine_Name")
+    Write-VerboseOutput("Calling: Get-NICInformation")
+    Write-VerboseOutput("Passed: $MachineName")
     Write-VerboseOutput("Passed: $OSVersion")
 
     [array]$aNICObjects = @() 
@@ -740,7 +721,7 @@ param(
         {
             try 
             {
-                $cimSession = New-CimSession -ComputerName $Machine_Name -ErrorAction Stop 
+                $cimSession = New-CimSession -ComputerName $MachineName -ErrorAction Stop 
                 $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
             }
             catch 
@@ -748,7 +729,7 @@ param(
                 Invoke-CatchActions
                 Write-VerboseOutput("Failed first attempt to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
                 Write-VerboseOutput("Going to attempt to get the FQDN from Get-ExchangeServer")
-                $fqdn = (Get-ExchangeServer $Machine_Name).FQDN 
+                $fqdn = (Get-ExchangeServer $MachineName).FQDN 
                 $cimSession = New-CimSession -ComputerName $fqdn -ErrorAction Stop
                 $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
             }
@@ -759,10 +740,10 @@ param(
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             Write-VerboseOutput("NOTE: this means we aren't able to provide the driver date")
-            $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+            $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
             foreach($adapter in $NetworkCards2008)
             {
-                [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+                [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
                 $nicObject.Description = $adapter.Description
                 $nicObject.Name = $adapter.Name
                 $nicObject.LinkSpeed = $adapter.Speed
@@ -774,7 +755,7 @@ param(
         foreach($adapter in $NetworkCards)
         {
             Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
-            [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+            [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
             try
             {
                 $RSS_Settings = $adapter | Get-netAdapterRss -ErrorAction Stop
@@ -802,10 +783,10 @@ param(
     else
     {
         Write-VerboseOutput("Detected OS Version less than Windows 2012R2")
-        $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+        $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
         foreach($adapter in $NetworkCards2008)
         {
-            [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+            [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
             $nicObject.Description = $adapter.Description
             $nicObject.Name = $adapter.Name
             $nicObject.LinkSpeed = $adapter.Speed
@@ -815,8 +796,8 @@ param(
 
     }
 
+    Write-VerboseOutput("Exiting: Get-NICInformation")
     return $aNICObjects 
-
 }
 
 Function Get-HttpProxySetting {
@@ -825,7 +806,7 @@ param(
 )
 	$httpProxy32 = [String]::Empty
 	$httpProxy64 = [String]::Empty
-	Write-VerboseOutput("Calling  Get-HttpProxySetting")
+	Write-VerboseOutput("Calling: Get-HttpProxySetting")
 	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
 	$orgErrorPref = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
@@ -880,7 +861,9 @@ param(
 	finally
 	{
 		$ErrorActionPreference = $orgErrorPref
-	}
+    }
+    
+    Write-VerboseOutput("Exiting: Get-HttpProxySetting")
 
 	if($httpProxy32 -ne "<None>")
 	{
@@ -897,7 +880,7 @@ Function Get-VisualCRedistributableVersion {
 param(
 [Parameter(Mandatory=$true)][string]$MachineName
 )
-    Write-VerboseOutput("Calling Function: Get-VisualCRedistributableVersion")
+    Write-VerboseOutput("Calling: Get-VisualCRedistributableVersion")
     $Software_objs = @()
     $InstalledSoftware = Get-InstalledSoftware -MachineName $MachineName
 
@@ -906,7 +889,7 @@ param(
         if($Software.DisplayName -like "Microsoft Visual C++ *")
         {
             Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $Software.DisplayName)
-            [HealthChecker.VCRedistObject]$Software_obj = New-Object Healthchecker.VCRedistObject
+            [HealthChecker.VCRedistInformation]$Software_obj = New-Object Healthchecker.VCRedistInformation
             $Software_obj.DisplayName = $Software.DisplayName
             $Software_obj.DisplayVersion = $Software.DisplayVersion
             $Software_obj.InstallDate = $Software.InstallDate
@@ -914,6 +897,8 @@ param(
             $Software_objs += $Software_obj
         }
     }
+
+    Write-VerboseOutput("Exiting: Get-VisualCRedistributableVersion")
     return $Software_objs
 }
 
@@ -921,7 +906,7 @@ Function Confirm-VisualCRedistributableVersion {
 param(
 [Parameter(Mandatory=$true)][object]$ExchangeServerObj
 )
-    Write-VerboseOutput("Calling Function: Confirm-VisualCRedistributableVersion")
+    Write-VerboseOutput("Calling: Confirm-VisualCRedistributableVersion")
 
     [hashtable]$Return = @{}
     $Return.VC2012Required = $false
@@ -962,59 +947,64 @@ param(
     {
         Write-VerboseOutput("We can't determin required Visual C++ Redistributable Version")
     }
+
+    Write-VerboseOutput("Exiting: Confirm-VisualCRedistributableVersion")
     return $Return
 }
 
-Function New-FileLevelHotfixObject {
+Function New-FileLevelHotfixInformation {
 param(
 [parameter(Mandatory=$true)][string]$FriendlyName,
 [parameter(Mandatory=$true)][string]$FullFilePath, 
 [Parameter(Mandatory=$true)][string]$BuildVersion
 )
-    #Write-VerboseOutput("Calling Function: New-FileLevelHotfixObject")
+    #TODO: V3.0 see why this was commented out and see if we should add it back. https://github.com/dpaulson45/HealthChecker/issues/167
+    #Write-VerboseOutput("Calling Function: New-FileLevelHotfixInformation")
     #Write-VerboseOutput("Passed - FriendlyName: {0} FullFilePath: {1} BuldVersion: {2}" -f $FriendlyName, $FullFilePath, $BuildVersion)
-    [HealthChecker.FileVersionCheckObject]$FileVersion_obj = New-Object HealthChecker.FileVersionCheckObject
-    $FileVersion_obj.FriendlyFileName = $FriendlyName
-    $FileVersion_obj.FullPath = $FullFilePath
-    $FileVersion_obj.BuildVersion = $BuildVersion
-    return $FileVersion_obj
+    $FileVersion = New-Object PSCustomObject 
+    $FileVersion | Add-Member -MemberType NoteProperty -Name FriendlyFileName -Value $FriendlyName 
+    $FileVersion | Add-Member -MemberType NoteProperty -Name FullPath -Value $FullFilePath 
+    $FileVersion | Add-Member -MemberType NoteProperty -Name BuildVersion -Value $BuildVersion 
+    
+    return $FileVersion
 }
 
 Function Get-HotFixListInfo{
 param(
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
 )
+    Write-VerboseOutput("Calling: Confirm-VisualCRedistributableVersion")
     $hotfix_objs = @()
     switch ($OS_Version)
     {
         ([HealthChecker.OSVersionName]::Windows2008R2)
         {
-            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3004383"
             $hotfix_obj.ValidFileLevelCheck = $true
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Appidapi.dll" -FullFilePath "C:\Windows\SysWOW64\Appidapi.dll" -BuildVersion "6.1.7601.22823")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Appidapi.dll" -FullFilePath "C:\Windows\SysWOW64\Appidapi.dll" -BuildVersion "6.1.7601.22823")
             #For this check, we are only going to check for one file, because there are a ridiculous amount in this KB. Hopefully we don't see many false positives 
             $hotfix_objs += $hotfix_obj
             return $hotfix_objs
         }
         ([HealthChecker.OSVersionName]::Windows2012R2)
         {
-            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3041832"
             $hotfix_obj.ValidFileLevelCheck = $true
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Hwebcore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Hwebcore.dll" -BuildVersion "8.5.9600.17708")
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "Iiscore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Iiscore.dll" -BuildVersion "8.5.9600.17708")
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "W3dt.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\W3dt.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Hwebcore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Hwebcore.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Iiscore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Iiscore.dll" -BuildVersion "8.5.9600.17708")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "W3dt.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\W3dt.dll" -BuildVersion "8.5.9600.17708")
             $hotfix_objs += $hotfix_obj
             
             return $hotfix_objs
         }
         ([HealthChecker.OSVersionName]::Windows2016)
         {
-            [HealthChecker.HotfixObject]$hotfix_obj = New-Object HealthChecker.HotfixObject
+            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3206632"
             $hotfix_obj.ValidFileLevelCheck = $false
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixObject -FriendlyName "clusport.sys" -FullFilePath "C:\Windows\System32\drivers\clusport.sys" -BuildVersion "10.0.14393.576")
+            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "clusport.sys" -FullFilePath "C:\Windows\System32\drivers\clusport.sys" -BuildVersion "10.0.14393.576")
             $hotfix_objs += $hotfix_obj
             return $hotfix_objs
         }
@@ -1027,6 +1017,7 @@ Function Remote-GetFileVersionInfo {
 param(
 [Parameter(Mandatory=$true)][object]$PassedObject 
 )
+    Write-VerboseOutput("Calling: Remote-GetFileVersionInfo")
     $KBsInfo = $PassedObject.KBCheckList
     $ReturnList = @()
     foreach($KBInfo in $KBsInfo)
@@ -1058,6 +1049,7 @@ param(
         $ReturnList += $main_obj
     }
 
+    Write-VerboseOutput("Exiting: Remote-GetFileVersionInfo")
     return $ReturnList
 }
 
@@ -1066,6 +1058,7 @@ param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
 )
+    Write-VerboseOutput("Calling: Get-RemoteHotFixInformation")
     $HotfixListObjs = Get-HotFixListInfo -OS_Version $OS_Version
     if($HotfixListObjs -ne $null)    
     {
@@ -1106,7 +1099,6 @@ param(
                 $results = Remote-GetFileVersionInfo -PassedObject $argList 
             }
             
-            
             return $results
         }
         catch 
@@ -1115,12 +1107,13 @@ param(
         }
         finally
         {
+            Write-VerboseOutput("Exiting: Get-RemoteHotFixInformation")
             $ErrorActionPreference = $oldErrorAction
         }
-        
     }
 }
 
+#TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/170
 Function Get-ServerRebootPending {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1262,6 +1255,7 @@ param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
 [Parameter(Mandatory=$true)][HealthChecker.TLSVersion]$TLSVersion
 )
+    Write-VerboseOutput("Calling: Get-TLSSettingsFromRegistry")
     $regBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
     switch($TLSVersion)
     {
@@ -1362,6 +1356,7 @@ param(
     $returnObj | Add-Member -MemberType NoteProperty -Name "ClientEnabled" -Value $clientEnabled 
     $returnObj | Add-Member -MemberType NoteProperty -Name "ClientDisabledByDefault" -Value $clientDisabledByDefault
 
+    Write-VerboseOutput("Exiting: Get-TLSSettingsFromRegistry")
     return $returnObj
 }
 
@@ -1369,8 +1364,9 @@ Function Get-TLSSettings{
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
+    Write-VerboseOutput("Calling: Get-TLSSettings")
     $tlsSettings = @() 
-    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj = New-Object HealthChecker.TlsSettingInformation
     $tlsObj.TLSName = "1.0"
     $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS10)
     $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
@@ -1379,7 +1375,7 @@ param(
     $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
     $tlsSettings += $tlsObj
 
-    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj = New-Object HealthChecker.TlsSettingInformation
     $tlsObj.TLSName = "1.1"
     $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS11)
     $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
@@ -1388,7 +1384,7 @@ param(
     $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
     $tlsSettings += $tlsObj
 
-    $tlsObj = New-Object HealthChecker.TLSObject
+    $tlsObj = New-Object HealthChecker.TlsSettingInformation
     $tlsObj.TLSName = "1.2"
     $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS12)
     $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
@@ -1397,18 +1393,20 @@ param(
     $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
     $tlsSettings += $tlsObj
 
+    Write-VerboseOutput("Exiting: Get-TLSSettings")
     return $tlsSettings
 }
 
 Function Set-NetTLSDefaultVersions2010 {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExchangeServerObject
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthCheckerExchangeServer
 )
     Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
     $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
-    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
-    $HealthExchangeServerObject.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthExchangeServerObject.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
-    return $HealthExchangeServerObject
+    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    Write-VerboseOutput("Exiting: Set-NetTLSDefaultVersions2010")
+    return $HealthCheckerExchangeServer
 }
 
 Function Get-NetTLSDefaultVersions {
@@ -1418,22 +1416,22 @@ param(
     Write-VerboseOutput("Calling: Get-NetTLSDefaultVersions")
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
 
-    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionObject
+    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionInformation
     $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
     $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
     $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    Write-VerboseOutput("Exiting: Get-NetTLSDefaultVersions")
     return $netTlsVersion
 }
 
-Function Build-OperatingSystemObject {
+Function Get-OperatingSystemInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
- 
-    Write-VerboseOutput("Calling: Build-OperatingSystemObject")
+    Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
 
-    [HealthChecker.OperatingSystemObject]$os_obj = New-Object HealthChecker.OperatingSystemObject
+    [HealthChecker.OperatingSystemInformation]$os_obj = New-Object HealthChecker.OperatingSystemInformation
     $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
     try
     {
@@ -1473,9 +1471,9 @@ param(
         $os_obj.PowerPlanSetting = "N/A"
     }
     $os_obj.PowerPlan = $plan 
-    $os_obj.PageFile = (Get-PageFileObject -Machine_Name $Machine_Name)
+    $os_obj.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
     $os_obj.NetworkAdaptersConfiguration = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True"
-    $os_obj.NetworkAdapters = (Build-NICInformationObject -Machine_Name $Machine_Name -OSVersion $os_obj.OSVersion)
+    $os_obj.NetworkAdapters = (Get-NICInformation -MachineName $Machine_Name -OSVersion $os_obj.OSVersion)
     foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
@@ -1514,7 +1512,7 @@ param(
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
-    $os_obj.LmCompat = (Build-LmCompatibilityLevel -Machine_Name $Machine_Name)
+    $os_obj.LmCompat = (Get-LmCompatibilityLevelInformation -Machine_Name $Machine_Name)
     $counterSamples = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     if($counterSamples -ne $null)
     {
@@ -1525,6 +1523,7 @@ param(
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
+    Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $os_obj
 }
 
@@ -1535,8 +1534,6 @@ param(
     Write-VerboseOutput("Calling: Get-ServerType")
     Write-VerboseOutput("Passed: $serverType")
 
-
-
     if($ServerType -like "VMware*"){Write-VerboseOutput("Returned: VMware"); return [HealthChecker.ServerType]::VMWare}
     elseif($ServerType -like "*Microsoft Corporation*"){Write-VerboseOutput("Returned: HyperV"); return [HealthChecker.ServerType]::HyperV}
     elseif($ServerType.Length -gt 0) {Write-VerboseOutput("Returned: Physical"); return [HealthChecker.ServerType]::Physical}
@@ -1545,13 +1542,13 @@ param(
 }
 
 
-Function Get-ProcessorInformationObject {
+Function Get-ProcessorInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling: Get-ProcessorInformationObject")
+    Write-VerboseOutput("Calling: Get-ProcessorInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
-    [HealthChecker.ProcessorInformationObject]$processor_info_object = New-Object HealthChecker.ProcessorInformationObject
+    [HealthChecker.ProcessorInformation]$processor_info_object = New-Object HealthChecker.ProcessorInformation
     $wmi_obj_processor = Get-WmiObject -ComputerName $Machine_Name -Class Win32_Processor
     $object_Type = $wmi_obj_processor.Gettype().Name 
     Write-VerboseOutput("Processor object type: $object_Type")
@@ -1621,31 +1618,32 @@ param(
 	}
 
     $processor_info_object.Processor = $wmi_obj_processor
+    Write-VerboseOutput("Exiting: Get-ProcessorInformation")
     return $processor_info_object
-
 }
 
-Function Build-HardwareObject {
+Function Get-HardwareInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
-    Write-VerboseOutput("Calling: Build-HardwareObject")
+    Write-VerboseOutput("Calling: Get-HardwareInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
-    [HealthChecker.HardwareObject]$hardware_obj = New-Object HealthChecker.HardwareObject
+    [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
     $system = Get-WmiObject -ComputerName $Machine_Name -Class Win32_ComputerSystem
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $hardware_obj.Processor = Get-ProcessorInformationObject -Machine_Name $Machine_Name 
+    $hardware_obj.Processor = Get-ProcessorInformation -Machine_Name $Machine_Name 
     $hardware_obj.Model = $system.Model 
 
+    Write-VerboseOutput("Exiting: Get-HardwareInformation")
     return $hardware_obj
 }
 
 
-Function Get-NetFrameworkVersionFriendlyInfo{
+Function Get-NetFrameworkVersionFriendlyInfo {
 param(
 [Parameter(Mandatory=$true)][int]$NetVersionKey,
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName 
@@ -1653,7 +1651,7 @@ param(
     Write-VerboseOutput("Calling: Get-NetFrameworkVersionFriendlyInfo")
     Write-VerboseOutput("Passed: " + $NetVersionKey.ToString())
     Write-VerboseOutput("Passed: " + $OSVersionName.ToString())
-    [HealthChecker.NetVersionObject]$versionObject = New-Object -TypeName HealthChecker.NetVersionObject
+    [HealthChecker.NetVersionInformation]$versionObject = New-Object -TypeName HealthChecker.NetVersionInformation
         if(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d5d1))
     {
         $versionObject.FriendlyName = "4.5"
@@ -1721,7 +1719,6 @@ param(
     }
     $versionObject.NetRegValue = $NetVersionKey
 
-
     Write-VerboseOutput("Returned: " + $versionObject.FriendlyName)
     return $versionObject
     
@@ -1729,17 +1726,18 @@ param(
 
 
 #Uses registry build numbers from https://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
-Function Build-NetFrameWorkVersionObject {
+Function Get-NetFrameWorkVersionObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName
 )
-    Write-VerboseOutput("Calling: Build-NetFrameWorkVersionObject")
+    Write-VerboseOutput("Calling: Get-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersionName")
     [int]$NetVersionKey = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release"
     Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
-    [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
+    [HealthChecker.NetVersionInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
+    Write-VerboseOutput("Exiting: Get-NetFrameWorkVersionObject")
     return $versionObject
 }
 
@@ -1851,8 +1849,8 @@ param(
         
     }
 
+    Write-VerboseOutput("Exiting: Get-ExchangeBuildObject")
     return $exBuildObj
-
 }
 
 #New Release Update 
@@ -1862,8 +1860,15 @@ param(
 )
     Write-VerboseOutput("Calling: Get-ExchangeBuildInformation")
     Write-VerboseOutput("Passed: " + $AdminDisplayVersion.ToString())
-    [HealthChecker.ExchangeInformationTempObject]$tempObject = New-Object -TypeName HealthChecker.ExchangeInformationTempObject
-    
+
+    $tempObject = New-Object PSCustomObject 
+    $tempObject | Add-Member -MemberType NoteProperty -Name FriendlyName -Value ([string]::Empty)
+    $tempObject | Add-Member -MemberType NoteProperty -Name Error -Value $false 
+    $tempObject | Add-Member -MemberType NoteProperty -Name ExchangeBuildNumber -Value ([string]::Empty)
+    $tempObject | Add-Member -MemberType NoteProperty -Name ReleaseDate -Value ([string]::Empty)
+    $tempObject | Add-Member -MemberType NoteProperty -Name SupportedCU -Value $false 
+    $tempObject | Add-Member -MemberType NoteProperty -Name InbetweenCUs -Value $false #TODO: V3.0 Remove Me
+    $tempObject | Add-Member -MemberType NoteProperty -Name ExchangeBuildObject -Value $null 
     #going to remove the minor checks. Not sure I see a value in keeping them. 
     if($AdminDisplayVersion.Major -eq 15)
     {
@@ -1953,6 +1958,7 @@ param(
         $tempObject.Error = $true
     }
 
+    Write-VerboseOutput("Exiting: Get-ExchangeBuildInformation")
     return $tempObject
 }
 
@@ -2008,17 +2014,18 @@ param(
 [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$NetVersion
 )
     Write-VerboseOutput("Calling: Check-DotNetFrameworkSupportedLevel")
-
-
     Function Check-NetVersionToExchangeVersion {
     param(
     [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$CurrentNetVersion,
     [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$MinSupportNetVersion,
     [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$RecommendedNetVersion
-    
     )
-        [HealthChecker.NetVersionCheckObject]$NetCheckObj = New-Object -TypeName HealthChecker.NetVersionCheckObject
-        $NetCheckObj.RecommendedNetVersion = $true 
+        $NetCheckObj = New-Object PSCustomObject 
+        $NetCheckObj | Add-Member -MemberType NoteProperty -Name Error -Value $false 
+        $NetCheckObj | Add-Member -MemberType NoteProperty -Name Supported -Value $false 
+        $NetCheckObj | Add-Member -MemberType NoteProperty RecommendNetVersion -Value $true 
+        $NetCheckObj | Add-Member -MemberType NoteProperty -Name DisplayWording -Value ([string]::Empty)
+
         Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
         Write-VerboseOutput("Passed: Current Net Version: " + $CurrentNetVersion.ToString())
         Write-VerboseOutput("Passed: Min Support Net Version: " + $MinSupportNetVersion.ToString())
@@ -2035,16 +2042,16 @@ param(
             Write-VerboseOutput("Current version of .NET equals 4.6 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET 4.6 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
+            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            $NetCheckObj.DisplayWording = "On .NET 4.6 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionInformation.FriendlyName + " as soon as possible to get into a supported state."
         }
 		elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6d1 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
 		{
 			Write-VerboseOutput("Current version of .NET equals 4.6.1 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6.1 without the hotfix")
 			$NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-			[HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-			$NetCheckObj.DisplayWording = "On .NET 4.6.1 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionObject.FriendlyName + " as soon as possible to get into a supported state."
+			[HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+			$NetCheckObj.DisplayWording = "On .NET 4.6.1 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionInformation.FriendlyName + " as soon as possible to get into a supported state."
 		}
 
         #this catch is for when you are on a version of exchange where we can be on let's say 4.5.2 without fix, but there isn't a better option available.
@@ -2053,9 +2060,9 @@ param(
             Write-VerboseOutput("Current version of .NET is less than Min Supported Version. Need to upgrade to this version as soon as possible")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionObject.FriendlyName + ". Upgrade to this version as soon as possible."
+            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
+            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionInformation.FriendlyName + ". Upgrade to this version as soon as possible."
         }
         #here we are assuming that we are able to get to a much better version of .NET then the min 
         elseif($CurrentNetVersion -lt $MinSupportNetVersion)
@@ -2063,28 +2070,28 @@ param(
             Write-VerboseOutput("Current Version of .NET is less than Min Supported Version. However, the recommended version is the one we want to upgrade to")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionObject]$MinSupportNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionObject.FriendlyName + ", but the recommended version is " + $RecommendedNetVersionObject.FriendlyName + ". upgrade to this version as soon as possible." 
+            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionInformation.FriendlyName + ", but the recommended version is " + $RecommendedNetVersionInformation.FriendlyName + ". upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -lt $RecommendedNetVersion)
         {
             Write-VerboseOutput("Current version is less than the recommended version, but we are at or higher than the Min Supported level. Should upgrade to the recommended version as soon as possible.")
             $NetCheckObj.Supported = $true
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Upgrade to this version as soon as possible." 
+            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionInformation.FriendlyName + ". Upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -gt $RecommendedNetVersion)
         {
             Write-VerboseOutput("Current version is greater than the recommended version. This is an unsupported state.")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionObject]$currentNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionObject]$RecommendedNetVersionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
-            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionObject.FriendlyName + " and the max recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionObject.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
+            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the max recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionInformation.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
         }
         else
         {
@@ -2126,10 +2133,7 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
-
-
                 break;
-                
             }
         ([HealthChecker.ExchangeVersion]::Exchange2016)
             {
@@ -2172,8 +2176,6 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
-                
-
                 break;
             }
         ([HealthChecker.ExchangeVersion]::Exchange2019)
@@ -2183,13 +2185,12 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                 }
-
             }
         default {$NetCheckObj.Error = $true; Write-VerboseOutput("Error trying to determine major version of Exchange for .NET fix level")}
     }
 
+    Write-VerboseOutput("Exiting: Check-DotNetFrameworkSupportedLevel")
     return $NetCheckObj
-
 }
 
 Function Get-ExchangeAppPoolsInformation {
@@ -2200,6 +2201,7 @@ param(
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
     Function Get-ExchangeAppPoolsScriptBlock 
     {
+        Write-VerboseOutput("Calling: Get-ExchangeAppPoolsScriptBlock")
         $windir = $env:windir
         $Script:appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
 
@@ -2216,7 +2218,6 @@ param(
         }
 
         $exchAppPools = @{}
-
         foreach($appPool in $exchangeAppPools)
         {
             $status = &$Script:appCmd list apppool $appPool /text:state
@@ -2237,6 +2238,7 @@ param(
 
             $exchAppPools.Add($appPool, $statusObj)
         }
+        Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsScriptBlock")
         return $exchAppPools
     }
     $exchangeAppPoolsInfo = @{}
@@ -2256,6 +2258,7 @@ param(
             Invoke-CatchActions
         }
     }
+    Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
     return $exchangeAppPoolsInfo
 }
 
@@ -2272,7 +2275,7 @@ param(
 
     Function Get-MapiConfigGCSetting {
     param(
-        [Parameter(Mandatory=$true)][string]$ConfigPath
+    [Parameter(Mandatory=$true)][string]$ConfigPath
     )
         if(Test-Path $ConfigPath)
         {
@@ -2285,7 +2288,6 @@ param(
             Return "Unknown"    
         }
     }
-
     try 
     {
         if($Machine_Name -ne $env:COMPUTERNAME)
@@ -2298,7 +2300,6 @@ param(
             Write-VerboseOutput("Calling Get-MapiConfigGCSetting via local session")
             $mapiGCMode = Get-MapiConfigGCSetting -ConfigPath $MapiConfig    
         }
-        
     }
     catch
     {
@@ -2345,6 +2346,7 @@ param(
             return $fixes
         }
     }
+    Write-VerboseOutput("Exiting: Get-ExchangeUpdates")
     return $null
 }
 
@@ -2404,19 +2406,21 @@ param(
     {
         $exSetupDetails = Get-ExSetupDetailsScriptBlock 
     }
+    Write-VerboseOutput("Exiting: Get-ExSetupDetails")
     return $exSetupDetails
 }
 
-Function Build-ExchangeInformationObject {
+#If this function changes update https://github.com/dpaulson45/HealthChecker/issues/163 #TODO: V3.0 remove line 
+Function Get-ExchangeInformation {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
     $Machine_Name = $HealthExSvrObj.ServerName
     $OSVersionName = $HealthExSvrObj.OSVersion.OSVersion
-    Write-VerboseOutput("Calling: Build-ExchangeInformationObject")
+    Write-VerboseOutput("Calling: Get-ExchangeInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
 
-    [HealthChecker.ExchangeInformationObject]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformationObject
+    [HealthChecker.ExchangeInformation]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
     $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
     $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
@@ -2426,9 +2430,9 @@ param(
     if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
     {
         Write-VerboseOutput("Exchange 2013 or greater detected")
-        $HealthExSvrObj.NetVersionInfo = Build-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSVersionName $OSVersionName
+        $HealthExSvrObj.NetVersionInfo = Get-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSVersionName $OSVersionName
         $versionObject =  $HealthExSvrObj.NetVersionInfo 
-        [HealthChecker.ExchangeInformationTempObject]$tempObject = Get-ExchangeBuildInformation -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion
+        $tempObject = Get-ExchangeBuildInformation -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion
         if($tempObject.Error -ne $true) 
         {
             Write-VerboseOutput("No error detected when getting temp information")
@@ -2438,7 +2442,8 @@ param(
             $exchInfoObject.InbetweenCUs = $tempObject.InbetweenCUs
             $exchInfoObject.SupportedExchangeBuild = $tempObject.SupportedCU
             $exchInfoObject.ExchangeBuildObject = $tempObject.ExchangeBuildObject 
-            [HealthChecker.NetVersionCheckObject]$NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSVersionName $OSVersionName -NetVersion $versionObject.NetVersion
+            #TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/166
+            $NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSVersionName $OSVersionName -NetVersion $versionObject.NetVersion
             if($NetCheckObj.Error)
             {
                 Write-Yellow "Warning: Unable to determine if .NET is supported"
@@ -2490,27 +2495,26 @@ param(
     }
 	
     $HealthExSvrObj.ExchangeInformation = $exchInfoObject
+    Write-VerboseOutput("Exiting: Get-ExchangeInformation")
     return $HealthExSvrObj
-
 }
 
-
-Function Build-HealthExchangeServerObject {
+Function Get-HealthCheckerExchangeServer {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
 
-    Write-VerboseOutput("Calling: Build-HealthExchangeServerObject")
+    Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
     Write-VerboseOutput("Passed: $Machine_Name")
 
-    [HealthChecker.HealthExchangeServerObject]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthExchangeServerObject 
+    [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer 
     $HealthExSvrObj.ServerName = $Machine_Name 
-    $HealthExSvrObj.HardwareInfo = Build-HardwareObject -Machine_Name $Machine_Name 
-    $HealthExSvrObj.OSVersion = Build-OperatingSystemObject -Machine_Name $Machine_Name  
-    $HealthExSvrObj = Build-ExchangeInformationObject -HealthExSvrObj $HealthExSvrObj
+    $HealthExSvrObj.HardwareInfo = Get-HardwareInformation -Machine_Name $Machine_Name 
+    $HealthExSvrObj.OSVersion = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
+    $HealthExSvrObj = Get-ExchangeInformation -HealthExSvrObj $HealthExSvrObj
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthExchangeServerObject $HealthExSvrObj
+        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthCheckerExchangeServer $HealthExSvrObj
     }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
@@ -2571,6 +2575,7 @@ param(
 [Parameter(Mandatory=$true)][object]$CheckVersionObject,
 [Parameter(Mandatory=$false)][bool]$DebugFunction = $false
 )
+Write-VerboseOutput("Calling: Get-BuildLevelVersionCheck")
 Add-Type -TypeDefinition @"
 public enum VersionDetection 
 {
@@ -2612,11 +2617,11 @@ public enum VersionDetection
         Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
     }
 
+    Write-VerboseOutput("Exiting: Get-BuildLevelVersionCheck")
     if($FileMajorPart -eq [VersionDetection]::Greater){return $true}
     if($FileMinorPart -eq [VersionDetection]::Greater){return $true}
     if($FileBuildPart -eq [VersionDetection]::Greater){return $true}
     if($FilePrivatePart -ge [VersionDetection]::Equal){return $true}
-
     return $false
 }
 
@@ -2780,15 +2785,13 @@ Function Get-CASLoadBalancingReport {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalRpcHttpRequests)*100)) + "% Distribution")
         }
     }
-
     Write-Grey("")
-
 }
 
 Function Verify-Pagefile25PercentOfTotalMemory {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.PageFileObject]$PageFileObj,
-[Parameter(Mandatory=$true)][HealthChecker.HardwareObject]$HardwareObj
+[Parameter(Mandatory=$true)][HealthChecker.PageFileInformation]$PageFileObj,
+[Parameter(Mandatory=$true)][HealthChecker.HardwareInformation]$HardwareObj
 )
     Write-VerboseOutput("Calling: Verify-Pagefile25PercentOfTotalMemory")
     Write-VerboseOutput("Passed: Total Memory: {0}" -f ($totalMemory = $HardwareObj.TotalMemory))
@@ -2800,13 +2803,14 @@ param(
         $returnString = "Page File size is set to {0} MB which does not equal 25% of the Total System Memory which is {1} MB. This is set incorrectly." -f $pageFileSizeMB, [Math]::Truncate($totalMemoryMB)
     }
 
+    Write-VerboseOutput("Exiting: Verify-Pagefile25PercentOfTotalMemory")
     return $returnString
 }
 
-Function Verify-PagefileEqualMemoryPlus10{
+Function Verify-PagefileEqualMemoryPlus10 {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.PageFileObject]$page_obj,
-[Parameter(Mandatory=$true)][HealthChecker.HardwareObject]$hardware_obj
+[Parameter(Mandatory=$true)][HealthChecker.PageFileInformation]$page_obj,
+[Parameter(Mandatory=$true)][HealthChecker.HardwareInformation]$hardware_obj
 )
     Write-VerboseOutput("Calling: Verify-PagefileEqualMemoryPlus10")
     Write-VerboseOutput("Passed: total memory: " + $hardware_obj.TotalMemory)
@@ -2824,8 +2828,8 @@ param(
         $sReturnString = "Page file is set to (" + $page_obj.MaxPageSize + ") which appears to be More than the Total System Memory plus 10 MB which is (" + $iMemory + ") this appears to be set incorrectly." 
     }
 
+    Write-VerboseOutput("Exiting: Verify-PagefileEqualMemoryPlus10 ")
     return $sReturnString
-
 }
 
 Function Get-LmCompatibilityLevel {
@@ -2846,15 +2850,15 @@ param(
 
 }
 
-Function Build-LmCompatibilityLevel {
+Function Get-LmCompatibilityLevelInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
 
-    Write-VerboseOutput("Calling: Build-LmCompatibilityLevel")
+    Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
 
-    [HealthChecker.ServerLmCompatibilityLevel]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevel
+    [HealthChecker.ServerLmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevelInformation
     
     $ServerLmCompatObject.LmCompatibilityLevelRef = "https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10)"
     $ServerLmCompatObject.LmCompatibilityLevel    = Get-LmCompatibilityLevel $Machine_Name
@@ -2868,6 +2872,7 @@ param(
         5 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
     }
 
+    Write-VerboseOutput("Exiting: Get-LmCompatibilityLevelInformation")
     Return $ServerLmCompatObject
 }
 
@@ -3231,20 +3236,20 @@ param(
     {
         Write-Grey("All known security issues in this version of the script passed.")
     }
+    Write-VerboseOutput("Exiting: Display-MSExchangeVulnerabilities")
 }
 
 Function Display-KBHotfixCheckFailSafe {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
-
+    Write-VerboseOutput("Calling: Display-KBHotfixCheckFailSafe")
     Write-Grey("`r`nHotfix Check:")
     $2008HotfixList = $null
-  $2008R2HotfixList = @("KB3004383")
-  $2012HotfixList = $null
-  $2012R2HotfixList = @("KB3041832")
-  $2016HotfixList = @("KB3206632")
-  
+    $2008R2HotfixList = @("KB3004383")
+    $2012HotfixList = $null
+    $2012R2HotfixList = @("KB3041832")
+    $2016HotfixList = @("KB3206632")
   
   Function Check-Hotfix 
   {
@@ -3292,12 +3297,14 @@ param(
 
       default {}
   }
+  Write-VerboseOutput("Exiting: Display-KBHotfixCheckFailSafe")
 }
 
 Function Get-BuildVersionObjectFromString {
 param(
 [Parameter(Mandatory=$true)][string]$BuildString 
 )
+    Write-VerboseOutput("Calling: Get-BuildVersionObjectFromString")
     $aBuild = $BuildString.Split(".")
     if($aBuild.Count -ge 4)
     {
@@ -3315,9 +3322,9 @@ param(
 }
 
 #Addressed issue 69
-Function Display-KBHotFixCompareIssues{
+Function Display-KBHotFixCompareIssues {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
     Write-VerboseOutput("Calling: Display-KBHotFixCompareIssues")
     Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
@@ -3396,13 +3403,12 @@ param(
     {
         Write-VerboseOutput("No hotfixes were detected on the server")    
     }
-
-    
+    Write-VerboseOutput("Exiting: Display-KBHotFixCompareIssues")
 }
 
 Function Display-KBHotfixCheck {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
     Write-VerboseOutput("Calling: Display-KBHotfixCheck")
     Write-VerboseOutput("For Server: {0}" -f $HealthExSvrObj.ServerName)
@@ -3500,12 +3506,12 @@ param(
             }
         }
     }
-
+    Write-VerboseOutput("Exiting: Display-KBHotfixCheck")
 }
 
 Function Display-ResultsToScreen {
 param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
     Write-VerboseOutput("Calling: Display-ResultsToScreen")
     Write-VerboseOutput("For Server: " + $HealthExSvrObj.ServerName)
@@ -3931,7 +3937,7 @@ param(
     Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.ProcessorName)
     Function Check-MaxCoresCount {
     param(
-    [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+    [Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
     )
         if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
         $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
@@ -4197,18 +4203,16 @@ param(
     #####################
     #Vulnerability Check#
     #####################
-
     Display-MSExchangeVulnerabilities $HealthExSvrObj
-
-
+    
     Write-Grey("`r`n`r`n")
-
+    Write-VerboseOutput("Exiting: Display-ResultsToScreen")
 }
 
-Function Build-ServerObject
+Function Get-HealthCheckerExchangeServerHtmlInformation
 {
     param(
-    [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
+    [Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
     )
 
     $ServerObject = New-Object –TypeName PSObject
@@ -4268,7 +4272,6 @@ Function Build-ServerObject
         $ServerObject | Add-Member –MemberType NoteProperty –Name ServerRole -Value $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString()
     }
 
-
     ###########
     #Page File#
     ###########
@@ -4291,7 +4294,6 @@ Function Build-ServerObject
         $ServerObject | Add-Member –MemberType NoteProperty –Name MultiplePageFiles -Value "No"
     }
     
-    
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010) 
     {
         #Exchange 2010, we still recommend that we have the page file set to RAM + 10 MB 
@@ -4300,10 +4302,8 @@ Function Build-ServerObject
         $sDisplay = Verify-PagefileEqualMemoryPlus10 -page_obj $HealthExSvrObj.OSVersion.PageFile -hardware_obj $HealthExSvrObj.HardwareInfo
         if($sDisplay -eq "Good")
         {
-
             $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-      			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
-
+      		$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
         }
         else
         {
@@ -4315,7 +4315,6 @@ Function Build-ServerObject
     #Exchange 2013+ with memory greater than 32 GB. Should be set to 32 + 10 MB for a value 
     #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
     elseif($HealthExSvrObj.HardwareInfo.TotalMemory -ge 34359738368)
-
     {
         if($HealthExSvrObj.OSVersion.PageFile.MaxPageSize -eq 32778)
         {
@@ -4347,10 +4346,8 @@ Function Build-ServerObject
     ################
     #.NET FrameWork#
     ################
-    
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-
         if($HealthExSvrObj.NetVersionInfo.SupportedVersion)
         {
             if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
@@ -4364,11 +4361,9 @@ Function Build-ServerObject
         }
         else
         {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
+            $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
         }
-
     }
-
 
     ################
     #Power Settings#
@@ -4390,14 +4385,11 @@ Function Build-ServerObject
 		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
     }
 
-
-
     #####################
 	#Http Proxy Settings#
 	#####################
 
     $ServerObject | Add-Member –MemberType NoteProperty –Name HTTPProxy -Value $HealthExSvrObj.OSVersion.HttpProxy
-
 
     ##################
     #Network Settings#
@@ -4408,9 +4400,8 @@ Function Build-ServerObject
         if((($HealthExSvrObj.OSVersion.NetworkAdapters).count) -gt 1)
         {
 			$i = 1
-			
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
-
+            $ServerObject | Add-Member –MemberType NoteProperty –Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
+            
             foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
             {
                 $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_$($i) -Value $adapter.Name
@@ -4441,19 +4432,13 @@ Function Build-ServerObject
                 else
                 {
                     $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "Disabled"
-                }
-				
+                }	
 				$i++
             }
-
-               
-
-             
         }
     }
     else
     {
-        
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
 			$ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_1 -Value $adapter.Name
@@ -4466,8 +4451,7 @@ Function Build-ServerObject
             {
                 $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value "VM - Not Applicable"  
             }
-        }
-        
+        }   
     }
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -4480,9 +4464,7 @@ Function Build-ServerObject
     #######################
     #Processor Information#
     #######################
-
     $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
-
     #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
     if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -4572,7 +4554,6 @@ Function Build-ServerObject
         $ServerObject | Add-Member –MemberType NoteProperty –Name MaxMegacyclesPerCore -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
     }
 
-
     #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
     #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
@@ -4604,8 +4585,7 @@ Function Build-ServerObject
     if(-not(($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::None) -or 
         (($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013) -and 
         ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess))))
-    {
-	    
+    {	    
 	    if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
 		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
@@ -4637,12 +4617,9 @@ Function Build-ServerObject
 	#LmCompatibilityLevel Settings#
 	###############################
     $ServerObject | Add-Member –MemberType NoteProperty –Name LmCompatibilityLevel -Value $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel
-
-
 	##############
 	#Hotfix Check#
 	##############
-    
     #Issue: throws errors 
     <#
     Add-Member : Cannot add a member with the name "Passed" because a member with that name already exists. To overwrite
@@ -4655,14 +4632,9 @@ Function Build-ServerObject
        #     $ServerObject | Add-Member –MemberType NoteProperty –Name KB3041832 -Value "Installed"
         #}
     #}
-
-
     Write-debug "Building ServersObject " 
 	$ServerObject
-    
-
 }
-
 
 Function Get-HealthCheckFilesItemsFromLocation{
     $items = Get-ChildItem $XMLDirectoryPath | Where-Object{$_.Name -like "HealthCheck-*-*.xml"}
@@ -4678,7 +4650,6 @@ Function Get-OnlyRecentUniqueServersXMLs {
 param(
 [Parameter(Mandatory=$true)][array]$FileItems 
 )   
-
     $aObject = @() 
     foreach($item in $FileItems)
     {
@@ -4692,24 +4663,20 @@ param(
     }
 
     $grouped = $aObject | Group-Object ServerName 
-
     $FilePathList = @()
     foreach($gServer in $grouped)
     {
-        
         if($gServer.Count -gt 1)
         {
             #going to only use the most current file for this server providing that they are using the newest updated version of Health Check we only need to sort by name
             $groupData = $gServer.Group #because of win2008
             $FilePathList += ($groupData | Sort-Object FileName -Descending | Select-Object -First 1).FileObject.VersionInfo.FileName
-
         }
-        else {
+        else 
+        {
             $FilePathList += ($gServer.Group).FileObject.VersionInfo.FileName
         }
-        
     }
-
     return $FilePathList
 }
 
@@ -4726,7 +4693,7 @@ param(
     return $myData
 }
 
-Function Build-HtmlServerReport {
+Function New-HtmlServerReport {
 
     $Files = Get-HealthCheckFilesItemsFromLocation
     $FullPaths = Get-OnlyRecentUniqueServersXMLs $Files
@@ -4735,14 +4702,12 @@ Function Build-HtmlServerReport {
     $AllServersOutputObject = @()
     foreach($data in $ImportData)
     {
-        $AllServersOutputObject += Build-ServerObject $data
+        $AllServersOutputObject += Get-HealthCheckerExchangeServerHtmlInformation $data
     }
     
     Write-Debug "Building HTML report from AllServersOutputObject" 
 	#Write-Debug $AllServersOutputObject 
     
-	
-	
     $htmlhead="<html>
             <style>
             BODY{font-family: Arial; font-size: 8pt;}
@@ -4762,7 +4727,6 @@ Function Build-HtmlServerReport {
             <p>This shows a brief overview of known areas of concern. Details about each server are below.</p>
             <p align='center'>Note: KBs that could be missing on the server are not included in this version of the script. Please check this in the .txt file of the Health Checker script results</p>"
     
-
     $HtmlTableHeader = "<p>
                         <table>
                         <tr>
@@ -4810,8 +4774,7 @@ Function Build-HtmlServerReport {
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.BuildDaysOld)</td>"
         }
-
-        
+    
         $HtmlTableRow += "<td>$($ServerArrayItem.ServerRole)</td>"	
         
         If($ServerArrayItem.AutoPageFile -eq "Yes")
@@ -4822,7 +4785,6 @@ Function Build-HtmlServerReport {
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.AutoPageFile)</td>"	
         }
-		
 		
 		If(!$ServerArrayItem.E2013MemoryRight)
         {
@@ -4836,9 +4798,7 @@ Function Build-HtmlServerReport {
         {
             $HtmlTableRow += "<td>$($ServerArrayItem.TotalPhysicalMemory)</td>"	
         }
-		
-		
-                    
+		                    
         If($ServerArrayItem.MultiplePageFiles -eq "Yes")
         {
             $HtmlTableRow += "<td class=""fail"">$($ServerArrayItem.MultiplePageFiles)</td>"	
@@ -4915,10 +4875,8 @@ Function Build-HtmlServerReport {
         $HtmlTableRow += "<td>$($ServerArrayItem.LmCompatibilityLevel)</td>"	
 
         $HtmlTableRow += "</tr>"
-                    
-                    
+                                
         $ServersHealthHtmlTable = $ServersHealthHtmlTable + $htmltablerow
-        
     }
     
     $ServersHealthHtmlTable += "</table></p>"
@@ -5007,12 +4965,10 @@ Function Build-HtmlServerReport {
 	
     $WarningsErrorsHtmlTable += "</table>"
 
-	
     $ServerDetailsHtmlTable += "<p><H2>Server Details</H2><table>"
     
     Foreach($ServerArrayItem in $AllServersOutputObject)
     {
-
         $ServerDetailsHtmlTable += "<tr><th>Server Name</th><th>$($ServerArrayItem.ServerName)</th></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Manufacturer</td><td>$($ServerArrayItem.Manufacturer)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Model</td><td>$($ServerArrayItem.Model)</td></tr>"
@@ -5050,8 +5006,7 @@ Function Build-HtmlServerReport {
 			$rss = "NIC_RSS_{0}" -f $a 
 		    $ServerDetailsHtmlTable += "<tr><td>RSS</td><td>$($ServerArrayItem.$rss)</td></tr>"
 			$a--
-		 }
-		 
+		 }	 
     }
     
     $ServerDetailsHtmlTable += "</table></p>"
@@ -5063,7 +5018,6 @@ Function Build-HtmlServerReport {
     
     $htmlreport | Out-File $HtmlReportFile -Encoding UTF8
 }
-
 
 ##############################################################
 #
@@ -5084,7 +5038,8 @@ param(
     $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value ([int]::empty)
     $returnObj | Add-Member -MemberType NoteProperty -Name Exception -Value ([string]::empty)
     $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
-    try {
+    try 
+    {
         $wmi_obj_processor = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name
 
         foreach($processor in $wmi_obj_processor)
@@ -5094,7 +5049,8 @@ param(
         
         Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
     }
-    catch {
+    catch 
+    {
         Invoke-CatchActions
         $thisError = $Error[0]
         if($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException")
@@ -5284,7 +5240,6 @@ Function Write-HealthCheckerVersion {
     {
         Write-Yellow("Exchange Health Checker version {0}. This script is probably outdated. Please verify before relying on the results." -f $healthCheckerVersion)
     }
-
 }
 
 Function LoadBalancingMain {
@@ -5303,7 +5258,7 @@ Function HealthCheckerMain {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
     Write-HealthCheckerVersion
-    $HealthObject = Build-HealthExchangeServerObject $Server
+    $HealthObject = Get-HealthCheckerExchangeServer $Server
     Display-ResultsToScreen $healthObject
     Get-ErrorsThatOccurred
     $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
@@ -5328,7 +5283,7 @@ Function Main {
     if($BuildHtmlServersReport)
     {
         Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport" 
-        Build-HtmlServerReport
+        New-HtmlServerReport
         Get-ErrorsThatOccurred
         sleep 2;
         exit
