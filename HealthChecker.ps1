@@ -2023,7 +2023,7 @@ param(
         $NetCheckObj = New-Object PSCustomObject 
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name Error -Value $false 
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name Supported -Value $false 
-        $NetCheckObj | Add-Member -MemberType NoteProperty RecommendNetVersion -Value $true 
+        $NetCheckObj | Add-Member -MemberType NoteProperty -Name RecommendedNetVersion -Value $true 
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name DisplayWording -Value ([string]::Empty)
 
         Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
