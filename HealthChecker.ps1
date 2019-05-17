@@ -164,7 +164,7 @@ using System.Collections;
             public object ExchangeServerObject;      //Stores the Get-ExchangeServer Object 
             public bool SupportedExchangeBuild;      //Deteremines if we are within the correct build of Exchange 
             public bool InbetweenCUs;                //bool to provide if we are between main releases of CUs. Hotfixes/IUs. 
-            public bool RecommendedNetVersion; //RecommendNetVersion Info includes all the factors. Windows Version & CU. 
+            public bool RecommendedNetVersion; //RecommendedNetVersion Info includes all the factors. Windows Version & CU. 
             public ExchangeBuildObject ExchangeBuildObject; //Store the build object
             public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
             public bool MapiHttpEnabled; //Stored from ogranzation config 
