@@ -2311,10 +2311,12 @@ param(
 
     Function Save-WindowsEventLogs {
         
-        $baseSaveLocation = $Script:RootCopyToDirectory + "\WindowsEventLogs"
+        Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
+        $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
         $SaveLogs = @{}
         if($PassedInfo.AppSysLogs)
         {
+            Write-ScriptDebug("Adding Application and System Logs")
             $Logs = @()
             $Logs += "Application.evtx"
             $Logs += "System.evtx"
@@ -2323,6 +2325,7 @@ param(
         }
         if($PassedInfo.ManagedAvailability)
         {
+            Write-ScriptDebug("Adding Managed Availability Logs")
             $Logs = @()
             $Logs += "Microsoft-Exchange-ActiveMonitoring%4MaintenanceDefinition.evtx"
             $Logs += "Microsoft-Exchange-ActiveMonitoring%4MaintenanceResult.evtx"
@@ -2347,8 +2350,7 @@ param(
         }
         if($PassedInfo.HighAvailabilityLogs)
         {
-            #$SaveLogs.Add("ROOT1",  ($env:SystemRoot + "\Cluster\Reports\Cluster.log"))
-        
+            Write-ScriptDebug("Adding High Availability Logs")
             $Logs = @()
             $Logs += "Microsoft-Exchange-HighAvailability%4BlockReplication.evtx"
             $Logs += "Microsoft-Exchange-HighAvailability%4Debug.evtx"
@@ -2376,6 +2378,7 @@ param(
         foreach($directory in $SaveLogs.Keys)
         {
             $validLogs = @()
+            Write-ScriptDebug("Working on directory: {0}" -f $directory)
             foreach($log in $SaveLogs[$directory])
             {
                 $path = $log 
@@ -2386,6 +2389,10 @@ param(
                 if(Test-Path $path)
                 {
                     $validLogs += $path 
+                }
+                else 
+                {
+                    Write-ScriptDebug("Failed to find path: '{0}'" -f $path)
                 }
             }
             $zipFolder = $true 
