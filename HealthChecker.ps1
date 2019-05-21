@@ -137,6 +137,8 @@ if($PSBoundParameters["Verbose"]){
 $oldErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Stop"
 
+$Script:VerboseFunctionCaller = ${Function:Write-VerboseWriter}
+
 try{
 
 #Enums and custom data types 
@@ -471,6 +473,19 @@ Function Write-Break {
     Write-Host ""
 }
 
+Function Write-VerboseWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString 
+)
+    if($VerboseFunctionCaller -eq $null)
+    {
+            Write-Verbose $WriteString
+    }
+    else 
+    {
+        &$VerboseFunctionCaller $WriteString
+    }
+}
 
 ############################################################
 ############################################################
@@ -655,26 +670,45 @@ param(
     return $counterSamples 
 }
 
-Function Get-OperatingSystemVersion {
-param(
-[Parameter(Mandatory=$true)][string]$OS_Version
-)
-
-    Write-VerboseOutput("Calling: Get-OperatingSystemVersion")
-    Write-VerboseOutput("Passed: $OS_Version")
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerOperatingSystemVersion/Get-ServerOperatingSystemVersion.ps1
+Function Get-ServerOperatingSystemVersion {
+    [CmdletBinding()]
+    param(
+    [string]$OSBuildNumberVersion
+    )
     
-    switch($OS_Version)
+    #Function Version 1.4
+    <#
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    
+    if($OSBuildNumberVersion -eq [string]::Empty -or $OSBuildNumberVersion -eq $null)
     {
-        "6.0.6000" {Write-VerboseOutput("Returned: Windows2008"); return [HealthChecker.OSVersionName]::Windows2008}
-        "6.1.7600" {Write-VerboseOutput("Returned: Windows2008R2"); return [HealthChecker.OSVersionName]::Windows2008R2}
-        "6.1.7601" {Write-VerboseOutput("Returned: Windows2008R2"); return [HealthChecker.OSVersionName]::Windows2008R2}
-        "6.2.9200" {Write-VerboseOutput("Returned: Windows2012"); return [HealthChecker.OSVersionName]::Windows2012}
-        "6.3.9600" {Write-VerboseOutput("Returned: Windows2012R2"); return [HealthChecker.OSVersionName]::Windows2012R2}
-        "10.0.14393" {Write-VerboseOutput("Returned: Windows2016"); return [HealthChecker.OSVersionName]::Windows2016}
-        "10.0.17713" {Write-VerboseOutput("Returned: Windows2019"); return [HealthChecker.OSVersionName]::Windows2019}
-        default{Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.OSVersionName]::Unknown}
+        Write-VerboseWriter("Getting the local machine version build number")
+        $OSBuildNumberVersion = (Get-WmiObject -Class Win32_OperatingSystem).Version
+        Write-VerboseWriter("Got {0} for the version build number" -f $OSBuildNumberVersion)
     }
-
+    else 
+    {
+        Write-VerboseWriter("Passed - [string]OSBuildNumberVersion : {0}" -f $OSBuildNumberVersion)
+    }
+    
+    [string]$osReturnValue = ""
+    switch ($OSBuildNumberVersion) 
+    {
+        "6.0.6000" {$osReturnValue = "Windows2008"}
+        "6.1.7600" {$osReturnValue = "Windows2008R2"}
+        "6.1.7601" {$osReturnValue = "Windows2008R2"}
+        "6.2.9200" {$osReturnValue = "Windows2012"}
+        "6.3.9600" {$osReturnValue = "Windows2012R2"}
+        "10.0.14393" {$osReturnValue = "Windows2016"}
+        "10.0.17713" {$osReturnValue = "Windows2019"}
+        default {$osReturnValue = "Unknown"}
+    }
+    
+    Write-VerboseWriter("Returned: {0}" -f $osReturnValue)
+    return [string]$osReturnValue
 }
 
 Function Get-PageFileInformation {
@@ -1446,7 +1480,7 @@ param(
     $temp_currentdate = Get-Date
     $temp_uptime = [Management.ManagementDateTimeConverter]::ToDateTime($os.lastbootuptime)
     $os_obj.OSVersionBuild = $os.Version
-    $os_obj.OSVersion = (Get-OperatingSystemVersion -OS_Version $os_obj.OSVersionBuild)
+    $os_obj.OSVersion = (Get-ServerOperatingSystemVersion -OSBuildNumberVersion $os_obj.OSVersionBuild)
     $os_obj.OperatingSystemName = $os.Caption
     $os_obj.OperatingSystem = $os
     $os_obj.BootUpTimeInDays = ($temp_currentdate - $temp_uptime).Days
