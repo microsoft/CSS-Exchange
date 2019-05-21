@@ -3765,6 +3765,15 @@ Function Write-DataOnlyOnceOnLocalMachine {
     Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }
 
+Function Start-WriteExchangeDataOnMachines {
+    if($ExchangeServerInfo)
+    {
+        [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+        Write-ExchangeDataOnMachines
+        $timer.Stop()
+        Write-ScriptDebug("Write-ExchangeDataOnMachines total time took {0} seconds" -f $timer.Elapsed.TotalSeconds)
+    }
+}
 
 ##################Main###################
 Function Main {
@@ -3824,15 +3833,7 @@ Function Main {
                 exit
             }
             
-            #Write out Exchange Data 
-            if($ExchangeServerInfo)
-            {
-                [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-                Write-ExchangeDataOnMachines
-                $timer.Stop()
-                Write-ScriptDebug("Write-ExchangeDataOnMachines total time took {0} seconds" -f $timer.Elapsed.TotalSeconds)
-            }
-
+            Start-WriteExchangeDataOnMachines
             Write-DataOnlyOnceOnLocalMachine
             $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
             if((-not($SkipEndCopyOver)) -and (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath))
@@ -3877,7 +3878,7 @@ Function Main {
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
                 $Script:ValidServers = @($env:COMPUTERNAME)
-                Write-ExchangeDataOnMachines
+                Start-WriteExchangeDataOnMachines
                 Write-DataOnlyOnceOnLocalMachine
             }
             
@@ -3897,7 +3898,7 @@ Function Main {
         }
         Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
         $Script:ValidServers = @($env:COMPUTERNAME)
-        Write-ExchangeDataOnMachines
+        Start-WriteExchangeDataOnMachines
         Write-DataOnlyOnceOnLocalMachine 
     }
 
