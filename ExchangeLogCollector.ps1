@@ -2347,7 +2347,7 @@ param(
         }
         if($PassedInfo.HighAvailabilityLogs)
         {
-            $SaveLogs.Add("ROOT1",  ($env:SystemRoot + "\Cluster\Reports\Cluster.log"))
+            #$SaveLogs.Add("ROOT1",  ($env:SystemRoot + "\Cluster\Reports\Cluster.log"))
         
             $Logs = @()
             $Logs += "Microsoft-Exchange-HighAvailability%4BlockReplication.evtx"
@@ -2369,12 +2369,13 @@ param(
             $Logs = @()
             $Logs += "Microsoft-Windows-FailoverClustering%4Operational.evtx"
             $Logs += "Microsoft-Windows-FailoverClustering%4Diagnostic.evtx"
+            $Logs += $env:SystemRoot + "\Cluster\Reports\Cluster.log"
             $SaveLogs.Add("Microsoft-Windows-FailoverClustering", $Logs)
         }
 
         foreach($directory in $SaveLogs.Keys)
         {
-            $valideLogs = @()
+            $validLogs = @()
             foreach($log in $SaveLogs[$directory])
             {
                 $path = $log 
@@ -2384,7 +2385,7 @@ param(
                 }
                 if(Test-Path $path)
                 {
-                    $valideLogs += $path 
+                    $validLogs += $path 
                 }
             }
             $zipFolder = $true 
@@ -2397,12 +2398,14 @@ param(
                 $zipFolder = $false 
                 $saveLocation = $baseSaveLocation
             }
-
-            Copy-BulkItems -CopyToLocation $saveLocation -ItemsToCopyLocation $valideLogs 
-            Remove-EventLogChar -location $saveLocation 
-            if($zipFolder)
+            if($validLogs -ne $null)
             {
-                Zip-Folder -Folder $saveLocation
+                Copy-BulkItems -CopyToLocation $saveLocation -ItemsToCopyLocation $validLogs 
+                Remove-EventLogChar -location $saveLocation 
+                if($zipFolder)
+                {
+                    Zip-Folder -Folder $saveLocation
+                }
             }
         }
     }
