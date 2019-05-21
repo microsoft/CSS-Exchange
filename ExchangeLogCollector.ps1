@@ -2309,114 +2309,103 @@ param(
         Write-ScriptDebug("Function Exit: Save-ServerInfoData")
     }
 
-    Function Get-HighAvailabilityLogs_V15 
-    {
-        $Logs = @() 
-        $root =$env:SystemRoot
-
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4AppLogMirror.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4BlockReplication.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Debug.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Monitoring.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Network.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Operational.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Seeding.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4TruncationDebug.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-MailboxDatabaseFailureItems%4Operational.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-MailboxDatabaseFailureItems%4Debug.evtx"
-
-        return $Logs 
-    }
-
-    Function Get-HighAvailabilityLogs_V14
-    {
-        $Logs = @()
-        $root =$env:SystemRoot
-
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4BlockReplication.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Debug.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4Operational.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4SeedingDebug.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-HighAvailability%4TruncationDebug.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-MailboxDatabaseFailureItems%4Operational.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-MailboxDatabaseFailureItems%4Debug.evtx"
+    Function Save-WindowsEventLogs {
         
-        return $Logs 
-    }
-
-    Function Save-HighAvailabilityLogs 
-    {
-        if($Script:localServerObject.Mailbox)
+        $baseSaveLocation = $Script:RootCopyToDirectory + "\WindowsEventLogs"
+        $SaveLogs = @{}
+        if($PassedInfo.AppSysLogs)
         {
-            $copyTo = $Script:RootCopyToDirectory + "\High_Availability_logs"
-            $logs = @() 
-            if($Script:localServerObject.DAGMember)
+            $Logs = @()
+            $Logs += "Application.evtx"
+            $Logs += "System.evtx"
+            $Logs += "MSExchange Management.evtx"
+            $SaveLogs.Add("Windows-Logs",$Logs) 
+        }
+        if($PassedInfo.ManagedAvailability)
+        {
+            $Logs = @()
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4MaintenanceDefinition.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4MaintenanceResult.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4MonitorDefinition.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4MonitorResult.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4ProbeDefinition.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4ProbeResult.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4ResponderDefinition.evtx"
+            $Logs += "Microsoft-Exchange-ActiveMonitoring%4ResponderResult.evtx"
+            $SaveLogs.Add("Microsoft-Exchange-ActiveMonitoring", $Logs)
+            
+            $Logs = @()
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4InvokeNowRequest.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4InvokeNowResult.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4Monitoring.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4RecoveryActionLogs.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4RecoveryActionResults.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4RemoteActionLogs.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4StartupNotification.evtx"
+            $Logs += "Microsoft-Exchange-ManagedAvailability%4ThrottlingConfig.evtx"
+            $SaveLogs.Add("Microsoft-Exchange-ManagedAvailability", $Logs)
+        }
+        if($PassedInfo.HighAvailabilityLogs)
+        {
+            $SaveLogs.Add("ROOT1",  ($env:SystemRoot + "\Cluster\Reports\Cluster.log"))
+        
+            $Logs = @()
+            $Logs += "Microsoft-Exchange-HighAvailability%4BlockReplication.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4Debug.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4Operational.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4TruncationDebug.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4SeedingDebug.evtx"    
+            $Logs += "Microsoft-Exchange-HighAvailability%4Network.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4Seeding.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4Monitoring.evtx"
+            $Logs += "Microsoft-Exchange-HighAvailability%4AppLogMirror.evtx"
+            $SaveLogs.Add("Microsoft-Exchange-HighAvailability", $Logs)
+            
+            $Logs = @()
+            $Logs += "Microsoft-Exchange-MailboxDatabaseFailureItems%4Operational.evtx"
+            $Logs += "Microsoft-Exchange-MailboxDatabaseFailureItems%4Debug.evtx"
+            $SaveLogs.Add("Microsoft-Exchange-MailboxDatabaseFailureItems", $Logs)
+
+            $Logs = @()
+            $Logs += "Microsoft-Windows-FailoverClustering%4Operational.evtx"
+            $Logs += "Microsoft-Windows-FailoverClustering%4Diagnostic.evtx"
+            $SaveLogs.Add("Microsoft-Windows-FailoverClustering", $Logs)
+        }
+
+        foreach($directory in $SaveLogs.Keys)
+        {
+            $valideLogs = @()
+            foreach($log in $SaveLogs[$directory])
             {
-                #Cluster log /g for some reason, we can't run this within invoke-command as we get a permission issue not sure why, as everything else works. 
-                #going to run this cmdlet outside of invoke-command like all the other exchange cmdlets 
-                $test =$env:SystemRoot + "\Cluster\Reports\Cluster.log"
-                if(Test-Path -Path $test)
+                $path = $log 
+                if(!($log.StartsWith("C:\")))
                 {
-                    $logs += $test
+                    $path = "{0}\System32\Winevt\Logs\{1}" -f $env:SystemRoot, $log 
+                }
+                if(Test-Path $path)
+                {
+                    $valideLogs += $path 
                 }
             }
-            if($Script:localServerObject.Version -ge 15)
+            $zipFolder = $true 
+            if($directory -notlike "ROOT*")
             {
-                $logs += Get-HighAvailabilityLogs_V15
-            }
-            elseif($Script:localServerObject.Version -eq 14)
-            {
-                $logs += Get-HighAvailabilityLogs_V14 
+                $saveLocation = "{0}\{1}" -f $baseSaveLocation, $directory 
             }
             else 
             {
-                Write-ScriptHost -ShowServer $true -WriteString("unknown server version: {0}" -f $Script:localServerObject.Version) -ForegroundColor "Red"
-                return 
+                $zipFolder = $false 
+                $saveLocation = $baseSaveLocation
             }
-            Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $logs 
-            Remove-EventLogChar -location $copyTo
-            Zip-Folder -Folder $copyTo
+
+            Copy-BulkItems -CopyToLocation $saveLocation -ItemsToCopyLocation $valideLogs 
+            Remove-EventLogChar -location $saveLocation 
+            if($zipFolder)
+            {
+                Zip-Folder -Folder $saveLocation
+            }
         }
-        else 
-        {
-            Write-ScriptHost -WriteString ("Doesn't look like this server has the Mailbox Role Installed. Not going to collect the High Availability Logs")
-        }
     }
-
-    Function Save-AppSysLogs {
-
-        $root =$env:SystemRoot
-        $Logs = @()
-        $Logs += $root + "\System32\Winevt\Logs\Application.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\system.evtx"
-        $Logs += $root + "\System32\Winevt\Logs\MSExchange Management.evtx"
-
-        $copyTo = $Script:RootCopyToDirectory + "\App_Sys_Logs"
-        Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $Logs 
-
-        Zip-Folder -Folder $copyTo
-
-    }
-
-    Function Save-ManagedAvailabilityLogs {
-    
-            $root =$env:SystemRoot
-            $Logs = @()
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ActiveMonitoring%4ProbeResult.evtx" #Probe Results Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ManagedAvailability%4RecoveryActionResults.evtx" #Recovery Action Results Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ManagedAvailability%4RecoveryActionLogs.evtx" #Recovery Action Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ActiveMonitoring%4ResponderDefinition.evtx" #Responder Definition Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ActiveMonitoring%4ResponderResult.evtx" #Responder Results Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ActiveMonitoring%4MonitorDefinition.evtx" #Monitor Definition Logs 
-            $Logs += $root + "\System32\Winevt\Logs\Microsoft-Exchange-ManagedAvailability%4Monitoring.evtx" #Monitoring Logs 
-
-            $copyTo = $Script:RootCopyToDirectory + "\MA_Logs"
-            Copy-BulkItems -CopyToLocation $copyTo -ItemsToCopyLocation $Logs
-            Remove-EventLogChar -location $copyTo 
-            Zip-Folder -Folder $copyTo 
-
-    }
-
 
     Function Get-ThisServerObject {
 
@@ -3083,11 +3072,6 @@ param(
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
             }
 
-            if($PassedInfo.ManagedAvailability)
-            {  
-                $cmdsToRun += 'Save-ManagedAvailabilityLogs'
-            }
-   
         }
         
         ############################################
@@ -3240,18 +3224,9 @@ param(
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
         }
 
-        if($PassedInfo.HighAvailabilityLogs)
-        {
-            $cmdsToRun += "Save-HighAvailabilityLogs"
-        }
         if($PassedInfo.ServerInfo)
         {
             $cmdsToRun += "Save-ServerInfoData"
-        }
-
-        if($PassedInfo.AppSysLogs)
-        {
-            $cmdsToRun += 'Save-AppSysLogs'
         }
 
         if($PassedInfo.Experfwiz)
@@ -3263,6 +3238,8 @@ param(
         {
             $cmdsToRun += "Save-LogmanExmonData"
         }
+
+        $cmdsToRun += "Save-WindowsEventLogs"
 
         #Execute the cmds 
         foreach($cmd in $cmdsToRun)
