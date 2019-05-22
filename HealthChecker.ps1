@@ -562,6 +562,50 @@ param(
     return $isCurrent
 }
 
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+Function Get-WmiObjectHandler {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$false)][string]$ComputerName = $env:COMPUTERNAME,
+    [Parameter(Mandatory=$true)][string]$Class,
+    [Parameter(Mandatory=$false)][string]$Filter,
+    [Parameter(Mandatory=$false)][string]$Namespace,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-WmiObjectHandler")
+    Write-VerboseWriter("Passed: [string]ComputerName: {0} | [string]Class: {1} | [string]Filter: {2} | [string]Namespace: {3}" -f $ComputerName, $Class, $Filter, $Namespace)
+    $execute = @{
+        ComputerName = $ComputerName 
+        Class = $Class
+    }
+    if(![string]::IsNullOrEmpty($Filter))
+    {
+        $execute.Add("Filter", $Filter) 
+    }
+    if(![string]::IsNullOrEmpty($Namespace))
+    {
+        $execute.Add("Namespace", $Namespace)
+    }
+    try 
+    {
+        $wmi = Get-WmiObject @execute -ErrorAction Stop
+        return $wmi 
+    }
+    catch 
+    {
+        Write-VerboseWriter("Failed to run Get-WmiObject object on class '{0}'" -f $Class)
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction 
+        }
+    }    
+}
+
 Function Invoke-RegistryHandler {
 param(
 [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
@@ -718,7 +762,7 @@ param(
     Write-VerboseOutput("Calling: Get-PageFileInformation")
     Write-Verbose("Passed: $Machine_Name")
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation
-    $pagefile = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PageFileSetting
+    $pagefile = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($pagefile -ne $null) 
     { 
         if($pagefile.GetType().Name -eq "ManagementObject")
@@ -774,7 +818,7 @@ param(
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
             Write-VerboseOutput("NOTE: this means we aren't able to provide the driver date")
-            $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+            $NetworkCards2008 = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_NetworkAdapter" -Filter "NetConnectionStatus ='2'" -CatchActionFunction ${Function:Invoke-CatchActions}
             foreach($adapter in $NetworkCards2008)
             {
                 [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
@@ -817,7 +861,7 @@ param(
     else
     {
         Write-VerboseOutput("Detected OS Version less than Windows 2012R2")
-        $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
+        $NetworkCards2008 = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_NetworkAdapter" -Filter "NetConnectionStatus ='2'" -CatchActionFunction ${Function:Invoke-CatchActions}
         foreach($adapter in $NetworkCards2008)
         {
             [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
@@ -1466,17 +1510,8 @@ param(
     Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.OperatingSystemInformation]$os_obj = New-Object HealthChecker.OperatingSystemInformation
-    $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
-    try
-    {
-        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
-    }
-    catch
-    {
-        Write-VerboseOutput("Unable to get power plan from the server")
-        Invoke-CatchActions
-        $plan = $null
-    }
+    $os = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $plan = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $temp_currentdate = Get-Date
     $temp_uptime = [Management.ManagementDateTimeConverter]::ToDateTime($os.lastbootuptime)
     $os_obj.OSVersionBuild = $os.Version
@@ -1506,7 +1541,7 @@ param(
     }
     $os_obj.PowerPlan = $plan 
     $os_obj.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
-    $os_obj.NetworkAdaptersConfiguration = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True"
+    $os_obj.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     $os_obj.NetworkAdapters = (Get-NICInformation -MachineName $Machine_Name -OSVersion $os_obj.OSVersion)
     foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
     {
@@ -1583,7 +1618,7 @@ param(
     Write-VerboseOutput("Calling: Get-ProcessorInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
     [HealthChecker.ProcessorInformation]$processor_info_object = New-Object HealthChecker.ProcessorInformation
-    $wmi_obj_processor = Get-WmiObject -ComputerName $Machine_Name -Class Win32_Processor
+    $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_Processor" -CatchActionFunction ${Function:Invoke-CatchActions} 
     $object_Type = $wmi_obj_processor.Gettype().Name 
     Write-VerboseOutput("Processor object type: $object_Type")
     
@@ -1663,7 +1698,7 @@ param(
     Write-VerboseOutput("Calling: Get-HardwareInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObject -ComputerName $Machine_Name -Class Win32_ComputerSystem
+    $system = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
@@ -5074,7 +5109,7 @@ param(
     $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
     try 
     {
-        $wmi_obj_processor = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name
+        $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_Processor" -CatchActionFunction ${Function:Invoke-CatchActions}
 
         foreach($processor in $wmi_obj_processor)
         {
