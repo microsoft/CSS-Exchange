@@ -606,31 +606,43 @@ Function Get-WmiObjectHandler {
     }    
 }
 
-Function Invoke-RegistryHandler {
-param(
-[Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
-[Parameter(Mandatory=$true)][string]$MachineName,
-[Parameter(Mandatory=$true)][string]$SubKey,
-[Parameter(Mandatory=$true)][string]$GetValue,
-[Parameter(Mandatory=$false)][bool]$ErrorExpected
-)
-    Write-VerboseOutput("Calling: Invoke-RegistryHandler")
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+Function Invoke-RegistryGetValue {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
+    [Parameter(Mandatory=$true)][string]$MachineName,
+    [Parameter(Mandatory=$true)][string]$SubKey,
+    [Parameter(Mandatory=$true)][string]$GetValue,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Invoke-RegistryGetValue")
     try 
     {
-        Write-VerboseOutput("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
+        Write-VerboseWriter("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
         $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
-        Write-VerboseOutput("Attempting to open the Sub Key '{0}'" -f $SubKey)
+        Write-VerboseWriter("Attempting to open the Sub Key '{0}'" -f $SubKey)
         $RegKey= $Reg.OpenSubKey($SubKey)
-        Write-VerboseOutput("Attempting to get the value '{0}'" -f $GetValue)
+        Write-VerboseWriter("Attempting to get the value '{0}'" -f $GetValue)
         $returnGetValue = $RegKey.GetValue($GetValue)
+        Write-VerboseWriter("Exiting: Invoke-RegistryGetValue | Returning: {0}" -f $returnGetValue)
+        return $returnGetValue
     }
     catch 
     {
-        Invoke-CatchActions
-        Write-VerboseOutput("Failed to open the registry")
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+        }
+        Write-VerboseWriter("Failed to open the registry")
     }
-    Write-VerboseOutput("Exiting: Invoke-RegistryHandler | Returning: {0}" -f $returnGetValue)
-    return $returnGetValue
+    
 }
 
 Function Load-ExShell {
@@ -1353,10 +1365,10 @@ param(
 
     $regServer = $regBase -f $version, "Server"
     $regClient = $regBase -f $version, "Client"
-    $serverEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled"
-    $serverDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault"
-    $clientEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled"
-    $clientDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault"
+    $serverEnabled = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $serverDisabledByDefault = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $clientEnabled = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $clientDisabledByDefault = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault" -CatchActionFunction ${Function:Invoke-CatchActions}
     
     if($serverEnabled -eq $null)
     {
@@ -1481,8 +1493,8 @@ param(
 )
     Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
     $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Set-NetTLSDefaultVersions2010")
     return $HealthCheckerExchangeServer
 }
@@ -1496,8 +1508,8 @@ param(
 
     $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionInformation
     $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
-    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
-    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
+    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-NetTLSDefaultVersions")
     return $netTlsVersion
 }
@@ -1575,9 +1587,9 @@ param(
         }
     }
 
-    $os_obj.DisabledComponents = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents"
-    $os_obj.TCPKeepAlive = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime"
-    $os_obj.MinimumConnectionTimeout = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout"
+    $os_obj.DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $os_obj.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $os_obj.MinimumConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
@@ -1803,7 +1815,7 @@ param(
     Write-VerboseOutput("Calling: Get-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersionName")
-    [int]$NetVersionKey = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release"
+    [int]$NetVersionKey = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
     [HealthChecker.NetVersionInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     Write-VerboseOutput("Exiting: Get-NetFrameWorkVersionObject")
@@ -2337,7 +2349,7 @@ param(
 )
     Write-VerboseOutput("Calling: Get-MapiFEAppPoolGCMode")
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-    $installPath = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath"
+    $installPath = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath" -CatchActionFunction ${Function:Invoke-CatchActions}
     $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $installPath)
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
@@ -2907,7 +2919,7 @@ param(
 )
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel"
+    $RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel" -CatchActionFunction ${Function:Invoke-CatchActions}
     If ($RegValue)
     {
         Return $RegValue
@@ -2976,7 +2988,7 @@ param(
     #Check for CVE-2018-8581 vulnerability
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename DisableLoopbackCheck exists
-    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck"
+    $RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck" -CatchActionFunction ${Function:Invoke-CatchActions}
     If ($RegValue)
     {
         Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
@@ -2991,8 +3003,8 @@ param(
     #If installed Exchange server release is prior to October 2018
     #KB2565063 should be installed to fix vulnerability
     
-    $KB2565063_RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" 
-    $KB2565063_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate"
+    $KB2565063_RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $KB2565063_RegValueInstallDate = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     If ($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
@@ -3003,7 +3015,7 @@ param(
             If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
             {
 
-                $E15_RegValueInstallData = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate"
+                $E15_RegValueInstallData = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
                 If ($E15_RegValueInstallData -ne $null -and $E15_RegValueInstallData -ne [string]::Empty)
                 {
@@ -3042,7 +3054,7 @@ param(
         If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
         {
 
-            $E2010_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate"
+            $E2010_RegValueInstallDate = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
             If ($E2010_RegValueInstallDate -ne $null -and $E2010_RegValueInstallDate -ne [string]::Empty)
             {
