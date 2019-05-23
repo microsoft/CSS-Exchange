@@ -1519,7 +1519,7 @@ param(
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
-    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+    $os_obj.TimeZone = ([System.TimeZoneInfo]::Local).StandardName
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
