@@ -259,7 +259,7 @@ using System.Collections;
         {
             Unknown = 0,
             VCRedist2012 = 184610406,
-            VCRedist2013 = 201367252
+            VCRedist2013 = 201367256
         }
 
         public class VCRedistInformation
