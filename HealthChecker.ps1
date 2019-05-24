@@ -1558,20 +1558,27 @@ param(
     return $os_obj
 }
 
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerType/Get-ServerType.ps1
 Function Get-ServerType {
-param(
-[Parameter(Mandatory=$true)][string]$ServerType
-)
-    Write-VerboseOutput("Calling: Get-ServerType")
-    Write-VerboseOutput("Passed: $serverType")
-
-    if($ServerType -like "VMware*"){Write-VerboseOutput("Returned: VMware"); return [HealthChecker.ServerType]::VMWare}
-    elseif($ServerType -like "*Microsoft Corporation*"){Write-VerboseOutput("Returned: HyperV"); return [HealthChecker.ServerType]::HyperV}
-    elseif($ServerType.Length -gt 0) {Write-VerboseOutput("Returned: Physical"); return [HealthChecker.ServerType]::Physical}
-    else{Write-VerboseOutput("Returned: unknown") ;return [HealthChecker.ServerType]::Unknown}
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ServerType 
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-ServerType")
+    $returnServerType = [string]::Empty
+    if($ServerType -like "VMware*") { $returnServerType = "VMware"}
+    elseif($ServerType -like "*Microsoft Corporation*") { $returnServerType = "HyperV" }
+    elseif($ServerType.Length -gt 0) {$returnServerType = "Physical"}
+    else { $returnServerType = "Unknown" }
     
+    Write-VerboseWriter("Returning: {0}" -f $returnServerType)
+    return $returnServerType 
 }
-
 
 Function Get-ProcessorInformation {
 param(
