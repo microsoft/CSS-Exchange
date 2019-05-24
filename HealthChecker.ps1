@@ -645,6 +645,67 @@ Function Invoke-RegistryGetValue {
     
 }
 
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+Function Invoke-ScriptBlockHandler {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ComputerName,
+    [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
+    [Parameter(Mandatory=$false)][string]$ScriptBlockDescription,
+    [Parameter(Mandatory=$false)][object]$ArgumentList,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Invoke-ScriptBlockHandler")
+    if(![string]::IsNullOrEmpty($ScriptBlockDescription))
+    {
+        Write-VerboseWriter($ScriptBlockDescription)
+    }
+    try 
+    {
+        if($ComputerName -ne $env:COMPUTERNAME)
+        {
+            if($ArgumentList -ne $null) 
+            {
+                Write-VerboseWriter("Running Invoke-Command with argument list.")
+                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -ErrorAction Stop 
+            }
+            else 
+            {
+                Write-VerboseWriter("Running Invoke-Command without argument list.")
+                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ErrorAction Stop 
+            }
+            return $invokeReturn 
+        }
+        else 
+        {
+            if($ArgumentList -ne $null)
+            {
+                Write-VerboseWriter("Running Script Block locally with argument list.")
+                $localReturn = & $ScriptBlock $ArgumentList 
+            }
+            else 
+            {
+                Write-VerboseWriter("Running Script Block locally without argument list.")
+                $localReturn = & $ScriptBlock      
+            }
+            return $localReturn 
+        }
+    }
+    catch 
+    {
+        Write-VerboseWriter("Failed to Invoke-ScriptBlockHandler")
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction 
+        }
+    }
+}
+
 Function Load-ExShell {
 	#Verify that we are on Exchange 2010 or newer 
 	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
@@ -684,25 +745,7 @@ param(
 [Parameter(Mandatory=$true)][string]$MachineName
 )
     Write-VerboseOutput("Calling: Get-InstalledSoftware")
-    try
-    {
-        if($MachineName -match $env:COMPUTERNAME)
-        {
-            Write-VerboseOutput("Query software for local machine: {0}" -f $env:COMPUTERNAME)
-            $InstalledSoftware = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-        }
-        else
-        {
-            Write-VerboseOutput("Query software for remote machine: {0}" -f $MachineName)
-            $InstalledSoftware = Invoke-Command -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*}
-        }
-    }
-    catch
-    {
-        Invoke-CatchActions
-        Write-VerboseOutput("Failed to query installed software")
-    }
-
+    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-InstalledSoftware")
     return $InstalledSoftware
 }
@@ -898,8 +941,6 @@ param(
 	$httpProxy64 = [String]::Empty
 	Write-VerboseOutput("Calling: Get-HttpProxySetting")
 	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-	$orgErrorPref = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
     
     Function Get-WinHttpSettings {
     param(
@@ -920,39 +961,11 @@ param(
         return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
     }
 
-	try
-	{
-        $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-        $httpProxyPath64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-        
-        if($Machine_Name -ne $env:COMPUTERNAME) 
-        {
-            Write-VerboseOutput("Calling Get-WinHttpSettings via Invoke-Command")
-            $httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath32
-            $httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath64
-        }
-        else 
-        {
-            Write-VerboseOutput("Calling Get-WinHttpSettings via local session")
-            $httpProxy32 = Get-WinHttpSettings -RegistryLocation $httpProxyPath32
-            $httpProxy64 = Get-WinHttpSettings -RegistryLocation $httpProxyPath64
-        }
-		
-		
-        Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
-		Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
-	}
+    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 32 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 64 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
 
-	catch
-	{
-        Invoke-CatchActions
-		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
-	}
-	finally
-	{
-		$ErrorActionPreference = $orgErrorPref
-    }
-    
+    Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
+    Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
     Write-VerboseOutput("Exiting: Get-HttpProxySetting")
 
 	if($httpProxy32 -ne "<None>")
@@ -963,7 +976,6 @@ param(
 	{
 		return $httpProxy64
 	}
-
 }
 
 Function Get-VisualCRedistributableVersion {
@@ -1178,17 +1190,7 @@ param(
             $argList = New-Object PSCustomObject
             $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
             
-            if($Machine_Name -ne $env:COMPUTERNAME)
-            {
-                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via Invoke-Command")
-                $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList
-            }
-            else 
-            {
-                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via local session")
-                $results = Remote-GetFileVersionInfo -PassedObject $argList 
-            }
-            
+            $results = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList -ScriptBlockDescription "Calling Remote-GetFileVersionInfo" -CatchActionFunction ${Function:Invoke-CatchActions}
             return $results
         }
         catch 
@@ -1220,13 +1222,18 @@ param(
     #Pending File Rename operations 
     Function Get-PendingFileReboot {
 
-        $PendingFileKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\"
-        $file = Get-ItemProperty -Path $PendingFileKeyPath -Name PendingFileRenameOperations
-        if($file)
+        try 
         {
-            return $true
+            $foundItem = $false 
+            if((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" -Name PendingFileRenameOperations -ErrorAction Stop))
+            {
+                $foundItem = $true 
+            }
         }
-        return $false
+        catch 
+        {
+            throw 
+        }
     }
 
     Function Get-PendingAutoUpdateReboot {
@@ -1249,86 +1256,29 @@ param(
 
     Function Get-PendingSCCMReboot {
 
-        $SCCMReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending'
-
-        if($SCCMReboot)
+        try 
         {
-            If($SCCMReboot.RebootPending -or $SCCMReboot.IsHardRebootPending)
+            $pendingReboot = $false 
+            $sccmReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop 
+            
+            if($sccmReboot)
             {
-                return $true
+                if($sccmReboot.RebootPending -or $sccmReboot.IsHardRebootPending)
+                {
+                    $pendingReboot = $true 
+                }
             }
         }
-        return $false
-    }
-
-    Function Execute-ScriptBlock{
-    param(
-    [Parameter(Mandatory=$true)][string]$Machine_Name,
-    [Parameter(Mandatory=$true)][scriptblock]$Script_Block,
-    [Parameter(Mandatory=$true)][string]$Script_Block_Name
-    )
-        Write-VerboseOutput("Calling Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        $returnValue = $false
-        try 
-        {
-            $returnValue = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $Script_Block
-        }
         catch 
         {
-            Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            Invoke-CatchActions
+            throw 
         }
-        finally 
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-        return $returnValue
     }
 
-    Function Execute-LocalMethods {
-    param(
-    [Parameter(Mandatory=$true)][string]$Machine_Name,
-    [Parameter(Mandatory=$true)][ScriptBlock]$Script_Block,
-    [Parameter(Mandatory=$true)][string]$Script_Block_Name
-    )
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        $returnValue = $false
-        Write-VerboseOutput("Calling Local Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
-        try 
-        {
-            $returnValue = & $Script_Block
-        }
-        catch 
-        {
-            Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            Invoke-CatchActions
-        }
-        finally 
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-        return $returnValue
-    }
-
-    if($Machine_Name -eq $env:COMPUTERNAME)
-    {
-        Write-VerboseOutput("Calling Server Reboot Pending options via local session")
-        $PendingFileReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
-        $PendingAutoUpdateReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
-        $PendingCBSReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
-        $PendingSCCMReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
-    }
-    else 
-    {
-        Write-VerboseOutput("Calling Server Reboot Pending options via Invoke-Command")
-        $PendingFileReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
-        $PendingAutoUpdateReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
-        $PendingCBSReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
-        $PendingSCCMReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
-    }
+    $PendingFileReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingFileReboot} -ScriptBlockDescription "Get-PendingFileReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $PendingAutoUpdateReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingAutoUpdateReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $PendingCBSReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingCBSReboot} -ScriptBlockDescription "Get-PendingCBSReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $PendingSCCMReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingSCCMReboot} -ScriptBlockDescription "Get-PendingSCCMReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     Write-VerboseOutput("Results - PendingFileReboot: {0} PendingAutoUpdateReboot: {1} PendingCBSReboot: {2} PendingSCCMReboot: {3}" -f $PendingFileReboot, $PendingAutoUpdateReboot, $PendingCBSReboot, $PendingSCCMReboot)
     if($PendingFileReboot -or $PendingAutoUpdateReboot -or $PendingCBSReboot -or $PendingSCCMReboot)
@@ -1665,39 +1615,15 @@ param(
         if($processor.Name -ne $processor_info_object.ProcessorName -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
     }
 
-	Write-VerboseOutput("Trying to get the System.Environment ProcessorCount")
-	$oldError = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
-    Function Get-ProcessorCount {
-        [System.Environment]::ProcessorCount
+    $processorCount = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" -ScriptBlock {[System.Environment]::ProcessorCount} -CatchActionFunction ${Function:Invoke-CatchActions}
+    if($processorCount -ne $null)
+    {
+        $processor_info_object.EnvProcessorCount = $processorCount
     }
-	try
-	{
-        if($Machine_Name -ne $env:COMPUTERNAME)
-        {
-            Write-VerboseOutput("Getting System.Environment ProcessorCount from Invoke-Command")
-            $processor_info_object.EnvProcessorCount = (
-                Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ProcessorCount}
-            )
-        }
-        else 
-        {
-            Write-VerboseOutput("Getting System.Environment ProcessorCount from local session")
-            $processor_info_object.EnvProcessorCount = Get-ProcessorCount
-        }
-
-	}
-	catch
-	{
-        Invoke-CatchActions
-		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
-		$processor_info_object.EnvProcessorCount = -1 
-	}
-	finally
-	{
-		$ErrorActionPreference = $oldError
-	}
-
+    else 
+    {
+        $processor_info_object.EnvProcessorCount = -1 
+    }
     $processor_info_object.Processor = $wmi_obj_processor
     Write-VerboseOutput("Exiting: Get-ProcessorInformation")
     return $processor_info_object
@@ -2322,27 +2248,12 @@ param(
         Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsScriptBlock")
         return $exchAppPools
     }
-    $exchangeAppPoolsInfo = @{}
-    if($Machine_Name -eq $env:COMPUTERNAME)
-    {
-        $exchangeAppPoolsInfo = Get-ExchangeAppPoolsScriptBlock
-    }
-    else 
-    {
-        try 
-        {
-            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ErrorAction stop 
-        }
-        catch 
-        {
-            Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
-            Invoke-CatchActions
-        }
-    }
+    $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
     return $exchangeAppPoolsInfo
 }
 
+#TODO V3.0: https://github.com/dpaulson45/HealthChecker/issues/179
 Function Get-MapiFEAppPoolGCMode{
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -2369,24 +2280,8 @@ param(
             Return "Unknown"    
         }
     }
-    try 
-    {
-        if($Machine_Name -ne $env:COMPUTERNAME)
-        {
-            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via Invoke-Command")
-            $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ArgumentList $MapiConfig
-        }
-        else 
-        {
-            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via local session")
-            $mapiGCMode = Get-MapiConfigGCSetting -ConfigPath $MapiConfig    
-        }
-    }
-    catch
-    {
-        Invoke-CatchActions
-    }
 
+    $mapiGCMode = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ScriptBlockDescription "Getting Get-MapiConfigGCSetting" -ArgumentList $MapiConfig -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Returning GC Mode: {0}" -f $mapiGCMode)
     return $mapiGCMode
 }
@@ -2470,23 +2365,8 @@ param(
     Function Get-ExSetupDetailsScriptBlock {
         Get-Command ExSetup | ForEach-Object{$_.FileVersionInfo}
     }
-    if($Machine_Name -ne $env:COMPUTERNAME)
-    {
-        Write-VerboseOutput("Getting ExSetup remotely")
-        try 
-        {
-            $exSetupDetails = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ErrorAction Stop
-        }
-        catch 
-        {
-            Write-VerboseOutput("Failed to get ExSetupDetails from server {0}" -f $Machine_Name)
-            Invoke-CatchActions
-        }
-    }
-    else 
-    {
-        $exSetupDetails = Get-ExSetupDetailsScriptBlock 
-    }
+
+    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExSetupDetails")
     return $exSetupDetails
 }
