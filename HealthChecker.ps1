@@ -172,7 +172,7 @@ using System.Collections;
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ExchangeAppPools; 
             public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
-           
+            public object ServerComponentState;        //Stores the results from Get-ServerComponentState 
         }
 
         public class ExchangeInformationTempObject 
