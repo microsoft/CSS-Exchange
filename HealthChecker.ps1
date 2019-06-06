@@ -1437,7 +1437,7 @@ param(
     $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
     try
     {
-        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
+        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'" -ErrorAction Stop
     }
     catch
     {
