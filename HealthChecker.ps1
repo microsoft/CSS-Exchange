@@ -3792,6 +3792,11 @@ param(
     )
         $cookedValue = 0
         $foundCounter = $false 
+        if($HealthExSvrObj.OSVersion.PacketsReceivedDiscarded -eq $null)
+        {
+            Write-VerboseOutput("HealthExSvrObj.OSVersion.PacketsReceivedDiscarded is null")
+            return
+        }
         foreach($instance in $HealthExSvrObj.OSVersion.PacketsReceivedDiscarded)
         {
             $instancePath = $instance.Path 
