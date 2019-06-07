@@ -1969,22 +1969,22 @@ https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/system-requirements?vi
 Team Blog Articles 
 
 .NET Framework 4.7 and Exchange Server
-https://blogs.technet.microsoft.com/exchange/2017/06/13/net-framework-4-7-and-exchange-server/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/NET-Framework-4-7-and-Exchange-Server/ba-p/606871
 
 Released: December 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/12/13/released-december-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-December-2016-Quarterly-Exchange-Updates/ba-p/606193
 
 Released: September 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/09/20/released-september-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-September-2016-Quarterly-Exchange-Updates/ba-p/605402
 
 Released: June 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/06/21/released-june-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-June-2016-Quarterly-Exchange-Updates/ba-p/604877
 
 Released: December 2017 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2017/12/19/released-december-2017-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-December-2017-Quarterly-Exchange-Updates/ba-p/607541
 
 Released: October 2018 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2018/10/16/released-october-2018-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-October-2018-Quarterly-Exchange-Updates/ba-p/608455
 
 Summary:
 Exchange 2013 CU19 & 2016 CU8 .NET Framework 4.7.1 Supported on all OSs 
@@ -2936,7 +2936,7 @@ param(
                     If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
                     {
                         Write-Red("Vulnerable to CVE-2010-3190.")
-                        Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                        Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                     }
                     Else
                     {
@@ -2947,13 +2947,13 @@ param(
                 {
                     Write-Yellow("Unable to determine Exchange server install date!")
                     Write-Yellow("Potentially vulnerable to CVE-2010-3190.")
-                    Write-Yellow("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    Write-Yellow("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
             }
             Else
             {
                 Write-Red("Vulnerable to CVE-2010-3190.")
-                Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
             }
         }
         Else
@@ -2975,7 +2975,7 @@ param(
                 If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
                 {
                     Write-Red("Potentially Vulnerable to CVE-2010-3190.")
-                    Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
                 Else
                 {
@@ -2992,7 +2992,7 @@ param(
         {
             Write-Red("`nPotentially vulnerable to CVE-2010-3190.")
             Write-Red("You should check if your build is prior October 2018 and if so, install KB2565063")
-            Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+            Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
         }
     }
 
@@ -3381,7 +3381,7 @@ param(
                         {
                             Write-Break
                             Write-Break
-                            Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://blogs.technet.microsoft.com/exchange/2018/07/16/issue-with-july-updates-for-windows-on-an-exchange-server/" -f $key, ($KBHashTable[$key]))
+                            Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Issue-with-July-Updates-for-Windows-on-an-Exchange-Server/ba-p/608057" -f $key, ($KBHashTable[$key]))
                         }
                     }
                 }
@@ -3941,13 +3941,13 @@ param(
         if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
         $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
         {
-            Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/")
+            Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-2019-Public-Preview/ba-p/608158")
         }
         elseif(($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -or 
         $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016) -and 
         $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
         {
-            Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2015/06/19/ask-the-perf-guy-how-big-is-too-big/")
+            Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-How-big-is-too-BIG/ba-p/603855")
         }
     }
 
@@ -4057,9 +4057,9 @@ param(
     
     #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
-    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Update-to-scalability-guidance-for-Exchange/ba-p/607260
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
-    #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/
+    #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-2019-Public-Preview/ba-p/608158
     #For Exchange 2019 we recommend a min of 128GB  for Mailbox and 64GB for Edge - https://docs.microsoft.com/en-us/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#operating-system
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and
@@ -4116,11 +4116,11 @@ param(
     Write-Grey("`r`nTCP/IP Settings:")
     if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
     {
-        Write-Red("Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Red("Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792")
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
-        Write-Yellow("Warning: The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Yellow("Warning: The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792")
     }
     else
     {
@@ -4169,7 +4169,7 @@ param(
             $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
             ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
             {
-                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
+                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
             }
     }
 
@@ -4580,7 +4580,7 @@ Function Build-ServerObject
 
     #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
-    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Update-to-scalability-guidance-for-Exchange/ba-p/607260
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
 
@@ -4940,12 +4940,12 @@ Function Build-HtmlServerReport {
 	}
 	If($AllServersOutputObject.TCPKeepAlive -contains "Not Set")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792</td></tr>"	
 	}
 	
 	If($AllServersOutputObject.TCPKeepAlive -contains "Not Optimal")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792</td></tr>"	
 	}
 	
 	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
@@ -5194,7 +5194,7 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
-        Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
+        Write-Yellow("`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Sizing-Exchange-2013-Deployments/ba-p/594229")
         Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
 
     }
