@@ -4159,6 +4159,7 @@ param(
     ################
 
     Write-Grey("`r`nTLS Settings:")
+    $detectedTLSMismatch = $false 
     foreach($TLS in $HealthExSvrObj.OSVersion.TLSSettings)
     {
         Write-Grey("`tTLS {0}" -f $TLS.TLSName)
@@ -4169,6 +4170,7 @@ param(
         if($TLS.ServerEnabled -ne $TLS.ClientEnabled)
         {
             Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
+            $detectedTLSMismatch = $true 
         }
         if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
             ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
@@ -4177,6 +4179,13 @@ param(
             {
                 Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
             }
+    }
+    if($detectedTLSMismatch)
+    {
+        Write-Yellow("`tFor More Information on how to properly set TLS follow these blog posts:")
+        Write-Yellow("`t`tExchange Server TLS guidance, part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649")
+        Write-Yellow("`t`tExchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
+        Write-Yellow("`t`tExchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
     }
 
 	##############
