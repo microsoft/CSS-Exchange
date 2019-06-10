@@ -137,8 +137,6 @@ if($PSBoundParameters["Verbose"]){
 $oldErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Stop"
 
-$Script:VerboseFunctionCaller = ${Function:Write-VerboseWriter}
-
 try{
 
 #Enums and custom data types 
@@ -486,6 +484,8 @@ param(
         &$VerboseFunctionCaller $WriteString
     }
 }
+
+$Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
 
 ############################################################
 ############################################################
