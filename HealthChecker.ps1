@@ -1755,23 +1755,39 @@ param(
     return $versionObject
 }
 
-Function Get-ExchangeVersion {
-param(
-[Parameter(Mandatory=$true)][object]$AdminDisplayVersion
-)
-    Write-VerboseOutput("Calling: Get-ExchangeVersion")
-    Write-VerboseOutput("Passed: " + $AdminDisplayVersion.ToString())
-    $iBuild = $AdminDisplayVersion.Major + ($AdminDisplayVersion.Minor / 10)
-    Write-VerboseOutput("Determing build based of of: " + $iBuild) 
-    switch($iBuild)
+Function Get-ExchangeMajorVersion {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][object]$AdminDisplayVersion 
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-ExchangeMajorVersion")
+    Write-VerboseWriter("Passed: {0}" -f $AdminDisplayVersion.ToString())
+    if($AdminDisplayVersion.GetType().Name -eq "string")
     {
-        14.3 {Write-VerboseOutput("Returned: Exchange2010"); return [HealthChecker.ExchangeVersion]::Exchange2010}
-        15 {Write-VerboseOutput("Returned: Exchange2013"); return [HealthChecker.ExchangeVersion]::Exchange2013}
-        15.1{Write-VerboseOutput("Returned: Exchange2016"); return [HealthChecker.ExchangeVersion]::Exchange2016}
-        15.2{Write-VerboseOutput("Returned: Exchange2019"); return [HealthChecker.ExchangeVersion]::Exchange2019}
-        default {Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.ExchangeVersion]::Unknown}
+        $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).split('.')
+        $build = [int]$split[0] + ($split[1] / 10)
     }
-
+    else 
+    {
+        $build = $AdminDisplayVersion.Major + ($AdminDisplayVersion.Minor / 10)
+    }
+    Write-VerboseWriter("Determing build based off of: {0}" -f $build)
+    $exchangeVersion = [string]::Empty
+    switch($build)
+    {
+        14.3 {$exchangeVersion = "Exchange2010"}
+        15 {$exchangeVersion = "Exchange2013"}
+        15.1 {$exchangeVersion = "Exchange2016"}
+        15.2 {$exchangeVersion = "Exchange2019"}
+        default {$exchangeVersion = "Unknown"}
+    }
+    Write-VerboseWriter("Returned: {0}" -f $exchangeVersion)
+    return $exchangeVersion 
 }
 
 Function Get-BuildNumberToString {
@@ -2390,7 +2406,7 @@ param(
 
     [HealthChecker.ExchangeInformation]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
-    $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
+    $exchInfoObject.ExchangeVersion = (Get-ExchangeMajorVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
     $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
     $exchInfoObject.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $Machine_Name) 
 
