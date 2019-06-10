@@ -1205,29 +1205,29 @@ param(
     }
 }
 
-#TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/170
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerRebootPending/Get-ServerRebootPending.ps1
 Function Get-ServerRebootPending {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-ServerRebootPending")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-
-    $PendingFileReboot = $false
-    $PendingAutoUpdateReboot = $false
-    $PendingCBSReboot = $false #Component-Based Servicing Reboot 
-    $PendingSCCMReboot = $false
-    $ServerPendingReboot = $false
-
-    #Pending File Rename operations 
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ServerName,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
     Function Get-PendingFileReboot {
-
         try 
         {
-            $foundItem = $false 
             if((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" -Name PendingFileRenameOperations -ErrorAction Stop))
             {
-                $foundItem = $true 
+                return $true 
+            }
+            else 
+            {
+                return $false 
             }
         }
         catch 
@@ -1235,38 +1235,13 @@ param(
             throw 
         }
     }
-
-    Function Get-PendingAutoUpdateReboot {
-
-        if(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
-        {
-            return $true
-        }
-        return $false
-    }
-
-    Function Get-PendingCBSReboot {
-
-        if(Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
-        {
-            return $true
-        }
-        return $false
-    }
-
     Function Get-PendingSCCMReboot {
-
         try 
         {
-            $pendingReboot = $false 
             $sccmReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop 
-            
-            if($sccmReboot)
+            if($sccmReboot -and ($sccmReboot.RebootPending -or $sccmReboot.IsHardRebootPending))
             {
-                if($sccmReboot.RebootPending -or $sccmReboot.IsHardRebootPending)
-                {
-                    $pendingReboot = $true 
-                }
+                return $true 
             }
         }
         catch 
@@ -1274,20 +1249,43 @@ param(
             throw 
         }
     }
-
-    $PendingFileReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingFileReboot} -ScriptBlockDescription "Get-PendingFileReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $PendingAutoUpdateReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingAutoUpdateReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $PendingCBSReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingCBSReboot} -ScriptBlockDescription "Get-PendingCBSReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $PendingSCCMReboot = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-PendingSCCMReboot} -ScriptBlockDescription "Get-PendingSCCMReboot" -CatchActionFunction ${Function:Invoke-CatchActions}
-
-    Write-VerboseOutput("Results - PendingFileReboot: {0} PendingAutoUpdateReboot: {1} PendingCBSReboot: {2} PendingSCCMReboot: {3}" -f $PendingFileReboot, $PendingAutoUpdateReboot, $PendingCBSReboot, $PendingSCCMReboot)
-    if($PendingFileReboot -or $PendingAutoUpdateReboot -or $PendingCBSReboot -or $PendingSCCMReboot)
-    {
-        $ServerPendingReboot = $true
+    Function Get-PathTestingReboot {
+    param(
+    [string]$TestingPath 
+    )
+        if(Test-Path $TestingPath)
+        {
+            return $true 
+        }
+        else 
+        {
+            return $false 
+        }
     }
-
-    Write-VerboseOutput("Exit: Get-ServerRebootPending")
-    return $ServerPendingReboot
+    
+    Write-VerboseWriter("Calling: Get-ServerRebootPending")
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingFileReboot} -ScriptBlockDescription "Get-PendingFileReboot" -CatchActionFunction $CatchActionFunction)
+    {
+        Write-VerboseWriter("Get-PendingFileReboot Determined Reboot is pending. Registry HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\ item properties of PendingFileRenameOperations.")
+        return $true 
+    }
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingSCCMReboot} -ScriptBlockDescription "Get-PendingSCCMReboot" -CatchActionFunction $CatchActionFunction)
+    {
+        Write-VerboseWriter("Get-PendingSCCMReboot determined reboot is pending.")
+        return $true 
+    }
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction $CatchActionFunction -ArgumentList "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
+    {
+        Write-VerboseWriter("Get-PathTestingReboot for HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending determined reboot is pending")
+        return $true 
+    }
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction $CatchActionFunction -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
+    {
+        Write-VerboseWriter("Get-PathTestingReboot for HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired determined reboot is pending")
+        return $true 
+    }
+    Write-VerboseWriter("Passed all reboot checks.")
+    return $false 
 }
 
 Function Get-TLSSettingsFromRegistry {
@@ -1549,7 +1547,7 @@ param(
     {
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
-    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
+    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
     $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
