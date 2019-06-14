@@ -946,7 +946,15 @@ param(
     
     $ServerComponentStates = Get-ServerComponentState -Identity $Machine_Name -ErrorAction SilentlyContinue
     $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction SilentlyContinue
-    $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction SilentlyContinue
+    try 
+    {
+        $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction Stop
+    }
+    catch 
+    {
+        Write-VerboseOutput("Failed to run Get-ClusterNode")
+        Invoke-CatchActions
+    }
         
     Write-VerboseOutput("Running ServerComponentStates checks")
     if($SkipComponents -eq $true)
