@@ -2739,8 +2739,7 @@ param(
 Function Get-BuildLevelVersionCheck {
 param(
 [Parameter(Mandatory=$true)][object]$ActualVersionObject,
-[Parameter(Mandatory=$true)][object]$CheckVersionObject,
-[Parameter(Mandatory=$false)][bool]$DebugFunction = $false
+[Parameter(Mandatory=$true)][object]$CheckVersionObject
 )
 Add-Type -TypeDefinition @"
 public enum VersionDetection 
@@ -2751,6 +2750,7 @@ public enum VersionDetection
     Greater
 }
 "@
+    Write-VerboseOutput("Calling: Get-BuildLevelVersionCheck")
     #unsure of how we do build numbers for all types of DLLs on the OS, but we are going to try to cover all bases here and it is up to the caller to make sure that we are passing the correct values to be checking 
     #FileMajorPart
     if($ActualVersionObject.FileMajorPart -lt $CheckVersionObject.FileMajorPart){$FileMajorPart = [VersionDetection]::Lower}
@@ -2774,14 +2774,11 @@ public enum VersionDetection
     elseif($ActualVersionObject.FilePrivatePart -gt $CheckVersionObject.FilePrivatePart){$FilePrivatePart = [VersionDetection]::Greater}
     else{$FilePrivatePart = [VersionDetection]::Unknown}
 
-    if($DebugFunction)
-    {
-        Write-VerboseOutput("ActualVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $ActualVersionObject.FileMajorPart, 
-        $ActualVersionObject.FileMinorPart, $ActualVersionObject.FileBuildPart, $ActualVersionObject.FilePrivatePart)
-        Write-VerboseOutput("CheckVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $CheckVersionObject.FileMajorPart,
-        $CheckVersionObject.FileMinorPart, $CheckVersionObject.FileBuildPart, $CheckVersionObject.FilePrivatePart)
-        Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
-    }
+    Write-VerboseOutput("ActualVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $ActualVersionObject.FileMajorPart, 
+    $ActualVersionObject.FileMinorPart, $ActualVersionObject.FileBuildPart, $ActualVersionObject.FilePrivatePart)
+    Write-VerboseOutput("CheckVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $CheckVersionObject.FileMajorPart,
+    $CheckVersionObject.FileMinorPart, $CheckVersionObject.FileBuildPart, $CheckVersionObject.FilePrivatePart)
+    Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
 
     if($FileMajorPart -eq [VersionDetection]::Greater){return $true}
     if($FileMinorPart -eq [VersionDetection]::Greater){return $true}
@@ -3634,7 +3631,7 @@ param(
                         
                         $ServerBuild = Get-BuildVersionObjectFromString -BuildString $CheckFile.BuildVersion 
                         $CheckVersion = Get-BuildVersionObjectFromString -BuildString $KBsToCheckAgainst[$i].FileInformation[$ii].BuildVersion
-                        if(-not (Get-BuildLevelVersionCheck -ActualVersionObject $ServerBuild -CheckVersionObject $CheckVersion -DebugFunction $false))
+                        if(-not (Get-BuildLevelVersionCheck -ActualVersionObject $ServerBuild -CheckVersionObject $CheckVersion))
                         {
                             $allPass = $false
                         }
