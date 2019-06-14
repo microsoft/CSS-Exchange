@@ -172,7 +172,7 @@ using System.Collections;
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ExchangeAppPools; 
             public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
-            public object ServerComponentState;        //Stores the results from Get-ServerComponentState 
+            public object ServerComponentStateInfo;        //Stores the results from Get-ExchangeServerMaintenanceState
         }
 
         public class ExchangeInformationTempObject 
@@ -353,6 +353,25 @@ using System.Collections;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
+        }
+
+        public class ServerMaintenanceObject
+        {
+            public int MaintenanceIndicator;
+            public System.Array InactiveComponents;
+            public bool ComponentsInMaintenance;
+            public System.Array InactiveLocalComponents;
+            public System.Array InactiveRemoteComponents;
+            public bool ComponentsInMaintenanceAreLocal;
+            public bool ComponentsInMaintenanceAreRemote;
+            public string DatabaseCopyActivationDisabledAndMoveNowState;
+            public string DatabaseCopyAutoActivationPolicyState;
+            public bool DatabaseCopyMaintenance;
+            public string ClusterNodeState;
+            public bool ClusterInMaintenance;
+            public object ServerComponentState;  //Stores the results from Get-ServerComponentState
+            public object ClusterNode;  //Stores the results from Get-ClusterNode
+            public object MailboxServerState;  //Stores the restults from Get-MailboxServer
         }
 
         public enum TLSVersion
@@ -891,6 +910,149 @@ param(
 		return $httpProxy64
 	}
 
+}
+
+Function Get-LatestEntry {
+param(
+[Parameter(Mandatory=$true)][object]$InputObject,
+[Parameter(Mandatory=$true)][string]$DateString
+)
+    if($InputObject -ne $null)
+    {
+        $sortedobject = ($InputObject | Sort-Object{$_.$($DateString)} -ErrorAction SilentlyContinue)[-1]
+        return $sortedobject
+    }
+    else
+    {
+        return $null
+    }
+}
+
+Function Get-ExchangeServerMaintenanceState {
+[CmdletBinding(DefaultParameterSetName="FullMaintenanceCheck")]
+param(
+[Parameter(Mandatory=$true,ParameterSetName="FullMaintenanceCheck")]
+[Parameter(Mandatory=$true,ParameterSetName="SkipComponentsCheck")]
+    [string]$Machine_Name,
+[Parameter(Mandatory=$false,ParameterSetName="SkipComponentsCheck")]
+    [bool]$SkipComponents=$false,
+[Parameter(Mandatory=$true,ParameterSetName="SkipComponentsCheck")]
+    [array]$ComponentsToSkip
+)
+
+    Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
+
+    [HealthChecker.ServerMaintenanceObject]$exchMaintenanceObject = New-Object -TypeName HealthChecker.ServerMaintenanceObject
+    
+    $ServerComponentStates = Get-ServerComponentState -Identity $Machine_Name -ErrorAction SilentlyContinue
+    $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction SilentlyContinue
+    $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction SilentlyContinue
+        
+    Write-VerboseOutput("Running ServerComponentStates checks")
+    if($SkipComponents -eq $true)
+    {
+        Write-VerboseOutput("SkipComponents is set to 'true'")
+        ForEach($Component in $ServerComponentStates)
+        {
+            if($ComponentsToSkip -notcontains $Component.Component)
+            {
+                if($Component.State -ne "Active")
+                {
+                    $LatestLocalState = Get-LatestEntry -InputObject $Component.LocalStates -DateString "TimeStamp"
+                    $LatestRemoteState = Get-LatestEntry -InputObject $Component.RemoteStates -DateString "TimeStamp"
+
+                    if($LatestLocalState.State -eq $LatestRemoteState.State)
+                    {
+                        Write-VerboseOutput("Component: {0} State: {1}" -f $Component.Component,$Component.State)
+                        $exchMaintenanceObject.InactiveComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenance = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+                    else
+                    {
+                        if(($LatestLocalState.State -ne "Active") -and ($LatestLocalState.State -ne $null))
+                        {
+                            Write-VerboseOutput("Component: {0} LocalState: {1}" -f $Component.Component,$LatestLocalState.State)
+                            $exchMaintenanceObject.InactiveLocalComponents += $Component.Component
+                            $exchMaintenanceObject.ComponentsInMaintenanceAreLocal = $true
+                            $exchMaintenanceObject.MaintenanceIndicator++
+                        }
+
+                        if(($LatestRemoteState.State -ne "Active") -and ($LatestRemoteState.State -ne $null))
+                        {
+                            Write-VerboseOutput("Component: {0} RemoteState: {1}" -f $Component.Component,$LatestRemoteState.State)
+                            $exchMaintenanceObject.InactiveRemoteComponents += $Component.Component
+                            $exchMaintenanceObject.ComponentsInMaintenanceAreRemote = $true
+                            $exchMaintenanceObject.MaintenanceIndicator++
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Write-VerboseOutput("Component: {0} will be skipped" -f $Component.Component)
+            }
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("We do not skip any ServerComponentStates check")
+        ForEach($Component in $ServerComponentStates)
+        {
+            if($Component.State -ne "Active")
+            {
+                $LatestLocalState = Get-LatestEntry -InputObject $Component.LocalStates -DateString "TimeStamp"
+                $LatestRemoteState = Get-LatestEntry -InputObject $Component.RemoteStates -DateString "TimeStamp"
+
+                if($LatestLocalState.State -eq $LatestRemoteState.State)
+                {
+                    Write-VerboseOutput("Component: {0} State: {1}" -f $Component.Component,$Component.State)
+                    $exchMaintenanceObject.InactiveComponents += $Component.Component
+                    $exchMaintenanceObject.ComponentsInMaintenance = $true
+                    $exchMaintenanceObject.MaintenanceIndicator++
+                }
+                else
+                {
+                    if(($LatestLocalState.State -ne "Active") -and ($LatestLocalState.State -ne $null))
+                    {
+                        Write-VerboseOutput("Component: {0} LocalState: {1}" -f $Component.Component,$LatestLocalState.State)
+                        $exchMaintenanceObject.InactiveLocalComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenanceAreLocal = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+
+                    if(($LatestRemoteState.State -ne "Active") -and ($LatestRemoteState.State -ne $null))
+                    {
+                        Write-VerboseOutput("Component: {0} RemoteState: {1}" -f $Component.Component,$LatestRemoteState.State)
+                        $exchMaintenanceObject.InactiveRemoteComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenanceAreRemote = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+                }
+            }
+        }
+    }
+
+    if(($MailboxServerInformation.DatabaseCopyActivationDisabledAndMoveNow) -or ($MailboxServerInformation.DatabaseCopyAutoActivationPolicy -eq "Blocked"))
+    {
+        $exchMaintenanceObject.DatabaseCopyMaintenance = $true
+        $exchMaintenanceObject.MaintenanceIndicator++
+    }
+
+    if(($ClusterNode -ne $null) -and ($ClusterNode.State -ne "Up"))
+    {
+        $exchMaintenanceObject.ClusterInMaintenance = $true
+        $exchMaintenanceObject.MaintenanceIndicator++
+    }
+
+    $exchMaintenanceObject.ServerComponentState = $ServerComponentStates
+    $exchMaintenanceObject.ClusterNode = $ClusterNode
+    $exchMaintenanceObject.ClusterNodeState = ($ClusterNode).State
+    $exchMaintenanceObject.MailboxServerState = $MailboxServerInformation   
+    $exchMaintenanceObject.DatabaseCopyActivationDisabledAndMoveNowState = $MailboxServerInformation.DatabaseCopyActivationDisabledAndMoveNow
+    $exchMaintenanceObject.DatabaseCopyAutoActivationPolicyState = $MailboxServerInformation.DatabaseCopyAutoActivationPolicy
+
+    return $exchMaintenanceObject
 }
 
 Function Get-VisualCRedistributableVersion {
@@ -2467,6 +2629,7 @@ param(
         $exchInfoObject.ExchangeAppPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
+	$exchInfoObject.ServerComponentStateInfo = Get-ExchangeServerMaintenanceState -Machine_Name $Machine_Name -SkipComponents:$true -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
     }
     elseif($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -3766,6 +3929,57 @@ param(
     else 
     {
         Write-Green("`tFalse")    
+    }
+
+    #############
+    #Maintenance#
+    #############
+   
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        Write-Grey("Server Maintenance:")
+        if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.MaintenanceIndicator -eq 0)
+        {
+            Write-Green("`tServer is not in Maintenance Mode")
+        }
+        else
+        {
+            Write-Yellow("`tThis Server is currently in Maintenance Mode:")
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenance)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Maintenance Mode" -f $Component)
+                }
+            }
+
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenanceAreLocal)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveLocalComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Local Maintenance Mode only" -f $Component)
+                }
+            }
+                
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenanceAreRemote)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveRemoteComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Remote Maintenance Mode only" -f $Component)
+                }
+            }
+
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyMaintenance)
+            {
+                Write-Yellow("`tDatabaseCopyActivationDisabledAndMoveNow is set to: '{0}' - should be: 'False'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyActivationDisabledAndMoveNowState)
+                Write-Yellow("`tDatabaseCopyAutoActivationPolicyState is set to: '{0}' - should be: 'Unrestricted'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyAutoActivationPolicyState)
+            }
+            
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ClusterInMaintenance)
+            {
+                Write-Yellow("`tClusterNode is: {0} - should be: 'Up'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ClusterNodeState)
+            }
+        }
     }
 
 	#####################
