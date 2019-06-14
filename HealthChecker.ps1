@@ -250,7 +250,8 @@ using System.Collections;
 			Net4d6d2 = 394806,
             Net4d7 = 460805,
             Net4d7d1 = 461310,
-            Net4d7d2 = 461814
+            Net4d7d2 = 461814,
+            Net4d8 = 528049
         }
 
         //enum for the dword values of the latest supported VC++ redistributable releases
@@ -1707,10 +1708,15 @@ param(
         $versionObject.FriendlyName = "4.7.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2)
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d8))
     {
         $versionObject.FriendlyName = "4.7.2"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d2
+    }
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d8)
+    {
+        $versionObject.FriendlyName = "4.8"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d8
     }
     else
     {
