@@ -1691,7 +1691,15 @@ param(
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
-    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+    if($env:COMPUTERNAME -eq $Machine_Name)
+    {
+        $os_obj.TimeZone = ([System.TimeZoneInfo]::Local).StandardName
+    }
+    else 
+    {
+        Write-VerboseOutput("Calling Invoke-Command for getting system time zone info")
+        $os_obj.TimeZone = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {([System.TimeZoneInfo]::Local).StandardName}
+    }
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
