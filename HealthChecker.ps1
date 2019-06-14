@@ -3952,7 +3952,7 @@ param(
         }
         else
         {
-            Write-Yellow("`tThis Server is currently in Maintenance Mode:")
+            Write-Yellow("`tThis Server is currently in Maintenance Mode: --- Warning")
             if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenance)
             {
                 ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveComponents)
