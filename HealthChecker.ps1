@@ -81,6 +81,7 @@
 [CmdletBinding(DefaultParameterSetName="HealthChecker")]
 param(
 [Parameter(Mandatory=$false,ParameterSetName="HealthChecker")]
+[Parameter(Mandatory=$false,ParameterSetName="MailboxReport")]
     [string]$Server=($env:COMPUTERNAME),
 [Parameter(Mandatory=$false)]
     [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$OutputFilePath = ".",
@@ -106,7 +107,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.33"
+$healthCheckerVersion = "2.34"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -171,7 +172,7 @@ using System.Collections;
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ExchangeAppPools; 
             public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
-           
+            public object ServerComponentStateInfo;        //Stores the results from Get-ExchangeServerMaintenanceState
         }
 
         public class ExchangeInformationTempObject 
@@ -220,7 +221,8 @@ using System.Collections;
             CU19,
             CU20,
             CU21,
-            CU22
+            CU22,
+            CU23
 
         }
 
@@ -267,7 +269,8 @@ using System.Collections;
 			Net4d6d2 = 394806,
             Net4d7 = 460805,
             Net4d7d1 = 461310,
-            Net4d7d2 = 461814
+            Net4d7d2 = 461814,
+            Net4d8 = 528049
         }
 
         //enum for the dword values of the latest supported VC++ redistributable releases
@@ -276,7 +279,7 @@ using System.Collections;
         {
             Unknown = 0,
             VCRedist2012 = 184610406,
-            VCRedist2013 = 201367252
+            VCRedist2013 = 201367256
         }
 
         public class VCRedistObject
@@ -352,6 +355,25 @@ using System.Collections;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
+        }
+
+        public class ServerMaintenanceObject
+        {
+            public int MaintenanceIndicator;
+            public System.Array InactiveComponents;
+            public bool ComponentsInMaintenance;
+            public System.Array InactiveLocalComponents;
+            public System.Array InactiveRemoteComponents;
+            public bool ComponentsInMaintenanceAreLocal;
+            public bool ComponentsInMaintenanceAreRemote;
+            public string DatabaseCopyActivationDisabledAndMoveNowState;
+            public string DatabaseCopyAutoActivationPolicyState;
+            public bool DatabaseCopyMaintenance;
+            public string ClusterNodeState;
+            public bool ClusterInMaintenance;
+            public object ServerComponentState;  //Stores the results from Get-ServerComponentState
+            public object ClusterNode;  //Stores the results from Get-ClusterNode
+            public object MailboxServerState;  //Stores the restults from Get-MailboxServer
         }
 
         public enum TLSVersion
@@ -890,6 +912,157 @@ param(
 		return $httpProxy64
 	}
 
+}
+
+Function Get-LatestEntry {
+param(
+[Parameter(Mandatory=$true)][object]$InputObject,
+[Parameter(Mandatory=$true)][string]$DateString
+)
+    if($InputObject -ne $null)
+    {
+        $sortedobject = ($InputObject | Sort-Object{$_.$($DateString)} -ErrorAction SilentlyContinue)[-1]
+        return $sortedobject
+    }
+    else
+    {
+        return $null
+    }
+}
+
+Function Get-ExchangeServerMaintenanceState {
+[CmdletBinding(DefaultParameterSetName="FullMaintenanceCheck")]
+param(
+[Parameter(Mandatory=$true,ParameterSetName="FullMaintenanceCheck")]
+[Parameter(Mandatory=$true,ParameterSetName="SkipComponentsCheck")]
+    [string]$Machine_Name,
+[Parameter(Mandatory=$false,ParameterSetName="SkipComponentsCheck")]
+    [bool]$SkipComponents=$false,
+[Parameter(Mandatory=$true,ParameterSetName="SkipComponentsCheck")]
+    [array]$ComponentsToSkip
+)
+
+    Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
+
+    [HealthChecker.ServerMaintenanceObject]$exchMaintenanceObject = New-Object -TypeName HealthChecker.ServerMaintenanceObject
+    
+    $ServerComponentStates = Get-ServerComponentState -Identity $Machine_Name -ErrorAction SilentlyContinue
+    $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction SilentlyContinue
+    try 
+    {
+        $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction Stop
+    }
+    catch 
+    {
+        Write-VerboseOutput("Failed to run Get-ClusterNode")
+        Invoke-CatchActions
+    }
+        
+    Write-VerboseOutput("Running ServerComponentStates checks")
+    if($SkipComponents -eq $true)
+    {
+        Write-VerboseOutput("SkipComponents is set to 'true'")
+        ForEach($Component in $ServerComponentStates)
+        {
+            if($ComponentsToSkip -notcontains $Component.Component)
+            {
+                if($Component.State -ne "Active")
+                {
+                    $LatestLocalState = Get-LatestEntry -InputObject $Component.LocalStates -DateString "TimeStamp"
+                    $LatestRemoteState = Get-LatestEntry -InputObject $Component.RemoteStates -DateString "TimeStamp"
+
+                    if($LatestLocalState.State -eq $LatestRemoteState.State)
+                    {
+                        Write-VerboseOutput("Component: {0} State: {1}" -f $Component.Component,$Component.State)
+                        $exchMaintenanceObject.InactiveComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenance = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+                    else
+                    {
+                        if(($LatestLocalState.State -ne "Active") -and ($LatestLocalState.State -ne $null))
+                        {
+                            Write-VerboseOutput("Component: {0} LocalState: {1}" -f $Component.Component,$LatestLocalState.State)
+                            $exchMaintenanceObject.InactiveLocalComponents += $Component.Component
+                            $exchMaintenanceObject.ComponentsInMaintenanceAreLocal = $true
+                            $exchMaintenanceObject.MaintenanceIndicator++
+                        }
+
+                        if(($LatestRemoteState.State -ne "Active") -and ($LatestRemoteState.State -ne $null))
+                        {
+                            Write-VerboseOutput("Component: {0} RemoteState: {1}" -f $Component.Component,$LatestRemoteState.State)
+                            $exchMaintenanceObject.InactiveRemoteComponents += $Component.Component
+                            $exchMaintenanceObject.ComponentsInMaintenanceAreRemote = $true
+                            $exchMaintenanceObject.MaintenanceIndicator++
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Write-VerboseOutput("Component: {0} will be skipped" -f $Component.Component)
+            }
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("We do not skip any ServerComponentStates check")
+        ForEach($Component in $ServerComponentStates)
+        {
+            if($Component.State -ne "Active")
+            {
+                $LatestLocalState = Get-LatestEntry -InputObject $Component.LocalStates -DateString "TimeStamp"
+                $LatestRemoteState = Get-LatestEntry -InputObject $Component.RemoteStates -DateString "TimeStamp"
+
+                if($LatestLocalState.State -eq $LatestRemoteState.State)
+                {
+                    Write-VerboseOutput("Component: {0} State: {1}" -f $Component.Component,$Component.State)
+                    $exchMaintenanceObject.InactiveComponents += $Component.Component
+                    $exchMaintenanceObject.ComponentsInMaintenance = $true
+                    $exchMaintenanceObject.MaintenanceIndicator++
+                }
+                else
+                {
+                    if(($LatestLocalState.State -ne "Active") -and ($LatestLocalState.State -ne $null))
+                    {
+                        Write-VerboseOutput("Component: {0} LocalState: {1}" -f $Component.Component,$LatestLocalState.State)
+                        $exchMaintenanceObject.InactiveLocalComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenanceAreLocal = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+
+                    if(($LatestRemoteState.State -ne "Active") -and ($LatestRemoteState.State -ne $null))
+                    {
+                        Write-VerboseOutput("Component: {0} RemoteState: {1}" -f $Component.Component,$LatestRemoteState.State)
+                        $exchMaintenanceObject.InactiveRemoteComponents += $Component.Component
+                        $exchMaintenanceObject.ComponentsInMaintenanceAreRemote = $true
+                        $exchMaintenanceObject.MaintenanceIndicator++
+                    }
+                }
+            }
+        }
+    }
+
+    if(($MailboxServerInformation.DatabaseCopyActivationDisabledAndMoveNow) -or ($MailboxServerInformation.DatabaseCopyAutoActivationPolicy -eq "Blocked"))
+    {
+        $exchMaintenanceObject.DatabaseCopyMaintenance = $true
+        $exchMaintenanceObject.MaintenanceIndicator++
+    }
+
+    if(($ClusterNode -ne $null) -and ($ClusterNode.State -ne "Up"))
+    {
+        $exchMaintenanceObject.ClusterInMaintenance = $true
+        $exchMaintenanceObject.MaintenanceIndicator++
+    }
+
+    $exchMaintenanceObject.ServerComponentState = $ServerComponentStates
+    $exchMaintenanceObject.ClusterNode = $ClusterNode
+    $exchMaintenanceObject.ClusterNodeState = ($ClusterNode).State
+    $exchMaintenanceObject.MailboxServerState = $MailboxServerInformation   
+    $exchMaintenanceObject.DatabaseCopyActivationDisabledAndMoveNowState = $MailboxServerInformation.DatabaseCopyActivationDisabledAndMoveNow
+    $exchMaintenanceObject.DatabaseCopyAutoActivationPolicyState = $MailboxServerInformation.DatabaseCopyAutoActivationPolicy
+
+    return $exchMaintenanceObject
 }
 
 Function Get-VisualCRedistributableVersion {
@@ -1436,7 +1609,7 @@ param(
     $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
     try
     {
-        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
+        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'" -ErrorAction Stop
     }
     catch
     {
@@ -1520,7 +1693,15 @@ param(
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
-    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+    if($env:COMPUTERNAME -eq $Machine_Name)
+    {
+        $os_obj.TimeZone = ([System.TimeZoneInfo]::Local).StandardName
+    }
+    else 
+    {
+        Write-VerboseOutput("Calling Invoke-Command for getting system time zone info")
+        $os_obj.TimeZone = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {([System.TimeZoneInfo]::Local).StandardName}
+    }
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
 
@@ -1708,10 +1889,15 @@ param(
         $versionObject.FriendlyName = "4.7.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2)
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d8))
     {
         $versionObject.FriendlyName = "4.7.2"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d2
+    }
+    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d8)
+    {
+        $versionObject.FriendlyName = "4.8"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d8
     }
     else
     {
@@ -1794,7 +1980,8 @@ param(
         $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2019
         if($buildRevision -ge 196.0 -and $buildRevision -lt 221.12){if($buildRevision -gt 196.9){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
         elseif($buildRevision -lt 330.6){if($buildRevision -gt 221.12){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
-        elseif($buildRevision -ge 330.6){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
+        elseif($buildRevision -lt 397.3){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
+        elseif($buildRevision -ge 397.3){if($buildRevision -gt 397.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU2}
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
@@ -1813,7 +2000,8 @@ param(
         elseif($buildRevision -lt 1531.3) {if($buildRevision -gt 1466.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU9}
         elseif($buildRevision -lt 1591.10) {if($buildRevision -gt 1531.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU10}
         elseif($buildRevision -lt 1713.5) {if($buildRevision -gt 1591.10){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU11}
-        elseif($buildRevision -ge 1713.5) {if($buildRevision -gt 1713.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU12}
+        elseif($buildRevision -lt 1779.2) {if($buildRevision -gt 1713.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU12}
+        elseif($buildRevision -ge 1779.2) {if($buildRevision -gt 1779.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU13}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -1842,7 +2030,8 @@ param(
         elseif($buildRevision -lt 1367.3) {if($buildRevision -gt 1365.1){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU19}
         elseif($buildRevision -lt 1395.4) {if($buildRevision -gt 1367.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU20}
         elseif($buildRevision -lt 1473.3) {if($buildRevision -gt 1395.4){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU21}
-        elseif($buildRevision -ge 1473.3) {if($buildRevision -gt 1473.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU22}
+        elseif($buildRevision -lt 1497.2) {if($buildRevision -gt 1473.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU22}
+        elseif($buildRevision -ge 1497.2) {if($buildRevision -gt 1497.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU23}
     }
     else
     {
@@ -1880,8 +2069,9 @@ param(
                 switch($exBuildObj.CU)
                 {
                     ([HealthChecker.ExchangeCULevel]::Preview) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 Preview"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "07/24/2018"; break}
-                    ([HealthChecker.ExchangeCULevel]::RTM) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 RTM"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/22/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::RTM) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 RTM"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/22/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU1) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU1"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU2) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU2"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red("Error: Unknown Exchange 2019 Build was detected"); $tempObject.Error = $true; break;}
                 }
             }
@@ -1903,8 +2093,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU8) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU8"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/19/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU9) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU9"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/20/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU10) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU10"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/19/2018"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU12) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU12"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU13) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU13"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -1935,8 +2126,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU18) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU18"; $tempObject.ReleaseDate = "09/16/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU19) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU19"; $tempObject.ReleaseDate = "12/19/2017"; break}
                     ([HealthChecker.ExchangeCULevel]::CU20) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU20"; $tempObject.ReleaseDate = "03/20/2018"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU21) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU21"; $tempObject.ReleaseDate = "06/19/2018"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU21) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU21"; $tempObject.ReleaseDate = "06/19/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU22) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU22"; $tempObject.ReleaseDate = "02/12/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU23) {$tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.FriendlyName = "Exchange 2013 CU23"; $tempObject.ReleaseDate = "06/18/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2013 build was detected"; $tempObject.Error = $TRUE; break;}
                 }
                 break;
@@ -1968,22 +2160,22 @@ https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/system-requirements?vi
 Team Blog Articles 
 
 .NET Framework 4.7 and Exchange Server
-https://blogs.technet.microsoft.com/exchange/2017/06/13/net-framework-4-7-and-exchange-server/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/NET-Framework-4-7-and-Exchange-Server/ba-p/606871
 
 Released: December 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/12/13/released-december-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-December-2016-Quarterly-Exchange-Updates/ba-p/606193
 
 Released: September 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/09/20/released-september-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-September-2016-Quarterly-Exchange-Updates/ba-p/605402
 
 Released: June 2016 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2016/06/21/released-june-2016-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-June-2016-Quarterly-Exchange-Updates/ba-p/604877
 
 Released: December 2017 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2017/12/19/released-december-2017-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-December-2017-Quarterly-Exchange-Updates/ba-p/607541
 
 Released: October 2018 Quarterly Exchange Updates
-https://blogs.technet.microsoft.com/exchange/2018/10/16/released-october-2018-quarterly-exchange-updates/
+https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Released-October-2018-Quarterly-Exchange-Updates/ba-p/608455
 
 Summary:
 Exchange 2013 CU19 & 2016 CU8 .NET Framework 4.7.1 Supported on all OSs 
@@ -2121,9 +2313,14 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
-                else
+                elseif($exBuildObj.CU -le ([HealthChecker.ExchangeCULevel]::CU22))
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU23 we will require .NET 4.7.2 before you can install this version of Exchange."
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
 
 
@@ -2167,9 +2364,14 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
-                else
+                elseif($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU12)
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU13 we will require .NET 4.7.2 before you can install this version of Exchange."
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
                 
 
@@ -2180,7 +2382,11 @@ param(
                 Write-VerboseOutput("Exchange 2019 detected...checking .NET version")
                 if($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU2)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d7d2
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
 
             }
@@ -2466,6 +2672,7 @@ param(
         $exchInfoObject.ExchangeAppPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
+	$exchInfoObject.ServerComponentStateInfo = Get-ExchangeServerMaintenanceState -Machine_Name $Machine_Name -SkipComponents:$true -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
     }
     elseif($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -2516,7 +2723,6 @@ param(
     return $HealthExSvrObj
 }
 
-
 Function Get-MailboxDatabaseAndMailboxStatistics {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -2525,7 +2731,7 @@ param(
     Write-VerboseOutput("Passed: " + $Machine_Name)
 
     $AllDBs = Get-MailboxDatabaseCopyStatus -server $Machine_Name -ErrorAction SilentlyContinue 
-    $MountedDBs = $AllDBs | ?{$_.Status -eq 'Healthy'}
+    $MountedDBs = $AllDBs | Where-Object{$_.ActiveCopy -eq $true}
     if($MountedDBs.Count -gt 0)
     {
         Write-Grey("`tActive Database:")
@@ -2533,9 +2739,9 @@ param(
         {
             Write-Grey("`t`t" + $db.Name)
         }
-        $MountedDBs.DatabaseName | %{Write-VerboseOutput("Calculating User Mailbox Total for Active Database: $_"); $TotalActiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count}
+        $MountedDBs.DatabaseName | ForEach-Object{Write-VerboseOutput("Calculating User Mailbox Total for Active Database: $_"); $TotalActiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count}
         Write-Grey("`tTotal Active User Mailboxes on server: " + $TotalActiveUserMailboxCount)
-        $MountedDBs.DatabaseName | %{Write-VerboseOutput("Calculating Public Mailbox Total for Active Database: $_"); $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count}
+        $MountedDBs.DatabaseName | ForEach-Object{Write-VerboseOutput("Calculating Public Mailbox Total for Active Database: $_"); $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count}
         Write-Grey("`tTotal Active Public Folder Mailboxes on server: " + $TotalActivePublicFolderMailboxCount)
         Write-Grey("`tTotal Active Mailboxes on server " + $Machine_Name + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
     }
@@ -2543,7 +2749,8 @@ param(
     {
         Write-Grey("`tNo Active Mailbox Databases found on server " + $Machine_Name + ".")
     }
-    $HealthyDbs = $AllDBs | ?{$_.Status -eq 'Healthy'}
+    
+    $HealthyDbs = $AllDBs | Where-Object{$_.Status -match 'Healthy'}
     if($HealthyDbs.count -gt 0)
     {
         Write-Grey("`r`n`tPassive Databases:")
@@ -2551,9 +2758,9 @@ param(
         {
             Write-Grey("`t`t" + $db.Name)
         }
-        $HealthyDbs.DatabaseName | %{Write-VerboseOutput("`tCalculating User Mailbox Total for Passive Healthy Databases: $_"); $TotalPassiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count}
+        $HealthyDbs.DatabaseName | ForEach-Object{Write-VerboseOutput("`tCalculating User Mailbox Total for Passive Healthy Databases: $_"); $TotalPassiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count}
         Write-Grey("`tTotal Passive user Mailboxes on Server: " + $TotalPassiveUserMailboxCount)
-        $HealthyDbs.DatabaseName | %{Write-VerboseOutput("`tCalculating Passive Mailbox Total for Passive Healthy Databases: $_"); $TotalPassivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count}
+        $HealthyDbs.DatabaseName | ForEach-Object{Write-VerboseOutput("`tCalculating Passive Mailbox Total for Passive Healthy Databases: $_"); $TotalPassivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count}
         Write-Grey("`tTotal Passive Public Mailboxes on server: " + $TotalPassivePublicFolderMailboxCount)
         Write-Grey("`tTotal Passive Mailboxes on server: " + ($TotalPassiveUserMailboxCount + $TotalPassivePublicFolderMailboxCount).ToString()) 
     }
@@ -2561,15 +2768,13 @@ param(
     {
         Write-Grey("`tNo Passive Mailboxes found on server " + $Machine_Name + ".")
     }
-
 }
 
 #This function will return a true if the version level is the same or greater than the CheckVersionObject - keeping it simple so it can be done remotely as well 
 Function Get-BuildLevelVersionCheck {
 param(
 [Parameter(Mandatory=$true)][object]$ActualVersionObject,
-[Parameter(Mandatory=$true)][object]$CheckVersionObject,
-[Parameter(Mandatory=$false)][bool]$DebugFunction = $false
+[Parameter(Mandatory=$true)][object]$CheckVersionObject
 )
 Add-Type -TypeDefinition @"
 public enum VersionDetection 
@@ -2580,6 +2785,7 @@ public enum VersionDetection
     Greater
 }
 "@
+    Write-VerboseOutput("Calling: Get-BuildLevelVersionCheck")
     #unsure of how we do build numbers for all types of DLLs on the OS, but we are going to try to cover all bases here and it is up to the caller to make sure that we are passing the correct values to be checking 
     #FileMajorPart
     if($ActualVersionObject.FileMajorPart -lt $CheckVersionObject.FileMajorPart){$FileMajorPart = [VersionDetection]::Lower}
@@ -2603,14 +2809,11 @@ public enum VersionDetection
     elseif($ActualVersionObject.FilePrivatePart -gt $CheckVersionObject.FilePrivatePart){$FilePrivatePart = [VersionDetection]::Greater}
     else{$FilePrivatePart = [VersionDetection]::Unknown}
 
-    if($DebugFunction)
-    {
-        Write-VerboseOutput("ActualVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $ActualVersionObject.FileMajorPart, 
-        $ActualVersionObject.FileMinorPart, $ActualVersionObject.FileBuildPart, $ActualVersionObject.FilePrivatePart)
-        Write-VerboseOutput("CheckVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $CheckVersionObject.FileMajorPart,
-        $CheckVersionObject.FileMinorPart, $CheckVersionObject.FileBuildPart, $CheckVersionObject.FilePrivatePart)
-        Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
-    }
+    Write-VerboseOutput("ActualVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $ActualVersionObject.FileMajorPart, 
+    $ActualVersionObject.FileMinorPart, $ActualVersionObject.FileBuildPart, $ActualVersionObject.FilePrivatePart)
+    Write-VerboseOutput("CheckVersionObject - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $CheckVersionObject.FileMajorPart,
+    $CheckVersionObject.FileMinorPart, $CheckVersionObject.FileBuildPart, $CheckVersionObject.FilePrivatePart)
+    Write-VerboseOutput("Switch Detection - FileMajorPart: {0} FileMinorPart: {1} FileBuildPart: {2} FilePrivatePart: {3}" -f $FileMajorPart, $FileMinorPart, $FileBuildPart, $FilePrivatePart)
 
     if($FileMajorPart -eq [VersionDetection]::Greater){return $true}
     if($FileMinorPart -eq [VersionDetection]::Greater){return $true}
@@ -2936,7 +3139,7 @@ param(
                     If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
                     {
                         Write-Red("Vulnerable to CVE-2010-3190.")
-                        Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                        Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                     }
                     Else
                     {
@@ -2947,13 +3150,13 @@ param(
                 {
                     Write-Yellow("Unable to determine Exchange server install date!")
                     Write-Yellow("Potentially vulnerable to CVE-2010-3190.")
-                    Write-Yellow("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    Write-Yellow("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
             }
             Else
             {
                 Write-Red("Vulnerable to CVE-2010-3190.")
-                Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
             }
         }
         Else
@@ -2975,7 +3178,7 @@ param(
                 If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
                 {
                     Write-Red("Potentially Vulnerable to CVE-2010-3190.")
-                    Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+                    Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
                 Else
                 {
@@ -2992,7 +3195,7 @@ param(
         {
             Write-Red("`nPotentially vulnerable to CVE-2010-3190.")
             Write-Red("You should check if your build is prior October 2018 and if so, install KB2565063")
-            Write-Red("See: https://blogs.technet.microsoft.com/exchange/2018/10/09/ms11-025-required-on-exchange-server-versions-released-before-october-2018/ for more information.")
+            Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
         }
     }
 
@@ -3016,6 +3219,7 @@ param(
 	    #CVE-2019-0686 affects E2010 but we cannot check for them
         #CVE-2019-0724 affects E2010 but we cannot check for them
         #CVE-2019-0817 affects E2010 but we cannot check for them
+	    #ADV190018 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -3088,6 +3292,12 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.4 -CVEName "CVE-2019-0817"
             #CVE-2019-0858
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.4 -CVEName "CVE-2019-0858"
+	        #ADV190018
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.5 -CVEName "ADV190018"
+	    }
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU23)
+	    {
+            Write-Grey("There are no known security issues in this build.")
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -3111,7 +3321,6 @@ param(
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.4 -CVEName "CVE-2018-0940"
                 #CVE-2018-0941
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.4 -CVEName "CVE-2018-0941"
-
             }
             #CVE-2018-8151
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1415.7 -CVEName "CVE-2018-8151"
@@ -3177,7 +3386,9 @@ param(
                 #CVE-2019-0817
         	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.16 -CVEName "CVE-2019-0817"
 	            #CVE-2018-0858
-    	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.16 -CVEName "CVE-2019-0858"                
+    	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.16 -CVEName "CVE-2019-0858" 
+		        #ADV190018
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.17 -CVEName "ADV190018"
             }
         }
 	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
@@ -3188,11 +3399,20 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0817"
             #CVE-2018-0858
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0858"
+	        #ADV190018
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.7 -CVEName "ADV190018"
 	    }
 	    #CVE-2019-0686
 	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
 	    #CVE-2019-0724
 	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
+	}
+	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
+	{
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU13)
+	    {
+            Write-Grey("There are no known security issues in this build.")
+	    }
 	}
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
@@ -3207,6 +3427,8 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.16 -CVEName "CVE-2019-0817"
             #CVE-2018-0858
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.16 -CVEName "CVE-2019-0858"
+	        #ADV190018
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.17 -CVEName "ADV190018"
         }
 	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
 	{
@@ -3216,11 +3438,20 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0817"
             #CVE-2018-0858
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0858"
+	        #ADV190018
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.8 -CVEName "ADV190018"
 	    }
 	    #CVE-2019-0686
 	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
 	    #CVE-2019-0724
 	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
+	}
+	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
+	{
+	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU2)
+	    {
+            Write-Grey("There are no known security issues in this build.")
+	    }
 	}
     }
     else 
@@ -3240,10 +3471,10 @@ param(
 
     Write-Grey("`r`nHotfix Check:")
     $2008HotfixList = $null
-  $2008R2HotfixList = @("KB3004383")
-  $2012HotfixList = $null
-  $2012R2HotfixList = @("KB3041832")
-  $2016HotfixList = @("KB3206632")
+    $2008R2HotfixList = @("KB3004383")
+    $2012HotfixList = $null
+    $2012R2HotfixList = @("KB3041832")
+    $2016HotfixList = @("KB3206632")
   
   
   Function Check-Hotfix 
@@ -3381,7 +3612,7 @@ param(
                         {
                             Write-Break
                             Write-Break
-                            Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://blogs.technet.microsoft.com/exchange/2018/07/16/issue-with-july-updates-for-windows-on-an-exchange-server/" -f $key, ($KBHashTable[$key]))
+                            Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Issue-with-July-Updates-for-Windows-on-an-Exchange-Server/ba-p/608057" -f $key, ($KBHashTable[$key]))
                         }
                     }
                 }
@@ -3452,7 +3683,7 @@ param(
                         
                         $ServerBuild = Get-BuildVersionObjectFromString -BuildString $CheckFile.BuildVersion 
                         $CheckVersion = Get-BuildVersionObjectFromString -BuildString $KBsToCheckAgainst[$i].FileInformation[$ii].BuildVersion
-                        if(-not (Get-BuildLevelVersionCheck -ActualVersionObject $ServerBuild -CheckVersionObject $CheckVersion -DebugFunction $false))
+                        if(-not (Get-BuildLevelVersionCheck -ActualVersionObject $ServerBuild -CheckVersionObject $CheckVersion))
                         {
                             $allPass = $false
                         }
@@ -3768,6 +3999,57 @@ param(
         Write-Green("`tFalse")    
     }
 
+    #############
+    #Maintenance#
+    #############
+   
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -gt [HealthChecker.ExchangeVersion]::Exchange2010)
+    {
+        Write-Grey("Server Maintenance:")
+        if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.MaintenanceIndicator -eq 0)
+        {
+            Write-Green("`tServer is not in Maintenance Mode")
+        }
+        else
+        {
+            Write-Yellow("`tThis Server is currently in Maintenance Mode: --- Warning")
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenance)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Maintenance Mode" -f $Component)
+                }
+            }
+
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenanceAreLocal)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveLocalComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Local Maintenance Mode only" -f $Component)
+                }
+            }
+                
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ComponentsInMaintenanceAreRemote)
+            {
+                ForEach($Component in $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.InactiveRemoteComponents)
+                {
+                    Write-Yellow("`tComponent: '{0}' is in Remote Maintenance Mode only" -f $Component)
+                }
+            }
+
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyMaintenance)
+            {
+                Write-Yellow("`tDatabaseCopyActivationDisabledAndMoveNow is set to: '{0}' - should be: 'False'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyActivationDisabledAndMoveNowState)
+                Write-Yellow("`tDatabaseCopyAutoActivationPolicyState is set to: '{0}' - should be: 'Unrestricted'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.DatabaseCopyAutoActivationPolicyState)
+            }
+            
+            if($HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ClusterInMaintenance)
+            {
+                Write-Yellow("`tClusterNode is: {0} - should be: 'Up'" -f $HealthExSvrObj.ExchangeInformation.ServerComponentStateInfo.ClusterNodeState)
+            }
+        }
+    }
+
 	#####################
 	#Http Proxy Settings#
 	#####################
@@ -3792,6 +4074,11 @@ param(
     )
         $cookedValue = 0
         $foundCounter = $false 
+        if($HealthExSvrObj.OSVersion.PacketsReceivedDiscarded -eq $null)
+        {
+            Write-VerboseOutput("HealthExSvrObj.OSVersion.PacketsReceivedDiscarded is null")
+            return
+        }
         foreach($instance in $HealthExSvrObj.OSVersion.PacketsReceivedDiscarded)
         {
             $instancePath = $instance.Path 
@@ -3936,13 +4223,13 @@ param(
         if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
         $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
         {
-            Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/")
+            Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-2019-Public-Preview/ba-p/608158")
         }
         elseif(($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -or 
         $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016) -and 
         $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
         {
-            Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2015/06/19/ask-the-perf-guy-how-big-is-too-big/")
+            Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-How-big-is-too-BIG/ba-p/603855")
         }
     }
 
@@ -4052,9 +4339,9 @@ param(
     
     #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
-    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Update-to-scalability-guidance-for-Exchange/ba-p/607260
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
-    #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/
+    #For Exchange 2019 the value that we shouldn't be greater than is 274,877,906,944 (256 * 1024 * 1024 * 1024) - https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-2019-Public-Preview/ba-p/608158
     #For Exchange 2019 we recommend a min of 128GB  for Mailbox and 64GB for Edge - https://docs.microsoft.com/en-us/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#operating-system
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019 -and
@@ -4111,11 +4398,11 @@ param(
     Write-Grey("`r`nTCP/IP Settings:")
     if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
     {
-        Write-Red("Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Red("Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792")
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
-        Write-Yellow("Warning: The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/")
+        Write-Yellow("Warning: The TCP KeepAliveTime value is not configured optimally.  It is currently set to " + $HealthExSvrObj.OSVersion.TCPKeepAlive + ". This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792")
     }
     else
     {
@@ -4148,6 +4435,7 @@ param(
     ################
 
     Write-Grey("`r`nTLS Settings:")
+    $detectedTLSMismatch = $false 
     foreach($TLS in $HealthExSvrObj.OSVersion.TLSSettings)
     {
         Write-Grey("`tTLS {0}" -f $TLS.TLSName)
@@ -4158,14 +4446,22 @@ param(
         if($TLS.ServerEnabled -ne $TLS.ClientEnabled)
         {
             Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
+            $detectedTLSMismatch = $true 
         }
         if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
             ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
             $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
             ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
             {
-                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
+                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
             }
+    }
+    if($detectedTLSMismatch)
+    {
+        Write-Yellow("`tFor More Information on how to properly set TLS follow these blog posts:")
+        Write-Yellow("`t`tExchange Server TLS guidance, part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649")
+        Write-Yellow("`t`tExchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
+        Write-Yellow("`t`tExchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
     }
 
 	##############
@@ -4575,7 +4871,7 @@ Function Build-ServerObject
 
     #Memory Going to check for greater than 96GB of memory for Exchange 2013
     #The value that we shouldn't be greater than is 103,079,215,104 (96 * 1024 * 1024 * 1024) 
-    #Exchange 2016 we are going to check to see if there is over 192 GB https://blogs.technet.microsoft.com/exchange/2017/09/26/ask-the-perf-guy-update-to-scalability-guidance-for-exchange-2016/
+    #Exchange 2016 we are going to check to see if there is over 192 GB https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Update-to-scalability-guidance-for-Exchange/ba-p/607260
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
 
@@ -4935,12 +5231,12 @@ Function Build-HtmlServerReport {
 	}
 	If($AllServersOutputObject.TCPKeepAlive -contains "Not Set")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+		$WarningsErrorsHtmlTable += "<tr><td class=""fail"">TCP Keep Alive</td><td>Error: The TCP KeepAliveTime value is not specified in the registry.  Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration.  To avoid issues, add the KeepAliveTime REG_DWORD entry under HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters and set it to a value between 900000 and 1800000 decimal.  You want to ensure that the TCP idle timeout value gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792</td></tr>"	
 	}
 	
 	If($AllServersOutputObject.TCPKeepAlive -contains "Not Optimal")
 	{
-		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://blogs.technet.microsoft.com/exchange/2016/05/31/checklist-for-troubleshooting-outlook-connectivity-in-exchange-2013-and-2016-on-premises/</td></tr>"	
+		$WarningsErrorsHtmlTable += "<tr><td class=""warn"">TCP Keep Alive</td><td>Warning: The TCP KeepAliveTime value is not configured optimally. This can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. To avoid issues, set the HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Tcpip\Parameters\KeepAliveTime registry entry to a value between 15 and 30 minutes (900000 and 1800000 decimal).  You want to ensure that the TCP idle timeout gets higher as you go out from Exchange, not lower.  For example if the Exchange server has a value of 30 minutes, the Load Balancer could have an idle timeout of 35 minutes, and the firewall could have an idle timeout of 40 minutes.  Please note that this change will require a restart of the system.  Refer to the sections `"CAS Configuration`" and `"Load Balancer Configuration`" in this blog post for more details:  https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792</td></tr>"	
 	}
 	
 	If($AllServersOutputObject.PagefileSizeSetRight -contains "No")
@@ -5189,7 +5485,7 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
-        Write-Yellow("`thttps://blogs.technet.microsoft.com/exchange/2013/05/06/ask-the-perf-guy-sizing-exchange-2013-deployments/")
+        Write-Yellow("`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Sizing-Exchange-2013-Deployments/ba-p/594229")
         Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
 
     }
