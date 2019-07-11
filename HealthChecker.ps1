@@ -2683,13 +2683,13 @@ Function Get-CASLoadBalancingReport {
     }
 	elseif($SiteName -ne [string]::Empty)
 	{
-		Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in " + $SiteName + " will be used in the report.")
-		$CASServers = Get-ExchangeServer | ?{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") -and ($_.Site.Name -eq $SiteName)}
+		Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in {0} will be used in the report." -f $SiteName)
+		$CASServers = Get-ExchangeServer | Where-Object{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") -and ($_.Site.Name -eq $SiteName)}
 	}
     else
     {
 		Write-Grey("Site filtering OFF.  All Exchange 2013/2016 CAS servers will be used in the report.")
-        $CASServers = Get-ExchangeServer | ?{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15")}
+        $CASServers = Get-ExchangeServer | Where-Object{($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15")}
     }
 
 	if($CASServers.Count -eq 0)
@@ -2697,50 +2697,81 @@ Function Get-CASLoadBalancingReport {
 		Write-Red("Error: No CAS servers found using the specified search criteria.")
 		Exit
 	}
+    
+    #Request stats from perfmon for all CAS
+    $PerformanceCounters = @()
+    $PerformanceCounters += "\Web Service(Default Web Site)\Current Connections"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Autodiscover)\Requests Executing"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_EWS)\Requests Executing"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_mapi)\Requests Executing"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\Requests Executing"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_owa)\Requests Executing"
+    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Rpc)\Requests Executing"
 
-    #Pull connection and request stats from perfmon for each CAS
-    foreach($cas in $CASServers)
+    try
     {
-        #Total connections
-        $TotalConnectionCount = (Get-Counter ("\\" + $cas.Name + "\Web Service(Default Web Site)\Current Connections")).CounterSamples.CookedValue
-        $CASConnectionStats.Add($cas.Name, $TotalConnectionCount)
-        $TotalCASConnectionCount += $TotalConnectionCount
-
-        #AutoD requests
-        $AutoDRequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Autodiscover)\Requests Executing")).CounterSamples.CookedValue
-        $AutoDStats.Add($cas.Name, $AutoDRequestCount)
-        $TotalAutoDRequests += $AutoDRequestCount
-
-        #EWS requests
-        $EWSRequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_EWS)\Requests Executing")).CounterSamples.CookedValue
-        $EWSStats.Add($cas.Name, $EWSRequestCount)
-        $TotalEWSRequests += $EWSRequestCount
-
-        #MapiHttp requests
-        $MapiHttpRequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_mapi)\Requests Executing")).CounterSamples.CookedValue
-        $MapiHttpStats.Add($cas.Name, $MapiHttpRequestCount)
-        $TotalMapiHttpRequests += $MapiHttpRequestCount
-
-        #EAS requests
-        $EASRequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\Requests Executing")).CounterSamples.CookedValue
-        $EASStats.Add($cas.Name, $EASRequestCount)
-        $TotalEASRequests += $EASRequestCount
-
-        #OWA requests
-        $OWARequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_owa)\Requests Executing")).CounterSamples.CookedValue
-        $OWAStats.Add($cas.Name, $OWARequestCount)
-        $TotalOWARequests += $OWARequestCount
-
-        #RPCHTTP requests
-        $RpcHttpRequestCount = (Get-Counter ("\\" + $cas.Name + "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Rpc)\Requests Executing")).CounterSamples.CookedValue
-        $RpcHttpStats.Add($cas.Name, $RpcHttpRequestCount)
-        $TotalRpcHttpRequests += $RpcHttpRequestCount
+        $AllCounterResults = Get-Counter -ComputerName $CASServers -Counter $PerformanceCounters
     }
+    catch 
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to get counter samples")
+    }
+
+    ForEach($Result in $AllCounterResults.CounterSamples)
+    {
+        $CasName = ($Result.Path).Split("\\",[System.StringSplitOptions]::RemoveEmptyEntries)[0]
+        $ResultCookedValue = $Result.CookedValue
+
+        if($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[0])
+        {
+            #Total connections
+            $CASConnectionStats.Add($CasName,$ResultCookedValue)
+            $TotalCASConnectionCount += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[1])
+        {
+            #AutoD requests
+            $AutoDStats.Add($CasName,$ResultCookedValue)
+            $TotalAutoDRequests += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[2])
+        {
+            #EWS requests
+            $EWSStats.Add($CasName,$ResultCookedValue)
+            $TotalEWSRequests += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[3])
+        {
+            #MapiHttp requests
+            $MapiHttpStats.Add($CasName,$ResultCookedValue)
+            $TotalMapiHttpRequests += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[4])
+        {
+            #EAS requests
+            $EASStats.Add($CasName,$ResultCookedValue)
+            $TotalEASRequests += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[5])
+        {
+            #OWA requests
+            $OWAStats.Add($CasName,$ResultCookedValue)
+            $TotalOWARequests += $ResultCookedValue
+        }
+        elseif($Result.Path -like "*{0}*{1}" -f $CasName,$PerformanceCounters[6])
+        {
+            #RPCHTTP requests
+            $RpcHttpStats.Add($CasName,$ResultCookedValue)
+            $TotalRpcHttpRequests += $ResultCookedValue
+        }
+    }
+
 
     #Report the results for connection count
     Write-Grey("")
     Write-Grey("Connection Load Distribution Per Server")
-    Write-Grey("Total Connections: " + $TotalCASConnectionCount)
+    Write-Grey("Total Connections: {0}" -f $TotalCASConnectionCount)
     #Calculate percentage of connection load
     $CASConnectionStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
     Write-Grey($_.Key + ": " + $_.Value + " Connections = " + [math]::Round((([int]$_.Value/$TotalCASConnectionCount)*100)) + "% Distribution")
@@ -2752,7 +2783,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current AutoDiscover Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalAutoDRequests)
+        Write-Grey("Total Requests: {0}" -f $TotalAutoDRequests)
         $AutoDStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalAutoDRequests)*100)) + "% Distribution")
         }
@@ -2763,7 +2794,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current EWS Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalEWSRequests)
+        Write-Grey("Total Requests: {0}" -f $TotalEWSRequests)
         $EWSStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalEWSRequests)*100)) + "% Distribution")
         }
@@ -2774,7 +2805,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current MapiHttp Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalMapiHttpRequests)
+        Write-Grey("Total Requests: {0}" -f $TotalMapiHttpRequests)
         $MapiHttpStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalMapiHttpRequests)*100)) + "% Distribution")
         }
@@ -2785,7 +2816,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current EAS Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalEASRequests)
+        Write-Grey("Total Requests: {0}" -f $TotalEASRequests)
         $EASStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalEASRequests)*100)) + "% Distribution")
         }
@@ -2796,7 +2827,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current OWA Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalOWARequests)
+        Write-Grey("Total Requests: {0}" -f $TotalOWARequests)
         $OWAStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalOWARequests)*100)) + "% Distribution")
         }
@@ -2807,7 +2838,7 @@ Function Get-CASLoadBalancingReport {
     {
         Write-Grey("")
         Write-Grey("Current RpcHttp Requests Per Server")
-        Write-Grey("Total Requests: " + $TotalRpcHttpRequests)
+        Write-Grey("Total Requests: {0}" -f $TotalRpcHttpRequests)
         $RpcHttpStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
         Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value/$TotalRpcHttpRequests)*100)) + "% Distribution")
         }
