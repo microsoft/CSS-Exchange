@@ -3220,6 +3220,8 @@ param(
         #CVE-2019-0724 affects E2010 but we cannot check for them
         #CVE-2019-0817 affects E2010 but we cannot check for them
 	    #ADV190018 affects E2010 but we cannot check for them
+        #CVE-2019-1084 affects E2010 but we cannot check for them
+        #CVE-2019-1136 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -3297,7 +3299,12 @@ param(
 	    }
 	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU23)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1136
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1136"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1137"
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -3391,29 +3398,40 @@ param(
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.17 -CVEName "ADV190018"
             }
         }
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU12)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
 	    {
-	        #CVE-2019-0817
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0817"
-            #CVE-2018-0858
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0858"
-	        #ADV190018
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.7 -CVEName "ADV190018"
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU12)
+	        {
+	            #CVE-2019-0817
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0817"
+                #CVE-2018-0858
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0858"
+	            #ADV190018
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.7 -CVEName "ADV190018"
+	        }
+	        #CVE-2019-0686
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
+	        #CVE-2019-0724
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1136
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1136"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1137"
 	    }
-	    #CVE-2019-0686
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
-	    #CVE-2019-0724
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
-	}
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU13)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU13)
+	        {
+                #CVE-2019-1084
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1084"
+	            #CVE-2019-1136
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1136"
+	            #CVE-2019-1137
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1137"
+	        }
 	    }
-	}
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
     {
@@ -3430,29 +3448,36 @@ param(
 	        #ADV190018
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.17 -CVEName "ADV190018"
         }
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU1)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
 	    {
-            #CVE-2019-0817
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0817"
-            #CVE-2018-0858
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0858"
-	        #ADV190018
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.8 -CVEName "ADV190018"
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU1)
+	        {
+                #CVE-2019-0817
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0817"
+                #CVE-2018-0858
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0858"
+	            #ADV190018
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.8 -CVEName "ADV190018"
+	        }
+	        #CVE-2019-0686
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
+	        #CVE-2019-0724
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.9 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.9 -CVEName "CVE-2019-1137"
 	    }
-	    #CVE-2019-0686
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
-	    #CVE-2019-0724
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
-	}
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU2)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU2)
+	        {
+                #CVE-2019-1084
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.5 -CVEName "CVE-2019-1084"
+	            #CVE-2019-1137
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.5 -CVEName "CVE-2019-1137"
+	        }
 	    }
-	}
     }
     else 
     {
