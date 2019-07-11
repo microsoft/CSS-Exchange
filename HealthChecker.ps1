@@ -107,7 +107,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.34"
+$healthCheckerVersion = "2.35"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -306,6 +306,7 @@ using System.Collections;
         public enum ServerType
         {
             VMWare,
+            AmazonEC2,
             HyperV,
             Physical,
             Unknown
@@ -1718,6 +1719,7 @@ param(
 
 
     if($ServerType -like "VMware*"){Write-VerboseOutput("Returned: VMware"); return [HealthChecker.ServerType]::VMWare}
+    elseif($ServerType -like "*Amazon EC2*"){Write-VerboseOutput("Returned: AmazonEC2"); return [HealthChecker.ServerType]::AmazonEC2}
     elseif($ServerType -like "*Microsoft Corporation*"){Write-VerboseOutput("Returned: HyperV"); return [HealthChecker.ServerType]::HyperV}
     elseif($ServerType.Length -gt 0) {Write-VerboseOutput("Returned: Physical"); return [HealthChecker.ServerType]::Physical}
     else{Write-VerboseOutput("Returned: unknown") ;return [HealthChecker.ServerType]::Unknown}
@@ -3220,6 +3222,8 @@ param(
         #CVE-2019-0724 affects E2010 but we cannot check for them
         #CVE-2019-0817 affects E2010 but we cannot check for them
 	    #ADV190018 affects E2010 but we cannot check for them
+        #CVE-2019-1084 affects E2010 but we cannot check for them
+        #CVE-2019-1136 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -3297,7 +3301,12 @@ param(
 	    }
 	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU23)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1136
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1136"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1137"
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -3391,29 +3400,40 @@ param(
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1591.17 -CVEName "ADV190018"
             }
         }
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU12)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
 	    {
-	        #CVE-2019-0817
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0817"
-            #CVE-2018-0858
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0858"
-	        #ADV190018
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.7 -CVEName "ADV190018"
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU12)
+	        {
+	            #CVE-2019-0817
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0817"
+                #CVE-2018-0858
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.6 -CVEName "CVE-2019-0858"
+	            #ADV190018
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.7 -CVEName "ADV190018"
+	        }
+	        #CVE-2019-0686
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
+	        #CVE-2019-0724
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1136
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1136"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1137"
 	    }
-	    #CVE-2019-0686
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686"
-	    #CVE-2019-0724
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0724"
-	}
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU13)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU13)
+	        {
+                #CVE-2019-1084
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1084"
+	            #CVE-2019-1136
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1136"
+	            #CVE-2019-1137
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1137"
+	        }
 	    }
-	}
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
     {
@@ -3430,29 +3450,36 @@ param(
 	        #ADV190018
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 221.17 -CVEName "ADV190018"
         }
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU1)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
 	    {
-            #CVE-2019-0817
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0817"
-            #CVE-2018-0858
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0858"
-	        #ADV190018
-            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.8 -CVEName "ADV190018"
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU1)
+	        {
+                #CVE-2019-0817
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0817"
+                #CVE-2018-0858
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.7 -CVEName "CVE-2019-0858"
+	            #ADV190018
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.8 -CVEName "ADV190018"
+	        }
+	        #CVE-2019-0686
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
+	        #CVE-2019-0724
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
+            #CVE-2019-1084
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.9 -CVEName "CVE-2019-1084"
+	        #CVE-2019-1137
+	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.9 -CVEName "CVE-2019-1137"
 	    }
-	    #CVE-2019-0686
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686"
-	    #CVE-2019-0724
-	    Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0724"
-	}
-	if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
-	{
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU2)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
 	    {
-            Write-Grey("There are no known security issues in this build.")
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU2)
+	        {
+                #CVE-2019-1084
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.5 -CVEName "CVE-2019-1084"
+	            #CVE-2019-1137
+	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.5 -CVEName "CVE-2019-1137"
+	        }
 	    }
-	}
     }
     else 
     {
@@ -3760,7 +3787,8 @@ param(
     }
     Write-Grey("Hardware/OS/Exchange Information:");
     Write-Grey("`tHardware Type: " + $HealthExSvrObj.HardwareInfo.ServerType.ToString())
-    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+        $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
     {
         Write-Grey("`tManufacturer: " + $HealthExSvrObj.HardwareInfo.Manufacturer)
         Write-Grey("`tModel: " + $HealthExSvrObj.HardwareInfo.Model) 
@@ -4124,7 +4152,8 @@ param(
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
-            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+                $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
             {
                 if($adapter.DriverDate -ne $null -and (New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
@@ -4179,7 +4208,8 @@ param(
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
             Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
-            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+                $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
             {
                 Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
@@ -4238,6 +4268,10 @@ param(
     {
         #Hyperthreading enabled 
         Write-Red("`tHyper-Threading Enabled: Yes --- Error: Having Hyper-Threading enabled goes against best practices. Please disable as soon as possible.")
+        if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+        {
+            Write-Red("`t`tError: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/")
+        }
         #AMD might not have the correct logic here. Throwing warning about this. 
         if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
         {
