@@ -288,6 +288,7 @@ using System.Collections;
         public enum ServerType
         {
             VMWare,
+            AmazonEC2,
             HyperV,
             Physical,
             Unknown
@@ -1537,6 +1538,7 @@ param(
     Write-VerboseOutput("Passed: $serverType")
 
     if($ServerType -like "VMware*"){Write-VerboseOutput("Returned: VMware"); return [HealthChecker.ServerType]::VMWare}
+    elseif($ServerType -like "*Amazon EC2*"){Write-VerboseOutput("Returned: AmazonEC2"); return [HealthChecker.ServerType]::AmazonEC2}
     elseif($ServerType -like "*Microsoft Corporation*"){Write-VerboseOutput("Returned: HyperV"); return [HealthChecker.ServerType]::HyperV}
     elseif($ServerType.Length -gt 0) {Write-VerboseOutput("Returned: Physical"); return [HealthChecker.ServerType]::Physical}
     else{Write-VerboseOutput("Returned: unknown") ;return [HealthChecker.ServerType]::Unknown}
@@ -3621,7 +3623,8 @@ param(
     }
     Write-Grey("Hardware/OS/Exchange Information:");
     Write-Grey("`tHardware Type: " + $HealthExSvrObj.HardwareInfo.ServerType.ToString())
-    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+    if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+        $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
     {
         Write-Grey("`tManufacturer: " + $HealthExSvrObj.HardwareInfo.Manufacturer)
         Write-Grey("`tModel: " + $HealthExSvrObj.HardwareInfo.Model) 
@@ -3934,7 +3937,8 @@ param(
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
-            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+                $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
             {
                 if($adapter.DriverDate -ne $null -and (New-TimeSpan -Start $date -End $adapter.DriverDate).Days -lt [int]-365)
                 {
@@ -3989,7 +3993,8 @@ param(
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
             Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
-            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
+            if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+                $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
             {
                 Write-Grey("`t`tLink Speed: " + $adapter.LinkSpeed)
             }
