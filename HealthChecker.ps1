@@ -4053,6 +4053,10 @@ param(
     {
         #Hyperthreading enabled 
         Write-Red("`tHyper-Threading Enabled: Yes --- Error: Having Hyper-Threading enabled goes against best practices. Please disable as soon as possible.")
+        if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+        {
+            Write-Red("`t`tError: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/")
+        }
         #AMD might not have the correct logic here. Throwing warning about this. 
         if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
         {
