@@ -530,12 +530,38 @@ Function Invoke-CatchActions{
 
 }
 
+Function Test-IsCurrentVersion {
+param(
+[Parameter(Mandatory=$true)][string]$CurrentVersion,
+[Parameter(Mandatory=$true)][string]$TestingVersion
+)
+    Write-VerboseOutput("Calling: Test-IsCurrentVersion")
+    $splitCurrentVersion = $CurrentVersion.Split(".")
+    $splitTestingVersion = $TestingVersion.Split(".")
+    if($splitCurrentVersion.Count -eq $splitTestingVersion.Count)
+    {
+        for($i = 0; $i -lt $splitCurrentVersion.Count; $i++)
+        {
+            if($splitCurrentVersion[$i] -lt $splitTestingVersion[$i])
+            {
+                return $false
+            }
+        }
+        return $true 
+    }
+    else 
+    {
+        Write-VerboseOutput("Split count isn't the same, assuming that we are not on current version.")
+        return $false 
+    }
+}
+
 Function Test-ScriptVersion {
 param(
 [Parameter(Mandatory=$true)][string]$ApiUri, 
 [Parameter(Mandatory=$true)][string]$RepoOwner,
 [Parameter(Mandatory=$true)][string]$RepoName,
-[Parameter(Mandatory=$true)][double]$CurrentVersion,
+[Parameter(Mandatory=$true)][string]$CurrentVersion,
 [Parameter(Mandatory=$true)][int]$DaysOldLimit
 )
     Write-VerboseOutput("Calling: Test-ScriptVersion")
@@ -562,7 +588,8 @@ param(
         if($releaseInformation -ne $null)
         {
             Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
-            if($CurrentVersion -ge ($latestVersion = [double](($releaseInformation.tag_name).Split("v")[1])))
+            $latestVersion = ($releaseInformation.tag_name).Split("v")[1]
+            if(Test-IsCurrentVersion -CurrentVersion $CurrentVersion -TestingVersion $latestVersion)
             {
                 Write-VerboseOutput("Version '{0}' is the latest version." -f $latestVersion)
                 $isCurrent = $true 
@@ -571,6 +598,10 @@ param(
             {
                 Write-VerboseOutput("Version '{0}' is outdated. Lastest version is '{1}'" -f $CurrentVersion, $latestVersion)
             }
+        }
+        else 
+        {
+            Write-VerboseOutput("Release information was null.")
         }
     }
     else 
@@ -587,7 +618,6 @@ param(
         {
             Write-VerboseOutput("Script doesn't appear to be on the latest possible version. Script write time '{0}' vs out test date '{1}'" -f $writeTime, $testDate)
         }
-
     }
 
     return $isCurrent
