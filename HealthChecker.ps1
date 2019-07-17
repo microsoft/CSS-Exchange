@@ -329,35 +329,11 @@ using System.Collections;
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
             public string TimeZone; //value to stores the current timezone of the server. 
-            public System.Array TLSSettings;
-            public NetDefaultTlsVersionInformation NetDefaultTlsVersion;
-            public Hashtable TLSSettingsv2;
+            public Hashtable TLSSettings;
 	        public string BootUpTimeInDays;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
-        }
-
-        public enum TLSVersion
-        {
-            TLS10,
-            TLS11,
-            TLS12
-        }
-
-        public class TlsSettingInformation
-        {
-            public string TLSName; 
-            public bool ClientEnabled;
-            public bool ClientDisabledByDefault; 
-            public bool ServerEnabled;
-            public bool ServerDisabledByDefault; 
-        }
-
-        public class NetDefaultTlsVersionInformation 
-        {
-            public bool SystemDefaultTlsVersions;
-            public bool WowSystemDefaultTlsVersions; 
         }
 
         public class HotfixInformation
@@ -1306,180 +1282,6 @@ Function Get-ServerRebootPending {
     return $false 
 }
 
-Function Get-TLSSettingsFromRegistry {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.TLSVersion]$TLSVersion
-)
-    Write-VerboseOutput("Calling: Get-TLSSettingsFromRegistry")
-    $regBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
-    switch($TLSVersion)
-    {
-        ([HealthChecker.TLSVersion]::TLS10)
-        {
-            $version = "1.0"
-        }
-        ([HealthChecker.TLSVersion]::TLS11)
-        {
-            $version = "1.1"
-        }
-        ([HealthChecker.TLSVersion]::TLS12)
-        {
-            $version = "1.2"
-        }
-    }
-
-    $regServer = $regBase -f $version, "Server"
-    $regClient = $regBase -f $version, "Client"
-    $serverEnabled = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $serverDisabledByDefault = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $clientEnabled = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $clientDisabledByDefault = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault" -CatchActionFunction ${Function:Invoke-CatchActions}
-    
-    if($serverEnabled -eq $null)
-    {
-        Write-Red("Failed to get TLS {0} Server Enabled Key on Server {1}. We are assuming that it is enabled." -f $version, $Machine_Name)
-        Write-Yellow("This can be normal on Windows Server 2008 R2.")
-        $serverEnabled = $true 
-    }
-    else 
-    {
-        Write-VerboseOutput("Server Enabled Value {0}" -f $serverEnabled)
-        if($serverEnabled -eq 1)
-        {
-            $serverEnabled = $true 
-        }
-        else 
-        {
-            $serverEnabled = $false 
-        }
-    }
-    if($serverDisabledByDefault -eq $null)
-    {
-        Write-VerboseOutput("Failed to get Server Disabled By Default value from registry. Setting to false")
-        $serverDisabledByDefault = $false 
-    }
-    else 
-    {
-        Write-VerboseOutput("Server Disabled By Default value {0}" -f $serverDisabledByDefault)
-        if($serverDisabledByDefault -eq 1)
-        {
-            $serverDisabledByDefault = $true 
-        }
-        else 
-        {
-            $serverDisabledByDefault = $false 
-        }
-    }
-    if($clientEnabled -eq $null)
-    {
-        Write-VerboseOutput("Failed to get Client Enabled Key on Server. Setting to true (Enabled) by default.")
-        $clientEnabled = $true 
-    }
-    else 
-    {
-        Write-VerboseOutput("Client Enabled value {0}" -f $clientEnabled)
-        if($clientEnabled -eq 1)
-        {
-            $clientEnabled = $true
-        }
-        else 
-        {
-            $clientEnabled = $false 
-        }
-    }
-    if($clientDisabledByDefault -eq $null)
-    {
-        Write-VerboseOutput("Failed to get Client Disabled By Default Key on Server. Setting to false.")
-        $clientDisabledByDefault = $false 
-    }
-    else 
-    {
-        Write-VerboseOutput("Client Disabled By Default value {0}" -f $clientDisabledByDefault)
-        if($clientDisabledByDefault -eq 1)
-        {
-            $clientDisabledByDefault = $true 
-        }
-        else 
-        {
-            $clientDisabledByDefault = $false 
-        }
-    }
-
-    $returnObj = New-Object pscustomobject 
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerEnabled" -Value $serverEnabled
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerDisabledByDefault" -Value $serverDisabledByDefault
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientEnabled" -Value $clientEnabled 
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientDisabledByDefault" -Value $clientDisabledByDefault
-
-    Write-VerboseOutput("Exiting: Get-TLSSettingsFromRegistry")
-    return $returnObj
-}
-
-Function Get-TLSSettings{
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-TLSSettings")
-    $tlsSettings = @() 
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.0"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS10)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.1"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS11)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.2"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS12)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    Write-VerboseOutput("Exiting: Get-TLSSettings")
-    return $tlsSettings
-}
-
-Function Set-NetTLSDefaultVersions2010 {
-param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthCheckerExchangeServer
-)
-    Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
-    $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-VerboseOutput("Exiting: Set-NetTLSDefaultVersions2010")
-    return $HealthCheckerExchangeServer
-}
-
-Function Get-NetTLSDefaultVersions {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-NetTLSDefaultVersions")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-
-    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionInformation
-    $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
-    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions" -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-VerboseOutput("Exiting: Get-NetTLSDefaultVersions")
-    return $netTlsVersion
-}
-
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-AllTlsSettingsFromRegistry/Get-AllTlsSettingsFromRegistry.ps1
 Function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
@@ -1700,10 +1502,7 @@ param(
     }
     $os_obj.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
     $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
-    $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
-    $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
-
-    $os_obj.TLSSettingsv2 = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $os_obj.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $os_obj
@@ -2647,10 +2446,6 @@ param(
     $HealthExSvrObj.HardwareInfo = Get-HardwareInformation -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
     $HealthExSvrObj = Get-ExchangeInformation -HealthExSvrObj $HealthExSvrObj
-    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
-    {
-        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthCheckerExchangeServer $HealthExSvrObj
-    }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
@@ -4297,8 +4092,8 @@ param(
         {
             $netKey = "NETv2"
         }
-        $currentTlsVersion = $HealthExSvrObj.OSVersion.TLSSettingsv2[$tlsKey]
-        $currentNetVersion = $HealthExSvrObj.OSVersion.TLSSettingsv2[$netKey]
+        $currentTlsVersion = $HealthExSvrObj.OSVersion.TLSSettings[$tlsKey]
+        $currentNetVersion = $HealthExSvrObj.OSVersion.TLSSettings[$netKey]
         Write-Grey("`tTLS {0}" -f $tlsKey)
         Write-Grey("`tServer Enabled: {0}" -f $currentTlsVersion.ServerEnabled)
         Write-Grey("`tServer Disabled By Default: {0}" -f $currentTlsVersion.ServerDisabledByDefault)
@@ -4319,27 +4114,7 @@ param(
                 Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
             }
     }
-    <#
-    foreach($TLS in $HealthExSvrObj.OSVersion.TLSSettings)
-    {
-        Write-Grey("`tTLS {0}" -f $TLS.TLSName)
-        Write-Grey("`tServer Enabled: {0}" -f $TLS.ServerEnabled)
-        Write-Grey("`tServer Disabled By Default: {0}" -f $TLS.ServerDisabledByDefault)
-        Write-Grey("`tClient Enabled: {0}" -f $TLS.ClientEnabled)
-        Write-Grey("`tClient Disabled by Default: {0}" -f $TLS.ClientDisabledByDefault)
-        if($TLS.ServerEnabled -ne $TLS.ClientEnabled)
-        {
-            Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
-        }
-        if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
-            ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
-            $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
-            ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
-            {
-                Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://blogs.technet.microsoft.com/exchange/2018/04/02/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and-identifying-clients-not-using-it/")
-            }
-    }
-    #>
+
 	##############
 	#Hotfix Check#
 	##############
