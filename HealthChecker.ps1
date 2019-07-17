@@ -151,7 +151,7 @@ using System.Collections;
             public OperatingSystemObject  OSVersion; // OS Version Object Information 
             public NetVersionObject NetVersionInfo; //.net Framework object information 
             public ExchangeInformationObject ExchangeInformation; //Detailed Exchange Information 
-            public double HealthCheckerVersion; //To determine the version of the script on the object.
+            public string HealthCheckerVersion; //To determine the version of the script on the object.
         }
 
         public class ExchangeInformationObject 
