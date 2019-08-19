@@ -169,7 +169,7 @@ Param (
 
 )
 
-$scriptVersion = "2.10"
+$scriptVersion = "2.11"
 
 ###############################################
 #                                             #
@@ -3126,6 +3126,7 @@ param(
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Send_Protocol_Logs"))
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
             }
             if($PassedInfo.HubConnectivityLogs -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
