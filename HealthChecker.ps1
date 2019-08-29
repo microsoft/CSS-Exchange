@@ -1531,7 +1531,7 @@ Function Get-ServerType {
 }
 
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ProcessorInformation/Get-ProcessorInformation.ps1
-Function Get-ProcessorInformationv2 {
+Function Get-ProcessorInformation {
     [CmdletBinding()]
     param(
     [Parameter(Mandatory=$true)][string]$MachineName,
@@ -1627,61 +1627,6 @@ Function Get-ProcessorInformationv2 {
     return $processorInformationObject 
     
 }
-Function Get-ProcessorInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-ProcessorInformation")
-    Write-VerboseOutput("Passed: $Machine_Name")
-    [HealthChecker.ProcessorInformation]$processor_info_object = New-Object HealthChecker.ProcessorInformation
-    $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_Processor" -CatchActionFunction ${Function:Invoke-CatchActions} 
-    $object_Type = $wmi_obj_processor.Gettype().Name 
-    Write-VerboseOutput("Processor object type: $object_Type")
-    
-    #if it is a single processor 
-    if($object_Type -eq "ManagementObject") {
-        Write-VerboseOutput("single processor detected")
-        $processor_info_object.Name = $wmi_obj_processor.Name
-        $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor.MaxClockSpeed
-    }
-    else{
-        Write-VerboseOutput("multiple processor detected")
-        $processor_info_object.Name = $wmi_obj_processor[0].Name
-        $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor[0].MaxClockSpeed
-    }
-
-    #Get the total number of cores in the processors 
-    Write-VerboseOutput("getting the total number of cores in the processor(s)")
-    foreach($processor in $wmi_obj_processor) 
-    {
-        $processor_info_object.NumberOfPhysicalCores += $processor.NumberOfCores 
-        $processor_info_object.NumberOfLogicalProcessors += $processor.NumberOfLogicalProcessors
-        $processor_info_object.NumberOfProcessors += 1 #may want to call Win32_ComputerSystem and use NumberOfProcessors for this instead.. but this should get the same results. 
-
-        #Test to see if we are throttling the processor 
-        if($processor.CurrentClockSpeed -lt $processor.MaxClockSpeed) 
-        {
-            Write-VerboseOutput("We see the processor being throttled")
-            $processor_info_object.CurrentMegacyclesPerCore = $processor.CurrentClockSpeed
-            $processor_info_object.ProcessorIsThrottled = $true 
-        }
-
-        if($processor.Name -ne $processor_info_object.Name -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
-    }
-
-    $processorCount = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" -ScriptBlock {[System.Environment]::ProcessorCount} -CatchActionFunction ${Function:Invoke-CatchActions}
-    if($processorCount -ne $null)
-    {
-        $processor_info_object.EnvironmentProcessorCount = $processorCount
-    }
-    else 
-    {
-        $processor_info_object.EnvironmentProcessorCount = -1 
-    }
-    $processor_info_object.Processor = $wmi_obj_processor
-    Write-VerboseOutput("Exiting: Get-ProcessorInformation")
-    return $processor_info_object
-}
 
 Function Get-HardwareInformation {
 param(
@@ -1696,7 +1641,7 @@ param(
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $processorInformation = Get-ProcessorInformationv2 -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $processorInformation = Get-ProcessorInformation -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
     $hardware_obj.Processor = $processorInformation
     $hardware_obj.Processor.ProcessorClassObject = $processorInformation.ProcessorClassObject #Need to do it this way otherwise the ProcessorClassObject will be empty for some reason.
     $hardware_obj.Model = $system.Model 
