@@ -107,7 +107,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.35"
+$healthCheckerVersion = "2.36.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -151,7 +151,7 @@ using System.Collections;
             public OperatingSystemObject  OSVersion; // OS Version Object Information 
             public NetVersionObject NetVersionInfo; //.net Framework object information 
             public ExchangeInformationObject ExchangeInformation; //Detailed Exchange Information 
-            public double HealthCheckerVersion; //To determine the version of the script on the object.
+            public string HealthCheckerVersion; //To determine the version of the script on the object.
         }
 
         public class ExchangeInformationObject 
@@ -530,12 +530,38 @@ Function Invoke-CatchActions{
 
 }
 
+Function Test-IsCurrentVersion {
+param(
+[Parameter(Mandatory=$true)][string]$CurrentVersion,
+[Parameter(Mandatory=$true)][string]$TestingVersion
+)
+    Write-VerboseOutput("Calling: Test-IsCurrentVersion")
+    $splitCurrentVersion = $CurrentVersion.Split(".")
+    $splitTestingVersion = $TestingVersion.Split(".")
+    if($splitCurrentVersion.Count -eq $splitTestingVersion.Count)
+    {
+        for($i = 0; $i -lt $splitCurrentVersion.Count; $i++)
+        {
+            if($splitCurrentVersion[$i] -lt $splitTestingVersion[$i])
+            {
+                return $false
+            }
+        }
+        return $true 
+    }
+    else 
+    {
+        Write-VerboseOutput("Split count isn't the same, assuming that we are not on current version.")
+        return $false 
+    }
+}
+
 Function Test-ScriptVersion {
 param(
 [Parameter(Mandatory=$true)][string]$ApiUri, 
 [Parameter(Mandatory=$true)][string]$RepoOwner,
 [Parameter(Mandatory=$true)][string]$RepoName,
-[Parameter(Mandatory=$true)][double]$CurrentVersion,
+[Parameter(Mandatory=$true)][string]$CurrentVersion,
 [Parameter(Mandatory=$true)][int]$DaysOldLimit
 )
     Write-VerboseOutput("Calling: Test-ScriptVersion")
@@ -562,7 +588,8 @@ param(
         if($releaseInformation -ne $null)
         {
             Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
-            if($CurrentVersion -ge ($latestVersion = [double](($releaseInformation.tag_name).Split("v")[1])))
+            $latestVersion = ($releaseInformation.tag_name).Split("v")[1]
+            if(Test-IsCurrentVersion -CurrentVersion $CurrentVersion -TestingVersion $latestVersion)
             {
                 Write-VerboseOutput("Version '{0}' is the latest version." -f $latestVersion)
                 $isCurrent = $true 
@@ -571,6 +598,10 @@ param(
             {
                 Write-VerboseOutput("Version '{0}' is outdated. Lastest version is '{1}'" -f $CurrentVersion, $latestVersion)
             }
+        }
+        else 
+        {
+            Write-VerboseOutput("Release information was null.")
         }
     }
     else 
@@ -587,7 +618,6 @@ param(
         {
             Write-VerboseOutput("Script doesn't appear to be on the latest possible version. Script write time '{0}' vs out test date '{1}'" -f $writeTime, $testDate)
         }
-
     }
 
     return $isCurrent
@@ -948,7 +978,15 @@ param(
     [HealthChecker.ServerMaintenanceObject]$exchMaintenanceObject = New-Object -TypeName HealthChecker.ServerMaintenanceObject
     
     $ServerComponentStates = Get-ServerComponentState -Identity $Machine_Name -ErrorAction SilentlyContinue
-    $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction SilentlyContinue
+    try 
+    {
+        $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction Stop 
+    }
+    catch 
+    {
+        Write-VerboseOutput("Failed to run Get-MailboxServer")
+        Invoke-CatchActions
+    }
     try 
     {
         $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction Stop
@@ -2428,7 +2466,8 @@ param(
         {
             $status = &$Script:appCmd list apppool $appPool /text:state
             $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
-            if(Test-Path $config)
+            if(!([System.String]::IsNullOrEmpty($config)) -and 
+                (Test-Path $config))
             {
                 $content = Get-Content $config 
             }
@@ -4995,11 +5034,18 @@ Function Build-ServerObject
 
 
 Function Get-HealthCheckFilesItemsFromLocation{
+    Write-VerboseOutput("Calling: Get-HealthCheckFilesItemsFromLocation")
+    Write-VerboseOutput("Getting ChildItems from path '{0}'" -f $XMLDirectoryPath)
     $items = Get-ChildItem $XMLDirectoryPath | Where-Object{$_.Name -like "HealthCheck-*-*.xml"}
     if($items -eq $null)
     {
         Write-Host("Doesn't appear to be any Health Check XML files here....stopping the script")
         exit 
+    }
+    Write-VerboseOutput("Found the following items...")
+    foreach($item in $items)
+    {
+        Write-VerboseOutput("Name: {0}" -f $item.Name)
     }
     return $items
 }
@@ -5008,7 +5054,7 @@ Function Get-OnlyRecentUniqueServersXMLs {
 param(
 [Parameter(Mandatory=$true)][array]$FileItems 
 )   
-
+    Write-VerboseOutput("Calling: Get-OnlyRecentUniqueServersXMLs")
     $aObject = @() 
     foreach($item in $FileItems)
     {
@@ -5020,13 +5066,13 @@ param(
         $obj | Add-Member -MemberType NoteProperty -Name FileObject -Value $item 
         $aObject += $obj
     }
-
+    Write-VerboseOutput("Grouping a total of {0} objects" -f $aObject.count)
     $grouped = $aObject | Group-Object ServerName 
-
+    Write-VerboseOutput("Found {0} number of unique servers" -f $grouped.Count)
     $FilePathList = @()
     foreach($gServer in $grouped)
     {
-        
+        Write-VerboseOutput("Working on Server: {0}" -f $gServer.Name)
         if($gServer.Count -gt 1)
         {
             #going to only use the most current file for this server providing that they are using the newest updated version of Health Check we only need to sort by name
@@ -5035,11 +5081,11 @@ param(
 
         }
         else {
-            $FilePathList += ($gServer.Group).FileObject.VersionInfo.FileName
+            $FilePathList += ($gServer.Group)[0].FileObject.VersionInfo.FileName
         }
         
     }
-
+    Write-VerboseOutput("Found a total of {0} different files paths" -f $FilePathList.Count)
     return $FilePathList
 }
 
@@ -5047,9 +5093,11 @@ Function Import-MyData {
 param(
 [Parameter(Mandatory=$true)][array]$FilePaths
 )
+    Write-VerboseOutput("Calling: Import-MyData")
     [System.Collections.Generic.List[System.Object]]$myData = New-Object -TypeName System.Collections.Generic.List[System.Object]
     foreach($filePath in $FilePaths)
     {
+        Write-VerboseOutput("Attempting to import '{0}'" -f $filePath)
         $importData = Import-Clixml -Path $filePath
         $myData.Add($importData)
     }
