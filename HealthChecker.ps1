@@ -2466,7 +2466,8 @@ param(
         {
             $status = &$Script:appCmd list apppool $appPool /text:state
             $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
-            if(Test-Path $config)
+            if(!([System.String]::IsNullOrEmpty($config)) -and 
+                (Test-Path $config))
             {
                 $content = Get-Content $config 
             }
