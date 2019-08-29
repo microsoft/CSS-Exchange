@@ -978,7 +978,15 @@ param(
     [HealthChecker.ServerMaintenanceObject]$exchMaintenanceObject = New-Object -TypeName HealthChecker.ServerMaintenanceObject
     
     $ServerComponentStates = Get-ServerComponentState -Identity $Machine_Name -ErrorAction SilentlyContinue
-    $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction SilentlyContinue
+    try 
+    {
+        $MailboxServerInformation = Get-MailboxServer -Identity $Machine_Name -ErrorAction Stop 
+    }
+    catch 
+    {
+        Write-VerboseOutput("Failed to run Get-MailboxServer")
+        Invoke-CatchActions
+    }
     try 
     {
         $ClusterNode = Get-ClusterNode -Name $Machine_Name -ErrorAction Stop
