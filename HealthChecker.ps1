@@ -5025,11 +5025,18 @@ Function Build-ServerObject
 
 
 Function Get-HealthCheckFilesItemsFromLocation{
+    Write-VerboseOutput("Calling: Get-HealthCheckFilesItemsFromLocation")
+    Write-VerboseOutput("Getting ChildItems from path '{0}'" -f $XMLDirectoryPath)
     $items = Get-ChildItem $XMLDirectoryPath | Where-Object{$_.Name -like "HealthCheck-*-*.xml"}
     if($items -eq $null)
     {
         Write-Host("Doesn't appear to be any Health Check XML files here....stopping the script")
         exit 
+    }
+    Write-VerboseOutput("Found the following items...")
+    foreach($item in $items)
+    {
+        Write-VerboseOutput("Name: {0}" -f $item.Name)
     }
     return $items
 }
@@ -5038,7 +5045,7 @@ Function Get-OnlyRecentUniqueServersXMLs {
 param(
 [Parameter(Mandatory=$true)][array]$FileItems 
 )   
-
+    Write-VerboseOutput("Calling: Get-OnlyRecentUniqueServersXMLs")
     $aObject = @() 
     foreach($item in $FileItems)
     {
@@ -5050,13 +5057,13 @@ param(
         $obj | Add-Member -MemberType NoteProperty -Name FileObject -Value $item 
         $aObject += $obj
     }
-
+    Write-VerboseOutput("Grouping a total of {0} objects" -f $aObject.count)
     $grouped = $aObject | Group-Object ServerName 
-
+    Write-VerboseOutput("Found {0} number of unique servers" -f $grouped.Count)
     $FilePathList = @()
     foreach($gServer in $grouped)
     {
-        
+        Write-VerboseOutput("Working on Server: {0}" -f $gServer.Name)
         if($gServer.Count -gt 1)
         {
             #going to only use the most current file for this server providing that they are using the newest updated version of Health Check we only need to sort by name
@@ -5065,11 +5072,11 @@ param(
 
         }
         else {
-            $FilePathList += ($gServer.Group).FileObject.VersionInfo.FileName
+            $FilePathList += ($gServer.Group)[0].FileObject.VersionInfo.FileName
         }
         
     }
-
+    Write-VerboseOutput("Found a total of {0} different files paths" -f $FilePathList.Count)
     return $FilePathList
 }
 
@@ -5077,9 +5084,11 @@ Function Import-MyData {
 param(
 [Parameter(Mandatory=$true)][array]$FilePaths
 )
+    Write-VerboseOutput("Calling: Import-MyData")
     [System.Collections.Generic.List[System.Object]]$myData = New-Object -TypeName System.Collections.Generic.List[System.Object]
     foreach($filePath in $FilePaths)
     {
+        Write-VerboseOutput("Attempting to import '{0}'" -f $filePath)
         $importData = Import-Clixml -Path $filePath
         $myData.Add($importData)
     }
