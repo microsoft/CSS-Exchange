@@ -293,17 +293,17 @@ using System.Collections;
 
         public class ProcessorInformation 
         {
+            public string Name;    //String of the processor name 
             public int NumberOfPhysicalCores;    //Number of Physical cores that we have 
-            public int NumberOfLogicalProcessors;  //Number of Logical cores that we have presented to the os 
+            public int NumberOfLogicalCores;  //Number of Logical cores that we have presented to the os 
             public int NumberOfProcessors; //Total number of processors that we have in the system 
             public int MaxMegacyclesPerCore; //Max speed that we can get out of the cores 
             public int CurrentMegacyclesPerCore; //Current speed that we are using the cores at 
             public bool ProcessorIsThrottled;  //True/False if we are throttling our processor 
-            public string ProcessorName;    //String of the processor name 
-            public object Processor;        // object to store the processor information 
             public bool DifferentProcessorsDetected; //true/false to detect if we have different processor types detected 
-			public int EnvProcessorCount; //[system.environment]::processorcount 
-            
+            public bool DifferentProcessorCoreCountDetected; //detect if there are a different number of core counts per Processor CPU socket
+            public int EnvironmentProcessorCount; //[system.environment]::processorcount 
+            public object ProcessorClassObject;        // object to store the processor information  
         }
 
         public class OperatingSystemInformation 
@@ -1530,6 +1530,103 @@ Function Get-ServerType {
     return $returnServerType 
 }
 
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ProcessorInformation/Get-ProcessorInformation.ps1
+Function Get-ProcessorInformationv2 {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$MachineName,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
+    
+    Write-VerboseWriter("Calling: Get-ProcessorInformation")
+    $wmiObject = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction 
+    Write-VerboseWriter("Processor object type: {0}" -f ($wmiObjectType = $wmiObject.GetType().Name))
+    $multiProcessorsDetected = $false 
+    
+    if($wmiObjectType -eq "ManagementObject")
+    {
+        $processorName = $wmiObject.Name
+        $maxClockSpeed = $wmiObject.MaxClockSpeed 
+        $multiProcessorsDetected = $true 
+    }
+    else 
+    {
+        $processorName = $wmiObject[0].Name 
+        $maxClockSpeed = $wmiObject[0].MaxClockSpeed 
+    }
+    
+    Write-VerboseWriter("Getting the total number of cores in the processor(s)")
+    $processorIsThrottled = $false 
+    $currentClockSpeed = 0
+    $previousProcessor = $null 
+    $differentProcessorsDetected = $false 
+    $differentProcessorCoreCountDetected = $false 
+    foreach($processor in $wmiObject)
+    {
+        $numberOfPhysicalCores += $processor.NumberOfCores 
+        $numberOfLogicalCores += $processor.NumberOfLogicalProcessors 
+        $numberOfProcessors++ 
+    
+        if($processor.CurrentClockSpeed -lt $processor.MaxClockSpeed)
+        {
+            Write-VerboseWriter("Processor is being throttled") 
+            $processorIsThrottled = $true 
+            $currentClockSpeed = $processor.CurrentClockSpeed 
+        }
+        if($previousProcessor -ne $null) 
+        {
+            if($processor.Name -ne $previousProcessor.Name -or 
+            $processor.MaxClockSpeed -ne $previousProcessor.MaxMegacyclesPerCore)
+            {
+                Write-VerboseWriter("Different Processors are detected!!! This is an issue.")
+                $differentProcessorsDetected = $true
+            }
+            if($processor.NumberOfLogicalProcessors -ne $previousProcessor.NumberOfLogicalProcessors)
+            {
+                Write-VerboseWriter("Different Processor core count per processor socket detected. This is an issue.")
+                $differentProcessorCoreCountDetected = $true 
+            }
+        }
+        $previousProcessor = $processor
+    }
+    Write-VerboseWriter("NumberOfPhysicalCores: {0} | NumberOfLogicalCores: {1} | NumberOfProcessors: {2} | ProcessorIsThrottled: {3} | CurrentClockSpeed: {4} | DifferentProcessorsDetected: {5} | DifferentProcessorCoreCountDetected: {6}" -f $numberOfPhysicalCores,
+    $numberOfLogicalCores, $numberOfProcessors, $processorIsThrottled, $currentClockSpeed, $differentProcessorsDetected, $differentProcessorCoreCountDetected)
+    
+    $presentedProcessorCoreCount = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {[System.Environment]::ProcessorCount} -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" -CatchActionFunction $CatchActionFunction 
+    if($presentedProcessorCoreCount -eq $null) 
+    {
+        Write-VerboseWriter("Wasn't able to get Presented Processor Core Count on the Server. Setting to -1.")
+        $presentedProcessorCoreCount = -1 
+    }
+    else 
+    {
+        Write-VerboseWriter("Presented Processor Core Count: {0}" -f $presentedProcessorCoreCount)
+    }
+    
+    $processorInformationObject = New-Object PSCustomObject 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "Name" -Value $processorName
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfPhysicalCores" -Value $numberOfPhysicalCores
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfLogicalCores" -Value $numberOfLogicalCores
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfProcessors" -Value $numberOfProcessors 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "MaxMegacyclesPerCore" -Value $maxClockSpeed
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "CurrentMegacyclesPerCore" -Value $currentClockSpeed
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "ProcessorIsThrottled" -Value $processorIsThrottled 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "DifferentProcessorsDetected" -Value $differentProcessorsDetected 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "DifferentProcessorCoreCountDetected" -Value $differentProcessorCoreCountDetected
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "EnvironmentProcessorCount" -Value $presentedProcessorCoreCount 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "ProcessorClassObject" -Value $wmiObject 
+    
+    Write-VerboseWriter("Exiting: Get-ProcessorInformation") 
+    return $processorInformationObject 
+    
+}
 Function Get-ProcessorInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1544,12 +1641,12 @@ param(
     #if it is a single processor 
     if($object_Type -eq "ManagementObject") {
         Write-VerboseOutput("single processor detected")
-        $processor_info_object.ProcessorName = $wmi_obj_processor.Name
+        $processor_info_object.Name = $wmi_obj_processor.Name
         $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor.MaxClockSpeed
     }
     else{
         Write-VerboseOutput("multiple processor detected")
-        $processor_info_object.ProcessorName = $wmi_obj_processor[0].Name
+        $processor_info_object.Name = $wmi_obj_processor[0].Name
         $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor[0].MaxClockSpeed
     }
 
@@ -1569,17 +1666,17 @@ param(
             $processor_info_object.ProcessorIsThrottled = $true 
         }
 
-        if($processor.Name -ne $processor_info_object.ProcessorName -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
+        if($processor.Name -ne $processor_info_object.Name -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
     }
 
     $processorCount = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" -ScriptBlock {[System.Environment]::ProcessorCount} -CatchActionFunction ${Function:Invoke-CatchActions}
     if($processorCount -ne $null)
     {
-        $processor_info_object.EnvProcessorCount = $processorCount
+        $processor_info_object.EnvironmentProcessorCount = $processorCount
     }
     else 
     {
-        $processor_info_object.EnvProcessorCount = -1 
+        $processor_info_object.EnvironmentProcessorCount = -1 
     }
     $processor_info_object.Processor = $wmi_obj_processor
     Write-VerboseOutput("Exiting: Get-ProcessorInformation")
@@ -1599,7 +1696,9 @@ param(
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $hardware_obj.Processor = Get-ProcessorInformation -Machine_Name $Machine_Name 
+    $processorInformation = Get-ProcessorInformationv2 -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $hardware_obj.Processor = $processorInformation
+    $hardware_obj.Processor.ProcessorClassObject = $processorInformation.ProcessorClassObject #Need to do it this way otherwise the ProcessorClassObject will be empty for some reason.
     $hardware_obj.Model = $system.Model 
 
     Write-VerboseOutput("Exiting: Get-HardwareInformation")
@@ -3864,31 +3963,31 @@ param(
     #Processor Information#
     #######################
     Write-Grey("Processor/Memory Information")
-    Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.ProcessorName)
+    Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.Name)
     Function Check-MaxCoresCount {
     param(
     [Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
     )
         if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
-        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 48)
         {
             Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2018/07/24/exchange-server-2019-public-preview/")
         }
         elseif(($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -or 
         $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016) -and 
-        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24)
         {
             Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://blogs.technet.microsoft.com/exchange/2015/06/19/ask-the-perf-guy-how-big-is-too-big/")
         }
     }
 
     #First, see if we are hyperthreading
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
         #Hyperthreading enabled 
         Write-Red("`tHyper-Threading Enabled: Yes --- Error: Having Hyper-Threading enabled goes against best practices. Please disable as soon as possible.")
         #AMD might not have the correct logic here. Throwing warning about this. 
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        if($HealthExSvrObj.HardwareInfo.Processor.Name.StartsWith("AMD"))
         {
             Write-Yellow("`tThis script may incorrectly report that Hyper-Threading is enabled on certain AMD processors.  Check with the manufacturer to see if your model supports SMT.")
         }
@@ -3922,27 +4021,27 @@ param(
     }
 
     #Core count
-    if(($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and 
+    if(($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24 -and 
     $HealthExSvrObj.ExchangeInformation.ExchangeVersion -lt [HealthChecker.ExchangeVersion]::Exchange2019) -or 
-    ($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48))
+    ($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 48))
     {
         Write-Yellow("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-        Write-Yellow("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+        Write-Yellow("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
     }
     else
     {
         Write-Green("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-        Write-Green("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+        Write-Green("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
     }
 
     #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box. 
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			Write-Yellow("`tNUMA Group Size Optimization: Unable to determine --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server")
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			Write-Red("`tNUMA Group Size Optimization: BIOS Set to Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues.")
 		}
@@ -3953,11 +4052,11 @@ param(
 	}
 	else
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			Write-Yellow("`tAll Processor Cores Visible: Unable to determine --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues.")
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visible to Exchange and this will cause a performance impact --- Error")
 		}
@@ -4405,11 +4504,11 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
     #######################
     #Processor Information#
     #######################
-    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
+    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.Name
     #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
             $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
         }
@@ -4418,9 +4517,9 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
             $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
         }
     }
-    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        if($HealthExSvrObj.HardwareInfo.Processor.Name.StartsWith("AMD"))
         {
             $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Enabled"
         }
@@ -4436,23 +4535,23 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
 
     $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors
 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24)
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores
     }
     else
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores
     }
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Undetermined"
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Clustered"
 		}
@@ -4463,11 +4562,11 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
 	}
 	else
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Undetermined"
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "No"
 		}
@@ -4922,9 +5021,9 @@ Function New-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
-        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.ProcessorName)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.Name)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
-        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalCores)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>NUMA Group Size</td><td>$($ServerArrayItem.NUMAGroupSize)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>All Procs Visible</td><td>$($ServerArrayItem.AllProcCoresVisible)</td></tr>"
