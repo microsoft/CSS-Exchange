@@ -417,7 +417,7 @@ using System.Collections;
         {
             public string Description;  //Friendly name of the adapter 
             public string LinkSpeed;    //speed of the adapter 
-            public string DriverDate;   // date of the driver that is currently installed on the server 
+            public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
             public string RSSEnabled;  //bool to determine if RSS is enabled 
             public string Name;        //name of the adapter 
