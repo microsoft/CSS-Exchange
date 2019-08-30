@@ -296,17 +296,17 @@ using System.Collections;
 
         public class ProcessorInformation 
         {
+            public string Name;    //String of the processor name 
             public int NumberOfPhysicalCores;    //Number of Physical cores that we have 
-            public int NumberOfLogicalProcessors;  //Number of Logical cores that we have presented to the os 
+            public int NumberOfLogicalCores;  //Number of Logical cores that we have presented to the os 
             public int NumberOfProcessors; //Total number of processors that we have in the system 
             public int MaxMegacyclesPerCore; //Max speed that we can get out of the cores 
             public int CurrentMegacyclesPerCore; //Current speed that we are using the cores at 
             public bool ProcessorIsThrottled;  //True/False if we are throttling our processor 
-            public string ProcessorName;    //String of the processor name 
-            public object Processor;        // object to store the processor information 
             public bool DifferentProcessorsDetected; //true/false to detect if we have different processor types detected 
-			public int EnvProcessorCount; //[system.environment]::processorcount 
-            
+            public bool DifferentProcessorCoreCountDetected; //detect if there are a different number of core counts per Processor CPU socket
+            public int EnvironmentProcessorCount; //[system.environment]::processorcount 
+            public object ProcessorClassObject;        // object to store the processor information  
         }
 
         public class OperatingSystemInformation 
@@ -332,34 +332,11 @@ using System.Collections;
             public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
             public string TimeZone; //value to stores the current timezone of the server. 
-            public System.Array TLSSettings;
-            public NetDefaultTlsVersionInformation NetDefaultTlsVersion;
+            public Hashtable TLSSettings;
 	        public string BootUpTimeInDays;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
-        }
-
-        public enum TLSVersion
-        {
-            TLS10,
-            TLS11,
-            TLS12
-        }
-
-        public class TlsSettingInformation
-        {
-            public string TLSName; 
-            public bool ClientEnabled;
-            public bool ClientDisabledByDefault; 
-            public bool ServerEnabled;
-            public bool ServerDisabledByDefault; 
-        }
-
-        public class NetDefaultTlsVersionInformation 
-        {
-            public bool SystemDefaultTlsVersions;
-            public bool WowSystemDefaultTlsVersions; 
         }
 
         public class HotfixInformation
@@ -474,6 +451,21 @@ Function Write-Break {
     Write-Host ""
 }
 
+Function Write-VerboseWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString 
+)
+    if($VerboseFunctionCaller -eq $null)
+    {
+            Write-Verbose $WriteString
+    }
+    else 
+    {
+        &$VerboseFunctionCaller $WriteString
+    }
+}
+
+$Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
 
 ############################################################
 ############################################################
@@ -580,31 +572,148 @@ param(
     return $isCurrent
 }
 
-Function Invoke-RegistryHandler {
-param(
-[Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
-[Parameter(Mandatory=$true)][string]$MachineName,
-[Parameter(Mandatory=$true)][string]$SubKey,
-[Parameter(Mandatory=$true)][string]$GetValue,
-[Parameter(Mandatory=$false)][bool]$ErrorExpected
-)
-    Write-VerboseOutput("Calling: Invoke-RegistryHandler")
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+Function Get-WmiObjectHandler {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$false)][string]$ComputerName = $env:COMPUTERNAME,
+    [Parameter(Mandatory=$true)][string]$Class,
+    [Parameter(Mandatory=$false)][string]$Filter,
+    [Parameter(Mandatory=$false)][string]$Namespace,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-WmiObjectHandler")
+    Write-VerboseWriter("Passed: [string]ComputerName: {0} | [string]Class: {1} | [string]Filter: {2} | [string]Namespace: {3}" -f $ComputerName, $Class, $Filter, $Namespace)
+    $execute = @{
+        ComputerName = $ComputerName 
+        Class = $Class
+    }
+    if(![string]::IsNullOrEmpty($Filter))
+    {
+        $execute.Add("Filter", $Filter) 
+    }
+    if(![string]::IsNullOrEmpty($Namespace))
+    {
+        $execute.Add("Namespace", $Namespace)
+    }
     try 
     {
-        Write-VerboseOutput("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
-        $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
-        Write-VerboseOutput("Attempting to open the Sub Key '{0}'" -f $SubKey)
-        $RegKey= $Reg.OpenSubKey($SubKey)
-        Write-VerboseOutput("Attempting to get the value '{0}'" -f $GetValue)
-        $returnGetValue = $RegKey.GetValue($GetValue)
+        $wmi = Get-WmiObject @execute -ErrorAction Stop
+        return $wmi 
     }
     catch 
     {
-        Invoke-CatchActions
-        Write-VerboseOutput("Failed to open the registry")
+        Write-VerboseWriter("Failed to run Get-WmiObject object on class '{0}'" -f $Class)
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction 
+        }
+    }    
+}
+
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+Function Invoke-RegistryGetValue {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
+    [Parameter(Mandatory=$true)][string]$MachineName,
+    [Parameter(Mandatory=$true)][string]$SubKey,
+    [Parameter(Mandatory=$true)][string]$GetValue,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Invoke-RegistryGetValue")
+    try 
+    {
+        Write-VerboseWriter("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
+        $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
+        Write-VerboseWriter("Attempting to open the Sub Key '{0}'" -f $SubKey)
+        $RegKey= $Reg.OpenSubKey($SubKey)
+        Write-VerboseWriter("Attempting to get the value '{0}'" -f $GetValue)
+        $returnGetValue = $RegKey.GetValue($GetValue)
+        Write-VerboseWriter("Exiting: Invoke-RegistryGetValue | Returning: {0}" -f $returnGetValue)
+        return $returnGetValue
     }
-    Write-VerboseOutput("Exiting: Invoke-RegistryHandler | Returning: {0}" -f $returnGetValue)
-    return $returnGetValue
+    catch 
+    {
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+        }
+        Write-VerboseWriter("Failed to open the registry")
+    }
+    
+}
+
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+Function Invoke-ScriptBlockHandler {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ComputerName,
+    [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
+    [Parameter(Mandatory=$false)][string]$ScriptBlockDescription,
+    [Parameter(Mandatory=$false)][object]$ArgumentList,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Invoke-ScriptBlockHandler")
+    if(![string]::IsNullOrEmpty($ScriptBlockDescription))
+    {
+        Write-VerboseWriter($ScriptBlockDescription)
+    }
+    try 
+    {
+        if($ComputerName -ne $env:COMPUTERNAME)
+        {
+            if($ArgumentList -ne $null) 
+            {
+                Write-VerboseWriter("Running Invoke-Command with argument list.")
+                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -ErrorAction Stop 
+            }
+            else 
+            {
+                Write-VerboseWriter("Running Invoke-Command without argument list.")
+                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ErrorAction Stop 
+            }
+            return $invokeReturn 
+        }
+        else 
+        {
+            if($ArgumentList -ne $null)
+            {
+                Write-VerboseWriter("Running Script Block locally with argument list.")
+                $localReturn = & $ScriptBlock $ArgumentList 
+            }
+            else 
+            {
+                Write-VerboseWriter("Running Script Block locally without argument list.")
+                $localReturn = & $ScriptBlock      
+            }
+            return $localReturn 
+        }
+    }
+    catch 
+    {
+        Write-VerboseWriter("Failed to Invoke-ScriptBlockHandler")
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction 
+        }
+    }
 }
 
 Function Load-ExShell {
@@ -646,25 +755,7 @@ param(
 [Parameter(Mandatory=$true)][string]$MachineName
 )
     Write-VerboseOutput("Calling: Get-InstalledSoftware")
-    try
-    {
-        if($MachineName -match $env:COMPUTERNAME)
-        {
-            Write-VerboseOutput("Query software for local machine: {0}" -f $env:COMPUTERNAME)
-            $InstalledSoftware = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*
-        }
-        else
-        {
-            Write-VerboseOutput("Query software for remote machine: {0}" -f $MachineName)
-            $InstalledSoftware = Invoke-Command -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*}
-        }
-    }
-    catch
-    {
-        Invoke-CatchActions
-        Write-VerboseOutput("Failed to query installed software")
-    }
-
+    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-InstalledSoftware")
     return $InstalledSoftware
 }
@@ -688,26 +779,45 @@ param(
     return $counterSamples 
 }
 
-Function Get-OperatingSystemVersion {
-param(
-[Parameter(Mandatory=$true)][string]$OS_Version
-)
-
-    Write-VerboseOutput("Calling: Get-OperatingSystemVersion")
-    Write-VerboseOutput("Passed: $OS_Version")
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerOperatingSystemVersion/Get-ServerOperatingSystemVersion.ps1
+Function Get-ServerOperatingSystemVersion {
+    [CmdletBinding()]
+    param(
+    [string]$OSBuildNumberVersion
+    )
     
-    switch($OS_Version)
+    #Function Version 1.4
+    <#
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    
+    if($OSBuildNumberVersion -eq [string]::Empty -or $OSBuildNumberVersion -eq $null)
     {
-        "6.0.6000" {Write-VerboseOutput("Returned: Windows2008"); return [HealthChecker.OSVersionName]::Windows2008}
-        "6.1.7600" {Write-VerboseOutput("Returned: Windows2008R2"); return [HealthChecker.OSVersionName]::Windows2008R2}
-        "6.1.7601" {Write-VerboseOutput("Returned: Windows2008R2"); return [HealthChecker.OSVersionName]::Windows2008R2}
-        "6.2.9200" {Write-VerboseOutput("Returned: Windows2012"); return [HealthChecker.OSVersionName]::Windows2012}
-        "6.3.9600" {Write-VerboseOutput("Returned: Windows2012R2"); return [HealthChecker.OSVersionName]::Windows2012R2}
-        "10.0.14393" {Write-VerboseOutput("Returned: Windows2016"); return [HealthChecker.OSVersionName]::Windows2016}
-        "10.0.17713" {Write-VerboseOutput("Returned: Windows2019"); return [HealthChecker.OSVersionName]::Windows2019}
-        default{Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.OSVersionName]::Unknown}
+        Write-VerboseWriter("Getting the local machine version build number")
+        $OSBuildNumberVersion = (Get-WmiObject -Class Win32_OperatingSystem).Version
+        Write-VerboseWriter("Got {0} for the version build number" -f $OSBuildNumberVersion)
     }
-
+    else 
+    {
+        Write-VerboseWriter("Passed - [string]OSBuildNumberVersion : {0}" -f $OSBuildNumberVersion)
+    }
+    
+    [string]$osReturnValue = ""
+    switch ($OSBuildNumberVersion) 
+    {
+        "6.0.6000" {$osReturnValue = "Windows2008"}
+        "6.1.7600" {$osReturnValue = "Windows2008R2"}
+        "6.1.7601" {$osReturnValue = "Windows2008R2"}
+        "6.2.9200" {$osReturnValue = "Windows2012"}
+        "6.3.9600" {$osReturnValue = "Windows2012R2"}
+        "10.0.14393" {$osReturnValue = "Windows2016"}
+        "10.0.17713" {$osReturnValue = "Windows2019"}
+        default {$osReturnValue = "Unknown"}
+    }
+    
+    Write-VerboseWriter("Returned: {0}" -f $osReturnValue)
+    return [string]$osReturnValue
 }
 
 Function Get-PageFileInformation {
@@ -717,7 +827,7 @@ param(
     Write-VerboseOutput("Calling: Get-PageFileInformation")
     Write-Verbose("Passed: $Machine_Name")
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation
-    $pagefile = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PageFileSetting
+    $pagefile = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($pagefile -ne $null) 
     { 
         if($pagefile.GetType().Name -eq "ManagementObject")
@@ -735,102 +845,119 @@ param(
     return $page_obj
 }
 
-#TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/168
-Function Get-NICInformation {
-param(
-[Parameter(Mandatory=$true)][string]$MachineName,
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersion
-)
-
-    Write-VerboseOutput("Calling: Get-NICInformation")
-    Write-VerboseOutput("Passed: $MachineName")
-    Write-VerboseOutput("Passed: $OSVersion")
-
-    [array]$aNICObjects = @() 
-    if($OSVersion -ge [HealthChecker.OSVersionName]::Windows2012R2)
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-AllNicInformation/Get-AllNicInformation.ps1
+Function Get-AllNicInformation {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ComputerName,
+    [Parameter(Mandatory=$false)][bool]$Windows2012R2AndAbove = $true,
+    [Parameter(Mandatory=$false)][string]$ComputerFQDN,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-AllNicInformation")
+    Write-VerboseWriter("Passed [string]ComputerName: {0} | [bool]Windows2012R2AndAbove: {1} | [string]ComputerFQDN: {2}" -f $ComputerName, $Windows2012R2AndAbove, $ComputerFQDN)
+    
+    Function Get-NetworkCards {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ComputerName
+    )
+        try 
+        {
+            $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop 
+            $networkCards = Get-NetAdapter -CimSession $cimSession | Where-Object{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop
+            return $networkCards
+        }
+        catch 
+        {
+            Write-VerboseWriter("Failed to attempt to get Windows2012R2 or greater advanced NIC settings in Get-NetworkCards. Error {0}." -f $Error[0].Exception)
+            throw 
+        }
+    }
+    
+    Function Get-WmiNetworkCards {
+        return (Get-WmiObjectHandler -ComputerName $ComputerName -Class "Win32_NetworkAdapter" -Filter "NetConnectionStatus ='2'" -CatchActionFunction $CatchActionFunction)
+    }
+    
+    Function New-NICInformation {
+    param(
+    [array]$Adapters,
+    [bool]$Windows2012R2AndAbove = $true
+    )
+        if($Adapters -eq $null)
+        {
+            Write-VerboseWriter("Adapters are null in New-NICInformation. Returning a null object.")
+            return $null
+        }
+        [array]$nicObjects = @()
+        foreach($adapter in $Adapters)
+        {
+            if($Windows2012R2AndAbove){$descritpion = $adapter.InterfaceDescription}else {$descritpion = $adapter.Description}
+            if($Windows2012R2AndAbove){$driverVersion = $adapter.DriverVersionString}else {$driverVersion = [string]::Empty}
+            if($Windows2012R2AndAbove){$driverDate = $adapter.DriverDate}else{$driverDate = [DateTime]::MaxValue}
+            if($Windows2012R2AndAbove){$mtuSize = $adapter.MtuSize}else{$mtuSize = 0}
+            $nicInformationObj = New-Object PSCustomObject
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Name" -Value ($adapter.Name)
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "LinkSpeed" -Value ((($adapter.Speed)/1000000).ToString() + " Mbps")
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value $driverDate
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NICObject" -Value $adapter
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "IPv6Enabled" -Value $false
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Description" -Value $descritpion 
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value $driverVersion
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "MTUSize" -Value $mtuSize
+            $nicObjects += $nicInformationObj 
+        }
+        Write-VerboseWriter("Found {0} active adapters on the computer." -f $nicObjects.Count)
+        Write-VerboseWriter("Exiting: Get-AllNicInformation")
+        return $nicObjects 
+    }
+    
+    if($Windows2012R2AndAbove)
     {
-        Write-VerboseOutput("Detected OS Version greater than or equal to Windows 2012R2")
+        Write-VerboseWriter("Windows OS Version greater than or equal to Windows 2012R2. Going to run Get-NetAdapter")
         try 
         {
             try 
             {
-                $cimSession = New-CimSession -ComputerName $MachineName -ErrorAction Stop 
-                $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
+                $networkCards = Get-NetworkCards -ComputerName $ComputerName -ErrorAction Stop 
             }
             catch 
             {
-                Invoke-CatchActions
-                Write-VerboseOutput("Failed first attempt to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
-                Write-VerboseOutput("Going to attempt to get the FQDN from Get-ExchangeServer")
-                $fqdn = (Get-ExchangeServer $MachineName).FQDN 
-                $cimSession = New-CimSession -ComputerName $fqdn -ErrorAction Stop
-                $NetworkCards = Get-NetAdapter -CimSession $cimSession | ?{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop 
+                
+                if($CatchActionFunction -ne $null) {& $CatchActionFunction }
+                if($ComputerFQDN -ne $null -and $ComputerFQDN -ne [string]::Empty)
+                {
+                    Write-VerboseWriter("Going to attempt FQDN")
+                    $networkCards = Get-NetworkCards -ComputerName $ComputerFQDN
+                }
+                else {$bypassCatchAction = $true; Write-VerboseWriter("No FQDN was passed, going to rethrow error."); throw}
+                
             }
+            return (New-NICInformation -Adapters $networkCards)
         }
         catch 
         {
-            Invoke-CatchActions
-            Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
-            Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
-            Write-VerboseOutput("NOTE: this means we aren't able to provide the driver date")
-            $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
-            foreach($adapter in $NetworkCards2008)
-            {
-                [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
-                $nicObject.Description = $adapter.Description
-                $nicObject.Name = $adapter.Name
-                $nicObject.LinkSpeed = $adapter.Speed
-                $nicObject.NICObject = $adapter 
-                $nicObject.DriverDate = [DateTime]::MaxValue;
-                $aNICObjects += $nicObject
-            }
+            Write-VerboseWriter("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
+            Write-VerboseWriter("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
+            Write-VerboseWriter("NOTE: This means we aren't able to provide the driver date")
+            if(!$bypassCatchAction -and $CatchActionFunction -ne $null) {& $CatchActionFunction }
+            $wmiNetCards = Get-WmiNetworkCards -ComputerName $ComputerName 
+            return (New-NICInformation -Adapters $wmiNetCards -Windows2012R2AndAbove $false)
         }
-        foreach($adapter in $NetworkCards)
-        {
-            Write-VerboseOutput("Working on getting netAdapeterRSS information for adapter: " + $adapter.InterfaceDescription)
-            [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
-            try
-            {
-                $RSS_Settings = $adapter | Get-netAdapterRss -ErrorAction Stop
-                $nicObject.RSSEnabled = $RSS_Settings.Enabled
-            }
-            catch 
-            {
-                Invoke-CatchActions
-                Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
-                $nicObject.RSSEnabled = "NoRSS"
-            }
-            $nicObject.Description = $adapter.InterfaceDescription
-            $nicObject.DriverDate = $adapter.DriverDate
-            $nicObject.DriverVersion = $adapter.DriverVersionString
-            $nicObject.LinkSpeed = (($adapter.Speed)/1000000).ToString() + " Mbps"
-            $nicObject.Name = $adapter.Name
-            $nicObject.NICObject = $adapter 
-            $nicObject.MTUSize = $adapter.MtuSize
-            $aNICObjects += $nicObject
-        }
-
+    }
+    else 
+    {
+        Write-VerboseWriter("Windows OS Version is less than Windows 2012R2. Going to run Get-WmiObject.")
+        $wmiNetCards = Get-WmiNetworkCards -ComputerName $ComputerName
+        return (New-NICInformation -Adapters $wmiNetCards -Windows2012R2AndAbove $false)
     }
     
-    #Else we don't have all the correct powershell options to get more detailed information remotely 
-    else
-    {
-        Write-VerboseOutput("Detected OS Version less than Windows 2012R2")
-        $NetworkCards2008 = Get-WmiObject -ComputerName $MachineName -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
-        foreach($adapter in $NetworkCards2008)
-        {
-            [HealthChecker.NICInformation]$nicObject = New-Object -TypeName HealthChecker.NICInformation 
-            $nicObject.Description = $adapter.Description
-            $nicObject.Name = $adapter.Name
-            $nicObject.LinkSpeed = $adapter.Speed
-            $nicObject.NICObject = $adapter 
-            $aNICObjects += $nicObject
-        }
-
-    }
-
-    Write-VerboseOutput("Exiting: Get-NICInformation")
-    return $aNICObjects 
 }
 
 Function Get-HttpProxySetting {
@@ -841,8 +968,6 @@ param(
 	$httpProxy64 = [String]::Empty
 	Write-VerboseOutput("Calling: Get-HttpProxySetting")
 	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-	$orgErrorPref = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
     
     Function Get-WinHttpSettings {
     param(
@@ -863,39 +988,11 @@ param(
         return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
     }
 
-	try
-	{
-        $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-        $httpProxyPath64 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-        
-        if($Machine_Name -ne $env:COMPUTERNAME) 
-        {
-            Write-VerboseOutput("Calling Get-WinHttpSettings via Invoke-Command")
-            $httpProxy32 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath32
-            $httpProxy64 = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList $httpProxyPath64
-        }
-        else 
-        {
-            Write-VerboseOutput("Calling Get-WinHttpSettings via local session")
-            $httpProxy32 = Get-WinHttpSettings -RegistryLocation $httpProxyPath32
-            $httpProxy64 = Get-WinHttpSettings -RegistryLocation $httpProxyPath64
-        }
-		
-		
-        Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
-		Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
-	}
+    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 32 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 64 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
 
-	catch
-	{
-        Invoke-CatchActions
-		Write-Yellow("Warning: Unable to get the Http Proxy Settings for server {0}" -f $Machine_Name)
-	}
-	finally
-	{
-		$ErrorActionPreference = $orgErrorPref
-    }
-    
+    Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
+    Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
     Write-VerboseOutput("Exiting: Get-HttpProxySetting")
 
 	if($httpProxy32 -ne "<None>")
@@ -906,7 +1003,6 @@ param(
 	{
 		return $httpProxy64
 	}
-
 }
 
 Function Get-VisualCRedistributableVersion {
@@ -1121,17 +1217,7 @@ param(
             $argList = New-Object PSCustomObject
             $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
             
-            if($Machine_Name -ne $env:COMPUTERNAME)
-            {
-                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via Invoke-Command")
-                $results = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList
-            }
-            else 
-            {
-                Write-VerboseOutput("Calling Remote-GetFileVersionInfo via local session")
-                $results = Remote-GetFileVersionInfo -PassedObject $argList 
-            }
-            
+            $results = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList -ScriptBlockDescription "Calling Remote-GetFileVersionInfo" -CatchActionFunction ${Function:Invoke-CatchActions}
             return $results
         }
         catch 
@@ -1146,315 +1232,219 @@ param(
     }
 }
 
-#TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/170
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerRebootPending/Get-ServerRebootPending.ps1
 Function Get-ServerRebootPending {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-ServerRebootPending")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-
-    $PendingFileReboot = $false
-    $PendingAutoUpdateReboot = $false
-    $PendingCBSReboot = $false #Component-Based Servicing Reboot 
-    $PendingSCCMReboot = $false
-    $ServerPendingReboot = $false
-
-    #Pending File Rename operations 
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ServerName,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
     Function Get-PendingFileReboot {
-
-        $PendingFileKeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\"
-        $file = Get-ItemProperty -Path $PendingFileKeyPath -Name PendingFileRenameOperations
-        if($file)
+        try 
         {
-            return $true
-        }
-        return $false
-    }
-
-    Function Get-PendingAutoUpdateReboot {
-
-        if(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
-        {
-            return $true
-        }
-        return $false
-    }
-
-    Function Get-PendingCBSReboot {
-
-        if(Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
-        {
-            return $true
-        }
-        return $false
-    }
-
-    Function Get-PendingSCCMReboot {
-
-        $SCCMReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending'
-
-        if($SCCMReboot)
-        {
-            If($SCCMReboot.RebootPending -or $SCCMReboot.IsHardRebootPending)
+            if((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" -Name PendingFileRenameOperations -ErrorAction Stop))
             {
-                return $true
+                return $true 
+            }
+            else 
+            {
+                return $false 
             }
         }
-        return $false
+        catch 
+        {
+            throw 
+        }
     }
-
-    Function Execute-ScriptBlock{
-    param(
-    [Parameter(Mandatory=$true)][string]$Machine_Name,
-    [Parameter(Mandatory=$true)][scriptblock]$Script_Block,
-    [Parameter(Mandatory=$true)][string]$Script_Block_Name
-    )
-        Write-VerboseOutput("Calling Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        $returnValue = $false
+    Function Get-PendingSCCMReboot {
         try 
         {
-            $returnValue = Invoke-Command -ComputerName $Machine_Name -ScriptBlock $Script_Block
+            $sccmReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop 
+            if($sccmReboot -and ($sccmReboot.RebootPending -or $sccmReboot.IsHardRebootPending))
+            {
+                return $true 
+            }
         }
         catch 
         {
-            Write-VerboseOutput("Failed to run Invoke-Command for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            Invoke-CatchActions
+            throw 
         }
-        finally 
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-        return $returnValue
     }
-
-    Function Execute-LocalMethods {
+    Function Get-PathTestingReboot {
     param(
-    [Parameter(Mandatory=$true)][string]$Machine_Name,
-    [Parameter(Mandatory=$true)][ScriptBlock]$Script_Block,
-    [Parameter(Mandatory=$true)][string]$Script_Block_Name
+    [string]$TestingPath 
     )
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        $returnValue = $false
-        Write-VerboseOutput("Calling Local Script Block {0} for server {1}." -f $Script_Block_Name, $Machine_Name)
-        try 
+        if(Test-Path $TestingPath)
         {
-            $returnValue = & $Script_Block
+            return $true 
         }
-        catch 
+        else 
         {
-            Write-VerboseOutput("Failed to run local for Script Block {0} on Server {1} --- Note: This could be normal" -f $Script_Block_Name, $Machine_Name)
-            Invoke-CatchActions
-        }
-        finally 
-        {
-            $ErrorActionPreference = $oldErrorAction
-        }
-        return $returnValue
-    }
-
-    if($Machine_Name -eq $env:COMPUTERNAME)
-    {
-        Write-VerboseOutput("Calling Server Reboot Pending options via local session")
-        $PendingFileReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
-        $PendingAutoUpdateReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
-        $PendingCBSReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
-        $PendingSCCMReboot = Execute-LocalMethods -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
-    }
-    else 
-    {
-        Write-VerboseOutput("Calling Server Reboot Pending options via Invoke-Command")
-        $PendingFileReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingFileReboot} -Script_Block_Name "Get-PendingFileReboot"
-        $PendingAutoUpdateReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingAutoUpdateReboot} -Script_Block_Name "Get-PendingAutoUpdateReboot"
-        $PendingCBSReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingCBSReboot} -Script_Block_Name "Get-PendingCBSReboot"
-        $PendingSCCMReboot = Execute-ScriptBlock -Machine_Name $Machine_Name -Script_Block ${Function:Get-PendingSCCMReboot} -Script_Block_Name "Get-PendingSCCMReboot"
-    }
-
-    Write-VerboseOutput("Results - PendingFileReboot: {0} PendingAutoUpdateReboot: {1} PendingCBSReboot: {2} PendingSCCMReboot: {3}" -f $PendingFileReboot, $PendingAutoUpdateReboot, $PendingCBSReboot, $PendingSCCMReboot)
-    if($PendingFileReboot -or $PendingAutoUpdateReboot -or $PendingCBSReboot -or $PendingSCCMReboot)
-    {
-        $ServerPendingReboot = $true
-    }
-
-    Write-VerboseOutput("Exit: Get-ServerRebootPending")
-    return $ServerPendingReboot
-}
-
-Function Get-TLSSettingsFromRegistry {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.TLSVersion]$TLSVersion
-)
-    Write-VerboseOutput("Calling: Get-TLSSettingsFromRegistry")
-    $regBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
-    switch($TLSVersion)
-    {
-        ([HealthChecker.TLSVersion]::TLS10)
-        {
-            $version = "1.0"
-        }
-        ([HealthChecker.TLSVersion]::TLS11)
-        {
-            $version = "1.1"
-        }
-        ([HealthChecker.TLSVersion]::TLS12)
-        {
-            $version = "1.2"
+            return $false 
         }
     }
-
-    $regServer = $regBase -f $version, "Server"
-    $regClient = $regBase -f $version, "Client"
-    $serverEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled"
-    $serverDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault"
-    $clientEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled"
-    $clientDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault"
     
-    if($serverEnabled -eq $null)
+    Write-VerboseWriter("Calling: Get-ServerRebootPending")
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingFileReboot} -ScriptBlockDescription "Get-PendingFileReboot" -CatchActionFunction $CatchActionFunction)
     {
-        Write-Red("Failed to get TLS {0} Server Enabled Key on Server {1}. We are assuming that it is enabled." -f $version, $Machine_Name)
-        Write-Yellow("This can be normal on Windows Server 2008 R2.")
-        $serverEnabled = $true 
+        Write-VerboseWriter("Get-PendingFileReboot Determined Reboot is pending. Registry HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\ item properties of PendingFileRenameOperations.")
+        return $true 
     }
-    else 
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingSCCMReboot} -ScriptBlockDescription "Get-PendingSCCMReboot" -CatchActionFunction $CatchActionFunction)
     {
-        Write-VerboseOutput("Server Enabled Value {0}" -f $serverEnabled)
-        if($serverEnabled -eq 1)
-        {
-            $serverEnabled = $true 
-        }
-        else 
-        {
-            $serverEnabled = $false 
-        }
+        Write-VerboseWriter("Get-PendingSCCMReboot determined reboot is pending.")
+        return $true 
     }
-    if($serverDisabledByDefault -eq $null)
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction $CatchActionFunction -ArgumentList "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
     {
-        Write-VerboseOutput("Failed to get Server Disabled By Default value from registry. Setting to false")
-        $serverDisabledByDefault = $false 
+        Write-VerboseWriter("Get-PathTestingReboot for HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending determined reboot is pending")
+        return $true 
     }
-    else 
+    if(Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} -ScriptBlockDescription "Get-PendingAutoUpdateReboot" -CatchActionFunction $CatchActionFunction -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
     {
-        Write-VerboseOutput("Server Disabled By Default value {0}" -f $serverDisabledByDefault)
-        if($serverDisabledByDefault -eq 1)
-        {
-            $serverDisabledByDefault = $true 
-        }
-        else 
-        {
-            $serverDisabledByDefault = $false 
-        }
+        Write-VerboseWriter("Get-PathTestingReboot for HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired determined reboot is pending")
+        return $true 
     }
-    if($clientEnabled -eq $null)
-    {
-        Write-VerboseOutput("Failed to get Client Enabled Key on Server. Setting to true (Enabled) by default.")
-        $clientEnabled = $true 
-    }
-    else 
-    {
-        Write-VerboseOutput("Client Enabled value {0}" -f $clientEnabled)
-        if($clientEnabled -eq 1)
-        {
-            $clientEnabled = $true
-        }
-        else 
-        {
-            $clientEnabled = $false 
-        }
-    }
-    if($clientDisabledByDefault -eq $null)
-    {
-        Write-VerboseOutput("Failed to get Client Disabled By Default Key on Server. Setting to false.")
-        $clientDisabledByDefault = $false 
-    }
-    else 
-    {
-        Write-VerboseOutput("Client Disabled By Default value {0}" -f $clientDisabledByDefault)
-        if($clientDisabledByDefault -eq 1)
-        {
-            $clientDisabledByDefault = $true 
-        }
-        else 
-        {
-            $clientDisabledByDefault = $false 
-        }
-    }
-
-    $returnObj = New-Object pscustomobject 
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerEnabled" -Value $serverEnabled
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ServerDisabledByDefault" -Value $serverDisabledByDefault
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientEnabled" -Value $clientEnabled 
-    $returnObj | Add-Member -MemberType NoteProperty -Name "ClientDisabledByDefault" -Value $clientDisabledByDefault
-
-    Write-VerboseOutput("Exiting: Get-TLSSettingsFromRegistry")
-    return $returnObj
+    Write-VerboseWriter("Passed all reboot checks.")
+    return $false 
 }
 
-Function Get-TLSSettings{
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-TLSSettings")
-    $tlsSettings = @() 
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.0"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS10)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.1"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS11)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    $tlsObj = New-Object HealthChecker.TlsSettingInformation
-    $tlsObj.TLSName = "1.2"
-    $tlsResults = Get-TLSSettingsFromRegistry -Machine_Name $Machine_Name -TLSVersion ([HealthChecker.TLSVersion]::TLS12)
-    $tlsObj.ClientEnabled = $tlsResults.ClientEnabled
-    $tlsObj.ClientDisabledByDefault = $tlsResults.ClientDisabledByDefault
-    $tlsObj.ServerEnabled = $tlsResults.ServerEnabled
-    $tlsObj.ServerDisabledByDefault = $tlsResults.ServerDisabledByDefault
-    $tlsSettings += $tlsObj
-
-    Write-VerboseOutput("Exiting: Get-TLSSettings")
-    return $tlsSettings
-}
-
-Function Set-NetTLSDefaultVersions2010 {
-param(
-[Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthCheckerExchangeServer
-)
-    Write-VerboseOutput("Calling: Set-NetTLSDefaultVersions2010")
-    $regBase = "SOFTWARE\{0}\.NETFramework\v2.0.50727"
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
-    $HealthCheckerExchangeServer.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $HealthCheckerExchangeServer.ServerName -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
-    Write-VerboseOutput("Exiting: Set-NetTLSDefaultVersions2010")
-    return $HealthCheckerExchangeServer
-}
-
-Function Get-NetTLSDefaultVersions {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-NetTLSDefaultVersions")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-
-    $netTlsVersion = New-Object HealthChecker.NetDefaultTlsVersionInformation
-    $regBase = "SOFTWARE\{0}\.NETFramework\v4.0.30319"
-    $netTlsVersion.SystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Microsoft") -GetValue "SystemDefaultTlsVersions"
-    $netTlsVersion.WowSystemDefaultTlsVersions = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey ($regBase -f "Wow6432Node\Microsoft") -GetValue "SystemDefaultTlsVersions"
-    Write-VerboseOutput("Exiting: Get-NetTLSDefaultVersions")
-    return $netTlsVersion
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-AllTlsSettingsFromRegistry/Get-AllTlsSettingsFromRegistry.ps1
+Function Get-AllTlsSettingsFromRegistry {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$MachineName,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+    #>
+    
+    Write-VerboseWriter("Calling: Get-AllTlsSettingsFromRegistry")
+    Write-VerboseWriter("Passed: [string]MachineName: {0}" -f $MachineName)
+    
+    $registryBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
+    $tlsVersions = @("1.0","1.1","1.2")
+    
+    $tlsResults = @{}
+    $keyValues = ("Enabled","DisabledByDefault")
+    
+    Function Set-TLSMemberValue {
+    param(
+    [Parameter(Mandatory=$true)][string]$GetKeyType,
+    [Parameter(Mandatory=$false)][object]$KeyValue,
+    [Parameter(Mandatory=$true)][string]$ServerClientType,
+    [Parameter(Mandatory=$true)][string]$TlsVersion 
+    )
+        switch($GetKeyType)
+        {
+            "Enabled" {
+                if($KeyValue -eq $null)
+                {
+                    Write-VerboseWriter("Failed to get TLS {0} {1} Enabled Key on Server {2}. We are assuming this means it is enabled." -f $TlsVersion, $ServerClientType, $MachineName)
+                    return $true
+                }
+                else 
+                {
+                    Write-VerboseWriter("{0} Enabled Value '{1}'" -f $ServerClientType, $serverValue)
+                    if($KeyValue -eq 1)
+                    {
+                        return $true 
+                    }
+                    return $false 
+                }
+             }
+            "DisabledByDefault" {
+                if($KeyValue -ne $null)
+                {
+                    Write-VerboseWriter("Failed to get TLS {0} {1} Disabled By Default Key on Server {2}. Setting to false." -f $TlsVersion, $ServerClientType, $MachineName)
+                    return $false 
+                }
+                else 
+                {
+                    Write-VerboseWriter("{0} Disabled By Default Value '{1}'" -f $ServerClientType, $serverValue)
+                    if($KeyValue -eq 1)
+                    {
+                        return $true
+                    }
+                    return $false 
+                }
+            }
+        }
+    }
+    
+    Function Set-NETDefaultTLSValue {
+    param(
+    [Parameter(Mandatory=$false)][object]$KeyValue,
+    [Parameter(Mandatory=$true)][string]$NetVersion,
+    [Parameter(Mandatory=$true)][string]$KeyName
+    )
+        if($KeyValue -eq $null)
+        {
+            Write-VerboseWriter("Failed to get {0} registry value for .NET {1} version. Setting to false." -f $KeyName, $NetVersion)
+            return $false
+        }
+        else 
+        {
+            Write-VerboseWriter("{0} value '{1}'" -f $KeyName, $KeyValue)
+            if($KeyValue -eq 1)
+            {
+                return $true 
+            }
+            return $false 
+        }
+    }
+    
+    [hashtable]$allTlsObjects = @{}
+    foreach($tlsVersion in $tlsVersions)
+    {
+        $registryServer = $registryBase -f $tlsVersion, "Server" 
+        $registryClient = $registryBase -f $tlsVersion, "Client" 
+        $currentTLSObject = New-Object PSCustomObject 
+        $currentTLSObject | Add-Member -MemberType NoteProperty -Name "TLSVersion" -Value $tlsVersion
+    
+        foreach($getKey in $keyValues)
+        {
+            $memberServerName = "Server{0}" -f $getKey
+            $memberClientName = "Client{0}" -f $getKey 
+    
+            $serverValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $MachineName -SubKey $registryServer -GetValue $getKey -CatchActionFunction $CatchActionFunction
+            $clientValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $MachineName -SubKey $registryClient -GetValue $getKey -CatchActionFunction $CatchActionFunction
+    
+            $currentTLSObject | Add-Member -MemberType NoteProperty -Name $memberServerName -Value (Set-TLSMemberValue -GetKeyType $getKey -KeyValue $serverValue -ServerClientType "Server" -TlsVersion $tlsVersion)
+            $currentTLSObject | Add-Member -MemberType NoteProperty -Name $memberClientName -Value (Set-TLSMemberValue -GetKeyType $getKey -KeyValue $clientValue -ServerClientType "Client" -TlsVersion $tlsVersion)
+    
+        }
+        $allTlsObjects.Add($tlsVersion, $currentTLSObject)
+    }
+    
+    $netVersions = @("v2.0.50727","v4.0.30319")
+    $registryBase = "SOFTWARE\{0}\.NETFramework\{1}"
+    foreach($netVersion in $netVersions)
+    {
+        $currentNetTlsDefaultVersionObject = New-Object PSCustomObject 
+        $currentNetTlsDefaultVersionObject | Add-Member -MemberType NoteProperty -Name "NetVersion" -Value $netVersion
+    
+        $SystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $MachineName -SubKey ($registryBase -f "Microsoft", $netVersion) -GetValue "SystemDefaultTlsVersions" -CatchActionFunction $CatchActionFunction
+        $WowSystemDefaultTlsVersions = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $MachineName -SubKey ($registryBase -f "Wow6432Node\Microsoft", $netVersion) -GetValue "SystemDefaultTlsVersions" -CatchActionFunction $CatchActionFunction
+    
+        $currentNetTlsDefaultVersionObject | Add-Member -MemberType NoteProperty -Name "SystemDefaultTlsVersions" -Value (Set-NETDefaultTLSValue -KeyValue $SystemDefaultTlsVersions -NetVersion $netVersion -KeyName "SystemDefaultTlsVersions")
+        $currentNetTlsDefaultVersionObject | Add-Member -MemberType NoteProperty -Name "WowSystemDefaultTlsVersions" -Value (Set-NETDefaultTLSValue -KeyValue $WowSystemDefaultTlsVersions -NetVersion $netVersion -KeyName "WowSystemDefaultTlsVersions")
+        
+        $hashKeyName = "NET{0}" -f ($netVersion.Split(".")[0])
+        $allTlsObjects.Add($hashKeyName, $currentNetTlsDefaultVersionObject) 
+    }
+    
+    return $allTlsObjects
 }
 
 Function Get-OperatingSystemInformation {
@@ -1465,21 +1455,12 @@ param(
     Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.OperatingSystemInformation]$os_obj = New-Object HealthChecker.OperatingSystemInformation
-    $os = Get-WmiObject -ComputerName $Machine_Name -Class Win32_OperatingSystem
-    try
-    {
-        $plan = Get-WmiObject -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace root\cimv2\power -Filter "isActive='true'"
-    }
-    catch
-    {
-        Write-VerboseOutput("Unable to get power plan from the server")
-        Invoke-CatchActions
-        $plan = $null
-    }
+    $os = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $plan = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $temp_currentdate = Get-Date
     $temp_uptime = [Management.ManagementDateTimeConverter]::ToDateTime($os.lastbootuptime)
     $os_obj.OSVersionBuild = $os.Version
-    $os_obj.OSVersion = (Get-OperatingSystemVersion -OS_Version $os_obj.OSVersionBuild)
+    $os_obj.OSVersion = (Get-ServerOperatingSystemVersion -OSBuildNumberVersion $os_obj.OSVersionBuild)
     $os_obj.OperatingSystemName = $os.Caption
     $os_obj.OperatingSystem = $os
     $os_obj.BootUpTimeInDays = ($temp_currentdate - $temp_uptime).Days
@@ -1505,8 +1486,9 @@ param(
     }
     $os_obj.PowerPlan = $plan 
     $os_obj.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
-    $os_obj.NetworkAdaptersConfiguration = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True"
-    $os_obj.NetworkAdapters = (Get-NICInformation -MachineName $Machine_Name -OSVersion $os_obj.OSVersion)
+    $os_obj.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
+    if($os_obj.OSVersion -lt [HealthChecker.OSVersionName]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
+    $os_obj.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -Windows2012R2AndAbove $isWindows2012R2OrNewer -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
     foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
@@ -1539,9 +1521,9 @@ param(
         }
     }
 
-    $os_obj.DisabledComponents = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents"
-    $os_obj.TCPKeepAlive = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime"
-    $os_obj.MinimumConnectionTimeout = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout"
+    $os_obj.DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $os_obj.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $os_obj.MinimumConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
 	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
     $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
@@ -1551,109 +1533,132 @@ param(
     {
         $os_obj.PacketsReceivedDiscarded = $counterSamples
     }
-    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -Machine_Name $Machine_Name)
-    $os_obj.TimeZone = ([System.TimeZoneInfo]::Local).StandardName
-    $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
-    $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
+    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
+    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+    $os_obj.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $os_obj
 }
 
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerType/Get-ServerType.ps1
 Function Get-ServerType {
-param(
-[Parameter(Mandatory=$true)][string]$ServerType
-)
-    Write-VerboseOutput("Calling: Get-ServerType")
-    Write-VerboseOutput("Passed: $serverType")
-
-    if($ServerType -like "VMware*"){Write-VerboseOutput("Returned: VMware"); return [HealthChecker.ServerType]::VMWare}
-    elseif($ServerType -like "*Amazon EC2*"){Write-VerboseOutput("Returned: AmazonEC2"); return [HealthChecker.ServerType]::AmazonEC2}
-    elseif($ServerType -like "*Microsoft Corporation*"){Write-VerboseOutput("Returned: HyperV"); return [HealthChecker.ServerType]::HyperV}
-    elseif($ServerType.Length -gt 0) {Write-VerboseOutput("Returned: Physical"); return [HealthChecker.ServerType]::Physical}
-    else{Write-VerboseOutput("Returned: unknown") ;return [HealthChecker.ServerType]::Unknown}
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$ServerType 
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-ServerType")
+    $returnServerType = [string]::Empty
+    if($ServerType -like "VMware*") { $returnServerType = "VMware"}
+    elseif($ServerType -like "*Microsoft Corporation*") { $returnServerType = "HyperV" }
+    elseif($ServerType.Length -gt 0) {$returnServerType = "Physical"}
+    else { $returnServerType = "Unknown" }
     
+    Write-VerboseWriter("Returning: {0}" -f $returnServerType)
+    return $returnServerType 
 }
 
-
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ProcessorInformation/Get-ProcessorInformation.ps1
 Function Get-ProcessorInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-ProcessorInformation")
-    Write-VerboseOutput("Passed: $Machine_Name")
-    [HealthChecker.ProcessorInformation]$processor_info_object = New-Object HealthChecker.ProcessorInformation
-    $wmi_obj_processor = Get-WmiObject -ComputerName $Machine_Name -Class Win32_Processor
-    $object_Type = $wmi_obj_processor.Gettype().Name 
-    Write-VerboseOutput("Processor object type: $object_Type")
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][string]$MachineName,
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
     
-    #if it is a single processor 
-    if($object_Type -eq "ManagementObject") {
-        Write-VerboseOutput("single processor detected")
-        $processor_info_object.ProcessorName = $wmi_obj_processor.Name
-        $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor.MaxClockSpeed
-    }
-    else{
-        Write-VerboseOutput("multiple processor detected")
-        $processor_info_object.ProcessorName = $wmi_obj_processor[0].Name
-        $processor_info_object.MaxMegacyclesPerCore = $wmi_obj_processor[0].MaxClockSpeed
-    }
-
-    #Get the total number of cores in the processors 
-    Write-VerboseOutput("getting the total number of cores in the processor(s)")
-    foreach($processor in $wmi_obj_processor) 
+    Write-VerboseWriter("Calling: Get-ProcessorInformation")
+    $wmiObject = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction 
+    Write-VerboseWriter("Processor object type: {0}" -f ($wmiObjectType = $wmiObject.GetType().Name))
+    $multiProcessorsDetected = $false 
+    
+    if($wmiObjectType -eq "ManagementObject")
     {
-        $processor_info_object.NumberOfPhysicalCores += $processor.NumberOfCores 
-        $processor_info_object.NumberOfLogicalProcessors += $processor.NumberOfLogicalProcessors
-        $processor_info_object.NumberOfProcessors += 1 #may want to call Win32_ComputerSystem and use NumberOfProcessors for this instead.. but this should get the same results. 
-
-        #Test to see if we are throttling the processor 
-        if($processor.CurrentClockSpeed -lt $processor.MaxClockSpeed) 
-        {
-            Write-VerboseOutput("We see the processor being throttled")
-            $processor_info_object.CurrentMegacyclesPerCore = $processor.CurrentClockSpeed
-            $processor_info_object.ProcessorIsThrottled = $true 
-        }
-
-        if($processor.Name -ne $processor_info_object.ProcessorName -or $processor.MaxClockSpeed -ne $processor_info_object.MaxMegacyclesPerCore){$processor_info_object.DifferentProcessorsDetected = $true; Write-VerboseOutput("Different Processors are detected"); Write-Yellow("Warning: Different Processors are detected. This shouldn't occur")}
+        $processorName = $wmiObject.Name
+        $maxClockSpeed = $wmiObject.MaxClockSpeed 
+        $multiProcessorsDetected = $true 
     }
-
-	Write-VerboseOutput("Trying to get the System.Environment ProcessorCount")
-	$oldError = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
-    Function Get-ProcessorCount {
-        [System.Environment]::ProcessorCount
+    else 
+    {
+        $processorName = $wmiObject[0].Name 
+        $maxClockSpeed = $wmiObject[0].MaxClockSpeed 
     }
-	try
-	{
-        if($Machine_Name -ne $env:COMPUTERNAME)
+    
+    Write-VerboseWriter("Getting the total number of cores in the processor(s)")
+    $processorIsThrottled = $false 
+    $currentClockSpeed = 0
+    $previousProcessor = $null 
+    $differentProcessorsDetected = $false 
+    $differentProcessorCoreCountDetected = $false 
+    foreach($processor in $wmiObject)
+    {
+        $numberOfPhysicalCores += $processor.NumberOfCores 
+        $numberOfLogicalCores += $processor.NumberOfLogicalProcessors 
+        $numberOfProcessors++ 
+    
+        if($processor.CurrentClockSpeed -lt $processor.MaxClockSpeed)
         {
-            Write-VerboseOutput("Getting System.Environment ProcessorCount from Invoke-Command")
-            $processor_info_object.EnvProcessorCount = (
-                Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ProcessorCount}
-            )
+            Write-VerboseWriter("Processor is being throttled") 
+            $processorIsThrottled = $true 
+            $currentClockSpeed = $processor.CurrentClockSpeed 
         }
-        else 
+        if($previousProcessor -ne $null) 
         {
-            Write-VerboseOutput("Getting System.Environment ProcessorCount from local session")
-            $processor_info_object.EnvProcessorCount = Get-ProcessorCount
+            if($processor.Name -ne $previousProcessor.Name -or 
+            $processor.MaxClockSpeed -ne $previousProcessor.MaxMegacyclesPerCore)
+            {
+                Write-VerboseWriter("Different Processors are detected!!! This is an issue.")
+                $differentProcessorsDetected = $true
+            }
+            if($processor.NumberOfLogicalProcessors -ne $previousProcessor.NumberOfLogicalProcessors)
+            {
+                Write-VerboseWriter("Different Processor core count per processor socket detected. This is an issue.")
+                $differentProcessorCoreCountDetected = $true 
+            }
         }
-
-	}
-	catch
-	{
-        Invoke-CatchActions
-		Write-Red("Error: Unable to get Environment Processor Count on server {0}" -f $Machine_Name)
-		$processor_info_object.EnvProcessorCount = -1 
-	}
-	finally
-	{
-		$ErrorActionPreference = $oldError
-	}
-
-    $processor_info_object.Processor = $wmi_obj_processor
-    Write-VerboseOutput("Exiting: Get-ProcessorInformation")
-    return $processor_info_object
+        $previousProcessor = $processor
+    }
+    Write-VerboseWriter("NumberOfPhysicalCores: {0} | NumberOfLogicalCores: {1} | NumberOfProcessors: {2} | ProcessorIsThrottled: {3} | CurrentClockSpeed: {4} | DifferentProcessorsDetected: {5} | DifferentProcessorCoreCountDetected: {6}" -f $numberOfPhysicalCores,
+    $numberOfLogicalCores, $numberOfProcessors, $processorIsThrottled, $currentClockSpeed, $differentProcessorsDetected, $differentProcessorCoreCountDetected)
+    
+    $presentedProcessorCoreCount = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {[System.Environment]::ProcessorCount} -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" -CatchActionFunction $CatchActionFunction 
+    if($presentedProcessorCoreCount -eq $null) 
+    {
+        Write-VerboseWriter("Wasn't able to get Presented Processor Core Count on the Server. Setting to -1.")
+        $presentedProcessorCoreCount = -1 
+    }
+    else 
+    {
+        Write-VerboseWriter("Presented Processor Core Count: {0}" -f $presentedProcessorCoreCount)
+    }
+    
+    $processorInformationObject = New-Object PSCustomObject 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "Name" -Value $processorName
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfPhysicalCores" -Value $numberOfPhysicalCores
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfLogicalCores" -Value $numberOfLogicalCores
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "NumberOfProcessors" -Value $numberOfProcessors 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "MaxMegacyclesPerCore" -Value $maxClockSpeed
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "CurrentMegacyclesPerCore" -Value $currentClockSpeed
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "ProcessorIsThrottled" -Value $processorIsThrottled 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "DifferentProcessorsDetected" -Value $differentProcessorsDetected 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "DifferentProcessorCoreCountDetected" -Value $differentProcessorCoreCountDetected
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "EnvironmentProcessorCount" -Value $presentedProcessorCoreCount 
+    $processorInformationObject | Add-Member -MemberType NoteProperty -Name "ProcessorClassObject" -Value $wmiObject 
+    
+    Write-VerboseWriter("Exiting: Get-ProcessorInformation") 
+    return $processorInformationObject 
+    
 }
 
 Function Get-HardwareInformation {
@@ -1663,13 +1668,15 @@ param(
     Write-VerboseOutput("Calling: Get-HardwareInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObject -ComputerName $Machine_Name -Class Win32_ComputerSystem
+    $system = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $hardware_obj.Processor = Get-ProcessorInformation -Machine_Name $Machine_Name 
+    $processorInformation = Get-ProcessorInformation -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $hardware_obj.Processor = $processorInformation
+    $hardware_obj.Processor.ProcessorClassObject = $processorInformation.ProcessorClassObject #Need to do it this way otherwise the ProcessorClassObject will be empty for some reason.
     $hardware_obj.Model = $system.Model 
 
     Write-VerboseOutput("Exiting: Get-HardwareInformation")
@@ -1773,30 +1780,46 @@ param(
     Write-VerboseOutput("Calling: Get-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
     Write-VerboseOutput("Passed: $OSVersionName")
-    [int]$NetVersionKey = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release"
+    [int]$NetVersionKey = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
     [HealthChecker.NetVersionInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     Write-VerboseOutput("Exiting: Get-NetFrameWorkVersionObject")
     return $versionObject
 }
 
-Function Get-ExchangeVersion {
-param(
-[Parameter(Mandatory=$true)][object]$AdminDisplayVersion
-)
-    Write-VerboseOutput("Calling: Get-ExchangeVersion")
-    Write-VerboseOutput("Passed: " + $AdminDisplayVersion.ToString())
-    $iBuild = $AdminDisplayVersion.Major + ($AdminDisplayVersion.Minor / 10)
-    Write-VerboseOutput("Determing build based of of: " + $iBuild) 
-    switch($iBuild)
+Function Get-ExchangeMajorVersion {
+    [CmdletBinding()]
+    param(
+    [Parameter(Mandatory=$true)][object]$AdminDisplayVersion 
+    )
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-ExchangeMajorVersion")
+    Write-VerboseWriter("Passed: {0}" -f $AdminDisplayVersion.ToString())
+    if($AdminDisplayVersion.GetType().Name -eq "string")
     {
-        14.3 {Write-VerboseOutput("Returned: Exchange2010"); return [HealthChecker.ExchangeVersion]::Exchange2010}
-        15 {Write-VerboseOutput("Returned: Exchange2013"); return [HealthChecker.ExchangeVersion]::Exchange2013}
-        15.1{Write-VerboseOutput("Returned: Exchange2016"); return [HealthChecker.ExchangeVersion]::Exchange2016}
-        15.2{Write-VerboseOutput("Returned: Exchange2019"); return [HealthChecker.ExchangeVersion]::Exchange2019}
-        default {Write-VerboseOutput("Returned: Unknown"); return [HealthChecker.ExchangeVersion]::Unknown}
+        $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).split('.')
+        $build = [int]$split[0] + ($split[1] / 10)
     }
-
+    else 
+    {
+        $build = $AdminDisplayVersion.Major + ($AdminDisplayVersion.Minor / 10)
+    }
+    Write-VerboseWriter("Determing build based off of: {0}" -f $build)
+    $exchangeVersion = [string]::Empty
+    switch($build)
+    {
+        14.3 {$exchangeVersion = "Exchange2010"}
+        15 {$exchangeVersion = "Exchange2013"}
+        15.1 {$exchangeVersion = "Exchange2016"}
+        15.2 {$exchangeVersion = "Exchange2019"}
+        default {$exchangeVersion = "Unknown"}
+    }
+    Write-VerboseWriter("Returned: {0}" -f $exchangeVersion)
+    return $exchangeVersion 
 }
 
 Function Get-BuildNumberToString {
@@ -2301,34 +2324,19 @@ param(
         Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsScriptBlock")
         return $exchAppPools
     }
-    $exchangeAppPoolsInfo = @{}
-    if($Machine_Name -eq $env:COMPUTERNAME)
-    {
-        $exchangeAppPoolsInfo = Get-ExchangeAppPoolsScriptBlock
-    }
-    else 
-    {
-        try 
-        {
-            $exchangeAppPoolsInfo = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ErrorAction stop 
-        }
-        catch 
-        {
-            Write-VerboseOutput("Failed to execute invoke-commad for Get-ExchangeAppPoolsScriptBlock")
-            Invoke-CatchActions
-        }
-    }
+    $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
     return $exchangeAppPoolsInfo
 }
 
+#TODO V3.0: https://github.com/dpaulson45/HealthChecker/issues/179
 Function Get-MapiFEAppPoolGCMode{
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
 )
     Write-VerboseOutput("Calling: Get-MapiFEAppPoolGCMode")
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
-    $installPath = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath"
+    $installPath = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Setup\" -GetValue "MsiInstallPath" -CatchActionFunction ${Function:Invoke-CatchActions}
     $MapiConfig = ("{0}bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config" -f $installPath)
     Write-VerboseOutput("Mapi FE App Pool Config Location: {0}" -f $MapiConfig)
     $mapiGCMode = "Unknown"
@@ -2348,24 +2356,8 @@ param(
             Return "Unknown"    
         }
     }
-    try 
-    {
-        if($Machine_Name -ne $env:COMPUTERNAME)
-        {
-            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via Invoke-Command")
-            $mapiGCMode = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ArgumentList $MapiConfig
-        }
-        else 
-        {
-            Write-VerboseOutput("Calling Get-MapiConfigGCSetting via local session")
-            $mapiGCMode = Get-MapiConfigGCSetting -ConfigPath $MapiConfig    
-        }
-    }
-    catch
-    {
-        Invoke-CatchActions
-    }
 
+    $mapiGCMode = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-MapiConfigGCSetting} -ScriptBlockDescription "Getting Get-MapiConfigGCSetting" -ArgumentList $MapiConfig -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Returning GC Mode: {0}" -f $mapiGCMode)
     return $mapiGCMode
 }
@@ -2449,23 +2441,8 @@ param(
     Function Get-ExSetupDetailsScriptBlock {
         Get-Command ExSetup | ForEach-Object{$_.FileVersionInfo}
     }
-    if($Machine_Name -ne $env:COMPUTERNAME)
-    {
-        Write-VerboseOutput("Getting ExSetup remotely")
-        try 
-        {
-            $exSetupDetails = Invoke-Command -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ErrorAction Stop
-        }
-        catch 
-        {
-            Write-VerboseOutput("Failed to get ExSetupDetails from server {0}" -f $Machine_Name)
-            Invoke-CatchActions
-        }
-    }
-    else 
-    {
-        $exSetupDetails = Get-ExSetupDetailsScriptBlock 
-    }
+
+    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExSetupDetails")
     return $exSetupDetails
 }
@@ -2482,7 +2459,7 @@ param(
 
     [HealthChecker.ExchangeInformation]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
-    $exchInfoObject.ExchangeVersion = (Get-ExchangeVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
+    $exchInfoObject.ExchangeVersion = (Get-ExchangeMajorVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
     $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
     $exchInfoObject.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $Machine_Name) 
 
@@ -2572,10 +2549,6 @@ param(
     $HealthExSvrObj.HardwareInfo = Get-HardwareInformation -Machine_Name $Machine_Name 
     $HealthExSvrObj.OSVersion = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
     $HealthExSvrObj = Get-ExchangeInformation -HealthExSvrObj $HealthExSvrObj
-    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
-    {
-        $HealthExSvrObj = Set-NetTLSDefaultVersions2010 -HealthCheckerExchangeServer $HealthExSvrObj
-    }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
@@ -2929,7 +2902,7 @@ param(
 )
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel"
+    $RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel" -CatchActionFunction ${Function:Invoke-CatchActions}
     If ($RegValue)
     {
         Return $RegValue
@@ -3001,7 +2974,7 @@ param(
     #Check for CVE-2018-8581 vulnerability
     #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
     #Check if valuename DisableLoopbackCheck exists
-    $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck"
+    $RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck" -CatchActionFunction ${Function:Invoke-CatchActions}
     If ($RegValue)
     {
         Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
@@ -3016,8 +2989,8 @@ param(
     #If installed Exchange server release is prior to October 2018
     #KB2565063 should be installed to fix vulnerability
     
-    $KB2565063_RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" 
-    $KB2565063_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate"
+    $KB2565063_RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "DisplayVersion" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $KB2565063_RegValueInstallDate = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1D8E6291-B0D5-35EC-8441-6616F567A0F7}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     If ($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
@@ -3028,7 +3001,7 @@ param(
             If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
             {
 
-                $E15_RegValueInstallData = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate"
+                $E15_RegValueInstallData = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{CD981244-E9B8-405A-9026-6AEB9DCEF1F1}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
                 If ($E15_RegValueInstallData -ne $null -and $E15_RegValueInstallData -ne [string]::Empty)
                 {
@@ -3067,7 +3040,7 @@ param(
         If (($KB2565063_RegValue -ne $null) -and ($KB2565063_RegValue -match "10.0.40219"))
         {
 
-            $E2010_RegValueInstallDate = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate"
+            $E2010_RegValueInstallDate = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{4934D1EA-BE46-48B1-8847-F1AF20E892C1}" -GetValue "InstallDate" -CatchActionFunction ${Function:Invoke-CatchActions}
 
             If ($E2010_RegValueInstallDate -ne $null -and $E2010_RegValueInstallDate -ne [string]::Empty)
             {
@@ -4003,26 +3976,26 @@ param(
     #Processor Information#
     #######################
     Write-Grey("Processor/Memory Information")
-    Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.ProcessorName)
+    Write-Grey("`tProcessor Type: " + $HealthExSvrObj.HardwareInfo.Processor.Name)
     Function Check-MaxCoresCount {
     param(
     [Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
     )
         if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2019 -and 
-        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48)
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 48)
         {
             Write-Red("`tError: More than 48 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-2019-Public-Preview/ba-p/608158")
         }
         elseif(($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -or 
         $HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016) -and 
-        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+        $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24)
         {
             Write-Red("`tError: More than 24 cores detected, this goes against best practices. For details see `r`n`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-How-big-is-too-BIG/ba-p/603855")
         }
     }
 
     #First, see if we are hyperthreading
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
         #Hyperthreading enabled 
         Write-Red("`tHyper-Threading Enabled: Yes --- Error: Having Hyper-Threading enabled goes against best practices. Please disable as soon as possible.")
@@ -4031,7 +4004,7 @@ param(
             Write-Red("`t`tError: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/")
         }
         #AMD might not have the correct logic here. Throwing warning about this. 
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        if($HealthExSvrObj.HardwareInfo.Processor.Name.StartsWith("AMD"))
         {
             Write-Yellow("`tThis script may incorrectly report that Hyper-Threading is enabled on certain AMD processors.  Check with the manufacturer to see if your model supports SMT.")
         }
@@ -4065,27 +4038,27 @@ param(
     }
 
     #Core count
-    if(($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and 
+    if(($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24 -and 
     $HealthExSvrObj.ExchangeInformation.ExchangeVersion -lt [HealthChecker.ExchangeVersion]::Exchange2019) -or 
-    ($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 48))
+    ($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 48))
     {
         Write-Yellow("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-        Write-Yellow("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+        Write-Yellow("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
     }
     else
     {
         Write-Green("`tNumber of Physical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
-        Write-Green("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+        Write-Green("`tNumber of Logical Cores: " + $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
     }
 
     #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box. 
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			Write-Yellow("`tNUMA Group Size Optimization: Unable to determine --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server")
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			Write-Red("`tNUMA Group Size Optimization: BIOS Set to Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues.")
 		}
@@ -4096,11 +4069,11 @@ param(
 	}
 	else
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			Write-Yellow("`tAll Processor Cores Visible: Unable to determine --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues.")
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			Write-Red("`tAll Processor Cores Visible: Not all Processor Cores are visible to Exchange and this will cause a performance impact --- Error")
 		}
@@ -4227,23 +4200,33 @@ param(
     ################
 
     Write-Grey("`r`nTLS Settings:")
-    $detectedTLSMismatch = $false 
-    foreach($TLS in $HealthExSvrObj.OSVersion.TLSSettings)
+    $tlsVersions = @("1.0","1.1","1.2")
+    foreach($tlsKey in $tlsVersions)
     {
-        Write-Grey("`tTLS {0}" -f $TLS.TLSName)
-        Write-Grey("`tServer Enabled: {0}" -f $TLS.ServerEnabled)
-        Write-Grey("`tServer Disabled By Default: {0}" -f $TLS.ServerDisabledByDefault)
-        Write-Grey("`tClient Enabled: {0}" -f $TLS.ClientEnabled)
-        Write-Grey("`tClient Disabled by Default: {0}" -f $TLS.ClientDisabledByDefault)
-        if($TLS.ServerEnabled -ne $TLS.ClientEnabled)
+        $netKey = "NETv4"
+        if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
+        {
+            $netKey = "NETv2"
+        }
+        $currentTlsVersion = $HealthExSvrObj.OSVersion.TLSSettings[$tlsKey]
+        $currentNetVersion = $HealthExSvrObj.OSVersion.TLSSettings[$netKey]
+        Write-Grey("`tTLS {0}" -f $tlsKey)
+        Write-Grey("`tServer Enabled: {0}" -f $currentTlsVersion.ServerEnabled)
+        Write-Grey("`tServer Disabled By Default: {0}" -f $currentTlsVersion.ServerDisabledByDefault)
+        Write-Grey("`tClient Enabled: {0}" -f $currentTlsVersion.ClientEnabled)
+        Write-Grey("`tClient Disabled By Default: {0}" -f $currentTlsVersion.ClientDisabledByDefault)
+        if($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled)
         {
             Write-Red("`t`tError: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.")
             $detectedTLSMismatch = $true 
         }
-        if(($TLS.TLSName -eq "1.0" -or $TLS.TLSName -eq "1.1") -and
-            ($TLS.ServerEnabled -eq $false -or $TLS.ClientEnabled -eq $false -or 
-            $TLS.ServerDisabledByDefault -or $TLS.ClientDisabledByDefault) -and
-            ($HealthExSvrObj.OSVersion.NetDefaultTlsVersion.SystemDefaultTlsVersions -eq $false -or $HealthExSvrObj.OSVersion.NetDefaultTlsVersion.WowSystemDefaultTlsVersions -eq $false)) 
+        if(($tlsKey -eq "1.0" -or $tlsKey -eq "1.1") -and 
+            ($currentTlsVersion.ServerEnabled -eq $false -or 
+            $currentTlsVersion.ClientEnabled -eq $false -or 
+            $currentTlsVersion.ServerDisabledByDefault -or 
+            $currentTlsVersion.ClientDisabledByDefault) -and 
+            ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
+            $currentNetVersion.WowSystemDefaultTlsVersions -eq $false))
             {
                 Write-Red("`t`tError: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
             }
@@ -4546,11 +4529,11 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
     #######################
     #Processor Information#
     #######################
-    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
+    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.Name
     #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
-        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+        if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
             $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
         }
@@ -4559,9 +4542,9 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
             $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
         }
     }
-    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
+    elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
+        if($HealthExSvrObj.HardwareInfo.Processor.Name.StartsWith("AMD"))
         {
             $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Enabled"
         }
@@ -4577,23 +4560,23 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
 
     $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors
 
-    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
+    if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores -gt 24)
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores
     }
     else
     {
         $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores
     }
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Undetermined"
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Clustered"
 		}
@@ -4604,11 +4587,11 @@ Function Get-HealthCheckerExchangeServerHtmlInformation
 	}
 	else
 	{
-		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
+		if($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -eq -1)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Undetermined"
 		}
-		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
+		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvironmentProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalCores)
 		{
 			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "No"
 		}
@@ -5063,9 +5046,9 @@ Function New-HtmlServerReport {
         $ServerDetailsHtmlTable += "<tr><td>Page File Size</td><td>$($ServerArrayItem.PagefileSize)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>.Net Version Installed</td><td>$($ServerArrayItem.DotNetVersion)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>HTTP Proxy</td><td>$($ServerArrayItem.HTTPProxy)</td></tr>"
-        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.ProcessorName)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Processor</td><td>$($ServerArrayItem.Name)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Number of Processors</td><td>$($ServerArrayItem.NumberOfProcessors)</td></tr>"
-        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalProcessors)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
+        $ServerDetailsHtmlTable += "<tr><td>Logical/Physical Cores</td><td>$($ServerArrayItem.NumberOfLogicalCores)/$($ServerArrayItem.NumberOfPhysicalCores)</td></tr>"
         $ServerDetailsHtmlTable += "<tr><td>Max Speed Per Core</td><td>$($ServerArrayItem.MaxMegacyclesPerCore)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>NUMA Group Size</td><td>$($ServerArrayItem.NUMAGroupSize)</td></tr>"
 		$ServerDetailsHtmlTable += "<tr><td>All Procs Visible</td><td>$($ServerArrayItem.AllProcCoresVisible)</td></tr>"
@@ -5122,7 +5105,7 @@ param(
     $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
     try 
     {
-        $wmi_obj_processor = Get-WmiObject -Class Win32_Processor -ComputerName $Machine_Name
+        $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_Processor" -CatchActionFunction ${Function:Invoke-CatchActions}
 
         foreach($processor in $wmi_obj_processor)
         {
