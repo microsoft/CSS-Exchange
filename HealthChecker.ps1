@@ -4783,14 +4783,7 @@ Function Build-ServerObject
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
-        if($HealthExSvrObj.HardwareInfo.Processor.ProcessorName.StartsWith("AMD"))
-        {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Enabled"
-        }
-        else
-        {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name AMD_HyperThreading -Value "Disabled"
-        }
+        $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
     }
     else
     {
