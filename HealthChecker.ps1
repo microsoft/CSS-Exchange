@@ -3218,6 +3218,8 @@ param(
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.5 -CVEName "CVE-2019-0686","CVE-2019-0724"
             #CVE-2019-1084,CVE-2019-1136,CVE-2019-1137
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.8 -CVEName "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
+            #CVE-2019-1233,CVE-2019-1266
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1713.9 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	    }
 	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
 	    {
@@ -3225,6 +3227,8 @@ param(
 	        {
                 #CVE-2019-1084,CVE-2019-1136,CVE-2019-1137
 	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.4 -CVEName "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
+                #CVE-2019-1233,CVE-2019-1266
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.5 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	        }
 	    }
     }
@@ -3252,6 +3256,8 @@ param(
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.6 -CVEName "CVE-2019-0686","CVE-2019-0724"
             #CVE-2019-1084,CVE-2019-1137
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.9 -CVEName "CVE-2019-1084","CVE-2019-1137"
+            #CVE-2019-1233,CVE-2019-1266
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 330.10 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	    }
 	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
 	    {
@@ -3259,6 +3265,8 @@ param(
 	        {
                 #CVE-2019-1084,CVE-2019-1137
 	            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.5 -CVEName "CVE-2019-1084","CVE-2019-1137"
+                #CVE-2019-1233,CVE-2019-1266
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.6 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	        }
 	    }
     }
