@@ -572,19 +572,42 @@ param(
     {
         try 
         {
-            $currentSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $releaseInformation = (ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$apiUri/repos/$RepoOwner/$RepoName/releases/latest")))
+            $ScriptBlock = {
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest"))
+            }
+
+            $WebRequestJob = Start-Job -ScriptBlock $ScriptBlock -Name "WebRequestJob" -ArgumentList $ApiUri,$RepoOwner,$RepoName
+            do
+            {
+                $i++
+                if((Get-Job -Id $WebRequestJob.Id).State -eq "Completed")
+                {
+                    Write-VerboseOutput("WebRequest after {0} attempts successfully completed. Receiving results." -f $i)
+                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep
+                    Write-VerboseOutput("Removing background worker job")
+                    Remove-Job -Id $WebRequestJob.Id
+                    Break
+                }
+                else
+                {
+                    Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $i)
+                    if($i -eq 30)
+                    {
+                        Write-VerboseOutput("Reached 30 attempts. Removing background worker job.")
+                        Remove-Job -Id $WebRequestJob.Id
+                    }
+                    Start-Sleep -Seconds 1
+                }
+            }
+            while($i -lt 30)
         }
         catch 
         {
             Invoke-CatchActions
             Write-VerboseOutput("Failed to run Invoke-WebRequest")
         }
-        finally 
-        {
-            [Net.ServicePointManager]::SecurityProtocol = $currentSecurityProtocol
-        }
+
         if($releaseInformation -ne $null)
         {
             Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
