@@ -3340,7 +3340,7 @@ param(
         }
 	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22)
 	    {
-            #Do to supportability changes, we don't have security updates for both CU22 and CU21 so there is no need to check for this version
+            #Due to supportability changes, we don't have security updates for both CU22 and CU21 so there is no need to check for this version
 	        #CVE-2019-0686,CVE-2019-0724
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.3 -CVEName "CVE-2019-0686","CVE-2019-0724"
             #CVE-2019-0817,CVE-2019-0858
@@ -3348,10 +3348,12 @@ param(
 	        #ADV190018
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1473.5 -CVEName "ADV190018"
 	    }
-	    if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU23)
+	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23)
 	    {
             #CVE-2019-1084,CVE-2019-1136,CVE-2019-1137
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
+            #CVE-2019-1373
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.4 -CVEName "CVE-2019-1373"
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -3432,12 +3434,15 @@ param(
                 #CVE-2019-1233,CVE-2019-1266
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.5 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	        }
+            #CVE-2019-1373
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1779.7 -CVEName "CVE-2019-1373"
 	    }
 	    if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU14)
 	    {
 	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU14)
 	        {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2019-1373
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.5 -CVEName "CVE-2019-1373"
 	        }
 	    }
     }
@@ -3477,12 +3482,15 @@ param(
                 #CVE-2019-1233,CVE-2019-1266
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.6 -CVEName "CVE-2019-1233","CVE-2019-1266"
 	        }
+            #CVE-2019-1373
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 397.9 -CVEName "CVE-2019-1373"
 	    }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU3)
         {
             if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU3)
             {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2019-1373
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.7 -CVEName "CVE-2019-1373"
             }
         }
     }
