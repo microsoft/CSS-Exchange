@@ -3895,6 +3895,25 @@ param(
                         }
                         if(-not($foundFixKB))
                         {
+                            Write-VerboseOutput("Fixing update not detected offline - going to query Windows Update Catalog for any replacing update")
+                            $ReplacingServerUpdates = Get-ReplacingServerUpdates -KBNumber $KBHashTable[$key] -Timeout 10 -ReturnReplacingKBNumbersOnly
+                            if($ReplacingServerUpdates -ne $null)
+                            {
+                                foreach($fixKB in $HotFixInfo)
+                                {
+                                    foreach($ReplacingUpdate in $ReplacingServerUpdates)
+                                    {
+                                        if($fixKB -eq $ReplacingUpdate)
+                                        {
+                                            Write-VerboseOutput("Found {0} that fixes the issue" -f $ReplacingUpdate)
+                                            $foundFixKB = $true 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if(-not($foundFixKB))
+                        {
                             Write-Break
                             Write-Break
                             Write-Red("July Update detected: Error --- Problem {0} detected without the fix {1}. This can cause odd issues to occur on the system. See https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Issue-with-July-Updates-for-Windows-on-an-Exchange-Server/ba-p/608057" -f $key, ($KBHashTable[$key]))
@@ -3912,8 +3931,6 @@ param(
     {
         Write-VerboseOutput("No hotfixes were detected on the server")    
     }
-
-    
 }
 
 Function Display-KBHotfixCheck {
