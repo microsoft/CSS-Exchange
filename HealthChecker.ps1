@@ -1331,6 +1331,22 @@ param(
     return $FileVersion_obj
 }
 
+Function Get-WindowsUpdateHistory {
+    try
+    {
+        $WindowsUpdateSession = New-Object -ComObject Microsoft.Update.Session
+        $WindowsUpdateSearcher = $WindowsUpdateSession.CreateUpdateSearcher()
+        $WindowsUpdateHistoryCount = $WindowsUpdateSearcher.GetTotalHistoryCount()
+        $WindowsUpdateResults = $WindowsUpdateSearcher.QueryHistory(0, $WindowsUpdateHistoryCount)
+        return $WindowsUpdateResults
+    }
+    catch
+    {
+        Write-VerboseOutput("Failed to get Windows Update History")
+        Invoke-CatchActions   
+    }
+}
+
 Function Get-HotFixListInfo{
 param(
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
