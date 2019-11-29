@@ -1347,6 +1347,100 @@ Function Get-WindowsUpdateHistory {
     }
 }
 
+Function Get-ReplacingServerUpdates {
+param(
+[parameter(Mandatory=$true)][string]$KBNumber,
+[parameter(Mandatory=$true)][int]$Timeout,
+[parameter(Mandatory=$false)][switch]$ReturnReplacingKBNumbersOnly
+)
+    $ScriptBlock1 = {
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])"
+    }
+    $ScriptBlock2 = {
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])"
+    }
+
+    $WindowsCatalogCall1 = Start-Job -ScriptBlock $ScriptBlock1 -Name "WindowsCatalogCall1" -ArgumentList $KBNumber
+    do
+    {
+        $CatalogCall1Counter++
+        if((Get-Job -Id $WindowsCatalogCall1.Id).State -eq "Completed")
+        {
+            Write-VerboseOutput("WindowsCatalogCall1 after {0} attempts successfully completed. Receiving results..." -f $CatalogCall1Counter)
+            $WindowsCatalogKBInfo = Receive-Job -Id $WindowsCatalogCall1.Id -Keep
+            $WindowsCatalogUpdateId = $WindowsCatalogKBInfo.Links | Where-Object {$_.innerText -like "*Windows Server*x64*"}
+            Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
+            Remove-Job -Id $WindowsCatalogCall1.Id
+            Break
+        }
+        else
+        {
+            Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall1Counter)
+            if($CatalogCall1Counter -eq 30)
+            {
+                Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
+                Remove-Job -Id $WindowsCatalogCall1.Id
+                return $null
+                Break
+            }
+            Start-Sleep -Seconds 1
+        }
+    }
+    while($CatalogCall1Counter -lt $Timeout)
+
+    if($WindowsCatalogUpdateId.onclick -ne $null)
+    {
+        $WindowsCatalogCall2 = Start-Job -ScriptBlock $ScriptBlock2 -Name "WindowsCatalogCall2" -ArgumentList $($WindowsCatalogUpdateId.onclick.Split('"')[1])
+        do
+        {
+            $CatalogCall2Counter++
+            if((Get-Job -Id $WindowsCatalogCall2.Id).State -eq "Completed")
+            {
+                Write-VerboseOutput("WindowsCatalogCall2 after {0} attempts successfully completed. Receiving results..." -f $CatalogCall2Counter)
+                $WindowsCatalogDetailsInfo = Receive-Job -Id $WindowsCatalogCall2.Id -Keep
+                $WindowsCatalogReplaceUpdates = $WindowsCatalogDetailsInfo.Links | Where-Object {$_.href -like "*updateid=*"}
+                Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall2.Name,$WindowsCatalogCall2.Id)
+                Remove-Job -Id $WindowsCatalogCall2.Id
+
+                if($ReturnReplacingKBNumbersOnly)
+                {
+                    $WindowsCatalogKBNumbersOnly = @()
+                    ForEach($Update in $WindowsCatalogReplaceUpdates)
+                    {
+                        $WindowsCatalogKBNumbersOnly += ($Update.outerText.split("(") -replace "[()]")[1]
+                    }
+                    return $WindowsCatalogKBNumbersOnly
+                    Break
+                }
+                else
+                {
+                    return $WindowsCatalogReplaceUpdates.outerText
+                    Break
+                }
+            }
+            else
+            {
+                Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall2Counter)
+                if($CatalogCall2Counter -eq 30)
+                {
+                    Write-VerboseOutput("Reached 30 attempts.")
+                    Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall2.Name,$WindowsCatalogCall2.Id)
+                    Remove-Job -Id $WindowsCatalogCall2.Id
+                    return $null
+                    Break
+                }
+                Start-Sleep -Seconds 1
+            }
+        }
+        while($CatalogCall2Counter -lt $Timeout)
+    }
+    else
+    {
+        Write-VerboseOutput("We did not found any update which replaces: {0}" -f $KBNumber)
+        return $null
+    }
+}
+
 Function Get-HotFixListInfo{
 param(
 [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
