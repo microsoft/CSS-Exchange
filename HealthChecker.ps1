@@ -744,30 +744,6 @@ Function Invoke-ScriptBlockHandler {
     }
 }
 
-Function Load-ExShell {
-	#Verify that we are on Exchange 2010 or newer 
-	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
-	{
-		#If we are on Exchange Server, we need to make sure that Exchange Management Snapin is loaded 
-		try
-		{
-			Get-ExchangeServer | Out-Null
-		}
-		catch
-		{
-            Invoke-CatchActions
-			Write-Host "Loading Exchange PowerShell Module..."
-			Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
-		}
-	}
-	else
-	{
-		Write-Host "Not on Exchange 2010 or newer. Going to exit."
-		sleep 2
-		exit
-	}
-}
-
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
 Function Confirm-ExchangeShell {
 [CmdletBinding()]
@@ -5392,7 +5368,6 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
-    #Load-ExShell
     if(!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} ))
     {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
