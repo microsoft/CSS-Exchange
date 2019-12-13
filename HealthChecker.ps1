@@ -490,11 +490,20 @@ $Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
 ############################################################
 
 Function Invoke-CatchActions{
+param(
+    [object]$CopyThisError
+)
 
     Write-VerboseOutput("Calling: Invoke-CatchActions")
     $Script:ErrorsExcludedCount++
-    $Script:ErrorsExcluded += $Error[0]
-
+    if($CopyThisError -eq $null)
+    {
+        $Script:ErrorsExcluded += $Error[0]
+    }
+    else 
+    {
+        $Script:ErrorsExcluded += $CopyThisError
+    }
 }
 
 Function Test-IsCurrentVersion {
@@ -764,9 +773,10 @@ Function Confirm-ExchangeShell {
 [CmdletBinding()]
 param(
 [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
-[Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true
+[Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
+[Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
 )
-#Function Version 1.3
+#Function Version 1.4
 <#
 Required Functions: 
     https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
@@ -791,15 +801,32 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
     catch 
     {
         Write-VerboseWriter("Failed to run Get-ExchangeServer")
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+            $watchErrors = $true
+        }
         if($LoadExchangeShell)
         {
             Write-HostWriter "Loading Exchange PowerShell Module..."
             try
             {
+                if($watchErrors)
+                {
+                    $currentErrors = $Error.Count
+                }
                 Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
                 Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
-                $passed = $true 
-                #We are just going to assume this passed. 
+                $passed = $true #We are just going to assume this passed. 
+                if($watchErrors)
+                {
+                    $index = 0
+                    while($index -lt ($Error.Count - $currentErrors))
+                    {
+                        & $CatchActionFunction $Error[$index]
+                        $index++
+                    }
+                } 
             }
             catch 
             {
@@ -5366,7 +5393,7 @@ param(
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
     #Load-ExShell
-    if(!(Confirm-ExchangeShell))
+    if(!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} ))
     {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
         exit
