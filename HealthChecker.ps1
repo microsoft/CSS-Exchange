@@ -451,6 +451,25 @@ Function Write-Break {
     Write-Host ""
 }
 
+#Function Version 1.1
+Function Write-HostWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString 
+)
+    if($Script:Logger -ne $null)
+    {
+        $Script:Logger.WriteHost($WriteString)
+    }
+    elseif($HostFunctionCaller -eq $null)
+    {
+        Write-Host $WriteString
+    }
+    else
+    {
+        &$HostFunctionCaller $WriteString    
+    }
+}
+    
 Function Write-VerboseWriter {
 param(
 [Parameter(Mandatory=$true)][string]$WriteString 
@@ -5346,7 +5365,12 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
-    Load-ExShell
+    #Load-ExShell
+    if(!(Confirm-ExchangeShell))
+    {
+        Write-Yellow("Failed to load Exchange Shell... stopping script")
+        exit
+    }
 }
 
 Function Get-ErrorsThatOccurred {
