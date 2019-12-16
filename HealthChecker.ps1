@@ -4033,6 +4033,12 @@ param(
     {
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
+            if($adapter.Description -eq "Remote NDIS Compatible Device")
+            {
+                #Ignoring this adapter as it is a remote managment network adapter for Dell Issue #230
+                Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+                continue;
+            }
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
                 $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
@@ -4089,6 +4095,12 @@ param(
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
+            if($adapter.Description -eq "Remote NDIS Compatible Device")
+            {
+                #Ignoring this adapter as it is a remote managment network adapter for Dell Issue #230
+                Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+                continue;
+            }
             Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
                 $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
