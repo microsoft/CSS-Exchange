@@ -107,7 +107,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.37.1"
+$healthCheckerVersion = "2.38.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -518,16 +518,59 @@ Function Write-Break {
     Write-Host ""
 }
 
+#Function Version 1.1
+Function Write-HostWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString 
+)
+    if($Script:Logger -ne $null)
+    {
+        $Script:Logger.WriteHost($WriteString)
+    }
+    elseif($HostFunctionCaller -eq $null)
+    {
+        Write-Host $WriteString
+    }
+    else
+    {
+        &$HostFunctionCaller $WriteString    
+    }
+}
+    
+Function Write-VerboseWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString 
+)
+    if($VerboseFunctionCaller -eq $null)
+    {
+            Write-Verbose $WriteString
+    }
+    else 
+    {
+        &$VerboseFunctionCaller $WriteString
+    }
+}
+
+$Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
 
 ############################################################
 ############################################################
 
 Function Invoke-CatchActions{
+param(
+    [object]$CopyThisError
+)
 
     Write-VerboseOutput("Calling: Invoke-Actions")
     $Script:ErrorsExcludedCount++
-    $Script:ErrorsExcluded += $Error[0]
-
+    if($CopyThisError -eq $null)
+    {
+        $Script:ErrorsExcluded += $Error[0]
+    }
+    else 
+    {
+        $Script:ErrorsExcluded += $CopyThisError
+    }
 }
 
 Function Test-IsCurrentVersion {
@@ -572,19 +615,42 @@ param(
     {
         try 
         {
-            $currentSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            $releaseInformation = (ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$apiUri/repos/$RepoOwner/$RepoName/releases/latest")))
+            $ScriptBlock = {
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest"))
+            }
+
+            $WebRequestJob = Start-Job -ScriptBlock $ScriptBlock -Name "WebRequestJob" -ArgumentList $ApiUri,$RepoOwner,$RepoName
+            do
+            {
+                $i++
+                if((Get-Job -Id $WebRequestJob.Id).State -eq "Completed")
+                {
+                    Write-VerboseOutput("WebRequest after {0} attempts successfully completed. Receiving results." -f $i)
+                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep
+                    Write-VerboseOutput("Removing background worker job")
+                    Remove-Job -Id $WebRequestJob.Id
+                    Break
+                }
+                else
+                {
+                    Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $i)
+                    if($i -eq 30)
+                    {
+                        Write-VerboseOutput("Reached 30 attempts. Removing background worker job.")
+                        Remove-Job -Id $WebRequestJob.Id
+                    }
+                    Start-Sleep -Seconds 1
+                }
+            }
+            while($i -lt 30)
         }
         catch 
         {
             Invoke-CatchActions
             Write-VerboseOutput("Failed to run Invoke-WebRequest")
         }
-        finally 
-        {
-            [Net.ServicePointManager]::SecurityProtocol = $currentSecurityProtocol
-        }
+
         if($releaseInformation -ne $null)
         {
             Write-VerboseOutput("We're online: {0} connected successfully." -f $uri)
@@ -649,28 +715,102 @@ param(
     return $returnGetValue
 }
 
-Function Load-ExShell {
-	#Verify that we are on Exchange 2010 or newer 
-	if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
-	{
-		#If we are on Exchange Server, we need to make sure that Exchange Management Snapin is loaded 
-		try
-		{
-			Get-ExchangeServer | Out-Null
-		}
-		catch
-		{
-            Invoke-CatchActions
-			Write-Host "Loading Exchange PowerShell Module..."
-			Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
-		}
-	}
-	else
-	{
-		Write-Host "Not on Exchange 2010 or newer. Going to exit."
-		sleep 2
-		exit
-	}
+#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
+Function Confirm-ExchangeShell {
+[CmdletBinding()]
+param(
+[Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
+[Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
+[Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+)
+#Function Version 1.4
+<#
+Required Functions: 
+    https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+    https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+#>
+    
+$passed = $false 
+Write-VerboseWriter("Calling: Confirm-ExchangeShell")
+Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
+$LoadExchangeVariables)
+#Test that we are on Exchange 2010 or newer
+if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
+(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+{
+    Write-VerboseWriter("We are on Exchange 2010 or newer")
+    try 
+    {
+        Get-ExchangeServer -ErrorAction Stop | Out-Null
+        Write-VerboseWriter("Exchange PowerShell Module already loaded.")
+        $passed = $true 
+    }
+    catch 
+    {
+        Write-VerboseWriter("Failed to run Get-ExchangeServer")
+        if($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+            $watchErrors = $true
+        }
+        if($LoadExchangeShell)
+        {
+            Write-HostWriter "Loading Exchange PowerShell Module..."
+            try
+            {
+                if($watchErrors)
+                {
+                    $currentErrors = $Error.Count
+                }
+                Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
+                $passed = $true #We are just going to assume this passed. 
+                if($watchErrors)
+                {
+                    $index = 0
+                    while($index -lt ($Error.Count - $currentErrors))
+                    {
+                        & $CatchActionFunction $Error[$index]
+                        $index++
+                    }
+                } 
+            }
+            catch 
+            {
+                Write-HostWriter("Failed to Load Exchange PowerShell Module...")
+            }
+        }
+    }
+    finally 
+    {
+        if($LoadExchangeVariables -and 
+            $passed)
+        {
+            if($exinstall -eq $null -or $exbin -eq $null)
+            {
+                if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
+                {
+                    $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
+                }
+                else
+                {
+                    $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
+                }
+    
+                $Global:exbin = $Global:exinstall + "\Bin"
+    
+                Write-VerboseWriter("Set exinstall: {0}" -f $Global:exinstall)
+                Write-VerboseWriter("Set exbin: {0}" -f $Global:exbin)
+            }
+        }
+    }
+}
+else 
+{
+    Write-VerboseWriter("Does not appear to be an Exchange 2010 or newer server.")
+}
+Write-VerboseWriter("Returned: {0}" -f $passed)
+return $passed
 }
 
 Function Is-Admin {
@@ -1189,6 +1329,116 @@ param(
     $FileVersion_obj.FullPath = $FullFilePath
     $FileVersion_obj.BuildVersion = $BuildVersion
     return $FileVersion_obj
+}
+
+Function Get-WindowsUpdateHistory {
+    try
+    {
+        $WindowsUpdateSession = New-Object -ComObject Microsoft.Update.Session
+        $WindowsUpdateSearcher = $WindowsUpdateSession.CreateUpdateSearcher()
+        $WindowsUpdateHistoryCount = $WindowsUpdateSearcher.GetTotalHistoryCount()
+        $WindowsUpdateResults = $WindowsUpdateSearcher.QueryHistory(0, $WindowsUpdateHistoryCount)
+        return $WindowsUpdateResults
+    }
+    catch
+    {
+        Write-VerboseOutput("Failed to get Windows Update History")
+        Invoke-CatchActions   
+    }
+}
+
+Function Get-ReplacingServerUpdates {
+param(
+[parameter(Mandatory=$true)][string]$KBNumber,
+[parameter(Mandatory=$true)][int]$Timeout,
+[parameter(Mandatory=$false)][switch]$ReturnReplacingKBNumbersOnly
+)
+    $ScriptBlock1 = {
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])"
+    }
+    $ScriptBlock2 = {
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])"
+    }
+
+    $WindowsCatalogCall1 = Start-Job -ScriptBlock $ScriptBlock1 -Name "WindowsCatalogCall1" -ArgumentList $KBNumber
+    do
+    {
+        $CatalogCall1Counter++
+        if((Get-Job -Id $WindowsCatalogCall1.Id).State -eq "Completed")
+        {
+            Write-VerboseOutput("WindowsCatalogCall1 after {0} attempts successfully completed. Receiving results..." -f $CatalogCall1Counter)
+            $WindowsCatalogKBInfo = Receive-Job -Id $WindowsCatalogCall1.Id -Keep
+            $WindowsCatalogUpdateId = $WindowsCatalogKBInfo.Links | Where-Object {$_.innerText -like "*Windows Server*x64*"}
+            Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
+            Remove-Job -Id $WindowsCatalogCall1.Id
+            Break
+        }
+        else
+        {
+            Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall1Counter)
+            if($CatalogCall1Counter -eq 30)
+            {
+                Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
+                Remove-Job -Id $WindowsCatalogCall1.Id
+                return $null
+                Break
+            }
+            Start-Sleep -Seconds 1
+        }
+    }
+    while($CatalogCall1Counter -lt $Timeout)
+
+    if($WindowsCatalogUpdateId.onclick -ne $null)
+    {
+        $WindowsCatalogCall2 = Start-Job -ScriptBlock $ScriptBlock2 -Name "WindowsCatalogCall2" -ArgumentList $($WindowsCatalogUpdateId.onclick.Split('"')[1])
+        do
+        {
+            $CatalogCall2Counter++
+            if((Get-Job -Id $WindowsCatalogCall2.Id).State -eq "Completed")
+            {
+                Write-VerboseOutput("WindowsCatalogCall2 after {0} attempts successfully completed. Receiving results..." -f $CatalogCall2Counter)
+                $WindowsCatalogDetailsInfo = Receive-Job -Id $WindowsCatalogCall2.Id -Keep
+                $WindowsCatalogReplaceUpdates = $WindowsCatalogDetailsInfo.Links | Where-Object {$_.href -like "*updateid=*"}
+                Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall2.Name,$WindowsCatalogCall2.Id)
+                Remove-Job -Id $WindowsCatalogCall2.Id
+
+                if($ReturnReplacingKBNumbersOnly)
+                {
+                    $WindowsCatalogKBNumbersOnly = @()
+                    ForEach($Update in $WindowsCatalogReplaceUpdates)
+                    {
+                        $WindowsCatalogKBNumbersOnly += ($Update.outerText.split("(") -replace "[()]")[1]
+                    }
+                    return $WindowsCatalogKBNumbersOnly
+                    Break
+                }
+                else
+                {
+                    return $WindowsCatalogReplaceUpdates.outerText
+                    Break
+                }
+            }
+            else
+            {
+                Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall2Counter)
+                if($CatalogCall2Counter -eq 30)
+                {
+                    Write-VerboseOutput("Reached 30 attempts.")
+                    Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall2.Name,$WindowsCatalogCall2.Id)
+                    Remove-Job -Id $WindowsCatalogCall2.Id
+                    return $null
+                    Break
+                }
+                Start-Sleep -Seconds 1
+            }
+        }
+        while($CatalogCall2Counter -lt $Timeout)
+    }
+    else
+    {
+        Write-VerboseOutput("We did not found any update which replaces: {0}" -f $KBNumber)
+        return $null
+    }
 }
 
 Function Get-HotFixListInfo{
@@ -2022,7 +2272,8 @@ param(
         elseif($buildRevision -lt 330.6){if($buildRevision -gt 221.12){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
         elseif($buildRevision -lt 397.3){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
         elseif($buildRevision -lt 464.5){if($buildRevision -gt 397.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU2}
-        elseif($buildRevision -ge 464.5){if($buildRevision -gt 464.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU3}
+        elseif($buildRevision -lt 529.5){if($buildRevision -gt 464.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU3}
+        elseif($buildRevision -ge 529.5){if($buildRevision -gt 529.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU4}
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
@@ -2043,7 +2294,8 @@ param(
         elseif($buildRevision -lt 1713.5) {if($buildRevision -gt 1591.10){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU11}
         elseif($buildRevision -lt 1779.2) {if($buildRevision -gt 1713.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU12}
         elseif($buildRevision -lt 1847.3) {if($buildRevision -gt 1779.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU13}
-        elseif($buildRevision -ge 1847.3) {if($buildRevision -gt 1847.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU14}
+        elseif($buildRevision -lt 1913.5) {if($buildRevision -gt 1847.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU14}
+        elseif($buildRevision -ge 1913.5) {if($buildRevision -gt 1913.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU15}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -2113,8 +2365,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::Preview) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 Preview"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "07/24/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::RTM) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 RTM"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/22/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU1) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU1"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU2) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU2"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU2) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU2"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU3) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU3"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU4) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU4"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/17/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red("Error: Unknown Exchange 2019 Build was detected"); $tempObject.Error = $true; break;}
                 }
             }
@@ -2138,8 +2391,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU10) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU10"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/19/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU12) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU12"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU13) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU13"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU13) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU13"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU14) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU14"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU15) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU15"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/17/2019"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -3422,6 +3676,13 @@ param(
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.5 -CVEName "CVE-2019-1373"
 	        }
 	    }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15)
+        {
+	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU15)
+	        {
+                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+	        }
+        }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
     {
@@ -3468,6 +3729,13 @@ param(
             {
                 #CVE-2019-1373
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.7 -CVEName "CVE-2019-1373"
+            }
+        }
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4)
+        {
+            if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU4)
+            {
+                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
             }
         }
     }
@@ -3621,9 +3889,34 @@ param(
                             if($fixKB -eq ($KBHashTable[$key]))
                             {
                                 Write-VerboseOutput("Found {0} that fixes the issue" -f ($KBHashTable[$key]))
-                                $foundFixKB = $true 
+                                $foundFixKB = $true
+                                break;
                             }
 
+                        }
+                        if(-not($foundFixKB))
+                        {
+                            Write-VerboseOutput("Fixing update not detected offline - going to query Windows Update Catalog for any replacing update")
+                            $ReplacingServerUpdates = Get-ReplacingServerUpdates -KBNumber $KBHashTable[$key] -Timeout 10 -ReturnReplacingKBNumbersOnly
+                            if($ReplacingServerUpdates -ne $null)
+                            {
+                                foreach($ReplacingUpdate in $ReplacingServerUpdates)
+                                {
+                                    foreach($fixKB in $HotFixInfo)
+                                    {
+                                        if($fixKB -eq $ReplacingUpdate)
+                                        {
+                                            Write-VerboseOutput("Found {0} that fixes the issue" -f $ReplacingUpdate)
+                                            $foundFixKB = $true
+                                            break;
+                                        }
+                                    }
+                                    if($foundFixKB)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
                         }
                         if(-not($foundFixKB))
                         {
@@ -3644,8 +3937,6 @@ param(
     {
         Write-VerboseOutput("No hotfixes were detected on the server")    
     }
-
-    
 }
 
 Function Display-KBHotfixCheck {
@@ -4141,6 +4432,12 @@ param(
     {
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
+            if($adapter.Description -eq "Remote NDIS Compatible Device")
+            {
+                #Ignoring this adapter as it is a remote managment network adapter for Dell Issue #230
+                Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+                continue;
+            }
             Write-Grey(("`tInterface Description: {0} [{1}] " -f $adapter.Description, $adapter.Name))
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
                 $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
@@ -4197,6 +4494,12 @@ param(
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
+            if($adapter.Description -eq "Remote NDIS Compatible Device")
+            {
+                #Ignoring this adapter as it is a remote managment network adapter for Dell Issue #230
+                Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+                continue;
+            }
             Write-Grey("`tInterface Description: {0} [{1}]" -f $adapter.Description, $adapter.Name)
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical -or 
                 $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
@@ -5541,7 +5844,11 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
-    Load-ExShell
+    if(!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} ))
+    {
+        Write-Yellow("Failed to load Exchange Shell... stopping script")
+        exit
+    }
 }
 
 Function Get-ErrorsThatOccurred {
