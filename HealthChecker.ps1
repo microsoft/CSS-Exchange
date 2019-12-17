@@ -3889,7 +3889,8 @@ param(
                             if($fixKB -eq ($KBHashTable[$key]))
                             {
                                 Write-VerboseOutput("Found {0} that fixes the issue" -f ($KBHashTable[$key]))
-                                $foundFixKB = $true 
+                                $foundFixKB = $true
+                                break;
                             }
 
                         }
@@ -3899,15 +3900,20 @@ param(
                             $ReplacingServerUpdates = Get-ReplacingServerUpdates -KBNumber $KBHashTable[$key] -Timeout 10 -ReturnReplacingKBNumbersOnly
                             if($ReplacingServerUpdates -ne $null)
                             {
-                                foreach($fixKB in $HotFixInfo)
+                                foreach($ReplacingUpdate in $ReplacingServerUpdates)
                                 {
-                                    foreach($ReplacingUpdate in $ReplacingServerUpdates)
+                                    foreach($fixKB in $HotFixInfo)
                                     {
                                         if($fixKB -eq $ReplacingUpdate)
                                         {
                                             Write-VerboseOutput("Found {0} that fixes the issue" -f $ReplacingUpdate)
-                                            $foundFixKB = $true 
+                                            $foundFixKB = $true
+                                            break;
                                         }
+                                    }
+                                    if($foundFixKB)
+                                    {
+                                        break;
                                     }
                                 }
                             }
