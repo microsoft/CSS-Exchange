@@ -169,7 +169,7 @@ Param (
 
 )
 
-$scriptVersion = "2.11"
+$scriptVersion = "2.12"
 
 ###############################################
 #                                             #
@@ -848,7 +848,7 @@ Function Test-PossibleCommonScenarios {
     $MailboxProtocolLogs -or 
     $DefaultTransportLogging){$Script:AnyTransportSwitchesEnabled = $true}
 
-    if($ServerInfo)
+    if($ServerInfo -or $ManagedAvailability)
     {
         $Script:ExchangeServerInfo = $true 
     }
@@ -3082,6 +3082,11 @@ param(
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info 
             }
 
+            if($PassedInfo.ManagedAvailability)
+            {
+                $info = ($copyInfo -f ($Script:localExinstall + "\Logging\Monitoring"),($Script:RootCopyToDirectory + "\ManagedAvailabilityMonitoringLogs"))
+                $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info                
+            }
         }
         
         ############################################
@@ -3341,6 +3346,8 @@ param(
         {
             $obj | Add-Member -MemberType NoteProperty -Name HealthReport -Value (Get-HealthReport $server) 
             $obj | Add-Member -MemberType NoteProperty -Name ServerComponentState -Value (Get-ServerComponentState $server)
+            $obj | Add-Member -MemberType NoteProperty -Name serverMonitoringOverride -Value (Get-serverMonitoringOverride $server)
+            $obj | Add-Member -MemberType NoteProperty -Name ServerHealth -Value (Get-ServerHealth $server)
         }
 
         $serverObjects += $obj 
@@ -3547,6 +3554,9 @@ Function Write-ExchangeDataOnMachines {
                 $copyTo = "{0}\Config" -f $location 
                 $configFiles | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $copyTo}
 
+                $copyServerComponentStatesRegistryTo = "{0}\regServerComponentStates.TXT" -f $location 
+                reg query HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\ServerComponentStates /s > $copyServerComponentStatesRegistryTo
+
                 Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT ("{0}\{1}_ExchangeServer" -f $location, $env:COMPUTERNAME)
 
                 Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
@@ -3567,6 +3577,8 @@ Function Write-ExchangeDataOnMachines {
                 {
                     Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
                     Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
+                    Write-Data -DataIn $server.serverMonitoringOverride -FilePathNoEXT ("{0}\{1}_serverMonitoringOverride" -f $location, $env:COMPUTERNAME)
+                    Write-Data -DataIn $server.ServerHealth -FilePathNoEXT ("{0}\{1}_ServerHealth" -f $location, $env:COMPUTERNAME)                    
                 }
 
                 #Exchange Web App Pools 
