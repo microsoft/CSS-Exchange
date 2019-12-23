@@ -3277,6 +3277,8 @@ param(
     $ErrorActionPreference = "Stop"
     try 
     {
+        $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
+        $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
         if($PassedInfo.ByPass -ne $true)
         {
             Remote-Main
