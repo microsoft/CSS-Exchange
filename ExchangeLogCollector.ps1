@@ -251,106 +251,84 @@ Function Enter-YesNoLoopAction {
 }
 
 #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
-Function Confirm-ExchangeShell{
+Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
     [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
     [Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.1
-    Function Write-VerboseWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($InvokeCommandReturnWriteArray)
-        {
-            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-        }
-        elseif($VerboseFunctionCaller -eq $null)
-        {
-            Write-Verbose $WriteString
-        }
-        else 
-        {
-            &$VerboseFunctionCaller $WriteString
-        }
-    }
-        
-    Function Write-HostWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($InvokeCommandReturnWriteArray)
-        {
-            $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-        }
-        elseif($HostFunctionCaller -eq $null)
-        {
-            Write-Host $WriteString
-        }
-        else
-        {
-            &$HostFunctionCaller $WriteString    
-        }
-    }
-        
-    $passedVerboseFunctionCaller = $false
-    $passedHostFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-
+    #Function Version 1.5
+    <#
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
+    #>
+    
     $passed = $false 
     Write-VerboseWriter("Calling: Confirm-ExchangeShell")
-    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $LoadExchangeShell,
-    $LoadExchangeVariables,
-    $passedVerboseFunctionCaller,
-    $passedHostFunctionCaller)
+    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
+    $LoadExchangeVariables)
     #Test that we are on Exchange 2010 or newer
     if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
     (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
     {
         Write-VerboseWriter("We are on Exchange 2010 or newer")
-        $oldErrorActionPreference = $ErrorActionPreference
-        $ErrorActionPreference = "stop"
         try 
         {
-            Get-ExchangeServer | Out-Null
+            Get-ExchangeServer -ErrorAction Stop | Out-Null
+            Write-VerboseWriter("Exchange PowerShell Module already loaded.")
             $passed = $true 
         }
         catch 
         {
             Write-VerboseWriter("Failed to run Get-ExchangeServer")
+            if($CatchActionFunction -ne $null)
+            {
+                & $CatchActionFunction
+                $watchErrors = $true
+            }
             if($LoadExchangeShell)
             {
                 Write-HostWriter "Loading Exchange PowerShell Module..."
-                Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
-                $passed = $true 
+                try
+                {
+                    if($watchErrors)
+                    {
+                        $currentErrors = $Error.Count
+                    }
+                    Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
+                    $passed = $true #We are just going to assume this passed. 
+                    if($watchErrors)
+                    {
+                        $index = 0
+                        while($index -lt ($Error.Count - $currentErrors))
+                        {
+                            & $CatchActionFunction $Error[$index]
+                            $index++
+                        }
+                    } 
+                }
+                catch 
+                {
+                    Write-HostWriter("Failed to Load Exchange PowerShell Module...")
+                }
             }
         }
         finally 
         {
-            $ErrorActionPreference = $oldErrorActionPreference
-            if($LoadExchangeVariables)
+            if($LoadExchangeVariables -and 
+                $passed)
             {
-                if($exinstall -eq $null -or $exbin -eq $null)
+                if($ExInstall -eq $null -or $ExBin -eq $null)
                 {
-                    if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
-                    {
-                        $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
-                    }
-                    else
-                    {
-                        $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
-                    }
-
-                    $Global:exbin = $Global:exinstall + "\Bin"
-
-                    Write-VerboseWriter("Set exinstall: {0}" -f $Global:exinstall)
-                    Write-VerboseWriter("Set exbin: {0}" -f $Global:exbin)
+                    $Global:ExInstall = Get-ExchangeInstallDirectory 
+                    $Global:ExBin = $Global:ExInstall + "\Bin"
+    
+                    Write-VerboseWriter("Set ExInstall: {0}" -f $Global:ExInstall)
+                    Write-VerboseWriter("Set ExBin: {0}" -f $Global:ExBin)
                 }
             }
         }
@@ -362,7 +340,6 @@ Function Confirm-ExchangeShell{
     Write-VerboseWriter("Returned: {0}" -f $passed)
     return $passed
 }
-   
 
 #Function to test if you are an admin on the server
 #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Confirm-Administrator/Confirm-Administrator.ps1 
@@ -3782,7 +3759,7 @@ Function Main {
         Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator.") -ForegroundColor "Yellow"
         exit 
     }
-    if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}))
+    if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false))
     {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false 
         exit
