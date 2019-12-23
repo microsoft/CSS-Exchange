@@ -205,7 +205,7 @@ $display = @"
 
     if(-not($AcceptEULA))
     {
-        Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction {exit}
     }
 
 }
@@ -223,30 +223,17 @@ Function Enter-YesNoLoopAction {
     param(
     [Parameter(Mandatory=$true)][string]$Question,
     [Parameter(Mandatory=$true)][scriptblock]$YesAction,
-    [Parameter(Mandatory=$true)][scriptblock]$NoAction,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+    [Parameter(Mandatory=$true)][scriptblock]$NoAction
     )
     
-    #Function Version 1.0
-    Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
-        
-    $passedVerboseFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    #Function Version 1.2
+    <#
+    Required Functions:
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    
     Write-VerboseWriter("Calling: Enter-YesNoLoopAction")
-    Write-VerboseWriter("Passed: [string]Question: {0} | [bool]VerboseFunctionCaller: {1}" -f $Question, 
-    $passedVerboseFunctionCaller)
+    Write-VerboseWriter("Passed: [string]Question: {0}" -f $Question)
     
     do{
         $answer = Read-Host ("{0} ('y' or 'n')" -f $Question)
@@ -884,7 +871,7 @@ Function Test-NoSwitchesProvided {
     {
         Write-Host ""
         Write-ScriptHost -WriteString "WARNING: Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs." -ShowServer $false -ForegroundColor "Yellow"        
-        Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction {Write-Host "Okay moving on..."} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction {Write-Host "Okay moving on..."} -NoAction {exit} 
     }
 }
 
@@ -1226,7 +1213,7 @@ param(
         {
             Write-ScriptHost -ShowServer $false -WriteString ("{0}" -f $svr)
         }
-        Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction {exit} 
     }
     Write-ScriptDebug("Function Exit: Test-DiskSpace")
     return $passedServers
@@ -3874,7 +3861,7 @@ Function Main {
                 Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally as well. We can't continue with the data collection") -ForegroundColor "Yellow" 
                 exit 
             }
-            if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false} -VerboseFunctionCaller ${Function:Write-ScriptDebug}))
+            if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false}))
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
                 $Script:ValidServers = @($env:COMPUTERNAME)
