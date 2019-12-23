@@ -1144,7 +1144,7 @@ param(
     if($Servers.Count -eq 1 -and $Servers[0] -eq $env:COMPUTERNAME)
     {
         Write-ScriptDebug("Local server only check. Not going to invoke Start-JobManager")
-        $freeSpace = Get-FreeSpace -FilePath $Path -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $freeSpace = Get-FreeSpace -FilePath $Path
         if(Test-ServerDiskSpace -Server $Servers[0] -FreeSpace $freeSpace -CheckSize $CheckSize)
         {
             return $Servers[0]
@@ -1236,7 +1236,7 @@ param(
     #switch it to GB in size 
     $totalSizeGB = $totalSize / 1GB
     #Get the local free space again 
-    $freeSpace = Get-FreeSpace -FilePath $RootPath -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+    $freeSpace = Get-FreeSpace -FilePath $RootPath
     if($freeSpace -gt ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize))
     {
         Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
@@ -1449,48 +1449,18 @@ param(
     Function Get-FreeSpace {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$true)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        [Parameter(Mandatory=$true)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath
         )
-    
-    
-        #Function Version 1.0
-        Function Write-VerboseWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($VerboseFunctionCaller -eq $null)
-                {
-                    Write-Verbose $WriteString
-                }
-                else 
-                {
-                    &$VerboseFunctionCaller $WriteString
-                }
-            }
         
-            Function Write-HostWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($HostFunctionCaller -eq $null)
-                {
-                    Write-Host $WriteString
-                }
-                else
-                {
-                    &$HostFunctionCaller $WriteString    
-                }
-            }
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+        #Function Version 1.2
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+        #>
+        
         Write-VerboseWriter("Calling: Get-FreeSpace")
-        Write-VerboseWriter("Passed: [string]FilePath: {0} | [scriptblock]VerboseFunctionCaller: {1} | [scriptblock]HostFunctionCaller: {2}" -f $FilePath,
-        $passedVerboseFunctionCaller,
-        $passedHostFunctionCaller)
+        Write-VerboseWriter("Passed: [string]FilePath: {0}" -f $FilePath)
     
         Function Update-TestPath {
         param(
@@ -1513,13 +1483,11 @@ param(
                     Write-VerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
                     $itemTarget = $item.Target
                 }
-                else 
-                {
+                else {
                     Write-VerboseWriter("Path didn't appear to be a mount point target")    
                 }
             }
-            else 
-            {
+        else {
                 Write-VerboseWriter("Path isn't a true path yet.")
             }
             return $itemTarget    
@@ -1846,7 +1814,7 @@ param(
                 ($currentSizeCopy / 1GB), 
                 $Script:AdditionalFreeSpaceCushionGB,
                 $Script:CurrentFreeSpaceGB)
-                $freeSpace = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                $freeSpace = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory)
                 Write-ScriptDebug("True current free space: {0}" -f $freeSpace)
                 if($freeSpace -lt ($Script:CurrentFreeSpaceGB - .5))
                 {
@@ -2505,7 +2473,7 @@ param(
         $Script:TotalBytesSizeCopied = 0 
         $Script:TotalBytesSizeCompressed = 0 
         $Script:AdditionalFreeSpaceCushionGB = $PassedInfo.StandardFreeSpaceInGBCheckSize
-        $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory)
         $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:CurrentFreeSpaceGB
         $Script:localExinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
         #shortcut to Exbin directory (probably not really needed)
