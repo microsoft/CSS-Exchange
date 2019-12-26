@@ -1269,6 +1269,11 @@ param(
     exit 
 }
    
+Function Get-WritersToAddToScriptBlock {
+
+    $writersString = "Function Write-InvokeCommandReturnHostWriter { " + (${Function:Write-InvokeCommandReturnHostWriter}).ToString() + " } `n`n Function Write-InvokeCommandReturnVerboseWriter { " + (${Function:Write-InvokeCommandReturnVerboseWriter}).ToString() + " } `n`n#"
+    return $writersString 
+}
 
 ###############################################
 #                                             #
@@ -1544,59 +1549,23 @@ param(
         return $freeSpaceSize
     }
 
-    # Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Create-Folder/Create-Folder.ps1
-    Function Create-Folder {
+    # Template Master: https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/New-Folder/New-Folder.ps1
+    Function New-Folder {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$false)][string]$NewFolder,
+        [Alias("NewFolder")]
         [Parameter(Mandatory=$false)][array]$NewFolders,
         [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
-        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
-        [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject
         )
         
-        #Function Version 1.3
-        Function Write-VerboseWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($InvokeCommandReturnWriteArray)
-                {
-                    $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-                }
-                elseif($VerboseFunctionCaller -eq $null)
-                {
-                    Write-Verbose $WriteString
-                }
-                else 
-                {
-                    &$VerboseFunctionCaller $WriteString
-                }
-            }
-            
-            Function Write-HostWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($InvokeCommandReturnWriteArray)
-                {
-                    $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-                }
-                elseif($HostFunctionCaller -eq $null)
-                {
-                    Write-Host $WriteString
-                }
-                else
-                {
-                    &$HostFunctionCaller $WriteString    
-                }
-            }
-        
-        Function New-Folder {
+        #Function Version 1.4
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+        #>
+        Function New-Directory {
         param(
         [Parameter(Mandatory=$false)][string]$NewFolder
         )
@@ -1604,7 +1573,7 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
+                    Write-InvokeCommandReturnHostWriter -WriteString ("Creating Directory: {0}" -f $NewFolder) -ScopeLevel 2
                 }
                 [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
             }
@@ -1612,56 +1581,39 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
+                    Write-InvokeCommandReturnHostWriter -WriteString ("Directory {0} is already created!" -f $NewFolder) -ScopeLevel 2
                 }
             }
         }
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        $passedPassedParametersObject = $false
-        $passedMultipleFolders = $false 
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-        if($PassedParametersObject -ne $null){$passedPassedParametersObject = $true}
+        
         $stringArray = @() 
         if($PassedParametersObject -ne $null)
         {
-            if($PassedParametersObject.NewFolder -ne $null)
-            {
-                $NewFolder = $PassedParametersObject.NewFolder 
-            }
             if($PassedParametersObject.NewFolders -ne $null)
             {
                 $NewFolders = $PassedParametersObject.NewFolders
             }
+            else 
+            {
+                $NewFolders = $PassedParametersObject
+            }
             $InvokeCommandReturnWriteArray = $true 
         }
-        if($NewFolders -ne $null){$passedMultipleFolders = $true}
-        Write-VerboseWriter("Calling: Create-Folder")
-        Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [bool]InvokeCommandReturnWriteArray: {2} | [bool]PassedMultipleFolders: {3} | [object]PassedParametersObject: {4} | [scriptblock]VerboseFunctionCaller: {5} | [scriptblock]HostFunctionCaller: {6}" -f $NewFolder,
-        $IncludeDisplayCreate,
-        $InvokeCommandReturnWriteArray,
-        $passedMultipleFolders,
-        $passedPassedParametersObject,
-        $passedVerboseFunctionCaller,
-        $passedHostFunctionCaller)
-        
-        if($NewFolder -ne $null -and $NewFolders -eq $null)
+        if($NewFolders.Count -gt 1)
         {
-            Write-VerboseWriter("Creating a single folder")
-            New-Folder -NewFolder $NewFolder 
-        }
-        elseif($NewFolders -ne $null)
-        {
-            Write-VerboseWriter("Creating multiple folders")
-            foreach($newFolder in $NewFolders)
-            {
-                New-Folder -NewFolder $newFolder 
-            }
+            $verboseDisplayNewFolders = "Multiple ('{0}') Folders Passed" -f $NewFolders.Count
         }
         else 
         {
-            Write-HostWriter("Failed to provide valid options to create a folder.")
+            $verboseDisplayNewFolders = $NewFolders[0]
+        }
+        Write-InvokeCommandReturnVerboseWriter("Calling: New-Folder")
+        Write-InvokeCommandReturnVerboseWriter("Passed: [string]NewFolders: {0} | [bool]IncludeDisplayCreate: {1}" -f $verboseDisplayNewFolders,
+        $IncludeDisplayCreate)
+        
+        foreach($newFolder in $NewFolders)
+        {
+            New-Directory -NewFolder $newFolder
         }
         
         if($InvokeCommandReturnWriteArray)
@@ -1715,6 +1667,40 @@ param(
         else 
         {
             &$VerboseFunctionCaller $WriteString
+        }
+    }
+
+    #Function Version 1.0
+    Function Write-InvokeCommandReturnVerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString,
+    [int]$ScopeLevel = 1
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope $ScopeLevel 
+        }
+        else 
+        {
+            Write-VerboseWriter($WriteString)
+        }
+    }
+
+    #Function Version 1.0
+    Function Write-InvokeCommandReturnHostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString,
+    [int]$ScopeLevel = 1
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope $ScopeLevel 
+        }
+        else 
+        {
+            Write-HostWriter $WriteString
         }
     }
 
@@ -1850,7 +1836,7 @@ param(
     )   
         Write-ScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
         Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-        Create-Folder -NewFolder $CopyToThisLocation -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -IncludeDisplayCreate $true
+        New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
         if(Test-Path $LogPath)
         {
             $childItems = Get-ChildItem $LogPath -Recurse
@@ -1897,7 +1883,7 @@ param(
     )
         Write-ScriptDebug("Function Enter: Copy-LogsBasedOnTime")
         Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-        Create-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
 
         Function No-FilesInLocation {
         param(
@@ -1951,7 +1937,7 @@ param(
                 {
                     $newLogPath = $dir.FullName
                     $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
-                    Create-Folder -NewFolder $newCopyToThisLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                    New-Folder -NewFolder $newCopyToThisLocation -IncludeDisplayCreate $true
                     $files = Get-ChildItem $newLogPath| Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
                     if($files -eq $null)
                     {
@@ -2000,7 +1986,7 @@ param(
     )
         if(-not(Test-Path $CopyToLocation))
         {
-            Create-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            New-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true
         }
 
         if(Test-FreeSpace -FilePaths $ItemsToCopyLocation)
@@ -2121,7 +2107,7 @@ param(
     Function Save-ServerInfoData {
         Write-ScriptDebug("Function Enter: Save-ServerInfoData")
         $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
-        Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
 
         #Get MSInfo from server 
         msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
@@ -2601,7 +2587,7 @@ param(
     
         $strDirectory = $ObjLogman.RootPath
         $copyTo = $Script:RootCopyToDirectory + "\" + $folderName
-        Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
         if(Test-Path $strDirectory)
         {
             $wildExt = "*" + $objLogman.Ext
@@ -3074,7 +3060,7 @@ param(
             if($PassedInfo.QueueInformationThisServer -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $create = $Script:RootCopyToDirectory + "\Queue_Data"
-                Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                New-Folder -NewFolder $create -IncludeDisplayCreate $true
                 $saveLocation = $create + "\Current_Queue_Info"
                 Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.QueueData) -SaveToLocation $saveLocation
                 if($Script:localServerObject.Version -ge 15 -and $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath -ne $null)
@@ -3086,7 +3072,7 @@ param(
             if($PassedInfo.ReceiveConnectors)
             {
                 $create = $Script:RootCopyToDirectory + "\Connectors"
-                Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                New-Folder -NewFolder $create -IncludeDisplayCreate $true
                 $saveLocation = ($create + "\{0}_Receive_Connectors") -f $env:COMPUTERNAME
                 Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.ReceiveConnectorData) -SaveToLocation $saveLocation
             }
@@ -3616,9 +3602,12 @@ Function Write-ExchangeDataOnMachines {
             }
         }
 
-
+        Write-ScriptDebug("Getting New-Folder string to create Script Block")
+        $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating script block")
+        $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
         Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Exchange Data Write")
         Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Zipping the data")
@@ -3633,7 +3622,7 @@ Function Write-ExchangeDataOnMachines {
         }
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
         [array]$createFolders = @(("{0}\Config" -f $location),("{0}\WebAppPools" -f $location))
-        Create-Folder -NewFolders $createFolders -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolders $createFolders -IncludeDisplayCreate $true
         $passInfo = New-Object PSCustomObject 
         $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
         $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
@@ -3671,7 +3660,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         {
             $dagName = $data.DAGInfo.Name 
             $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
-            Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            New-Folder -NewFolder $create -IncludeDisplayCreate $true 
             $saveLocation = $create + "\{0}"
                             
             Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
@@ -3691,7 +3680,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     if($SendConnectors)
     {
         $create = $RootCopyToDirectory + "\Connectors"
-        Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $create -IncludeDisplayCreate $true
         $saveLocation = $create + "\Send_Connectors"
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
