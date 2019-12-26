@@ -1164,7 +1164,11 @@ param(
         $serverArgs += $obj
     }
 
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true -JobBatchName "Getting the free space for test disk space"
+    Write-ScriptDebug("Getting Get-FreeSpace string to create Script Block")
+    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+    Write-ScriptDebug("Creating Script Block")
+    $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Getting the free space for test disk space"
     $passedServers = @()
     foreach($server in $Servers)
     {
@@ -1454,19 +1458,32 @@ param(
     Function Get-FreeSpace {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$true)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath
+        [Parameter(Mandatory=$false)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath,
+        [Parameter(Mandatory=$false,Position=1)][object]$PassedObjectParameter
         )
         
-        #Function Version 1.2
+        #Function Version 1.3
         <#
         Required Functions:
-            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
-            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
         #>
+        if($PassedObjectParameter -ne $null)
+        {
+            if($PassedObjectParameter.FilePath -ne $null)
+            {
+                $FilePath = $PassedObjectParameter.FilePath
+            }
+            else 
+            {
+                $FilePath = $PassedObjectParameter
+            }
+            $InvokeCommandReturnWriteArray = $true 
+        }
+        $stringArray = @()
+        Write-InvokeCommandReturnVerboseWriter("Calling: Get-FreeSpace")
+        Write-InvokeCommandReturnVerboseWriter("Passed: [string]FilePath: {0}" -f $FilePath)
         
-        Write-VerboseWriter("Calling: Get-FreeSpace")
-        Write-VerboseWriter("Passed: [string]FilePath: {0}" -f $FilePath)
-    
         Function Update-TestPath {
         param(
         [Parameter(Mandatory=$true)][string]$FilePath 
@@ -1474,7 +1491,7 @@ param(
             $updateFilePath = $FilePath.Substring(0,$FilePath.LastIndexOf("\", $FilePath.Length - 2)+1)
             return $updateFilePath
         }
-    
+        
         Function Get-MountPointItemTarget{
         param(
         [Parameter(Mandatory=$true)][string]$FilePath 
@@ -1485,19 +1502,32 @@ param(
                 $item = Get-Item $FilePath
                 if($item.Target -like "Volume{*}\")
                 {
-                    Write-VerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
+                    Write-InvokeCommandReturnVerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
                     $itemTarget = $item.Target
                 }
                 else {
-                    Write-VerboseWriter("Path didn't appear to be a mount point target")    
+                    Write-InvokeCommandReturnVerboseWriter("Path didn't appear to be a mount point target")    
                 }
             }
-        else {
-                Write-VerboseWriter("Path isn't a true path yet.")
+            else {
+                Write-InvokeCommandReturnVerboseWriter("Path isn't a true path yet.")
             }
             return $itemTarget    
         }
-    
+        
+        Function Invoke-ReturnValue {
+        param(
+        [Parameter(Mandatory=$true)][int]$FreeSpaceSize
+        )
+            if($InvokeCommandReturnWriteArray)
+            {
+                $hashTable = @{"ReturnObject"=$freeSpaceSize}
+                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+                return $stringArray
+            }
+            return $FreeSpaceSize
+        }
+        
         $drivesList = Get-WmiObject Win32_Volume -Filter "drivetype = 3"
         $testPath = $FilePath
         $freeSpaceSize = -1 
@@ -1505,22 +1535,22 @@ param(
         {
             if($testPath -eq [string]::Empty)
             {
-                Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
-                break
+                Write-InvokeCommandReturnHostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+                return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
             }
-            Write-VerboseWriter("Trying to find path that matches path: {0}" -f $testPath)
+            Write-InvokeCommandReturnVerboseWriter("Trying to find path that matches path: {0}" -f $testPath)
             foreach($drive in $drivesList)
             {
                 if($drive.Name -eq $testPath)
                 {
-                    Write-VerboseWriter("Found a match")
+                    Write-InvokeCommandReturnVerboseWriter("Found a match")
                     $freeSpaceSize = $drive.FreeSpace / 1GB 
-                    Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
-                    return $freeSpaceSize
+                    Write-InvokeCommandReturnVerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                    return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                 }
-                Write-VerboseWriter("Drive name: '{0}' didn't match" -f $drive.Name)
+                Write-InvokeCommandReturnVerboseWriter("Drive name: '{0}' didn't match" -f $drive.Name)
             }
-    
+        
             $itemTarget = Get-MountPointItemTarget -FilePath $testPath
             if($itemTarget -ne [string]::Empty)
             {
@@ -1529,24 +1559,20 @@ param(
                     if($drive.DeviceID.Contains($itemTarget))
                     {
                         $freeSpaceSize = $drive.FreeSpace / 1GB 
-                        Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
-                        return $freeSpaceSize
+                        Write-InvokeCommandReturnVerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                        return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                     }
-                    Write-VerboseWriter("DeviceID didn't appear to match: {0}" -f $drive.DeviceID)
+                    Write-InvokeCommandReturnVerboseWriter("DeviceID didn't appear to match: {0}" -f $drive.DeviceID)
                 }
                 if($freeSpaceSize -eq -1)
                 {
-                    Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
-                    Write-HostWriter("This shouldn't have happened.")
-                    break
+                    Write-InvokeCommandReturnHostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+                    Write-InvokeCommandReturnHostWriter("This shouldn't have happened.")
+                    return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                 }
-        
             }
-    
             $testPath = Update-TestPath -FilePath $testPath
         }
-    
-        return $freeSpaceSize
     }
 
     # Template Master: https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/New-Folder/New-Folder.ps1
