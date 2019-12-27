@@ -2498,43 +2498,26 @@ param(
         [Parameter(Mandatory=$true)][string]$SaveToLocation,
         [Parameter(Mandatory=$false)][bool]$FormatList = $true,
         [Parameter(Mandatory=$false)][bool]$SaveTextFile = $true,
-        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
         
-        #Function Version 1.1
-        Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($InvokeCommandReturnWriteArray)
-            {
-            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-            }
-            elseif($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
+        #Function Version 1.3
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        #>
         
-        $passedVerboseFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
         Write-VerboseWriter("Calling: Save-DataToFile")
-        Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3} | [scriptblock]VerboseFunctionCaller: {4}" -f $SaveToLocation,
+        Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3}" -f $SaveToLocation,
         $FormatList,
         $SaveTextFile,
-        $SaveXMLFile,
-        $passedVerboseFunctionCaller)
+        $SaveXMLFile)
         
         $xmlSaveLocation = "{0}.xml" -f $SaveToLocation
         $txtSaveLocation = "{0}.txt" -f $SaveToLocation
         
-        if($DataIn -ne [string]::Empty -and $DataIn -ne $null)
+        if($DataIn -ne [string]::Empty -and 
+            $DataIn -ne $null)
         {
             if($SaveXMLFile)
             {
@@ -2557,6 +2540,7 @@ param(
         {
             Write-VerboseWriter("DataIn was an empty string. Not going to save anything.")
         }
+        Write-VerboseWriter("Returning from Save-DataToFile")
     }
 
     Function Save-DataInfoToFile {
@@ -2568,7 +2552,7 @@ param(
         [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
             [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug} -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
+            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
             $timer.Stop()
             Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
     }
