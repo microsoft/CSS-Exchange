@@ -463,7 +463,8 @@ param(
 
 Function Get-ExchangeBasicServerObject {
 param(
-[Parameter(Mandatory=$true)][string]$ServerName
+[Parameter(Mandatory=$true)][string]$ServerName,
+[Parameter(Mandatory=$false)][bool]$AddGetServerProperty = $false
 )
     Write-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
     Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
@@ -474,7 +475,11 @@ param(
         $exchServerObject = New-Object PSCustomObject 
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop 
-        $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+        if($AddGetServerProperty)
+        {
+            $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+        }
+        
     }
     catch {
         Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
@@ -489,8 +494,8 @@ param(
         return $failure
     }
 
-    $exchAdminDisplayVersion = $exchServerObject.ExchangeServer.AdminDisplayVersion
-    $exchServerRole = $exchServerObject.ExchangeServer.ServerRole 
+    $exchAdminDisplayVersion = $getExchangeServer.AdminDisplayVersion
+    $exchServerRole = $getExchangeServer.ServerRole 
     Write-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
     if($exchAdminDisplayVersion.GetType().Name -eq "string")
     {
@@ -3241,7 +3246,7 @@ param(
     $serverObjects = @()
     foreach($server in $Servers)
     {
-        $obj = Get-ExchangeBasicServerObject -ServerName $server 
+        $obj = Get-ExchangeBasicServerObject -ServerName $server -AddGetServerProperty $true 
 
         if($obj.Hub)
         {
