@@ -1168,7 +1168,7 @@ param(
     $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
     Write-ScriptDebug("Creating Script Block")
     $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Getting the free space for test disk space"
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Getting the free space for test disk space"
     $passedServers = @()
     foreach($server in $Servers)
     {
@@ -3295,44 +3295,20 @@ Function Start-JobManager {
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInVerboseFunction, 
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInCorrectFunction,
-    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false
     )
     
-    #Function Version 1.3
-    Function Write-VerboseWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($VerboseFunctionCaller -eq $null)
-        {
-            Write-Verbose $WriteString
-        }
-        else 
-        {
-            &$VerboseFunctionCaller $WriteString
-        }
-    }
-    
-    Function Write-HostWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($HostFunctionCaller -eq $null)
-        {
-            Write-Host $WriteString
-        }
-        else
-        {
-            &$HostFunctionCaller $WriteString    
-        }
-    }
-    
-    $passedVerboseFunctionCaller = $false
-    $passedHostFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+    #Function Version 1.5
+    <#
+    Required Functions:
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+    #>
+    <#
+        [array]ServersWithArguments
+            [string]ServerName
+            [object]ArgumentList #customized for your scriptblock
+    #>
     
     Function Write-ReceiveJobData {
     param(
@@ -3443,12 +3419,10 @@ Function Start-JobManager {
     
     [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
     Write-VerboseWriter("Calling Start-JobManager")
-    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3} | [scriptblock]VerboseFunctionCaller: {4} | [scriptblock]HostFunctionCaller: {5}" -f $DisplayReceiveJob,
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3}" -f $DisplayReceiveJob,
     $JobBatchName,
     $DisplayReceiveJobInVerboseFunction,
-    $NeedReturnData,
-    $passedVerboseFunctionCaller,
-    $passedHostFunctionCaller)
+    $NeedReturnData)
     
     Start-Jobs
     $data = Wait-JobsCompleted
@@ -3571,7 +3545,7 @@ Function Write-ExchangeDataOnMachines {
         $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
         Write-ScriptDebug("Creating Script Block")
         $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
     
         $serverListCreateDirectories = @() 
         $serverListDumpData = @() 
@@ -3622,15 +3596,15 @@ Function Write-ExchangeDataOnMachines {
         Write-ScriptDebug("Creating script block")
         $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
         Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Exchange Data Write")
-        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
+        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Zipping the data")
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
         Write-ScriptDebug("Creating script block")
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
-        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock $compressFolderScriptBlock -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
+        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock $compressFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
 
     }
     else 
