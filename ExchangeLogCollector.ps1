@@ -169,7 +169,7 @@ Param (
 
 )
 
-$scriptVersion = "2.12"
+$scriptVersion = "2.13"
 
 ###############################################
 #                                             #
@@ -205,7 +205,7 @@ $display = @"
 
     if(-not($AcceptEULA))
     {
-        Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction {exit}
     }
 
 }
@@ -223,30 +223,17 @@ Function Enter-YesNoLoopAction {
     param(
     [Parameter(Mandatory=$true)][string]$Question,
     [Parameter(Mandatory=$true)][scriptblock]$YesAction,
-    [Parameter(Mandatory=$true)][scriptblock]$NoAction,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+    [Parameter(Mandatory=$true)][scriptblock]$NoAction
     )
     
-    #Function Version 1.0
-    Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
-        
-    $passedVerboseFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
+    #Function Version 1.2
+    <#
+    Required Functions:
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+    
     Write-VerboseWriter("Calling: Enter-YesNoLoopAction")
-    Write-VerboseWriter("Passed: [string]Question: {0} | [bool]VerboseFunctionCaller: {1}" -f $Question, 
-    $passedVerboseFunctionCaller)
+    Write-VerboseWriter("Passed: [string]Question: {0}" -f $Question)
     
     do{
         $answer = Read-Host ("{0} ('y' or 'n')" -f $Question)
@@ -264,106 +251,84 @@ Function Enter-YesNoLoopAction {
 }
 
 #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
-Function Confirm-ExchangeShell{
+Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
     [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
     [Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.1
-    Function Write-VerboseWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($InvokeCommandReturnWriteArray)
-        {
-            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-        }
-        elseif($VerboseFunctionCaller -eq $null)
-        {
-            Write-Verbose $WriteString
-        }
-        else 
-        {
-            &$VerboseFunctionCaller $WriteString
-        }
-    }
-        
-    Function Write-HostWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($InvokeCommandReturnWriteArray)
-        {
-            $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-        }
-        elseif($HostFunctionCaller -eq $null)
-        {
-            Write-Host $WriteString
-        }
-        else
-        {
-            &$HostFunctionCaller $WriteString    
-        }
-    }
-        
-    $passedVerboseFunctionCaller = $false
-    $passedHostFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-
+    #Function Version 1.5
+    <#
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
+    #>
+    
     $passed = $false 
     Write-VerboseWriter("Calling: Confirm-ExchangeShell")
-    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1} | [scriptblock]VerboseFunctionCaller: {2} | [scriptblock]HostFunctionCaller: {3}" -f $LoadExchangeShell,
-    $LoadExchangeVariables,
-    $passedVerboseFunctionCaller,
-    $passedHostFunctionCaller)
+    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
+    $LoadExchangeVariables)
     #Test that we are on Exchange 2010 or newer
     if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
     (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
     {
         Write-VerboseWriter("We are on Exchange 2010 or newer")
-        $oldErrorActionPreference = $ErrorActionPreference
-        $ErrorActionPreference = "stop"
         try 
         {
-            Get-ExchangeServer | Out-Null
+            Get-ExchangeServer -ErrorAction Stop | Out-Null
+            Write-VerboseWriter("Exchange PowerShell Module already loaded.")
             $passed = $true 
         }
         catch 
         {
             Write-VerboseWriter("Failed to run Get-ExchangeServer")
+            if($CatchActionFunction -ne $null)
+            {
+                & $CatchActionFunction
+                $watchErrors = $true
+            }
             if($LoadExchangeShell)
             {
                 Write-HostWriter "Loading Exchange PowerShell Module..."
-                Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010
-                $passed = $true 
+                try
+                {
+                    if($watchErrors)
+                    {
+                        $currentErrors = $Error.Count
+                    }
+                    Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
+                    $passed = $true #We are just going to assume this passed. 
+                    if($watchErrors)
+                    {
+                        $index = 0
+                        while($index -lt ($Error.Count - $currentErrors))
+                        {
+                            & $CatchActionFunction $Error[$index]
+                            $index++
+                        }
+                    } 
+                }
+                catch 
+                {
+                    Write-HostWriter("Failed to Load Exchange PowerShell Module...")
+                }
             }
         }
         finally 
         {
-            $ErrorActionPreference = $oldErrorActionPreference
-            if($LoadExchangeVariables)
+            if($LoadExchangeVariables -and 
+                $passed)
             {
-                if($exinstall -eq $null -or $exbin -eq $null)
+                if($ExInstall -eq $null -or $ExBin -eq $null)
                 {
-                    if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
-                    {
-                        $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
-                    }
-                    else
-                    {
-                        $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
-                    }
-
-                    $Global:exbin = $Global:exinstall + "\Bin"
-
-                    Write-VerboseWriter("Set exinstall: {0}" -f $Global:exinstall)
-                    Write-VerboseWriter("Set exbin: {0}" -f $Global:exbin)
+                    $Global:ExInstall = Get-ExchangeInstallDirectory 
+                    $Global:ExBin = $Global:ExInstall + "\Bin"
+    
+                    Write-VerboseWriter("Set ExInstall: {0}" -f $Global:ExInstall)
+                    Write-VerboseWriter("Set ExBin: {0}" -f $Global:ExBin)
                 }
             }
         }
@@ -375,7 +340,6 @@ Function Confirm-ExchangeShell{
     Write-VerboseWriter("Returned: {0}" -f $passed)
     return $passed
 }
-   
 
 #Function to test if you are an admin on the server
 #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Confirm-Administrator/Confirm-Administrator.ps1 
@@ -499,7 +463,8 @@ param(
 
 Function Get-ExchangeBasicServerObject {
 param(
-[Parameter(Mandatory=$true)][string]$ServerName
+[Parameter(Mandatory=$true)][string]$ServerName,
+[Parameter(Mandatory=$false)][bool]$AddGetServerProperty = $false
 )
     Write-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
     Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
@@ -510,7 +475,11 @@ param(
         $exchServerObject = New-Object PSCustomObject 
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop 
-        $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+        if($AddGetServerProperty)
+        {
+            $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+        }
+        
     }
     catch {
         Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
@@ -525,8 +494,8 @@ param(
         return $failure
     }
 
-    $exchAdminDisplayVersion = $exchServerObject.ExchangeServer.AdminDisplayVersion
-    $exchServerRole = $exchServerObject.ExchangeServer.ServerRole 
+    $exchAdminDisplayVersion = $getExchangeServer.AdminDisplayVersion
+    $exchServerRole = $getExchangeServer.ServerRole 
     Write-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
     if($exchAdminDisplayVersion.GetType().Name -eq "string")
     {
@@ -884,7 +853,7 @@ Function Test-NoSwitchesProvided {
     {
         Write-Host ""
         Write-ScriptHost -WriteString "WARNING: Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs." -ShowServer $false -ForegroundColor "Yellow"        
-        Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction {Write-Host "Okay moving on..."} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction {Write-Host "Okay moving on..."} -NoAction {exit} 
     }
 }
 
@@ -1180,7 +1149,7 @@ param(
     if($Servers.Count -eq 1 -and $Servers[0] -eq $env:COMPUTERNAME)
     {
         Write-ScriptDebug("Local server only check. Not going to invoke Start-JobManager")
-        $freeSpace = Get-FreeSpace -FilePath $Path -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $freeSpace = Get-FreeSpace -FilePath $Path
         if(Test-ServerDiskSpace -Server $Servers[0] -FreeSpace $freeSpace -CheckSize $CheckSize)
         {
             return $Servers[0]
@@ -1200,7 +1169,11 @@ param(
         $serverArgs += $obj
     }
 
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock ${Function:Get-FreeSpace} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -NeedReturnData $true -DisplayReceiveJobInVerboseFunction $true -JobBatchName "Getting the free space for test disk space"
+    Write-ScriptDebug("Getting Get-FreeSpace string to create Script Block")
+    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+    Write-ScriptDebug("Creating Script Block")
+    $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
+    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Getting the free space for test disk space"
     $passedServers = @()
     foreach($server in $Servers)
     {
@@ -1226,7 +1199,7 @@ param(
         {
             Write-ScriptHost -ShowServer $false -WriteString ("{0}" -f $svr)
         }
-        Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction {exit} -VerboseFunctionCaller ${Function:Write-ScriptDebug}
+        Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction {exit} 
     }
     Write-ScriptDebug("Function Exit: Test-DiskSpace")
     return $passedServers
@@ -1272,7 +1245,7 @@ param(
     #switch it to GB in size 
     $totalSizeGB = $totalSize / 1GB
     #Get the local free space again 
-    $freeSpace = Get-FreeSpace -FilePath $RootPath -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+    $freeSpace = Get-FreeSpace -FilePath $RootPath
     if($freeSpace -gt ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize))
     {
         Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
@@ -1305,6 +1278,11 @@ param(
     exit 
 }
    
+Function Get-WritersToAddToScriptBlock {
+
+    $writersString = "Function Write-InvokeCommandReturnHostWriter { " + (${Function:Write-InvokeCommandReturnHostWriter}).ToString() + " } `n`n Function Write-InvokeCommandReturnVerboseWriter { " + (${Function:Write-InvokeCommandReturnVerboseWriter}).ToString() + " } `n`n#"
+    return $writersString 
+}
 
 ###############################################
 #                                             #
@@ -1317,55 +1295,31 @@ param(
 [Parameter(Mandatory=$true)][object]$PassedInfo
 )
 
-    
-    #Template Master https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Compress-Folder/Compress-Folder.ps1
+    #Template Master https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Compress-Folder/Compress-Folder.ps1    
     Function Compress-Folder {
     [CmdletBinding()]
     param(
-    [Parameter(Mandatory=$true)][string]$Folder,
+    [Parameter(Mandatory=$false)][string]$Folder,
     [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false,
     [Parameter(Mandatory=$false)][bool]$IncludeDisplayZipping = $true,
     [Parameter(Mandatory=$false)][bool]$ReturnCompressedLocation = $false,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    [Parameter(Mandatory=$false,Position=1)][object]$PassedObjectParameter
     )
         
-        #Function Version 1.2
-        Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
-        
-        Function Write-HostWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($HostFunctionCaller -eq $null)
-            {
-                Write-Host $WriteString
-            }
-            else
-            {
-                &$HostFunctionCaller $WriteString    
-            }
-        }
+        #Function Version 1.4
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+        #>
         
         Function Get-DirectorySize {
         param(
         [Parameter(Mandatory=$true)][string]$Directory,
         [Parameter(Mandatory=$false)][bool]$IsCompressed = $false 
         )
-            Write-VerboseWriter("Calling: Get-DirectorySize")
-            Write-VerboseWriter("Passed: [string]Directory: {0} | [bool]IsCompressed: {1}" -f $Directory, $IsCompressed)
+            Write-InvokeCommandReturnVerboseWriter("Calling: Get-DirectorySize") 
+            Write-InvokeCommandReturnVerboseWriter("Passed: [string]Directory: {0} | [bool]IsCompressed: {1}" -f $Directory, $IsCompressed)
             $itemSize = 0
             if($IsCompressed)
             {
@@ -1383,29 +1337,23 @@ param(
         }
         Function Enable-IOCompression
         {
-            $oldErrorAction = $ErrorActionPreference
-            $ErrorActionPreference = "Stop"
             $successful = $true 
-            Write-VerboseWriter("Calling: Enable-IOCompression")
+            Write-InvokeCommandReturnVerboseWriter("Calling: Enable-IOCompression")
             try 
             {
-                Add-Type -AssemblyName System.IO.Compression.Filesystem 
+                Add-Type -AssemblyName System.IO.Compression.Filesystem -ErrorAction Stop
             }
             catch 
             {
-                Write-HostWriter("Failed to load .NET Compression assembly. Unable to compress up the data.")
+                Write-InvokeCommandReturnHostWriter("Failed to load .NET Compression assembly. Unable to compress up the data.")
                 $successful = $false 
             }
-            finally 
-            {
-                $ErrorActionPreference = $oldErrorAction
-            }
-            Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+            Write-InvokeCommandReturnVerboseWriter("Returned: [bool]{0}" -f $successful)
             return $successful
         }
         Function Confirm-IOCompression 
         {
-            Write-VerboseWriter("Calling: Confirm-IOCompression")
+            Write-InvokeCommandReturnVerboseWriter("Calling: Confirm-IOCompression")
             $assemblies = [Appdomain]::CurrentDomain.GetAssemblies()
             $successful = $false
             foreach($assembly in $assemblies)
@@ -1416,28 +1364,27 @@ param(
                     break 
                 }
             }
-            Write-VerboseWriter("Returned: [bool]{0}" -f $successful)
+            Write-InvokeCommandReturnVerboseWriter("Returned: [bool]{0}" -f $successful)
             return $successful
         }
         
         Function Compress-Now
         {
-            Write-VerboseWriter("Calling: Compress-Now ")
+            Write-InvokeCommandReturnVerboseWriter("Calling: Compress-Now ")
             $zipFolder = Get-ZipFolderName -Folder $Folder -IncludeMonthDay $IncludeMonthDay
             if($IncludeDisplayZipping)
             {
-                Write-HostWriter("Compressing Folder {0}" -f $Folder)
+                Write-InvokeCommandReturnHostWriter("Compressing Folder {0}" -f $Folder)
             }
             $sizeBytesBefore = Get-DirectorySize -Directory $Folder
             $timer = [System.Diagnostics.Stopwatch]::StartNew()
             [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
             $timer.Stop()
             $sizeBytesAfter = Get-DirectorySize -Directory $zipFolder -IsCompressed $true
-            Write-VerboseWriter("Compressing directory size of {0} MB down to the size of {1} MB took {2} seconds." -f ($sizeBytesBefore / 1MB), ($sizeBytesAfter / 1MB),  $timer.Elapsed.TotalSeconds)
-            
+            Write-InvokeCommandReturnVerboseWriter("Compressing directory size of {0} MB down to the size of {1} MB took {2} seconds." -f ($sizeBytesBefore / 1MB), ($sizeBytesAfter / 1MB),  $timer.Elapsed.TotalSeconds)
             if((Test-Path -Path $zipFolder))
             {
-                Write-VerboseWriter("Compress successful, removing folder.")
+                Write-InvokeCommandReturnVerboseWriter("Compress successful, removing folder.")
                 Remove-Item $Folder -Force -Recurse 
             }
             if($ReturnCompressedLocation)
@@ -1451,8 +1398,8 @@ param(
         [Parameter(Mandatory=$true)][string]$Folder,
         [Parameter(Mandatory=$false)][bool]$IncludeMonthDay = $false
         )
-            Write-VerboseWriter("Calling: Get-ZipFolderName")
-            Write-VerboseWriter("Passed - [string]Folder:{0} | [bool]IncludeMonthDay:{1}" -f $Folder, $IncludeMonthDay)
+            Write-InvokeCommandReturnVerboseWriter("Calling: Get-ZipFolderName")
+            Write-InvokeCommandReturnVerboseWriter("Passed - [string]Folder:{0} | [bool]IncludeMonthDay:{1}" -f $Folder, $IncludeMonthDay)
             if($IncludeMonthDay)
             {
                 $zipFolderNoEXT = "{0}-{1}" -f $Folder, (Get-Date -Format Md)
@@ -1461,7 +1408,7 @@ param(
             {
                 $zipFolderNoEXT = $Folder
             }
-            Write-VerboseWriter("[string]zipFolderNoEXT: {0}" -f $zipFolderNoEXT)
+            Write-InvokeCommandReturnVerboseWriter("[string]zipFolderNoEXT: {0}" -f $zipFolderNoEXT)
             $zipFolder = "{0}.zip" -f $zipFolderNoEXT
             if(Test-Path $zipFolder)
             {
@@ -1471,20 +1418,43 @@ param(
                     $i++
                 }while(Test-Path $zipFolder)
             }
-            Write-VerboseWriter("Returned: [string]zipFolder {0}" -f $zipFolder)
+            Write-InvokeCommandReturnVerboseWriter("Returned: [string]zipFolder {0}" -f $zipFolder)
             return $zipFolder
         }
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
         
-        Write-VerboseWriter("Calling: Compress-Folder")
-        Write-VerboseWriter("Passed - [string]Folder: {0} | [bool]IncludeDisplayZipping: {1} | [bool]ReturnCompressedLocation: {2} | [scriptblock]VerboseFunctionCaller: {3} | [scriptblock]HostFunctionCaller: {4}" -f $Folder, 
+        $Script:stringArray = @()
+        if($PassedObjectParameter -ne $null)
+        {
+            if($PassedObjectParameter.Folder -ne $null)
+            {
+                $Folder = $PassedObjectParameter.Folder 
+                if($PassedObjectParameter.IncludeDisplayZipping -ne $null)
+                {
+                    $IncludeDisplayZipping = $PassedObjectParameter.IncludeDisplayZipping
+                }
+                if($PassedObjectParameter.ReturnCompressedLocation -ne $null)
+                {
+                    $ReturnCompressedLocation = $PassedObjectParameter.ReturnCompressedLocation
+                }
+                if($PassedObjectParameter.IncludeMonthDay -ne $null)
+                {
+                    $IncludeMonthDay = $PassedObjectParameter.IncludeMonthDay
+                }
+            }
+            else 
+            {
+                $Folder = $PassedObjectParameter
+            }
+            $InvokeCommandReturnWriteArray = $true 
+        }
+        if($Folder.EndsWith("\"))
+        {
+            $Folder = $Folder.TrimEnd("\")
+        }
+        Write-InvokeCommandReturnVerboseWriter("Calling: Compress-Folder")
+        Write-InvokeCommandReturnVerboseWriter("Passed - [string]Folder: {0} | [bool]IncludeDisplayZipping: {1} | [bool]ReturnCompressedLocation: {2}" -f $Folder, 
         $IncludeDisplayZipping,
-        $ReturnCompressedLocation,
-        $passedVerboseFunctionCaller,
-        $passedHostFunctionCaller)
+        $ReturnCompressedLocation)
         
         $compressedLocation = [string]::Empty
         if(Test-Path $Folder)
@@ -1501,18 +1471,32 @@ param(
                 }
                 else
                 {
-                    Write-HostWriter("Unable to compress folder {0}" -f $Folder)
-                    Write-VerboseWriter("Unable to enable IO compression on this system")
+                    Write-InvokeCommandReturnHostWriter("Unable to compress folder {0}" -f $Folder)
+                    Write-InvokeCommandReturnVerboseWriter("Unable to enable IO compression on this system")
                 }
             }
         }
         else
         {
-            Write-HostWriter("Failed to find the folder {0}" -f $Folder)
+            Write-InvokeCommandReturnHostWriter("Failed to find the folder {0}" -f $Folder)
+        }
+        if($InvokeCommandReturnWriteArray)
+        {
+            if($ReturnCompressedLocation)
+            {
+                Write-InvokeCommandReturnVerboseWriter("Returning: {0}" -f $compressedLocation)
+                $hashTable = @{"ReturnObject"=$compressedLocation}
+                $Script:stringArray += $hashTable
+                return $Script:stringArray
+            }
+            else 
+            {
+                return $Script:stringArray   
+            }
         }
         if($ReturnCompressedLocation)
         {
-            Write-VerboseWriter("Returning: {0}" -f $compressedLocation)
+            Write-InvokeCommandReturnVerboseWriter("Returning: {0}" -f $compressedLocation)
             return $compressedLocation
         }
     }
@@ -1521,49 +1505,32 @@ param(
     Function Get-FreeSpace {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$true)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        [Parameter(Mandatory=$false)][ValidateScript({$_.ToString().EndsWith("\")})][string]$FilePath,
+        [Parameter(Mandatory=$false,Position=1)][object]$PassedObjectParameter
         )
-    
-    
-        #Function Version 1.0
-        Function Write-VerboseWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($VerboseFunctionCaller -eq $null)
-                {
-                    Write-Verbose $WriteString
-                }
-                else 
-                {
-                    &$VerboseFunctionCaller $WriteString
-                }
-            }
         
-            Function Write-HostWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($HostFunctionCaller -eq $null)
-                {
-                    Write-Host $WriteString
-                }
-                else
-                {
-                    &$HostFunctionCaller $WriteString    
-                }
+        #Function Version 1.3
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+        #>
+        if($PassedObjectParameter -ne $null)
+        {
+            if($PassedObjectParameter.FilePath -ne $null)
+            {
+                $FilePath = $PassedObjectParameter.FilePath
             }
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-        Write-VerboseWriter("Calling: Get-FreeSpace")
-        Write-VerboseWriter("Passed: [string]FilePath: {0} | [scriptblock]VerboseFunctionCaller: {1} | [scriptblock]HostFunctionCaller: {2}" -f $FilePath,
-        $passedVerboseFunctionCaller,
-        $passedHostFunctionCaller)
-    
+            else 
+            {
+                $FilePath = $PassedObjectParameter
+            }
+            $InvokeCommandReturnWriteArray = $true 
+        }
+        $stringArray = @()
+        Write-InvokeCommandReturnVerboseWriter("Calling: Get-FreeSpace")
+        Write-InvokeCommandReturnVerboseWriter("Passed: [string]FilePath: {0}" -f $FilePath)
+        
         Function Update-TestPath {
         param(
         [Parameter(Mandatory=$true)][string]$FilePath 
@@ -1571,7 +1538,7 @@ param(
             $updateFilePath = $FilePath.Substring(0,$FilePath.LastIndexOf("\", $FilePath.Length - 2)+1)
             return $updateFilePath
         }
-    
+        
         Function Get-MountPointItemTarget{
         param(
         [Parameter(Mandatory=$true)][string]$FilePath 
@@ -1582,21 +1549,32 @@ param(
                 $item = Get-Item $FilePath
                 if($item.Target -like "Volume{*}\")
                 {
-                    Write-VerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
+                    Write-InvokeCommandReturnVerboseWriter("File Path appears to be a mount point target: {0}" -f $item.Target)
                     $itemTarget = $item.Target
                 }
-                else 
-                {
-                    Write-VerboseWriter("Path didn't appear to be a mount point target")    
+                else {
+                    Write-InvokeCommandReturnVerboseWriter("Path didn't appear to be a mount point target")    
                 }
             }
-            else 
-            {
-                Write-VerboseWriter("Path isn't a true path yet.")
+            else {
+                Write-InvokeCommandReturnVerboseWriter("Path isn't a true path yet.")
             }
             return $itemTarget    
         }
-    
+        
+        Function Invoke-ReturnValue {
+        param(
+        [Parameter(Mandatory=$true)][int]$FreeSpaceSize
+        )
+            if($InvokeCommandReturnWriteArray)
+            {
+                $hashTable = @{"ReturnObject"=$freeSpaceSize}
+                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
+                return $stringArray
+            }
+            return $FreeSpaceSize
+        }
+        
         $drivesList = Get-WmiObject Win32_Volume -Filter "drivetype = 3"
         $testPath = $FilePath
         $freeSpaceSize = -1 
@@ -1604,22 +1582,22 @@ param(
         {
             if($testPath -eq [string]::Empty)
             {
-                Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
-                break
+                Write-InvokeCommandReturnHostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+                return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
             }
-            Write-VerboseWriter("Trying to find path that matches path: {0}" -f $testPath)
+            Write-InvokeCommandReturnVerboseWriter("Trying to find path that matches path: {0}" -f $testPath)
             foreach($drive in $drivesList)
             {
                 if($drive.Name -eq $testPath)
                 {
-                    Write-VerboseWriter("Found a match")
+                    Write-InvokeCommandReturnVerboseWriter("Found a match")
                     $freeSpaceSize = $drive.FreeSpace / 1GB 
-                    Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
-                    return $freeSpaceSize
+                    Write-InvokeCommandReturnVerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                    return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                 }
-                Write-VerboseWriter("Drive name: '{0}' didn't match" -f $drive.Name)
+                Write-InvokeCommandReturnVerboseWriter("Drive name: '{0}' didn't match" -f $drive.Name)
             }
-    
+        
             $itemTarget = Get-MountPointItemTarget -FilePath $testPath
             if($itemTarget -ne [string]::Empty)
             {
@@ -1628,79 +1606,39 @@ param(
                     if($drive.DeviceID.Contains($itemTarget))
                     {
                         $freeSpaceSize = $drive.FreeSpace / 1GB 
-                        Write-VerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
-                        return $freeSpaceSize
+                        Write-InvokeCommandReturnVerboseWriter("Have {0}GB of Free Space" -f $freeSpaceSize)
+                        return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                     }
-                    Write-VerboseWriter("DeviceID didn't appear to match: {0}" -f $drive.DeviceID)
+                    Write-InvokeCommandReturnVerboseWriter("DeviceID didn't appear to match: {0}" -f $drive.DeviceID)
                 }
                 if($freeSpaceSize -eq -1)
                 {
-                    Write-HostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
-                    Write-HostWriter("This shouldn't have happened.")
-                    break
+                    Write-InvokeCommandReturnHostWriter("Unable to fine a drive that matches the file path: {0}" -f $FilePath)
+                    Write-InvokeCommandReturnHostWriter("This shouldn't have happened.")
+                    return (Invoke-ReturnValue -FreeSpaceSize $freeSpaceSize)
                 }
-        
             }
-    
             $testPath = Update-TestPath -FilePath $testPath
         }
-    
-        return $freeSpaceSize
     }
 
-    # Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Create-Folder/Create-Folder.ps1
-    Function Create-Folder {
+    # Template Master: https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/New-Folder/New-Folder.ps1
+    Function New-Folder {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$false)][string]$NewFolder,
+        [Alias("NewFolder")]
         [Parameter(Mandatory=$false)][array]$NewFolders,
         [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
-        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
-        [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject
         )
         
-        #Function Version 1.3
-        Function Write-VerboseWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($InvokeCommandReturnWriteArray)
-                {
-                    $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-                }
-                elseif($VerboseFunctionCaller -eq $null)
-                {
-                    Write-Verbose $WriteString
-                }
-                else 
-                {
-                    &$VerboseFunctionCaller $WriteString
-                }
-            }
-            
-            Function Write-HostWriter {
-            param(
-            [Parameter(Mandatory=$true)][string]$WriteString 
-            )
-                if($InvokeCommandReturnWriteArray)
-                {
-                    $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                    Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-                }
-                elseif($HostFunctionCaller -eq $null)
-                {
-                    Write-Host $WriteString
-                }
-                else
-                {
-                    &$HostFunctionCaller $WriteString    
-                }
-            }
-        
-        Function New-Folder {
+        #Function Version 1.5
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+        #>
+        Function New-Directory {
         param(
         [Parameter(Mandatory=$false)][string]$NewFolder
         )
@@ -1708,7 +1646,7 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-HostWriter("Creating Directory: {0}" -f $NewFolder)
+                    Write-InvokeCommandReturnHostWriter("Creating Directory: {0}" -f $NewFolder)
                 }
                 [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
             }
@@ -1716,61 +1654,44 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-HostWriter("Directory {0} is already created!" -f $NewFolder)
+                    Write-InvokeCommandReturnHostWriter("Directory {0} is already created!" -f $NewFolder)
                 }
             }
         }
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        $passedPassedParametersObject = $false
-        $passedMultipleFolders = $false 
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
-        if($PassedParametersObject -ne $null){$passedPassedParametersObject = $true}
-        $stringArray = @() 
+        
+        $Script:stringArray = @() 
         if($PassedParametersObject -ne $null)
         {
-            if($PassedParametersObject.NewFolder -ne $null)
-            {
-                $NewFolder = $PassedParametersObject.NewFolder 
-            }
             if($PassedParametersObject.NewFolders -ne $null)
             {
                 $NewFolders = $PassedParametersObject.NewFolders
             }
+            else 
+            {
+                $NewFolders = $PassedParametersObject
+            }
             $InvokeCommandReturnWriteArray = $true 
         }
-        if($NewFolders -ne $null){$passedMultipleFolders = $true}
-        Write-VerboseWriter("Calling: Create-Folder")
-        Write-VerboseWriter("Passed: [string]NewFolder: {0} | [bool]IncludeDisplayCreate: {1} | [bool]InvokeCommandReturnWriteArray: {2} | [bool]PassedMultipleFolders: {3} | [object]PassedParametersObject: {4} | [scriptblock]VerboseFunctionCaller: {5} | [scriptblock]HostFunctionCaller: {6}" -f $NewFolder,
-        $IncludeDisplayCreate,
-        $InvokeCommandReturnWriteArray,
-        $passedMultipleFolders,
-        $passedPassedParametersObject,
-        $passedVerboseFunctionCaller,
-        $passedHostFunctionCaller)
-        
-        if($NewFolder -ne $null -and $NewFolders -eq $null)
+        if($NewFolders.Count -gt 1)
         {
-            Write-VerboseWriter("Creating a single folder")
-            New-Folder -NewFolder $NewFolder 
-        }
-        elseif($NewFolders -ne $null)
-        {
-            Write-VerboseWriter("Creating multiple folders")
-            foreach($newFolder in $NewFolders)
-            {
-                New-Folder -NewFolder $newFolder 
-            }
+            $verboseDisplayNewFolders = "Multiple ('{0}') Folders Passed" -f $NewFolders.Count
         }
         else 
         {
-            Write-HostWriter("Failed to provide valid options to create a folder.")
+            $verboseDisplayNewFolders = $NewFolders[0]
+        }
+        Write-InvokeCommandReturnVerboseWriter("Calling: New-Folder")
+        Write-InvokeCommandReturnVerboseWriter("Passed: [string]NewFolders: {0} | [bool]IncludeDisplayCreate: {1}" -f $verboseDisplayNewFolders,
+        $IncludeDisplayCreate)
+        
+        foreach($newFolder in $NewFolders)
+        {
+            New-Directory -NewFolder $newFolder
         }
         
         if($InvokeCommandReturnWriteArray)
         {
-            return $stringArray
+            return $Script:stringArray
         }
     }
 
@@ -1784,6 +1705,75 @@ param(
         }
     }
 
+    #Function Version 1.1
+    Function Write-HostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString 
+    )
+        if($Script:Logger -ne $null)
+        {
+            $Script:Logger.WriteHost($WriteString)
+        }
+        elseif($HostFunctionCaller -eq $null)
+        {
+            Write-Host $WriteString
+        }
+        else
+        {
+            &$HostFunctionCaller $WriteString    
+        }
+    }
+
+    #Function Version 1.1
+    Function Write-VerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString
+    )
+        if($Script:Logger -ne $null)
+        {
+            $Script:Logger.WriteHost($WriteString)
+        }
+        elseif($VerboseFunctionCaller -eq $null)
+        {
+            Write-Verbose $WriteString
+        }
+        else 
+        {
+            &$VerboseFunctionCaller $WriteString
+        }
+    }
+
+    #Function Version 1.1
+    Function Write-InvokeCommandReturnVerboseWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($Script:stringArray += $hashTable) -Scope Script
+        }
+        else 
+        {
+            Write-VerboseWriter($WriteString)
+        }
+    }
+
+    #Function Version 1.1
+    Function Write-InvokeCommandReturnHostWriter {
+    param(
+    [Parameter(Mandatory=$true)][string]$WriteString
+    )
+        if($InvokeCommandReturnWriteArray)
+        {
+            $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
+            Set-Variable stringArray -Value ($Script:stringArray += $hashTable) -Scope Script
+        }
+        else 
+        {
+            Write-HostWriter $WriteString
+        }
+    }
 
     Function Write-ScriptHost{
     param(
@@ -1810,11 +1800,11 @@ param(
     )
         if($ZipItAll)
         {
-            Compress-Folder -Folder $Folder -IncludeMonthDay $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            Compress-Folder -Folder $Folder -IncludeMonthDay $true
         }
         else 
         {
-            $compressedLocation =  Compress-Folder -Folder $Folder -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -ReturnCompressedLocation $AddCompressedSize
+            $compressedLocation =  Compress-Folder -Folder $Folder -ReturnCompressedLocation $AddCompressedSize
             if($AddCompressedSize -and ($compressedLocation -ne [string]::Empty))
             {
                 $Script:TotalBytesSizeCompressed += ($size = Get-ItemsSize -FilePaths $compressedLocation)
@@ -1881,7 +1871,7 @@ param(
                 ($currentSizeCopy / 1GB), 
                 $Script:AdditionalFreeSpaceCushionGB,
                 $Script:CurrentFreeSpaceGB)
-                $freeSpace = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                $freeSpace = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory)
                 Write-ScriptDebug("True current free space: {0}" -f $freeSpace)
                 if($freeSpace -lt ($Script:CurrentFreeSpaceGB - .5))
                 {
@@ -1917,7 +1907,7 @@ param(
     )   
         Write-ScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
         Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-        Create-Folder -NewFolder $CopyToThisLocation -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost} -IncludeDisplayCreate $true
+        New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
         if(Test-Path $LogPath)
         {
             $childItems = Get-ChildItem $LogPath -Recurse
@@ -1964,7 +1954,7 @@ param(
     )
         Write-ScriptDebug("Function Enter: Copy-LogsBasedOnTime")
         Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-        Create-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
 
         Function No-FilesInLocation {
         param(
@@ -2018,7 +2008,7 @@ param(
                 {
                     $newLogPath = $dir.FullName
                     $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
-                    Create-Folder -NewFolder $newCopyToThisLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                    New-Folder -NewFolder $newCopyToThisLocation -IncludeDisplayCreate $true
                     $files = Get-ChildItem $newLogPath| Sort-Object LastWriteTime -Descending | ?{$_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*"}
                     if($files -eq $null)
                     {
@@ -2067,7 +2057,7 @@ param(
     )
         if(-not(Test-Path $CopyToLocation))
         {
-            Create-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            New-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true
         }
 
         if(Test-FreeSpace -FilePaths $ItemsToCopyLocation)
@@ -2188,7 +2178,7 @@ param(
     Function Save-ServerInfoData {
         Write-ScriptDebug("Function Enter: Save-ServerInfoData")
         $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
-        Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
 
         #Get MSInfo from server 
         msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
@@ -2448,80 +2438,38 @@ param(
     }
 
     #Template Master https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
-    Function Get-ExchangeInstallDirectory
-    {
+    Function Get-ExchangeInstallDirectory {
         [CmdletBinding()]
         param(
-        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-        [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+        [Parameter(Mandatory=$false)][bool]$InvokeCommandReturnWriteArray
         )
         
-        #Function Version 1.0
-        Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($InvokeCommandReturnWriteArray)
-            {
-                $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-            }
-            elseif($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
-            
-        Function Write-HostWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($InvokeCommandReturnWriteArray)
-            {
-                $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-                Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-            }
-            elseif($HostFunctionCaller -eq $null)
-            {
-                Write-Host $WriteString
-            }
-            else
-            {
-                &$HostFunctionCaller $WriteString    
-            }
-        }
-            
-        $passedVerboseFunctionCaller = $false
-        $passedHostFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-        if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+        #Function Version 1.2
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+        #>
         $stringArray = @()
-        Write-VerboseWriter("Calling: Get-ExchangeInstallDirectory")
-        Write-VerboseWriter("Passed: [bool]InvokeCommandReturnWriteArray: {0} | [scriptblock]VerboseFunctionCaller: {1} | [scriptblock]HostFunctionCaller: {2}" -f $InvokeCommandReturnWriteArray, 
-        $passedVerboseFunctionCaller, 
-        $passedHostFunctionCaller)
+        Write-InvokeCommandReturnVerboseWriter("Calling: Get-ExchangeInstallDirectory")
+        Write-InvokeCommandReturnVerboseWriter("Passed: [bool]InvokeCommandReturnWriteArray: {0}" -f $InvokeCommandReturnWriteArray)
         
         $installDirectory = [string]::Empty
         if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
         {
-            Write-VerboseWriter("Detected v14")
+            Write-InvokeCommandReturnVerboseWriter("Detected v14")
             $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath 
         }
         elseif(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup')
         {
-            Write-VerboseWriter("Detected v15")
+            Write-InvokeCommandReturnVerboseWriter("Detected v15")
             $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
         }
         else 
         {
-            Write-HostWriter -WriteString ("Something went wrong trying to find Exchange Install path on this server: {0}" -f $env:COMPUTERNAME)  
+            Write-InvokeCommandReturnHostWriter -WriteString ("Something went wrong trying to find Exchange Install path on this server: {0}" -f $env:COMPUTERNAME)  
         }
-        Write-VerboseWriter("Returning: {0}" -f $installDirectory)
+        Write-InvokeCommandReturnVerboseWriter("Returning: {0}" -f $installDirectory)
         if($InvokeCommandReturnWriteArray)
         {
             $hashTable = @{"ReturnObject"=$installDirectory}
@@ -2540,9 +2488,9 @@ param(
         $Script:TotalBytesSizeCopied = 0 
         $Script:TotalBytesSizeCompressed = 0 
         $Script:AdditionalFreeSpaceCushionGB = $PassedInfo.StandardFreeSpaceInGBCheckSize
-        $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory) -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory)
         $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:CurrentFreeSpaceGB
-        $Script:localExinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        $Script:localExinstall = Get-ExchangeInstallDirectory 
         #shortcut to Exbin directory (probably not really needed)
         $Script:localExBin = $Script:localExinstall + "Bin\"
 
@@ -2555,43 +2503,26 @@ param(
         [Parameter(Mandatory=$true)][string]$SaveToLocation,
         [Parameter(Mandatory=$false)][bool]$FormatList = $true,
         [Parameter(Mandatory=$false)][bool]$SaveTextFile = $true,
-        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true,
-        [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+        [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
         
-        #Function Version 1.1
-        Function Write-VerboseWriter {
-        param(
-        [Parameter(Mandatory=$true)][string]$WriteString 
-        )
-            if($InvokeCommandReturnWriteArray)
-            {
-            $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope 1 
-            }
-            elseif($VerboseFunctionCaller -eq $null)
-            {
-                Write-Verbose $WriteString
-            }
-            else 
-            {
-                &$VerboseFunctionCaller $WriteString
-            }
-        }
+        #Function Version 1.3
+        <#
+        Required Functions:
+            https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        #>
         
-        $passedVerboseFunctionCaller = $false
-        if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
         Write-VerboseWriter("Calling: Save-DataToFile")
-        Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3} | [scriptblock]VerboseFunctionCaller: {4}" -f $SaveToLocation,
+        Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3}" -f $SaveToLocation,
         $FormatList,
         $SaveTextFile,
-        $SaveXMLFile,
-        $passedVerboseFunctionCaller)
+        $SaveXMLFile)
         
         $xmlSaveLocation = "{0}.xml" -f $SaveToLocation
         $txtSaveLocation = "{0}.txt" -f $SaveToLocation
         
-        if($DataIn -ne [string]::Empty -and $DataIn -ne $null)
+        if($DataIn -ne [string]::Empty -and 
+            $DataIn -ne $null)
         {
             if($SaveXMLFile)
             {
@@ -2614,6 +2545,7 @@ param(
         {
             Write-VerboseWriter("DataIn was an empty string. Not going to save anything.")
         }
+        Write-VerboseWriter("Returning from Save-DataToFile")
     }
 
     Function Save-DataInfoToFile {
@@ -2625,7 +2557,7 @@ param(
         [Parameter(Mandatory=$false)][bool]$SaveXMLFile = $true
         )
             [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -VerboseFunctionCaller ${Function:Write-ScriptDebug} -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
+            Save-DataToFile -DataIn $DataIn -SaveToLocation (Add-ServerNameToFileName $SaveToLocation) -FormatList $FormatList -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
             $timer.Stop()
             Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
     }
@@ -2668,7 +2600,7 @@ param(
     
         $strDirectory = $ObjLogman.RootPath
         $copyTo = $Script:RootCopyToDirectory + "\" + $folderName
-        Create-Folder -NewFolder $copyTo -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
         if(Test-Path $strDirectory)
         {
             $wildExt = "*" + $objLogman.Ext
@@ -3141,7 +3073,7 @@ param(
             if($PassedInfo.QueueInformationThisServer -and (-not ($Script:localServerObject.Version -eq 15 -and $Script:localServerObject.CASOnly)))
             {
                 $create = $Script:RootCopyToDirectory + "\Queue_Data"
-                Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                New-Folder -NewFolder $create -IncludeDisplayCreate $true
                 $saveLocation = $create + "\Current_Queue_Info"
                 Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.QueueData) -SaveToLocation $saveLocation
                 if($Script:localServerObject.Version -ge 15 -and $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath -ne $null)
@@ -3153,7 +3085,7 @@ param(
             if($PassedInfo.ReceiveConnectors)
             {
                 $create = $Script:RootCopyToDirectory + "\Connectors"
-                Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+                New-Folder -NewFolder $create -IncludeDisplayCreate $true
                 $saveLocation = ($create + "\{0}_Receive_Connectors") -f $env:COMPUTERNAME
                 Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.ReceiveConnectorData) -SaveToLocation $saveLocation
             }
@@ -3276,6 +3208,8 @@ param(
     $ErrorActionPreference = "Stop"
     try 
     {
+        $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
+        $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
         if($PassedInfo.ByPass -ne $true)
         {
             Remote-Main
@@ -3312,7 +3246,7 @@ param(
     $serverObjects = @()
     foreach($server in $Servers)
     {
-        $obj = Get-ExchangeBasicServerObject -ServerName $server 
+        $obj = Get-ExchangeBasicServerObject -ServerName $server -AddGetServerProperty $true 
 
         if($obj.Hub)
         {
@@ -3366,44 +3300,20 @@ Function Start-JobManager {
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJob = $true,
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInVerboseFunction, 
     [Parameter(Mandatory=$false)][bool]$DisplayReceiveJobInCorrectFunction,
-    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false,
-    [Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller,
-    [Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller
+    [Parameter(Mandatory=$false)][bool]$NeedReturnData = $false
     )
     
-    #Function Version 1.3
-    Function Write-VerboseWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($VerboseFunctionCaller -eq $null)
-        {
-            Write-Verbose $WriteString
-        }
-        else 
-        {
-            &$VerboseFunctionCaller $WriteString
-        }
-    }
-    
-    Function Write-HostWriter {
-    param(
-    [Parameter(Mandatory=$true)][string]$WriteString 
-    )
-        if($HostFunctionCaller -eq $null)
-        {
-            Write-Host $WriteString
-        }
-        else
-        {
-            &$HostFunctionCaller $WriteString    
-        }
-    }
-    
-    $passedVerboseFunctionCaller = $false
-    $passedHostFunctionCaller = $false
-    if($VerboseFunctionCaller -ne $null){$passedVerboseFunctionCaller = $true}
-    if($HostFunctionCaller -ne $null){$passedHostFunctionCaller = $true}
+    #Function Version 1.5
+    <#
+    Required Functions:
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
+    #>
+    <#
+        [array]ServersWithArguments
+            [string]ServerName
+            [object]ArgumentList #customized for your scriptblock
+    #>
     
     Function Write-ReceiveJobData {
     param(
@@ -3514,12 +3424,10 @@ Function Start-JobManager {
     
     [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
     Write-VerboseWriter("Calling Start-JobManager")
-    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3} | [scriptblock]VerboseFunctionCaller: {4} | [scriptblock]HostFunctionCaller: {5}" -f $DisplayReceiveJob,
+    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3}" -f $DisplayReceiveJob,
     $JobBatchName,
     $DisplayReceiveJobInVerboseFunction,
-    $NeedReturnData,
-    $passedVerboseFunctionCaller,
-    $passedHostFunctionCaller)
+    $NeedReturnData)
     
     Start-Jobs
     $data = Wait-JobsCompleted
@@ -3539,7 +3447,6 @@ Function Write-ExchangeDataOnMachines {
         [Parameter(Mandatory=$true)][object]$PassedInfo
         )
 
-                $server = $PassedInfo.ServerObject 
                 $location = $PassedInfo.Location 
                 Function Write-Data{
                 param(
@@ -3557,29 +3464,7 @@ Function Write-ExchangeDataOnMachines {
                 $copyServerComponentStatesRegistryTo = "{0}\regServerComponentStates.TXT" -f $location 
                 reg query HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\ServerComponentStates /s > $copyServerComponentStatesRegistryTo
 
-                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT ("{0}\{1}_ExchangeServer" -f $location, $env:COMPUTERNAME)
-
                 Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
-
-                if($server.Hub)
-                {
-                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT ("{0}\{1}_TransportServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.CAS)
-                {
-                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT ("{0}\{1}_ClientAccessServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.Mailbox)
-                {
-                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT ("{0}\{1}_MailboxServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.Version -ge 15)
-                {
-                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.serverMonitoringOverride -FilePathNoEXT ("{0}\{1}_serverMonitoringOverride" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.ServerHealth -FilePathNoEXT ("{0}\{1}_ServerHealth" -f $location, $env:COMPUTERNAME)                    
-                }
 
                 #Exchange Web App Pools 
                 $windir = $env:windir
@@ -3631,23 +3516,13 @@ Function Write-ExchangeDataOnMachines {
     {
         #Need to have install directory run through the loop first as it could be different on each server
         $serversObjectListInstall = @() 
+        $serverListCreateDirectories = @()
         foreach($server in $exchangeServerData)
         {
             $serverObject = New-Object PSCustomObject 
             $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
             $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $true
             $serversObjectListInstall += $serverObject
-        }
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock ${Function:Get-ExchangeInstallDirectory} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
-    
-    
-        $serverListCreateDirectories = @() 
-        $serverListDumpData = @() 
-        $serverListZipData = @() 
-    
-        foreach($server in $exchangeServerData)
-        {
-            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
 
             #Create Directory 
             $serverCreateDirectory = New-Object PSCustomObject 
@@ -3658,22 +3533,45 @@ Function Write-ExchangeDataOnMachines {
             $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolders -Value $value
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentObject
             $serverListCreateDirectories += $serverCreateDirectory
+        }
+        Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
+        $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating Script Block")
+        $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
+    
+        Write-ScriptDebug("Getting New-Folder string to create Script Block")
+        $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating script block")
+        $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
+        Write-ScriptDebug("Calling job for folder creation")
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
 
+        $serverListLocalDataGet = @() 
+        $serverListZipData = @() 
+    
+        foreach($server in $exchangeServerData)
+        {
+
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
             #Write Data 
             $argumentList = New-Object PSCustomObject 
-            $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
             $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
             $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
             $serverDumpData = New-Object PSCustomObject 
             $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
             $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
-            $serverListDumpData += $serverDumpData
+            $serverListLocalDataGet += $serverDumpData
 
             #Zip data if not local cause we might have more stuff to run 
             if($server.ServerName -ne $env:COMPUTERNAME)
             {
                 $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
-                $parameters = $folder, $true, $false
+                $parameters = New-Object PSCustomObject 
+                $parameters | Add-Member -MemberType NoteProperty -Name "Folder" -Value $folder
+                $parameters | Add-Member -MemberType NoteProperty -Name "IncludeMonthDay" -Value $true 
+                $parameters | Add-Member -MemberType NoteProperty -Name "IncludeDisplayZipping" -Value $true 
+
                 $serverZipData = New-Object PSCustomObject 
                 $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
                 $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters  
@@ -3681,28 +3579,69 @@ Function Write-ExchangeDataOnMachines {
             }
         }
 
+        $localServerTempLocation = "{0}{1}\Exchange_Server_Data_Temp\" -f $Script:RootFilePath, $env:COMPUTERNAME
+        #Write the data locally to the temp file, then copy the data to the correct location.
+        foreach($server in $exchangeServerData)
+        {
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName
+            Write-ScriptDebug("Location of data should be at: {0}" -f $location)
+            $remoteLocation = "\\{0}\{1}" -f $server.ServerName, $location.Replace(":","$")
+            Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
+            $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $server.ServerName
+            Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
+            $tempLocation = "{0}\{1}" -f $rootTempLocation, $server.ServerName
+            Write-ScriptDebug("Local Temp Location: {0}" -f $tempLocation)
+            New-Folder -NewFolders $rootTempLocation
 
-        Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock ${Function:Create-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
-        Write-ScriptDebug("Calling job for Exchange Data Write")
-        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
+            Save-DataToFile -DataIn $server.ExchangeServer -SaveToLocation ("{0}_ExchangeServer" -f $tempLocation)
+
+            if($server.Hub)
+            {
+                Save-DataToFile -DataIn $server.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
+            }
+            if($server.CAS)
+            {
+                Save-DataToFile -DataIn $server.CAServerInfo -SaveToLocation ("{0}_ClientAccessServer" -f $tempLocation)
+            }
+            if($server.Mailbox)
+            {
+                Save-DataToFile -DataIn $server.MailboxServerInfo -SaveToLocation ("{0}_MailboxServer" -f $tempLocation)
+            }
+            if($server.Version -ge 15)
+            {
+                Save-DataToFile -DataIn $server.HealthReport -SaveToLocation ("{0}_HealthReport" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerComponentState -SaveToLocation ("{0}_ServerComponentState" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerMonitoringOverride -SaveToLocation ("{0}_serverMonitoringOverride" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerHealth -SaveToLocation ("{0}_ServerHealth" -f $tempLocation)
+            }
+
+            $items = Get-ChildItem $rootTempLocation
+            $items | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $remoteLocation }
+        }
+        Remove-Item $localServerTempLocation -Force -Recurse 
+        Write-ScriptDebug("Calling Write-ExchangeData")
+        Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Write-ExchangeData} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Zipping the data")
-        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock ${Function:Compress-Folder} -VerboseFunctionCaller ${Function:Write-ScriptDebug} -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
+        Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
+        $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating script block")
+        $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
+        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock $compressFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
 
     }
     else 
     {
-        if($exinstall -eq $null)
+        if($ExInstall -eq $null)
         {
-            $exinstall = Get-ExchangeInstallDirectory -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            $ExInstall = Get-ExchangeInstallDirectory 
         }
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
         [array]$createFolders = @(("{0}\Config" -f $location),("{0}\WebAppPools" -f $location))
-        Create-Folder -NewFolders $createFolders -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolders $createFolders -IncludeDisplayCreate $true
         $passInfo = New-Object PSCustomObject 
         $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
         $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
-        $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $exinstall 
+        $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $ExInstall 
         Write-ScriptDebug("Writing out the Exchange data")
         Write-ExchangeData -PassedInfo $passInfo 
         $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
@@ -3736,7 +3675,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         {
             $dagName = $data.DAGInfo.Name 
             $create =  $RootCopyToDirectory  + "\" + $dagName + "_DAG_MDB_Information"
-            Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+            New-Folder -NewFolder $create -IncludeDisplayCreate $true 
             $saveLocation = $create + "\{0}"
                             
             Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName +"_DAG_Info"))
@@ -3756,7 +3695,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     if($SendConnectors)
     {
         $create = $RootCopyToDirectory + "\Connectors"
-        Create-Folder -NewFolder $create -IncludeDisplayCreate $true -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}
+        New-Folder -NewFolder $create -IncludeDisplayCreate $true
         $saveLocation = $create + "\Send_Connectors"
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
@@ -3792,10 +3731,10 @@ Function Main {
     Test-NoSwitchesProvided
     if(-not (Confirm-Administrator))
     {
-        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator.") -ForegroundColor "Yellow"
+        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
         exit 
     }
-    if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false -VerboseFunctionCaller ${Function:Write-ScriptDebug} -HostFunctionCaller ${Function:Write-ScriptHost}))
+    if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false))
     {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false 
         exit
@@ -3874,7 +3813,7 @@ Function Main {
                 Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally as well. We can't continue with the data collection") -ForegroundColor "Yellow" 
                 exit 
             }
-            if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false} -VerboseFunctionCaller ${Function:Write-ScriptDebug}))
+            if((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction {return $true} -NoAction {return $false}))
             {
                 Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
                 $Script:ValidServers = @($env:COMPUTERNAME)
