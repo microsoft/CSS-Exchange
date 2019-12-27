@@ -1627,7 +1627,7 @@ param(
         [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject
         )
         
-        #Function Version 1.4
+        #Function Version 1.5
         <#
         Required Functions:
             https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
@@ -1641,7 +1641,7 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-InvokeCommandReturnHostWriter -WriteString ("Creating Directory: {0}" -f $NewFolder) -ScopeLevel 2
+                    Write-InvokeCommandReturnHostWriter("Creating Directory: {0}" -f $NewFolder)
                 }
                 [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
             }
@@ -1649,12 +1649,12 @@ param(
             {
                 if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
                 {
-                    Write-InvokeCommandReturnHostWriter -WriteString ("Directory {0} is already created!" -f $NewFolder) -ScopeLevel 2
+                    Write-InvokeCommandReturnHostWriter("Directory {0} is already created!" -f $NewFolder)
                 }
             }
         }
         
-        $stringArray = @() 
+        $Script:stringArray = @() 
         if($PassedParametersObject -ne $null)
         {
             if($PassedParametersObject.NewFolders -ne $null)
@@ -1686,7 +1686,7 @@ param(
         
         if($InvokeCommandReturnWriteArray)
         {
-            return $stringArray
+            return $Script:stringArray
         }
     }
 
@@ -1738,16 +1738,15 @@ param(
         }
     }
 
-    #Function Version 1.0
+    #Function Version 1.1
     Function Write-InvokeCommandReturnVerboseWriter {
     param(
-    [Parameter(Mandatory=$true)][string]$WriteString,
-    [int]$ScopeLevel = 1
+    [Parameter(Mandatory=$true)][string]$WriteString
     )
         if($InvokeCommandReturnWriteArray)
         {
             $hashTable = @{"Verbose"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope $ScopeLevel 
+            Set-Variable stringArray -Value ($Script:stringArray += $hashTable) -Scope Script
         }
         else 
         {
@@ -1755,16 +1754,15 @@ param(
         }
     }
 
-    #Function Version 1.0
+    #Function Version 1.1
     Function Write-InvokeCommandReturnHostWriter {
     param(
-    [Parameter(Mandatory=$true)][string]$WriteString,
-    [int]$ScopeLevel = 1
+    [Parameter(Mandatory=$true)][string]$WriteString
     )
         if($InvokeCommandReturnWriteArray)
         {
             $hashTable = @{"Host"=("[Remote Server: {0}] : {1}" -f $env:COMPUTERNAME, $WriteString)}
-            Set-Variable stringArray -Value ($stringArray += $hashTable) -Scope $ScopeLevel 
+            Set-Variable stringArray -Value ($Script:stringArray += $hashTable) -Scope Script
         }
         else 
         {
