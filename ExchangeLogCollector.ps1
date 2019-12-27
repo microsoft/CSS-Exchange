@@ -3442,7 +3442,6 @@ Function Write-ExchangeDataOnMachines {
         [Parameter(Mandatory=$true)][object]$PassedInfo
         )
 
-                $server = $PassedInfo.ServerObject 
                 $location = $PassedInfo.Location 
                 Function Write-Data{
                 param(
@@ -3460,29 +3459,7 @@ Function Write-ExchangeDataOnMachines {
                 $copyServerComponentStatesRegistryTo = "{0}\regServerComponentStates.TXT" -f $location 
                 reg query HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\ServerComponentStates /s > $copyServerComponentStatesRegistryTo
 
-                Write-Data -DataIn $server.ExchangeServer -FilePathNoEXT ("{0}\{1}_ExchangeServer" -f $location, $env:COMPUTERNAME)
-
                 Get-Command exsetup | ForEach-Object{$_.FileVersionInfo} > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
-
-                if($server.Hub)
-                {
-                    Write-Data -DataIn $server.TransportServerInfo -FilePathNoEXT ("{0}\{1}_TransportServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.CAS)
-                {
-                    Write-Data -DataIn $server.CAServerInfo -FilePathNoEXT ("{0}\{1}_ClientAccessServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.Mailbox)
-                {
-                    Write-Data -DataIn $server.MailboxServerInfo -FilePathNoEXT ("{0}\{1}_MailboxServer" -f $location, $env:COMPUTERNAME)
-                }
-                if($server.Version -ge 15)
-                {
-                    Write-Data -DataIn $server.HealthReport -FilePathNoEXT ("{0}\{1}_HealthReport" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.ServerComponentState -FilePathNoEXT ("{0}\{1}_ServerComponentState" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.serverMonitoringOverride -FilePathNoEXT ("{0}\{1}_serverMonitoringOverride" -f $location, $env:COMPUTERNAME)
-                    Write-Data -DataIn $server.ServerHealth -FilePathNoEXT ("{0}\{1}_ServerHealth" -f $location, $env:COMPUTERNAME)                    
-                }
 
                 #Exchange Web App Pools 
                 $windir = $env:windir
@@ -3534,26 +3511,13 @@ Function Write-ExchangeDataOnMachines {
     {
         #Need to have install directory run through the loop first as it could be different on each server
         $serversObjectListInstall = @() 
+        $serverListCreateDirectories = @()
         foreach($server in $exchangeServerData)
         {
             $serverObject = New-Object PSCustomObject 
             $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
             $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $true
             $serversObjectListInstall += $serverObject
-        }
-        Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
-        $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
-        Write-ScriptDebug("Creating Script Block")
-        $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
-    
-        $serverListCreateDirectories = @() 
-        $serverListDumpData = @() 
-        $serverListZipData = @() 
-    
-        foreach($server in $exchangeServerData)
-        {
-            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
 
             #Create Directory 
             $serverCreateDirectory = New-Object PSCustomObject 
@@ -3564,16 +3528,35 @@ Function Write-ExchangeDataOnMachines {
             $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolders -Value $value
             $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentObject
             $serverListCreateDirectories += $serverCreateDirectory
+        }
+        Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
+        $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating Script Block")
+        $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock -NeedReturnData $true -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
+    
+        Write-ScriptDebug("Getting New-Folder string to create Script Block")
+        $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        Write-ScriptDebug("Creating script block")
+        $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
+        Write-ScriptDebug("Calling job for folder creation")
+        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
 
+        $serverListLocalDataGet = @() 
+        $serverListZipData = @() 
+    
+        foreach($server in $exchangeServerData)
+        {
+
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName 
             #Write Data 
             $argumentList = New-Object PSCustomObject 
-            $argumentList | Add-Member -MemberType NoteProperty -Name ServerObject -Value $server
             $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
             $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
             $serverDumpData = New-Object PSCustomObject 
             $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName 
             $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
-            $serverListDumpData += $serverDumpData
+            $serverListLocalDataGet += $serverDumpData
 
             #Zip data if not local cause we might have more stuff to run 
             if($server.ServerName -ne $env:COMPUTERNAME)
@@ -3591,14 +3574,48 @@ Function Write-ExchangeDataOnMachines {
             }
         }
 
-        Write-ScriptDebug("Getting New-Folder string to create Script Block")
-        $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
-        Write-ScriptDebug("Creating script block")
-        $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
-        Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock -DisplayReceiveJobInCorrectFunction $true -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
-        Write-ScriptDebug("Calling job for Exchange Data Write")
-        Start-JobManager -ServersWithArguments $serverListDumpData -ScriptBlock ${Function:Write-ExchangeData} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
+        $localServerTempLocation = "{0}{1}\Exchange_Server_Data_Temp\" -f $Script:RootFilePath, $env:COMPUTERNAME
+        #Write the data locally to the temp file, then copy the data to the correct location.
+        foreach($server in $exchangeServerData)
+        {
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName
+            Write-ScriptDebug("Location of data should be at: {0}" -f $location)
+            $remoteLocation = "\\{0}\{1}" -f $server.ServerName, $location.Replace(":","$")
+            Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
+            $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $server.ServerName
+            Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
+            $tempLocation = "{0}\{1}" -f $rootTempLocation, $server.ServerName
+            Write-ScriptDebug("Local Temp Location: {0}" -f $tempLocation)
+            New-Folder -NewFolders $rootTempLocation
+
+            Save-DataToFile -DataIn $server.ExchangeServer -SaveToLocation ("{0}_ExchangeServer" -f $tempLocation)
+
+            if($server.Hub)
+            {
+                Save-DataToFile -DataIn $server.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
+            }
+            if($server.CAS)
+            {
+                Save-DataToFile -DataIn $server.CAServerInfo -SaveToLocation ("{0}_ClientAccessServer" -f $tempLocation)
+            }
+            if($server.Mailbox)
+            {
+                Save-DataToFile -DataIn $server.MailboxServerInfo -SaveToLocation ("{0}_MailboxServer" -f $tempLocation)
+            }
+            if($server.Version -ge 15)
+            {
+                Save-DataToFile -DataIn $server.HealthReport -SaveToLocation ("{0}_HealthReport" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerComponentState -SaveToLocation ("{0}_ServerComponentState" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerMonitoringOverride -SaveToLocation ("{0}_serverMonitoringOverride" -f $tempLocation)
+                Save-DataToFile -DataIn $server.ServerHealth -SaveToLocation ("{0}_ServerHealth" -f $tempLocation)
+            }
+
+            $items = Get-ChildItem $rootTempLocation
+            $items | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $remoteLocation }
+        }
+        Remove-Item $localServerTempLocation -Force -Recurse 
+        Write-ScriptDebug("Calling Write-ExchangeData")
+        Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Write-ExchangeData} -DisplayReceiveJob $false -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
         Write-ScriptDebug("Calling job for Zipping the data")
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
@@ -3709,7 +3726,7 @@ Function Main {
     Test-NoSwitchesProvided
     if(-not (Confirm-Administrator))
     {
-        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator.") -ForegroundColor "Yellow"
+        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
         exit 
     }
     if(-not(Confirm-ExchangeShell -LoadExchangeVariables $false))
