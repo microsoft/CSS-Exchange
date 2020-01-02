@@ -3285,11 +3285,11 @@ param(
         {
             if($obj.Version -ge 16)
             {
-                $casInfo = Get-ClientAccessService $server
+                $casInfo = Get-ClientAccessService $server -IncludeAlternateServiceAccountCredentialStatus 
             }
             else 
             {
-                $casInfo = Get-ClientAccessServer $server 
+                $casInfo = Get-ClientAccessServer $server -IncludeAlternateServiceAccountCredentialStatus 
             }
             $obj | Add-Member -MemberType NoteProperty -Name CAServerInfo -Value $casInfo
         }
