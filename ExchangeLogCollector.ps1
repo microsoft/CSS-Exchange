@@ -85,6 +85,8 @@
     Used to collect the POP protocol logs
 .PARAMETER ImapLogs 
     Used to collect the IMAP protocol logs
+.PARAMETER OABLogs
+    Used to collect the OAB logs
 .PARAMETER MSInfo 
     Old switch that was used for collecting the general Server information 
 .PARAMETER CollectAllLogsBasedOnDaysWorth
@@ -154,6 +156,7 @@ Param (
 [switch]$ExchangeServerInfo,
 [switch]$PopLogs,
 [switch]$ImapLogs,
+[switch]$OABLogs,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
@@ -706,6 +709,7 @@ param(
     $obj | Add-Member -Name StandardFreeSpaceInGBCheckSize -MemberType NoteProperty $Script:StandardFreeSpaceInGBCheckSize
     $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs 
+    $obj | Add-Member -Name OABLogs -MemberType NoteProperty -Value $OABLogs
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -764,6 +768,7 @@ Function Test-PossibleCommonScenarios {
         $Script:PopLogs = $true 
         $Script:ImapLogs = $true 
         $Script:Experfwiz = $true
+        $Script:OABLogs = $true
     }
 
     if($DefaultTransportLogging)
@@ -847,6 +852,7 @@ Function Test-NoSwitchesProvided {
     $ServerInfo -or
     $PopLogs -or 
     $ImapLogs -or 
+    $OABLogs -or
     $ExchangeServerInfo
     ){return}
     else 
@@ -3018,6 +3024,21 @@ param(
             {
                 $info = ($copyInfo -f ($Script:localExinstall + "\Logging\Monitoring"),($Script:RootCopyToDirectory + "\ManagedAvailabilityMonitoringLogs"))
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info                
+            }
+
+            if($PassedInfo.OABLogs)
+            {
+                $info = ($copyInfo -f ($Script:localExinstall + "\Logging\HttpProxy\OAB"),($Script:RootCopyToDirectory + "\OAB_Proxy_Logs"))
+                if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+
+                $info = ($copyInfo -f ($Script:localExinstall + "\Logging\OABGeneratorLog"),($Script:RootCopyToDirectory + "\OAB_Generation_Logs"))
+                if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+
+                $info = ($copyInfo -f ($Script:localExinstall + "\Logging\OABGeneratorSimpleLog"),($Script:RootCopyToDirectory + "\OAB_Generation_Simple_Logs"))
+                if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
             }
         }
         
