@@ -3529,7 +3529,36 @@ Function Write-ExchangeDataOnMachines {
                 }
 
         }
+    
+    Function Write-ExchangeDataLocally {
+    param(
+    [object]$ServerData,
+    [string]$Location
+    )
+        $tempLocation = "{0}\{1}" -f $Location, $ServerData.ServerName
+        Save-DataToFile -DataIn $ServerData.ExchangeServer -SaveToLocation ("{0}_ExchangeServer" -f $tempLocation)
 
+        if($ServerData.Hub)
+        {
+            Save-DataToFile -DataIn $ServerData.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
+        }
+        if($ServerData.CAS)
+        {
+            Save-DataToFile -DataIn $ServerData.CAServerInfo -SaveToLocation ("{0}_ClientAccessServer" -f $tempLocation)
+        }
+        if($ServerData.Mailbox)
+        {
+            Save-DataToFile -DataIn $ServerData.MailboxServerInfo -SaveToLocation ("{0}_MailboxServer" -f $tempLocation)
+        }
+        if($ServerData.Version -ge 15)
+        {
+            Save-DataToFile -DataIn $ServerData.HealthReport -SaveToLocation ("{0}_HealthReport" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.ServerComponentState -SaveToLocation ("{0}_ServerComponentState" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.ServerMonitoringOverride -SaveToLocation ("{0}_serverMonitoringOverride" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.ServerHealth -SaveToLocation ("{0}_ServerHealth" -f $tempLocation)
+        }
+
+    }
 
     $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers 
     #if single server or Exchange 2010 where invoke-command doesn't work 
@@ -3610,31 +3639,9 @@ Function Write-ExchangeDataOnMachines {
             Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
             $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $server.ServerName
             Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
-            $tempLocation = "{0}\{1}" -f $rootTempLocation, $server.ServerName
-            Write-ScriptDebug("Local Temp Location: {0}" -f $tempLocation)
             New-Folder -NewFolders $rootTempLocation
 
-            Save-DataToFile -DataIn $server.ExchangeServer -SaveToLocation ("{0}_ExchangeServer" -f $tempLocation)
-
-            if($server.Hub)
-            {
-                Save-DataToFile -DataIn $server.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
-            }
-            if($server.CAS)
-            {
-                Save-DataToFile -DataIn $server.CAServerInfo -SaveToLocation ("{0}_ClientAccessServer" -f $tempLocation)
-            }
-            if($server.Mailbox)
-            {
-                Save-DataToFile -DataIn $server.MailboxServerInfo -SaveToLocation ("{0}_MailboxServer" -f $tempLocation)
-            }
-            if($server.Version -ge 15)
-            {
-                Save-DataToFile -DataIn $server.HealthReport -SaveToLocation ("{0}_HealthReport" -f $tempLocation)
-                Save-DataToFile -DataIn $server.ServerComponentState -SaveToLocation ("{0}_ServerComponentState" -f $tempLocation)
-                Save-DataToFile -DataIn $server.ServerMonitoringOverride -SaveToLocation ("{0}_serverMonitoringOverride" -f $tempLocation)
-                Save-DataToFile -DataIn $server.ServerHealth -SaveToLocation ("{0}_ServerHealth" -f $tempLocation)
-            }
+            Write-ExchangeDataLocally -ServerData $server -Location $rootTempLocation
 
             $items = Get-ChildItem $rootTempLocation
             $items | ForEach-Object{ Copy-Item $_.VersionInfo.FileName $remoteLocation }
@@ -3663,6 +3670,8 @@ Function Write-ExchangeDataOnMachines {
         $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData 
         $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
         $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $ExInstall 
+
+        Write-ExchangeDataLocally -Location $location -ServerData $exchangeServerData
         Write-ScriptDebug("Writing out the Exchange data")
         Write-ExchangeData -PassedInfo $passInfo 
         $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
