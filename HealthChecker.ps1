@@ -875,6 +875,12 @@ param(
     Write-VerboseOutput("Calling: Get-OperatingSystemVersion")
     Write-VerboseOutput("Passed: $OS_Version")
     
+    #Quick fix to address issue 252
+    if($OS_Version -gt 10.0.14393)
+    {
+        $OS_Version = "10.0.17713"
+    }
+    
     switch($OS_Version)
     {
         "6.0.6000" {Write-VerboseOutput("Returned: Windows2008"); return [HealthChecker.OSVersionName]::Windows2008}
