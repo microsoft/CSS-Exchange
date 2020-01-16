@@ -2179,6 +2179,12 @@ param(
         $versionObject.FriendlyName = "4.7.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
     }
+    elseif($NetVersionKey -eq 528040 -and $OSVersionName -eq [HealthChecker.OSVersionName]::Windows2019)
+    {
+        #See: https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed
+        $versionObject.FriendlyName = "Windows Server 2019 .NET 4.8"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d8
+    }
     elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d8))
     {
         $versionObject.FriendlyName = "4.7.2"
