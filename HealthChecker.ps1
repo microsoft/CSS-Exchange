@@ -2230,6 +2230,64 @@ param(
     return $versionObject
 }
 
+
+Function Display-Smb1ServerStatus
+{
+param(
+[Parameter(Mandatory=$true)][object]$HealthExSvrObj
+)
+    Write-VerboseOutput("Calling: Display-Smb1ServerStatus")
+    Write-VerboseOutput("For Server: {0}" -f ($Machine_Name = $HealthExSvrObj.ServerName))
+    $OSVersionName = $HealthExSvrObj.OSVersion.OSVersion
+
+    Function Get-Smb1ServerStatus 
+    {
+    param(
+    [Parameter(Mandatory=$true)][string]$Machine_Name,
+    [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName
+    )
+
+        $regServer = "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters"
+        Write-VerboseOutput("Detecting Smb1 server registry settings")
+        $regSmb1ServerSettings = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "SMB1"
+
+        if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
+            if($regSmb1ServerSettings -ne 0) {return $true}
+        }
+        elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
+            if(((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true) -and ($regSmb1ServerSettings -ne 0)) {return $true}
+        }
+        elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
+            if(((Get-WindowsFeature "FS-SMB1").Installed -eq $true) -or ((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true) -and ($regSmb1ServerSettings -ne 0)) {return $true}
+        }
+    }
+    
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        if(Get-Smb1ServerStatus -Machine_Name $Machine_Name -OSVersionName $OSVersionName)
+        {
+            Write-Red("SMB1 is NOT completely disabled!")
+            Write-Red("We recommend to disable SMB1 for security reasons. Exchange 2013/2016/2019 doesn't need SMB1 to work properly.")
+            Write-Red("See: https://support.microsoft.com/en-us/help/2696547/detect-enable-disable-smbv1-smbv2-smbv3-in-windows-and-windows-server for more information.")
+        }
+        else
+        {
+            Write-Green("SMB1 is disabled which is recommended.")
+        }
+    }
+    else
+    {
+        Write-Yellow("We've detected Exchange 2010 or lower so we don't check for SMB1 settings.")
+    }
+}
+
+
 Function Get-ExchangeVersion {
 param(
 [Parameter(Mandatory=$true)][object]$AdminDisplayVersion
@@ -4829,11 +4887,13 @@ param(
         }
     }
 
-    #####################
-    #Vulnerability Check#
-    #####################
+    #################
+    #Security Checks#
+    #################
 
     Display-MSExchangeVulnerabilities $HealthExSvrObj
+    Write-Break
+    Display-Smb1ServerStatus $HealthExSvrObj
 
 
     Write-Grey("`r`n`r`n")
