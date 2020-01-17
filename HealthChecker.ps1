@@ -617,7 +617,7 @@ param(
         {
             $ScriptBlock = {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest"))
+                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest") -UseBasicParsing)
             }
 
             $WebRequestJob = Start-Job -ScriptBlock $ScriptBlock -Name "WebRequestJob" -ArgumentList $ApiUri,$RepoOwner,$RepoName
@@ -1360,10 +1360,10 @@ param(
 [parameter(Mandatory=$false)][switch]$ReturnReplacingKBNumbersOnly
 )
     $ScriptBlock1 = {
-        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])"
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])" -UseBasicParsing
     }
     $ScriptBlock2 = {
-        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])"
+        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])" -UseBasicParsing
     }
 
     $WindowsCatalogCall1 = Start-Job -ScriptBlock $ScriptBlock1 -Name "WindowsCatalogCall1" -ArgumentList $KBNumber
