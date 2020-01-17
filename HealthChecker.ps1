@@ -876,7 +876,8 @@ param(
     Write-VerboseOutput("Passed: $OS_Version")
     
     #Quick fix to address issue 252
-    if($OS_Version -gt 10.0.14393)
+    [int]$intOSVersion = $OS_Version.Replace(".","")
+    if($intOSVersion -gt 10014393)
     {
         $OS_Version = "10.0.17713"
     }
