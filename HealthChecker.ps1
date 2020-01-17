@@ -2251,6 +2251,28 @@ param(
         Write-VerboseOutput("Detecting Smb1 server registry settings")
         $regSmb1ServerSettings = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "SMB1"
 
+        $scriptBlockSmbServerConfiguration = {
+            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
+            {
+                return $true 
+            }
+            else 
+            {
+                return $false
+            }
+        }
+
+        $scriptBlockWindowsFeature = {
+            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
+            {
+                return $true
+            }
+            else 
+            {
+                return $false 
+            }
+        }
+
         if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
@@ -2259,12 +2281,12 @@ param(
         elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
-            if(((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true) -and ($regSmb1ServerSettings -ne 0)) {return $true}
+            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return $true}
         }
         elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
-            if(((Get-WindowsFeature "FS-SMB1").Installed -eq $true) -or ((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true) -and ($regSmb1ServerSettings -ne 0)) {return $true}
+            if(((Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name) -or (Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name))) {return $true}
         }
     }
     
