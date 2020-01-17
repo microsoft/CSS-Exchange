@@ -627,7 +627,7 @@ param(
                 if((Get-Job -Id $WebRequestJob.Id).State -eq "Completed")
                 {
                     Write-VerboseOutput("WebRequest after {0} attempts successfully completed. Receiving results." -f $i)
-                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep
+                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep -ErrorAction Stop
                     Write-VerboseOutput("Removing background worker job")
                     Remove-Job -Id $WebRequestJob.Id
                     Break
