@@ -2252,7 +2252,7 @@ param(
         $regSmb1ServerSettings = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "SMB1"
 
         $scriptBlockSmbServerConfiguration = {
-            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
+            if((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true)
             {
                 return $true 
             }
