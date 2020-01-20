@@ -121,7 +121,7 @@ Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, 
 VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.  
 Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
 
-For further details, please review the virtualization recommendations on TechNet at the following locations: 
+For further details, please review the virtualization recommendations on Microsoft Docs at the following locations: 
 Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.  
 Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019. 
 
@@ -4023,7 +4023,7 @@ param(
     if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $HealthExSvrObj.OSVersion.IPv6DisabledOnNICs)
     {
         Write-Break
-        Write-Red("Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://blogs.technet.microsoft.com/rmilne/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way/ `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $HealthExSvrObj.OSVersion.DisabledComponents )
+        Write-Red("Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $HealthExSvrObj.OSVersion.DisabledComponents )
     }
     #######################
     #Processor Information#
@@ -4229,7 +4229,7 @@ param(
     Write-Grey("`r`nRPC Minimum Connection Timeout:")
     if($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 0)
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/")
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently not set on the system. This may cause some issues with client connectivity. `r`n`tMore Information: `r`n`thttps://docs.microsoft.com/en-us/archive/blogs/messaging_with_communications/outlook-anywhere-network-timeout-issue")
     }
     elseif($HealthExSvrObj.OSVersion.MinimumConnectionTimeout -eq 120)
     {
@@ -4237,7 +4237,7 @@ param(
     }
     else 
     {
-        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
+        Write-Grey("`tNote: The RPC MinimumConnectionTimeout is currently set to {0} which is not the recommended value. `r`n`tMore Information: `r`n`thttps://docs.microsoft.com/en-us/archive/blogs/messaging_with_communications/outlook-anywhere-network-timeout-issue" -f $HealthExSvrObj.OSVersion.MinimumConnectionTimeout)    
     }
 
     ###############################
