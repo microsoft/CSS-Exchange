@@ -347,7 +347,7 @@ using System.Collections;
         {
             public NetMajorVersion NetMajorVersion; //NetMajorVersion value 
             public string FriendlyName;  //string of the friendly name 
-            public int RegValue; //store the registry value 
+            public int RegistryValue; //store the registry value 
         }
     
         //enum for the OSServerVersion that we are
@@ -1209,7 +1209,7 @@ param(
     
     if($DetectedVisualCRedistVersions -ne $null)
     {
-        if(($ExchangeServerObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge))
+        if(($ExchangeServerObj.ExchangeInformation.ExchangeServerRole -ne [HealthChecker.ExchangeServerRole]::Edge))
         {
             Write-VerboseOutput("We need to check for Visual C++ Redistributable Version 2013")
             $Return.VC2013Required = $true
@@ -1262,13 +1262,13 @@ param(
 
 Function Get-HotFixListInfo{
 param(
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
+[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OS_Version
 )
     Write-VerboseOutput("Calling: Confirm-VisualCRedistributableVersion")
     $hotfix_objs = @()
     switch ($OS_Version)
     {
-        ([HealthChecker.OSVersionName]::Windows2008R2)
+        ([HealthChecker.OSServerVersion]::Windows2008R2)
         {
             [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3004383"
@@ -1278,7 +1278,7 @@ param(
             $hotfix_objs += $hotfix_obj
             return $hotfix_objs
         }
-        ([HealthChecker.OSVersionName]::Windows2012R2)
+        ([HealthChecker.OSServerVersion]::Windows2012R2)
         {
             [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3041832"
@@ -1290,7 +1290,7 @@ param(
             
             return $hotfix_objs
         }
-        ([HealthChecker.OSVersionName]::Windows2016)
+        ([HealthChecker.OSServerVersion]::Windows2016)
         {
             [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
             $hotfix_obj.KBName = "KB3206632"
@@ -1347,7 +1347,7 @@ param(
 Function Get-RemoteHotFixInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OS_Version
+[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OS_Version
 )
     Write-VerboseOutput("Calling: Get-RemoteHotFixInformation")
     $HotfixListObjs = Get-HotFixListInfo -OS_Version $OS_Version
@@ -1616,42 +1616,47 @@ param(
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
 
-    [HealthChecker.OperatingSystemInformation]$os_obj = New-Object HealthChecker.OperatingSystemInformation
-    $os = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
-    $plan = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $temp_currentdate = Get-Date
-    $temp_uptime = [Management.ManagementDateTimeConverter]::ToDateTime($os.lastbootuptime)
-    $os_obj.OSVersionBuild = $os.Version
-    $os_obj.OSVersion = (Get-ServerOperatingSystemVersion -OSBuildNumberVersion $os_obj.OSVersionBuild)
-    $os_obj.OperatingSystemName = $os.Caption
-    $os_obj.OperatingSystem = $os
-    $os_obj.BootUpTimeInDays = ($temp_currentdate - $temp_uptime).Days
-    $os_obj.BootUpTimeInHours = ($temp_currentdate - $temp_uptime).Hours
-    $os_obj.BootUpTimeInMinutes = ($temp_currentdate - $temp_uptime).Minutes
-    $os_obj.BootUpTimeInSeconds = ($temp_currentdate - $temp_uptime).Seconds
+    [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
+    [HealthChecker.OSBuildInformation]$osInformation.BuildInformation = New-Object HealthChecker.OSBuildInformation
+    [HealthChecker.ServerBootUpInformation]$osInformation.ServerBootUp = New-Object HealthChecker.ServerBootUpInformation
+    [HealthChecker.PowerPlanInformation]$osInformation.PowerPlan = New-Object HealthChecker.PowerPlanInformation
+    [HealthChecker.NetworkInformation]$osInformation.NetworkInformation = New-Object HealthChecker.NetworkInformation
+    [HealthChecker.InstalledUpdatesInformation]$osInformation.InstalledUpdates = New-Object HealthChecker.InstalledUpdatesInformation
+    [HealthChecker.TimeZoneInformation]$osInformation.TimeZone = New-Object HealthChecker.TimeZoneInformation
+    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $currentDateTime = Get-Date
+    $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
+    $osInformation.BuildInformation.VersionBuild = $win32_OperatingSystem.Version
+    $osInformation.BuildInformation.MajorVersion = (Get-ServerOperatingSystemVersion -OSBuildNumberVersion $win32_OperatingSystem.OSVersionBuild)
+    $osInformation.BuildInformation.FriendlyName = $win32_OperatingSystem.Caption
+    $osInformation.BuildInformation.OperatingSystem = $win32_OperatingSystem
+    $osInformation.ServerBootUp.Days = ($currentDateTime - $lastBootUpTime).Days
+    $osInformation.ServerBootUp.Hours = ($currentDateTime - $lastBootUpTime).Hours
+    $osInformation.ServerBootUp.Minutes = ($currentDateTime - $lastBootUpTime).Minutes
+    $osInformation.ServerBootUp.Seconds = ($currentDateTime - $lastBootUpTime).Seconds
     
-    if($plan -ne $null)
+    if($win32_PowerPlan -ne $null)
     {
-        if($plan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}")
+        if($win32_PowerPlan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}")
         {
             Write-VerboseOutput("High Performance Power Plan is set to true")
-            $os_obj.HighPerformanceSet = $true
+            $osInformation.PowerPlan.HighPerformanceSet = $true
         }
-        $os_obj.PowerPlanSetting = $plan.ElementName
-        
+        else{Write-VerboseOutput("High Performance Power Plan is NOT set to true")}
+        $osInformation.PowerPlan.PowerPlanSetting = $win32_PowerPlan.ElementName
     }
     else
     {
         Write-VerboseOutput("Power Plan Information could not be read")
-        $os_obj.HighPerformanceSet = $false
-        $os_obj.PowerPlanSetting = "N/A"
+        $osInformation.PowerPlan.PowerPlanSetting = "N/A"
     }
-    $os_obj.PowerPlan = $plan 
-    $os_obj.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
-    $os_obj.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
-    if($os_obj.OSVersion -lt [HealthChecker.OSVersionName]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
-    $os_obj.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -Windows2012R2AndAbove $isWindows2012R2OrNewer -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
-    foreach($adapter in $os_obj.NetworkAdaptersConfiguration)
+    $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan 
+    $osInformation.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
+    $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
+    if($osInformation.BuildInformation.MajorVersion -lt [HealthChecker.OSServerVersion]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
+    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -Windows2012R2AndAbove $isWindows2012R2OrNewer -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
+    foreach($adapter in $osInformation.NetworkInformation.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
         $settingID = $adapter.SettingID
@@ -1666,7 +1671,7 @@ param(
             }
         }
         Write-VerboseOutput("Going to try to find the Network Adapter that goes with this adapter configuration")
-        foreach($nicAdapter in $os_obj.NetworkAdapters)
+        foreach($nicAdapter in $osInformation.NetworkInformation.NetworkAdapters)
         {
             $nicObject = $nicAdapter.NICObject
             Write-VerboseOutput("Checking against '{0}'" -f $nicAdapter.Description)
@@ -1679,28 +1684,28 @@ param(
         }
         if(!$IPv6Enabled)
         {
-            $os_obj.IPv6DisabledOnNICs = $true 
+            $osInformation.NetworkInformation.IPv6DisabledOnNICs = $true 
         }
     }
 
-    $os_obj.DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $os_obj.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $os_obj.MinimumConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
-	$os_obj.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
-    $os_obj.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
-    $os_obj.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $os_obj.OSVersion 
-    $os_obj.LmCompat = (Get-LmCompatibilityLevelInformation -Machine_Name $Machine_Name)
+    $osInformation.NetworkInformation.IPv6DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
+	$osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
+    $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
+    $osInformation.InstalledUpdates.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $osInformation.BuildInformation.MajorVersion
+    $osInformation.LmCompatibility = (Get-LmCompatibilityLevelInformation -Machine_Name $Machine_Name)
     $counterSamples = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     if($counterSamples -ne $null)
     {
-        $os_obj.PacketsReceivedDiscarded = $counterSamples
+        $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
-    $os_obj.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
-    $os_obj.TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
-    $os_obj.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
+    $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
-    return $os_obj
+    return $osInformation
 }
 
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerType/Get-ServerType.ps1
@@ -1849,83 +1854,83 @@ param(
 Function Get-NetFrameworkVersionFriendlyInfo {
 param(
 [Parameter(Mandatory=$true)][int]$NetVersionKey,
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName 
+[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OSServerVersion 
 )
     Write-VerboseOutput("Calling: Get-NetFrameworkVersionFriendlyInfo")
     Write-VerboseOutput("Passed: " + $NetVersionKey.ToString())
-    Write-VerboseOutput("Passed: " + $OSVersionName.ToString())
-    [HealthChecker.NetVersionInformation]$versionObject = New-Object -TypeName HealthChecker.NetVersionInformation
-        if(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d5d1))
+    Write-VerboseOutput("Passed: " + $OSServerVersion.ToString())
+    [HealthChecker.OSNetFrameworkInformation]$versionObject = New-Object -TypeName HealthChecker.OSNetFrameworkInformation
+        if(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d1))
     {
         $versionObject.FriendlyName = "4.5"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d5
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5d1) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d5d2))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d1) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d2))
     {
         $versionObject.FriendlyName = "4.5.1"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d5d1
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d1
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5d2) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d5d2wFix))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d2) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d2wFix))
     {
         $versionObject.FriendlyName = "4.5.2"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d5d2
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d2
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d5d2wFix) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d6))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d2wFix) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6))
     {
         $versionObject.FriendlyName = "4.5.2 with Hotfix 3146718"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d5d2wFix
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d6d1))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d1))
     {
         $versionObject.FriendlyName = "4.6"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d1) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d6d1wFix))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d1) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d1wFix))
     {
         $versionObject.FriendlyName = "4.6.1"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d1
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d1
     }
-    elseif($NetVersionKey -eq 394802 -and $OSVersionName -eq [HealthChecker.OSVersionName]::Windows2016)
+    elseif($NetVersionKey -eq 394802 -and $OSServerVersion -eq [HealthChecker.OSServerVersion]::Windows2016)
     {
         $versionObject.FriendlyName = "Windows Server 2016 .NET 4.6.2"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d2
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d1wFix) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d6d2))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d1wFix) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d2))
     {
         $versionObject.FriendlyName = "4.6.1 with Hotfix 3146716/3146714/3146715"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d1wFix
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
     }
-    elseif(($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d6d2) -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7))
+    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d2) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7))
     {
         $versionObject.FriendlyName = "4.6.2"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d6d2
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
     }
-	elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7d1))
+	elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7d1))
 	{
 		$versionObject.FriendlyName = "4.7"
-		$versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7
+		$versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d1 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d7d2))
+    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7d1 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7d2))
     {
         $versionObject.FriendlyName = "4.7.1"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d8))
+    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d8))
     {
         $versionObject.FriendlyName = "4.7.2"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d2
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
     }
-    elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d8)
+    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d8)
     {
         $versionObject.FriendlyName = "4.8"
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d8
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d8
     }
     else
     {
         $versionObject.FriendlyName = "Unknown" 
-        $versionObject.NetVersion = [HealthChecker.NetVersion]::Unknown
+        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Unknown
     }
-    $versionObject.NetRegValue = $NetVersionKey
+    $versionObject.RegistryValue = $NetVersionKey
 
     Write-VerboseOutput("Returned: " + $versionObject.FriendlyName)
     return $versionObject
@@ -1937,14 +1942,14 @@ param(
 Function Get-NetFrameWorkVersionObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName
+[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OSServerVersion
 )
     Write-VerboseOutput("Calling: Get-NetFrameWorkVersionObject")
     Write-VerboseOutput("Passed: $Machine_Name")
-    Write-VerboseOutput("Passed: $OSVersionName")
+    Write-VerboseOutput("Passed: $OSServerVersion")
     [int]$NetVersionKey = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
-    [HealthChecker.NetVersionInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
+    [HealthChecker.OSNetFrameworkInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSServerVersion $OSServerVersion
     Write-VerboseOutput("Exiting: Get-NetFrameWorkVersionObject")
     return $versionObject
 }
@@ -1971,17 +1976,17 @@ Function Get-ExchangeMajorVersion {
         $build = $AdminDisplayVersion.Major + ($AdminDisplayVersion.Minor / 10)
     }
     Write-VerboseWriter("Determing build based off of: {0}" -f $build)
-    $exchangeVersion = [string]::Empty
+    $exchangeMajorVersion = [string]::Empty
     switch($build)
     {
-        14.3 {$exchangeVersion = "Exchange2010"}
-        15 {$exchangeVersion = "Exchange2013"}
-        15.1 {$exchangeVersion = "Exchange2016"}
-        15.2 {$exchangeVersion = "Exchange2019"}
-        default {$exchangeVersion = "Unknown"}
+        14.3 {$exchangeMajorVersion = "Exchange2010"}
+        15 {$exchangeMajorVersion = "Exchange2013"}
+        15.1 {$exchangeMajorVersion = "Exchange2016"}
+        15.2 {$exchangeMajorVersion = "Exchange2019"}
+        default {$exchangeMajorVersion = "Unknown"}
     }
-    Write-VerboseWriter("Returned: {0}" -f $exchangeVersion)
-    return $exchangeVersion 
+    Write-VerboseWriter("Returned: {0}" -f $exchangeMajorVersion)
+    return $exchangeMajorVersion 
 }
 
 Function Get-BuildNumberToString {
@@ -2014,7 +2019,7 @@ param(
     if($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 2)
     {
         Write-VerboseOutput("Determined that we are on Exchange 2019")
-        $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2019
+        $exBuildObj.ExchangeMajorVersion = [HealthChecker.ExchangeMajorVersion]::Exchange2019
         if($buildRevision -ge 196.0 -and $buildRevision -lt 221.12){if($buildRevision -gt 196.9){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
         elseif($buildRevision -lt 330.6){if($buildRevision -gt 221.12){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
         elseif($buildRevision -lt 397.3){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
@@ -2024,7 +2029,7 @@ param(
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
         Write-VerboseOutput("Determined that we are on Exchange 2016")
-        $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2016
+        $exBuildObj.ExchangeMajorVersion = [HealthChecker.ExchangeMajorVersion]::Exchange2016
         if($buildRevision -ge 225.16 -and $buildRevision -lt 225.42) {if($buildRevision -gt 225.16){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::Preview}
         elseif($buildRevision -lt 396.30) {if($buildRevision -gt 225.42){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
         elseif($buildRevision -lt 466.34) {if($buildRevision -gt 396.30){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
@@ -2046,7 +2051,7 @@ param(
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
     {
         Write-VerboseOutput("Determined that we are on Exchange 2013")
-        $exBuildObj.ExchangeVersion = [HealthChecker.ExchangeVersion]::Exchange2013
+        $exBuildObj.ExchangeMajorVersion = [HealthChecker.ExchangeMajorVersion]::Exchange2013
         if($buildRevision -ge 516.32 -and $buildRevision -lt 620.29) {if($buildRevision -gt 516.32){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::RTM}
         elseif($buildRevision -lt 712.24) {if($buildRevision -gt 620.29){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
         elseif($buildRevision -lt 775.38) {if($buildRevision -gt 712.24){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU2}
@@ -2075,7 +2080,6 @@ param(
     else
     {
         Write-Red "Error: Didn't know how to process the Admin Display Version Provided"
-        
     }
 
     Write-VerboseOutput("Exiting: Get-ExchangeBuildObject")
@@ -2104,12 +2108,12 @@ param(
        Write-VerboseOutput("Determined that we are working with Exchange 2013 or greater")
        [HealthChecker.ExchangeBuildObject]$exBuildObj = Get-ExchangeBuildObject -AdminDisplayVersion $AdminDisplayVersion 
        Write-VerboseOutput("Got the exBuildObj")
-       Write-VerboseOutput("Exchange Version is set to: " + $exBuildObj.ExchangeVersion.ToString())
+       Write-VerboseOutput("Exchange Version is set to: " + $exBuildObj.ExchangeMajorVersion.ToString())
        Write-VerboseOutput("CU is set to: " + $exBuildObj.CU.ToString())
        Write-VerboseOutput("Inbetween CUs: " + $exBuildObj.InbetweenCUs.ToString())
-       switch($exBuildObj.ExchangeVersion)
+       switch($exBuildObj.ExchangeMajorVersion)
        {
-        ([HealthChecker.ExchangeVersion]::Exchange2019)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2019)
             {
                 Write-VerboseOutput("Working with Exchange 2019")
                 switch($exBuildObj.CU)
@@ -2123,7 +2127,7 @@ param(
                 }
             }
 
-        ([HealthChecker.ExchangeVersion]::Exchange2016)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2016)
             {
                 Write-VerboseOutput("Working with Exchange 2016")
                 switch($exBuildObj.CU)
@@ -2148,7 +2152,7 @@ param(
                 }
                 break;
             }
-        ([HealthChecker.ExchangeVersion]::Exchange2013)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2013)
             {
                 Write-VerboseOutput("Working with Exchange 2013")
                 switch($exBuildObj.CU)
@@ -2244,15 +2248,15 @@ The upgrade to .Net 4.6.2, while strongly encouraged, is optional with these rel
 Function Check-DotNetFrameworkSupportedLevel {
 param(
 [Parameter(Mandatory=$true)][HealthChecker.ExchangeBuildObject]$exBuildObj,
-[Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName,
-[Parameter(Mandatory=$true)][HealthChecker.NetVersion]$NetVersion
+[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OSServerVersion,
+[Parameter(Mandatory=$true)][HealthChecker.NetMajorVersion]$NetVersion
 )
     Write-VerboseOutput("Calling: Check-DotNetFrameworkSupportedLevel")
-    Function Check-NetVersionToExchangeVersion {
+    Function Check-NetVersionToExchangeMajorVersion {
     param(
-    [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$CurrentNetVersion,
-    [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$MinSupportNetVersion,
-    [Parameter(Mandatory=$true)][HealthChecker.NetVersion]$RecommendedNetVersion
+    [Parameter(Mandatory=$true)][HealthChecker.NetMajorVersion]$CurrentNetVersion,
+    [Parameter(Mandatory=$true)][HealthChecker.NetMajorVersion]$MinSupportNetVersion,
+    [Parameter(Mandatory=$true)][HealthChecker.NetMajorVersion]$RecommendedNetVersion
     )
         $NetCheckObj = New-Object PSCustomObject 
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name Error -Value $false 
@@ -2260,7 +2264,7 @@ param(
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name RecommendedNetVersion -Value $true 
         $NetCheckObj | Add-Member -MemberType NoteProperty -Name DisplayWording -Value ([string]::Empty)
 
-        Write-VerboseOutput("Calling: Check-NetVersionToExchangeVersion")
+        Write-VerboseOutput("Calling: Check-NetVersionToExchangeMajorVersion")
         Write-VerboseOutput("Passed: Current Net Version: " + $CurrentNetVersion.ToString())
         Write-VerboseOutput("Passed: Min Support Net Version: " + $MinSupportNetVersion.ToString())
         Write-VerboseOutput("Passed: Recommended/Max Net Version: " + $RecommendedNetVersion.ToString())
@@ -2271,20 +2275,20 @@ param(
             Write-VerboseOutput("Current Version of .NET equals the Recommended Version of .NET")
             $NetCheckObj.Supported = $true    
         }
-        elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
+        elseif($CurrentNetVersion -eq [HealthChecker.NetMajorVersion]::Net4d6 -and $RecommendedNetVersion -ge [HealthChecker.NetMajorVersion]::Net4d6d1wFix)
         {
             Write-VerboseOutput("Current version of .NET equals 4.6 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET 4.6 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionInformation.FriendlyName + " as soon as possible to get into a supported state."
         }
-		elseif($CurrentNetVersion -eq [HealthChecker.NetVersion]::Net4d6d1 -and $RecommendedNetVersion -ge [HealthChecker.NetVersion]::Net4d6d1wFix)
+		elseif($CurrentNetVersion -eq [HealthChecker.NetMajorVersion]::Net4d6d1 -and $RecommendedNetVersion -ge [HealthChecker.NetMajorVersion]::Net4d6d1wFix)
 		{
 			Write-VerboseOutput("Current version of .NET equals 4.6.1 while the recommended version of .NET is equal to or greater than 4.6.1 with hotfix. This means that we are on an unsupported version because we never supported just 4.6.1 without the hotfix")
 			$NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-			[HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+			[HealthChecker.NetMajorVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
 			$NetCheckObj.DisplayWording = "On .NET 4.6.1 and this is an unsupported build of .NET for Exchange. Only .NET 4.6.1 with the hotfix and greater are supported. Please upgrade to " + $RecommendedNetVersionInformation.FriendlyName + " as soon as possible to get into a supported state."
 		}
 
@@ -2294,8 +2298,8 @@ param(
             Write-VerboseOutput("Current version of .NET is less than Min Supported Version. Need to upgrade to this version as soon as possible")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionInformation.FriendlyName + ". Upgrade to this version as soon as possible."
         }
         #here we are assuming that we are able to get to a much better version of .NET then the min 
@@ -2304,9 +2308,9 @@ param(
             Write-VerboseOutput("Current Version of .NET is less than Min Supported Version. However, the recommended version is the one we want to upgrade to")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false
-            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$MinSupportNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $MinSupportNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the minimum supported version is " + $MinSupportNetVersionInformation.FriendlyName + ", but the recommended version is " + $RecommendedNetVersionInformation.FriendlyName + ". upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -lt $RecommendedNetVersion)
@@ -2314,8 +2318,8 @@ param(
             Write-VerboseOutput("Current version is less than the recommended version, but we are at or higher than the Min Supported level. Should upgrade to the recommended version as soon as possible.")
             $NetCheckObj.Supported = $true
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionInformation.FriendlyName + ". Upgrade to this version as soon as possible." 
         }
         elseif($CurrentNetVersion -gt $RecommendedNetVersion)
@@ -2323,8 +2327,8 @@ param(
             Write-VerboseOutput("Current version is greater than the recommended version. This is an unsupported state.")
             $NetCheckObj.Supported = $false
             $NetCheckObj.RecommendedNetVersion = $false 
-            [HealthChecker.NetVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
-            [HealthChecker.NetVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$currentNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $CurrentNetVersion.value__ -OSVersionName $OSVersionName
+            [HealthChecker.NetMajorVersionInformation]$RecommendedNetVersionInformation = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $RecommendedNetVersion.value__ -OSVersionName $OSVersionName
             $NetCheckObj.DisplayWording = "On .NET " + $currentNetVersionInformation.FriendlyName + " and the max recommended version of .NET for this build of Exchange is " + $RecommendedNetVersionInformation.FriendlyName + ". Correctly remove the .NET version that you are on and reinstall the recommended max value. Generic catch message for current .NET version being greater than Max .NET version, so ask or lookup on the correct steps to address this issue."
         }
         else
@@ -2336,102 +2340,102 @@ param(
         Return $NetCheckObj
     }
 
-    switch($exBuildObj.ExchangeVersion)
+    switch($exBuildObj.ExchangeMajorVersion)
     {
-        ([HealthChecker.ExchangeVersion]::Exchange2013)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2013)
             {
                 Write-VerboseOutput("Exchange 2013 Detected...checking .NET version")
 				#change -lt to -le as we don't support CU12 with 4.6.1 
                 if($exBuildObj.CU -le ([HealthChecker.ExchangeCULevel]::CU12))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
                 }
                 elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU15))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix
                 }
                 elseif($exBuildObj.CU -eq ([HealthChecker.ExchangeCULevel]::CU15))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU16 we will require .NET 4.6.2 before you can install this version of Exchange." 
                 }
                 elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU19))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2
                 }
                 elseif($exBuildObj.CU -lt ([HealthChecker.ExchangeCULevel]::CU21))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
                 elseif($exBuildObj.CU -le ([HealthChecker.ExchangeCULevel]::CU22))
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU23 we will require .NET 4.7.2 before you can install this version of Exchange."
                 }
                 else
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
                 break;
             }
-        ([HealthChecker.ExchangeVersion]::Exchange2016)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2016)
             {
                 Write-VerboseOutput("Exchange 2016 detected...checking .NET version")
 
                 if($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU2)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d5d2wFix
                 }
                 elseif($exBuildObj.CU -eq [HealthChecker.ExchangeCULevel]::CU2)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix 
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix 
                 }
                 elseif($exBuildObj.CU -eq [HealthChecker.ExchangeCULevel]::CU3)
                 {
                     if($OSVersionName -eq [HealthChecker.OSVersionName]::Windows2016)
                     {
-                        $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
+                        $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2
                         $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU16 we will require .NET 4.6.2 before you can install this version of Exchange."
                     }
                     else
                     {
-                        $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix
+                        $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d1wFix
                     }
                 }
                 elseif($exBuildObj.CU -eq [HealthChecker.ExchangeCULevel]::CU4)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2 
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d5d2wFix -RecommendedNetVersion Net4d6d2 
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU5 we will require .NET 4.6.2 before you can install this version of Exchange."
                 }
                 elseif($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU8)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2 
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d6d2 
                 }
                 elseif($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU11)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d6d2 -RecommendedNetVersion Net4d7d1
                 }
                 elseif($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU12)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU13 we will require .NET 4.7.2 before you can install this version of Exchange."
                 }
                 else
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
                 break;
             }
-        ([HealthChecker.ExchangeVersion]::Exchange2019)
+        ([HealthChecker.ExchangeMajorVersion]::Exchange2019)
             {
                 Write-VerboseOutput("Exchange 2019 detected...checking .NET version")
                 if($exBuildObj.CU -lt [HealthChecker.ExchangeCULevel]::CU2)
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d7d2
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d7d2
                 }
                 else
                 {
-                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
+                    $NetCheckObj = Check-NetVersionToExchangeMajorVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
                 }
             }
         default {$NetCheckObj.Error = $true; Write-VerboseOutput("Error trying to determine major version of Exchange for .NET fix level")}
@@ -2531,14 +2535,14 @@ param(
 Function Get-ExchangeUpdates {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.ExchangeVersion]$ExchangeVersion
+[Parameter(Mandatory=$true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
 )
     Write-VerboseOutput("Calling: Get-ExchangeUpdates")
     Write-VerboseOutput("Passed: " + $Machine_Name)
-    Write-VerboseOutput("Passed: {0}" -f $ExchangeVersion.ToString())
+    Write-VerboseOutput("Passed: {0}" -f $ExchangeMajorVersion.ToString())
     $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
     $RegLocation = $null 
-    if([HealthChecker.ExchangeVersion]::Exchange2013 -eq $ExchangeVersion)
+    if([HealthChecker.ExchangeMajorVersion]::Exchange2013 -eq $ExchangeMajorVersion)
     {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2013"
     }
@@ -2578,23 +2582,23 @@ param(
     #Need to change this to like because of Exchange 2010 with AIO with the hub role.
     if($roles -like "Mailbox, ClientAccess*")
     {
-        return [HealthChecker.ServerRole]::MultiRole
+        return [HealthChecker.ExchangeServerRole]::MultiRole
     }
     elseif($roles -eq "Mailbox")
     {
-        return [HealthChecker.ServerRole]::Mailbox
+        return [HealthChecker.ExchangeServerRole]::Mailbox
     }
     elseif($roles -eq "Edge")
     {
-        return [HealthChecker.ServerRole]::Edge
+        return [HealthChecker.ExchangeServerRole]::Edge
     }
     elseif($roles -like "*ClientAccess*")
     {
-        return [HealthChecker.ServerRole]::ClientAccess
+        return [HealthChecker.ExchangeServerRole]::ClientAccess
     }
     else
     {
-        return [HealthChecker.ServerRole]::None
+        return [HealthChecker.ExchangeServerRole]::None
     }
 }
 
@@ -2619,34 +2623,34 @@ param(
 [Parameter(Mandatory=$true)][HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj
 )
     $Machine_Name = $HealthExSvrObj.ServerName
-    $OSVersionName = $HealthExSvrObj.OSVersion.OSVersion
+    $OSServerVersion = $HealthExSvrObj.OSInformation.OSVersion
     Write-VerboseOutput("Calling: Get-ExchangeInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.ExchangeInformation]$exchInfoObject = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchInfoObject.ExchangeServerObject = (Get-ExchangeServer -Identity $Machine_Name)
-    $exchInfoObject.ExchangeVersion = (Get-ExchangeMajorVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
-    $exchInfoObject.ExServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
+    $exchInfoObject.ExchangeMajorVersion = (Get-ExchangeMajorVersion -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion) 
+    $exchInfoObject.ExchangeServerRole = (Get-ServerRole -ExchangeServerObj $exchInfoObject.ExchangeServerObject)
     $exchInfoObject.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $Machine_Name) 
 
     #Exchange 2013 and 2016 things to check 
-    if($exchInfoObject.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013) 
+    if($exchInfoObject.ExchangeMajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) 
     {
         Write-VerboseOutput("Exchange 2013 or greater detected")
-        $HealthExSvrObj.NetVersionInfo = Get-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSVersionName $OSVersionName
+        $HealthExSvrObj.NetVersionInfo = Get-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSServerVersion $OSServerVersion
         $versionObject =  $HealthExSvrObj.NetVersionInfo 
         $tempObject = Get-ExchangeBuildInformation -AdminDisplayVersion $exchInfoObject.ExchangeServerObject.AdminDisplayVersion
         if($tempObject.Error -ne $true) 
         {
             Write-VerboseOutput("No error detected when getting temp information")
-            $exchInfoObject.BuildReleaseDate = $tempObject.ReleaseDate
+            $exchInfoObject.ReleaseDate = $tempObject.ReleaseDate
             $exchInfoObject.ExchangeBuildNumber = $tempObject.ExchangeBuildNumber
             $exchInfoObject.ExchangeFriendlyName = $tempObject.FriendlyName
             $exchInfoObject.InbetweenCUs = $tempObject.InbetweenCUs
             $exchInfoObject.SupportedExchangeBuild = $tempObject.SupportedCU
             $exchInfoObject.ExchangeBuildObject = $tempObject.ExchangeBuildObject 
             #TODO: V3.0 https://github.com/dpaulson45/HealthChecker/issues/166
-            $NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSVersionName $OSVersionName -NetVersion $versionObject.NetVersion
+            $NetCheckObj = Check-DotNetFrameworkSupportedLevel -exBuildObj $exchInfoObject.ExchangeBuildObject -OSServerVersion $OSServerVersion -NetVersion $versionObject.NetVersion
             if($NetCheckObj.Error)
             {
                 Write-Yellow "Warning: Unable to determine if .NET is supported"
@@ -2667,16 +2671,16 @@ param(
 
         
         $exchInfoObject.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
-        if($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and $exchInfoObject.MapiHttpEnabled)
+        if($exchInfoObject.ExchangeMajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and $exchInfoObject.MapiHttpEnabled)
         {
             $exchInfoObject.MapiFEAppGCEnabled = Get-MapiFEAppPoolGCMode -Machine_Name $Machine_Name
         }
 
-        $exchInfoObject.ExchangeAppPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
+        $exchInfoObject.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $Machine_Name
 
-        $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
+        $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeMajorVersion $exchInfoObject.ExchangeMajorVersion
     }
-    elseif($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
+    elseif($exchInfoObject.ExchangeMajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010)
     {
         Write-VerboseOutput("Exchange 2010 detected")
         $exchInfoObject.ExchangeFriendlyName = "Exchange 2010"
@@ -2687,7 +2691,7 @@ param(
         Write-Red "Error: Unknown version of Exchange detected for server: $Machine_Name"
     }
 
-    if($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and $exchInfoObject.ExServerRole -eq [HealthChecker.ServerRole]::ClientAccess)
+    if($exchInfoObject.ExchangeMajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and $exchInfoObject.ExchangeServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess)
     {
         Write-VerboseOutput("Exchange 2013 CAS only detected. Not going to run Test-ServiceHealth against this server.")
     }
@@ -2712,9 +2716,14 @@ param(
 
     [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer 
     $HealthExSvrObj.ServerName = $Machine_Name 
-    $HealthExSvrObj.HardwareInfo = Get-HardwareInformation -Machine_Name $Machine_Name 
-    $HealthExSvrObj.OSVersion = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
-    $HealthExSvrObj = Get-ExchangeInformation -HealthExSvrObj $HealthExSvrObj
+    $HealthExSvrObj.HardwareInformation = Get-HardwareInformation -Machine_Name $Machine_Name 
+    $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
+    #$HealthExSvrObj = Get-ExchangeInformation -HealthExSvrObj $HealthExSvrObj
+    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -ServerName $HealthExSvrObj.ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
+    if($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013)
+    {
+        $HealthExSvrObj.OSInformation.NETFramework = Get-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSServerVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
+    }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
     return $HealthExSvrObj
@@ -3087,19 +3096,16 @@ param(
 
     Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
     Write-VerboseOutput("Passed: $Machine_Name")
-
-    [HealthChecker.ServerLmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.ServerLmCompatibilityLevelInformation
-    
-    $ServerLmCompatObject.LmCompatibilityLevelRef = "https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10)"
-    $ServerLmCompatObject.LmCompatibilityLevel    = Get-LmCompatibilityLevel $Machine_Name
-    Switch ($ServerLmCompatObject.LmCompatibilityLevel)
+    [HealthChecker.LmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.LmCompatibilityLevelInformation
+    $ServerLmCompatObject.RegistryValue    = Get-LmCompatibilityLevel $Machine_Name
+    Switch ($ServerLmCompatObject.RegistryValue)
     {
-        0 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
-        1 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
-        2 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controller accepts LM, NTLM, and NTLMv2 authentication." }
-        3 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
-        4 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM authentication responses, but it accepts NTLM and NTLMv2." }
-        5 {$ServerLmCompatObject.LmCompatibilityLevelDescription = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
+        0 {$ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        1 {$ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        2 {$ServerLmCompatObject.Description = "Clients use only NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controller accepts LM, NTLM, and NTLMv2 authentication." }
+        3 {$ServerLmCompatObject.Description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        4 {$ServerLmCompatObject.Description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM authentication responses, but it accepts NTLM and NTLMv2." }
+        5 {$ServerLmCompatObject.Description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
     }
 
     Write-VerboseOutput("Exiting: Get-LmCompatibilityLevelInformation")
@@ -5527,8 +5533,8 @@ Function HealthCheckerMain {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
     Write-HealthCheckerVersion
-    $HealthObject = Get-HealthCheckerExchangeServer $Server
-    Display-ResultsToScreen $healthObject
+    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer $Server
+    #Display-ResultsToScreen $healthObject
     Get-ErrorsThatOccurred
     $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
