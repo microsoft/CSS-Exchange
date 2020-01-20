@@ -134,11 +134,7 @@ if($PSBoundParameters["Verbose"]){
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
-$oldErrorAction = $ErrorActionPreference
-$ErrorActionPreference = "Stop"
-
 try{
-
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
 using System.Collections;
@@ -147,44 +143,45 @@ using System.Collections;
         public class HealthCheckerExchangeServer
         {
             public string ServerName;        //String of the server that we are working with 
-            public HardwareInformation HardwareInfo;  // Hardware Object Information 
-            public OperatingSystemInformation  OSVersion; // OS Version Object Information 
-            public NetVersionInformation NetVersionInfo; //.net Framework object information 
+            public HardwareInformation HardwareInformation;  // Hardware Object Information 
+            public OperatingSystemInformation  OSInformation; // OS Version Object Information 
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information 
             public string HealthCheckerVersion; //To determine the version of the script on the object.
         }
-
+    
+        // ExchangeInformation 
         public class ExchangeInformation 
         {
-            public ServerRole ExServerRole;          // Roles that are currently installed - Exchange 2013 makes a note if both roles aren't installed 
-            public ExchangeVersion ExchangeVersion;  //Exchange Version (Exchange 2010/2013/2016)
-            public string ExchangeFriendlyName;       // Friendly Name is provided 
-            public string ExchangeBuildNumber;       //Exchange Build number 
-            public string BuildReleaseDate;           //Provides the release date for which the CU they are currently on 
-            public object ExchangeServerObject;      //Stores the Get-ExchangeServer Object 
-            public bool SupportedExchangeBuild;      //Deteremines if we are within the correct build of Exchange 
-            public bool InbetweenCUs;                //bool to provide if we are between main releases of CUs. Hotfixes/IUs. 
-            public bool RecommendedNetVersion; //RecommendedNetVersion Info includes all the factors. Windows Version & CU. 
-            public ExchangeBuildObject ExchangeBuildObject; //Store the build object
-            public System.Array KBsInstalled;         //Stored object for IU or Security KB fixes 
-            public bool MapiHttpEnabled; //Stored from ogranzation config 
-            public string MapiFEAppGCEnabled; //to determine if we were able to get information regarding GC mode being enabled or not
+            public ExchangeBuildInformation BuildInformation;   //Exchange build information
+            public object GetExchangeServer;      //Stores the Get-ExchangeServer Object 
+            public ExchangeNetFrameworkInformation NETFramework; 
+            public bool MapiHttpEnabled; //Stored from organization config 
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
-            public Hashtable ExchangeAppPools; 
-            public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
-           
+            public Hashtable ApplicationPools; 
         }
-
-        //TODO: V3.0 See if we can remove this class https://github.com/dpaulson45/HealthChecker/issues/165
-        public class ExchangeBuildObject
+    
+        public class ExchangeBuildInformation
         {
-            public ExchangeVersion ExchangeVersion;  //enum for Exchange 2010/2013/2016 
-            public ExchangeCULevel CU;               //enum for the CU value 
-            public bool InbetweenCUs;                //bool for if we are between CUs 
+            public ExchangeServerRole ServerRole; //Roles that are currently set and installed. 
+            public ExchangeMajorVersion MajorVersion; //Exchange Version (Exchange 2010/2013/2019)
+            public ExchangeCULevel CU;             // Exchange CU Level 
+            public string FriendlyName;     //Exchange Friendly Name is provided
+            public string BuildNumber;      //Exchange Build Number 
+            public string ReleaseDate;      // Exchange release date for which the CU they are currently on
+            public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
+            public object ExchangeSetup;    //Stores the Get-Command ExSetup object
+            public System.Array KBsInstalled;  //Stored object IU or Security KB fixes 
         }
-
+    
+        public class ExchangeNetFrameworkInformation
+        {
+            public NetMajorVersion MinSupportedVersion; //Min Supported .NET Framework version
+            public NetMajorVersion MaxSupportedVersion; //Max (Recommended) Supported .NET version. 
+            public bool OnRecommendedVersion; //RecommendedNetVersion Info includes all the factors. Windows Version & CU. 
+            public string DisplayWording; //Display if we are in Support or not
+        }
+    
         //enum for CU levels of Exchange
-        //New Release Update 
         public enum ExchangeCULevel
         {
             Unknown,
@@ -213,11 +210,10 @@ using System.Collections;
             CU21,
             CU22,
             CU23
-
         }
-
+    
         //enum for the server roles that the computer is 
-        public enum ServerRole
+        public enum ExchangeServerRole
         {
             MultiRole,
             Mailbox,
@@ -226,35 +222,110 @@ using System.Collections;
             Edge,
             None
         }
-        
-        public class NetVersionInformation 
+    
+        //enum for the Exchange version 
+        public enum ExchangeMajorVersion
         {
-            public NetVersion NetVersion; //NetVersion value 
-            public string FriendlyName;  //string of the friendly name 
-            public bool SupportedVersion; //bool to determine if the .net framework is on a supported build for the version of Exchange that we are running 
-            public string DisplayWording; //used to display what is going on
-            public int NetRegValue; //store the registry value 
+            Unknown,
+            Exchange2010,
+            Exchange2013,
+            Exchange2016,
+            Exchange2019
         }
-
-        //enum for the dword value of the .NET frame 4 that we are on 
-        public enum NetVersion 
+        // End ExchangeInformation 
+    
+        // OperatingSystemInformation
+        public class OperatingSystemInformation 
         {
-
-            Unknown = 0,
-            Net4d5 = 378389,
-			Net4d5d1 = 378675,
-			Net4d5d2 = 379893,
-			Net4d5d2wFix = 380035,
-			Net4d6 = 393297,
-			Net4d6d1 = 394271,
-            Net4d6d1wFix = 394294,
-			Net4d6d2 = 394806,
-            Net4d7 = 460805,
-            Net4d7d1 = 461310,
-            Net4d7d2 = 461814,
-            Net4d8 = 528049
+            public OSBuildInformation BuildInformation; // contains build information 
+            public NetworkInformation NetworkInformation; //stores network information and settings
+            public PowerPlanInformation PowerPlan; //stores the power plan information 
+            public PageFileInformation PageFile;             //stores the page file information 
+            public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
+            public bool ServerPendingReboot; // determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at. 
+            public TimeZoneInformation TimeZone;    //stores time zone information 
+            public Hashtable TLSSettings;            // stores the TLS settings on the server. 
+            public InstalledUpdatesInformation InstalledUpdates;  //store the install update 
+            public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
+            public VcRedistributableInformation VcRedistributable;            //stores the Visual C++ Redistributable 
+            public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
         }
-
+    
+        public class OSBuildInformation 
+        {
+            public OSServerVersion MajorVersion; //OS Major Version 
+            public string VersionBuild;           //hold the build number
+            public string FriendlyName;           //string holder of the Windows Server friendly name
+            public object OperatingSystem;        // holds Win32_OperatingSystem 
+        }
+    
+        public class NetworkInformation 
+        {
+            public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry 
+            public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout. 
+            public string HttpProxy;                // holds the setting for HttpProxy if one is set. 
+            public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server. 
+            public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
+            public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
+            public System.Array NetworkAdaptersConfiguration;     //Stores the Win32_NetworkAdapterConfiguration for the server. 
+            public System.Array NetworkAdapters;           //stores all the NICs on the servers. 
+        }
+    
+        public class PowerPlanInformation
+        {
+            public bool HighPerformanceSet;      // If the power plan is High Performance
+            public string PowerPlanSetting;      //value for the power plan that is set
+            public object PowerPlan;            //object to store the power plan information
+        }
+    
+        public class PageFileInformation
+        {
+            public object PageFile;       //store the information that we got for the page file
+            public double MaxPageSize;    //holds the information of what our page file is set to
+        }
+    
+        public class LmCompatibilityLevelInformation 
+        {
+            public int RegistryValue;       //The LmCompatibilityLevel for the server (INT 1 - 5)
+            public string Description;      //description of the LmCompat that the server is set to
+        }
+    
+        public class TimeZoneInformation
+        {
+            public string CurrentTimeZone; //stores the value for the current time zone of the server. 
+            public int DynamicDaylightTimeDisabled; // the registry value for DynamicDaylightTimeDisabled.
+            public string TimeZoneKeyName; // the registry value TimeZoneKeyName.
+            public string StandardStart;   // the registry value for StandardStart.
+            public string DaylightStart;   // the registry value for DaylightStart.
+            public bool DstIssueDetected;  // Determines if there is a high chance of an issue.
+            public System.Array ActionsToTake; //array of verbage of the issues detected. 
+        }
+    
+        public class ServerRebootInformation 
+        {
+            public bool PendingFileRenameOperations;            //bool "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" item PendingFileRenameOperations.
+            public object SccmReboot;                           // object to store CimMethod for class name CCM_ClientUtilities
+            public bool SccmRebootPending;                      // SccmReboot has either PendingReboot or IsHardRebootPending is set to true.
+            public bool ComponentBasedServicingPendingReboot;   // bool HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending
+            public bool AutoUpdatePendingReboot;                // bool HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired
+            public bool PendingReboot;                         // bool if reboot types are set to true
+        }
+    
+        public class InstalledUpdatesInformation
+        {
+            public System.Array HotFixes;     //array to keep all the hotfixes of the server
+            public System.Array HotFixInfo;   //object to store hotfix information 
+            public System.Array InstalledUpdates; //store the install updates 
+        }
+    
+        public class ServerBootUpInformation
+        {
+            public string Days;
+            public string Hours; 
+            public string Minutes; 
+            public string Seconds; 
+        }
+    
         //enum for the dword values of the latest supported VC++ redistributable releases
         //https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
         public enum VCRedistVersion
@@ -263,15 +334,74 @@ using System.Collections;
             VCRedist2012 = 184610406,
             VCRedist2013 = 201367256
         }
-
-        public class VCRedistInformation
+    
+        public class VcRedistributableInformation
         {
             public string DisplayName;
             public string DisplayVersion;
             public string InstallDate;
             public int VersionIdentifier;
         }
-
+    
+        public class OSNetFrameworkInformation 
+        {
+            public NetMajorVersion NetMajorVersion; //NetMajorVersion value 
+            public string FriendlyName;  //string of the friendly name 
+            public int RegValue; //store the registry value 
+        }
+    
+        //enum for the OSServerVersion that we are
+        public enum OSServerVersion
+        {
+            Unknown,
+            Windows2008, 
+            Windows2008R2,
+            Windows2012,
+            Windows2012R2,
+            Windows2016,
+            Windows2019
+        }
+    
+        public class NICInformation 
+        {
+            public string Description;  //Friendly name of the adapter 
+            public string LinkSpeed;    //speed of the adapter 
+            public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
+            public string DriverVersion; // version of the driver that we are on 
+            public string RSSEnabled;  //bool to determine if RSS is enabled 
+            public string Name;        //name of the adapter 
+            public object NICObject; //object to store the adapter info 
+            public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
+            public int MTUSize; //Size of the MTU on the network card. 
+        }
+    
+        //enum for the dword value of the .NET frame 4 that we are on 
+        public enum NetMajorVersion 
+        {
+            Unknown = 0,
+            Net4d5 = 378389,
+            Net4d5d1 = 378675,
+            Net4d5d2 = 379893,
+            Net4d5d2wFix = 380035,
+            Net4d6 = 393297,
+            Net4d6d1 = 394271,
+            Net4d6d1wFix = 394294,
+            Net4d6d2 = 394806,
+            Net4d7 = 460805,
+            Net4d7d1 = 461310,
+            Net4d7d2 = 461814,
+            Net4d8 = 528049
+        }
+    
+        public class HotfixInformation
+        {
+            public string KBName; //KB that we are using to check against 
+            public System.Array FileInformation; //store FileVersion information
+            public bool ValidFileLevelCheck;  
+        }
+        // End OperatingSystemInformation
+            
+        // HardwareInformation
         public class HardwareInformation
         {
             public string Manufacturer; //String to display the hardware information 
@@ -281,9 +411,8 @@ using System.Collections;
             public ProcessorInformation Processor;   //Detailed processor Information 
             public bool AutoPageFile; //True/False if we are using a page file that is being automatically set 
             public string Model; //string to display Model 
-            
         }
-
+    
         //enum for the type of computer that we are
         public enum ServerType
         {
@@ -293,7 +422,7 @@ using System.Collections;
             Physical,
             Unknown
         }
-
+    
         public class ProcessorInformation 
         {
             public string Name;    //String of the processor name 
@@ -308,105 +437,13 @@ using System.Collections;
             public int EnvironmentProcessorCount; //[system.environment]::processorcount 
             public object ProcessorClassObject;        // object to store the processor information  
         }
-
-        public class OperatingSystemInformation 
-        {
-            public OSVersionName  OSVersion; //enum for the version name 
-            public string OSVersionBuild;    //string to hold the build number 
-            public string OperatingSystemName; //string for the OS version friendly name
-            public object OperatingSystem;   //object to store the OS information that we pulled 
-            public bool HighPerformanceSet;  //True/False for the power plan setting being set correctly 
-            public string PowerPlanSetting; //string value for the power plan setting being set correctly 
-            public object PowerPlan;       // object to store the power plan information 
-            public System.Array NetworkAdaptersConfiguration; // Stores the Win32_NetworkAdapterConfiguration for the server. 
-            public System.Array NetworkAdapters; //array to keep all the nics on the servers 
-            public double TCPKeepAlive;       //value used for the TCP/IP keep alive setting 
-            public double MinimumConnectionTimeout; //value used for the RPC minimum connection timeout. 
-            public System.Array HotFixes; //array to keep all the hotfixes of the server
-            public System.Array HotFixInfo;     //object to store hotfix information
-			public string HttpProxy;
-            public PageFileInformation PageFile;
-            public ServerLmCompatibilityLevelInformation LmCompat;
-            public bool ServerPendingReboot; //bool to determine if a server is pending a reboot to properly apply fixes
-            public object PacketsReceivedDiscarded; //object to hold all packets received discarded on the server
-            public double DisabledComponents; //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
-            public bool IPv6DisabledOnNICs; //value that determines if we have IPv6 disabled on some NICs or not. 
-            public string TimeZone; //value to stores the current timezone of the server. 
-            public Hashtable TLSSettings;
-	        public string BootUpTimeInDays;
-            public string BootUpTimeInHours;
-            public string BootUpTimeInMinutes;
-            public string BootUpTimeInSeconds;
-        }
-
-        public class HotfixInformation
-        {
-            public string KBName; //KB that we are using to check against 
-            public System.Array FileInformation; //store FileVersion information
-            public bool ValidFileLevelCheck;  
-        }
-
-        public class NICInformation 
-        {
-            public string Description;  //Friendly name of the adapter 
-            public string LinkSpeed;    //speed of the adapter 
-            public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
-            public string DriverVersion; // version of the driver that we are on 
-            public string RSSEnabled;  //bool to determine if RSS is enabled 
-            public string Name;        //name of the adapter 
-            public object NICObject; //object to store the adapter info 
-            public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
-            public int MTUSize; //Size of the MTU on the network card. 
-             
-        }
-
-        //enum for the Exchange version 
-        public enum ExchangeVersion
-        {
-            Unknown,
-            Exchange2010,
-            Exchange2013,
-            Exchange2016,
-            Exchange2019
-        }
-
-        //enum for the OSVersion that we are
-        public enum OSVersionName
-        {
-            Unknown,
-            Windows2008, 
-            Windows2008R2,
-            Windows2012,
-            Windows2012R2,
-            Windows2016,
-            Windows2019
-        }
-
-        public class PageFileInformation 
-        {
-            public object PageFile;  //object to store the information that we got for the page file 
-            public double MaxPageSize; //value to hold the information of what our page file is set to 
-        }
-
-        public class ServerLmCompatibilityLevelInformation
-        {
-            public int LmCompatibilityLevel;  //The LmCompatibilityLevel for the server (INT 1 - 5)
-            public string LmCompatibilityLevelDescription; //The description of the lmcompat that the server is set too
-            public string LmCompatibilityLevelRef; //The URL for the LmCompatibilityLevel technet (https://technet.microsoft.com/en-us/library/cc960646.aspx or https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-2000-server/cc960646(v=technet.10) )
-        }
     }
-
-"@
-
+"@ -ErrorAction Stop 
 }
-
-catch {
+catch 
+{
     Write-Warning "There was an error trying to add custom classes to the current PowerShell session. You need to close this session and open a new one to have the script properly work."
     exit 
-}
-
-finally {
-    $ErrorActionPreference = $oldErrorAction
 }
 
 ##################
