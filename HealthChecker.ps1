@@ -357,6 +357,17 @@ using System.Collections;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
+            public TimeZoneInformationObject TimeZoneInformation;
+        }
+
+        public class TimeZoneInformationObject 
+        {
+            public int DynamicDaylightTimeDisabled;
+            public string TimeZoneKeyName; 
+            public System.Array StandardStart;
+            public System.Array DaylightStart;
+            public bool DstIssueDetected;
+            public System.Array ActionsToTake; 
         }
 
         public class ServerMaintenanceObject
@@ -2170,6 +2181,77 @@ param(
     return $netTlsVersion
 }
 
+Function Get-TimeZoneInformationRegistrySettings {
+[CmdletBinding()]
+param(
+[string]$MachineName = $env:COMPUTERNAME,
+[scriptblock]$CatchActionFunction
+)
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-TimeZoneInformationRegistrySettings")
+    Write-VerboseWriter("Passed: [string]MachineName: {0}" -f $MachineName)
+    $timeZoneInformationSubKey = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
+    $dynamicDaylightTimeDisabled = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DynamicDaylightTimeDisabled"
+    $timeZoneKeyName = Invoke-RegistryHandler -MachineName $MachineName -Subkey $timeZoneInformationSubKey -GetValue "TimeZoneKeyName" 
+    $standardStart = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "StandardStart" 
+    $daylightStart = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DaylightStart" 
+    
+    $timeZoneInformationObject = New-Object PSCustomObject 
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DynamicDaylightTimeDisabled" -Value $dynamicDaylightTimeDisabled 
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "TimeZoneKeyName" -Value $timeZoneKeyName
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "StandardStart" -Value $standardStart
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DaylightStart" -Value $daylightStart
+    
+    $actionsToTake = @() 
+    if($timeZoneKeyName -eq $null -or 
+        [string]::IsNullOrEmpty($timeZoneKeyName))
+    {
+        Write-VerboseWriter("TimeZoneKeyName is null or empty. Action should be taken to address this.")
+        $actionsToTake += "TimeZoneKeyName is blank. Need to switch your current time zone to a different value, then switch it back to have this value populated again."
+    }
+    foreach($value in $standardStart)
+    {
+        if($value -ne 0)
+        {
+            $standardStartNonZeroValue = $true
+            break
+        }
+    }
+    foreach($value in $daylightStart)
+    {
+        if($value -ne 0)
+        {
+            $daylightStartNonZeroValue = $true
+            break
+        }
+    }
+    if($dynamicDaylightTimeDisabled -ne 0 -and (
+        $standardStartNonZeroValue -or 
+        $daylightStartNonZeroValue
+    ))
+    {
+        Write-VerboseWriter("Determined that there is a chance the settings set could cause a DST issue.")
+        $dstIssueDetected = $true 
+        $actionsToTake += "High Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone. `
+        It is possible that you could be running into this issue. Set 'Adjust for daylight saving time automatically to on'"
+    }
+    elseif($dynamicDaylightTimeDisabled -ne 0)
+    {
+        Write-VerboseWriter("Daylight savings auto adjustment is disabled.")
+        $actionsToTake += "Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone."
+    }
+    
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DstIssueDetected" -Value $dstIssueDetected
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "ActionsToTake" -Value $actionsToTake
+    
+    return $timeZoneInformationObject 
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -2277,6 +2359,7 @@ param(
     }
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
+    $os_obj.TimeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
 
     return $os_obj
 }
@@ -5159,6 +5242,27 @@ param(
         Write-Yellow("`t`tExchange Server TLS guidance, part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649")
         Write-Yellow("`t`tExchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761")
         Write-Yellow("`t`tExchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
+    }
+
+    #############
+    #DST Settings
+    #############
+    Write-Grey("`r`nDST Settings:")
+    if($HealthExSvrObj.OSVersion.TimeZoneInformation.DstIssueDetected)
+    {
+        Write-Red("`tError: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone. It is possible that you could be running into this issue. Set 'Adjust for daylight saving time automatically to on'")
+    }
+    elseif($HealthExSvrObj.OSVersion.TimeZoneInformation.DynamicDaylightTimeDisabled -ne 0)
+    {
+        Write-Yellow("`tWarning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone.")
+    }
+    else 
+    {
+        Write-Grey("`tDyanmic Daylight Time is enabled.")
+    }
+    if([string]::IsNullOrEmpty($HealthExSvrObj.OSVersion.TimeZoneInformation.TimeZoneKeyName))
+    {
+        Write-Yellow("`tWarning: TimeZoneKeyName is blank. Need to switch your current time zone to a different value, then switch it back to have this value populated again.")
     }
 
 	##############
