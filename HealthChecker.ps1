@@ -100,7 +100,8 @@ param(
 [Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [string]$HtmlReportFile="ExchangeAllServersReport.html",
 [Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
-    [switch]$DCCoreRatio
+    [switch]$DCCoreRatio,
+[Parameter(Mandatory=$false)][switch]$SaveDebugLog
 )
 
 <#
@@ -483,24 +484,28 @@ finally {
 #Output functions
 function Write-Red($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Yellow($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Yellow
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Green($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Green
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Grey($message)
 {
+    Write-DebugLog $message
     Write-Host $message
     $message | Out-File ($OutputFullPath) -Append
 }
@@ -508,9 +513,18 @@ function Write-Grey($message)
 function Write-VerboseOutput($message)
 {
     Write-Verbose $message
+    Write-DebugLog $message
     if($Script:VerboseEnabled)
     {
         $message | Out-File ($OutputFullPath) -Append
+    }
+}
+
+function Write-DebugLog($message)
+{
+    if(![string]::IsNullOrEmpty($message))
+    {
+        $Script:Logger.WriteToFileOnly($message)
     }
 }
 
@@ -552,6 +566,269 @@ param(
 }
 
 $Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
+
+#Function Version 1.0
+Function Write-ScriptMethodHostWriter{
+param(
+[Parameter(Mandatory=$true)][string]$WriteString
+)
+    if($this.LoggerObject -ne $null)
+    {
+        $this.LoggerObject.WriteHost($WriteString) 
+    }
+    elseif($this.HostFunctionCaller -eq $null)
+    {
+        Write-Host $WriteString
+    }
+    else 
+    {
+        $this.HostFunctionCaller($WriteString)
+    }
+}
+
+#Function Version 1.0
+Function Write-ScriptMethodVerboseWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString
+)
+    if($this.LoggerObject -ne $null)
+    {
+        $this.LoggerObject.WriteVerbose($WriteString)
+    }
+    elseif($this.VerboseFunctionCaller -eq $null -and 
+        $this.WriteVerboseData)
+    {
+        Write-Host $WriteString -ForegroundColor Cyan 
+    }
+    elseif($this.WriteVerboseData)
+    {
+        $this.VerboseFunctionCaller($WriteString)
+    }
+}
+
+Function New-LoggerObject {
+[CmdletBinding()]
+param(
+[Parameter(Mandatory=$false)][string]$LogDirectory = ".",
+[Parameter(Mandatory=$false)][string]$LogName = "Script_Logging",
+[Parameter(Mandatory=$false)][bool]$EnableDateTime = $true,
+[Parameter(Mandatory=$false)][bool]$IncludeDateTimeToFileName = $true,
+[Parameter(Mandatory=$false)][int]$MaxFileSizeInMB = 10,
+[Parameter(Mandatory=$false)][int]$CheckSizeIntervalMinutes = 10,
+[Parameter(Mandatory=$false)][int]$NumberOfLogsToKeep = 10,
+[Parameter(Mandatory=$false)][bool]$VerboseEnabled,
+[Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller,
+[Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+)
+
+    #Function Version 1.1
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-ScriptMethodHostWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-ScriptMethodVerboseWriter.ps1
+    #>
+
+    ########################
+    #
+    # Template Functions
+    #
+    ########################
+
+    Function Write-ToLog {
+    param(
+    [string]$WriteString,
+    [string]$LogLocation
+    )
+        $WriteString | Out-File ($LogLocation) -Append
+    }
+
+    ########################
+    #
+    # End Template Functions
+    #
+    ########################
+
+
+    ########## Parameter Binding Exceptions ##############
+    # throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid ParameterName" 
+    if($LogDirectory -eq ".")
+    {
+        $LogDirectory = (Get-Location).Path
+    }
+    if([string]::IsNullOrEmpty($LogName))
+    {
+        throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogName" 
+    }
+    if(!(Test-Path $LogDirectory))
+    {
+        throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogDirectory" 
+    }
+
+    $loggerObject = New-Object pscustomobject 
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FileDirectory" -Value $LogDirectory
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FileName" -Value $LogName
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FullPath" -Value $fullLogPath
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "InstanceBaseName" -Value ([string]::Empty)
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "EnableDateTime" -Value $EnableDateTime
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "IncludeDateTimeToFileName" -Value $IncludeDateTimeToFileName
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "MaxFileSizeInMB" -Value $MaxFileSizeInMB
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "CheckSizeIntervalMinutes" -Value $CheckSizeIntervalMinutes
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "NextFileCheckTime" -Value ((Get-Date).AddMinutes($CheckSizeIntervalMinutes))
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "InstanceNumber" -Value 1
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "NumberOfLogsToKeep" -Value $NumberOfLogsToKeep
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "WriteVerboseData" -Value $VerboseEnabled
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "PreventLogCleanup" -Value $false
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "ToLog" -Value ${Function:Write-ToLog}
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteHostWriter" -Value ${Function:Write-ScriptMethodHostWriter}
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteVerboseWriter" -Value ${Function:Write-ScriptMethodVerboseWriter}
+
+    if($HostFunctionCaller -ne $null)
+    {
+        $loggerObject | Add-Member -MemberType ScriptMethod -Name "HostFunctionCaller" -Value $HostFunctionCaller
+    }
+    if($VerboseFunctionCaller -ne $null)
+    {
+        $loggerObject | Add-Member -MemberType ScriptMethod -Name "VerboseFunctionCaller" -Value $VerboseFunctionCaller
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteHost" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+
+        $this.WriteHostWriter($LoggingString)
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep()
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteVerbose" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+        $this.WriteVerboseWriter($LoggingString)
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep() 
+
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteToFileOnly" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep()
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "UpdateFileLocation" -Value{
+
+        if($this.FullPath -eq $null)
+        {
+            if($this.IncludeDateTimeToFileName)
+            {
+                $this.InstanceBaseName = "{0}_{1}" -f $this.FileName, ((Get-Date).ToString('yyyyMMddHHmmss'))
+                $this.FullPath = "{0}\{1}.txt" -f $this.FileDirectory, $this.InstanceBaseName
+            }
+            else 
+            {
+                $this.InstanceBaseName = "{0}" -f $this.FileName
+                $this.FullPath = "{0}\{1}.txt" -f $this.FileDirectory, $this.InstanceBaseName
+            }
+        }
+        else 
+        {
+
+            do{
+                $this.FullPath = "{0}\{1}_{2}.txt" -f $this.FileDirectory, $this.InstanceBaseName, $this.InstanceNumber
+                $this.InstanceNumber++
+            }while(Test-Path $this.FullPath)
+            $this.WriteVerbose("Updated to New Log")
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "LogUpKeep" -Value {
+
+        if($this.NextFileCheckTime -gt [System.DateTime]::Now)
+        {
+            return 
+        }
+        $this.NextFileCheckTime = (Get-Date).AddMinutes($this.CheckSizeIntervalMinutes)
+        $this.CheckFileSize()
+        $this.CheckNumberOfFiles()
+        $this.WriteVerbose("Did Log Object Up Keep")
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckFileSize" -Value {
+
+        $item = Get-ChildItem $this.FullPath
+        if(($item.Length / 1MB) -gt $this.MaxFileSizeInMB)
+        {
+            $this.UpdateFileLocation()
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckNumberOfFiles" -Value {
+
+        $filter = "{0}*" -f $this.InstanceBaseName
+        $items = Get-ChildItem -Path $this.FileDirectory | ?{$_.Name -like $filter}
+        if($items.Count -gt $this.NumberOfLogsToKeep)
+        {
+            do{
+                $items | Sort-Object LastWriteTime | Select -First 1 | Remove-Item -Force 
+                $items = Get-ChildItem -Path $this.FileDirectory | ?{$_.Name -like $filter}
+            }while($items.Count -gt $this.NumberOfLogsToKeep)
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "RemoveLatestLogFile" -Value {
+
+        if(!$this.PreventLogCleanup)
+        {
+            $item = Get-ChildItem $this.FullPath
+            Remove-Item $item -Force
+        }
+    }
+
+    $loggerObject.UpdateFileLocation()
+    try 
+    {
+        "[{0}] : Creating a new logger instance" -f [System.DateTime]::Now | Out-File ($loggerObject.FullPath) -Append
+    }
+    catch 
+    {
+        throw 
+    }
+
+    return $loggerObject
+}
+
+$Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $true -EnableDateTime $false -ErrorAction SilentlyContinue
 
 ############################################################
 ############################################################
@@ -5968,6 +6245,7 @@ Function Get-ErrorsThatOccurred {
                 }
                 if(!($goodError))
                 {
+                    Write-DebugLog $Error[$index]
                     $Error[$index] | Out-File ($Script:OutputFullPath) -Append
                 }
                 $index++
@@ -5982,13 +6260,16 @@ Function Get-ErrorsThatOccurred {
 
         if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
         {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to ExToolsFeedback@microsoft.com.")
-	        Write-Errors
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt and .xml file to ExToolsFeedback@microsoft.com.")
+	        $Script:Logger.PreventLogCleanup = $true
+            Write-Errors
         }
-        elseif($Script:VerboseEnabled)
+        elseif($Script:VerboseEnabled -or 
+            $SaveDebugLog)
         {
             Write-VerboseOutput("All errors that occurred were in try catch blocks and was handled correctly.")
-	        Write-Errors
+	        $Script:Logger.PreventLogCleanup = $true
+            Write-Errors
         }
     }
     else 
@@ -6055,19 +6336,19 @@ Function Main {
         Build-HtmlServerReport
         Get-ErrorsThatOccurred
         sleep 2;
-        exit
+        return
     }
 
     if((Test-Path $OutputFilePath) -eq $false)
     {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
-        exit 
+        return 
     }
 
     if($LoadBalancingReport)
     {
         LoadBalancingMain
-        exit
+        return
     }
 
     if($DCCoreRatio)
@@ -6078,11 +6359,11 @@ Function Main {
         {
             Get-ExchangeDCCoreRatio
             Get-ErrorsThatOccurred
+            return
         }
         finally
         {
             $ErrorActionPreference = $oldErrorAction
-            exit 
         }
     }
 
@@ -6092,7 +6373,7 @@ Function Main {
         Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Get-ErrorsThatOccurred
-        exit
+        return
 	}
 
 	HealthCheckerMain
@@ -6107,5 +6388,10 @@ finally
     if($Script:VerboseEnabled)
     {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+    }
+    $Script:Logger.RemoveLatestLogFile()
+    if($Script:Logger.PreventLogCleanup)
+    {
+        Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
 }
