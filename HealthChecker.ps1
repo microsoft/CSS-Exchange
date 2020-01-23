@@ -100,14 +100,15 @@ param(
 [Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [string]$HtmlReportFile="ExchangeAllServersReport.html",
 [Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
-    [switch]$DCCoreRatio
+    [switch]$DCCoreRatio,
+[Parameter(Mandatory=$false)][switch]$SaveDebugLog
 )
 
 <#
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.38.0"
+$healthCheckerVersion = "2.39.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -356,6 +357,17 @@ using System.Collections;
             public string BootUpTimeInHours;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
+            public TimeZoneInformationObject TimeZoneInformation;
+        }
+
+        public class TimeZoneInformationObject 
+        {
+            public int DynamicDaylightTimeDisabled;
+            public string TimeZoneKeyName; 
+            public System.Array StandardStart;
+            public System.Array DaylightStart;
+            public bool DstIssueDetected;
+            public System.Array ActionsToTake; 
         }
 
         public class ServerMaintenanceObject
@@ -483,24 +495,28 @@ finally {
 #Output functions
 function Write-Red($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Yellow($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Yellow
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Green($message)
 {
+    Write-DebugLog $message
     Write-Host $message -ForegroundColor Green
     $message | Out-File ($OutputFullPath) -Append
 }
 
 function Write-Grey($message)
 {
+    Write-DebugLog $message
     Write-Host $message
     $message | Out-File ($OutputFullPath) -Append
 }
@@ -508,9 +524,18 @@ function Write-Grey($message)
 function Write-VerboseOutput($message)
 {
     Write-Verbose $message
+    Write-DebugLog $message
     if($Script:VerboseEnabled)
     {
         $message | Out-File ($OutputFullPath) -Append
+    }
+}
+
+function Write-DebugLog($message)
+{
+    if(![string]::IsNullOrEmpty($message))
+    {
+        $Script:Logger.WriteToFileOnly($message)
     }
 }
 
@@ -552,6 +577,269 @@ param(
 }
 
 $Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
+
+#Function Version 1.0
+Function Write-ScriptMethodHostWriter{
+param(
+[Parameter(Mandatory=$true)][string]$WriteString
+)
+    if($this.LoggerObject -ne $null)
+    {
+        $this.LoggerObject.WriteHost($WriteString) 
+    }
+    elseif($this.HostFunctionCaller -eq $null)
+    {
+        Write-Host $WriteString
+    }
+    else 
+    {
+        $this.HostFunctionCaller($WriteString)
+    }
+}
+
+#Function Version 1.0
+Function Write-ScriptMethodVerboseWriter {
+param(
+[Parameter(Mandatory=$true)][string]$WriteString
+)
+    if($this.LoggerObject -ne $null)
+    {
+        $this.LoggerObject.WriteVerbose($WriteString)
+    }
+    elseif($this.VerboseFunctionCaller -eq $null -and 
+        $this.WriteVerboseData)
+    {
+        Write-Host $WriteString -ForegroundColor Cyan 
+    }
+    elseif($this.WriteVerboseData)
+    {
+        $this.VerboseFunctionCaller($WriteString)
+    }
+}
+
+Function New-LoggerObject {
+[CmdletBinding()]
+param(
+[Parameter(Mandatory=$false)][string]$LogDirectory = ".",
+[Parameter(Mandatory=$false)][string]$LogName = "Script_Logging",
+[Parameter(Mandatory=$false)][bool]$EnableDateTime = $true,
+[Parameter(Mandatory=$false)][bool]$IncludeDateTimeToFileName = $true,
+[Parameter(Mandatory=$false)][int]$MaxFileSizeInMB = 10,
+[Parameter(Mandatory=$false)][int]$CheckSizeIntervalMinutes = 10,
+[Parameter(Mandatory=$false)][int]$NumberOfLogsToKeep = 10,
+[Parameter(Mandatory=$false)][bool]$VerboseEnabled,
+[Parameter(Mandatory=$false)][scriptblock]$HostFunctionCaller,
+[Parameter(Mandatory=$false)][scriptblock]$VerboseFunctionCaller
+)
+
+    #Function Version 1.1
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-ScriptMethodHostWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-ScriptMethodVerboseWriter.ps1
+    #>
+
+    ########################
+    #
+    # Template Functions
+    #
+    ########################
+
+    Function Write-ToLog {
+    param(
+    [string]$WriteString,
+    [string]$LogLocation
+    )
+        $WriteString | Out-File ($LogLocation) -Append
+    }
+
+    ########################
+    #
+    # End Template Functions
+    #
+    ########################
+
+
+    ########## Parameter Binding Exceptions ##############
+    # throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid ParameterName" 
+    if($LogDirectory -eq ".")
+    {
+        $LogDirectory = (Get-Location).Path
+    }
+    if([string]::IsNullOrEmpty($LogName))
+    {
+        throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogName" 
+    }
+    if(!(Test-Path $LogDirectory))
+    {
+        throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogDirectory" 
+    }
+
+    $loggerObject = New-Object pscustomobject 
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FileDirectory" -Value $LogDirectory
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FileName" -Value $LogName
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "FullPath" -Value $fullLogPath
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "InstanceBaseName" -Value ([string]::Empty)
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "EnableDateTime" -Value $EnableDateTime
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "IncludeDateTimeToFileName" -Value $IncludeDateTimeToFileName
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "MaxFileSizeInMB" -Value $MaxFileSizeInMB
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "CheckSizeIntervalMinutes" -Value $CheckSizeIntervalMinutes
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "NextFileCheckTime" -Value ((Get-Date).AddMinutes($CheckSizeIntervalMinutes))
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "InstanceNumber" -Value 1
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "NumberOfLogsToKeep" -Value $NumberOfLogsToKeep
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "WriteVerboseData" -Value $VerboseEnabled
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "PreventLogCleanup" -Value $false
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "ToLog" -Value ${Function:Write-ToLog}
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteHostWriter" -Value ${Function:Write-ScriptMethodHostWriter}
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteVerboseWriter" -Value ${Function:Write-ScriptMethodVerboseWriter}
+
+    if($HostFunctionCaller -ne $null)
+    {
+        $loggerObject | Add-Member -MemberType ScriptMethod -Name "HostFunctionCaller" -Value $HostFunctionCaller
+    }
+    if($VerboseFunctionCaller -ne $null)
+    {
+        $loggerObject | Add-Member -MemberType ScriptMethod -Name "VerboseFunctionCaller" -Value $VerboseFunctionCaller
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteHost" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+
+        $this.WriteHostWriter($LoggingString)
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep()
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteVerbose" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+        $this.WriteVerboseWriter($LoggingString)
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep() 
+
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteToFileOnly" -Value {
+        param(
+        [string]$LoggingString
+        )
+        if([string]::IsNullOrEmpty($LoggingString))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
+        }
+
+        if($this.EnableDateTime)
+        {
+            $LoggingString = "[{0}] : {1}" -f [System.DateTime]::Now, $LoggingString
+        }
+        $this.ToLog($LoggingString, $this.FullPath)
+        $this.LogUpKeep()
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "UpdateFileLocation" -Value{
+
+        if($this.FullPath -eq $null)
+        {
+            if($this.IncludeDateTimeToFileName)
+            {
+                $this.InstanceBaseName = "{0}_{1}" -f $this.FileName, ((Get-Date).ToString('yyyyMMddHHmmss'))
+                $this.FullPath = "{0}\{1}.txt" -f $this.FileDirectory, $this.InstanceBaseName
+            }
+            else 
+            {
+                $this.InstanceBaseName = "{0}" -f $this.FileName
+                $this.FullPath = "{0}\{1}.txt" -f $this.FileDirectory, $this.InstanceBaseName
+            }
+        }
+        else 
+        {
+
+            do{
+                $this.FullPath = "{0}\{1}_{2}.txt" -f $this.FileDirectory, $this.InstanceBaseName, $this.InstanceNumber
+                $this.InstanceNumber++
+            }while(Test-Path $this.FullPath)
+            $this.WriteVerbose("Updated to New Log")
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "LogUpKeep" -Value {
+
+        if($this.NextFileCheckTime -gt [System.DateTime]::Now)
+        {
+            return 
+        }
+        $this.NextFileCheckTime = (Get-Date).AddMinutes($this.CheckSizeIntervalMinutes)
+        $this.CheckFileSize()
+        $this.CheckNumberOfFiles()
+        $this.WriteVerbose("Did Log Object Up Keep")
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckFileSize" -Value {
+
+        $item = Get-ChildItem $this.FullPath
+        if(($item.Length / 1MB) -gt $this.MaxFileSizeInMB)
+        {
+            $this.UpdateFileLocation()
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckNumberOfFiles" -Value {
+
+        $filter = "{0}*" -f $this.InstanceBaseName
+        $items = Get-ChildItem -Path $this.FileDirectory | ?{$_.Name -like $filter}
+        if($items.Count -gt $this.NumberOfLogsToKeep)
+        {
+            do{
+                $items | Sort-Object LastWriteTime | Select -First 1 | Remove-Item -Force 
+                $items = Get-ChildItem -Path $this.FileDirectory | ?{$_.Name -like $filter}
+            }while($items.Count -gt $this.NumberOfLogsToKeep)
+        }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "RemoveLatestLogFile" -Value {
+
+        if(!$this.PreventLogCleanup)
+        {
+            $item = Get-ChildItem $this.FullPath
+            Remove-Item $item -Force
+        }
+    }
+
+    $loggerObject.UpdateFileLocation()
+    try 
+    {
+        "[{0}] : Creating a new logger instance" -f [System.DateTime]::Now | Out-File ($loggerObject.FullPath) -Append
+    }
+    catch 
+    {
+        throw 
+    }
+
+    return $loggerObject
+}
+
+$Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $true -EnableDateTime $false -ErrorAction SilentlyContinue
 
 ############################################################
 ############################################################
@@ -617,7 +905,7 @@ param(
         {
             $ScriptBlock = {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest"))
+                ConvertFrom-Json(Invoke-WebRequest -Uri ($uri = "https://$($args[0])/repos/$($args[1])/$($args[2])/releases/latest") -UseBasicParsing)
             }
 
             $WebRequestJob = Start-Job -ScriptBlock $ScriptBlock -Name "WebRequestJob" -ArgumentList $ApiUri,$RepoOwner,$RepoName
@@ -627,7 +915,7 @@ param(
                 if((Get-Job -Id $WebRequestJob.Id).State -eq "Completed")
                 {
                     Write-VerboseOutput("WebRequest after {0} attempts successfully completed. Receiving results." -f $i)
-                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep
+                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep -ErrorAction Stop
                     Write-VerboseOutput("Removing background worker job")
                     Remove-Job -Id $WebRequestJob.Id
                     Break
@@ -874,6 +1162,13 @@ param(
 
     Write-VerboseOutput("Calling: Get-OperatingSystemVersion")
     Write-VerboseOutput("Passed: $OS_Version")
+    
+    #Quick fix to address issue 252
+    [int]$intOSVersion = $OS_Version.Replace(".","")
+    if($intOSVersion -gt 10014393)
+    {
+        $OS_Version = "10.0.17713"
+    }
     
     switch($OS_Version)
     {
@@ -1354,10 +1649,10 @@ param(
 [parameter(Mandatory=$false)][switch]$ReturnReplacingKBNumbersOnly
 )
     $ScriptBlock1 = {
-        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])"
+        Invoke-WebRequest -Uri "https://www.catalog.update.microsoft.com/Search.aspx?q=$($args[0])" -UseBasicParsing
     }
     $ScriptBlock2 = {
-        Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])"
+        Invoke-WebRequest -Uri "https://www.catalog.update.microsoft.com/ScopedViewGeneric.aspx?updateid=$($args[0])" -UseBasicParsing
     }
 
     $WindowsCatalogCall1 = Start-Job -ScriptBlock $ScriptBlock1 -Name "WindowsCatalogCall1" -ArgumentList $KBNumber
@@ -1368,7 +1663,7 @@ param(
         {
             Write-VerboseOutput("WindowsCatalogCall1 after {0} attempts successfully completed. Receiving results..." -f $CatalogCall1Counter)
             $WindowsCatalogKBInfo = Receive-Job -Id $WindowsCatalogCall1.Id -Keep
-            $WindowsCatalogUpdateId = $WindowsCatalogKBInfo.Links | Where-Object {$_.innerText -like "*Windows Server*x64*"}
+            $WindowsCatalogUpdateId = $WindowsCatalogKBInfo.Links | Where-Object {$_.outerHTML -like "*Windows Server*x64*"}
             Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
             Remove-Job -Id $WindowsCatalogCall1.Id
             Break
@@ -1376,10 +1671,12 @@ param(
         else
         {
             Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall1Counter)
-            if($CatalogCall1Counter -eq 30)
+            if($CatalogCall1Counter -eq $Timeout)
             {
+	    	Write-VerboseOutput("Reached {0} attempts." -f $Timeout)
                 Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall1.Name,$WindowsCatalogCall1.Id)
-                Remove-Job -Id $WindowsCatalogCall1.Id
+                Stop-Job -Id $WindowsCatalogCall1.Id
+		Remove-Job -Id $WindowsCatalogCall1.Id
                 return $null
                 Break
             }
@@ -1407,7 +1704,7 @@ param(
                     $WindowsCatalogKBNumbersOnly = @()
                     ForEach($Update in $WindowsCatalogReplaceUpdates)
                     {
-                        $WindowsCatalogKBNumbersOnly += ($Update.outerText.split("(") -replace "[()]")[1]
+                        $WindowsCatalogKBNumbersOnly += (($Update.outerHTML.split("(") -replace "[()]") -replace "[</a>]")[1]
                     }
                     return $WindowsCatalogKBNumbersOnly
                     Break
@@ -1421,11 +1718,12 @@ param(
             else
             {
                 Write-VerboseOutput("Attempt: {0} WebRequest not yet complete." -f $CatalogCall2Counter)
-                if($CatalogCall2Counter -eq 30)
+                if($CatalogCall2Counter -eq $Timeout)
                 {
-                    Write-VerboseOutput("Reached 30 attempts.")
+                    Write-VerboseOutput("Reached {0} attempts." -f $Timeout)
                     Write-VerboseOutput("Removing background worker job: {0} with id: {1}" -f $WindowsCatalogCall2.Name,$WindowsCatalogCall2.Id)
-                    Remove-Job -Id $WindowsCatalogCall2.Id
+                    Stop-Job -Id $WindowsCatalogCall2.Id
+		    Remove-Job -Id $WindowsCatalogCall2.Id
                     return $null
                     Break
                 }
@@ -1886,6 +2184,77 @@ param(
     return $netTlsVersion
 }
 
+Function Get-TimeZoneInformationRegistrySettings {
+[CmdletBinding()]
+param(
+[string]$MachineName = $env:COMPUTERNAME,
+[scriptblock]$CatchActionFunction
+)
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+    #>
+    Write-VerboseWriter("Calling: Get-TimeZoneInformationRegistrySettings")
+    Write-VerboseWriter("Passed: [string]MachineName: {0}" -f $MachineName)
+    $timeZoneInformationSubKey = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
+    $dynamicDaylightTimeDisabled = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DynamicDaylightTimeDisabled"
+    $timeZoneKeyName = Invoke-RegistryHandler -MachineName $MachineName -Subkey $timeZoneInformationSubKey -GetValue "TimeZoneKeyName" 
+    $standardStart = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "StandardStart" 
+    $daylightStart = Invoke-RegistryHandler -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DaylightStart" 
+    
+    $timeZoneInformationObject = New-Object PSCustomObject 
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DynamicDaylightTimeDisabled" -Value $dynamicDaylightTimeDisabled 
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "TimeZoneKeyName" -Value $timeZoneKeyName
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "StandardStart" -Value $standardStart
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DaylightStart" -Value $daylightStart
+    
+    $actionsToTake = @() 
+    if($timeZoneKeyName -eq $null -or 
+        [string]::IsNullOrEmpty($timeZoneKeyName))
+    {
+        Write-VerboseWriter("TimeZoneKeyName is null or empty. Action should be taken to address this.")
+        $actionsToTake += "TimeZoneKeyName is blank. Need to switch your current time zone to a different value, then switch it back to have this value populated again."
+    }
+    foreach($value in $standardStart)
+    {
+        if($value -ne 0)
+        {
+            $standardStartNonZeroValue = $true
+            break
+        }
+    }
+    foreach($value in $daylightStart)
+    {
+        if($value -ne 0)
+        {
+            $daylightStartNonZeroValue = $true
+            break
+        }
+    }
+    if($dynamicDaylightTimeDisabled -ne 0 -and (
+        $standardStartNonZeroValue -or 
+        $daylightStartNonZeroValue
+    ))
+    {
+        Write-VerboseWriter("Determined that there is a chance the settings set could cause a DST issue.")
+        $dstIssueDetected = $true 
+        $actionsToTake += "High Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone. `
+        It is possible that you could be running into this issue. Set 'Adjust for daylight saving time automatically to on'"
+    }
+    elseif($dynamicDaylightTimeDisabled -ne 0)
+    {
+        Write-VerboseWriter("Daylight savings auto adjustment is disabled.")
+        $actionsToTake += "Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone."
+    }
+    
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "DstIssueDetected" -Value $dstIssueDetected
+    $timeZoneInformationObject | Add-Member -MemberType NoteProperty -Name "ActionsToTake" -Value $actionsToTake
+    
+    return $timeZoneInformationObject 
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1993,6 +2362,7 @@ param(
     }
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
+    $os_obj.TimeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
 
     return $os_obj
 }
@@ -2179,6 +2549,12 @@ param(
         $versionObject.FriendlyName = "4.7.1"
         $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d7d1
     }
+    elseif($NetVersionKey -eq 528040 -and $OSVersionName -eq [HealthChecker.OSVersionName]::Windows2019)
+    {
+        #See: https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed
+        $versionObject.FriendlyName = "Windows Server 2019 .NET 4.8"
+        $versionObject.NetVersion = [HealthChecker.NetVersion]::Net4d8
+    }
     elseif($NetVersionKey -ge [HealthChecker.NetVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetVersion]::Net4d8))
     {
         $versionObject.FriendlyName = "4.7.2"
@@ -2217,6 +2593,86 @@ param(
     [HealthChecker.NetVersionObject]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSVersionName $OSVersionName
     return $versionObject
 }
+
+
+Function Display-Smb1ServerStatus
+{
+param(
+[Parameter(Mandatory=$true)][object]$HealthExSvrObj
+)
+    Write-VerboseOutput("Calling: Display-Smb1ServerStatus")
+    Write-VerboseOutput("For Server: {0}" -f ($Machine_Name = $HealthExSvrObj.ServerName))
+    $OSVersionName = $HealthExSvrObj.OSVersion.OSVersion
+
+    Function Get-Smb1ServerStatus 
+    {
+    param(
+    [Parameter(Mandatory=$true)][string]$Machine_Name,
+    [Parameter(Mandatory=$true)][HealthChecker.OSVersionName]$OSVersionName
+    )
+
+        $regServer = "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters"
+        Write-VerboseOutput("Detecting Smb1 server registry settings")
+        $regSmb1ServerSettings = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "SMB1"
+
+        $scriptBlockSmbServerConfiguration = {
+            if((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $true)
+            {
+                return $true 
+            }
+            else 
+            {
+                return $false
+            }
+        }
+
+        $scriptBlockWindowsFeature = {
+            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
+            {
+                return $true
+            }
+            else 
+            {
+                return $false 
+            }
+        }
+
+        if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
+            if($regSmb1ServerSettings -ne 0) {return $true}
+        }
+        elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
+            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return $true}
+        }
+        elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
+        {
+            Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
+            if(((Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name) -or (Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name))) {return $true}
+        }
+    }
+    
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
+    {
+        if(Get-Smb1ServerStatus -Machine_Name $Machine_Name -OSVersionName $OSVersionName)
+        {
+            Write-Red("SMB1 is NOT completely disabled!")
+            Write-Red("We recommend to disable SMB1 for security reasons. Exchange 2013/2016/2019 doesn't need SMB1 to work properly.")
+            Write-Red("See: https://support.microsoft.com/en-us/help/2696547/detect-enable-disable-smbv1-smbv2-smbv3-in-windows-and-windows-server for more information.")
+        }
+        else
+        {
+            Write-Green("SMB1 is disabled which is recommended.")
+        }
+    }
+    else
+    {
+        Write-Yellow("We've detected Exchange 2010 or lower so we don't check for SMB1 settings.")
+    }
+}
+
 
 Function Get-ExchangeVersion {
 param(
@@ -4791,6 +5247,27 @@ param(
         Write-Yellow("`t`tExchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
     }
 
+    #############
+    #DST Settings
+    #############
+    Write-Grey("`r`nDST Settings:")
+    if($HealthExSvrObj.OSVersion.TimeZoneInformation.DstIssueDetected)
+    {
+        Write-Red("`tError: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone. It is possible that you could be running into this issue. Set 'Adjust for daylight saving time automatically to on'")
+    }
+    elseif($HealthExSvrObj.OSVersion.TimeZoneInformation.DynamicDaylightTimeDisabled -ne 0)
+    {
+        Write-Yellow("`tWarning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone.")
+    }
+    else 
+    {
+        Write-Grey("`tDyanmic Daylight Time is enabled.")
+    }
+    if([string]::IsNullOrEmpty($HealthExSvrObj.OSVersion.TimeZoneInformation.TimeZoneKeyName))
+    {
+        Write-Yellow("`tWarning: TimeZoneKeyName is blank. Need to switch your current time zone to a different value, then switch it back to have this value populated again.")
+    }
+
 	##############
 	#Hotfix Check#
 	##############
@@ -4817,11 +5294,13 @@ param(
         }
     }
 
-    #####################
-    #Vulnerability Check#
-    #####################
+    #################
+    #Security Checks#
+    #################
 
     Display-MSExchangeVulnerabilities $HealthExSvrObj
+    Write-Break
+    Display-Smb1ServerStatus $HealthExSvrObj
 
 
     Write-Grey("`r`n`r`n")
@@ -5873,6 +6352,7 @@ Function Get-ErrorsThatOccurred {
                 }
                 if(!($goodError))
                 {
+                    Write-DebugLog $Error[$index]
                     $Error[$index] | Out-File ($Script:OutputFullPath) -Append
                 }
                 $index++
@@ -5887,13 +6367,16 @@ Function Get-ErrorsThatOccurred {
 
         if(($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount)
         {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please RE-RUN the script with -Verbose send the .txt and .xml file to ExToolsFeedback@microsoft.com.")
-	        Write-Errors
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt and .xml file to ExToolsFeedback@microsoft.com.")
+	        $Script:Logger.PreventLogCleanup = $true
+            Write-Errors
         }
-        elseif($Script:VerboseEnabled)
+        elseif($Script:VerboseEnabled -or 
+            $SaveDebugLog)
         {
             Write-VerboseOutput("All errors that occurred were in try catch blocks and was handled correctly.")
-	        Write-Errors
+	        $Script:Logger.PreventLogCleanup = $true
+            Write-Errors
         }
     }
     else 
@@ -5960,19 +6443,19 @@ Function Main {
         Build-HtmlServerReport
         Get-ErrorsThatOccurred
         sleep 2;
-        exit
+        return
     }
 
     if((Test-Path $OutputFilePath) -eq $false)
     {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
-        exit 
+        return 
     }
 
     if($LoadBalancingReport)
     {
         LoadBalancingMain
-        exit
+        return
     }
 
     if($DCCoreRatio)
@@ -5983,11 +6466,11 @@ Function Main {
         {
             Get-ExchangeDCCoreRatio
             Get-ErrorsThatOccurred
+            return
         }
         finally
         {
             $ErrorActionPreference = $oldErrorAction
-            exit 
         }
     }
 
@@ -5997,7 +6480,7 @@ Function Main {
         Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Get-ErrorsThatOccurred
-        exit
+        return
 	}
 
 	HealthCheckerMain
@@ -6012,5 +6495,10 @@ finally
     if($Script:VerboseEnabled)
     {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+    }
+    $Script:Logger.RemoveLatestLogFile()
+    if($Script:Logger.PreventLogCleanup)
+    {
+        Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
 }
