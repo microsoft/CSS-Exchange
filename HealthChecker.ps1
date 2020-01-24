@@ -2362,7 +2362,16 @@ param(
     }
     $os_obj.TLSSettings = Get-TLSSettings -Machine_Name $Machine_Name
     $os_obj.NetDefaultTlsVersion = Get-NetTLSDefaultVersions -Machine_Name $Machine_Name
-    $os_obj.TimeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    #Need to do this for Windows 2008 R2 Powershell.
+    $timeZoneInfo = Get-TimeZoneInformationRegistrySettings -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+    $os_obj.TimeZoneInformation = New-Object HealthChecker.TimeZoneInformationObject
+    $os_obj.TimeZoneInformation.DynamicDaylightTimeDisabled = $timeZoneInfo.DynamicDaylightTimeDisabled
+    $os_obj.TimeZoneInformation.TimeZoneKeyName = $timeZoneInfo.TimeZoneKeyName
+    $os_obj.TimeZoneInformation.StandardStart = $timeZoneInfo.StandardStart 
+    $os_obj.TimeZoneInformation.DaylightStart = $timeZoneInfo.DaylightStart
+    $os_obj.TimeZoneInformation.DstIssueDetected = $timeZoneInfo.DstIssueDetected
+    $os_obj.TimeZoneInformation.ActionsToTake = $timeZoneInfo.ActionsToTake
 
     return $os_obj
 }
