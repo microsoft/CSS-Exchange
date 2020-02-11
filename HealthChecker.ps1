@@ -3989,6 +3989,7 @@ param(
 	    #ADV190018 affects E2010 but we cannot check for them
         #CVE-2019-1084 affects E2010 but we cannot check for them
         #CVE-2019-1136 affects E2010 but we cannot check for them
+        #CVE-2020-0688 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -4050,6 +4051,8 @@ param(
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
             #CVE-2019-1373
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.4 -CVEName "CVE-2019-1373"
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.6 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -4139,13 +4142,16 @@ param(
 	        {
                 #CVE-2019-1373
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.5 -CVEName "CVE-2019-1373"
-	        }
+            }
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.7 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	    }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15)
         {
 	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU15)
 	        {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2020-0688,CVE-2020-0692
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1913.7 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	        }
         }
     }
@@ -4195,12 +4201,15 @@ param(
                 #CVE-2019-1373
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.7 -CVEName "CVE-2019-1373"
             }
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.11 -CVEName "CVE-2020-0688","CVE-2020-0692"
         }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4)
         {
             if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU4)
             {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2020-0688,CVE-2020-0692
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 529.8 -CVEName "CVE-2020-0688","CVE-2020-0692"
             }
         }
     }
