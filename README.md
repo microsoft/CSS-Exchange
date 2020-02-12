@@ -100,6 +100,8 @@ PopLogs - Collects POP protocol logs
 
 ImapLogs - Collects IMAP protocol logs
 
+OABLogs - Collects OAB Logs
+
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
 AppSysLogs - Collects the Application, System, and MSExchange Management. 
