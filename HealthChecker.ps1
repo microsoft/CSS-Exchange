@@ -2669,7 +2669,7 @@ param(
         {
             Write-Red("SMB1 is NOT completely disabled!")
             Write-Red("We recommend to disable SMB1 for security reasons. Exchange 2013/2016/2019 doesn't need SMB1 to work properly.")
-            Write-Red("See: https://support.microsoft.com/en-us/help/2696547/detect-enable-disable-smbv1-smbv2-smbv3-in-windows-and-windows-server for more information.")
+            Write-Red("See: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615.")
         }
         else
         {
