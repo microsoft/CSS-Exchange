@@ -108,7 +108,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.39.1"
+$healthCheckerVersion = "2.40.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -1018,7 +1018,8 @@ Required Functions:
     https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
 #>
     
-$passed = $false 
+$passed = $false
+$IsEdgeTransport = $false
 Write-VerboseWriter("Calling: Confirm-ExchangeShell")
 Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
 $LoadExchangeVariables)
@@ -1027,7 +1028,14 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
 (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
 {
     Write-VerboseWriter("We are on Exchange 2010 or newer")
-    try 
+    if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\EdgeTransportRole') -or
+    (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'))
+    {
+        Write-VerboseWriter("We are on Exchange Edge Transport Server")
+        $IsEdgeTransport = $true
+    }
+
+    try
     {
         Get-ExchangeServer -ErrorAction Stop | Out-Null
         Write-VerboseWriter("Exchange PowerShell Module already loaded.")
@@ -1050,9 +1058,24 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
                 {
                     $currentErrors = $Error.Count
                 }
-                Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
-                Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
-                $passed = $true #We are just going to assume this passed. 
+                if($IsEdgeTransport)
+                {
+                    [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
+                    ForEach($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn)
+                    {
+                        Write-VerboseWriter("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
+                        Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
+                    }
+                    #Once we get to here we're ready for running the Import-Module job
+                    Import-Module $env:ExchangeInstallPath\bin\Exchange.ps1 -ErrorAction Stop
+                    $passed = $true #We are just going to assume this passed.
+                }
+                else
+                {
+                    Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
+                    $passed = $true #We are just going to assume this passed.
+                }
                 if($watchErrors)
                 {
                     $index = 0
@@ -3989,6 +4012,7 @@ param(
 	    #ADV190018 affects E2010 but we cannot check for them
         #CVE-2019-1084 affects E2010 but we cannot check for them
         #CVE-2019-1136 affects E2010 but we cannot check for them
+        #CVE-2020-0688 affects E2010 but we cannot check for them
         #could do get the build number of exsetup, but not really needed with Exchange 2010 as it is going out of support soon. 
         Write-Yellow("`nWe cannot check for more vulnerabilities for Exchange 2010.")
         Write-Yellow("You should make sure that your Exchange 2010 Servers are up to date with all security patches.")
@@ -4050,6 +4074,8 @@ param(
 	        Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.3 -CVEName "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
             #CVE-2019-1373
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.4 -CVEName "CVE-2019-1373"
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1497.6 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	    }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -4139,13 +4165,16 @@ param(
 	        {
                 #CVE-2019-1373
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.5 -CVEName "CVE-2019-1373"
-	        }
+            }
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1847.7 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	    }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15)
         {
 	        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU15)
 	        {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2020-0688,CVE-2020-0692
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 1913.7 -CVEName "CVE-2020-0688","CVE-2020-0692"
 	        }
         }
     }
@@ -4195,12 +4224,15 @@ param(
                 #CVE-2019-1373
                 Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.7 -CVEName "CVE-2019-1373"
             }
+            #CVE-2020-0688,CVE-2020-0692
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 464.11 -CVEName "CVE-2020-0688","CVE-2020-0692"
         }
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4)
         {
             if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU4)
             {
-                Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+                #CVE-2020-0688,CVE-2020-0692
+                Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuild 529.8 -CVEName "CVE-2020-0688","CVE-2020-0692"
             }
         }
     }
