@@ -786,6 +786,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ManagedAvailability = $true 
         $Script:DAGInformation = $true
         $Script:Experfwiz = $true
+        $Script:ServerInfo = $true
     }
     if($PerformanceIssues)
     {

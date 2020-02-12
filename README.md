@@ -110,7 +110,7 @@ SkipEndCopyOver - If the Servers parameter is used, by default we will attempt t
 
 DaysWorth - The number of days to go back from today for log collection. 
 
-DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, Managed Availability logs, Experfiwz, and DAG Information for data collection. 
+DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, Managed Availability logs, Experfiwz, Server Information, and DAG Information for data collection. 
 
 PerformanceIssues - Enables Daily Performance Logs, Managed Availability Logs, and Experfwiz for data collection. 
 
