@@ -1018,7 +1018,8 @@ Required Functions:
     https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
 #>
     
-$passed = $false 
+$passed = $false
+$IsEdgeTransport = $false
 Write-VerboseWriter("Calling: Confirm-ExchangeShell")
 Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
 $LoadExchangeVariables)
@@ -1027,7 +1028,14 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
 (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
 {
     Write-VerboseWriter("We are on Exchange 2010 or newer")
-    try 
+    if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\EdgeTransportRole') -or
+    (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'))
+    {
+        Write-VerboseWriter("We are on Exchange Edge Transport Server")
+        $IsEdgeTransport = $true
+    }
+
+    try
     {
         Get-ExchangeServer -ErrorAction Stop | Out-Null
         Write-VerboseWriter("Exchange PowerShell Module already loaded.")
@@ -1050,9 +1058,24 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
                 {
                     $currentErrors = $Error.Count
                 }
-                Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
-                Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
-                $passed = $true #We are just going to assume this passed. 
+                if($IsEdgeTransport)
+                {
+                    [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
+                    ForEach($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn)
+                    {
+                        Write-VerboseWriter("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
+                        Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
+                    }
+                    #Once we get to here we're ready for running the Import-Module job
+                    Import-Module $env:ExchangeInstallPath\bin\Exchange.ps1 -ErrorAction Stop
+                    $passed = $true #We are just going to assume this passed.
+                }
+                else
+                {
+                    Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
+                    $passed = $true #We are just going to assume this passed.
+                }
                 if($watchErrors)
                 {
                     $index = 0
