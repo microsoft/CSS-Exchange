@@ -6378,7 +6378,8 @@ Function Get-ErrorsThatOccurred {
         Write-Grey(" "); Write-Grey(" ")
         Function Write-Errors {
             $index = 0; 
-            "Errors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
+            "`r`n`r`nErrors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
+            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that occurred that wasn't handled")
             while($index -lt ($Error.Count - $Script:ErrorStartCount))
             {
                 #for 2008R2 can't use .Contains on an array object, need to do something else. 
@@ -6393,13 +6394,14 @@ Function Get-ErrorsThatOccurred {
                 }
                 if(!($goodError))
                 {
-                    Write-DebugLog $Error[$index]
+                    $Script:Logger.WriteToFileOnly($Error[$index])
                     $Error[$index] | Out-File ($Script:OutputFullPath) -Append
                 }
                 $index++
             }
             Write-Grey(" "); Write-Grey(" ")
             "Errors that were handled" | Out-File ($Script:OutputFullPath) -Append
+            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that occurred that wasn't handled")
             foreach($okayErrors in $Script:ErrorsExcluded)
             {
                 $okayErrors | Out-File ($Script:OutputFullPath) -Append
@@ -6447,7 +6449,6 @@ Function LoadBalancingMain {
     Write-Green("Client Access Load Balancing Report on " + $date)
     Get-CASLoadBalancingReport
     Write-Grey("Output file written to " + $OutputFullPath)
-    Get-ErrorsThatOccurred
     Write-Break
     Write-Break
 
@@ -6458,7 +6459,6 @@ Function HealthCheckerMain {
     Write-HealthCheckerVersion
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
-    Get-ErrorsThatOccurred
     $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
@@ -6482,7 +6482,6 @@ Function Main {
     {
         Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport" 
         Build-HtmlServerReport
-        Get-ErrorsThatOccurred
         sleep 2;
         return
     }
@@ -6506,7 +6505,6 @@ Function Main {
         try 
         {
             Get-ExchangeDCCoreRatio
-            Get-ErrorsThatOccurred
             return
         }
         finally
@@ -6520,7 +6518,6 @@ Function Main {
         Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
         Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-        Get-ErrorsThatOccurred
         return
 	}
 
@@ -6529,7 +6526,12 @@ Function Main {
 
 try 
 {
-    Main 
+    Main
+    Get-ErrorsThatOccurred
+}
+catch 
+{
+    Get-ErrorsThatOccurred
 }
 finally 
 {
