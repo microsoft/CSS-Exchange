@@ -5302,7 +5302,7 @@ param(
     }
     else 
     {
-        Write-Grey("`tDyanmic Daylight Time is enabled.")
+        Write-Grey("`tDynamic Daylight Time is enabled.")
     }
     if([string]::IsNullOrEmpty($HealthExSvrObj.OSVersion.TimeZoneInformation.TimeZoneKeyName))
     {
