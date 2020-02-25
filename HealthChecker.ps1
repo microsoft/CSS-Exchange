@@ -2672,31 +2672,37 @@ param(
         if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
-            if($regSmb1ServerSettings -ne 0) {return $true}
+            if($regSmb1ServerSettings -ne 0) {return 0}
         }
         elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
-            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return $true}
+            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return 0}
         }
         elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
-            if(((Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name) -or (Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name))) {return $true}
+            $SMB1WindowsFeatureResult = Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name
+            $SMB1ServerConfigurationResult = Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name
+
+            if(($SMB1WindowsFeatureResult -and $SMB1ServerConfigurationResult)) {return 0}
+            elseif($SMB1WindowsFeatureResult -or $SMB1ServerConfigurationResult) {return 1}
+            else {return 2}
         }
     }
     
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
-        if(Get-Smb1ServerStatus -Machine_Name $Machine_Name -OSVersionName $OSVersionName)
-        {
-            Write-Red("SMB1 is NOT completely disabled!")
-            Write-Red("We recommend to disable SMB1 for security reasons. Exchange 2013/2016/2019 doesn't need SMB1 to work properly.")
-            Write-Red("See: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615.")
-        }
-        else
-        {
-            Write-Green("SMB1 is disabled which is recommended.")
+        # return of 0 means SMB1 support is installed and not blocked
+        # return of 1 means SMB1 may be installed but is blocked or not installed but not blocked as failsafe if someone installed SMB1 support by mistake
+        # return of 2 means SMB1 is not installed (if OS is 2012R2 or greater) and blocked as failsafe
+
+        $SMBServerStatusResult = Get-Smb1ServerStatus -Machine_Name $Machine_Name -OSVersionName $OSVersionName
+        switch($SMBServerStatusResult)
+        { 
+            0 {Write-Red("SMB1 is enabled!`nWe recommend to disable SMB1 for security reasons. Exchange 2013/2016/2019 doesn't need SMB1 to work properly.`nSee: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615.")}
+            1 {Write-Yellow("SMB1 is disabled but not blocked which is recommended as failsafe!`nSee: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615.")}
+            2 {Write-Green("SMB1 is disabled which is recommended.")}
         }
     }
     else
