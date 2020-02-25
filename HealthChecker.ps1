@@ -6459,7 +6459,17 @@ Function HealthCheckerMain {
     Write-HealthCheckerVersion
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
+    $currentErrors = $Error.count
     $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+    if($currentErrors -ne $Error.Count)
+    {
+        $index = 0
+        while($index -lt ($Error.Count - $currentErrors))
+        {
+            Invoke-CatchActions -CopyThisError $Error[$index]
+            $index++
+        }
+    }
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
 }
