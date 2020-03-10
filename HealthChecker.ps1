@@ -2658,17 +2658,6 @@ param(
             }
         }
 
-        $scriptBlockWindowsFeature = {
-            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
-            {
-                return $true
-            }
-            else 
-            {
-                return $false 
-            }
-        }
-
         if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
@@ -2677,14 +2666,27 @@ param(
         elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
-            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            }
+            else
+            {
+                if((Get-SmbServerConfiguration.EnableSMB1Protocol) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            }
         }
         elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
-            $SMB1WindowsFeatureResult = Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name
-            $SMB1ServerConfigurationResult = Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name
-
+            $SMB1WindowsFeatureResult = (Get-WindowsFeature "FS-SMB1" -ComputerName $Machine_Name).Installed
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                $SMB1ServerConfigurationResult = Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name
+            }
+            else
+            {
+                $SMB1ServerConfigurationResult = (Get-SmbServerConfiguration).EnableSMB1Protocol
+            }
             if(($SMB1WindowsFeatureResult -and $SMB1ServerConfigurationResult)) {return 0}
             elseif($SMB1WindowsFeatureResult -or $SMB1ServerConfigurationResult) {return 1}
             else {return 2}
