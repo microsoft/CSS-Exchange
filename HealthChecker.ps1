@@ -2672,7 +2672,7 @@ param(
             }
             else
             {
-                if((Get-SmbServerConfiguration.EnableSMB1Protocol) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+                if((Get-SmbServerConfiguration).EnableSMB1Protocol -or ($regSmb1ServerSettings -ne 0)) {return 0}
             }
         }
         elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
