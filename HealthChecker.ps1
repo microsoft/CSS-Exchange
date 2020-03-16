@@ -4009,6 +4009,45 @@ param(
         }
     }
 
+    #Description: Check for CVE-2020-0796 SMBv3 vulnerability
+    #Affected OS versions: Windows 10 build 1903 and 1909
+    #Fix: KB4551762
+    #Woraround: Disable SMBv3 compression
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        Write-VerboseOutput("Testing CVE: CVE-2020-0796")
+        $BuildNumber = ($HealthExSvrObj.OSVersion.OSVersionBuild).split(".")[2]
+        if(($BuildNumber -eq 18362) -or ($BuildNumber -eq 18363))
+        {
+            Write-VerboseOutput("Build potentially vulnerable to CVE-2020-0796. Checking if fix is in place.")
+            $regUBR = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" -GetValue "UBR"
+            if($regUBR -lt 720)
+            {
+                Write-VerboseOutput("Build vulnerable to CVE-2020-0796. Checking if workaround is in place.")
+                $regDisableCompression = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -GetValue "DisableCompression"
+                if($regDisableCompression -eq 1)
+                {
+                    Write-VerboseOutput("Workaround to disable affected SMBv3 compression is in place.")
+                    Write-Yellow("System vulnerable to CVE-2020-0796 but workaround to disable SMBv3 compression is in place.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information.")
+                }
+                else
+                {
+                    Write-VerboseOutput("Workaround to disable affected SMBv3 compression is NOT in place.")
+                    Write-Red("System vulnerable to CVE-2020-0796.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information.")
+                }
+            }
+            else 
+            {
+                Write-VerboseOutput("System NOT vulnerable to CVE-2020-0796. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796")        
+            }
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
+    }
+
     #Check for different vulnerabilities
     #We run checks based on build revision only for Exchange 2013/2016/2019
     #We check only for year 2018+ vulnerabilities
