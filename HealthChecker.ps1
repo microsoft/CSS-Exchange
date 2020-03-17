@@ -108,7 +108,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.41.0"
+$healthCheckerVersion = "2.42.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -2064,7 +2064,7 @@ param(
     $regServer = $regBase -f $version, "Server"
     $regClient = $regBase -f $version, "Client"
     $serverEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "Enabled"
-    $serverDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name $regServer -GetValue "DisabledByDefault"
+    $serverDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regServer -GetValue "DisabledByDefault"
     $clientEnabled = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "Enabled"
     $clientDisabledByDefault = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $regClient -GetValue "DisabledByDefault"
     
@@ -2658,17 +2658,6 @@ param(
             }
         }
 
-        $scriptBlockWindowsFeature = {
-            if((Get-WindowsFeature "FS-SMB1").Installed -eq $true)
-            {
-                return $true
-            }
-            else 
-            {
-                return $false 
-            }
-        }
-
         if($OSVersionName -le ([HealthChecker.OSVersionName]::Windows2008R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for legacy OS 2008R2 or lower")
@@ -2677,14 +2666,27 @@ param(
         elseif($OSVersionName -eq ([HealthChecker.OSVersionName]::Windows2012))
         {
             Write-VerboseOutput("Detecting Smb1 server settings for server 2012")
-            if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                if((Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name) -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            }
+            else
+            {
+                if((Get-SmbServerConfiguration).EnableSMB1Protocol -or ($regSmb1ServerSettings -ne 0)) {return 0}
+            }
         }
         elseif($OSVersionName -ge ([HealthChecker.OSVersionName]::Windows2012R2))
         {
             Write-VerboseOutput("Detecting Smb1 server settings server 2012R2 or higher")
-            $SMB1WindowsFeatureResult = Invoke-Command -ScriptBlock $scriptBlockWindowsFeature -ComputerName $Machine_Name
-            $SMB1ServerConfigurationResult = Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name
-
+            $SMB1WindowsFeatureResult = (Get-WindowsFeature "FS-SMB1" -ComputerName $Machine_Name).Installed
+            if($Machine_Name -ne $env:COMPUTERNAME)
+            {
+                $SMB1ServerConfigurationResult = Invoke-Command -ScriptBlock $scriptBlockSmbServerConfiguration -ComputerName $Machine_Name
+            }
+            else
+            {
+                $SMB1ServerConfigurationResult = (Get-SmbServerConfiguration).EnableSMB1Protocol
+            }
             if(($SMB1WindowsFeatureResult -and $SMB1ServerConfigurationResult)) {return 0}
             elseif($SMB1WindowsFeatureResult -or $SMB1ServerConfigurationResult) {return 1}
             else {return 2}
@@ -2767,7 +2769,8 @@ param(
         elseif($buildRevision -lt 397.3){if($buildRevision -gt 330.6){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU1}
         elseif($buildRevision -lt 464.5){if($buildRevision -gt 397.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU2}
         elseif($buildRevision -lt 529.5){if($buildRevision -gt 464.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU3}
-        elseif($buildRevision -ge 529.5){if($buildRevision -gt 529.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU4}
+        elseif($buildRevision -lt 595.3){if($buildRevision -gt 529.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU4}
+        elseif($buildRevision -ge 595.3){if($buildRevision -gt 595.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU5}
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 1)
     {
@@ -2789,7 +2792,8 @@ param(
         elseif($buildRevision -lt 1779.2) {if($buildRevision -gt 1713.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU12}
         elseif($buildRevision -lt 1847.3) {if($buildRevision -gt 1779.2){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU13}
         elseif($buildRevision -lt 1913.5) {if($buildRevision -gt 1847.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU14}
-        elseif($buildRevision -ge 1913.5) {if($buildRevision -gt 1913.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU15}
+        elseif($buildRevision -lt 1979.3) {if($buildRevision -gt 1913.5){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU15}
+        elseif($buildRevision -ge 1979.3) {if($buildRevision -gt 1979.3){$exBuildObj.InbetweenCUs = $true} $exBuildObj.CU = [HealthChecker.ExchangeCULevel]::CU16}
 
     }
     elseif($AdminDisplayVersion.Major -eq 15 -and $AdminDisplayVersion.Minor -eq 0)
@@ -2860,8 +2864,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::RTM) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 RTM"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/22/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU1) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU1"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU2) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU2"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU3) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU3"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU3) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU3"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU4) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU4"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU5) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2019 CU5"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/17/2020"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red("Error: Unknown Exchange 2019 Build was detected"); $tempObject.Error = $true; break;}
                 }
             }
@@ -2886,8 +2891,9 @@ param(
                     ([HealthChecker.ExchangeCULevel]::CU11) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU11"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "10/16/2018"; break}
                     ([HealthChecker.ExchangeCULevel]::CU12) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU12"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "02/12/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU13) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU13"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "06/18/2019"; break}
-                    ([HealthChecker.ExchangeCULevel]::CU14) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU14"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU14) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU14"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "09/17/2019"; break}
                     ([HealthChecker.ExchangeCULevel]::CU15) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU15"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "12/17/2019"; $tempObject.SupportedCU = $true; break}
+                    ([HealthChecker.ExchangeCULevel]::CU16) {$tempObject.InbetweenCUs = $exBuildObj.InbetweenCUs; $tempObject.ExchangeBuildObject = $exBuildObj; $tempObject.FriendlyName = "Exchange 2016 CU16"; $tempObject.ExchangeBuildNumber = (Get-BuildNumberToString $AdminDisplayVersion); $tempObject.ReleaseDate = "03/17/2020"; $tempObject.SupportedCU = $true; break}
                     default {Write-Red "Error: Unknown Exchange 2016 build was detected"; $tempObject.Error = $true; break;}
                 }
                 break;
@@ -3161,9 +3167,14 @@ param(
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d1 -RecommendedNetVersion Net4d7d2
                     $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU13 we will require .NET 4.7.2 before you can install this version of Exchange."
                 }
-                else
+                elseif($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU14)
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
+                    $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU15 we will require .NET 4.8 before you can install this version of Exchange."
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d8 -RecommendedNetVersion Net4d8
                 }
                 
 
@@ -3176,9 +3187,14 @@ param(
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d7d2
                 }
-                else
+                elseif($exBuildObj.CU -le [HealthChecker.ExchangeCULevel]::CU3)
                 {
                     $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d7d2 -RecommendedNetVersion Net4d8
+                    $NetCheckObj.DisplayWording = $NetCheckObj.DisplayWording + " NOTE: Starting with CU4 we will require .NET 4.8 before you can install this version of Exchange."
+                }
+                else
+                {
+                    $NetCheckObj = Check-NetVersionToExchangeVersion -CurrentNetVersion $NetVersion -MinSupportNetVersion Net4d8 -RecommendedNetVersion Net4d8
                 }
 
             }
@@ -4007,6 +4023,45 @@ param(
         }
     }
 
+    #Description: Check for CVE-2020-0796 SMBv3 vulnerability
+    #Affected OS versions: Windows 10 build 1903 and 1909
+    #Fix: KB4551762
+    #Woraround: Disable SMBv3 compression
+
+    if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        Write-VerboseOutput("Testing CVE: CVE-2020-0796")
+        $BuildNumber = ($HealthExSvrObj.OSVersion.OSVersionBuild).split(".")[2]
+        if(($BuildNumber -eq 18362) -or ($BuildNumber -eq 18363))
+        {
+            Write-VerboseOutput("Build potentially vulnerable to CVE-2020-0796. Checking if fix is in place.")
+            $regUBR = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" -GetValue "UBR"
+            if($regUBR -lt 720)
+            {
+                Write-VerboseOutput("Build vulnerable to CVE-2020-0796. Checking if workaround is in place.")
+                $regDisableCompression = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -GetValue "DisableCompression"
+                if($regDisableCompression -eq 1)
+                {
+                    Write-VerboseOutput("Workaround to disable affected SMBv3 compression is in place.")
+                    Write-Yellow("System vulnerable to CVE-2020-0796 but workaround to disable SMBv3 compression is in place.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information.")
+                }
+                else
+                {
+                    Write-VerboseOutput("Workaround to disable affected SMBv3 compression is NOT in place.")
+                    Write-Red("System vulnerable to CVE-2020-0796.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information.")
+                }
+            }
+            else 
+            {
+                Write-VerboseOutput("System NOT vulnerable to CVE-2020-0796. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796")        
+            }
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
+    }
+
     #Check for different vulnerabilities
     #We run checks based on build revision only for Exchange 2013/2016/2019
     #We check only for year 2018+ vulnerabilities
@@ -4088,6 +4143,11 @@ param(
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15)
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.7","1913.7" -CVEs "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.10","1913.10" -CVEs "CVE-2020-0903"
+        }
+        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU16)
+        {
+            Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
         }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
@@ -4111,6 +4171,11 @@ param(
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4)
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.11","529.8" -CVEs "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.14","529.11" -CVEs "CVE-2020-0903"
+        }
+        if($exchangeCU -eq [HealthChecker.ExchangeCULevel]::CU5)
+        {
+            Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
         }
     }
     else 
