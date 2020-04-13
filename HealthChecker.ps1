@@ -5395,7 +5395,7 @@ Function Main {
     
     if(-not (Is-Admin))
 	{
-		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
+		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." 
 		sleep 2;
 		exit
     }
