@@ -1037,9 +1037,25 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
 
     try
     {
+        if(((Get-PSSession | Where-Object {($_.Availability -eq 'Available') -and 
+            ($_.ConfigurationName -eq 'Microsoft.Exchange')}).Count -eq 0) -and
+            ((Get-Module -Name RemoteExchange).Count -eq 1))
+        {
+            Write-VerboseWriter("Removing RemoteExchange module")
+            Remove-Module -Name RemoteExchange
+            $CurrentPSModules = Get-Module
+            ForEach($PSModule in $CurrentPSModules)
+            {
+                if(($PSModule.ModuleType -eq "Script") -and ($PSModule.ModuleBase -like "*\Microsoft\Exchange\RemotePowerShell\*"))
+                {
+                    Write-VerboseWriter("Removing module {0} for implicit remoting" -f $PSModule.Name)
+                    Remove-Module -Name $PSModule.Name
+                }
+            }
+        }
         Get-ExchangeServer -ErrorAction Stop | Out-Null
         Write-VerboseWriter("Exchange PowerShell Module already loaded.")
-        $passed = $true 
+        $passed = $true
     }
     catch 
     {
