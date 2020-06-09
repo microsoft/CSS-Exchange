@@ -358,6 +358,7 @@ using System.Collections;
             public string BootUpTimeInMinutes;
             public string BootUpTimeInSeconds;
             public TimeZoneInformationObject TimeZoneInformation;
+            public bool CredentialGuardEnabled;
         }
 
         public class TimeZoneInformationObject 
@@ -2295,6 +2296,23 @@ param(
     return $timeZoneInformationObject 
 }
 
+Function Get-CredentialGuardEnabled {
+param(
+[Parameter(Mandatory=$true)][string]$Machine_Name
+)
+    Write-VerboseOutput("Calling: Get-CredentialGuardEnabled")
+
+    $registryValue = Invoke-RegistryHandler -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags"
+
+    if ($registryValue -ne $null -and
+        $registryValue -ne 0)
+    {
+        return $true
+    }
+
+    return $false
+}
+
 Function Build-OperatingSystemObject {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -2412,6 +2430,8 @@ param(
     $os_obj.TimeZoneInformation.DaylightStart = $timeZoneInfo.DaylightStart
     $os_obj.TimeZoneInformation.DstIssueDetected = $timeZoneInfo.DstIssueDetected
     $os_obj.TimeZoneInformation.ActionsToTake = $timeZoneInfo.ActionsToTake
+
+    $os_obj.CredentialGuardEnabled = Get-CredentialGuardEnabled -Machine_Name $Machine_Name
 
     return $os_obj
 }
@@ -5280,6 +5300,21 @@ param(
     if([string]::IsNullOrEmpty($HealthExSvrObj.OSVersion.TimeZoneInformation.TimeZoneKeyName))
     {
         Write-Yellow("`tWarning: TimeZoneKeyName is blank. Need to switch your current time zone to a different value, then switch it back to have this value populated again.")
+    }
+
+    ##################
+    # Credential Guard
+    ##################
+
+    Write-Grey("`r`nCredential Guard:")
+
+    if ($HealthExSvrObj.OSVersion.CredentialGuardEnabled)
+    {
+        Write-Red("`tEnabled --- Error. Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server.")
+    }
+    else 
+    {
+        Write-Grey("`tDisabled")
     }
 
 	##############
