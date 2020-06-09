@@ -3907,37 +3907,52 @@ param(
     Write-VerboseOutput("For Server: {0}" -f ($Machine_Name = $HealthExSvrObj.ServerName))
 
     Function Test-VulnerabilitiesByBuildNumbersAndDisplay {
-    param(
-    [Parameter(Mandatory=$true)][double]$ExchangeBuildRevision,
-    [Parameter(Mandatory=$true)][array]$SecurityFixedBuilds,
-    [Parameter(Mandatory=$true)][array]$CVEs
-    )
-        ForEach($SecurityFixedBuild in $SecurityFixedBuilds)
-        {
-            if([Math]::Truncate($ExchangeBuildRevision) -le [Math]::Truncate($SecurityFixedBuild))
-            {
-                Write-VerboseOutput("Found Exchange Build Base to check against: {0}" -f [Math]::Truncate($SecurityFixedBuild))
-                if($ExchangeBuildRevision -lt $SecurityFixedBuild)
-                {
-                    $Script:AllVulnerabilitiesPassed = $false
-                    ForEach($CVE in $CVEs)
+        param(
+        [Parameter(Mandatory=$true)][string]$ExchangeBuildRevision,
+        [Parameter(Mandatory=$true)][array]$SecurityFixedBuilds,
+        [Parameter(Mandatory=$true)][array]$CVEs
+        )
+            [int]$fileBuildPart = $ExchangeBuildRevision.split(".")[0]
+            [int]$filePrivatePart = $ExchangeBuildRevision.split(".")[1]
+    
+            ForEach($SecurityFixedBuild in $SecurityFixedBuilds) {
+                $Script:breakpointHit = $false
+                [int]$securityFixedBuildPart = $SecurityFixedBuild.split(".")[0]
+                [int]$securityFixedPrivatePart = $SecurityFixedBuild.split(".")[1]
+    
+                switch ($fileBuildPart) {
+                    {$PSItem -lt $securityFixedBuildPart} 
                     {
-                        Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVE, $SecurityFixedBuild)
-                        Write-Red("System vulnerable to {0}.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $CVE)
+                        $Script:AllVulnerabilitiesPassed = $false
+                        $Script:breakpointHit = $true
+                        ForEach($CVE in $CVEs) {
+                            Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVE, $SecurityFixedBuild)
+                            Write-Red("System vulnerable to {0}.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $CVE)
+                        }
+                    }
+                    {$PSItem -eq $securityFixedBuildPart} 
+                    {
+                        $Script:breakpointHit = $true
+                        if($filePrivatePart -lt $securityFixedPrivatePart) {
+                            $Script:AllVulnerabilitiesPassed = $false
+                            ForEach($CVE in $CVEs) {
+                                Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVE, $SecurityFixedBuild)
+                                Write-Red("System vulnerable to {0}.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $CVE)
+                            }
+                        }
+                        else {
+                            ForEach($CVE in $CVEs) {
+                                Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVE, $SecurityFixedBuild)
+                                Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f $CVE)
+                            }
+                        }
                     }
                 }
-                else
-                {
-                    ForEach($CVE in $CVEs)
-                    {
-                        Write-VerboseOutput("Testing CVE: {0} | Security Fix Build: {1}" -f $CVE, $SecurityFixedBuild)
-                        Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f $CVE)
-                    }
+                if($Script:breakpointHit) {
+                    break
                 }
-                break
             }
         }
-    }
     
     $Script:AllVulnerabilitiesPassed = $true 
     Write-Grey("`r`nVulnerability Check:`r`n")
@@ -3948,7 +3963,7 @@ param(
     $RegValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "DisableLoopbackCheck"
     If ($RegValue)
     {
-        Write-Red("System vulnerable to CVE-2018-8581.  See: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
+        Write-Red("System vulnerable to CVE-2018-8581.`r`n`tSee: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2018-8581 for more information.")  
         $Script:AllVulnerabilitiesPassed = $false 
     }
     Else
@@ -3978,8 +3993,7 @@ param(
                 {
                     If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
                     {
-                        Write-Red("Vulnerable to CVE-2010-3190.")
-                        Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                        Write-Red("Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                     }
                     Else
                     {
@@ -3989,14 +4003,12 @@ param(
                 Else
                 {
                     Write-Yellow("Unable to determine Exchange server install date!")
-                    Write-Yellow("Potentially vulnerable to CVE-2010-3190.")
-                    Write-Yellow("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                    Write-Yellow("Potentially vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
             }
             Else
             {
-                Write-Red("Vulnerable to CVE-2010-3190.")
-                Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                Write-Red("Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
             }
         }
         Else
@@ -4017,8 +4029,7 @@ param(
             {
                 If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
                 {
-                    Write-Red("Potentially Vulnerable to CVE-2010-3190.")
-                    Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                    Write-Red("Potentially Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                 }
                 Else
                 {
@@ -4083,8 +4094,8 @@ param(
     #We check only for year 2018+ vulnerabilities
     #https://www.cvedetails.com/vulnerability-list/vendor_id-26/product_id-194/Microsoft-Exchange-Server.html 
 
-    [double]$buildRevision = [System.Convert]::ToDouble(("{0}.{1}" -f $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FileBuildPart, $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FilePrivatePart), [System.Globalization.CultureInfo]::InvariantCulture)
-    Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision) 
+    [string]$buildRevision = ("{0}.{1}" -f $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FileBuildPart, $HealthExSvrObj.ExchangeInformation.ExchangeSetup.FilePrivatePart)
+    Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision)
     Write-VerboseOutput("Exchange CU: {0}" -f ($exchangeCU = $HealthExSvrObj.ExchangeInformation.ExchangeBuildObject.CU))
 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
