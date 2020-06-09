@@ -1281,6 +1281,7 @@ param(
         }
         catch 
         {
+            $NetworkCards = $null #if for some reason it has a value as seen in issue 305, set it to null.
             Invoke-CatchActions
             Write-VerboseOutput("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
             Write-VerboseOutput("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
