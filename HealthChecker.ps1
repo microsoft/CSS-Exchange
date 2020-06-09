@@ -174,6 +174,7 @@ using System.Collections;
             public Hashtable ExchangeAppPools; 
             public object ExchangeSetup;                  //Stores the Get-Command ExSetup object 
             public object ServerComponentStateInfo;        //Stores the results from Get-ExchangeServerMaintenanceState
+            public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
         }
 
         public class ExchangeInformationTempObject 
@@ -3521,7 +3522,9 @@ param(
         }
 
         $exchInfoObject.KBsInstalled = Get-ExchangeUpdates -Machine_Name $Machine_Name -ExchangeVersion $exchInfoObject.ExchangeVersion
-	$exchInfoObject.ServerComponentStateInfo = Get-ExchangeServerMaintenanceState -Machine_Name $Machine_Name -SkipComponents:$true -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
+        $exchInfoObject.ServerComponentStateInfo = Get-ExchangeServerMaintenanceState -Machine_Name $Machine_Name -SkipComponents:$true -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
+    
+        $exchInfoObject.CtsProcessorAffinityPercentage = Invoke-RegistryHandler -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage"
     }
     elseif($exchInfoObject.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2010)
     {
@@ -5315,6 +5318,21 @@ param(
     else 
     {
         Write-Grey("`tDisabled")
+    }
+
+    #################################
+    # CtsProcessorAffinityPercentage
+    #################################
+
+    Write-Grey("`r`nSearch Processor Affinity Percentage:")
+
+    if ($HealthExSvrObj.ExchangeInformation.CtsProcessorAffinityPercentage -ne 0)
+    {
+        Write-Red("`tCtsProcessorAffinityPercentage: Set to value {0}. --- Error. This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $HealthExSvrObj.ExchangeInformation.CtsProcessorAffinityPercentage)
+    }
+    else 
+    {
+        Write-Green("`ttCtsProcessorAffinityPercentage: Not set.")
     }
 
 	##############
