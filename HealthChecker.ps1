@@ -5404,7 +5404,7 @@ param(
     }
     else 
     {
-        Write-Green("`ttCtsProcessorAffinityPercentage: Not set.")
+        Write-Green("`tCtsProcessorAffinityPercentage: Not set.")
     }
 
 	##############
