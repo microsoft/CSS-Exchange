@@ -252,7 +252,7 @@ using System.Collections;
             public Hashtable TLSSettings;            // stores the TLS settings on the server. 
             public InstalledUpdatesInformation InstalledUpdates;  //store the install update 
             public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
-            public VcRedistributableInformation VcRedistributable;            //stores the Visual C++ Redistributable 
+            public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
         }
     
@@ -340,7 +340,7 @@ using System.Collections;
             VCRedist2013 = 201367256
         }
     
-        public class VcRedistributableInformation
+        public class SoftwareInformation
         {
             public string DisplayName;
             public string DisplayVersion;
@@ -1531,25 +1531,25 @@ param(
 [Parameter(Mandatory=$true)][string]$MachineName
 )
     Write-VerboseOutput("Calling: Get-VisualCRedistributableVersion")
-    $Software_objs = @()
-    $InstalledSoftware = Get-InstalledSoftware -MachineName $MachineName
 
-    ForEach($Software in $InstalledSoftware)
+    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $softwareInfos = @()
+    foreach ($software in $installedSoftware)
     {
-        if($Software.DisplayName -like "Microsoft Visual C++ *")
+        if($software.DisplayName -like "Microsoft Visual C++ *")
         {
-            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $Software.DisplayName)
-            [HealthChecker.VCRedistInformation]$Software_obj = New-Object Healthchecker.VCRedistInformation
-            $Software_obj.DisplayName = $Software.DisplayName
-            $Software_obj.DisplayVersion = $Software.DisplayVersion
-            $Software_obj.InstallDate = $Software.InstallDate
-            $Software_obj.VersionIdentifier = $Software.Version
-            $Software_objs += $Software_obj
+            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $software.DisplayName)
+            [HealthChecker.SoftwareInformation]$softwareInfo = New-Object Healthchecker.SoftwareInformation
+            $softwareInfo.DisplayName = $software.DisplayName
+            $softwareInfo.DisplayVersion = $software.DisplayVersion
+            $softwareInfo.InstallDate = $software.InstallDate
+            $softwareInfo.VersionIdentifier = $software.Version
+            $softwareInfos += $softwareInfo
         }
     }
 
     Write-VerboseOutput("Exiting: Get-VisualCRedistributableVersion")
-    return $Software_objs
+    return $softwareInfos
 }
 
 Function Confirm-VisualCRedistributableVersion {
@@ -2062,6 +2062,7 @@ param(
     $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
     $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -MachineName $Machine_Name
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $osInformation
@@ -3926,13 +3927,56 @@ param(
     #########################################
     Write-VerboseOutput("Working on Visual C++ Redistributable Version Check")
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details "Value" `
+    $displayWriteType2012 = "Yellow"
+    $displayWriteType2013 = "Yellow"
+    $displayValue2012 = "Unknown"
+    $displayValue2013 = "Unknown"
+
+    if ($osInformation.VcRedistributable -ne $null)
+    {
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
+        $displayValue2012 = "Redistributable is outdated"
+        $displayValue2013 = "Redistributable is outdated"
+
+        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable)
+        {
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
+
+            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                $displayWriteType2012 = "Green"
+            }
+            elseif ($vc2013Required -and
+                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $displayWriteType2013 = "Green"
+                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+            }
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
+    -DisplayGroupingKey $keyVisualCpp `
+    -DisplayWriteType $displayWriteType2012 `
+    -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
         -DisplayGroupingKey $keyVisualCpp `
+        -DisplayWriteType $displayWriteType2013 `
         -AnalyzedInformation $analyzedResults
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details "Value" `
-        -DisplayGroupingKey $keyVisualCpp `
-        -AnalyzedInformation $analyzedResults
+    if ($osInformation.VcRedistributable -ne $null -and
+        ($displayWriteType2012 -eq "Yellow" -or
+        $displayWriteType2013 -eq "Yellow"))
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+            -DisplayGroupingKey $keyVisualCpp `
+            -DisplayWriteType "Yellow" `
+            -AnalyzedInformation $analyzedResults
+    }
 
     ################
     #TCP/IP Settings
