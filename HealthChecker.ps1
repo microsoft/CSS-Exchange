@@ -260,6 +260,7 @@ using System.Collections;
             public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
+            public bool CredentialGuardEnabled;
         }
     
         public class OSBuildInformation 
@@ -1974,6 +1975,23 @@ Function Get-AllTlsSettingsFromRegistry {
     return $allTlsObjects
 }
 
+Function Get-CredentialGuardEnabled {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling: Get-CredentialGuardEnabled")
+
+    $registryValue = Invoke-RegistryGetValue -MachineName $MachineName -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags"
+
+    if ($registryValue -ne $null -and
+        $registryValue -ne 0)
+    {
+        return $true
+    }
+
+    return $false
+}
+
 Function Get-OperatingSystemInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -2069,6 +2087,7 @@ param(
     $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
     $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -MachineName $Machine_Name
+    $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled -MachineName $Machine_Name
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $osInformation
@@ -3184,6 +3203,7 @@ param(
     $keyRpc = New-DisplayResultsGroupingKey -Name "RPC Minimum Connection Timeout" -DisplayOrder ($order++)
     $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
     $keyCtsProcessor = New-DisplayResultsGroupingKey -Name "CtsProcessorAffinityPercentage Settings" -DisplayOrder ($order++)
+    $keyCredGuard = New-DisplayResultsGroupingKey -Name "Credential Guard" -DisplayOrder ($order++)
     $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
     $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
     $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
@@ -4070,6 +4090,24 @@ param(
         -DisplayGroupingKey $keyCtsProcessor `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
+        -AnalyzedInformation $analyzedResults
+
+    #######################
+    #CredentialGuardEnabled
+    #######################
+
+    $displayValue = $osInformation.CredentialGuardEnabled
+    $displayWriteType = "Grey"
+
+    if($osInformation.CredentialGuardEnabled)
+    {
+        $displayValue = "{0} --- Error: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+        $displayWriteType = "Red"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Enabled" -Details $displayValue `
+        -DisplayGroupingKey $keyCredGuard `
+        -DisplayWriteType $displayWriteType `
         -AnalyzedInformation $analyzedResults
 
     ##############
