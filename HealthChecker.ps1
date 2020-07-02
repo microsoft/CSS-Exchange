@@ -3988,14 +3988,14 @@ param(
     if ($tcpKeepAlive -eq 0)
     {
         #TODO: Fix wording
-        $displayValue = "Not Set."
+        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
         $displayWriteType = "Red"
     }
     elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000)
     {
         #TODO: Fix wording
-        $displayValue = "{0} --- Warning: Not configured optimally." -f $tcpKeepAlive
+        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     }
     else
@@ -4028,7 +4028,7 @@ param(
     {
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ($osInformation.NetworkInformation.RpcMinConnectionTimeout) `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ("{0} More Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
         -DisplayGroupingKey $keyRpc `
         -AnalyzedInformation $analyzedResults
 
