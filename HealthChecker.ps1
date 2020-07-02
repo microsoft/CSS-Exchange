@@ -162,7 +162,8 @@ using System.Collections;
             public ExchangeNetFrameworkInformation NETFramework; 
             public bool MapiHttpEnabled; //Stored from organization config 
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
-            public Hashtable ApplicationPools; 
+            public Hashtable ApplicationPools;
+            public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
         }
     
         public class ExchangeBuildInformation
@@ -236,6 +237,11 @@ using System.Collections;
             Exchange2013,
             Exchange2016,
             Exchange2019
+        }
+
+        public class ExchangeRegistryValues
+        {
+            public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
         }
         // End ExchangeInformation 
     
@@ -2622,6 +2628,7 @@ param(
         $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
         $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage"
         if($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)
         {
             $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $ServerName | %{$_.ServicesNotRunning}
@@ -3176,6 +3183,7 @@ param(
     $keyTcpIp = New-DisplayResultsGroupingKey -Name "TCP/IP Settings" -DisplayOrder ($order++)
     $keyRpc = New-DisplayResultsGroupingKey -Name "RPC Minimum Connection Timeout" -DisplayOrder ($order++)
     $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
+    $keyCtsProcessor = New-DisplayResultsGroupingKey -Name "CtsProcessorAffinityPercentage Settings" -DisplayOrder ($order++)
     $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
     $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
     $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
@@ -4043,6 +4051,25 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
         -DisplayGroupingKey $keyLmCompat `
+        -AnalyzedInformation $analyzedResults
+
+    ########################################
+    #CtsProcessorAffinityPercentage Settings
+    ########################################
+
+    $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+    $displayWriteType = "Green"
+
+    if ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage -ne 0)
+    {
+        $displayWriteType = "Red"
+        $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
+        -DisplayGroupingKey $keyCtsProcessor `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
         -AnalyzedInformation $analyzedResults
 
     ##############
