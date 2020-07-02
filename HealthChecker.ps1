@@ -3959,9 +3959,9 @@ param(
     }
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
-    -DisplayGroupingKey $keyVisualCpp `
-    -DisplayWriteType $displayWriteType2012 `
-    -AnalyzedInformation $analyzedResults
+        -DisplayGroupingKey $keyVisualCpp `
+        -DisplayWriteType $displayWriteType2012 `
+        -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
         -DisplayGroupingKey $keyVisualCpp `
