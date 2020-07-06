@@ -451,23 +451,9 @@ using System.Collections;
         }
 
         //HTML & display classes
-        public class HtmlOverviewValues
-        {
-            public HtmlTableData ServerName = new HtmlTableData();
-            public HtmlTableData HardwareType = new HtmlTableData();
-            public HtmlTableData OperatingSystem = new HtmlTableData();
-            public HtmlTableData NETFramework = new HtmlTableData();
-            public HtmlTableData ExchangeFriendlyName = new HtmlTableData();
-            public HtmlTableData ServerRole = new HtmlTableData();
-            public HtmlTableData ServerMemory = new HtmlTableData();
-            public HtmlTableData ProcessorCoreCount = new HtmlTableData();
-            public HtmlTableData TimeZone = new HtmlTableData();
-            public HtmlTableData NumberOfIssues = new HtmlTableData();
-        }
-
         public class HtmlServerValues
         {
-            public HtmlOverviewValues OverviewValues = new HtmlOverviewValues();
+            public System.Array OverviewValues;
             public System.Array ActionItems;   //use HtmlServerActionItemRow
             public System.Array ServerDetails;    // use HtmlServerDetailRow
         }
@@ -3105,6 +3091,7 @@ param(
 [bool]$AddDisplayResultsLineInfo = $true,
 [bool]$AddHtmlDetailRow = $true,
 [string]$HtmlDetailsCustomValue = "",
+[bool]$AddHtmlOverviewValues = $false,
 [bool]$AddHtmlActionRow = $false,
 [string]$ActionSettingClass = "",
 [string]$ActionSettingValue,
@@ -3174,6 +3161,29 @@ param(
         $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
     }
 
+    if ($AddHtmlOverviewValues)
+    {
+        if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues")))
+        {
+            [System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]
+            $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
+        }
+
+        $overviewValue = New-Object HealthChecker.HtmlServerDetailRow
+        $overviewValue.Name = New-HtmlTableDataEntry -EntryValue $Name
+        
+        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        {
+            $overviewValue.Details = New-HtmlTableDataEntry -EntryValue $Details
+        }
+        else
+        {
+            $overviewValue.Details = New-HtmlTableDataEntry -EntryValue $HtmlDetailsCustomValue
+        }
+
+        $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
+    }
+
     if ($AddHtmlActionRow)
     {
         #TODO
@@ -3235,10 +3245,12 @@ param(
     #TODO: Add as html server overview
     $analyzedResults = Add-AnalyzedResultInformation -Name "Name" -Details ($HealthServerObject.ServerName) `
         -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.BuildNumber) `
@@ -3275,6 +3287,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Server Role" -Details ($exchangeInformation.BuildInformation.ServerRole) `
         -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI/HTTP Enabled" -Details ($exchangeInformation.MapiHttpEnabled) `
@@ -3334,6 +3347,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($osInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyOSInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     $upTime = "{0} day(s) {1} hour(s) {2} minute(s) {3} second(s)" -f $osInformation.ServerBootUp.Days,
@@ -3351,6 +3365,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Time Zone" -Details ($osInformation.TimeZone.CurrentTimeZone) `
         -DisplayGroupingKey $keyOSInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     if ($exchangeInformation.NETFramework.OnRecommendedVersion)
@@ -3358,6 +3373,7 @@ param(
         $analyzedResults = Add-AnalyzedResultInformation -Name ".NET Framework" -Details ($osInformation.NETFramework.FriendlyName) `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Green" `
+            -AddHtmlOverviewValues $true `
             -AnalyzedInformation $analyzedResults
     }
     else
@@ -3488,6 +3504,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Type" -Details ($hardwareInformation.ServerType) `
         -DisplayGroupingKey $keyHardwareInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
@@ -3560,6 +3577,7 @@ param(
     $analyzedResults = Add-AnalyzedResultInformation -Name "Number of Logical Cores" -Details $logicalValue `
         -DisplayGroupingKey $keyHardwareInformation `
         -DisplayWriteType $displayWriteType `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     if ($logicalValue -gt $physicalValue)
@@ -3725,6 +3743,7 @@ param(
         -DisplayGroupingKey $keyHardwareInformation `
         -DipslayTestingValue $totalPhysicalMemory `
         -DisplayWriteType $displayWriteType `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     ################################
