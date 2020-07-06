@@ -6864,7 +6864,8 @@ Function HealthCheckerMain {
 }
 Function Main {
     
-    if(-not (Is-Admin))
+    if(-not (Is-Admin) -and
+        -not $AnalyzeDataOnly)
 	{
 		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Mangement Shell as an Administrator." 
 		sleep 2;
