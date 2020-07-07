@@ -6881,7 +6881,8 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
-    if($AnalyzeDataOnly)
+    if($AnalyzeDataOnly -or
+        $BuildHtmlServersReport)
     {
         return
     }
@@ -6987,7 +6988,8 @@ Function HealthCheckerMain {
 Function Main {
     
     if(-not (Is-Admin) -and
-        -not $AnalyzeDataOnly)
+        (-not $AnalyzeDataOnly -and
+        -not $BuildHtmlServersReport))
 	{
 		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." 
 		sleep 2;
@@ -7002,8 +7004,11 @@ Function Main {
     
     if($BuildHtmlServersReport)
     {
-        Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport" 
-        New-HtmlServerReport
+        Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
+        $files = Get-HealthCheckFilesItemsFromLocation
+        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+        $importData = Import-MyData -FilePaths $fullPaths
+        Create-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
         Get-ErrorsThatOccurred
         sleep 2;
         return
