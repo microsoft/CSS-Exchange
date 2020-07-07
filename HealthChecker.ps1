@@ -94,6 +94,7 @@ param(
 [Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
     [string]$SiteName = ([string]::Empty),
 [Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
+[Parameter(Mandatory=$false,ParameterSetName="AnalyzeDataOnly")]
     [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$XMLDirectoryPath = ".",
 [Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
     [switch]$BuildHtmlServersReport,
@@ -101,6 +102,8 @@ param(
     [string]$HtmlReportFile="ExchangeAllServersReport.html",
 [Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
     [switch]$DCCoreRatio,
+[Parameter(Mandatory=$false,ParameterSetName="AnalyzeDataOnly")]
+    [switch]$AnalyzeDataOnly,
 [Parameter(Mandatory=$false)][switch]$SaveDebugLog
 )
 
@@ -138,6 +141,7 @@ if($PSBoundParameters["Verbose"]){
 try{
 #Enums and custom data types 
 Add-Type -TypeDefinition @"
+using System;
 using System.Collections;
     namespace HealthChecker
     {
@@ -158,7 +162,8 @@ using System.Collections;
             public ExchangeNetFrameworkInformation NETFramework; 
             public bool MapiHttpEnabled; //Stored from organization config 
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
-            public Hashtable ApplicationPools; 
+            public Hashtable ApplicationPools;
+            public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
         }
     
         public class ExchangeBuildInformation
@@ -233,6 +238,11 @@ using System.Collections;
             Exchange2016,
             Exchange2019
         }
+
+        public class ExchangeRegistryValues
+        {
+            public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
+        }
         // End ExchangeInformation 
     
         // OperatingSystemInformation
@@ -248,8 +258,9 @@ using System.Collections;
             public Hashtable TLSSettings;            // stores the TLS settings on the server. 
             public InstalledUpdatesInformation InstalledUpdates;  //store the install update 
             public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
-            public VcRedistributableInformation VcRedistributable;            //stores the Visual C++ Redistributable 
+            public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
+            public bool CredentialGuardEnabled;
         }
     
         public class OSBuildInformation 
@@ -336,7 +347,7 @@ using System.Collections;
             VCRedist2013 = 201367256
         }
     
-        public class VcRedistributableInformation
+        public class SoftwareInformation
         {
             public string DisplayName;
             public string DisplayVersion;
@@ -437,6 +448,67 @@ using System.Collections;
             public bool DifferentProcessorCoreCountDetected; //detect if there are a different number of core counts per Processor CPU socket
             public int EnvironmentProcessorCount; //[system.environment]::processorcount 
             public object ProcessorClassObject;        // object to store the processor information  
+        }
+
+        //HTML & display classes
+        public class HtmlServerValues
+        {
+            public System.Array OverviewValues;
+            public System.Array ActionItems;   //use HtmlServerActionItemRow
+            public System.Array ServerDetails;    // use HtmlServerInformationRow
+        }
+
+        public class HtmlServerActionItemRow
+        {
+            public string Setting;
+            public string DetailValue;
+            public string RecommendedDetails;
+            public string MoreInformation;
+            public string Class;
+        }
+
+        public class HtmlServerInformationRow
+        {
+            public string Name;
+            public string DetailValue;
+            public string Class;
+        }
+
+        public class DisplayResultsLineInfo
+        {
+            public string DisplayValue;
+            public string Name;
+            public int TabNumber;
+            public object TestingValue; //Used for pester testing down the road.
+            public string WriteType;
+
+            public string Line
+            {
+                get
+                {
+                    if (String.IsNullOrEmpty(this.Name))
+                    {
+                        return this.DisplayValue;
+                    }
+
+                    return String.Concat(this.Name, ": ", this.DisplayValue);
+                }
+            }
+        }
+
+        public class DisplayResultsGroupingKey
+        {
+            public string Name;
+            public int DefaultTabNumber;
+            public bool DisplayGroupName;
+            public int DisplayOrder;
+        }
+
+        public class AnalyzedInformation
+        {
+            public HealthCheckerExchangeServer HealthCheckerExchangeServer;
+            public Hashtable HtmlServerValues = new Hashtable();
+            public Hashtable DisplayResults = new Hashtable();
         }
     }
 "@ -ErrorAction Stop 
@@ -1449,25 +1521,25 @@ param(
 [Parameter(Mandatory=$true)][string]$MachineName
 )
     Write-VerboseOutput("Calling: Get-VisualCRedistributableVersion")
-    $Software_objs = @()
-    $InstalledSoftware = Get-InstalledSoftware -MachineName $MachineName
 
-    ForEach($Software in $InstalledSoftware)
+    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $softwareInfos = @()
+    foreach ($software in $installedSoftware)
     {
-        if($Software.DisplayName -like "Microsoft Visual C++ *")
+        if($software.DisplayName -like "Microsoft Visual C++ *")
         {
-            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $Software.DisplayName)
-            [HealthChecker.VCRedistInformation]$Software_obj = New-Object Healthchecker.VCRedistInformation
-            $Software_obj.DisplayName = $Software.DisplayName
-            $Software_obj.DisplayVersion = $Software.DisplayVersion
-            $Software_obj.InstallDate = $Software.InstallDate
-            $Software_obj.VersionIdentifier = $Software.Version
-            $Software_objs += $Software_obj
+            Write-VerboseOutput("Microsoft Visual C++ Redistributable found: {0}" -f $software.DisplayName)
+            [HealthChecker.SoftwareInformation]$softwareInfo = New-Object Healthchecker.SoftwareInformation
+            $softwareInfo.DisplayName = $software.DisplayName
+            $softwareInfo.DisplayVersion = $software.DisplayVersion
+            $softwareInfo.InstallDate = $software.InstallDate
+            $softwareInfo.VersionIdentifier = $software.Version
+            $softwareInfos += $softwareInfo
         }
     }
 
     Write-VerboseOutput("Exiting: Get-VisualCRedistributableVersion")
-    return $Software_objs
+    return $softwareInfos
 }
 
 Function Confirm-VisualCRedistributableVersion {
@@ -1886,6 +1958,23 @@ Function Get-AllTlsSettingsFromRegistry {
     return $allTlsObjects
 }
 
+Function Get-CredentialGuardEnabled {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName
+)
+    Write-VerboseOutput("Calling: Get-CredentialGuardEnabled")
+
+    $registryValue = Invoke-RegistryGetValue -MachineName $MachineName -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags"
+
+    if ($registryValue -ne $null -and
+        $registryValue -ne 0)
+    {
+        return $true
+    }
+
+    return $false
+}
+
 Function Get-OperatingSystemInformation {
 param(
 [Parameter(Mandatory=$true)][string]$Machine_Name
@@ -1980,6 +2069,8 @@ param(
     $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
     $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -MachineName $Machine_Name
+    $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled -MachineName $Machine_Name
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $osInformation
@@ -2539,6 +2630,7 @@ param(
         $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
         $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage"
         if($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)
         {
             $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $ServerName | %{$_.ServicesNotRunning}
@@ -2957,6 +3049,1502 @@ param(
 
     Write-VerboseOutput("Exiting: Get-LmCompatibilityLevelInformation")
     Return $ServerLmCompatObject
+}
+
+Function New-DisplayResultsGroupingKey {
+param(
+[string]$Name,
+[bool]$DisplayGroupName = $true,
+[int]$DisplayOrder,
+[int]$DefaultTabNumber = 1
+)
+    $obj = New-Object HealthChecker.DisplayResultsGroupingKey
+    $obj.Name = $Name
+    $obj.DisplayGroupName = $DisplayGroupName
+    $obj.DisplayOrder = $DisplayOrder
+    $obj.DefaultTabNumber = $DefaultTabNumber
+    return $obj
+}
+
+Function Add-AnalyzedResultInformation {
+param(
+[object]$Details,
+[string]$Name,
+[string]$HtmlName,
+[object]$DisplayGroupingKey,
+[int]$DisplayCustomTabNumber = -1,
+[object]$DisplayTestingValue,
+[string]$DisplayWriteType = "Grey",
+[bool]$AddDisplayResultsLineInfo = $true,
+[bool]$AddHtmlDetailRow = $true,
+[string]$HtmlDetailsCustomValue = "",
+[bool]$AddHtmlOverviewValues = $false,
+[bool]$AddHtmlActionRow = $false,
+[string]$ActionSettingClass = "",
+[string]$ActionSettingValue,
+[string]$ActionRecommendedDetailsClass = "",
+[string]$ActionRecommendedDetailsValue,
+[string]$ActionMoreInformationClass = "",
+[string]$ActionMoreInformationValue,
+[HealthChecker.AnalyzedInformation]$AnalyzedInformation
+)
+
+    Write-VerboseOutput("Calling Add-AnalyzedResultInformation: {0}" -f $name)
+
+    if ($AddDisplayResultsLineInfo)
+    {
+        if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey)))
+        {
+            [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
+            $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
+        }
+
+        $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
+        $lineInfo.DisplayValue = $Details
+        $lineInfo.Name = $Name
+
+        if ($DisplayCustomTabNumber -ne -1)
+        {
+            $lineInfo.TabNumber = $DisplayCustomTabNumber
+        }
+        else
+        {
+            $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+        }
+
+        if ($DisplayTestingValue -ne $null)
+        {
+            $lineInfo.TestingValue = $DisplayTestingValue
+        }
+        else
+        {
+            $lineInfo.TestingValue = $Details
+        }
+
+        $lineInfo.WriteType = $DisplayWriteType
+        $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
+    }
+
+    if ($AddHtmlDetailRow)
+    {
+        if (!($analyzedResults.HtmlServerValues.ContainsKey("ServerDetails")))
+        {
+            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+            $AnalyzedInformation.HtmlServerValues.Add("ServerDetails", $list)
+        }
+
+        $detailRow = New-Object HealthChecker.HtmlServerInformationRow
+
+        if ($displayWriteType -ne "Grey")
+        {
+            $detailRow.Class = $displayWriteType
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlName))
+        {
+            $detailRow.Name = $Name
+        }
+        else
+        {
+            $detailRow.Name = $HtmlName
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        {
+            $detailRow.DetailValue = $Details
+        }
+        else
+        {
+            $detailRow.DetailValue = $HtmlDetailsCustomValue
+        }
+
+        $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
+    }
+
+    if ($AddHtmlOverviewValues)
+    {
+        if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues")))
+        {
+            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+            $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
+        }
+
+        $overviewValue = New-Object HealthChecker.HtmlServerInformationRow
+
+        if ($displayWriteType -ne "Grey")
+        {
+            $overviewValue.Class = $displayWriteType
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlName))
+        {
+            $overviewValue.Name = $Name
+        }
+        else
+        {
+            $overviewValue.Name = $HtmlName
+        }
+        
+        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        {
+            $overviewValue.DetailValue = $Details
+        }
+        else
+        {
+            $overviewValue.DetailValue = $HtmlDetailsCustomValue
+        }
+
+        $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
+    }
+
+    if ($AddHtmlActionRow)
+    {
+        #TODO
+    }
+
+    return $AnalyzedInformation
+}
+
+Function Start-AnalyzerEngine {
+param(
+[HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
+)
+    Write-VerboseOutput("Calling: Start-AnalyzerEngine")
+
+    $analyzedResults = New-Object HealthChecker.AnalyzedInformation
+    $analyzedResults.HealthCheckerExchangeServer = $HealthServerObject
+
+    #Display Grouping Keys
+    $order = 0
+    $keyBeginningInfo = New-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
+    $keyExchangeInformation = New-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
+    $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
+    $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
+    $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
+    $keyVisualCpp = New-DisplayResultsGroupingKey -Name "Visual C++ Redistributable Version Check" -DisplayOrder ($order++)
+    $keyTcpIp = New-DisplayResultsGroupingKey -Name "TCP/IP Settings" -DisplayOrder ($order++)
+    $keyRpc = New-DisplayResultsGroupingKey -Name "RPC Minimum Connection Timeout" -DisplayOrder ($order++)
+    $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
+    $keyCtsProcessor = New-DisplayResultsGroupingKey -Name "CtsProcessorAffinityPercentage Settings" -DisplayOrder ($order++)
+    $keyCredGuard = New-DisplayResultsGroupingKey -Name "Credential Guard" -DisplayOrder ($order++)
+    $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
+    $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
+    $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
+
+    #Set short cut variables
+    $exchangeInformation = $HealthServerObject.ExchangeInformation
+    $osInformation = $HealthServerObject.OSInformation
+    $hardwareInformation = $HealthServerObject.HardwareInformation
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:healthCheckerVersion `
+        -DisplayGroupingKey $keyBeginningInfo `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+
+    if ($HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare -or
+        $HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::HyperV)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details $VirtualizationWarning -DisplayWriteType "Yellow" `
+            -DisplayGroupingKey $keyBeginningInfo `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    #########################
+    # Exchange Information
+    #########################
+    Write-VerboseOutput("Working on Exchange Information")
+
+    #TODO: Add as html server overview
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Name" -Details ($HealthServerObject.ServerName) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -HtmlName "Server Name" `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -HtmlName "Exchange Version" `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.BuildNumber) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AnalyzedInformation $analyzedResults
+
+    if ($exchangeInformation.BuildInformation.SupportedBuild -eq $false)
+    {
+        $daysOld = ($date - ([System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ReleaseDate))).Days
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Error" -Details ("Out of date Cumulative Update. Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is {0} days old." -f $daysOld) `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayCustomTabNumber 2 `
+            -AddHtmlDetailRow $false
+            -AnalyzedInformation $analyzedResults
+    }
+
+    if ($exchangeInformation.BuildInformation.KBsInstalled -ne $null)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details ("Exchange IU or Security Hotfix Detected.") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
+
+        foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $kb `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Server Role" -Details ($exchangeInformation.BuildInformation.ServerRole) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI/HTTP Enabled" -Details ($exchangeInformation.MapiHttpEnabled) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AnalyzedInformation $analyzedResults
+
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013)
+    {
+        $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
+        [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
+        [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
+        $warning = [string]::Empty
+        $displayWriteType = "Green"
+        $displayValue = "Server"
+
+        if ($hardwareInformation.TotalMemory -ge 21474836480 -and
+            $enabled -eq $false)
+        {
+            $displayWriteType = "Red"
+            $displayValue = "Workstation --- Error"
+            $warning = "To Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin directory and change the GCServer to true and recycle the MAPI Front End App Pool"
+        }
+        elseif ($unknown)
+        {
+            $displayValue = "Unknown --- Warning"
+            $displayWriteType = "Yellow"
+        }
+        elseif (!($enabled))
+        {
+            $displayWriteType = "Yellow"
+            $displayValue = "Workstation --- Warning"
+            $warning = "You could be seeing some GC issues within the Mapi Front End App Pool. However, you don't have enough memory installed on the system to recommend switching the GC mode by default without consulting a support professional."
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI Front End App Pool GC Mode" -Details $displayValue `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType $displayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($warning -ne [string]::Empty)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $warning `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow"
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+    #TODO: Add Server Maintenace #215 08d811326973b343c3d2a70f2151785093996c4f
+
+    #########################
+    # Operating System
+    #########################
+    Write-VerboseOutput("Working on Operating System")
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($osInformation.BuildInformation.FriendlyName) `
+        -DisplayGroupingKey $keyOSInformation `
+        -AddHtmlOverviewValues $true `
+        -HtmlName "OS Version" `
+        -AnalyzedInformation $analyzedResults
+
+    $upTime = "{0} day(s) {1} hour(s) {2} minute(s) {3} second(s)" -f $osInformation.ServerBootUp.Days,
+        $osInformation.ServerBootUp.Hours,
+        $osInformation.ServerBootUp.Minutes,
+        $osInformation.ServerBootUp.Seconds
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "System Up Time" -Details $upTime `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayTestingValue ($osInformation.ServerBootUp) `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+
+    ##TODO: DST Issue If Present
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Time Zone" -Details ($osInformation.TimeZone.CurrentTimeZone) `
+        -DisplayGroupingKey $keyOSInformation `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
+    if ($exchangeInformation.NETFramework.OnRecommendedVersion)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name ".NET Framework" -Details ($osInformation.NETFramework.FriendlyName) `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Green" `
+            -AddHtmlOverviewValues $true `
+            -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        $testObject = New-Object PSCustomObject
+        $testObject | Add-Member -MemberType NoteProperty -Name "CurrentValue" -Value ($osInformation.NETFramework.FriendlyName)
+        $testObject | Add-Member -MemberType NoteProperty -Name "MaxSupportedVersion" -Value ($exchangeInformation.NETFramework.MaxSupportedVersion)
+        $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $exchangeInformation.NETFramework.MaxSupportedVersion
+        $analyzedResults = Add-AnalyzedResultInformation -Name ".NET Framework" -Details $displayValue `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow" `
+            -DisplayTestingValue $testObject `
+            -HtmlDetailsCustomValue ($osInformation.NETFramework.FriendlyName) `
+            -AddHtmlOverviewValues $true `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    $displayValue = [string]::Empty
+    $displayWriteType = "Yellow"
+    Write-VerboseOutput("Total Memory: {0}" -f ($totalPhysicalMemory = $hardwareInformation.TotalMemory))
+    Write-VerboseOutput("Page File: {0}" -f ($maxPageSize = $osInformation.PageFile.MaxPageSize))
+    $testingValue = New-Object PSCustomObject
+    $testingValue | Add-Member -MemberType NoteProperty -Name "TotalPhysicalMemory" -Value $totalPhysicalMemory
+    $testingValue | Add-Member -MemberType NoteProperty -Name "MaxPageSize" -Value $maxPageSize
+    $testingValue | Add-Member -MemberType NoteProperty -Name "MultiPageFile" -Value ($osInformation.PageFile.PageFile.Count -gt 1)
+    $testingValue | Add-Member -MemberType NoteProperty -Name "RecommendedPageFile" -Value 0
+    if ($maxPageSize -eq 0)
+    {
+        $displayValue = "System is set to automatically manage the pagefile size. --- Error"
+        $displayWriteType = "Red"
+    }
+    elseif ($osInformation.PageFile.PageFile.Count -gt 1)
+    {
+        $displayValue = "Multiple page files detected. --- Error: This has been know to cause performance issues please address this."
+        $displayWriteType = "Red"
+    }
+    elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    {
+        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Truncate(($totalPhysicalMemory / 1MB) / 4))
+        Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
+        if ($recommendedPageFileSize -ne $maxPageSize)
+        {
+            $displayValue = "{0}MB --- Warning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
+        }
+        else
+        {
+            $displayValue = "{0}MB" -f $recommendedPageFileSize
+            $displayWriteType = "Grey"
+        }
+    }
+    #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368 
+    elseif ($totalPhysicalMemory -ge 34359738368)
+    {
+        if ($maxPageSize -eq 32778)
+        {
+            $displayValue = "{0}MB" -f $maxPageSize
+            $displayValue = "Grey"
+        }
+        else
+        {
+            $displayValue = "{0}MB --- Warning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
+        }
+    }
+    else
+    {
+        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) + 10))
+        if ($recommendedPageFileSize -ne $maxPageSize)
+        {
+            $displayValue = "{0}MB --- Warning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
+        }
+        else
+        {
+            $displayValue = "{0}MB" -f $maxPageSize
+            $displayWriteType = "Grey"
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Page File Size" -Details $displayValue `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $testingValue `
+        -AnalyzedInformation $analyzedResults
+
+    if ($osInformation.PowerPlan.HighPerformanceSet)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Power Plan" -Details ($osInformation.PowerPlan.PowerPlanSetting) `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Green" `
+            -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        $displayValue = "{0} --- Error" -f $osInformation.PowerPlan.PowerPlanSetting
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Power Plan" -Details $displayValue `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    if ($osInformation.NetworkInformation.HttpProxy -eq "<None>")
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details ($osInformation.NetworkInformation.HttpProxy) `
+            -DisplayGroupingKey $keyOSInformation `
+            -HtmlDetailsCustomValue "None" `
+            -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        $displayValue = "{0} --- Warning this can cause client connectivity issues." -f $osInformation.NetworkInformation.HttpProxy
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details $displayValue `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow" `
+            -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy)
+            -AnalyzedInformation $analyzedResults
+    }
+
+    if ($osInformation.ServerPendingReboot)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Server Pending Reboot" -Details "True --- Warning a reboot is pending and can cause issues on the server." `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow" `
+            -DisplayTestingValue ($osInformation.ServerPendingReboot) `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    ################################
+    # Processor/Hardware Information
+    ################################
+    Write-VerboseOutput("Working on Processor/Hardware Information")
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Type" -Details ($hardwareInformation.ServerType) `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -AddHtmlOverviewValues $true `
+        -Htmlname "Hardware Type" `
+        -AnalyzedInformation $analyzedResults
+
+    if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
+        $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Manufacturer" -Details ($hardwareInformation.Manufacturer) `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Model" -Details ($hardwareInformation.Model) `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Processor" -Details ($hardwareInformation.Processor.Name) `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -AnalyzedInformation $analyzedResults
+
+    $value = $hardwareInformation.Processor.NumberOfProcessors
+    $processorName = "Number of Processors"
+
+    if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::Physical)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name $processorName -Details $value `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -AnalyzedInformation $analyzedResults
+
+        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
+                -DisplayGroupingKey $keyHardwareInformation `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+    elseif ($value -gt 2)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name $processorName -Details ("{0} - Error: Recommended to only have 2 Processors" -f $value) `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Red" `
+            -DisplayTestingValue $value `
+            -HtmlDetailsCustomValue $value `
+            -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name $processorName -Details $value `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Green" `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    $physicalValue = $hardwareInformation.Processor.NumberOfPhysicalCores
+    $logicalValue = $hardwareInformation.Processor.NumberOfLogicalCores
+
+    $displayWriteType = "Green"
+
+    if (($logicalValue -gt 24 -and
+        $exchangeInformation.BuildInformation.MajorVersion -lt [HealthChecker.ExchangeMajorVersion]::Exchange2019) -or
+        $logicalValue -gt 48)
+    {
+        $displayWriteType = "Yellow"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Number of Physical Cores" -Details $physicalValue `
+    -DisplayGroupingKey $keyHardwareInformation `
+    -DisplayWriteType $displayWriteType `
+    -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Number of Logical Cores" -Details $logicalValue `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -DisplayWriteType $displayWriteType `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
+    if ($logicalValue -gt $physicalValue)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details "Enabled --- Error: Having Hyper-Threading enabled goes against best practices and can cause performance issues. Please disable as soon as possible." `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Red" `
+            -DisplayTestingValue $true `
+            -AnalyzedInformation $analyzedResults
+
+        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/" `
+                -DisplayGroupingKey $keyHardwareInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Red" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if ($hardwareInformation.Processor.Name.StartsWith("AMD"))
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "This script may incorrectly report that Hyper-Threading is enabled on certain AMD processors. Check with the manufacturer to see if your mondel supports SMT." `
+                -DisplayGroupingKey $keyHardwareInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+    else
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details "Disabled" `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Green" `
+            -DisplayTestingValue $false `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box
+    #TODO: Do only 1 call to Add-AnalyzedResultsInformation
+    $displayWriteType = "Yellow"
+    $testingValue = "Unknown"
+    $displayValue = [string]::Empty
+    if ($hardwareInformation.Model.Contains("ProLiant"))
+    {
+        $name = "NUMA Group Size Optimization"
+        if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
+        {
+            $displayValue = "Unknown --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server"
+        }
+        elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
+        {
+            #TODO: Add Error action
+            $displayValue = "Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
+            $testingValue = "Clustered"
+            $displayWriteType = "Red"
+        }
+        else
+        {
+            $displayValue = "Flat"
+            $testingValue = "Flat"
+            $displayWriteType = "Green"
+        }
+    }
+    else
+    {
+        $name = "All Processor Cores Visible"
+        if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
+        {
+            $displayValue = "Unknown --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues."
+        }
+        elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
+        {
+            #TODO: Add Error Action
+            $displayValue = "Failed --- Error: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
+            $displayWriteType = "Red"
+            $testingValue = "Failed"
+        }
+        else
+        {
+            $displayWriteType = "Green"
+            $displayValue = "Passed"
+            $testingValue = "Passed"
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name $name -Details $displayValue `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $testingValue `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Max Processor Speed" -Details ($hardwareInformation.Processor.MaxMegacyclesPerCore) `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -AnalyzedInformation $analyzedResults
+
+    if ($hardwareInformation.Processor.ProcessorIsThrottled)
+    {
+        $currentSpeed = $hardwareInformation.Processor.CurrentMegacyclesPerCore
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Current Processor Speed" -Details ("{0} --- Error: Processor appears to be throttled." -f $currentSpeed) `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Red" `
+            -DisplayTestingValue $currentSpeed `
+            -AnalyzedInformation $analyzedResults
+
+        $displayValue = "Error: Power Plan is NOT set to `"High Performance`". This change doesn't require a reboot and takes affect right away. Re-run script after doing so"
+
+        if ($osInformation.PowerPlan.HighPerformanceSet)
+        {
+            $displayValue = "Error: Power Plan is set to `"High Performance`", so it is likely that we are throttling in the BIOS of the computer settings."
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Details $displayValue `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -DisplayWriteType "Red" `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+        #TODO: Add Error Action
+    }
+
+    $totalPhysicalMemory = [System.Math]::Round($hardwareInformation.TotalMemory / 1024 / 1024 / 1024)
+    $displayWriteType = "Yellow"
+    $displayDetails = [string]::Empty
+
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
+    {
+        if ($totalPhysicalMemory -gt 256)
+        {
+            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
+        }
+        elseif ($totalPhysicalMemory -lt 64 -and
+            $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ServerRole]::Edge)
+        {
+            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
+        }
+        elseif ($totalPhysicalMemory -lt 128)
+        {
+            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
+        }
+        else
+        {
+            $displayDetails = "{0} GB" -f $totalPhysicalMemory
+            $displayWriteType = "Grey"
+        }
+    }
+    elseif ($totalPhysicalMemory -gt 128 -and
+        $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
+    {
+        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
+    }
+    elseif ($totalPhysicalMemory -gt 96)
+    {
+        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
+    }
+    else
+    {
+        $displayDetails = "{0} GB" -f $totalPhysicalMemory
+        $displayWriteType = "Grey"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Physical Memory" -Details $displayDetails `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -DipslayTestingValue $totalPhysicalMemory `
+        -DisplayWriteType $displayWriteType `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
+    ################################
+    #NIC Settings Per Active Adapter
+    ################################
+    Write-VerboseOutput("Working on NIC Settings Per Active Adapter Information")
+
+    foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters)
+    {
+        if ($adapter.Description -eq "Remote NDIS Compatible Device")
+        {
+            Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+            continue
+        }
+
+        $value = "{0} [{1}]" -f $adapter.Description, $adapter.Name
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Interface Description" -Details $value `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayCustomTabNumber 1 `
+            -AnalyzedInformation $analyzedResults
+
+        if ($osInformation.BuildInformation.MajorVersion -ge [HealthChecker.OSServerVersion]::Windows2012R2)
+        {
+            Write-VerboseOutput("On Windows 2012 R2 or new. Can provide more details on the NICs")
+
+            $driverDate = $adapter.DriverDate
+            $detailsValue = $driverDate
+
+            if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
+                $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+            {
+                if ($driverDate -eq $null -or
+                    $driverDate -eq [DateTime]::MaxValue)
+                {
+                    $detailsValue = "Unknown"
+                }
+                elseif ((New-TimeSpan -Start $date -End $driverDate).Days -lt [int]-365)
+                {
+                    $analyzedResults = Add-AnalyzedResultInformation -Details "Warning: NIC driver is over 1 year old. Verify you are at the latest version." `
+                        -DisplayGroupingKey $keyNICSettings `
+                        -DisplayWriteType "Yellow" `
+                        -AddHtmlDetailRow $false `
+                        -AnalyzedInformation $analyzedResults
+                }
+            }
+
+            #TODO: Determine if we always want to display this or not
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Driver Date" -Details $detailsValue `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Driver Version" -Details ($adapter.DriverVersion) `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "MTU Size" -Details ($adapter.MTUSize) `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
+            $writeType = "Yellow"
+            $testingValue = [string]::Empty
+
+            if ($adapter.RSSEnabled -eq "NoRSS")
+            {
+                $detailsValue = "No RSS Feature Detected."
+            }
+            elseif ($adapter.RSSEnabled -eq "True")
+            {
+                $detailsValue = "Enabled"
+                $writeType = "Green"
+            }
+            else
+            {
+                $detailsValue = "Disabled --- Warning: Enabling RSS is recommended."
+                $testingValue = "Disabled"
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "RSS" -Details $detailsValue `
+                -DisplayGroupingKey $keyNICSettings `
+                -DisplayWriteType $writeType `
+                -DisplayTestingValue $testingValue `
+                -AnalyzedInformation $analyzedResults
+        }
+        else
+        {
+            Write-VerboseOutput("On Windows 2012 or older and can't get advanced NIC settings")
+        }
+
+        $linkSpeed = $adapter.LinkSpeed
+        $displayValue = "{0} --- This may not be accurate due to virtualized hardware" -f $linkSpeed
+
+        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or 
+                $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2)
+        {
+            $displayValue = $linkSpeed
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Link Speed" -Details $displayValue `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayTestingValue $linkSpeed `
+            -AnalyzedInformation $analyzedResults
+
+        $displayValue = "{0}" -f $adapter.IPv6Enabled
+        $displayWriteType = "Grey"
+        $testingValue = $adapter.IPv6Enabled
+
+        if ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255 -and
+            $adapter.IPv6Enabled -eq $false)
+        {
+            #TODO: Fix this wording. could be confussing if IPv6Enabled is set to false but the registry isn't set correctly. NOTE this is called out below as well.
+            #TODO: Add Error Action
+            $displayValue = "{0} --- Warning" -f $adapter.IPv6Enabled
+            $displayWriteType = "Yellow"
+            $testingValue = $false
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "IPv6 Enabled" -Details $displayValue `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayTestingValue $TestingValue `
+            -AnalyzedInformation $analyzedResults
+
+        $adapterDescription = $adapter.Description
+        $cookedValue = 0
+        $foundCounter = $false
+
+        if ($osInformation.NetworkInformation.PacketsReceivedDiscarded -eq $null)
+        {
+            Write-VerboseOutput("PacketsReceivedDiscarded is null")
+            continue
+        }
+
+        foreach ($prdInstance in $osInformation.NetworkInformation.PacketsReceivedDiscarded)
+        {
+            $instancePath = $prdInstance.Path
+            $startIndex = $instancePath.IndexOf("(") + 1
+            $charLength = $instancePath.Substring($startIndex, ($instancePath.IndexOf(")") - $startIndex)).Length
+            $instanceName = $instancePath.Substring($startIndex, $charLength)
+            $possibleInstanceName = $adapterDescription.Replace("#","_")
+
+            if ($instanceName -eq $adapterDescription -or
+                $instanceName -eq $possibleInstanceName)
+            {
+                $cookedValue = $prdInstance.CookedValue
+                $foundCounter = $true
+                break
+            }
+        }
+
+        $displayWriteType = "Yellow"
+        $displayValue = $cookedValue
+        $baseDisplayValue = "{0} --- {1}: This value should be at 0."
+        $knownIssue = $false
+
+        if ($foundCounter)
+        {
+            if ($cookedValue -eq 0)
+            {
+                $displayWriteType = "Green"
+            }
+            elseif ($cookedValue -lt 1000)
+            {
+                $displayValue = $baseDisplayValue -f $cookedValue, "Warning"
+            }
+            else
+            {
+                $displayWriteType = "Red"
+                $displayValue = [string]::Concat(($baseDisplayValue -f $cookedValue, "Error"), "We are also seeing this value being rather high so this can cause a performance impacted on a system.")
+            }
+
+            if ($adapterDescription -like "*vmxnet3*" -and
+                $cookedValue -gt 0)
+            {
+                $knownIssue = $true
+            }
+        }
+        else
+        {
+            $displayValue = "Couldn't find value for the counter."
+            $cookedValue = $null
+            $displayWriteType = "Grey"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Packets Received Discarded" -Details $displayValue `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayTestingValue $cookedValue `
+            -DisplayWriteType $displayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($knownIssue)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Known Issue with vmxnet3: 'Large packet loss at the guest operating system level on the VMXNET3 vNIC in ESXi (2039495)' - https://kb.vmware.com/s/article/2039495" `
+                -DisplayGroupingKey $keyNICSettings `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 3 `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    if ($osInformation.NetworkInformation.NetworkAdapters.Count -gt 1)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR" `
+            -DisplayGroupingKey $keyNICSettings `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    if ($osInformation.NetworkInformation.IPv6DisabledOnNICs)
+    {
+        $displayWriteType = "Grey"
+        $displayValue = "True"
+        $testingValue = $true
+        if ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255)
+        {
+            $displayWriteType = "Red"
+            $testingValue = $false
+            $displayValue = "False --- Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayCustomTabNumber 0 `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    #########################################
+    #Visual C++ Redistributable Version Check
+    #########################################
+    Write-VerboseOutput("Working on Visual C++ Redistributable Version Check")
+
+    $displayWriteType2012 = "Yellow"
+    $displayWriteType2013 = "Yellow"
+    $displayValue2012 = "Unknown"
+    $displayValue2013 = "Unknown"
+
+    if ($osInformation.VcRedistributable -ne $null)
+    {
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
+        $displayValue2012 = "Redistributable is outdated"
+        $displayValue2013 = "Redistributable is outdated"
+
+        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable)
+        {
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
+
+            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                $displayWriteType2012 = "Green"
+            }
+            elseif ($vc2013Required -and
+                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $displayWriteType2013 = "Green"
+                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+            }
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
+        -DisplayGroupingKey $keyVisualCpp `
+        -DisplayWriteType $displayWriteType2012 `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
+        -DisplayGroupingKey $keyVisualCpp `
+        -DisplayWriteType $displayWriteType2013 `
+        -AnalyzedInformation $analyzedResults
+
+    if ($osInformation.VcRedistributable -ne $null -and
+        ($displayWriteType2012 -eq "Yellow" -or
+        $displayWriteType2013 -eq "Yellow"))
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+            -DisplayGroupingKey $keyVisualCpp `
+            -DisplayWriteType "Yellow" `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    ################
+    #TCP/IP Settings
+    ################
+    Write-VerboseOutput("Working on TCP/IP Settings")
+
+    $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
+
+    if ($tcpKeepAlive -eq 0)
+    {
+        #TODO: Fix wording
+        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
+        $displayWriteType = "Red"
+    }
+    elseif ($tcpKeepAlive -lt 900000 -or
+        $tcpKeepAlive -gt 1800000)
+    {
+        #TODO: Fix wording
+        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
+        $displayWriteType = "Yellow"
+    }
+    else
+    {
+        $displayValue = $tcpKeepAlive
+        $displayWriteType = "Green"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
+        -DisplayGroupingKey $keyTcpIp `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $tcpKeepAlive `
+        -HtmlName "TCPKeepAlive" `
+        -AnalyzedInformation $analyzedResults
+
+    ###############################
+    #RPC Minimum Connection Timeout
+    ###############################
+    Write-VerboseOutput("Working on RPC Minimum Connection Timeout")
+
+    #TODO: Determine what i am going to do for handling this. Do we want to flag it or not. Otherwise, just display it vs doing the If Statements
+    #Leaving the IF statement here to know what i was doing. But just note that all of them were write grey
+
+    if ($osInformation.NetworkInformation.RpcMinConnectionTimeout -eq 0)
+    {
+    }
+    elseif ($osInformation.NetworkInformation.RpcMinConnectionTimeout -eq 120)
+    {
+    }
+    else
+    {
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ("{0} More Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
+        -DisplayGroupingKey $keyRpc `
+        -HtmlName "RPC Minimum Connection Timeout" `
+        -AnalyzedInformation $analyzedResults
+
+    ##############################
+    #LmCompatibilityLevel Settings
+    ##############################
+    Write-VerboseOutput("Working on LmCompatibilityLevel Settings")
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ($osInformation.LmCompatibility.RegistryValue) `
+        -DisplayGroupingKey $keyLmCompat `
+        -HtmlName "LmCompatibilityLevel Setting" `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
+        -DisplayGroupingKey $keyLmCompat `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+
+    ########################################
+    #CtsProcessorAffinityPercentage Settings
+    ########################################
+
+    $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+    $displayWriteType = "Green"
+
+    if ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage -ne 0)
+    {
+        $displayWriteType = "Red"
+        $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
+        -DisplayGroupingKey $keyCtsProcessor `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
+        -HtmlName "CtsProcessorAffinityPercentage" `
+        -AnalyzedInformation $analyzedResults
+
+    #######################
+    #CredentialGuardEnabled
+    #######################
+
+    $displayValue = $osInformation.CredentialGuardEnabled
+    $displayWriteType = "Grey"
+
+    if($osInformation.CredentialGuardEnabled)
+    {
+        $displayValue = "{0} --- Error: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+        $displayWriteType = "Red"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Enabled" -Details $displayValue `
+        -DisplayGroupingKey $keyCredGuard `
+        -DisplayWriteType $displayWriteType `
+        -HtmlName "Credential Guard Enabled" `
+        -AnalyzedInformation $analyzedResults
+
+    ##############
+    # TLS Settings
+    ##############
+    Write-VerboseOutput("Working on TLS Settings")
+
+    $tlsVersions = @("1.0","1.1","1.2")
+    $currentNetVersion = $osInformation.TLSSettings["NETv4"]
+
+    foreach ($tlsKey in $tlsVersions)
+    {
+        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
+
+        $analyzedResults = Add-AnalyzedResultInformation -Details ("TLS {0}" -f $tlsKey) `
+            -DisplayGroupingKey $keyTLS `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Enabled") -Details ($currentTlsVersion.ServerEnabled) `
+            -DisplayGroupingKey $keyTLS `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Disabled By Default") -Details ($currentTlsVersion.ServerDisabledByDefault) `
+            -DisplayGroupingKey $keyTLS `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Enabled") -Details ($currentTlsVersion.ClientEnabled) `
+            -DisplayGroupingKey $keyTLS `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Disabled By Default") -Details ($currentTlsVersion.ClientDisabledByDefault) `
+            -DisplayGroupingKey $keyTLS `
+            -AnalyzedInformation $analyzedResults
+
+        if ($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled)
+        {
+            $detectedTlsMismatch = $true
+            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.") `
+                -DisplayGroupingKey $keyTLS `
+                -DisplayWriteType "Red" `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if (($tlsKey -eq "1.0" -or
+            $tlsKey -eq "1.1") -and (
+            $currentTlsVersion.ServerEnabled -eq $false -or
+            $currentTlsVersion.ClientEnabled -eq $false -or
+            $currentTlsVersion.ServerDisabledByDefault -or
+            $currentTlsVersion.ClientDisabledByDefault) -and
+            ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
+            $currentNetVersion.WowSystemDefaultTlsVersions -eq $false))
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
+                -DisplayGroupingKey $keyTLS `
+                -DisplayWriteType "Red" `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    if ($detectedTlsMismatch)
+    {
+        #TODO Error Action
+        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649",
+        "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761",
+        "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
+
+        $analyzedResults = Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
+            -DisplayGroupingKey $keyTLS `
+            -DisplayWriteType "Yellow" `
+            -AnalyzedInformation $analyzedResults
+
+        foreach ($displayValue in $displayValues)
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $displayValue `
+                -DisplayGroupingKey $keyTLS `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    ##########################
+    #Exchange Web App GC Mode#
+    ##########################
+    Write-VerboseOutput("Working on Exchange Web App GC Mode")
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
+        -DisplayGroupingKey $keyWebApps `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+
+    foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys)
+    {
+        $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
+        $testingValue = New-Object PSCustomObject
+        $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled)
+        $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
+            -DisplayGroupingKey $keyWebApps `
+            -DisplayTestingValue $testingValue `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    ######################
+    # Vulnerability Checks
+    ######################
+
+    Function Test-VulnerabilitiesByBuildNumbersForDisplay {
+    param(
+    [Parameter(Mandatory=$true)][string]$ExchangeBuildRevision,
+    [Parameter(Mandatory=$true)][array]$SecurityFixedBuilds,
+    [Parameter(Mandatory=$true)][array]$CVENames
+    )
+        [int]$fileBuildPart = ($split = $ExchangeBuildRevision.Split("."))[0]
+        [int]$filePrivatePart = $split[1]
+
+        foreach ($securityFixedBuild in $SecurityFixedBuilds)
+        {
+            [int]$securityFixedBuildPart = ($split = $securityFixedBuild.Split("."))[0]
+            [int]$securityFixedPrivatePart = $split[1]
+
+            if (($fileBuildPart -lt $securityFixedBuildPart) -or
+                ($fileBuildPart -eq $securityFixedBuildPart -and
+                $filePrivatePart -lt $securityFixedPrivatePart))
+            {
+                foreach ($cveName in $CVENames)
+                {
+                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vunlerability" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
+                        -DisplayGroupingKey $keyVulnerabilityCheck `
+                        -DisplayTestingValue $cveName `
+                        -DisplayWriteType "Red" `
+                        -AddHtmlDetailRow $false `
+                        -AnalyzedInformation $Script:AnalyzedInformation
+                }
+
+                $Script:AllVulnerabilitiesPassed = $false
+                break
+            }
+        }
+    }
+
+    $Script:AllVulnerabilitiesPassed = $true
+    $Script:AnalyzedInformation = $analyzedResults
+    [string]$buildRevision = ("{0}.{1}" -f $exchangeInformation.BuildInformation.ExchangeSetup.FileBuildPart, $exchangeInformation.BuildInformation.ExchangeSetup.FilePrivatePart)
+
+    Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision)
+    Write-VerboseOutput("Exchange CU: {0}" -f ($exchangeCU = $exchangeInformation.BuildInformation.CU))
+
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013)
+    {
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU19)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1347.5","1365.3" -CVENames "CVE-2018-0924","CVE-2018-0940"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU20)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1365.7","1367.6" -CVENames "CVE-2018-8151","CVE-2018-8154","CVE-2018-8159"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1367.9","1395.7" -CVENames "CVE-2018-8302"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1395.8" -CVENames "CVE-2018-8265","CVE-2018-8448"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1395.10" -CVENames "CVE-2019-0586","CVE-2019-0588"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1473.3" -CVENames "CVE-2019-0686","CVE-2019-0724"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1473.4" -CVENames "CVE-2019-0817","CVE-2019-0858"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1473.5" -CVENames "ADV190018"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.3" -CVENames "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.4" -CVENames "CVE-2019-1373"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.6" -CVENames "CVE-2020-0688","CVE-2020-0692"
+        }
+    }
+    elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
+    {
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU8)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1261.39","1415.4" -CVENames "CVE-2018-0924","CVE-2018-0940","CVE-2018-0941"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1415.7","1466.8" -CVENames "CVE-2018-8151","CVE-2018-8152","CVE-2018-8153","CVE-2018-8154","CVE-2018-8159"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1466.9","1531.6" -CVENames "CVE-2018-8374","CVE-2018-8302"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1531.8" -CVENames "CVE-2018-8265","CVE-2018-8448"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1531.8","1591.11" -CVENames "CVE-2018-8604"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1531.10","1591.13" -CVENames "CVE-2019-0586","CVE-2019-0588"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1591.16","1713.6" -CVENames "CVE-2019-0817","CVE-2018-0858"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1591.17","1713.7" -CVENames "ADV190018"
+	        Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1713.5" -CVENames "CVE-2019-0686","CVE-2019-0724"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1713.8","1779.4" -CVENames "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1713.9","1779.5" -CVENames "CVE-2019-1233","CVE-2019-1266"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU14)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1779.7","1847.5" -CVENames "CVE-2019-1373"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.7","1913.7" -CVENames "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.10","1913.10" -CVENames "CVE-2020-0903"
+        }
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU16)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Version.")
+        }
+    }
+    elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
+    {
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "221.14" -CVENames "CVE-2019-0586","CVE-2019-0588"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "221.16","330.7" -CVENames "CVE-2019-0817","CVE-2019-0858"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "221.17","330.8" -CVENames "ADV190018"
+	        Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "330.6" -CVENames "CVE-2019-0686","CVE-2019-0724"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2)
+        {
+	        Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "330.9","397.5" -CVENames "CVE-2019-1084","CVE-2019-1137"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "397.6","330.10" -CVENames "CVE-2019-1233","CVE-2019-1266"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU3)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "397.9","464.7" -CVENames "CVE-2019-1373"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.11","529.8" -CVENames "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.14","529.11" -CVENames "CVE-2020-0903"
+        }
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU5)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Version.")
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("Uknown Version of Exchange")
+        $Script:AllVulnerabilitiesPassed = $false
+    }
+
+    if ($Script:AllVulnerabilitiesPassed)
+    {
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Details "All known security issues in this version of the script passed." `
+            -DisplayGroupingKey $keyVulnerabilityCheck `
+            -DisplayWriteType "Green" `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $Script:AnalyzedInformation
+    }
+
+    Write-Debug("End of Analyzer Engine")
+    return $Script:AnalyzedInformation
+}
+
+Function Write-ResultsToScreen {
+param(
+[Hashtable]$ResultsToWrite
+)
+    $indexOrderGroupingToKey = @{}
+    foreach ($keyGrouping in $ResultsToWrite.Keys)
+    {
+        $indexOrderGroupingToKey[$keyGrouping.DisplayOrder] = $keyGrouping
+    }
+
+    $i = 0
+    while ($i -lt $indexOrderGroupingToKey.Count)
+    {
+        $keyGrouping = $indexOrderGroupingToKey[$i]
+        if ($keyGrouping.DisplayGroupName)
+        {
+            Write-Grey($keyGrouping.Name)
+            $dashes = [string]::empty
+            1..($keyGrouping.Name.Length) | %{$dashes = $dashes + "-"}
+            Write-Grey($dashes)
+        }
+
+        foreach ($line in $ResultsToWrite[$keyGrouping])
+        {
+            $tab = [string]::Empty
+
+            if ($line.TabNumber -ne 0)
+            {
+                1..($line.TabNumber) | %{$tab = $tab + "`t"}
+            }
+
+            $writeValue = "{0}{1}" -f $tab, $line.Line
+            switch ($line.WriteType)
+            {
+                "Grey" {Write-Grey($writeValue)}
+                "Yellow" {Write-Yellow($writeValue)}
+                "Green" {Write-Green($writeValue)}
+                "Red" {Write-Red($writeValue)}
+            }
+        }
+
+        Write-Grey("")
+        $i++
+    }
+}
+
+Function Create-HtmlServerReport {
+param(
+[Parameter(Mandatory=$true)][array]$AnalyzedHtmlServerValues
+)
+    Write-VerboseOutput("Calling: Create-HtmlServerReport")
+
+    $htmlHeader = "<html>
+        <style>
+        BODY{font-family: Arial; font-size: 8pt;}
+        H1{font-size: 16px;}
+        H2{font-size: 14px;}
+        H3{font-size: 12px;}
+        TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt;}
+        TH{border: 1px solid black; background: #dddddd; padding: 5px; color: #000000;}
+        TD{border: 1px solid black; padding: 5px; }
+        td.Green{background: #7FFF00;}
+        td.Yellow{background: #FFE600;}
+        td.Red{background: #FF0000; color: #ffffff;}
+        td.Info{background: #85D4FF;}
+        </style>
+        <body>
+        <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1><br>
+        <h2>Servers Overview</h2"
+
+    [array]$htmlOverviewTable += "<p>
+        <table>
+        <tr>"
+    foreach ($tableHeaderName in $AnalyzedHtmlServerValues[0]["OverviewValues"].Name)
+    {
+        $htmlOverviewTable += "<th>{0}</th>" -f $tableHeaderName
+    }
+
+    $htmlOverviewTable += "</tr>"
+
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
+    {
+        $htmlTableRow = @()
+        [array]$htmlTableRow += "<tr>"
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["OverviewValues"])
+        {
+            $htmlTableRow += "<td class=`"{0}`">{1}</td>" -f $htmlTableDataRow.Class, `
+                $htmlTableDataRow.DetailValue
+        }
+        $htmlTableRow += "</tr>"
+        $htmlOverviewTable += $htmlTableRow
+    }
+
+    $htmlOverviewTable += "</table></p>"
+
+    [array]$htmlServerDetails += "<p><h2>Server Details</h2><table>"
+
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
+    {
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["ServerDetails"])
+        {
+            if ($htmlTableDataRow.Name -eq "Server Name")
+            {
+                $htmlServerDetails += "<tr><th>{0}</th><th>{1}</th><tr>" -f $htmlTableDataRow.Name, `
+                    $htmlTableDataRow.DetailValue
+            }
+            else
+            {
+                $htmlServerDetails += "<tr><td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td><tr>" -f $htmlTableDataRow.Class, `
+                    $htmlTableDataRow.Name, `
+                    $htmlTableDataRow.DetailValue
+            }
+        }
+    }
+    $htmlServerDetails += "</table></p>"
+
+    $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body></html>"
+
+    $htmlReport | Out-File $HtmlReportFile -Encoding UTF8
+
 }
 
 Function Display-MSExchangeVulnerabilities {
@@ -5293,6 +6881,10 @@ param(
     
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
     $Script:OutXmlFullPath =  $Script:OutputFullPath.Replace(".txt",".xml")
+    if($AnalyzeDataOnly)
+    {
+        return
+    }
     if(!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} ))
     {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
@@ -5385,15 +6977,17 @@ Function HealthCheckerMain {
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
     Write-HealthCheckerVersion
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer $Server
-    #Display-ResultsToScreen $healthObject
+    $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
+    Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     Get-ErrorsThatOccurred
-    $HealthObject | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 5
+    $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 10
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
 }
 Function Main {
     
-    if(-not (Is-Admin))
+    if(-not (Is-Admin) -and
+        -not $AnalyzeDataOnly)
 	{
 		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." 
 		sleep 2;
@@ -5450,7 +7044,26 @@ Function Main {
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Get-ErrorsThatOccurred
         return
-	}
+    }
+
+    if ($AnalyzeDataOnly)
+    {
+        Set-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
+        $files = Get-HealthCheckFilesItemsFromLocation
+        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+        $importData = Import-MyData -FilePaths $fullPaths
+
+        $analyzedResults = @()
+        foreach ($serverData in $importData)
+        {
+            $analyzedServerResults = Start-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+            Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
+            $analyzedResults += $analyzedServerResults
+        }
+
+        Create-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+        return
+    }
 
 	HealthCheckerMain
 }
