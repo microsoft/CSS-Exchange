@@ -2146,8 +2146,22 @@ param(
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
     $processorInformation = Get-ProcessorInformation -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
-    $hardware_obj.Processor = $processorInformation
-    $hardware_obj.Processor.ProcessorClassObject = $processorInformation.ProcessorClassObject #Need to do it this way otherwise the ProcessorClassObject will be empty for some reason.
+
+    #Need to do it this way because of Windows 2012R2
+    $processor = New-Object HealthChecker.ProcessorInformation
+    $processor.Name = $processorInformation.Name
+    $processor.NumberOfPhysicalCores = $processorInformation.NumberOfPhysicalCores
+    $processor.NumberOfLogicalCores = $processorInformation.NumberOfLogicalCores
+    $processor.NumberOfProcessors = $processorInformation.NumberOfProcessors
+    $processor.MaxMegacyclesPerCore = $processorInformation.MaxMegacyclesPerCore
+    $processor.CurrentMegacyclesPerCore = $processorInformation.CurrentMegacyclesPerCore
+    $processor.ProcessorIsThrottled = $processorInformation.ProcessorIsThrottled
+    $processor.DifferentProcessorsDetected = $processorInformation.DifferentProcessorsDetected
+    $processor.DifferentProcessorCoreCountDetected = $processorInformation.DifferentProcessorCoreCountDetected
+    $processor.EnvironmentProcessorCount = $processorInformation.EnvironmentProcessorCount
+    $processor.ProcessorClassObject = $processorInformation.ProcessorClassObject
+
+    $hardware_obj.Processor = $processor
     $hardware_obj.Model = $system.Model 
 
     Write-VerboseOutput("Exiting: Get-HardwareInformation")
@@ -3114,7 +3128,7 @@ param(
         $analyzedResults = Add-AnalyzedResultInformation -Name "Error" -Details ("Out of date Cumulative Update. Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is {0} days old." -f $daysOld) `
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayCustomTabNumber 2 `
-            -AddHtmlDetailRow $false
+            -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
     }
 
@@ -3183,7 +3197,7 @@ param(
             $analyzedResults = Add-AnalyzedResultInformation -Details $warning `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow"
+                -DisplayWriteType "Yellow" `
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
         }
@@ -4084,7 +4098,7 @@ param(
     {
         $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
         $testingValue = New-Object PSCustomObject
-        $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled)
+        $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled -eq 'true')
         $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
 
         $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
