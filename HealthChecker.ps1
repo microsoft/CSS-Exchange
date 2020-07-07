@@ -455,25 +455,22 @@ using System.Collections;
         {
             public System.Array OverviewValues;
             public System.Array ActionItems;   //use HtmlServerActionItemRow
-            public System.Array ServerDetails;    // use HtmlServerDetailRow
+            public System.Array ServerDetails;    // use HtmlServerInformationRow
         }
 
         public class HtmlServerActionItemRow
         {
-            public HtmlTableData Setting;
-            public HtmlTableData RecommendedDetails;
-            public HtmlTableData MoreInformation;
+            public string Setting;
+            public string DetailValue;
+            public string RecommendedDetails;
+            public string MoreInformation;
+            public string Class;
         }
 
-        public class HtmlServerDetailRow
+        public class HtmlServerInformationRow
         {
-            public HtmlTableData Name;
-            public HtmlTableData Details;
-        }
-
-        public class HtmlTableData
-        {
-            public string Value;
+            public string Name;
+            public string DetailValue;
             public string Class;
         }
 
@@ -3054,17 +3051,6 @@ param(
     Return $ServerLmCompatObject
 }
 
-Function New-HtmlTableDataEntry {
-param(
-[string]$EntryValue,
-[string]$ClassValue = ""
-)
-    $obj = New-Object HealthChecker.HtmlTableData
-    $obj.Value = $EntryValue
-    $obj.Class = $ClassValue
-    return $obj
-}
-
 Function New-DisplayResultsGroupingKey {
 param(
 [string]$Name,
@@ -3084,6 +3070,7 @@ Function Add-AnalyzedResultInformation {
 param(
 [object]$Details,
 [string]$Name,
+[string]$HtmlName,
 [object]$DisplayGroupingKey,
 [int]$DisplayCustomTabNumber = -1,
 [object]$DisplayTestingValue,
@@ -3142,20 +3129,33 @@ param(
     {
         if (!($analyzedResults.HtmlServerValues.ContainsKey("ServerDetails")))
         {
-            [System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]
+            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
             $AnalyzedInformation.HtmlServerValues.Add("ServerDetails", $list)
         }
 
-        $detailRow = New-Object HealthChecker.HtmlServerDetailRow
-        $detailRow.Name = New-HtmlTableDataEntry -EntryValue $Name
+        $detailRow = New-Object HealthChecker.HtmlServerInformationRow
 
-        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        if ($displayWriteType -ne "Grey")
         {
-            $detailRow.Details = New-HtmlTableDataEntry -EntryValue $Details
+            $detailRow.Class = $displayWriteType
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlName))
+        {
+            $detailRow.Name = $Name
         }
         else
         {
-            $detailRow.Details = New-HtmlTableDataEntry -EntryValue $HtmlDetailsCustomValue
+            $detailRow.Name = $HtmlName
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        {
+            $detailRow.DetailValue = $Details
+        }
+        else
+        {
+            $detailRow.DetailValue = $HtmlDetailsCustomValue
         }
 
         $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
@@ -3165,20 +3165,33 @@ param(
     {
         if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues")))
         {
-            [System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerDetailRow]
+            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
             $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
         }
 
-        $overviewValue = New-Object HealthChecker.HtmlServerDetailRow
-        $overviewValue.Name = New-HtmlTableDataEntry -EntryValue $Name
-        
-        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        $overviewValue = New-Object HealthChecker.HtmlServerInformationRow
+
+        if ($displayWriteType -ne "Grey")
         {
-            $overviewValue.Details = New-HtmlTableDataEntry -EntryValue $Details
+            $overviewValue.Class = $displayWriteType
+        }
+
+        if ([string]::IsNullOrEmpty($HtmlName))
+        {
+            $overviewValue.Name = $Name
         }
         else
         {
-            $overviewValue.Details = New-HtmlTableDataEntry -EntryValue $HtmlDetailsCustomValue
+            $overviewValue.Name = $HtmlName
+        }
+        
+        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue))
+        {
+            $overviewValue.DetailValue = $Details
+        }
+        else
+        {
+            $overviewValue.DetailValue = $HtmlDetailsCustomValue
         }
 
         $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
@@ -3246,11 +3259,13 @@ param(
     $analyzedResults = Add-AnalyzedResultInformation -Name "Name" -Details ($HealthServerObject.ServerName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
+        -HtmlName "Server Name" `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
+        -HtmlName "Exchange Version" `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.BuildNumber) `
@@ -3348,6 +3363,7 @@ param(
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($osInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyOSInformation `
         -AddHtmlOverviewValues $true `
+        -HtmlName "OS Version" `
         -AnalyzedInformation $analyzedResults
 
     $upTime = "{0} day(s) {1} hour(s) {2} minute(s) {3} second(s)" -f $osInformation.ServerBootUp.Days,
@@ -3387,6 +3403,7 @@ param(
             -DisplayWriteType "Yellow" `
             -DisplayTestingValue $testObject `
             -HtmlDetailsCustomValue ($osInformation.NETFramework.FriendlyName) `
+            -AddHtmlOverviewValues $true `
             -AnalyzedInformation $analyzedResults
     }
 
@@ -3476,6 +3493,7 @@ param(
     {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details ($osInformation.NetworkInformation.HttpProxy) `
             -DisplayGroupingKey $keyOSInformation `
+            -HtmlDetailsCustomValue "None" `
             -AnalyzedInformation $analyzedResults
     }
     else
@@ -3505,6 +3523,7 @@ param(
     $analyzedResults = Add-AnalyzedResultInformation -Name "Type" -Details ($hardwareInformation.ServerType) `
         -DisplayGroupingKey $keyHardwareInformation `
         -AddHtmlOverviewValues $true `
+        -Htmlname "Hardware Type" `
         -AnalyzedInformation $analyzedResults
 
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
@@ -4055,6 +4074,7 @@ param(
         -DisplayGroupingKey $keyTcpIp `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue $tcpKeepAlive `
+        -HtmlName "TCPKeepAlive" `
         -AnalyzedInformation $analyzedResults
 
     ###############################
@@ -4077,6 +4097,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ("{0} More Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
         -DisplayGroupingKey $keyRpc `
+        -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
 
     ##############################
@@ -4086,10 +4107,12 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ($osInformation.LmCompatibility.RegistryValue) `
         -DisplayGroupingKey $keyLmCompat `
+        -HtmlName "LmCompatibilityLevel Setting" `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
         -DisplayGroupingKey $keyLmCompat `
+        -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
 
     ########################################
@@ -4109,6 +4132,7 @@ param(
         -DisplayGroupingKey $keyCtsProcessor `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
+        -HtmlName "CtsProcessorAffinityPercentage" `
         -AnalyzedInformation $analyzedResults
 
     #######################
@@ -4127,6 +4151,7 @@ param(
     $analyzedResults = Add-AnalyzedResultInformation -Name "Enabled" -Details $displayValue `
         -DisplayGroupingKey $keyCredGuard `
         -DisplayWriteType $displayWriteType `
+        -HtmlName "Credential Guard Enabled" `
         -AnalyzedInformation $analyzedResults
 
     ##############
@@ -4217,6 +4242,7 @@ param(
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
         -DisplayGroupingKey $keyWebApps `
+        -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
 
     foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys)
@@ -4229,6 +4255,7 @@ param(
         $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
             -DisplayGroupingKey $keyWebApps `
             -DisplayTestingValue $testingValue `
+            -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
     }
 
@@ -4442,6 +4469,82 @@ param(
         Write-Grey("")
         $i++
     }
+}
+
+Function Create-HtmlServerReport {
+param(
+[Parameter(Mandatory=$true)][array]$AnalyzedHtmlServerValues
+)
+    Write-VerboseOutput("Calling: Create-HtmlServerReport")
+
+    $htmlHeader = "<html>
+        <style>
+        BODY{font-family: Arial; font-size: 8pt;}
+        H1{font-size: 16px;}
+        H2{font-size: 14px;}
+        H3{font-size: 12px;}
+        TABLE{border: 1px solid black; border-collapse: collapse; font-size: 8pt;}
+        TH{border: 1px solid black; background: #dddddd; padding: 5px; color: #000000;}
+        TD{border: 1px solid black; padding: 5px; }
+        td.Green{background: #7FFF00;}
+        td.Yellow{background: #FFE600;}
+        td.Red{background: #FF0000; color: #ffffff;}
+        td.Info{background: #85D4FF;}
+        </style>
+        <body>
+        <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1><br>
+        <h2>Servers Overview</h2"
+
+    [array]$htmlOverviewTable += "<p>
+        <table>
+        <tr>"
+    foreach ($tableHeaderName in $AnalyzedHtmlServerValues[0]["OverviewValues"].Name)
+    {
+        $htmlOverviewTable += "<th>{0}</th>" -f $tableHeaderName
+    }
+
+    $htmlOverviewTable += "</tr>"
+
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
+    {
+        $htmlTableRow = @()
+        [array]$htmlTableRow += "<tr>"
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["OverviewValues"])
+        {
+            $htmlTableRow += "<td class=`"{0}`">{1}</td>" -f $htmlTableDataRow.Class, `
+                $htmlTableDataRow.DetailValue
+        }
+        $htmlTableRow += "</tr>"
+        $htmlOverviewTable += $htmlTableRow
+    }
+
+    $htmlOverviewTable += "</table></p>"
+
+    [array]$htmlServerDetails += "<p><h2>Server Details</h2><table>"
+
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
+    {
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["ServerDetails"])
+        {
+            if ($htmlTableDataRow.Name -eq "Server Name")
+            {
+                $htmlServerDetails += "<tr><th>{0}</th><th>{1}</th><tr>" -f $htmlTableDataRow.Name, `
+                    $htmlTableDataRow.DetailValue
+            }
+            else
+            {
+                $htmlServerDetails += "<tr><td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td><tr>" -f $htmlTableDataRow.Class, `
+                    $htmlTableDataRow.Name, `
+                    $htmlTableDataRow.DetailValue
+            }
+        }
+    }
+    $htmlServerDetails += "</table></p>"
+
+    $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body></html>"
+
+    $htmlReport | Out-File $HtmlReportFile -Encoding UTF8
+
 }
 
 Function Display-MSExchangeVulnerabilities {
@@ -6949,8 +7052,16 @@ Function Main {
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
-        $analyzedResults = Start-AnalyzerEngine -HealthServerObject $importData.HealthCheckerExchangeServer
-        Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+
+        $analyzedResults = @()
+        foreach ($serverData in $importData)
+        {
+            $analyzedServerResults = Start-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+            Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
+            $analyzedResults += $analyzedServerResults
+        }
+
+        Create-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
         return
     }
 
