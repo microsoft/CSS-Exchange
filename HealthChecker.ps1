@@ -1593,7 +1593,6 @@ Function Remote-GetFileVersionInfo {
 param(
 [Parameter(Mandatory=$true)][object]$PassedObject 
 )
-    Write-VerboseOutput("Calling: Remote-GetFileVersionInfo")
     $KBsInfo = $PassedObject.KBCheckList
     $ReturnList = @()
     foreach($KBInfo in $KBsInfo)
@@ -1625,7 +1624,6 @@ param(
         $ReturnList += $main_obj
     }
 
-    Write-VerboseOutput("Exiting: Remote-GetFileVersionInfo")
     return $ReturnList
 }
 
@@ -2313,7 +2311,6 @@ param(
     Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
     Function Get-ExchangeAppPoolsScriptBlock 
     {
-        Write-VerboseOutput("Calling: Get-ExchangeAppPoolsScriptBlock")
         $windir = $env:windir
         $Script:appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
 
@@ -2341,7 +2338,6 @@ param(
             }
             else 
             {
-                Write-VerboseOutput("Failed to find config file setting in app pool '{0}'" -f $appPool)
                 $content = $null     
             }
             $statusObj = New-Object pscustomobject 
@@ -2351,7 +2347,7 @@ param(
 
             $exchAppPools.Add($appPool, $statusObj)
         }
-        Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsScriptBlock")
+
         return $exchAppPools
     }
     $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
