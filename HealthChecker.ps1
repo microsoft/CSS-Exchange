@@ -4750,6 +4750,12 @@ Function Main {
 		exit
     }
 
+    if ($Error.Count -gt 175)
+    {
+        Write-Verbose("Clearing Error to avoid script issues")
+        $Error.Clear()
+    }
+
     $Script:ErrorStartCount = $Error.Count #useful for debugging 
     $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
     $Script:ErrorsExcluded = @() 
