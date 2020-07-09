@@ -4367,7 +4367,7 @@ param(
         </style>
         <body>
         <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1><br>
-        <h2>Servers Overview</h2"
+        <h2>Servers Overview</h2>"
 
     [array]$htmlOverviewTable += "<p>
         <table>
