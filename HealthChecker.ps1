@@ -1057,32 +1057,50 @@ Function Invoke-RegistryGetValue {
     [Parameter(Mandatory=$true)][string]$MachineName,
     [Parameter(Mandatory=$true)][string]$SubKey,
     [Parameter(Mandatory=$true)][string]$GetValue,
+    [Parameter(Mandatory=$false)][bool]$ReturnAfterOpenSubKey,
+    [Parameter(Mandatory=$false)][object]$DefaultValue,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    
-    #Function Version 1.0
-    <# 
-    Required Functions: 
+
+    #Function Version 1.2
+    <#
+    Required Functions:
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
     #>
     Write-VerboseWriter("Calling: Invoke-RegistryGetValue")
-    try 
+    try
     {
         Write-VerboseWriter("Attempting to open the Base Key '{0}' on Server '{1}'" -f $RegistryHive, $MachineName)
         $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey($RegistryHive, $MachineName)
         Write-VerboseWriter("Attempting to open the Sub Key '{0}'" -f $SubKey)
         $RegKey= $Reg.OpenSubKey($SubKey)
+
+        if ($ReturnAfterOpenSubKey)
+        {
+            Write-VerboseWriter("Returning OpenSubKey")
+            return $RegKey
+        }
+
         Write-VerboseWriter("Attempting to get the value '{0}'" -f $GetValue)
         $returnGetValue = $RegKey.GetValue($GetValue)
-        Write-VerboseWriter("Exiting: Invoke-RegistryGetValue | Returning: {0}" -f $returnGetValue)
+
+        if ($null -eq $returnGetValue -and
+            $null -ne $DefaultValue)
+        {
+            Write-VerboseWriter("No value found in the registry. Setting to default value: {0}" -f $DefaultValue)
+            $returnGetValue = $DefaultValue
+        }
+
+        Write-VerboseWriter("Exiting: Invoke-RegistryHandler | Returning: {0}" -f $returnGetValue)
         return $returnGetValue
     }
-    catch 
+    catch
     {
-        if($CatchActionFunction -ne $null)
+        if ($CatchActionFunction -ne $null)
         {
             & $CatchActionFunction
         }
+
         Write-VerboseWriter("Failed to open the registry")
     }
     
@@ -2363,8 +2381,8 @@ param(
     Write-VerboseOutput("Calling: Get-ExchangeUpdates")
     Write-VerboseOutput("Passed: " + $Machine_Name)
     Write-VerboseOutput("Passed: {0}" -f $ExchangeMajorVersion.ToString())
-    $Reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Machine_Name)
-    $RegLocation = $null 
+    $RegLocation = [string]::Empty
+
     if([HealthChecker.ExchangeMajorVersion]::Exchange2013 -eq $ExchangeMajorVersion)
     {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2013"
@@ -2373,7 +2391,9 @@ param(
     {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2016"
     }
-    $RegKey= $Reg.OpenSubKey($RegLocation)
+
+    $RegKey = Invoke-RegistryGetValue -MachineName $Machine_Name -SubKey $RegLocation -ReturnAfterOpenSubKey $true -CatchActionFunction ${Function:Invoke-CatchActions}
+
     if($RegKey -ne $null)
     {
         $IU = $RegKey.GetSubKeyNames()
@@ -2390,7 +2410,16 @@ param(
             }
             return $fixes
         }
+        else
+        {
+            Write-VerboseOutput("No IUs found in the registry")
+        }
     }
+    else
+    {
+        Write-VerboseOutput("No RegKey returned")
+    }
+
     Write-VerboseOutput("Exiting: Get-ExchangeUpdates")
     return $null
 }
