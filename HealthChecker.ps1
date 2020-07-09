@@ -160,6 +160,7 @@ using System.Collections;
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ApplicationPools;
             public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
+            public ExchangeServerMaintenance ServerMaintenance;
         }
     
         public class ExchangeBuildInformation
@@ -181,6 +182,14 @@ using System.Collections;
             public NetMajorVersion MaxSupportedVersion; //Max (Recommended) Supported .NET version. 
             public bool OnRecommendedVersion; //RecommendedNetVersion Info includes all the factors. Windows Version & CU. 
             public string DisplayWording; //Display if we are in Support or not
+        }
+
+        public class ExchangeServerMaintenance
+        {
+            public System.Array InactiveComponents;
+            public object GetServerComponentState;
+            public object GetClusterNode;
+            public object GetMailboxServer;
         }
     
         //enum for CU levels of Exchange
@@ -2270,6 +2279,94 @@ param(
     
 }
 
+Function Get-ExchangeServerMaintenanceState {
+param(
+[Parameter(Mandatory=$true)][string]$MachineName,
+[Parameter(Mandatory=$false)][array]$ComponentsToSkip
+)
+    Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
+
+    [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
+    $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $MachineName -ErrorAction SilentlyContinue
+
+    try
+    {
+        $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $MachineName -ErrorAction SilentlyContinue
+    }
+    catch
+    {
+        Write-VerboseOutput("Failed to run Get-MailboxServer")
+        Invoke-CatchActions
+    }
+
+    try
+    {
+        $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $MachineName -ErrorAction Stop
+    }
+    catch
+    {
+        Write-VerboseOutput("Failed to run Get-ClusterNode")
+        Invoke-CatchActions
+    }
+
+    Write-VerboseOutput("Running ServerComponentStates checks")
+
+    foreach ($component in $serverMaintenance.GetServerComponentState)
+    {
+        if (($ComponentsToSkip -ne $null -and
+            $ComponentsToSkip.Count -ne 0) -and
+            $ComponentsToSkip -notcontains $component.Component)
+        {
+            if ($component.State -ne "Active")
+            {
+                $latestLocalState = $null
+                $latestRemoteState = $null
+
+                if ($component.LocalStates -ne $null)
+                {
+                    $latestLocalState = ($component.LocalStates | Sort-Object {$_.TimeStamp} -ErrorAction SilentlyContinue)[-1]
+                }
+
+                if ($component.RemoteStates -ne $null)
+                {
+                    $latestRemoteState = ($component.RemoteStates | Sort-Object {$_.TimeStamp} -ErrorAction SilentlyContinue)[-1]
+                }
+
+                Write-VerboseOutput("Component: {0} LocalState: '{1}' RemoteState: '{2}'" -f $component.Component, $latestLocalState.State, $latestRemoteState.State)
+
+                if ($latestLocalState.State -eq $latestRemoteState.State)
+                {
+                    $serverMaintenance.InactiveComponents += "'{0}' is in Maintenance Mode" -f $component.Component
+                }
+                else
+                {
+                    if (($latestLocalState -ne $null) -and
+                        ($latestLocalState.State -ne "Active"))
+                    {
+                        $serverMaintenance.InactiveComponents += "'{0}' is in Local Maintenance Mode only" -f $component.Component
+                    }
+
+                    if (($latestRemoteState -ne $null) -and
+                        ($latestRemoteState.State -ne "Active"))
+                    {
+                        $serverMaintenance.InactiveComponents += "'{0}' is in Remote Maintenance Mode only" -f $component.Component
+                    }
+                }
+            }
+            else
+            {
+                Write-VerboseOutput("Component '{0}' is Active" -f $component.Component)
+            }
+        }
+        else
+        {
+            Write-VerboseOutput("Component: {0} will be skipped" -f $component.Component)
+        }
+    }
+
+    return $serverMaintenance
+}
+
 #Uses registry build numbers from https://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
 Function Get-NetFrameWorkVersionObject {
 param(
@@ -2606,6 +2703,7 @@ param(
         $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -MachineName $ServerName -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
         if($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)
         {
             $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $ServerName | %{$_.ServicesNotRunning}
@@ -3092,6 +3190,7 @@ param(
     $order = 0
     $keyBeginningInfo = New-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
     $keyExchangeInformation = New-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
+    $keyExchangeServerMaintenance = New-DisplayResultsGroupingKey -Name "Exchange Server Maintenance" -DisplayOrder ($order++)
     $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
@@ -3227,7 +3326,58 @@ param(
                 -AnalyzedInformation $analyzedResults
         }
     }
-    #TODO: Add Server Maintenace #215 08d811326973b343c3d2a70f2151785093996c4f
+
+    ##############################
+    # Exchange Server Maintenance
+    ##############################
+    Write-VerboseOutput("Working on Exchange Server Maintenance")
+    $serverMaintenance = $exchangeInformation.ServerMaintenance
+
+    if ($serverMaintenance.InactiveComponents -eq 0 -and
+        ($serverMaintenance.GetClusterNode -eq $null -or
+            $serverMaintenance.GetClusterNode.State -eq "Up") -and
+        ($serverMaintenance.GetMailboxServer -eq $null -or
+            ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
+            $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted")))
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details "Server is not in Maintenance Mode" `
+            -DisplayGroupingKey $keyExchangeServerMaintenance `
+            -DisplayWriteType "Green" `
+            -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        if ($serverMaintenance.InactiveComponents -ne 0)
+        {
+            foreach ($inactiveComponent in $serverMaintenance.InactiveComponents)
+            {
+                $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details $inactiveComponent `
+                    -DisplayGroupingKey $keyExchangeServerMaintenance `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
+                $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Blocked")
+            {
+                $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
+                    $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
+                    $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
+                $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
+                    -DisplayGroupingKey $keyExchangeServerMaintenance `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            if ($serverMaintenance.GetClusterNode -ne $null -and $serverMaintenance.GetClusterNode.State -ne "Up")
+            {
+                $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
+                    -DisplayGroupingKey $keyExchangeServerMaintenance `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+        }
+    }
 
     #########################
     # Operating System
