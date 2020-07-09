@@ -1056,7 +1056,7 @@ Function Invoke-RegistryGetValue {
     [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
     [Parameter(Mandatory=$true)][string]$MachineName,
     [Parameter(Mandatory=$true)][string]$SubKey,
-    [Parameter(Mandatory=$true)][string]$GetValue,
+    [Parameter(Mandatory=$false)][string]$GetValue,
     [Parameter(Mandatory=$false)][bool]$ReturnAfterOpenSubKey,
     [Parameter(Mandatory=$false)][object]$DefaultValue,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
@@ -1916,7 +1916,7 @@ param(
 )
     Write-VerboseOutput("Calling: Get-CredentialGuardEnabled")
 
-    $registryValue = Invoke-RegistryGetValue -MachineName $MachineName -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags"
+    $registryValue = Invoke-RegistryGetValue -MachineName $MachineName -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($registryValue -ne $null -and
         $registryValue -ne 0)
@@ -2605,7 +2605,7 @@ param(
         $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
         $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage"
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
         if($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)
         {
             $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $ServerName | %{$_.ServicesNotRunning}
