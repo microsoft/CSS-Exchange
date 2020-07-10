@@ -3526,7 +3526,7 @@ param(
         $analyzedResults = Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details $displayValue `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Yellow" `
-            -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy)
+            -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy) `
             -AnalyzedInformation $analyzedResults
     }
 
