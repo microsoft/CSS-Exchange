@@ -3333,7 +3333,7 @@ param(
     Write-VerboseOutput("Working on Exchange Server Maintenance")
     $serverMaintenance = $exchangeInformation.ServerMaintenance
 
-    if ($serverMaintenance.InactiveComponents -eq 0 -and
+    if (($serverMaintenance.InactiveComponents).Count -eq 0 -and
         ($serverMaintenance.GetClusterNode -eq $null -or
             $serverMaintenance.GetClusterNode.State -eq "Up") -and
         ($serverMaintenance.GetMailboxServer -eq $null -or
@@ -3347,7 +3347,7 @@ param(
     }
     else
     {
-        if ($serverMaintenance.InactiveComponents -ne 0)
+        if (($serverMaintenance.InactiveComponents).Count -ne 0)
         {
             foreach ($inactiveComponent in $serverMaintenance.InactiveComponents)
             {
