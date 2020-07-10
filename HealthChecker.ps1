@@ -3753,7 +3753,7 @@ param(
             $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
         }
         elseif ($totalPhysicalMemory -lt 64 -and
-            $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ServerRole]::Edge)
+            $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge)
         {
             $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
         }
