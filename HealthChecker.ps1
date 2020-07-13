@@ -3356,26 +3356,26 @@ param(
                     -DisplayWriteType "Yellow" `
                     -AnalyzedInformation $analyzedResults
             }
+        }
 
-            if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
-                $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Blocked")
-            {
-                $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
-                    $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
-                    $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
-                $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
-                    -DisplayGroupingKey $keyExchangeServerMaintenance `
-                    -DisplayWriteType "Yellow" `
-                    -AnalyzedInformation $analyzedResults
-            }
+        if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
+            $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Blocked")
+        {
+            $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
+                $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
+                $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
+                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
 
-            if ($serverMaintenance.GetClusterNode -ne $null -and $serverMaintenance.GetClusterNode.State -ne "Up")
-            {
-                $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
-                    -DisplayGroupingKey $keyExchangeServerMaintenance `
-                    -DisplayWriteType "Yellow" `
-                    -AnalyzedInformation $analyzedResults
-            }
+        if ($serverMaintenance.GetClusterNode -ne $null -and $serverMaintenance.GetClusterNode.State -ne "Up")
+        {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
+                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
         }
     }
 
