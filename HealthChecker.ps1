@@ -2780,7 +2780,12 @@ param(
         }
     
         $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
-        $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
+
+        if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)
+        {
+            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
+        }
+
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -MachineName $ServerName -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
@@ -3147,6 +3152,7 @@ param(
     {
         if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey)))
         {
+            Write-VerboseOutput("Adding Display Grouping Key: {0}" -f $DisplayGroupingKey.Name)
             [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
             $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
         }
@@ -3362,7 +3368,8 @@ param(
         -DisplayGroupingKey $keyExchangeInformation `
         -AnalyzedInformation $analyzedResults
 
-    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013)
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)
     {
         $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
         [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
@@ -4383,25 +4390,28 @@ param(
     ##########################
     #Exchange Web App GC Mode#
     ##########################
-    Write-VerboseOutput("Working on Exchange Web App GC Mode")
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
-        -DisplayGroupingKey $keyWebApps `
-        -AddHtmlDetailRow $false `
-        -AnalyzedInformation $analyzedResults
-
-    foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys)
+    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)
     {
-        $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
-        $testingValue = New-Object PSCustomObject
-        $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled -eq 'true')
-        $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
+        Write-VerboseOutput("Working on Exchange Web App GC Mode")
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
             -DisplayGroupingKey $keyWebApps `
-            -DisplayTestingValue $testingValue `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
+
+        foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys)
+        {
+            $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
+            $testingValue = New-Object PSCustomObject
+            $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled -eq 'true')
+            $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
+                -DisplayGroupingKey $keyWebApps `
+                -DisplayTestingValue $testingValue `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
     }
 
     ######################
@@ -4580,10 +4590,13 @@ param(
         $indexOrderGroupingToKey[$keyGrouping.DisplayOrder] = $keyGrouping
     }
 
-    $i = 0
-    while ($i -lt $indexOrderGroupingToKey.Count)
+    $sortedIndexOrderGroupingToKey = $indexOrderGroupingToKey.Keys | Sort-Object
+
+    foreach ($key in $sortedIndexOrderGroupingToKey)
     {
-        $keyGrouping = $indexOrderGroupingToKey[$i]
+        $keyGrouping = $indexOrderGroupingToKey[$key]
+        Write-VerboseOutput("Working on Key Group: {0}" -f $keyGrouping.Name)
+
         if ($keyGrouping.DisplayGroupName)
         {
             Write-Grey($keyGrouping.Name)
@@ -4612,7 +4625,6 @@ param(
         }
 
         Write-Grey("")
-        $i++
     }
 }
 
