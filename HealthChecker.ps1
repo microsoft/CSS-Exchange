@@ -4655,7 +4655,9 @@ Function Write-ResultsToScreen {
 param(
 [Hashtable]$ResultsToWrite
 )
+    Write-VerboseOutput("Calling: Write-ResultsToScreen")
     $indexOrderGroupingToKey = @{}
+
     foreach ($keyGrouping in $ResultsToWrite.Keys)
     {
         $indexOrderGroupingToKey[$keyGrouping.DisplayOrder] = $keyGrouping
@@ -4665,8 +4667,10 @@ param(
 
     foreach ($key in $sortedIndexOrderGroupingToKey)
     {
+        Write-VerboseOutput("Working on Key: {0}" -f $key)
         $keyGrouping = $indexOrderGroupingToKey[$key]
         Write-VerboseOutput("Working on Key Group: {0}" -f $keyGrouping.Name)
+        Write-VerboseOutput("Total lines to write: {0}" -f ($ResultsToWrite[$keyGrouping].Count))
 
         if ($keyGrouping.DisplayGroupName)
         {
