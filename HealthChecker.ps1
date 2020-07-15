@@ -929,7 +929,8 @@ param(
 [Parameter(Mandatory=$true)][string]$RepoOwner,
 [Parameter(Mandatory=$true)][string]$RepoName,
 [Parameter(Mandatory=$true)][string]$CurrentVersion,
-[Parameter(Mandatory=$true)][int]$DaysOldLimit
+[Parameter(Mandatory=$true)][int]$DaysOldLimit,
+[Parameter(Mandatory=$false)][Scriptblock]$CatchActionFunction
 )
     Write-VerboseOutput("Calling: Test-ScriptVersion")
 
@@ -951,7 +952,19 @@ param(
                 if((Get-Job -Id $WebRequestJob.Id).State -eq "Completed")
                 {
                     Write-VerboseOutput("WebRequest after {0} attempts successfully completed. Receiving results." -f $i)
-                    $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep
+
+                    try
+                    {
+                        $releaseInformation = Receive-Job -Id $WebRequestJob.Id -Keep -ErrorAction Stop
+                    }
+                    catch
+                    {
+                        if ($CatchActionFunction -ne $null)
+                        {
+                            & $CatchActionFunction
+                        }
+                    }
+
                     Write-VerboseOutput("Removing background worker job")
                     Remove-Job -Id $WebRequestJob.Id
                     Break
@@ -4989,7 +5002,12 @@ Function Get-ErrorsThatOccurred {
 
 Function Write-HealthCheckerVersion {
     
-    $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" -RepoName "HealthChecker" -CurrentVersion $healthCheckerVersion -DaysOldLimit 90
+    $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" `
+        -RepoName "HealthChecker" `
+        -CurrentVersion $healthCheckerVersion `
+        -DaysOldLimit 90 `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+
     if($currentVersion)
     {
         Write-Green("Exchange Health Checker version {0}" -f $healthCheckerVersion)
