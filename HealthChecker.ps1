@@ -1195,9 +1195,10 @@ Function Confirm-ExchangeShell {
 param(
 [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
 [Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
+[Parameter(Mandatory=$false)][bool]$ByPassLocalExchangeServerTest = $false,
 [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
 )
-#Function Version 1.4
+#Function Version 1.6
 <#
 Required Functions: 
     https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
@@ -1206,15 +1207,40 @@ Required Functions:
     
 $passed = $false 
 Write-VerboseWriter("Calling: Confirm-ExchangeShell")
-Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
-$LoadExchangeVariables)
+Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1} | [bool]ByPassLocalExchangeServerTest: {2}" -f $LoadExchangeShell,
+$LoadExchangeVariables, $ByPassLocalExchangeServerTest)
 #Test that we are on Exchange 2010 or newer
-if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
-(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
+if(($isLocalExchangeServer = (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')) -or
+($isLocalExchangeServer = (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup')) -or
+$ByPassLocalExchangeServerTest)
 {
     Write-VerboseWriter("We are on Exchange 2010 or newer")
+    if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\EdgeTransportRole') -or
+    (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'))
+    {
+        Write-VerboseWriter("We are on Exchange Edge Transport Server")
+        $IsEdgeTransport = $true
+    }
     try 
     {
+        if(((Get-PSSession | Where-Object {($_.Availability -eq 'Available') -and
+            ($_.ConfigurationName -eq 'Microsoft.Exchange')}).Count -eq 0) -and
+            ((Get-Module -Name RemoteExchange).Count -eq 1))
+        {
+            Write-VerboseWriter("Removing RemoteExchange module")
+            Remove-Module -Name RemoteExchange
+            $currentPSModules = Get-Module
+            foreach ($PSModule in $currentPSModules)
+            {
+                if(($PSModule.ModuleType -eq "Script") -and
+                    ($PSModule.ModuleBase -like "*\Microsoft\Exchange\RemotePowerShell\*"))
+                {
+                    Write-VerboseWriter("Removing module {0} for implicit remoting" -f $PSModule.Name)
+                    Remove-Module -Name $PSModule.Name
+                }
+            }
+        }
+
         Get-ExchangeServer -ErrorAction Stop | Out-Null
         Write-VerboseWriter("Exchange PowerShell Module already loaded.")
         $passed = $true 
@@ -1227,7 +1253,8 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
             & $CatchActionFunction
             $watchErrors = $true
         }
-        if($LoadExchangeShell)
+        if($LoadExchangeShell -and
+            $isLocalExchangeServer)
         {
             Write-HostWriter "Loading Exchange PowerShell Module..."
             try
@@ -1236,9 +1263,23 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
                 {
                     $currentErrors = $Error.Count
                 }
-                Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
-                Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
-                $passed = $true #We are just going to assume this passed. 
+                if($IsEdgeTransport)
+                {
+                    [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
+                    ForEach($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn)
+                    {
+                        Write-VerboseWriter("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
+                        Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
+                    }
+                    Import-Module $env:ExchangeInstallPath\bin\Exchange.ps1 -ErrorAction Stop
+                    $passed = $true #We are just going to assume this passed.
+                }
+                else
+                {
+                    Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell
+                    $passed = $true #We are just going to assume this passed.
+                }
                 if($watchErrors)
                 {
                     $index = 0
@@ -1258,23 +1299,25 @@ if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or
     finally 
     {
         if($LoadExchangeVariables -and 
-            $passed)
+            $passed -and
+            $isLocalExchangeServer)
         {
-            if($exinstall -eq $null -or $exbin -eq $null)
+            #Diff from master not using Get-ExchangeInstallDirectory because of required functions
+            if($ExInstall -eq $null -or $ExBin -eq $null)
             {
                 if(Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup')
                 {
-                    $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath	
+                    $Global:ExInstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath
                 }
                 else
                 {
-                    $Global:exinstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath	
+                    $Global:ExInstall = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
                 }
     
-                $Global:exbin = $Global:exinstall + "\Bin"
+                $Global:ExBin = $Global:ExInstall + "\Bin"
     
-                Write-VerboseWriter("Set exinstall: {0}" -f $Global:exinstall)
-                Write-VerboseWriter("Set exbin: {0}" -f $Global:exbin)
+                Write-VerboseWriter("Set ExInstall: {0}" -f $Global:ExInstall)
+                Write-VerboseWriter("Set ExBin: {0}" -f $Global:ExBin)
             }
         }
     }
@@ -4935,7 +4978,17 @@ param(
     {
         return
     }
-    if(!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} ))
+
+    $byPassLocalExchangeServerTest = $false
+    
+    if ($Script:Server -ne $env:COMPUTERNAME)
+    {
+        $byPassLocalExchangeServerTest = $true
+    }
+
+    if(!(Confirm-ExchangeShell `
+    -ByPassLocalExchangeServerTest $byPassLocalExchangeServerTest `
+    -CatchActionFunction ${Function:Invoke-CatchActions} ))
     {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
         exit
