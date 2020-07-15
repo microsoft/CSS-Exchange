@@ -266,6 +266,7 @@ using System.Collections;
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
             public bool CredentialGuardEnabled;
+            public OSRegistryValues RegistryValues = new OSRegistryValues();
         }
     
         public class OSBuildInformation 
@@ -299,6 +300,12 @@ using System.Collections;
         {
             public object PageFile;       //store the information that we got for the page file
             public double MaxPageSize;    //holds the information of what our page file is set to
+        }
+
+        public class OSRegistryValues
+        {
+            public int CurrentVersionUbr; // stores SOFTWARE\Microsoft\Windows NT\CurrentVersion\UBR
+            public int LanManServerDisabledCompression; // stores SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\DisabledCompression
         }
     
         public class LmCompatibilityLevelInformation 
@@ -2183,6 +2190,17 @@ param(
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
     $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -MachineName $Machine_Name
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled -MachineName $Machine_Name
+    $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
+        -MachineName $Machine_Name `
+        -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" `
+        -GetValue "UBR" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    $osInformation.RegistryValues.LanManServerDisabledCompression = Invoke-RegistryGetValue `
+        -MachineName $Machine_Name `
+        -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -GetValue "DisableCompression" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $osInformation
@@ -4636,6 +4654,52 @@ param(
     {
         Write-VerboseOutput("Uknown Version of Exchange")
         $Script:AllVulnerabilitiesPassed = $false
+    }
+
+    #Description: Check for CVE-2020-0796 SMBv3 vulnerability
+    #Affected OS versions: Windows 10 build 1903 and 1909
+    #Fix: KB4551762
+    #Woraround: Disable SMBv3 compression
+
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
+    {
+        Write-VerboseOutput("Testing CVE: CVE-2020-0796")
+        $buildNumber = $osInformation.BuildInformation.VersionBuild.Split(".")[2]
+
+        if (($buildNumber -eq 18362 -or
+            $buildNumber -eq 18363) -and
+            ($osInformation.RegistryValues.CurrentVersionUbr -lt 720))
+        {
+            Write-VerboseOutput("Build vulnerable to CVE-2020-0796. Checking if workaround is in place.")
+            $writeType = "Red"
+            $writeValue = "System Vulnerable"
+
+            if ($osInformation.RegistryValues.LanManServerDisabledCompression -eq 1)
+            {
+                Write-VerboseOutput("Workaround to disable affected SMBv3 compression is in place.")
+                $writeType = "Yellow"
+                $writeValue = "Workaround is in place"
+            }
+            else
+            {
+                Write-VerboseOutput("Workaround to disable affected SMBv3 compression is NOT in place.")
+                $Script:AllVulnerabilitiesPassed = $false
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "CVE-2020-0796" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information." -f $writeValue) `
+                -DisplayGroupingKey $keyVulnerabilityCheck `
+                -DisplayWriteType $writeType `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+        else
+        {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2020-0796. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796")
+        }
+    }
+    else
+    {
+        Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
     }
 
     if ($Script:AllVulnerabilitiesPassed)
