@@ -1136,9 +1136,10 @@ Function Invoke-ScriptBlockHandler {
     [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
     [Parameter(Mandatory=$false)][string]$ScriptBlockDescription,
     [Parameter(Mandatory=$false)][object]$ArgumentList,
+    [Parameter(Mandatory=$false)][bool]$IncludeNoProxyServerOption = $true, #Default in HealthChecker
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.0
+    #Function Version 1.1
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
@@ -1152,16 +1153,30 @@ Function Invoke-ScriptBlockHandler {
     {
         if($ComputerName -ne $env:COMPUTERNAME)
         {
+            $params = @{
+                ComputerName = $ComputerName
+                ScriptBlock = $ScriptBlock
+                ErrorAction = "Stop"
+            }
+
+            if ($IncludeNoProxyServerOption)
+            {
+                Write-VerboseWriter("Including SessionOption")
+                $params.Add("SessionOption", (New-PSSessionOption -ProxyAccessType NoProxyServer))
+            }
+    
             if($ArgumentList -ne $null) 
             {
+                $params.Add("ArgumentList", $ArgumentList)
                 Write-VerboseWriter("Running Invoke-Command with argument list.")
-                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -ErrorAction Stop 
+                
             }
-            else 
+            else
             {
                 Write-VerboseWriter("Running Invoke-Command without argument list.")
-                $invokeReturn = Invoke-Command -ComputerName $ComputerName -ScriptBlock $ScriptBlock -ErrorAction Stop 
             }
+    
+            $invokeReturn = Invoke-Command @params
             return $invokeReturn 
         }
         else 
