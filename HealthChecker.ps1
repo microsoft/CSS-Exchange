@@ -1408,13 +1408,13 @@ Function Get-ServerOperatingSystemVersion {
     [string]$osReturnValue = ""
     switch ($OSBuildNumberVersion) 
     {
-        "6.0.6000" {$osReturnValue = "Windows2008"}
-        "6.1.7600" {$osReturnValue = "Windows2008R2"}
-        "6.1.7601" {$osReturnValue = "Windows2008R2"}
-        "6.2.9200" {$osReturnValue = "Windows2012"}
-        "6.3.9600" {$osReturnValue = "Windows2012R2"}
-        "10.0.14393" {$osReturnValue = "Windows2016"}
-        "10.0.17713" {$osReturnValue = "Windows2019"}
+        {$PSItem -eq "6.0.6000"} {$osReturnValue = "Windows2008"}
+        {$PSItem -eq "6.1.7600"} {$osReturnValue = "Windows2008R2"}
+        {$PSItem -eq "6.1.7601"} {$osReturnValue = "Windows2008R2"}
+        {$PSItem -eq "6.2.9200"} {$osReturnValue = "Windows2012"}
+        {$PSItem -eq "6.3.9600"} {$osReturnValue = "Windows2012R2"}
+        {$PSItem -eq "10.0.14393"} {$osReturnValue = "Windows2016"}
+        {[int]($PSItem.Split(".")[2]) -gt 14393} {$osReturnValue = "Windows2019"}
         default {$osReturnValue = "Unknown"}
     }
     
