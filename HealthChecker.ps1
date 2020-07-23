@@ -4024,6 +4024,7 @@ param(
                     If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
                     {
                         Write-Red("Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                        $Script:AllVulnerabilitiesPassed = $false
                     }
                     Else
                     {
@@ -4039,6 +4040,7 @@ param(
             Else
             {
                 Write-Red("Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                $Script:AllVulnerabilitiesPassed = $false
             }
         }
         Else
@@ -4060,6 +4062,7 @@ param(
                 If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
                 {
                     Write-Red("Potentially Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+                    $Script:AllVulnerabilitiesPassed = $false
                 }
                 Else
                 {
@@ -4070,6 +4073,7 @@ param(
             {
                 Write-Red("Unable to determine Exchange server install date!")
                 Write-Red("Potentially vulnerable to CVE-2010-3190.")
+                $Script:AllVulnerabilitiesPassed = $false
             }
         }
         Else
@@ -4077,6 +4081,7 @@ param(
             Write-Red("`nPotentially vulnerable to CVE-2010-3190.")
             Write-Red("You should check if your build is prior October 2018 and if so, install KB2565063")
             Write-Red("See: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
+            $Script:AllVulnerabilitiesPassed = $false
         }
     }
 
@@ -4106,6 +4111,7 @@ param(
                 {
                     Write-VerboseOutput("Workaround to disable affected SMBv3 compression is NOT in place.")
                     Write-Red("System vulnerable to CVE-2020-0796.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information.")
+                    $Script:AllVulnerabilitiesPassed = $false
                 }
             }
             else 
@@ -4117,6 +4123,69 @@ param(
     else
     {
         Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
+    }
+
+    #Description: Check for CVE-2020-1147
+    #Affected OS versions: Every OS supporting .NET Core 2.1 and 3.1 and .NET Framework 2.0 SP2 or above
+    #Fix: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2020-1147
+    #Woraround: N/A
+
+    Write-VerboseOutput("Testing CVE: CVE-2020-1147")
+    $netInstallPath = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "InstallPath"
+    if($netInstallPath -and ($HealthExSvrObj.NetVersionInfo.NetVersion -ne [HealthChecker.NetVersion]::Unknown))
+    {
+        if($Machine_Name -match $env:COMPUTERNAME)
+        {
+            Write-VerboseOutput("Query .NET DLL information for local machine: {0}" -f $env:COMPUTERNAME)
+            $systemDataDll = (Get-Item "$netInstallPath\System.Data.dll")
+            $systemConfigurationDll = (Get-Item "$netInstallPath\System.Configuration.dll")
+
+            [int]$systemDataDllFileBuildPart = $systemDataDll.VersionInfo.FileBuildPart
+            [int]$systemConfigurationDllFileBuildPart = $systemConfigurationDll.VersionInfo.FileBuildPart
+        }
+        else
+        {
+            Write-VerboseOutput("Query .NET DLL information for remote machine: {0}" -f $Machine_Name)
+            $systemDataDll = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {(Get-Item "$($args[0])System.Data.dll")} -ArgumentList $netInstallPath
+            $systemConfigurationDll = Invoke-Command -ComputerName $Machine_Name -ScriptBlock {(Get-Item "$($args[0])System.Configuration.dll")} -ArgumentList $netInstallPath
+        
+            [int]$systemDataDllFileBuildPart = (((($systemDataDll.VersionInfo).Split("`n") | Select-String 'ProductVersion') -Split(":")).Trim()[1]).Split(".")[2]
+            [int]$systemConfigurationDllFileBuildPart = (((($systemConfigurationDll.VersionInfo).Split("`n") | Select-String 'ProductVersion') -Split(":")).Trim()[1]).Split(".")[2]
+        }
+        Write-VerboseOutput("System.Data.dll FileBuildPart is: {0}" -f $systemDataDllFileBuildPart)
+        Write-VerboseOutput("System.Data.dll LastWriteTimeUtc is: {0}" -f $systemDataDll.LastWriteTimeUtc)
+        Write-VerboseOutput("System.Configuration.dll FileBuildPart is: {0}" -f $systemConfigurationDllFileBuildPart)
+        Write-VerboseOutput("System.Configuration.dll LastWriteTimeUtc is: {0}" -f $systemConfigurationDll.LastWriteTimeUtc)
+
+        if($HealthExSvrObj.NetVersionInfo.NetVersion -eq [HealthChecker.NetVersion]::Net4d8)
+        {
+            [int]$dllFileBuildPartToCheckAgainst = 4190
+            Write-VerboseOutput(".NET 4.8 detected. Checking against FileBuildPart: {0} " -f $dllFileBuildPartToCheckAgainst)
+        }
+        else
+        {
+            [int]$dllFileBuildPartToCheckAgainst = 3630
+            Write-VerboseOutput("Checking against FileBuildPart: {0}" -f $dllFileBuildPartToCheckAgainst)
+        }
+
+        if(($systemDataDllFileBuildPart -ge $dllFileBuildPartToCheckAgainst) -and 
+        ($systemConfigurationDllFileBuildPart -ge $dllFileBuildPartToCheckAgainst) -and
+        ($systemDataDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) -and 
+        ($systemConfigurationDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))))
+        {
+            Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
+        }
+        else
+        {
+            Write-Red("System vulnerable to {0}.`r`n`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147")    
+            $Script:AllVulnerabilitiesPassed = $false
+        }
+    }
+    else 
+    {
+        Write-Red("Unable to determine .NET Framework install path or .NET Framework version!")
+        Write-Red("Potentially vulnerable to CVE-2020-1147.")
+        $Script:AllVulnerabilitiesPassed = $false
     }
 
     #Check for different vulnerabilities
