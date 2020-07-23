@@ -3409,7 +3409,7 @@ param(
 )
     Write-VerboseOutput("Calling: Get-ServerRole")
     $roles = $ExchangeServerObj.ServerRole.ToString()
-    Write-VerboseOutput("Roll: " + $roles)
+    Write-VerboseOutput("Role: " + $roles)
     #Need to change this to like because of Exchange 2010 with AIO with the hub role.
     if($roles -like "Mailbox, ClientAccess*")
     {
