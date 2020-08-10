@@ -5146,6 +5146,20 @@ param(
             {
                 Write-Yellow("`t`tRSS: Disabled --- Warning: Enabling RSS is recommended.")
             }
+            if($adapter.PnPCapabilities -eq $true)
+            {
+                Write-Green("`t`tNIC Power Saving: Disabled")
+            }
+            elseif($adapter.PnPCapabilities -eq $false)
+            {
+                Write-Yellow("`t`tNIC Power Saving: Not configured --- Warning: It's recommended to disable NIC power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
+            else
+            {
+                Write-Yellow("`t`tNIC Power Saving: Unable to determine power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
             if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
             {
                 Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
@@ -5180,6 +5194,20 @@ param(
             else 
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
+            }
+            if($adapter.PnPCapabilities -eq $true)
+            {
+                Write-Green("`t`tNIC Power Saving: Disabled")
+            }
+            elseif($adapter.PnPCapabilities -eq $false)
+            {
+                Write-Yellow("`t`tNIC Power Saving: Not configured --- Warning: It's recommended to disable NIC power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
+            else
+            {
+                Write-Yellow("`t`tNIC Power Saving: Unable to determine power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
             }
             if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
             {
