@@ -44,7 +44,7 @@ Write-Host "$($ipmSubtreeMailEnabled.Count) of those are mail-enabled."
 
 $mailDisabledWithProxyGuid = $null
 
-if ($null -ne $allIpmSubtree[0].DumpsterEntryId) {
+if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
     $mailDisabledWithProxyGuid = @($allIpmSubtree | Where-Object { -not $_.MailEnabled -and $null -ne $_.MailRecipientGuid -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
 } else {
     $registryPath = "HKCU:\Software\Microsoft\Exchange\ExFolders"
