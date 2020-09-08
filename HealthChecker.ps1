@@ -108,7 +108,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.43.1"
+$healthCheckerVersion = "2.44.0"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -433,7 +433,8 @@ using System.Collections;
             public string LinkSpeed;    //speed of the adapter 
             public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
-            public string RSSEnabled;  //bool to determine if RSS is enabled 
+            public string RSSEnabled;  //bool to determine if RSS is enabled
+            public string PnPCapabilities; //store the PnPCapabilities settings for the NIC
             public string Name;        //name of the adapter 
             public object NICObject; //object to store the adapter info 
             public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
@@ -1291,7 +1292,17 @@ param(
             $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
             foreach($adapter in $NetworkCards2008)
             {
-                [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+                [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject
+                try 
+                {
+                    $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterDeviceID $adapter.DeviceID
+                }
+                catch 
+                {
+                    Invoke-CatchActions
+                    Write-Yellow("Warning: Unable to get the PnPCapabilities Information for adapter: {0}" -f $adapter.Description)
+                    $nicObject.PnPCapabilities = "NoPnP"
+                }
                 $nicObject.Description = $adapter.Description
                 $nicObject.Name = $adapter.Name
                 $nicObject.LinkSpeed = $adapter.Speed
@@ -1315,6 +1326,18 @@ param(
                 Write-Yellow("Warning: Unable to get the netAdapterRSS Information for adapter: {0}" -f $adapter.InterfaceDescription)
                 $nicObject.RSSEnabled = "NoRSS"
             }
+
+            try 
+            {
+                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterComponentId $adapter.ComponentId
+            }
+            catch 
+            {
+                Invoke-CatchActions
+                Write-Yellow("Warning: Unable to get the PnPCapabilities Information for adapter: {0}" -f $adapter.InterfaceDescription)
+                $nicObject.PnPCapabilities = "NoPnP"
+            }
+
             $nicObject.Description = $adapter.InterfaceDescription
             $nicObject.DriverDate = $adapter.DriverDate
             $nicObject.DriverVersion = $adapter.DriverVersionString
@@ -1334,7 +1357,17 @@ param(
         $NetworkCards2008 = Get-WmiObject -ComputerName $Machine_Name -Class Win32_NetworkAdapter | ?{$_.NetConnectionStatus -eq 2}
         foreach($adapter in $NetworkCards2008)
         {
-            [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject 
+            [HealthChecker.NICInformationObject]$nicObject = New-Object -TypeName HealthChecker.NICInformationObject
+            try 
+            {
+                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterDeviceID $adapter.DeviceID
+            }
+            catch 
+            {
+                Invoke-CatchActions
+                Write-Yellow("Warning: Unable to get the PnPCapabilities Information for adapter: {0}" -f $adapter.Description)
+                $nicObject.PnPCapabilities = "NoPnP"
+            }
             $nicObject.Description = $adapter.Description
             $nicObject.Name = $adapter.Name
             $nicObject.LinkSpeed = $adapter.Speed
@@ -1346,6 +1379,79 @@ param(
 
     return $aNICObjects 
 
+}
+
+Function Get-NicPnPCapabilitiesSetting {
+[CmdletBinding(DefaultParameterSetName="Modern")]
+param(
+[Parameter(Mandatory=$true,ParameterSetName="Modern")]
+[Parameter(Mandatory=$true,ParameterSetName="Legacy")]
+[string]$Machine_Name,
+[Parameter(Mandatory=$true,ParameterSetName="Legacy")]
+[int]$NicAdapterDeviceID,
+[Parameter(Mandatory=$true,ParameterSetName="Modern")]
+[string]$NicAdapterComponentId
+)
+
+    $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
+
+    if($NicAdapterDeviceID)
+    {
+        if($NicAdapterDeviceID -lt 10)
+        {
+            Write-VerboseOutput("[Legacy] NicAdapterDeviceId is lower than 10")
+            $adapterDeviceNumber = "000"+$NicAdapterDeviceID
+        }
+        else 
+        {
+            Write-VerboseOutput("[Legacy] NicAdapterDeviceId is greater than 10")
+            $adapterDeviceNumber = "00"+$NicAdapterDeviceID
+        }
+        $nicAdapterPnPCapabilities = "$nicAdapterBasicPath\$adapterDeviceNumber"
+        $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterPnPCapabilities -GetValue "PnPCapabilities"
+    }
+    else
+    {
+        #We need to loop through the existing adapter entries to find a match using ComponentId
+        Write-VerboseOutput("Probing started to detect NIC adapter registry path")
+        $i = 1
+        do
+        {
+            if($i -lt 10)
+            {
+                Write-VerboseOutput("[Modern] NicAdapterDeviceId is lower than 10")
+                $adapterDeviceNumber = "000"+$i
+            }
+            else
+            {
+                Write-VerboseOutput("[Modern] NicAdapterDeviceId is greater than 10")
+                $adapterDeviceNumber = "00"+$i
+            }
+            $nicAdapterComponentIdProbingPath = "$nicAdapterBasicPath\$adapterDeviceNumber"
+            $nicAdapterComponentIdProbingValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "ComponentId"
+            if($nicAdapterComponentIdProbingValue -eq $NicAdapterComponentId)
+            {
+                Write-VerboseOutput("Matching ComponentId found - we now check for PnPCapabilities value")
+                $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "PnPCapabilities"
+                break
+            }
+            else
+            {
+                Write-VerboseOutput("No matching ComponentId found - increase index and continue testing")
+                $i++
+            } 
+        } while ($null -ne $nicAdapterComponentIdProbingValue)
+    }
+
+    #Returns true if NIC adapter save power settings are disabled
+    #Returns false if NIC adapter save power settings are enabled or not configured as expected (decimal 24, hex 0x18)
+    #https://support.microsoft.com/en-us/help/2740020/information-about-power-management-setting-on-a-network-adapter
+    switch($nicAdapterPnpCapabilitiesValue)
+    {
+        24 {Write-VerboseOutput("'Allow the computer to turn off this device to save power' is already disabled"); return $true}
+        0 {Write-VerboseOutput("'Allow the computer to turn off this device to save power' is enabled"); return $false}
+        default {Write-VerboseOutput("'Allow the computer to turn off this device to save power' is not configured"); return $false}
+    }
 }
 
 Function Get-HttpProxySetting {
@@ -4271,9 +4377,9 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.7","1913.7" -CVEs "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.10","1913.10" -CVEs "CVE-2020-0903"
         }
-        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU16)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU16)
         {
-            Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1979.6","2044.6" -CVEs "CVE-2020-16875"
         }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
@@ -4299,9 +4405,9 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.11","529.8" -CVEs "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.14","529.11" -CVEs "CVE-2020-0903"
         }
-        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU5)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU5)
         {
-            Write-Green("There are no known vulnerabilities in this Exchange Server Version.")
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "595.6","659.6" -CVEs "CVE-2020-16875"
         }
     }
     else 
@@ -5040,6 +5146,20 @@ param(
             {
                 Write-Yellow("`t`tRSS: Disabled --- Warning: Enabling RSS is recommended.")
             }
+            if($adapter.PnPCapabilities -eq $true)
+            {
+                Write-Green("`t`tNIC Power Saving: Disabled")
+            }
+            elseif($adapter.PnPCapabilities -eq $false)
+            {
+                Write-Yellow("`t`tNIC Power Saving: Not configured --- Warning: It's recommended to disable NIC power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
+            else
+            {
+                Write-Yellow("`t`tNIC Power Saving: Unable to determine power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
             if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
             {
                 Write-Yellow("`t`tIPv6Enabled: {0} --- Warning" -f $adapter.IPv6Enabled)
@@ -5074,6 +5194,20 @@ param(
             else 
             {
                 Write-Yellow("`t`tLink Speed: Cannot be accurately determined due to virtualization hardware")    
+            }
+            if($adapter.PnPCapabilities -eq $true)
+            {
+                Write-Green("`t`tNIC Power Saving: Disabled")
+            }
+            elseif($adapter.PnPCapabilities -eq $false)
+            {
+                Write-Yellow("`t`tNIC Power Saving: Not configured --- Warning: It's recommended to disable NIC power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
+            }
+            else
+            {
+                Write-Yellow("`t`tNIC Power Saving: Unable to determine power saving options")
+                Write-Yellow("`t`tNote: http://support.microsoft.com/kb/2740020")
             }
             if($HealthExSvrObj.OSVersion.DisabledComponents -ne 255 -and $adapter.IPv6Enabled -eq $false )
             {
