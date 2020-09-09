@@ -1329,7 +1329,7 @@ param(
 
             try 
             {
-                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterComponentId $adapter.ComponentId
+                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterInstanceId $adapter.InstanceId
             }
             catch 
             {
@@ -1390,7 +1390,7 @@ param(
 [Parameter(Mandatory=$true,ParameterSetName="Legacy")]
 [int]$NicAdapterDeviceID,
 [Parameter(Mandatory=$true,ParameterSetName="Modern")]
-[string]$NicAdapterComponentId
+[string]$NicAdapterInstanceId
 )
 
     $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
@@ -1412,9 +1412,9 @@ param(
     }
     else
     {
-        #We need to loop through the existing adapter entries to find a match using ComponentId
+        #We need to loop through the existing adapter entries to find a match using InstanceId
         Write-VerboseOutput("Probing started to detect NIC adapter registry path")
-        $i = 1
+        $i = 0
         do
         {
             if($i -lt 10)
@@ -1427,12 +1427,13 @@ param(
                 Write-VerboseOutput("[Modern] NicAdapterDeviceId is greater than 10")
                 $adapterDeviceNumber = "00"+$i
             }
-            $nicAdapterComponentIdProbingPath = "$nicAdapterBasicPath\$adapterDeviceNumber"
-            $nicAdapterComponentIdProbingValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "ComponentId"
-            if($nicAdapterComponentIdProbingValue -eq $NicAdapterComponentId)
+            $nicAdapterInstanceIdProbingPath = "$nicAdapterBasicPath\$adapterDeviceNumber"
+            $nicAdapterInstanceIdProbingValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterInstanceIdProbingPath -GetValue "NetCfgInstanceId"
+            if($nicAdapterInstanceIdProbingValue -eq $NicAdapterInstanceId)
             {
                 Write-VerboseOutput("Matching ComponentId found - we now check for PnPCapabilities value")
-                $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "PnPCapabilities"
+                $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterInstanceIdProbingPath -GetValue "PnPCapabilities"
+                Write-VerboseOutput("PnPCapabilities value: {0}" -f $nicAdapterPnpCapabilitiesValue)
                 break
             }
             else
@@ -1440,7 +1441,7 @@ param(
                 Write-VerboseOutput("No matching ComponentId found - increase index and continue testing")
                 $i++
             } 
-        } while ($null -ne $nicAdapterComponentIdProbingValue)
+        } while ($null -ne $nicAdapterInstanceIdProbingValue)
     }
 
     #Returns true if NIC adapter save power settings are disabled
