@@ -108,7 +108,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.44.0"
+$healthCheckerVersion = "2.44.1"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -1329,7 +1329,7 @@ param(
 
             try 
             {
-                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterComponentId $adapter.ComponentId
+                $nicObject.PnPCapabilities = Get-NicPnPCapabilitiesSetting -Machine_Name $Machine_Name -NicAdapterInstanceId $adapter.InstanceId
             }
             catch 
             {
@@ -1390,7 +1390,7 @@ param(
 [Parameter(Mandatory=$true,ParameterSetName="Legacy")]
 [int]$NicAdapterDeviceID,
 [Parameter(Mandatory=$true,ParameterSetName="Modern")]
-[string]$NicAdapterComponentId
+[string]$NicAdapterInstanceId
 )
 
     $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
@@ -1412,9 +1412,9 @@ param(
     }
     else
     {
-        #We need to loop through the existing adapter entries to find a match using ComponentId
+        #We need to loop through the existing adapter entries to find a match using InstanceId
         Write-VerboseOutput("Probing started to detect NIC adapter registry path")
-        $i = 1
+        $i = 0
         do
         {
             if($i -lt 10)
@@ -1427,12 +1427,13 @@ param(
                 Write-VerboseOutput("[Modern] NicAdapterDeviceId is greater than 10")
                 $adapterDeviceNumber = "00"+$i
             }
-            $nicAdapterComponentIdProbingPath = "$nicAdapterBasicPath\$adapterDeviceNumber"
-            $nicAdapterComponentIdProbingValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "ComponentId"
-            if($nicAdapterComponentIdProbingValue -eq $NicAdapterComponentId)
+            $nicAdapterInstanceIdProbingPath = "$nicAdapterBasicPath\$adapterDeviceNumber"
+            $nicAdapterInstanceIdProbingValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterInstanceIdProbingPath -GetValue "NetCfgInstanceId"
+            if($nicAdapterInstanceIdProbingValue -eq $NicAdapterInstanceId)
             {
                 Write-VerboseOutput("Matching ComponentId found - we now check for PnPCapabilities value")
-                $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterComponentIdProbingPath -GetValue "PnPCapabilities"
+                $nicAdapterPnpCapabilitiesValue = Invoke-RegistryHandler -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey $nicAdapterInstanceIdProbingPath -GetValue "PnPCapabilities"
+                Write-VerboseOutput("PnPCapabilities value: {0}" -f $nicAdapterPnpCapabilitiesValue)
                 break
             }
             else
@@ -1440,7 +1441,7 @@ param(
                 Write-VerboseOutput("No matching ComponentId found - increase index and continue testing")
                 $i++
             } 
-        } while ($null -ne $nicAdapterComponentIdProbingValue)
+        } while ($null -ne $nicAdapterInstanceIdProbingValue)
     }
 
     #Returns true if NIC adapter save power settings are disabled
@@ -4377,7 +4378,7 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.7","1913.7" -CVEs "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.10","1913.10" -CVEs "CVE-2020-0903"
         }
-        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU16)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU17)
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1979.6","2044.6" -CVEs "CVE-2020-16875"
         }
@@ -4405,7 +4406,7 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.11","529.8" -CVEs "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.14","529.11" -CVEs "CVE-2020-0903"
         }
-        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU5)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU6)
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "595.6","659.6" -CVEs "CVE-2020-16875"
         }
