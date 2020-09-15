@@ -4386,6 +4386,10 @@ param(
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1979.6","2044.6" -CVEs "CVE-2020-16875"
         }
+        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU18)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
     {
@@ -4413,6 +4417,10 @@ param(
         if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU6)
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "595.6","659.6" -CVEs "CVE-2020-16875"
+        }
+        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU7)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
         }
     }
     else 
