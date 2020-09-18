@@ -87,6 +87,8 @@
     Used to collect the IMAP protocol logs
 .PARAMETER OABLogs
     Used to collect the OAB logs
+.PARAMETER PowerShellLogs
+    Used to collect the Exchange PowerShell Logs
 .PARAMETER MSInfo 
     Old switch that was used for collecting the general Server information 
 .PARAMETER CollectAllLogsBasedOnDaysWorth
@@ -157,6 +159,7 @@ Param (
 [switch]$PopLogs,
 [switch]$ImapLogs,
 [switch]$OABLogs,
+[switch]$PowerShellLogs,
 [switch]$CollectAllLogsBasedOnDaysWorth = $false, 
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
@@ -710,6 +713,7 @@ param(
     $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs 
     $obj | Add-Member -Name OABLogs -MemberType NoteProperty -Value $OABLogs
+    $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -769,6 +773,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ImapLogs = $true 
         $Script:Experfwiz = $true
         $Script:OABLogs = $true
+        $Script:PowerShellLogs = $true
     }
 
     if($DefaultTransportLogging)
@@ -854,6 +859,7 @@ Function Test-NoSwitchesProvided {
     $PopLogs -or 
     $ImapLogs -or 
     $OABLogs -or
+    $PowerShellLogs -or
     $ExchangeServerInfo
     ){return}
     else 
@@ -3038,6 +3044,13 @@ param(
                 else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
 
                 $info = ($copyInfo -f ($Script:localExinstall + "\Logging\OABGeneratorSimpleLog"),($Script:RootCopyToDirectory + "\OAB_Generation_Simple_Logs"))
+                if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
+                else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
+            }
+
+            if($PassedInfo.PowerShellLogs)
+            {
+                $info = ($copyInfo -f ($Script:localExinstall + "\Logging\HttpProxy\PowerShell"),($Script:RootCopyToDirectory + "\PowerShell_Proxy_Logs"))
                 if($PassedInfo.CollectAllLogsBasedOnDaysWorth){$cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info}
                 else {$cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info}
             }
