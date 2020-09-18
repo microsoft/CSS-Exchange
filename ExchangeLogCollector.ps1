@@ -108,7 +108,9 @@
 .PARAMETER PerformanceIssues
     To enable the common switches for data collection to assist with determing the cause of a Performance issue. 
 .PARAMETER PerformanceMailflowIssues
-    To enable the common switches for data collection to assist with determine the cause of a Mailflow Performance Type issue. 
+    To enable the common switches for data collection to assist with determine the cause of a Mailflow Performance Type issue.
+.PARAMETER OutlookConnectivityIssues
+    To enable the command switches for the data collection to assist with determining outlook connectivity issues that are on the Exchange server.
 .PARAMETER ExperfwizLogmanName
     To be able to set the Experfwiz Logman Name that we would be looking for. By Default "Exchange_Perfwiz"
 .PARAMETER ExmonLogmanName
@@ -168,6 +170,7 @@ Param (
 [switch]$DatabaseFailoverIssue,
 [switch]$PerformanceIssues,
 [switch]$PerformanceMailflowIssues,
+[switch]$OutlookConnectivityIssues,
 [string]$ExperfwizLogmanName = "Exchange_Perfwiz",
 [string]$ExmonLogmanName = "Exmon_Trace",
 [switch]$AcceptEULA,
@@ -811,6 +814,17 @@ Function Test-PossibleCommonScenarios {
         $Script:MessageTrackingLogs = $true 
         $Script:QueueInformationThisServer = $true 
         $Script:TransportConfig = $true 
+    }
+    if($OutlookConnectivityIssues)
+    {
+        $Script:DailyPerformanceLogs = $true
+        $Script:Experfwiz = $true
+        $Script:IISLogs = $true
+        $Script:MapiLogs = $true
+        $Script:RPCLogs = $true
+        $Script:AutoDLogs = $true
+        $Script:EWSLogs = $true
+        $Script:ServerInfo = $true
     }
     
     #See if any transport logging is enabled. 
