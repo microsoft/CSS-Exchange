@@ -102,6 +102,8 @@ ImapLogs - Collects IMAP protocol logs
 
 OABLogs - Collects OAB Logs
 
+PowerShellLogs - Collect Exchange PowerShell Logs.
+
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
 AppSysLogs - Collects the Application, System, and MSExchange Management. 
@@ -117,6 +119,8 @@ DatabaseFailoverIssue - Enables Daily Performance Logs, High Availability Logs, 
 PerformanceIssues - Enables Daily Performance Logs, Managed Availability Logs, and Experfwiz for data collection. 
 
 PerformanceMailflowIssues - Enables Daily Performance Logs, Experfwiz, Message Tracking Logs, Transport Configuration, and Local Queue Information on this server. 
+
+OutlookConnectivityIssues = Enabled Daily Performance Logs, Experfwiz, IIS Logs, MAPI Logs, RPC Logs, Auto D Logs, EWS Logs, and Server Information. 
 
 ExperfwizLogmanName - Sets the name of how to collect Experfwiz data from logman. Use only if a different log collection name is used within the experfwiz script. 
 
