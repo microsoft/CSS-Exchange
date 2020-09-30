@@ -162,7 +162,7 @@ Param (
 [switch]$ImapLogs,
 [switch]$OABLogs,
 [switch]$PowerShellLogs,
-[switch]$CollectAllLogsBasedOnDaysWorth = $false, 
+[switch]$CollectAllLogsBasedOnDaysWorth = $true, 
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
 [bool]$SkipEndCopyOver,
