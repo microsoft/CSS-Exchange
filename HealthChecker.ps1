@@ -108,7 +108,7 @@ param(
 Note to self. "New Release Update" are functions that i need to update when a new release of Exchange is published
 #>
 
-$healthCheckerVersion = "2.44.2"
+$healthCheckerVersion = "2.44.3"
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
 
@@ -4340,6 +4340,7 @@ param(
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.3" -CVEs "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.4" -CVEs "CVE-2019-1373"
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.6" -CVEs "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.7" -CVEs "CVE-2020-16969"
         }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016)
@@ -4386,9 +4387,9 @@ param(
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1979.6","2044.6" -CVEs "CVE-2020-16875"
         }
-        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU18)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18)
         {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.7","2106.3" -CVEs "CVE-2020-16969"
         }
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
@@ -4418,9 +4419,9 @@ param(
         {
             Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "595.6","659.6" -CVEs "CVE-2020-16875"
         }
-        if($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU7)
+        if($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7)
         {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+            Test-VulnerabilitiesByBuildNumbersAndDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.7","721.3" -CVEs "CVE-2020-16969"
         }
     }
     else 
