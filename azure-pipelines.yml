@@ -1,0 +1,112 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: Health Checker Azure Pipeline
+trigger:
+  branches:
+    include:
+      - master
+      - release
+
+pool:
+  vmImage: 'windows-2019'
+
+steps:
+- pwsh: | 
+    $webRequest = Invoke-WebRequest https://api.github.com/repos/dpaulson45/HealthChecker/releases
+    $json = ConvertFrom-Json -InputObject $webRequest.Content
+    $tagString = $json[0].tag_name
+    $split = $tagString.Split(".")
+    $oldMajor = [double]$split[0].Replace("v","")
+    $oldMinor = [double]$split[1]
+    $buildRevision = [double]$split[2]
+    
+    $content = Get-Content .\Build\Version.txt
+    $split = $content.Split(".")
+    $major = $split[0]
+    $minor = $split[1]
+
+    if($oldMajor -ne $major -or
+    $oldMinor -ne $minor)
+    {
+      $buildRevision = 0
+    }
+    else
+    {
+      $buildRevision++
+    }
+
+    Write-Host("New Script Version: v{0}.{1}.{2}" -f $major, $minor, $buildRevision)
+
+    $scriptContent = Get-Content .\HealthChecker.ps1
+    [System.Collections.Generic.List[System.Object]]$updateScript = New-Object -TypeName System.Collections.Generic.List[System.Object]
+
+    foreach($line in $scriptContent)
+    {
+      if($line -like "`$healthCheckerVersion =*")
+      {
+        Write-Host("Line Hit")
+        $line = "`$healthCheckerVersion = `"{0}.{1}.{2}`"" -f $major, $minor, $buildRevision
+      }
+      $updateScript.Add($line)
+    }
+
+    $buildScriptLocation = ".\Build\HealthChecker.ps1"
+
+    $updateScript | Out-File $buildScriptLocation
+    
+    $tag = "v{0}.{1}.{2}" -f $major, $minor, $buildRevision
+    Write-Host("New tag: {0}" -f $tag)
+    Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
+    Write-Host "##vso[task.setvariable variable=BuildScriptLocation]$buildScriptLocation"
+
+  displayName: "Setting Tag Value"
+
+- pwsh: |
+    $value = "$(ReleaseTagValue)"
+    $title = "{0} Release" -f $value
+    Write-Host "##vso[task.setvariable variable=ReleaseTitleValue]$title"
+  
+  displayName: "Setting Release Title"
+
+- pwsh: |
+    $scriptLocation = "$(BuildScriptLocation)"
+    Write-Host("$scriptLocation")
+    $hashValue = (Get-FileHash $scriptLocation -Algorithm SHA256).Hash
+    
+    $releaseInfo = @"
+
+    SHA256: {0}
+
+    How to Verify Hash Value: https://github.com/dpaulson45/HealthChecker/wiki/How-to-Verify-Hash-Value
+    "@ -f $hashValue 
+
+    Write-Host("$releaseInfo")
+    $releaseInfo | Out-File .\Build\ReleaseNotes.txt
+
+    cp $scriptLocation $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+
+  displayName: "Setting Release Notes and Assets"
+
+- pwsh: | 
+    Get-ChildItem "$(Build.ArtifactStagingDirectory)"
+    Get-Content .\Build\ReleaseNotes.txt
+  displayName: "Testing"
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Release'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+  inputs:
+    gitHubConnection: github.com_dpaulson45
+    repositoryName: dpaulson45/HealthChecker
+    action: create
+    tagSource: manual
+    tagPattern: 'v[0-9].[0-9].[0-9]'
+    tag: $(ReleaseTagValue)
+    title: $(ReleaseTitleValue)
+    releaseNotesSource: 'file'
+    releaseNotesFile: .\Build\ReleaseNotes.txt
+    addChangeLog: true
+    assets: $(Build.ArtifactStagingDirectory)\*
