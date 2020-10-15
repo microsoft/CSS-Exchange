@@ -4132,7 +4132,7 @@ param(
 
                 If ($E15_RegValueInstallData -ne $null -and $E15_RegValueInstallData -ne [string]::Empty)
                 {
-                    If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,”yyyyMMdd”,$null))))
+                    If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,"yyyyMMdd",$null))) -lt (([DateTime]::ParseExact($E15_RegValueInstallData,"yyyyMMdd",$null))))
                     {
                         Write-Red("Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                         $Script:AllVulnerabilitiesPassed = $false
@@ -4170,7 +4170,7 @@ param(
 
             If ($E2010_RegValueInstallDate -ne $null -and $E2010_RegValueInstallDate -ne [string]::Empty)
             {
-                If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,”yyyyMMdd”,$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,”yyyyMMdd”,$null))))
+                If ((([DateTime]::ParseExact($KB2565063_RegValueInstallDate,"yyyyMMdd",$null))) -lt (([DateTime]::ParseExact($E2010_RegValueInstallDate,"yyyyMMdd",$null))))
                 {
                     Write-Red("Potentially Vulnerable to CVE-2010-3190.`r`n`tSee: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/MS11-025-required-on-Exchange-Server-versions-released-before/ba-p/608353 for more information.")
                     $Script:AllVulnerabilitiesPassed = $false
