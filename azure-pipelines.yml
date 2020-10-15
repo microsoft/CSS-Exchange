@@ -55,7 +55,7 @@ steps:
 
     $buildScriptLocation = ".\Build\HealthChecker.ps1"
 
-    $updateScript | Out-File $buildScriptLocation
+    $updateScript | Out-File $buildScriptLocation -Encoding ascii
     
     $tag = "v{0}.{1}.{2}" -f $major, $minor, $buildRevision
     Write-Host("New tag: {0}" -f $tag)
