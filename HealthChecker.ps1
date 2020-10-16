@@ -5601,30 +5601,30 @@ Function Build-ServerObject
     [Parameter(Mandatory=$true)][HealthChecker.HealthExchangeServerObject]$HealthExSvrObj
     )
 
-    $ServerObject = New-Object –TypeName PSObject
+    $ServerObject = New-Object -TypeName PSCustomObject
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name ServerName –Value $HealthExSvrObj.ServerName
+    $ServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $HealthExSvrObj.ServerName
 
     if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::VMWare -or $HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::HyperV)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name VirtualServer –Value "Yes"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name VirtualServer -Value "Yes"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name VirtualServer –Value "No"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name VirtualServer -Value "No"
     }
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name HardwareType –Value $HealthExSvrObj.HardwareInfo.ServerType.ToString()
+    $ServerObject | Add-Member -MemberType NoteProperty -Name HardwareType -Value $HealthExSvrObj.HardwareInfo.ServerType.ToString()
 
     if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name Manufacturer –Value $HealthExSvrObj.HardwareInfo.Manufacturer
-        $ServerObject | Add-Member –MemberType NoteProperty –Name Model –Value $HealthExSvrObj.HardwareInfo.Model
+        $ServerObject | Add-Member -MemberType NoteProperty -Name Manufacturer -Value $HealthExSvrObj.HardwareInfo.Manufacturer
+        $ServerObject | Add-Member -MemberType NoteProperty -Name Model -Value $HealthExSvrObj.HardwareInfo.Model
     }
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name OperatingSystem –Value $HealthExSvrObj.OSVersion.OperatingSystemName
-    $ServerObject | Add-Member –MemberType NoteProperty –Name Exchange –Value $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName
-    $ServerObject | Add-Member –MemberType NoteProperty –Name BuildNumber –Value $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber
+    $ServerObject | Add-Member -MemberType NoteProperty -Name OperatingSystem -Value $HealthExSvrObj.OSVersion.OperatingSystemName
+    $ServerObject | Add-Member -MemberType NoteProperty -Name Exchange -Value $HealthExSvrObj.ExchangeInformation.ExchangeFriendlyName
+    $ServerObject | Add-Member -MemberType NoteProperty -Name BuildNumber -Value $HealthExSvrObj.ExchangeInformation.ExchangeBuildNumber
 
     #If IU or Security Hotfix detected
     if($HealthExSvrObj.ExchangeInformation.KBsInstalled -ne $null)
@@ -5635,27 +5635,27 @@ Function Build-ServerObject
             $KBArray += $kb
         }
 
-        $ServerObject | Add-Member –MemberType NoteProperty –Name InterimUpdatesInstalled -Value $KBArray
+        $ServerObject | Add-Member -MemberType NoteProperty -Name InterimUpdatesInstalled -Value $KBArray
     }
 
     if($HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild -eq $false -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ge [HealthChecker.ExchangeVersion]::Exchange2013)
     {
         $Dif_Days = ((Get-Date) - ([System.Convert]::ToDateTime([DateTime]$HealthExSvrObj.ExchangeInformation.BuildReleaseDate))).Days
-        $ServerObject | Add-Member –MemberType NoteProperty –Name BuildDaysOld –Value $Dif_Days
-		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
+        $ServerObject | Add-Member -MemberType NoteProperty -Name BuildDaysOld -Value $Dif_Days
+		$ServerObject | Add-Member -MemberType NoteProperty -Name SupportedExchangeBuild -Value $HealthExSvrObj.ExchangeInformation.SupportedExchangeBuild
     }
 	else
 	{
-		$ServerObject | Add-Member –MemberType NoteProperty –Name SupportedExchangeBuild -Value $True
+		$ServerObject | Add-Member -MemberType NoteProperty -Name SupportedExchangeBuild -Value $True
 	}
 
     if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::Edge -and $HealthExSvrObj.ExchangeInformation.ExServerRole -ne [HealthChecker.ServerRole]::MultiRole))
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name ServerRole -Value "Not Multirole"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name ServerRole -Value "Not Multirole"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name ServerRole -Value $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString()
+        $ServerObject | Add-Member -MemberType NoteProperty -Name ServerRole -Value $HealthExSvrObj.ExchangeInformation.ExServerRole.ToString()
     }
 
 
@@ -5665,20 +5665,20 @@ Function Build-ServerObject
 
     if($HealthExSvrObj.HardwareInfo.AutoPageFile) 
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name AutoPageFile -Value "Yes"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name AutoPageFile -Value "Yes"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name AutoPageFile -Value "No"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name AutoPageFile -Value "No"
     }
     
     if($HealthExSvrObj.OSVersion.PageFile.PageFile.Count -gt 1)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name MultiplePageFiles -Value "Yes"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name MultiplePageFiles -Value "Yes"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name MultiplePageFiles -Value "No"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name MultiplePageFiles -Value "No"
     }
     
     
@@ -5691,14 +5691,14 @@ Function Build-ServerObject
         if($sDisplay -eq "Good")
         {
 
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-      			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+      			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "Yes"
 
         }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "No"
         }
     }
 
@@ -5709,13 +5709,13 @@ Function Build-ServerObject
     {
         if($HealthExSvrObj.OSVersion.PageFile.MaxPageSize -eq 32778)
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "Yes"
         }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "No"
         }
     }
     #Exchange 2013 with page file size that should match total memory plus 10 MB 
@@ -5724,13 +5724,13 @@ Function Build-ServerObject
         $sDisplay = Verify-PagefileEqualMemoryPlus10 -page_obj $HealthExSvrObj.OSVersion.PageFile -hardware_obj $HealthExSvrObj.HardwareInfo
         if($sDisplay -eq "Good")
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "Yes"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "Yes"
         }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name PagefileSizeSetRight -Value "No"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSize -Value "$($HealthExSvrObj.OSVersion.PageFile.MaxPageSize)"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name PagefileSizeSetRight -Value "No"
         }
     }
 
@@ -5745,16 +5745,16 @@ Function Build-ServerObject
         {
             if($HealthExSvrObj.ExchangeInformation.RecommendedNetVersion)
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value $HealthExSvrObj.NetVersionInfo.FriendlyName
+                $ServerObject | Add-Member -MemberType NoteProperty -Name DotNetVersion -Value $HealthExSvrObj.NetVersionInfo.FriendlyName
             }
             else
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
+                $ServerObject | Add-Member -MemberType NoteProperty -Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
             }
         }
         else
         {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
+                $ServerObject | Add-Member -MemberType NoteProperty -Name DotNetVersion -Value "$($HealthExSvrObj.NetVersionInfo.FriendlyName) $($HealthExSvrObj.NetVersionInfo.DisplayWording)"
         }
 
     }
@@ -5766,18 +5766,18 @@ Function Build-ServerObject
 
     if($HealthExSvrObj.OSVersion.HighPerformanceSet)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value $HealthExSvrObj.OSVersion.PowerPlanSetting
-		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $True
+        $ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlan -Value $HealthExSvrObj.OSVersion.PowerPlanSetting
+		$ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlanSetRight -Value $True
     }
     elseif($HealthExSvrObj.OSVersion.PowerPlan -eq $null) 
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "Not Accessible"
-		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
+        $ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlan -Value "Not Accessible"
+		$ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlanSetRight -Value $False
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlan -Value "$($HealthExSvrObj.OSVersion.PowerPlanSetting)"
-		$ServerObject | Add-Member –MemberType NoteProperty –Name PowerPlanSetRight -Value $False
+        $ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlan -Value "$($HealthExSvrObj.OSVersion.PowerPlanSetting)"
+		$ServerObject | Add-Member -MemberType NoteProperty -Name PowerPlanSetRight -Value $False
     }
 
 
@@ -5786,7 +5786,7 @@ Function Build-ServerObject
 	#Http Proxy Settings#
 	#####################
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name HTTPProxy -Value $HealthExSvrObj.OSVersion.HttpProxy
+    $ServerObject | Add-Member -MemberType NoteProperty -Name HTTPProxy -Value $HealthExSvrObj.OSVersion.HttpProxy
 
 
     ##################
@@ -5799,38 +5799,38 @@ Function Build-ServerObject
         {
 			$i = 1
 			
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
+			$ServerObject | Add-Member -MemberType NoteProperty -Name NumberNICs ($HealthExSvrObj.OSVersion.NetworkAdapters).count
 
             foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_$($i) -Value $adapter.Name
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_$($i) -Value $adapter.Description
+                $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_Name_$($i) -Value $adapter.Name
+                $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_Description_$($i) -Value $adapter.Description
 
                 if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
                 {
                     if((New-TimeSpan -Start (Get-Date) -End $adapter.DriverDate).Days -lt [int]-365)
                     {
-                        $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Driver_$($i) -Value "Outdated (>1 Year Old)"
+                        $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_Driver_$($i) -Value "Outdated (>1 Year Old)"
                     }
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverDate_$($i) -Value $adapter.DriverDate
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_DriverVersion_$($i) -Value $adapter.DriverVersion
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value $adapter.LinkSpeed
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_DriverDate_$($i) -Value $adapter.DriverDate
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_DriverVersion_$($i) -Value $adapter.DriverVersion
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_LinkSpeed_$($i) -Value $adapter.LinkSpeed
                 }
                 else
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_$($i) -Value "VM - Not Applicable"
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_LinkSpeed_$($i) -Value "VM - Not Applicable"
                 }
                 if($adapter.RSSEnabled -eq "NoRSS")
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "NoRSS"
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_RSS_$($i) -Value "NoRSS"
                 }
                 elseif($adapter.RSSEnabled -eq "True")
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value  "Enabled"
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_RSS_$($i) -Value  "Enabled"
                 }
                 else
                 {
-                    $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_RSS_$($i) -Value "Disabled"
+                    $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_RSS_$($i) -Value "Disabled"
                 }
 				
 				$i++
@@ -5846,15 +5846,15 @@ Function Build-ServerObject
         
         foreach($adapter in $HealthExSvrObj.OSVersion.NetworkAdapters)
         {
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Name_1 -Value $adapter.Name
-            $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_Description_1 -Value $adapter.Description
+			$ServerObject | Add-Member -MemberType NoteProperty -Name NIC_Name_1 -Value $adapter.Name
+            $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_Description_1 -Value $adapter.Description
             if($HealthExSvrObj.HardwareInfo.ServerType -eq [HealthChecker.ServerType]::Physical)
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value $adapter.LinkSpeed
+                $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_LinkSpeed_1 -Value $adapter.LinkSpeed
             }
             else 
             {
-                $ServerObject | Add-Member –MemberType NoteProperty –Name NIC_LinkSpeed_1 -Value "VM - Not Applicable"  
+                $ServerObject | Add-Member -MemberType NoteProperty -Name NIC_LinkSpeed_1 -Value "VM - Not Applicable"  
             }
         }
         
@@ -5863,7 +5863,7 @@ Function Build-ServerObject
     {
         if($HealthExSvrObj.OSVersion.NetworkAdapters.Count -gt 1 -and ($HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::Mailbox -or $HealthExSvrObj.ExchangeInformation.ExServerRole -eq [HealthChecker.ServerRole]::MultiRole))
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name E2013MultipleNICs -Value "Yes"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name E2013MultipleNICs -Value "Yes"
         }
     }
 
@@ -5871,69 +5871,69 @@ Function Build-ServerObject
     #Processor Information#
     #######################
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
+    $ServerObject | Add-Member -MemberType NoteProperty -Name ProcessorName -Value $HealthExSvrObj.HardwareInfo.Processor.ProcessorName
 
     #Recommendation by PG is no more than 24 cores (this should include logical with Hyper Threading
     if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24 -and $HealthExSvrObj.ExchangeInformation.ExchangeVersion -ne [HealthChecker.ExchangeVersion]::Exchange2010)
     {
         if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name HyperThreading -Value "Enabled"
         }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name HyperThreading -Value "Disabled"
         }
     }
     elseif($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Enabled"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name HyperThreading -Value "Enabled"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name HyperThreading -Value "Disabled"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name HyperThreading -Value "Disabled"
     }
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors
+    $ServerObject | Add-Member -MemberType NoteProperty -Name NumberOfProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfProcessors
 
     if($HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors -gt 24)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member -MemberType NoteProperty -Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
+        $ServerObject | Add-Member -MemberType NoteProperty -Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
-        $ServerObject | Add-Member –MemberType NoteProperty –Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
+        $ServerObject | Add-Member -MemberType NoteProperty -Name NumberOfPhysicalCores -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfPhysicalCores
+        $ServerObject | Add-Member -MemberType NoteProperty -Name NumberOfLogicalProcessors -Value $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors
     }
 	if($HealthExSvrObj.HardwareInfo.Model -like "*ProLiant*")
 	{
 		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Undetermined"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name NUMAGroupSize -Value "Undetermined"
 		}
 		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Clustered"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name NUMAGroupSize -Value "Clustered"
 		}
 		else
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name NUMAGroupSize -Value "Flat"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name NUMAGroupSize -Value "Flat"
 		}
 	}
 	else
 	{
 		if($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -eq -1)
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Undetermined"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name AllProcCoresVisible -Value "Undetermined"
 		}
 		elseif($HealthExSvrObj.HardwareInfo.Processor.EnvProcessorCount -ne $HealthExSvrObj.HardwareInfo.Processor.NumberOfLogicalProcessors)
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "No"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name AllProcCoresVisible -Value "No"
 		}
 		else
 		{
-			$ServerObject | Add-Member –MemberType NoteProperty –Name AllProcCoresVisible -Value "Yes"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name AllProcCoresVisible -Value "Yes"
 		}
 	}
     if($HealthExSvrObj.HardwareInfo.Processor.ProcessorIsThrottled)
@@ -5941,18 +5941,18 @@ Function Build-ServerObject
         #We are set correctly at the OS layer
         if($HealthExSvrObj.OSVersion.HighPerformanceSet)
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorSpeed -Value "Throttled, Not Power Plan"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name ProcessorSpeed -Value "Throttled, Not Power Plan"
         }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name ProcessorSpeed -Value "Throttled, Power Plan"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name ProcessorSpeed -Value "Throttled, Power Plan"
         }
-        $ServerObject | Add-Member –MemberType NoteProperty –Name CurrentProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.CurrentMegacyclesPerCore
-        $ServerObject | Add-Member –MemberType NoteProperty –Name MaxProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
+        $ServerObject | Add-Member -MemberType NoteProperty -Name CurrentProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.CurrentMegacyclesPerCore
+        $ServerObject | Add-Member -MemberType NoteProperty -Name MaxProcessorSpeed -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name MaxMegacyclesPerCore -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
+        $ServerObject | Add-Member -MemberType NoteProperty -Name MaxMegacyclesPerCore -Value $HealthExSvrObj.HardwareInfo.Processor.MaxMegacyclesPerCore
     }
 
 
@@ -5962,22 +5962,22 @@ Function Build-ServerObject
     #For Exchange 2016 the value that we shouldn't be greater than is 206,158,430,208 (192 * 1024 * 1024 * 1024)
     $totalPhysicalMemory = [System.Math]::Round($HealthExSvrObj.HardwareInfo.TotalMemory / 1024 /1024 /1024) 
 
-    $ServerObject | Add-Member –MemberType NoteProperty –Name TotalPhysicalMemory -Value "$totalPhysicalMemory GB"
+    $ServerObject | Add-Member -MemberType NoteProperty -Name TotalPhysicalMemory -Value "$totalPhysicalMemory GB"
 	
 	if($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2016 -and
         $HealthExSvrObj.HardwareInfo.TotalMemory -gt 206158430208)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $False
+        $ServerObject | Add-Member -MemberType NoteProperty -Name E2016MemoryRight -Value $False
     }
     elseif($HealthExSvrObj.ExchangeInformation.ExchangeVersion -eq [HealthChecker.ExchangeVersion]::Exchange2013 -and
      $HealthExSvrObj.HardwareInfo.TotalMemory -gt 103079215104)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $False
+        $ServerObject | Add-Member -MemberType NoteProperty -Name E2013MemoryRight -Value $False
     }
 	else
 	{
-		$ServerObject | Add-Member –MemberType NoteProperty –Name E2016MemoryRight -Value $True
-		$ServerObject | Add-Member –MemberType NoteProperty –Name E2013MemoryRight -Value $True
+		$ServerObject | Add-Member -MemberType NoteProperty -Name E2016MemoryRight -Value $True
+		$ServerObject | Add-Member -MemberType NoteProperty -Name E2013MemoryRight -Value $True
 	}
 
     ################
@@ -5991,12 +5991,12 @@ Function Build-ServerObject
 	    
 	    if($HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning)
 	    {
-		    $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Impacted"
-			$ServerObject | Add-Member –MemberType NoteProperty –Name ServicesImpacted -Value $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning
+		    $ServerObject | Add-Member -MemberType NoteProperty -Name ServiceHealth -Value "Impacted"
+			$ServerObject | Add-Member -MemberType NoteProperty -Name ServicesImpacted -Value $HealthExSvrObj.ExchangeInformation.ExchangeServicesNotRunning
 	    }
         else
         {
-            $ServerObject | Add-Member –MemberType NoteProperty –Name ServiceHealth -Value "Healthy"
+            $ServerObject | Add-Member -MemberType NoteProperty -Name ServiceHealth -Value "Healthy"
         }
     }
 
@@ -6005,21 +6005,21 @@ Function Build-ServerObject
 	#################
     if($HealthExSvrObj.OSVersion.TCPKeepAlive -eq 0)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Not Set" 
+        $ServerObject | Add-Member -MemberType NoteProperty -Name TCPKeepAlive -Value "Not Set" 
     }
     elseif($HealthExSvrObj.OSVersion.TCPKeepAlive -lt 900000 -or $HealthExSvrObj.OSVersion.TCPKeepAlive -gt 1800000)
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Not Optimal"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name TCPKeepAlive -Value "Not Optimal"
     }
     else
     {
-        $ServerObject | Add-Member –MemberType NoteProperty –Name TCPKeepAlive -Value "Optimal"
+        $ServerObject | Add-Member -MemberType NoteProperty -Name TCPKeepAlive -Value "Optimal"
     }
 
     ###############################
 	#LmCompatibilityLevel Settings#
 	###############################
-    $ServerObject | Add-Member –MemberType NoteProperty –Name LmCompatibilityLevel -Value $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel
+    $ServerObject | Add-Member -MemberType NoteProperty -Name LmCompatibilityLevel -Value $HealthExSvrObj.OSVersion.LmCompat.LmCompatibilityLevel
 
 
 	##############
@@ -6035,7 +6035,7 @@ Function Build-ServerObject
     #{
         #If((Display-KBHotfixCheck -HealthExSvrObj $HealthExSvrObj) -like "*Installed*")
         #{
-       #     $ServerObject | Add-Member –MemberType NoteProperty –Name KB3041832 -Value "Installed"
+       #     $ServerObject | Add-Member -MemberType NoteProperty -Name KB3041832 -Value "Installed"
         #}
     #}
 
@@ -6669,7 +6669,7 @@ Function Get-ErrorsThatOccurred {
             Write-Errors
         }
     }
-    else 
+    else
     {
         Write-VerboseOutput("No errors occurred in the script.")
     }
