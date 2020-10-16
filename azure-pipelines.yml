@@ -27,20 +27,17 @@ steps:
     $split = $content.Split(".")
     $major = $split[0]
     $minor = $split[1]
+    $buildRevision++
 
-    if($oldMajor -ne $major -or
-    $oldMinor -ne $minor)
+    if ($oldMajor -ne $major -or
+      $oldMinor -ne $minor)
     {
       $buildRevision = 0
-    }
-    else
-    {
-      $buildRevision++
     }
 
     Write-Host("New Script Version: v{0}.{1}.{2}" -f $major, $minor, $buildRevision)
 
-    $scriptContent = Get-Content .\HealthChecker.ps1
+    $scriptContent = Get-Content .\HealthChecker.ps1 -Encoding UTF8
     [System.Collections.Generic.List[System.Object]]$updateScript = New-Object -TypeName System.Collections.Generic.List[System.Object]
 
     foreach($line in $scriptContent)
@@ -55,7 +52,7 @@ steps:
 
     $buildScriptLocation = ".\Build\HealthChecker.ps1"
 
-    $updateScript | Out-File $buildScriptLocation -Encoding ascii
+    $updateScript | Out-File $buildScriptLocation -Encoding UTF8
     
     $tag = "v{0}.{1}.{2}" -f $major, $minor, $buildRevision
     Write-Host("New tag: {0}" -f $tag)
