@@ -3365,19 +3365,12 @@ param(
     $order = 0
     $keyBeginningInfo = New-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
     $keyExchangeInformation = New-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
-    $keyExchangeServerMaintenance = New-DisplayResultsGroupingKey -Name "Exchange Server Maintenance" -DisplayOrder ($order++)
     $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
-    $keyVisualCpp = New-DisplayResultsGroupingKey -Name "Visual C++ Redistributable Version Check" -DisplayOrder ($order++)
-    $keyTcpIp = New-DisplayResultsGroupingKey -Name "TCP/IP Settings" -DisplayOrder ($order++)
-    $keyRpc = New-DisplayResultsGroupingKey -Name "RPC Minimum Connection Timeout" -DisplayOrder ($order++)
-    $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
-    $keyCtsProcessor = New-DisplayResultsGroupingKey -Name "CtsProcessorAffinityPercentage Settings" -DisplayOrder ($order++)
-    $keyCredGuard = New-DisplayResultsGroupingKey -Name "Credential Guard" -DisplayOrder ($order++)
-    $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
+    $keyFrequentConfigIssues = New-DisplayResultsGroupingKey -Name "Frequent Configuration Issues" -DisplayOrder ($order++)
+    $keySecuritySettings = New-DisplayResultsGroupingKey -Name "Security Settings" -DisplayOrder ($order++)
     $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
-    $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
 
     #Set short cut variables
     $exchangeInformation = $HealthServerObject.ExchangeInformation
@@ -3516,19 +3509,24 @@ param(
             ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
             $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted")))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details "Server is not in Maintenance Mode" `
-            -DisplayGroupingKey $keyExchangeServerMaintenance `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenace" -Details "Server is not in Maintenance Mode" `
+            -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green" `
             -AnalyzedInformation $analyzedResults
     }
     else
     {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Exchange Server Maintenace" `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -AnalyzedInformation $analyzedResults
+
         if (($serverMaintenance.InactiveComponents).Count -ne 0)
         {
             foreach ($inactiveComponent in $serverMaintenance.InactiveComponents)
             {
                 $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details $inactiveComponent `
-                    -DisplayGroupingKey $keyExchangeServerMaintenance `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2  `
                     -DisplayWriteType "Yellow" `
                     -AnalyzedInformation $analyzedResults
             }
@@ -3540,8 +3538,10 @@ param(
             $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
                 $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
                 $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
+
             $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
-                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AnalyzedInformation $analyzedResults
         }
@@ -3549,7 +3549,8 @@ param(
         if ($serverMaintenance.GetClusterNode -ne $null -and $serverMaintenance.GetClusterNode.State -ne "Up")
         {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
-                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AnalyzedInformation $analyzedResults
         }
@@ -3744,6 +3745,58 @@ param(
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Yellow" `
             -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy) `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    $displayWriteType2012 = "Yellow"
+    $displayWriteType2013 = "Yellow"
+    $displayValue2012 = "Unknown"
+    $displayValue2013 = "Unknown"
+
+    if ($osInformation.VcRedistributable -ne $null)
+    {
+        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
+        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
+        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
+        $displayValue2012 = "Redistributable is outdated"
+        $displayValue2013 = "Redistributable is outdated"
+
+        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable)
+        {
+            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
+
+            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
+            {
+                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                $displayWriteType2012 = "Green"
+            }
+            elseif ($vc2013Required -and
+                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
+            {
+                $displayWriteType2013 = "Green"
+                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+            }
+        }
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayWriteType $displayWriteType2012 `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayWriteType $displayWriteType2013 `
+        -AnalyzedInformation $analyzedResults
+
+    if ($osInformation.VcRedistributable -ne $null -and
+        ($displayWriteType2012 -eq "Yellow" -or
+        $displayWriteType2013 -eq "Yellow"))
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
     }
 
@@ -4229,62 +4282,6 @@ param(
             -AnalyzedInformation $analyzedResults
     }
 
-    #########################################
-    #Visual C++ Redistributable Version Check
-    #########################################
-    Write-VerboseOutput("Working on Visual C++ Redistributable Version Check")
-
-    $displayWriteType2012 = "Yellow"
-    $displayWriteType2013 = "Yellow"
-    $displayValue2012 = "Unknown"
-    $displayValue2013 = "Unknown"
-
-    if ($osInformation.VcRedistributable -ne $null)
-    {
-        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
-        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
-        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
-        $displayValue2012 = "Redistributable is outdated"
-        $displayValue2013 = "Redistributable is outdated"
-
-        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable)
-        {
-            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
-
-            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012)
-            {
-                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                $displayWriteType2012 = "Green"
-            }
-            elseif ($vc2013Required -and
-                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013)
-            {
-                $displayWriteType2013 = "Green"
-                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-            }
-        }
-    }
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
-        -DisplayGroupingKey $keyVisualCpp `
-        -DisplayWriteType $displayWriteType2012 `
-        -AnalyzedInformation $analyzedResults
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
-        -DisplayGroupingKey $keyVisualCpp `
-        -DisplayWriteType $displayWriteType2013 `
-        -AnalyzedInformation $analyzedResults
-
-    if ($osInformation.VcRedistributable -ne $null -and
-        ($displayWriteType2012 -eq "Yellow" -or
-        $displayWriteType2013 -eq "Yellow"))
-    {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
-            -DisplayGroupingKey $keyVisualCpp `
-            -DisplayWriteType "Yellow" `
-            -AnalyzedInformation $analyzedResults
-    }
-
     ################
     #TCP/IP Settings
     ################
@@ -4295,14 +4292,14 @@ param(
     if ($tcpKeepAlive -eq 0)
     {
         #TODO: Fix wording
-        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
+        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
         $displayWriteType = "Red"
     }
     elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000)
     {
         #TODO: Fix wording
-        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
+        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     }
     else
@@ -4311,17 +4308,12 @@ param(
         $displayWriteType = "Green"
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
-        -DisplayGroupingKey $keyTcpIp `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "TCP/IP Settings" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue $tcpKeepAlive `
         -HtmlName "TCPKeepAlive" `
         -AnalyzedInformation $analyzedResults
-
-    ###############################
-    #RPC Minimum Connection Timeout
-    ###############################
-    Write-VerboseOutput("Working on RPC Minimum Connection Timeout")
 
     #TODO: Determine what i am going to do for handling this. Do we want to flag it or not. Otherwise, just display it vs doing the If Statements
     #Leaving the IF statement here to know what i was doing. But just note that all of them were write grey
@@ -4336,29 +4328,10 @@ param(
     {
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ("{0} More Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
-        -DisplayGroupingKey $keyRpc `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
-
-    ##############################
-    #LmCompatibilityLevel Settings
-    ##############################
-    Write-VerboseOutput("Working on LmCompatibilityLevel Settings")
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ($osInformation.LmCompatibility.RegistryValue) `
-        -DisplayGroupingKey $keyLmCompat `
-        -HtmlName "LmCompatibilityLevel Setting" `
-        -AnalyzedInformation $analyzedResults
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
-        -DisplayGroupingKey $keyLmCompat `
-        -AddHtmlDetailRow $false `
-        -AnalyzedInformation $analyzedResults
-
-    ########################################
-    #CtsProcessorAffinityPercentage Settings
-    ########################################
 
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
@@ -4369,16 +4342,12 @@ param(
         $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
-        -DisplayGroupingKey $keyCtsProcessor `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "CTS Processor Affinity Percentage" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
         -HtmlName "CtsProcessorAffinityPercentage" `
         -AnalyzedInformation $analyzedResults
-
-    #######################
-    #CredentialGuardEnabled
-    #######################
 
     $displayValue = $osInformation.CredentialGuardEnabled
     $displayWriteType = "Grey"
@@ -4389,10 +4358,19 @@ param(
         $displayWriteType = "Red"
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Enabled" -Details $displayValue `
-        -DisplayGroupingKey $keyCredGuard `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Credential Guard Enabled" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
-        -HtmlName "Credential Guard Enabled" `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
 
     ##############
@@ -4408,32 +4386,37 @@ param(
         $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
 
         $analyzedResults = Add-AnalyzedResultInformation -Details ("TLS {0}" -f $tlsKey) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 1 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Enabled") -Details ($currentTlsVersion.ServerEnabled) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Disabled By Default") -Details ($currentTlsVersion.ServerDisabledByDefault) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Enabled") -Details ($currentTlsVersion.ClientEnabled) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Disabled By Default") -Details ($currentTlsVersion.ClientDisabledByDefault) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         if ($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled)
         {
             $detectedTlsMismatch = $true
             $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.") `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
-                -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -4447,9 +4430,9 @@ param(
             $currentNetVersion.WowSystemDefaultTlsVersions -eq $false))
         {
             $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
-                -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -4462,16 +4445,17 @@ param(
         "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
 
         $analyzedResults = Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
 
         foreach ($displayValue in $displayValues)
         {
             $analyzedResults = Add-AnalyzedResultInformation -Details $displayValue `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Yellow" `
-                -DisplayCustomTabNumber 2 `
+                -DisplayCustomTabNumber 3 `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -4527,8 +4511,8 @@ param(
             {
                 foreach ($cveName in $CVENames)
                 {
-                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vunlerability" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
-                        -DisplayGroupingKey $keyVulnerabilityCheck `
+                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
+                        -DisplayGroupingKey $keySecuritySettings `
                         -DisplayTestingValue $cveName `
                         -DisplayWriteType "Red" `
                         -AddHtmlDetailRow $false `
@@ -4687,7 +4671,7 @@ param(
             }
 
             $analyzedResults = Add-AnalyzedResultInformation -Name "CVE-2020-0796" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information." -f $writeValue) `
-                -DisplayGroupingKey $keyVulnerabilityCheck `
+                -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType $writeType `
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
@@ -4705,7 +4689,7 @@ param(
     if ($Script:AllVulnerabilitiesPassed)
     {
         $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Details "All known security issues in this version of the script passed." `
-            -DisplayGroupingKey $keyVulnerabilityCheck `
+            -DisplayGroupingKey $keySecuritySettings `
             -DisplayWriteType "Green" `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $Script:AnalyzedInformation
