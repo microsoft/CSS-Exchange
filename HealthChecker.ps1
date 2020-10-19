@@ -3793,8 +3793,9 @@ param(
         ($displayWriteType2012 -eq "Yellow" -or
         $displayWriteType2013 -eq "Yellow"))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
             -DisplayGroupingKey $keyOSInformation `
+            -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
     }
