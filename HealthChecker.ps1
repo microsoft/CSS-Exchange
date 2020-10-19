@@ -264,7 +264,7 @@ using System.Collections;
             public InstalledUpdatesInformation InstalledUpdates;  //store the install update 
             public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
-            public OSNetFrameworkInformation NETFramework;          //stores OS Net Framework
+            public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
             public bool CredentialGuardEnabled;
             public OSRegistryValues RegistryValues = new OSRegistryValues();
         }
@@ -407,14 +407,14 @@ using System.Collections;
             Net4d5d1 = 378675,
             Net4d5d2 = 379893,
             Net4d5d2wFix = 380035,
-            Net4d6 = 393297,
-            Net4d6d1 = 394271,
+            Net4d6 = 393295,
+            Net4d6d1 = 394254,
             Net4d6d1wFix = 394294,
-            Net4d6d2 = 394806,
-            Net4d7 = 460805,
-            Net4d7d1 = 461310,
-            Net4d7d2 = 461814,
-            Net4d8 = 528049
+            Net4d6d2 = 394802,
+            Net4d7 = 460798,
+            Net4d7d1 = 461308,
+            Net4d7d2 = 461808,
+            Net4d8 = 528040
         }
     
         public class HotfixInformation
@@ -2362,92 +2362,6 @@ param(
     return $hardware_obj
 }
 
-Function Get-NetFrameworkVersionFriendlyInfo {
-param(
-[Parameter(Mandatory=$true)][int]$NetVersionKey,
-[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OSServerVersion 
-)
-    Write-VerboseOutput("Calling: Get-NetFrameworkVersionFriendlyInfo")
-    Write-VerboseOutput("Passed: " + $NetVersionKey.ToString())
-    Write-VerboseOutput("Passed: " + $OSServerVersion.ToString())
-    [HealthChecker.OSNetFrameworkInformation]$versionObject = New-Object -TypeName HealthChecker.OSNetFrameworkInformation
-        if(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d1))
-    {
-        $versionObject.FriendlyName = "4.5"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d1) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d2))
-    {
-        $versionObject.FriendlyName = "4.5.1"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d1
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d2) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d5d2wFix))
-    {
-        $versionObject.FriendlyName = "4.5.2"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d2
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d5d2wFix) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6))
-    {
-        $versionObject.FriendlyName = "4.5.2 with Hotfix 3146718"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d1))
-    {
-        $versionObject.FriendlyName = "4.6"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d1) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d1wFix))
-    {
-        $versionObject.FriendlyName = "4.6.1"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d1
-    }
-    elseif($NetVersionKey -eq 394802 -and $OSServerVersion -eq [HealthChecker.OSServerVersion]::Windows2016)
-    {
-        $versionObject.FriendlyName = "Windows Server 2016 .NET 4.6.2"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d1wFix) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d6d2))
-    {
-        $versionObject.FriendlyName = "4.6.1 with Hotfix 3146716/3146714/3146715"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-    }
-    elseif(($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d6d2) -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7))
-    {
-        $versionObject.FriendlyName = "4.6.2"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-    }
-	elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7d1))
-	{
-		$versionObject.FriendlyName = "4.7"
-		$versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7
-    }
-    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7d1 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d7d2))
-    {
-        $versionObject.FriendlyName = "4.7.1"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-    }
-    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d7d2 -and ($NetVersionKey -lt [HealthChecker.NetMajorVersion]::Net4d8))
-    {
-        $versionObject.FriendlyName = "4.7.2"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-    }
-    elseif($NetVersionKey -ge [HealthChecker.NetMajorVersion]::Net4d8)
-    {
-        $versionObject.FriendlyName = "4.8"
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Net4d8
-    }
-    else
-    {
-        $versionObject.FriendlyName = "Unknown" 
-        $versionObject.NetMajorVersion = [HealthChecker.NetMajorVersion]::Unknown
-    }
-    $versionObject.RegistryValue = $NetVersionKey
-
-    Write-VerboseOutput("Returned: " + $versionObject.FriendlyName)
-    return $versionObject
-    
-}
-
 Function Get-ExchangeServerMaintenanceState {
 param(
 [Parameter(Mandatory=$true)][string]$MachineName,
@@ -2534,22 +2448,6 @@ param(
     }
 
     return $serverMaintenance
-}
-
-#Uses registry build numbers from https://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
-Function Get-NetFrameWorkVersionObject {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OSServerVersion
-)
-    Write-VerboseOutput("Calling: Get-NetFrameWorkVersionObject")
-    Write-VerboseOutput("Passed: $Machine_Name")
-    Write-VerboseOutput("Passed: $OSServerVersion")
-    [int]$NetVersionKey = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "Release" -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-VerboseOutput("Got {0} from the registry" -f $NetVersionKey)
-    [HealthChecker.OSNetFrameworkInformation]$versionObject = Get-NetFrameworkVersionFriendlyInfo -NetVersionKey $NetVersionKey -OSServerVersion $OSServerVersion
-    Write-VerboseOutput("Exiting: Get-NetFrameWorkVersionObject")
-    return $versionObject
 }
 
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-NETFrameworkVersion/Get-NETFrameworkVersion.ps1
@@ -2999,7 +2897,15 @@ param(
     $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -ServerName $HealthExSvrObj.ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
     if($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013)
     {
-        $HealthExSvrObj.OSInformation.NETFramework = Get-NetFrameWorkVersionObject -Machine_Name $Machine_Name -OSServerVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
+        $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+        $HealthExSvrObj.OSInformation.NETFramework.FriendlyName = $netFrameworkVersion.FriendlyName
+        $HealthExSvrObj.OSInformation.NETFramework.RegistryValue = $netFrameworkVersion.RegistryValue
+        $HealthExSvrObj.OSInformation.NETFramework.NetMajorVersion = $netFrameworkVersion.MinimumValue
+
+        if ($netFrameworkVersion.MinimumValue -eq $HealthExSvrObj.ExchangeInformation.NETFramework.MaxSupportedVersion)
+        {
+            $HealthExSvrObj.ExchangeInformation.NETFramework.OnRecommendedVersion = $true
+        }
     }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
