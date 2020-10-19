@@ -3370,10 +3370,8 @@ param(
     $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
     $keyFrequentConfigIssues = New-DisplayResultsGroupingKey -Name "Frequent Configuration Issues" -DisplayOrder ($order++)
-    $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
-    $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
+    $keySecuritySettings = New-DisplayResultsGroupingKey -Name "Security Settings" -DisplayOrder ($order++)
     $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
-    $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
 
     #Set short cut variables
     $exchangeInformation = $HealthServerObject.ExchangeInformation
@@ -4327,21 +4325,6 @@ param(
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
 
-    ##############################
-    #LmCompatibilityLevel Settings
-    ##############################
-    Write-VerboseOutput("Working on LmCompatibilityLevel Settings")
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ($osInformation.LmCompatibility.RegistryValue) `
-        -DisplayGroupingKey $keyLmCompat `
-        -HtmlName "LmCompatibilityLevel Setting" `
-        -AnalyzedInformation $analyzedResults
-
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
-        -DisplayGroupingKey $keyLmCompat `
-        -AddHtmlDetailRow $false `
-        -AnalyzedInformation $analyzedResults
-
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
 
@@ -4372,6 +4355,16 @@ param(
         -DisplayWriteType $displayWriteType `
         -AnalyzedInformation $analyzedResults
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -AddHtmlDetailRow $false `
+        -AnalyzedInformation $analyzedResults
+
     ##############
     # TLS Settings
     ##############
@@ -4385,32 +4378,37 @@ param(
         $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
 
         $analyzedResults = Add-AnalyzedResultInformation -Details ("TLS {0}" -f $tlsKey) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 1 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Enabled") -Details ($currentTlsVersion.ServerEnabled) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Server Disabled By Default") -Details ($currentTlsVersion.ServerDisabledByDefault) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Enabled") -Details ($currentTlsVersion.ClientEnabled) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Name ("Client Disabled By Default") -Details ($currentTlsVersion.ClientDisabledByDefault) `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -AnalyzedInformation $analyzedResults
 
         if ($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled)
         {
             $detectedTlsMismatch = $true
             $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.") `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
-                -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -4424,9 +4422,9 @@ param(
             $currentNetVersion.WowSystemDefaultTlsVersions -eq $false))
         {
             $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
-                -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -4439,16 +4437,17 @@ param(
         "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
 
         $analyzedResults = Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
-            -DisplayGroupingKey $keyTLS `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
 
         foreach ($displayValue in $displayValues)
         {
             $analyzedResults = Add-AnalyzedResultInformation -Details $displayValue `
-                -DisplayGroupingKey $keyTLS `
+                -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Yellow" `
-                -DisplayCustomTabNumber 2 `
+                -DisplayCustomTabNumber 3 `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -4504,8 +4503,8 @@ param(
             {
                 foreach ($cveName in $CVENames)
                 {
-                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vunlerability" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
-                        -DisplayGroupingKey $keyVulnerabilityCheck `
+                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
+                        -DisplayGroupingKey $keySecuritySettings `
                         -DisplayTestingValue $cveName `
                         -DisplayWriteType "Red" `
                         -AddHtmlDetailRow $false `
@@ -4664,7 +4663,7 @@ param(
             }
 
             $analyzedResults = Add-AnalyzedResultInformation -Name "CVE-2020-0796" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information." -f $writeValue) `
-                -DisplayGroupingKey $keyVulnerabilityCheck `
+                -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType $writeType `
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
@@ -4682,7 +4681,7 @@ param(
     if ($Script:AllVulnerabilitiesPassed)
     {
         $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Details "All known security issues in this version of the script passed." `
-            -DisplayGroupingKey $keyVulnerabilityCheck `
+            -DisplayGroupingKey $keySecuritySettings `
             -DisplayWriteType "Green" `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $Script:AnalyzedInformation
