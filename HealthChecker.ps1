@@ -3365,7 +3365,6 @@ param(
     $order = 0
     $keyBeginningInfo = New-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
     $keyExchangeInformation = New-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
-    $keyExchangeServerMaintenance = New-DisplayResultsGroupingKey -Name "Exchange Server Maintenance" -DisplayOrder ($order++)
     $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
@@ -3510,19 +3509,24 @@ param(
             ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
             $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted")))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details "Server is not in Maintenance Mode" `
-            -DisplayGroupingKey $keyExchangeServerMaintenance `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenace" -Details "Server is not in Maintenance Mode" `
+            -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green" `
             -AnalyzedInformation $analyzedResults
     }
     else
     {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Exchange Server Maintenace" `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -AnalyzedInformation $analyzedResults
+
         if (($serverMaintenance.InactiveComponents).Count -ne 0)
         {
             foreach ($inactiveComponent in $serverMaintenance.InactiveComponents)
             {
                 $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details $inactiveComponent `
-                    -DisplayGroupingKey $keyExchangeServerMaintenance `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2  `
                     -DisplayWriteType "Yellow" `
                     -AnalyzedInformation $analyzedResults
             }
@@ -3534,8 +3538,10 @@ param(
             $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
                 $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
                 $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
+
             $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
-                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AnalyzedInformation $analyzedResults
         }
@@ -3543,7 +3549,8 @@ param(
         if ($serverMaintenance.GetClusterNode -ne $null -and $serverMaintenance.GetClusterNode.State -ne "Up")
         {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
-                -DisplayGroupingKey $keyExchangeServerMaintenance `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AnalyzedInformation $analyzedResults
         }
