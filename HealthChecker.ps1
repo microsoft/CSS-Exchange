@@ -3369,11 +3369,8 @@ param(
     $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
-    $keyTcpIp = New-DisplayResultsGroupingKey -Name "TCP/IP Settings" -DisplayOrder ($order++)
-    $keyRpc = New-DisplayResultsGroupingKey -Name "RPC Minimum Connection Timeout" -DisplayOrder ($order++)
+    $keyFrequentConfigIssues = New-DisplayResultsGroupingKey -Name "Frequent Configuration Issues" -DisplayOrder ($order++)
     $keyLmCompat = New-DisplayResultsGroupingKey -Name "LmCompatibilityLevel Settings" -DisplayOrder ($order++)
-    $keyCtsProcessor = New-DisplayResultsGroupingKey -Name "CtsProcessorAffinityPercentage Settings" -DisplayOrder ($order++)
-    $keyCredGuard = New-DisplayResultsGroupingKey -Name "Credential Guard" -DisplayOrder ($order++)
     $keyTLS = New-DisplayResultsGroupingKey -Name "TLS Settings" -DisplayOrder ($order++)
     $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
     $keyVulnerabilityCheck = New-DisplayResultsGroupingKey -Name "Vulnerability Check" -DisplayOrder ($order++)
@@ -4289,14 +4286,14 @@ param(
     if ($tcpKeepAlive -eq 0)
     {
         #TODO: Fix wording
-        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
+        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
         $displayWriteType = "Red"
     }
     elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000)
     {
         #TODO: Fix wording
-        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). More details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
+        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     }
     else
@@ -4305,17 +4302,12 @@ param(
         $displayWriteType = "Green"
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
-        -DisplayGroupingKey $keyTcpIp `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "TCP/IP Settings" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue $tcpKeepAlive `
         -HtmlName "TCPKeepAlive" `
         -AnalyzedInformation $analyzedResults
-
-    ###############################
-    #RPC Minimum Connection Timeout
-    ###############################
-    Write-VerboseOutput("Working on RPC Minimum Connection Timeout")
 
     #TODO: Determine what i am going to do for handling this. Do we want to flag it or not. Otherwise, just display it vs doing the If Statements
     #Leaving the IF statement here to know what i was doing. But just note that all of them were write grey
@@ -4330,8 +4322,8 @@ param(
     {
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details ("{0} More Information: `r`n`thttps://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
-        -DisplayGroupingKey $keyRpc `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
 
@@ -4350,10 +4342,6 @@ param(
         -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
 
-    ########################################
-    #CtsProcessorAffinityPercentage Settings
-    ########################################
-
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
 
@@ -4363,16 +4351,12 @@ param(
         $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Value" -Details $displayValue `
-        -DisplayGroupingKey $keyCtsProcessor `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "CTS Processor Affinity Percentage" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
         -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
         -HtmlName "CtsProcessorAffinityPercentage" `
         -AnalyzedInformation $analyzedResults
-
-    #######################
-    #CredentialGuardEnabled
-    #######################
 
     $displayValue = $osInformation.CredentialGuardEnabled
     $displayWriteType = "Grey"
@@ -4383,10 +4367,9 @@ param(
         $displayWriteType = "Red"
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Enabled" -Details $displayValue `
-        -DisplayGroupingKey $keyCredGuard `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Credential Guard Enabled" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
         -DisplayWriteType $displayWriteType `
-        -HtmlName "Credential Guard Enabled" `
         -AnalyzedInformation $analyzedResults
 
     ##############
