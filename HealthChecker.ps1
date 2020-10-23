@@ -980,6 +980,25 @@ param(
     return $isCurrent
 }
 
+Function Test-RequiresServerFqdn {
+param(
+[Parameter(Mandatory=$true)][string]$ServerName
+)
+    Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
+    try 
+    {
+        $temp_remotedate = Invoke-Command -ComputerName $ServerName -ScriptBlock {Get-Date} -ErrorAction Stop
+        Write-VerboseOutput("Connected successfully using NetBIOS name.")
+    }
+    catch
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to connect to {0} using NetBIOS name. Fallback to Fqdn" -f $ServerName)
+        $Script:Server = (Get-ExchangeServer $ServerName).FQDN
+        Write-VerboseOutput("ServerName set to {0}" -f $Script:Server)
+    }
+}
+
 Function Invoke-RegistryHandler {
 param(
 [Parameter(Mandatory=$false)][string]$RegistryHive = "LocalMachine",
