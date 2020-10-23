@@ -6721,7 +6721,8 @@ Function LoadBalancingMain {
 }
 Function HealthCheckerMain {
 
-    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
+    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    Test-RequiresServerFqdn -ServerName $Server 
     Write-HealthCheckerVersion
     $HealthObject = Build-HealthExchangeServerObject $Server
     Display-ResultsToScreen $healthObject
