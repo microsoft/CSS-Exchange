@@ -3889,14 +3889,20 @@ param(
             -AnalyzedInformation $analyzedResults
     }
 
+    $displayValue = "False"
+    $writeType = "Grey"
+
     if ($osInformation.ServerPendingReboot)
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Server Pending Reboot" -Details "True --- Warning a reboot is pending and can cause issues on the server." `
+        $displayValue = "True --- Warning a reboot is pending and can cause issues on the server."
+        $writeType = "Yellow"
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Server Pending Reboot" -Details $displayValue `
             -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
+            -DisplayWriteType $writeType `
             -DisplayTestingValue ($osInformation.ServerPendingReboot) `
             -AnalyzedInformation $analyzedResults
-    }
 
     ################################
     # Processor/Hardware Information
