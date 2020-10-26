@@ -267,6 +267,7 @@ using System.Collections;
             public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
             public bool CredentialGuardEnabled;
             public OSRegistryValues RegistryValues = new OSRegistryValues();
+            public Smb1ServerSettings Smb1ServerSettings = new Smb1ServerSettings();
         }
     
         public class OSBuildInformation 
@@ -422,6 +423,14 @@ using System.Collections;
             public string KBName; //KB that we are using to check against 
             public System.Array FileInformation; //store FileVersion information
             public bool ValidFileLevelCheck;  
+        }
+
+        public class Smb1ServerSettings
+        {
+            public object RegistryValue;
+            public object SmbServerConfiguration;
+            public object WindowsFeature;
+            public int Smb1Status;
         }
         // End OperatingSystemInformation
             
@@ -1352,6 +1361,84 @@ Write-VerboseWriter("Returned: {0}" -f $passed)
 return $passed
 }
 
+#Master Template https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-Smb1ServerSettings/Get-Smb1ServerSettings.ps1
+Function Get-Smb1ServerSettings {
+[CmdletBinding()]
+param(
+[string]$ServerName = $env:COMPUTERNAME,
+[scriptblock]$CatchActionFunction
+)
+    #Function Version 1.2
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
+    
+    Write-VerboseWriter("Calling: Get-Smb1ServerSettings")
+    Write-VerboseWriter("Passed ServerName: {0}" -f $ServerName)
+    $smbServerConfiguration = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock {Get-SmbServerConfiguration} -CatchActionFunction $CatchActionFunction -ScriptBlockDescription "Get-SmbServerConfiguration"
+    
+    <#
+    Unknown 0
+    Failed to get Install Setting 1
+    Install is set to true 2
+    Install is set to false 4
+    Failed to get Block Setting 8
+    SMB1 is not being blocked 16
+    SMB1 is being blocked 32
+    #>
+    
+    $smb1Status = 0
+    
+    try
+    {
+        $windowsFeature = Get-WindowsFeature "FS-SMB1" -ComputerName $ServerName -ErrorAction Stop
+    }
+    catch 
+    {
+        Write-VerboseWriter("Failed to Get-WindowsFeature for FS-SMB1")
+        if ($CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+        }
+    }
+    
+    if ($windowsFeature -eq $null)
+    {
+        $smb1Status += 1
+    }
+    elseif ($windowsFeature.Installed)
+    {
+        $smb1Status += 2
+    }
+    else
+    {
+        $smb1Status += 4
+    }
+    
+    if ($smbServerConfiguration -eq $null)
+    {
+        $smb1Status += 8
+    }
+    elseif ($smbServerConfiguration.EnableSMB1Protocol)
+    {
+        $smb1Status += 16
+    }
+    else
+    {
+        $smb1Status += 32
+    }
+    
+    $smb1ServerSettings = New-Object PSCustomObject
+    $smb1ServerSettings | Add-Member -MemberType NoteProperty -Name "SmbServerConfiguration" -Value $smbServerConfiguration
+    $smb1ServerSettings | Add-Member -MemberType NoteProperty -Name "WindowsFeature" -Value $windowsFeature
+    $smb1ServerSettings | Add-Member -MemberType NoteProperty -Name "Smb1Status" -Value $smb1Status
+    
+    return $smb1ServerSettings
+    
+}
+
 Function Is-Admin {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
     If( $currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
@@ -2201,6 +2288,11 @@ param(
         -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
         -GetValue "DisableCompression" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    $getSmb1ServerSettings = Get-Smb1ServerSettings -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.Smb1ServerSettings.SmbServerConfiguration = $getSmb1ServerSettings.SmbServerConfiguration
+    $osInformation.Smb1ServerSettings.WindowsFeature = $getSmb1ServerSettings.WindowsFeature
+    $osInformation.Smb1ServerSettings.Smb1Status = $getSmb1ServerSettings.Smb1Status
 
     Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
     return $osInformation
@@ -4455,6 +4547,64 @@ param(
                 -DisplayCustomTabNumber 3 `
                 -AnalyzedInformation $analyzedResults
         }
+    }
+
+    $additionalDisplayValue = [string]::Empty
+    $smb1Status = $osInformation.Smb1ServerSettings.Smb1Status
+
+    if ($osInformation.BuildInformation.MajorVersion -gt [HealthChecker.OSServerVersion]::Windows2012)
+    {
+        $displayValue = "False"
+        $writeType = "Green"
+
+        if ($smb1Status -band 1)
+        {
+            $displayValue = "Failed to get install status"
+            $writeType = "Yellow"
+        }
+        elseif ($smb1Status -band 2)
+        {
+            $displayValue = "True"
+            $writeType = "Red"
+            $additionalDisplayValue = "SMB1 should be uninstalled"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "SMB1 Installed" -Details $displayValue `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType $writeType `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    $writeType = "Green"
+    $displayValue = "True"
+
+    if ($smb1Status -band 8)
+    {
+        $displayValue = "Failed to get block status"
+        $writeType = "Yellow"
+    }
+    elseif ($smb1Status -band 16)
+    {
+        $displayValue = "False"
+        $writeType = "Red"
+        $additionalDisplayValue += " SMB1 should be blocked" 
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SMB1 Blocked" -Details $displayValue `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayWriteType $writeType `
+        -AnalyzedInformation $analyzedResults
+    
+    if ($additionalDisplayValue -ne [string]::Empty)
+    {
+        $additionalDisplayValue += "`r`n`t`tMore Information: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615"
+
+        $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue.Trim() `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType "Yellow" `
+            -DisplayCustomTabNumber 2 `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
     }
 
     ##########################
