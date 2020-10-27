@@ -3859,7 +3859,7 @@ param(
         $displayValue = "Multiple page files detected. --- Error: This has been know to cause performance issues please address this."
         $displayWriteType = "Red"
     }
-    elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeVersion]::Exchange2019)
+    elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
     {
         $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Truncate(($totalPhysicalMemory / 1MB) / 4))
         Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
