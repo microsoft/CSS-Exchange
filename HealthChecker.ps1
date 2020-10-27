@@ -417,13 +417,6 @@ using System.Collections;
             Net4d7d2 = 461808,
             Net4d8 = 528040
         }
-    
-        public class HotfixInformation
-        {
-            public string KBName; //KB that we are using to check against 
-            public System.Array FileInformation; //store FileVersion information
-            public bool ValidFileLevelCheck;  
-        }
 
         public class Smb1ServerSettings
         {
@@ -1822,155 +1815,6 @@ param(
     return $softwareInfos
 }
 
-Function New-FileLevelHotfixInformation {
-param(
-[parameter(Mandatory=$true)][string]$FriendlyName,
-[parameter(Mandatory=$true)][string]$FullFilePath, 
-[Parameter(Mandatory=$true)][string]$BuildVersion
-)
-    #TODO: V3.0 see why this was commented out and see if we should add it back. https://github.com/dpaulson45/HealthChecker/issues/167
-    #Write-VerboseOutput("Calling Function: New-FileLevelHotfixInformation")
-    #Write-VerboseOutput("Passed - FriendlyName: {0} FullFilePath: {1} BuldVersion: {2}" -f $FriendlyName, $FullFilePath, $BuildVersion)
-    $FileVersion = New-Object PSCustomObject 
-    $FileVersion | Add-Member -MemberType NoteProperty -Name FriendlyFileName -Value $FriendlyName 
-    $FileVersion | Add-Member -MemberType NoteProperty -Name FullPath -Value $FullFilePath 
-    $FileVersion | Add-Member -MemberType NoteProperty -Name BuildVersion -Value $BuildVersion 
-    
-    return $FileVersion
-}
-
-Function Get-HotFixListInfo{
-param(
-[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OS_Version
-)
-    Write-VerboseOutput("Calling: Get-HotFixListInfo")
-    $hotfix_objs = @()
-    switch ($OS_Version)
-    {
-        ([HealthChecker.OSServerVersion]::Windows2008R2)
-        {
-            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
-            $hotfix_obj.KBName = "KB3004383"
-            $hotfix_obj.ValidFileLevelCheck = $true
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Appidapi.dll" -FullFilePath "C:\Windows\SysWOW64\Appidapi.dll" -BuildVersion "6.1.7601.22823")
-            #For this check, we are only going to check for one file, because there are a ridiculous amount in this KB. Hopefully we don't see many false positives 
-            $hotfix_objs += $hotfix_obj
-            return $hotfix_objs
-        }
-        ([HealthChecker.OSServerVersion]::Windows2012R2)
-        {
-            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
-            $hotfix_obj.KBName = "KB3041832"
-            $hotfix_obj.ValidFileLevelCheck = $true
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Hwebcore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Hwebcore.dll" -BuildVersion "8.5.9600.17708")
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "Iiscore.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\Iiscore.dll" -BuildVersion "8.5.9600.17708")
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "W3dt.dll" -FullFilePath "C:\Windows\SysWOW64\inetsrv\W3dt.dll" -BuildVersion "8.5.9600.17708")
-            $hotfix_objs += $hotfix_obj
-            
-            return $hotfix_objs
-        }
-        ([HealthChecker.OSServerVersion]::Windows2016)
-        {
-            [HealthChecker.HotfixInformation]$hotfix_obj = New-Object HealthChecker.HotfixInformation
-            $hotfix_obj.KBName = "KB3206632"
-            $hotfix_obj.ValidFileLevelCheck = $false
-            $hotfix_obj.FileInformation += (New-FileLevelHotfixInformation -FriendlyName "clusport.sys" -FullFilePath "C:\Windows\System32\drivers\clusport.sys" -BuildVersion "10.0.14393.576")
-            $hotfix_objs += $hotfix_obj
-            return $hotfix_objs
-        }
-    }
-
-    return $null
-}
-
-Function Remote-GetFileVersionInfo {
-param(
-[Parameter(Mandatory=$true)][object]$PassedObject 
-)
-    $KBsInfo = $PassedObject.KBCheckList
-    $ReturnList = @()
-    foreach($KBInfo in $KBsInfo)
-    {
-        $main_obj = New-Object PSCustomObject
-        $main_obj | Add-Member -MemberType NoteProperty -Name KBName -Value $KBInfo.KBName 
-        $kb_info_List = @()
-        foreach($FilePath in $KBInfo.KBInfo)
-        {
-            $obj = New-Object PSCustomObject
-            $obj | Add-Member -MemberType NoteProperty -Name FriendlyName -Value $FilePath.FriendlyName
-            $obj | Add-Member -MemberType NoteProperty -Name FilePath -Value $FilePath.FilePath
-            $obj | Add-Member -MemberType NoteProperty -Name Error -Value $false
-            if(Test-Path -Path $FilePath.FilePath)
-            {
-            $info = Get-childItem $FilePath.FilePath
-            $obj | Add-Member -MemberType NoteProperty -Name ChildItemInfo -Value $info 
-            $buildVersion = "{0}.{1}.{2}.{3}" -f $info.VersionInfo.FileMajorPart, $info.VersionInfo.FileMinorPart, $info.VersionInfo.FileBuildPart, $info.VersionInfo.FilePrivatePart
-            $obj | Add-Member -MemberType NoteProperty -Name BuildVersion -Value $buildVersion
-            
-            }
-            else 
-            {
-                $obj.Error = $true
-            }
-            $kb_info_List += $obj
-        }
-        $main_obj | Add-Member -MemberType NoteProperty -Name KBInfo -Value $kb_info_List
-        $ReturnList += $main_obj
-    }
-
-    return $ReturnList
-}
-
-Function Get-RemoteHotFixInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
-[Parameter(Mandatory=$true)][HealthChecker.OSServerVersion]$OS_Version
-)
-    Write-VerboseOutput("Calling: Get-RemoteHotFixInformation")
-    $HotfixListObjs = Get-HotFixListInfo -OS_Version $OS_Version
-    if($HotfixListObjs -ne $null)    
-    {
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "stop"
-        try 
-        {
-            $kbList = @() 
-            $results = @()
-            foreach($HotfixListObj in $HotfixListObjs)
-            {
-                #HotfixListObj contains all files that we should check for that particular KB to make sure we are on the correct build 
-                $kb_obj = New-Object PSCustomObject
-                $kb_obj | Add-Member -MemberType NoteProperty -Name KBName -Value $HotfixListObj.KBName
-                $list = @()
-                foreach($FileCheck in $HotfixListObj.FileInformation)
-                {
-                    $obj = New-Object PSCustomObject
-                    $obj | Add-Member -MemberType NoteProperty -Name FilePath -Value $FileCheck.FullPath
-                    $obj | Add-Member -MemberType NoteProperty -Name FriendlyName -Value $FileCheck.FriendlyFileName
-                    $list += $obj
-                    #$results += Invoke-Command -ComputerName $Machine_Name -ScriptBlock $script_block -ArgumentList $FileCheck.FullPath
-                }
-                $kb_obj | Add-Member -MemberType NoteProperty -Name KBInfo -Value $list   
-                $kbList += $kb_obj             
-            }
-            $argList = New-Object PSCustomObject
-            $argList | Add-Member -MemberType NoteProperty -Name "KBCheckList" -Value $kbList
-            
-            $results = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Remote-GetFileVersionInfo} -ArgumentList $argList -ScriptBlockDescription "Calling Remote-GetFileVersionInfo" -CatchActionFunction ${Function:Invoke-CatchActions}
-            return $results
-        }
-        catch 
-        {
-            Invoke-CatchActions
-        }
-        finally
-        {
-            Write-VerboseOutput("Exiting: Get-RemoteHotFixInformation")
-            $ErrorActionPreference = $oldErrorAction
-        }
-    }
-}
-
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ServerRebootPending/Get-ServerRebootPending.ps1
 Function Get-ServerRebootPending {
     [CmdletBinding()]
@@ -2360,7 +2204,6 @@ param(
     $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
 	$osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
-    $osInformation.InstalledUpdates.HotFixInfo = Get-RemoteHotFixInformation -Machine_Name $Machine_Name -OS_Version $osInformation.BuildInformation.MajorVersion
     $osInformation.LmCompatibility = (Get-LmCompatibilityLevelInformation -Machine_Name $Machine_Name)
     $counterSamples = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
     if($counterSamples -ne $null)
