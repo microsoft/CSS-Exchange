@@ -1541,112 +1541,212 @@ Function Get-AllNicInformation {
     [CmdletBinding()]
     param(
     [Parameter(Mandatory=$true)][string]$ComputerName,
-    [Parameter(Mandatory=$false)][bool]$Windows2012R2AndAbove = $true,
     [Parameter(Mandatory=$false)][string]$ComputerFQDN,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.0
+    #Function Version 1.1
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
     #>
     Write-VerboseWriter("Calling: Get-AllNicInformation")
-    Write-VerboseWriter("Passed [string]ComputerName: {0} | [bool]Windows2012R2AndAbove: {1} | [string]ComputerFQDN: {2}" -f $ComputerName, $Windows2012R2AndAbove, $ComputerFQDN)
+    Write-VerboseWriter("Passed [string]ComputerName: {0} | [string]ComputerFQDN: {1}" -f $ComputerName, $ComputerFQDN)
     
-    Function Get-NetworkCards {
+    Function Get-NetworkConfiguration {
     [CmdletBinding()]
     param(
-    [Parameter(Mandatory=$true)][string]$ComputerName
+    [string]$ComputerName
     )
-        try 
+        try
         {
-            $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop 
-            $networkCards = Get-NetAdapter -CimSession $cimSession | Where-Object{$_.MediaConnectionState -eq "Connected"} -ErrorAction Stop
-            return $networkCards
-        }
-        catch 
-        {
-            Write-VerboseWriter("Failed to attempt to get Windows2012R2 or greater advanced NIC settings in Get-NetworkCards. Error {0}." -f $Error[0].Exception)
-            throw 
-        }
-    }
+            $currentErrors = $Error.Count
+            $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop
+            $networkIpConfiguration = Get-NetIPConfiguration -CimSession $CimSession -ErrorAction Stop
     
-    Function Get-WmiNetworkCards {
-        return (Get-WmiObjectHandler -ComputerName $ComputerName -Class "Win32_NetworkAdapter" -Filter "NetConnectionStatus ='2'" -CatchActionFunction $CatchActionFunction)
+            if ($CatchActionFunction -ne $null)
+            {
+                $index = 0
+                while ($index -lt ($Error.Count - $currentErrors))
+                {
+                    & $CatchActionFunction $Error[$index]
+                    $index++
+                }
+            }
+    
+            return $networkIpConfiguration
+        }
+        catch
+        {
+            Write-VerboseWriter("Failed to run Get-NetIPConfiguration. Error {0}." -f $Error[0].Exception)
+    
+            if ($CatchActionFunction -ne $null)
+            {
+                & $CatchActionFunction
+            }
+    
+            throw
+        }
     }
     
     Function New-NICInformation {
     param(
-    [array]$Adapters,
-    [bool]$Windows2012R2AndAbove = $true
+    [array]$NetworkConfigurations,
+    [bool]$WmiObject
     )
-        if($Adapters -eq $null)
+        if($NetworkConfigurations -eq $null)
         {
-            Write-VerboseWriter("Adapters are null in New-NICInformation. Returning a null object.")
+            Write-VerboseWriter("NetworkConfigurations are null in New-NICInformation. Returning a null object.")
             return $null
         }
+    
+        Function New-IpvAddresses {
+            
+            $obj = New-Object PSCustomObject
+            $obj | Add-Member -MemberType NoteProperty -Name "Address" -Value ([string]::Empty)
+            $obj | Add-Member -MemberType NoteProperty -Name "Subnet" -Value ([string]::Empty)
+            $obj | Add-Member -MemberType NoteProperty -Name "DefaultGateway" -Value ([string]::Empty)
+    
+            return $obj
+        }
+    
         [array]$nicObjects = @()
-        foreach($adapter in $Adapters)
+        foreach($networkConfig in $NetworkConfigurations)
         {
-            if($Windows2012R2AndAbove){$descritpion = $adapter.InterfaceDescription}else {$descritpion = $adapter.Description}
-            if($Windows2012R2AndAbove){$driverVersion = $adapter.DriverVersionString}else {$driverVersion = [string]::Empty}
-            if($Windows2012R2AndAbove){$driverDate = $adapter.DriverDate}else{$driverDate = [DateTime]::MaxValue}
-            if($Windows2012R2AndAbove){$mtuSize = $adapter.MtuSize}else{$mtuSize = 0}
+            if (!$WmiObject)
+            {
+                $adapter = $networkConfig.NetAdapter
+    
+                try
+                {
+                    $dnsClient = $adapter | Get-DnsClient
+                }
+                catch
+                {
+                    if ($CatchActionFunction -ne $null)
+                    {
+                        & $CatchActionFunction
+                    }
+                }
+            }
+            else
+            {
+                $adapter = $networkConfig
+            }
+    
             $nicInformationObj = New-Object PSCustomObject
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "WmiObject" -Value $WmiObject
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Name" -Value ($adapter.Name)
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "LinkSpeed" -Value ((($adapter.Speed)/1000000).ToString() + " Mbps")
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value $driverDate
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NICObject" -Value $adapter
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value [DateTime]::MaxValue
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NICObject" -Value $networkConfig
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "IPv6Enabled" -Value $false
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Description" -Value $descritpion 
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value $driverVersion
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "MTUSize" -Value $mtuSize
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Description" -Value $adapter.Description
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value [string]::Empty
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "MTUSize" -Value 0
+    
+            if (!$WmiObject)
+            {
+                $nicInformationObj.MTUSize = $adapter.MtuSize
+                $nicInformationObj.DriverDate = $adapter.DriverDate
+                $nicInformationObj.DriverVersion = $adapter.DriverVersionString
+                $nicInformationObj.Description = $adapter.InterfaceDescription
+                
+                $ipv4Address = @()
+                for ($i = 0; $i -lt $networkConfig.IPv4Address.Count; $i++)
+                {
+                    $obj = New-IpvAddresses
+                    
+                    if ($networkConfig.IPv4Address -ne $null -and
+                        $i -lt $networkConfig.IPv4Address.Count)
+                    {
+                        $obj.Address = $networkConfig.IPv4Address[$i].IPAddress
+                        $obj.Subnet = $networkConfig.IPv4Address[$i].PrefixLength
+                    }
+    
+                    if ($networkConfig.IPv4DefaultGateway -ne $null -and
+                        $i -lt $networkConfig.IPv4DefaultGateway.Count)
+                    {
+                        $obj.DefaultGateway = $networkConfig.IPv4DefaultGateway[$i].NextHop
+                    }
+    
+                    $ipv4Address += $obj
+                }
+    
+                $ipv6Address = @()
+                for ($i = 0; $i -lt $networkConfig.IPv6Address.Count; $i++)
+                {
+                    $obj = New-IpvAddresses
+                    
+                    if ($networkConfig.IPv6Address -ne $null -and
+                        $i -lt $networkConfig.IPv6Address.Count)
+                    {
+                        $obj.Address = $networkConfig.IPv6Address[$i].IPAddress
+                        $obj.Subnet = $networkConfig.IPv6Address[$i].PrefixLength
+                    }
+    
+                    if ($networkConfig.IPv6DefaultGateway -ne $null -and
+                        $i -lt $networkConfig.IPv6DefaultGateway.Count)
+                    {
+                        $obj.DefaultGateway = $networkConfig.IPv6DefaultGateway[$i].NextHop
+                    }
+    
+                    $ipv6Address += $obj
+                }
+                
+                $nicInformationObj | Add-Member -MemberType NoteProperty -Name "IPv4Addresses" -Value $ipv4Address
+                $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Ipv6Addresses" -Value $ipv6Address 
+                $nicInformationObj | Add-Member -MemberType NoteProperty -Name "RegisteredInDns" -Value $dnsClient.RegisterThisConnectionsAddress
+                $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DnsServer" -Value $networkConfig.DNSServer.ServerAddresses
+                $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DnsClientObject" -Value $dnsClient
+            }
+    
             $nicObjects += $nicInformationObj 
         }
+    
         Write-VerboseWriter("Found {0} active adapters on the computer." -f $nicObjects.Count)
         Write-VerboseWriter("Exiting: Get-AllNicInformation")
         return $nicObjects 
     }
     
-    if($Windows2012R2AndAbove)
+    try
     {
-        Write-VerboseWriter("Windows OS Version greater than or equal to Windows 2012R2. Going to run Get-NetAdapter")
-        try 
+        try
         {
-            try 
-            {
-                $networkCards = Get-NetworkCards -ComputerName $ComputerName -ErrorAction Stop 
-            }
-            catch 
-            {
-                
-                if($CatchActionFunction -ne $null) {& $CatchActionFunction }
-                if($ComputerFQDN -ne $null -and $ComputerFQDN -ne [string]::Empty)
-                {
-                    Write-VerboseWriter("Going to attempt FQDN")
-                    $networkCards = Get-NetworkCards -ComputerName $ComputerFQDN
-                }
-                else {$bypassCatchAction = $true; Write-VerboseWriter("No FQDN was passed, going to rethrow error."); throw}
-                
-            }
-            return (New-NICInformation -Adapters $networkCards)
+            $networkConfiguration = Get-NetworkConfiguration -ComputerName $ComputerName
         }
-        catch 
+        catch
         {
-            Write-VerboseWriter("Failed to get Windows2012R2 or greater advanced NIC settings. Error {0}." -f $Error[0].Exception)
-            Write-VerboseWriter("Going to attempt to get WMI Object Win32_NetworkAdapter on this machine instead")
-            Write-VerboseWriter("NOTE: This means we aren't able to provide the driver date")
-            if(!$bypassCatchAction -and $CatchActionFunction -ne $null) {& $CatchActionFunction }
-            $wmiNetCards = Get-WmiNetworkCards -ComputerName $ComputerName 
-            return (New-NICInformation -Adapters $wmiNetCards -Windows2012R2AndAbove $false)
+            if ($CatchActionFunction -ne $null)
+            {
+                & $CatchActionFunction
+            }
+    
+            if ($ComputerFQDN -ne [string]::Empty -and
+                $ComputerName -ne $null)
+            {
+                $networkConfiguration = Get-NetworkConfiguration -ComputerName $ComputerFQDN
+            }
+            else
+            {
+                $bypassCatchActions = $true
+                Write-VerboseWriter("No FQDN was passed, going to rethrow error.")
+                throw
+            }
         }
+    
+        return (New-NICInformation -NetworkConfigurations $networkConfiguration)
     }
-    else 
+    catch
     {
-        Write-VerboseWriter("Windows OS Version is less than Windows 2012R2. Going to run Get-WmiObject.")
-        $wmiNetCards = Get-WmiNetworkCards -ComputerName $ComputerName
-        return (New-NICInformation -Adapters $wmiNetCards -Windows2012R2AndAbove $false)
+        if (!$bypassCatchActions -and
+            $CatchActionFunction -ne $null)
+        {
+            & $CatchActionFunction
+        }
+    
+        $wmiNetworkCards = Get-WmiObjectHandler -ComputerName $ComputerName -Class "Win32_NetworkAdapter" -Filter "NetConnectionStatus ='2'" -CatchActionFunction $CatchActionFunction
+        return (New-NICInformation -NetworkConfigurations $wmiNetworkCards -WmiObject $true)
     }
     
 }
@@ -2222,7 +2322,7 @@ param(
     $osInformation.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
     $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($osInformation.BuildInformation.MajorVersion -lt [HealthChecker.OSServerVersion]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
-    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -Windows2012R2AndAbove $isWindows2012R2OrNewer -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
+    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
     foreach($adapter in $osInformation.NetworkInformation.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
@@ -4273,6 +4373,52 @@ param(
         $analyzedResults = Add-AnalyzedResultInformation -Name "IPv6 Enabled" -Details $displayValue `
             -DisplayGroupingKey $keyNICSettings `
             -DisplayTestingValue $TestingValue `
+            -AnalyzedInformation $analyzedResults
+        
+        $analyzedResults = Add-AnalyzedResultInformation -Name "IPv4 Address" `
+            -DisplayGroupingKey $keyNICSettings `
+            -AnalyzedInformation $analyzedResults
+        
+        foreach ($address in $adapter.IPv4Addresses)
+        {
+            $displayValue = "{0}\{1}" -f $address.Address, $address.Subnet
+            
+            if ($address.DefaultGateway -ne [string]::Empty)
+            {
+                $displayValue += " Gateway: {0}" -f $address.DefaultGateway
+            }        
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Address" -Details $displayValue `
+                -DisplayGroupingKey $keyNICSettings `
+                -DisplayCustomTabNumber 3 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "IPv6 Address" `
+            -DisplayGroupingKey $keyNICSettings `
+            -AnalyzedInformation $analyzedResults
+
+        foreach ($address in $adapter.IPv6Addresses)
+        {
+            $displayValue = "{0}\{1}" -f $address.Address, $address.Subnet
+            
+            if ($address.DefaultGateway -ne [string]::Empty)
+            {
+                $displayValue += " Gateway: {0}" -f $address.DefaultGateway
+            }        
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Address" -Details $displayValue `
+                -DisplayGroupingKey $keyNICSettings `
+                -DisplayCustomTabNumber 3 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "DNS Server" -Details $adapter.DnsServer `
+            -DisplayGroupingKey $keyNICSettings `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Registered In DNS" -Details $adapter.RegisteredInDns `
+            -DisplayGroupingKey $keyNICSettings `
             -AnalyzedInformation $analyzedResults
 
         $adapterDescription = $adapter.Description
