@@ -1505,13 +1505,11 @@ Function Get-ServerOperatingSystemVersion {
 }
 
 Function Get-PageFileInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-PageFileInformation")
-    Write-Verbose("Passed: $Machine_Name")
+
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation
-    $pagefile = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $pagefile = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($pagefile -ne $null) 
     { 
         if($pagefile.GetType().Name -eq "ManagementObject")
@@ -1745,9 +1743,7 @@ Function Get-AllNicInformation {
 }
 
 Function Get-HttpProxySetting {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
 	$httpProxy32 = [String]::Empty
 	$httpProxy64 = [String]::Empty
 	Write-VerboseOutput("Calling: Get-HttpProxySetting")
@@ -1772,8 +1768,8 @@ param(
         return $(if($Proxy -eq [string]::Empty){"<None>"} else {$Proxy})
     }
 
-    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 32 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 64 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 32 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 64 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
     Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
@@ -1790,12 +1786,10 @@ param(
 }
 
 Function Get-VisualCRedistributableVersion {
-param(
-[Parameter(Mandatory=$true)][string]$MachineName
-)
+
     Write-VerboseOutput("Calling: Get-VisualCRedistributableVersion")
 
-    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*} -ScriptBlockDescription "Quering for software" -CatchActionFunction ${Function:Invoke-CatchActions}
     $softwareInfos = @()
     foreach ($software in $installedSoftware)
     {
@@ -2031,12 +2025,10 @@ Function Get-AllTlsSettingsFromRegistry {
 }
 
 Function Get-CredentialGuardEnabled {
-param(
-[Parameter(Mandatory=$true)][string]$MachineName
-)
+
     Write-VerboseOutput("Calling: Get-CredentialGuardEnabled")
 
-    $registryValue = Invoke-RegistryGetValue -MachineName $MachineName -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $registryValue = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Control\LSA" -GetValue "LsaCfgFlags" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($registryValue -ne $null -and
         $registryValue -ne 0)
@@ -2120,11 +2112,8 @@ param(
 }
 
 Function Get-OperatingSystemInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
-    Write-VerboseOutput("Passed: $Machine_Name")
 
     #TODO: Clean this up. In the class call the constructor
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
@@ -2134,8 +2123,8 @@ param(
     [HealthChecker.NetworkInformation]$osInformation.NetworkInformation = New-Object HealthChecker.NetworkInformation
     [HealthChecker.InstalledUpdatesInformation]$osInformation.InstalledUpdates = New-Object HealthChecker.InstalledUpdatesInformation
     [HealthChecker.TimeZoneInformation]$osInformation.TimeZone = New-Object HealthChecker.TimeZoneInformation
-    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
-    $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Machine_Name -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
     $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
     $osInformation.BuildInformation.VersionBuild = $win32_OperatingSystem.Version
@@ -2163,10 +2152,10 @@ param(
         $osInformation.PowerPlan.PowerPlanSetting = "N/A"
     }
     $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan 
-    $osInformation.PageFile = (Get-PageFileInformation -Machine_Name $Machine_Name)
-    $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.PageFile = Get-PageFileInformation
+    $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($osInformation.BuildInformation.MajorVersion -lt [HealthChecker.OSServerVersion]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
-    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Machine_Name -ErrorAction SilentlyContinue).FQDN))
+    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Script:Server -ErrorAction SilentlyContinue).FQDN))
     foreach($adapter in $osInformation.NetworkInformation.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
@@ -2199,42 +2188,42 @@ param(
         }
     }
 
-    $osInformation.NetworkInformation.IPv6DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
-	$osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting -Machine_Name $Machine_Name
-    $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Machine_Name -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
-    $osInformation.LmCompatibility = (Get-LmCompatibilityLevelInformation -Machine_Name $Machine_Name)
-    $counterSamples = (Get-CounterSamples -MachineNames $Machine_Name -Counters "\Network Interface(*)\Packets Received Discarded")
+    $osInformation.NetworkInformation.IPv6DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
+	$osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
+    $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
+    $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
+    $counterSamples = (Get-CounterSamples -MachineNames $Script:Server -Counters "\Network Interface(*)\Packets Received Discarded")
     if($counterSamples -ne $null)
     {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
-    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions})
-    $timeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
+    $timeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TimeZone.DynamicDaylightTimeDisabled = $timeZoneInformation.DynamicDaylightTimeDisabled
     $osInformation.TimeZone.TimeZoneKeyName = $timeZoneInformation.TimeZoneKeyName
     $osInformation.TimeZone.StandardStart = $timeZoneInformation.StandardStart
     $osInformation.TimeZone.DaylightStart = $timeZoneInformation.DaylightStart
     $osInformation.TimeZone.DstIssueDetected = $timeZoneInformation.DstIssueDetected
     $osInformation.TimeZone.ActionsToTake = $timeZoneInformation.ActionsToTake
-    $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
-    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -MachineName $Machine_Name
-    $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled -MachineName $Machine_Name
+    $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion
+    $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
-        -MachineName $Machine_Name `
+        -MachineName $Script:Server `
         -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" `
         -GetValue "UBR" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
     $osInformation.RegistryValues.LanManServerDisabledCompression = Invoke-RegistryGetValue `
-        -MachineName $Machine_Name `
+        -MachineName $Script:Server `
         -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
         -GetValue "DisableCompression" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $getSmb1ServerSettings = Get-Smb1ServerSettings -ServerName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+    $getSmb1ServerSettings = Get-Smb1ServerSettings -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.Smb1ServerSettings.SmbServerConfiguration = $getSmb1ServerSettings.SmbServerConfiguration
     $osInformation.Smb1ServerSettings.WindowsFeature = $getSmb1ServerSettings.WindowsFeature
     $osInformation.Smb1ServerSettings.Smb1Status = $getSmb1ServerSettings.Smb1Status
@@ -2364,19 +2353,17 @@ Function Get-ProcessorInformation {
 }
 
 Function Get-HardwareInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-HardwareInformation")
-    Write-VerboseOutput("Passed: $Machine_Name")
+
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $system = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $processorInformation = Get-ProcessorInformation -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} 
 
     #Need to do it this way because of Windows 2012R2
     $processor = New-Object HealthChecker.ProcessorInformation
@@ -2401,17 +2388,16 @@ param(
 
 Function Get-ExchangeServerMaintenanceState {
 param(
-[Parameter(Mandatory=$true)][string]$MachineName,
 [Parameter(Mandatory=$false)][array]$ComponentsToSkip
 )
     Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
 
     [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
-    $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $MachineName -ErrorAction SilentlyContinue
+    $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
 
     try
     {
-        $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $MachineName -ErrorAction SilentlyContinue
+        $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $Script:Server -ErrorAction SilentlyContinue
     }
     catch
     {
@@ -2421,7 +2407,7 @@ param(
 
     try
     {
-        $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $MachineName -ErrorAction Stop
+        $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
     }
     catch
     {
@@ -2614,11 +2600,9 @@ Function Get-ExchangeMajorVersion {
 }
 
 Function Get-ExchangeAppPoolsInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+
     Function Get-ExchangeAppPoolsScriptBlock 
     {
         $windir = $env:windir
@@ -2660,18 +2644,16 @@ param(
 
         return $exchAppPools
     }
-    $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
     return $exchangeAppPoolsInfo
 }
 
 Function Get-ExchangeUpdates {
 param(
-[Parameter(Mandatory=$true)][string]$Machine_Name,
 [Parameter(Mandatory=$true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
 )
     Write-VerboseOutput("Calling: Get-ExchangeUpdates")
-    Write-VerboseOutput("Passed: " + $Machine_Name)
     Write-VerboseOutput("Passed: {0}" -f $ExchangeMajorVersion.ToString())
     $RegLocation = [string]::Empty
 
@@ -2684,7 +2666,7 @@ param(
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2016"
     }
 
-    $RegKey = Invoke-RegistryGetValue -MachineName $Machine_Name -SubKey $RegLocation -ReturnAfterOpenSubKey $true -CatchActionFunction ${Function:Invoke-CatchActions}
+    $RegKey = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey $RegLocation -ReturnAfterOpenSubKey $true -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if($RegKey -ne $null)
     {
@@ -2747,35 +2729,32 @@ param(
 }
 
 Function Get-ExSetupDetails {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-ExSetupDetails")
     $exSetupDetails = [string]::Empty
     Function Get-ExSetupDetailsScriptBlock {
         Get-Command ExSetup | ForEach-Object{$_.FileVersionInfo}
     }
 
-    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Machine_Name -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-VerboseOutput("Exiting: Get-ExSetupDetails")
     return $exSetupDetails
 }
 
 Function Get-ExchangeInformation {
 param(
-[string]$ServerName,
 [HealthChecker.OSServerVersion]$OSMajorVersion
 )
     Write-VerboseOutput("Calling: Get-ExchangeInformation")
-    Write-VerboseOutput("Passed - [string]ServerName: {0} | OSMajorVersion: {1}" -f $ServerName, $OSMajorVersion)
+    Write-VerboseOutput("Passed: OSMajorVersion: {0}" -f $OSMajorVersion)
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
     [HealthChecker.ExchangeBuildInformation]$exchangeInformation.BuildInformation = New-Object HealthChecker.ExchangeBuildInformation
     [HealthChecker.ExchangeNetFrameworkInformation]$exchangeInformation.NETFramework = New-Object -TypeName HealthChecker.ExchangeNetFrameworkInformation
-    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $ServerName)
+    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server)
     $buildInformation = $exchangeInformation.BuildInformation 
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion](Get-ExchangeMajorVersion -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion))
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
-    $buildInformation.ExchangeSetup = (Get-ExSetupDetails -Machine_Name $ServerName)
+    $buildInformation.ExchangeSetup = Get-ExSetupDetails
         
     #Exchange 2013 or greater
     if($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013)
@@ -2898,15 +2877,15 @@ param(
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)
         {
-            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Machine_Name $ServerName
+            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
         }
 
-        $buildInformation.KBsInstalled = Get-ExchangeUpdates -Machine_Name $ServerName -ExchangeMajorVersion $buildInformation.MajorVersion
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $ServerName -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
-        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -MachineName $ServerName -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
+        $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon","ProvisioningRps"
         if($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)
         {
-            $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $ServerName | %{$_.ServicesNotRunning}
+            $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Script:Server | %{$_.ServicesNotRunning}
         }
     }
     elseif($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010)
@@ -2921,20 +2900,17 @@ param(
 }
 
 Function Get-HealthCheckerExchangeServer {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
+
     Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
-    Write-VerboseOutput("Passed: $Machine_Name")
 
     [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer 
-    $HealthExSvrObj.ServerName = $Machine_Name 
-    $HealthExSvrObj.HardwareInformation = Get-HardwareInformation -Machine_Name $Machine_Name 
-    $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation -Machine_Name $Machine_Name  
-    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -ServerName $HealthExSvrObj.ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
+    $HealthExSvrObj.ServerName = $Script:Server 
+    $HealthExSvrObj.HardwareInformation = Get-HardwareInformation
+    $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation
+    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion
     if($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013)
     {
-        $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $Machine_Name -CatchActionFunction ${Function:Invoke-CatchActions}
+        $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $HealthExSvrObj.OSInformation.NETFramework.FriendlyName = $netFrameworkVersion.FriendlyName
         $HealthExSvrObj.OSInformation.NETFramework.RegistryValue = $netFrameworkVersion.RegistryValue
         $HealthExSvrObj.OSInformation.NETFramework.NetMajorVersion = $netFrameworkVersion.MinimumValue
@@ -2945,18 +2921,15 @@ param(
         }
     }
     $HealthExSvrObj.HealthCheckerVersion = $healthCheckerVersion
-    Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Machine_Name)
+    Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Script:Server)
     return $HealthExSvrObj
 }
 
 Function Get-MailboxDatabaseAndMailboxStatistics {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    Write-VerboseOutput("Calling: Get-MailboxDatabaseAndMailboxStatistics")
-    Write-VerboseOutput("Passed: " + $Machine_Name)
 
-    $AllDBs = Get-MailboxDatabaseCopyStatus -server $Machine_Name -ErrorAction SilentlyContinue 
+    Write-VerboseOutput("Calling: Get-MailboxDatabaseAndMailboxStatistics")
+
+    $AllDBs = Get-MailboxDatabaseCopyStatus -server $Script:Server -ErrorAction SilentlyContinue 
     $MountedDBs = $AllDBs | Where-Object{$_.ActiveCopy -eq $true}
     if($MountedDBs.Count -gt 0)
     {
@@ -2969,11 +2942,11 @@ param(
         Write-Grey("`tTotal Active User Mailboxes on server: " + $TotalActiveUserMailboxCount)
         $MountedDBs.DatabaseName | ForEach-Object{Write-VerboseOutput("Calculating Public Mailbox Total for Active Database: $_"); $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count}
         Write-Grey("`tTotal Active Public Folder Mailboxes on server: " + $TotalActivePublicFolderMailboxCount)
-        Write-Grey("`tTotal Active Mailboxes on server " + $Machine_Name + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
+        Write-Grey("`tTotal Active Mailboxes on server " + $Script:Server + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
     }
     else
     {
-        Write-Grey("`tNo Active Mailbox Databases found on server " + $Machine_Name + ".")
+        Write-Grey("`tNo Active Mailbox Databases found on server " + $Script:Server + ".")
     }
     
     $HealthyDbs = $AllDBs | Where-Object{$_.Status -match 'Healthy'}
@@ -2992,7 +2965,7 @@ param(
     }
     else
     {
-        Write-Grey("`tNo Passive Mailboxes found on server " + $Machine_Name + ".")
+        Write-Grey("`tNo Passive Mailboxes found on server " + $Script:Server + ".")
     }
 }
 
@@ -3190,33 +3163,12 @@ Function Get-CASLoadBalancingReport {
     Write-Grey("")
 }
 
-Function Get-LmCompatibilityLevel {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
-    #LSA Reg Location "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
-    #Check if valuename LmCompatibilityLevel exists, if not, then value is 3
-    $RegValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Machine_Name -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel" -CatchActionFunction ${Function:Invoke-CatchActions}
-    If ($RegValue)
-    {
-        Return $RegValue
-    }
-    Else
-    {
-        Return 3
-    }
-
-}
-
 Function Get-LmCompatibilityLevelInformation {
-param(
-[Parameter(Mandatory=$true)][string]$Machine_Name
-)
 
     Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
-    Write-VerboseOutput("Passed: $Machine_Name")
+
     [HealthChecker.LmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.LmCompatibilityLevelInformation
-    $ServerLmCompatObject.RegistryValue    = Get-LmCompatibilityLevel $Machine_Name
+    $ServerLmCompatObject.RegistryValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel" -CatchActionFunction ${Function:Invoke-CatchActions} -DefaultValue 3
     Switch ($ServerLmCompatObject.RegistryValue)
     {
         0 {$ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
@@ -5297,7 +5249,7 @@ Function HealthCheckerMain {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
     Write-HealthCheckerVersion
-    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer $Server
+    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6
@@ -5368,7 +5320,7 @@ Function Main {
 	if($MailboxReport)
 	{
         Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
-        Get-MailboxDatabaseAndMailboxStatistics -Machine_Name $Server
+        Get-MailboxDatabaseAndMailboxStatistics
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
     }
