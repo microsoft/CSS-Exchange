@@ -162,6 +162,7 @@ Param (
 [switch]$ImapLogs,
 [switch]$OABLogs,
 [switch]$PowerShellLogs,
+[switch]$WindowsSecurityLogs,
 [switch]$CollectAllLogsBasedOnDaysWorth = $true, 
 [switch]$AppSysLogs = $true,
 [switch]$AllPossibleLogs,
@@ -178,7 +179,7 @@ Param (
 
 )
 
-$scriptVersion = "2.16"
+$scriptVersion = "2.17"
 
 ###############################################
 #                                             #
@@ -717,6 +718,7 @@ param(
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs 
     $obj | Add-Member -Name OABLogs -MemberType NoteProperty -Value $OABLogs
     $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
+    $obj | Add-Member -Name WindowsSecurityLogs -MemberType NoteProperty $WindowsSecurityLogs
     
     #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple 
     $mbx = $false
@@ -777,6 +779,7 @@ Function Test-PossibleCommonScenarios {
         $Script:Experfwiz = $true
         $Script:OABLogs = $true
         $Script:PowerShellLogs = $true
+        $Script:WindowsSecurityLogs = $true
     }
 
     if($DefaultTransportLogging)
@@ -874,6 +877,7 @@ Function Test-NoSwitchesProvided {
     $ImapLogs -or 
     $OABLogs -or
     $PowerShellLogs -or
+    $WindowsSecurityLogs -or
     $ExchangeServerInfo
     ){return}
     else 
@@ -2331,14 +2335,22 @@ param(
         Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
         $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
         $SaveLogs = @{}
+        $Logs = @()
         if($PassedInfo.AppSysLogs)
         {
             Write-ScriptDebug("Adding Application and System Logs")
-            $Logs = @()
             $Logs += "Application.evtx"
             $Logs += "System.evtx"
             $Logs += "MSExchange Management.evtx"
-            $SaveLogs.Add("Windows-Logs",$Logs) 
+        }
+        if ($PassedInfo.WindowsSecurityLogs)
+        {
+            $Logs += "Security.evtx"
+        }
+        if ($PassedInfo.AppSysLogs -or
+            $PassedInfo.WindowsSecurityLogs)
+        {
+            $SaveLogs.Add("Windows-Logs", $Logs)
         }
         if($PassedInfo.ManagedAvailability)
         {

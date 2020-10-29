@@ -104,6 +104,8 @@ OABLogs - Collects OAB Logs
 
 PowerShellLogs - Collect Exchange PowerShell Logs.
 
+WindowsSecurityLogs - Collect Windows Security Logs.
+
 CollectAllLogsBasedOnDaysWorth - Collects all the logs based off DaysWorth instead of just the default logs of IIS and Daily Performance due to their size by default. 
 
 AppSysLogs - Collects the Application, System, and MSExchange Management. 
