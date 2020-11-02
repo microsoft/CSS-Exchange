@@ -1036,6 +1036,23 @@ param(
     return $isCurrent
 }
 
+Function Test-RequiresServerFqdn {
+
+    Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
+    try
+    {
+        $Script:ServerFQDN = (Get-ExchangeServer $Script:Server).FQDN
+        Invoke-Command -ComputerName $Script:Server -ScriptBlock {Get-Date | Out-Null} -ErrorAction Stop
+        Write-VerboseOutput("Connected successfully using NetBIOS name.")
+    }
+    catch
+    {
+        Invoke-CatchActions
+        Write-VerboseOutput("Failed to connect to {0} using NetBIOS name. Fallback to Fqdn: {1}" -f $Script:Server, $Script:ServerFQDN)
+        $Script:Server = $Script:ServerFQDN
+    }
+}
+
 #Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
 Function Get-WmiObjectHandler {
     [CmdletBinding()]
@@ -2148,7 +2165,7 @@ Function Get-OperatingSystemInformation {
     $osInformation.PageFile = Get-PageFileInformation
     $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     if($osInformation.BuildInformation.MajorVersion -lt [HealthChecker.OSServerVersion]::Windows2012R2){$isWindows2012R2OrNewer = $false}else{$isWindows2012R2OrNewer = $true}
-    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN ((Get-ExchangeServer $Script:Server -ErrorAction SilentlyContinue).FQDN))
+    $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN $Script:ServerFQDN)
     foreach($adapter in $osInformation.NetworkInformation.NetworkAdaptersConfiguration)
     {
         Write-VerboseOutput("Working on {0}" -f $adapter.Description)
@@ -5246,7 +5263,8 @@ Function LoadBalancingMain {
 }
 Function HealthCheckerMain {
 
-    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true 
+    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    Test-RequiresServerFqdn
     Write-HealthCheckerVersion
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
