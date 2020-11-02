@@ -3382,7 +3382,6 @@ param(
     #########################
     Write-VerboseOutput("Working on Exchange Information")
 
-    #TODO: Add as html server overview
     $analyzedResults = Add-AnalyzedResultInformation -Name "Name" -Details ($HealthServerObject.ServerName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
@@ -3563,8 +3562,6 @@ param(
         -DisplayTestingValue ($osInformation.ServerBootUp) `
         -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
-
-    ##TODO: DST Issue If Present
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Time Zone" -Details ($osInformation.TimeZone.CurrentTimeZone) `
         -DisplayGroupingKey $keyOSInformation `
@@ -3923,7 +3920,6 @@ param(
     }
 
     #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box
-    #TODO: Do only 1 call to Add-AnalyzedResultsInformation
     $displayWriteType = "Yellow"
     $testingValue = "Unknown"
     $displayValue = [string]::Empty
@@ -3936,7 +3932,6 @@ param(
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            #TODO: Add Error action
             $displayValue = "Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
             $testingValue = "Clustered"
             $displayWriteType = "Red"
@@ -3957,7 +3952,6 @@ param(
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            #TODO: Add Error Action
             $displayValue = "Failed --- Error: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
             $displayWriteType = "Red"
             $testingValue = "Failed"
@@ -4001,7 +3995,6 @@ param(
         -DisplayWriteType "Red" `
         -AddHtmlDetailRow $false `
         -AnalyzedInformation $analyzedResults
-        #TODO: Add Error Action
     }
 
     $totalPhysicalMemory = [System.Math]::Round($hardwareInformation.TotalMemory / 1024 / 1024 / 1024)
@@ -4095,7 +4088,6 @@ param(
                 }
             }
 
-            #TODO: Determine if we always want to display this or not
             $analyzedResults = Add-AnalyzedResultInformation -Name "Driver Date" -Details $detailsValue `
                 -DisplayGroupingKey $keyNICSettings `
                 -AnalyzedInformation $analyzedResults
@@ -4159,7 +4151,6 @@ param(
             $adapter.IPv6Enabled -eq $false)
         {
             #TODO: Fix this wording. could be confussing if IPv6Enabled is set to false but the registry isn't set correctly. NOTE this is called out below as well.
-            #TODO: Add Error Action
             $displayValue = "{0} --- Warning" -f $adapter.IPv6Enabled
             $displayWriteType = "Yellow"
             $testingValue = $false
@@ -4329,14 +4320,12 @@ param(
 
     if ($tcpKeepAlive -eq 0)
     {
-        #TODO: Fix wording
         $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
         $displayWriteType = "Red"
     }
     elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000)
     {
-        #TODO: Fix wording
         $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     }
@@ -4477,7 +4466,6 @@ param(
 
     if ($detectedTlsMismatch)
     {
-        #TODO Error Action
         $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649",
         "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761",
         "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
