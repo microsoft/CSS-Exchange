@@ -4640,6 +4640,7 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.3" -CVENames "CVE-2019-1084","CVE-2019-1136","CVE-2019-1137"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.4" -CVENames "CVE-2019-1373"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.6" -CVENames "CVE-2020-0688","CVE-2020-0692"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.7" -CVENames "CVE-2020-16969"
         }
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
@@ -4682,9 +4683,13 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.7","1913.7" -CVENames "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1847.10","1913.10" -CVENames "CVE-2020-0903"
         }
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU16)
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU17)
         {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Version.")
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1979.6","2044.6" -CVENames "CVE-2020-16875"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.7","2106.3" -CVENames "CVE-2020-16969"
         }
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
@@ -4710,21 +4715,25 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.11","529.8" -CVENames "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "464.14","529.11" -CVENames "CVE-2020-0903"
         }
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU5)
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU6)
         {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Version.")
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "595.6","659.6" -CVENames "CVE-2020-16875"
+        }
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7)
+        {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.7","721.3" -CVENames "CVE-2020-16969"
         }
     }
     else
     {
-        Write-VerboseOutput("Uknown Version of Exchange")
+        Write-VerboseOutput("Unknown Version of Exchange")
         $Script:AllVulnerabilitiesPassed = $false
     }
 
     #Description: Check for CVE-2020-0796 SMBv3 vulnerability
     #Affected OS versions: Windows 10 build 1903 and 1909
     #Fix: KB4551762
-    #Woraround: Disable SMBv3 compression
+    #Workaround: Disable SMBv3 compression
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
     {
