@@ -153,9 +153,9 @@ using System.Collections;
         // ExchangeInformation 
         public class ExchangeInformation 
         {
-            public ExchangeBuildInformation BuildInformation;   //Exchange build information
+            public ExchangeBuildInformation BuildInformation = new ExchangeBuildInformation();   //Exchange build information
             public object GetExchangeServer;      //Stores the Get-ExchangeServer Object 
-            public ExchangeNetFrameworkInformation NETFramework; 
+            public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation(); 
             public bool MapiHttpEnabled; //Stored from organization config 
             public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
             public Hashtable ApplicationPools;
@@ -253,16 +253,16 @@ using System.Collections;
         // OperatingSystemInformation
         public class OperatingSystemInformation 
         {
-            public OSBuildInformation BuildInformation; // contains build information 
-            public NetworkInformation NetworkInformation; //stores network information and settings
-            public PowerPlanInformation PowerPlan; //stores the power plan information 
+            public OSBuildInformation BuildInformation = new OSBuildInformation(); // contains build information 
+            public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
+            public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information 
             public PageFileInformation PageFile;             //stores the page file information 
             public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public bool ServerPendingReboot; // determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at. 
-            public TimeZoneInformation TimeZone;    //stores time zone information 
+            public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information 
             public Hashtable TLSSettings;            // stores the TLS settings on the server. 
-            public InstalledUpdatesInformation InstalledUpdates;  //store the install update 
-            public ServerBootUpInformation ServerBootUp;     // stores the server boot up time information 
+            public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update 
+            public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information 
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
             public bool CredentialGuardEnabled;
@@ -2115,14 +2115,7 @@ Function Get-OperatingSystemInformation {
 
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
 
-    #TODO: Clean this up. In the class call the constructor
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
-    [HealthChecker.OSBuildInformation]$osInformation.BuildInformation = New-Object HealthChecker.OSBuildInformation
-    [HealthChecker.ServerBootUpInformation]$osInformation.ServerBootUp = New-Object HealthChecker.ServerBootUpInformation
-    [HealthChecker.PowerPlanInformation]$osInformation.PowerPlan = New-Object HealthChecker.PowerPlanInformation
-    [HealthChecker.NetworkInformation]$osInformation.NetworkInformation = New-Object HealthChecker.NetworkInformation
-    [HealthChecker.InstalledUpdatesInformation]$osInformation.InstalledUpdates = New-Object HealthChecker.InstalledUpdatesInformation
-    [HealthChecker.TimeZoneInformation]$osInformation.TimeZone = New-Object HealthChecker.TimeZoneInformation
     $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
     $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
@@ -2748,8 +2741,6 @@ param(
     Write-VerboseOutput("Calling: Get-ExchangeInformation")
     Write-VerboseOutput("Passed: OSMajorVersion: {0}" -f $OSMajorVersion)
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
-    [HealthChecker.ExchangeBuildInformation]$exchangeInformation.BuildInformation = New-Object HealthChecker.ExchangeBuildInformation
-    [HealthChecker.ExchangeNetFrameworkInformation]$exchangeInformation.NETFramework = New-Object -TypeName HealthChecker.ExchangeNetFrameworkInformation
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server)
     $buildInformation = $exchangeInformation.BuildInformation 
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion](Get-ExchangeMajorVersion -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion))
