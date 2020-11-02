@@ -3360,10 +3360,13 @@ param(
     $osInformation = $HealthServerObject.OSInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:healthCheckerVersion `
-        -DisplayGroupingKey $keyBeginningInfo `
-        -AddHtmlDetailRow $false `
-        -AnalyzedInformation $analyzedResults
+    if (!$Script:DisplayedScriptVersionAlready)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:healthCheckerVersion `
+            -DisplayGroupingKey $keyBeginningInfo `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $analyzedResults
+    }
 
     if ($HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare -or
         $HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::HyperV)
@@ -5217,6 +5220,8 @@ Function Write-HealthCheckerVersion {
         -CurrentVersion $healthCheckerVersion `
         -DaysOldLimit 90 `
         -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    $Script:DisplayedScriptVersionAlready = $true
 
     if($currentVersion)
     {
