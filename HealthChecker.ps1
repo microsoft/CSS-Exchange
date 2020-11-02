@@ -4167,7 +4167,6 @@ param(
         if ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255 -and
             $adapter.IPv6Enabled -eq $false)
         {
-            #TODO: Fix this wording. could be confussing if IPv6Enabled is set to false but the registry isn't set correctly. NOTE this is called out below as well.
             $displayValue = "{0} --- Warning" -f $adapter.IPv6Enabled
             $displayWriteType = "Yellow"
             $testingValue = $false
@@ -4175,6 +4174,7 @@ param(
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "IPv6 Enabled" -Details $displayValue `
             -DisplayGroupingKey $keyNICSettings `
+            -DisplayWriteType $displayWriteType `
             -DisplayTestingValue $TestingValue `
             -AnalyzedInformation $analyzedResults
         
@@ -4319,12 +4319,13 @@ param(
         {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False --- Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
+            $displayValue = "False --- Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
         }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `
             -DisplayGroupingKey $keyNICSettings `
-            -DisplayCustomTabNumber 0 `
+            -DisplayWriteType $displayWriteType `
+            -DisplayCustomTabNumber 1 `
             -AnalyzedInformation $analyzedResults
     }
 
