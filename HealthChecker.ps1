@@ -372,7 +372,8 @@ using System.Collections;
         {
             public NetMajorVersion NetMajorVersion; //NetMajorVersion value 
             public string FriendlyName;  //string of the friendly name 
-            public int RegistryValue; //store the registry value 
+            public int RegistryValue; //store the registry value
+            public Hashtable FileInformation; //stores Get-Item information for .NET Framework
         }
     
         //enum for the OSServerVersion that we are
@@ -1447,6 +1448,51 @@ param(
     
     return $smb1ServerSettings
     
+}
+
+#Master Template https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-DotNetDllFileVersions/Get-DotNetDllFileVersions.ps1
+Function Get-DotNetDllFileVersions {
+    [CmdletBinding()]
+    param(
+    [string]$ComputerName,
+    [array]$FileNames,
+    [scriptblock]$CatchActionFunction
+    )
+
+    #Function Version 1.0
+    <#
+    Required Functions:
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+    #>
+
+    Write-VerboseWriter("Calling: Get-DotNetDllFileVersions")
+
+    Function ScriptBlock-GetItem{
+    param(
+    [string]$FilePath
+    )
+        return Get-Item $FilePath
+    }
+
+    $dotNetInstallPath = Invoke-RegistryGetValue -MachineName $ComputerName -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "InstallPath" -CatchActionFunction $CatchActionFunction
+
+    if ($dotNetInstallPath -eq [string]::Empty)
+    {
+        Write-VerboseWriter("Failed to determine .NET install path")
+        return
+    }
+
+    $files = @{}
+    foreach($filename in $FileNames)
+    {
+        Write-VerboseWriter("Query .NET DLL information for machine: {0}" -f $ComputerName)
+        $getItem = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock ${Function:ScriptBlock-GetItem} -ArgumentList ("{0}\{1}" -f $dotNetInstallPath, $filename) -CatchActionFunction $CatchActionFunction
+        $files.Add($filename, $getItem)
+    }
+
+    return $files
 }
 
 Function Is-Admin {
@@ -2928,6 +2974,7 @@ Function Get-HealthCheckerExchangeServer {
         $HealthExSvrObj.OSInformation.NETFramework.FriendlyName = $netFrameworkVersion.FriendlyName
         $HealthExSvrObj.OSInformation.NETFramework.RegistryValue = $netFrameworkVersion.RegistryValue
         $HealthExSvrObj.OSInformation.NETFramework.NetMajorVersion = $netFrameworkVersion.MinimumValue
+        $HealthExSvrObj.OSInformation.NETFramework.FileInformation = Get-DotNetDllFileVersions -ComputerName $Script:Server -FileNames @("System.Data.dll","System.Configuration.dll") -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($netFrameworkVersion.MinimumValue -eq $HealthExSvrObj.ExchangeInformation.NETFramework.MaxSupportedVersion)
         {
@@ -4795,6 +4842,38 @@ param(
     else
     {
         Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
+    }
+
+    #Description: Check for CVE-2020-1147
+    #Affected OS versions: Every OS supporting .NET Core 2.1 and 3.1 and .NET Framework 2.0 SP2 or above
+    #Fix: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/CVE-2020-1147
+    #Workaround: N/A
+    $dllFileBuildPartToCheckAgainst = 3630
+
+    if ($osInformation.NETFramework.NetMajorVersion -eq [HealthChecker.NetMajorVersion]::Net4d8)
+    {
+        $dllFileBuildPartToCheckAgainst = 4190
+    }
+
+    Write-VerboseOutput("System.Data.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemDataDll = $osInformation.NETFramework.FileInformation["System.Data.dll"]).VersionInfo.FileBuildPart, `
+        $systemDataDll.LastAccessTimeUtc)
+    Write-VerboseOutput("System.Configuration.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemConfigurationDll = $osInformation.NETFramework.FileInformation["System.Configuration.dll"]).VersionInfo.FileBuildPart, `
+        $systemConfigurationDll.LastAccessTimeUtc)
+
+    if($systemDataDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
+        $systemConfigurationDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
+        $systemDataDll.LastWriteTime -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) -and
+        $systemConfigurationDll.LastWriteTime -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))
+    {
+        Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
+    }
+    else
+    {
+        $AllVulnerabilitiesPassed = $false
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147") `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $Script:AnalyzedInformation
     }
 
     if ($Script:AllVulnerabilitiesPassed)
