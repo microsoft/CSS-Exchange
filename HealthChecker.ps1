@@ -3741,7 +3741,8 @@ param(
         $testObject = New-Object PSCustomObject
         $testObject | Add-Member -MemberType NoteProperty -Name "CurrentValue" -Value ($osInformation.NETFramework.FriendlyName)
         $testObject | Add-Member -MemberType NoteProperty -Name "MaxSupportedVersion" -Value ($exchangeInformation.NETFramework.MaxSupportedVersion)
-        $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $exchangeInformation.NETFramework.MaxSupportedVersion
+        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $exchangeInformation.NETFramework.MaxSupportedVersion
+        $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
         $analyzedResults = Add-AnalyzedResultInformation -Name ".NET Framework" -Details $displayValue `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Yellow" `
