@@ -4068,11 +4068,11 @@ param(
         $name = "All Processor Cores Visible"
         if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
         {
-            $displayValue = "Unknown --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues."
+            $displayValue = "Unknown `r`n`t`tWarning: If we aren't able to see all processor cores from Exchange, we could see performance related issues."
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            $displayValue = "Failed --- Error: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
+            $displayValue = "Failed `r`n`t`tError: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
             $displayWriteType = "Red"
             $testingValue = "Failed"
         }
