@@ -3763,12 +3763,12 @@ param(
     $testingValue | Add-Member -MemberType NoteProperty -Name "RecommendedPageFile" -Value 0
     if ($maxPageSize -eq 0)
     {
-        $displayValue = "System is set to automatically manage the pagefile size. --- Error"
+        $displayValue = "Error: System is set to automatically manage the pagefile size."
         $displayWriteType = "Red"
     }
     elseif ($osInformation.PageFile.PageFile.Count -gt 1)
     {
-        $displayValue = "Multiple page files detected. --- Error: This has been know to cause performance issues please address this."
+        $displayValue = "Multiple page files detected. `r`n`t`tError: This has been know to cause performance issues please address this."
         $displayWriteType = "Red"
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
@@ -3777,7 +3777,7 @@ param(
         Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
         if ($recommendedPageFileSize -ne $maxPageSize)
         {
-            $displayValue = "{0}MB --- Warning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
         }
         else
         {
@@ -3795,7 +3795,7 @@ param(
         }
         else
         {
-            $displayValue = "{0}MB --- Warning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
         }
     }
     else
@@ -3803,7 +3803,7 @@ param(
         $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) + 10))
         if ($recommendedPageFileSize -ne $maxPageSize)
         {
-            $displayValue = "{0}MB --- Warning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
         }
         else
         {
