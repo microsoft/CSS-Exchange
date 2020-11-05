@@ -4048,11 +4048,11 @@ param(
         $name = "NUMA Group Size Optimization"
         if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
         {
-            $displayValue = "Unknown --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server"
+            $displayValue = "Unknown `r`n`t`tWarning: If this is set to Clustered, this can cause multiple types of issues on the server"
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            $displayValue = "Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
+            $displayValue = "Clustered `r`n`t`tError: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
             $testingValue = "Clustered"
             $displayWriteType = "Red"
         }
