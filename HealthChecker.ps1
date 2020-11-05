@@ -3763,12 +3763,12 @@ param(
     $testingValue | Add-Member -MemberType NoteProperty -Name "RecommendedPageFile" -Value 0
     if ($maxPageSize -eq 0)
     {
-        $displayValue = "System is set to automatically manage the pagefile size. --- Error"
+        $displayValue = "Error: System is set to automatically manage the pagefile size."
         $displayWriteType = "Red"
     }
     elseif ($osInformation.PageFile.PageFile.Count -gt 1)
     {
-        $displayValue = "Multiple page files detected. --- Error: This has been know to cause performance issues please address this."
+        $displayValue = "Multiple page files detected. `r`n`t`tError: This has been know to cause performance issues please address this."
         $displayWriteType = "Red"
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
@@ -3777,7 +3777,7 @@ param(
         Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
         if ($recommendedPageFileSize -ne $maxPageSize)
         {
-            $displayValue = "{0}MB --- Warning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
         }
         else
         {
@@ -3795,7 +3795,7 @@ param(
         }
         else
         {
-            $displayValue = "{0}MB --- Warning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
         }
     }
     else
@@ -3803,7 +3803,7 @@ param(
         $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) + 10))
         if ($recommendedPageFileSize -ne $maxPageSize)
         {
-            $displayValue = "{0}MB --- Warning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
         }
         else
         {
@@ -4048,11 +4048,11 @@ param(
         $name = "NUMA Group Size Optimization"
         if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
         {
-            $displayValue = "Unknown --- Warning: If this is set to Clustered, this can cause multiple types of issues on the server"
+            $displayValue = "Unknown `r`n`t`tWarning: If this is set to Clustered, this can cause multiple types of issues on the server"
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            $displayValue = "Clustered --- Error: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
+            $displayValue = "Clustered `r`n`t`tError: This setting should be set to Flat. By having this set to Clustered, we will see multiple different types of issues."
             $testingValue = "Clustered"
             $displayWriteType = "Red"
         }
@@ -4068,11 +4068,11 @@ param(
         $name = "All Processor Cores Visible"
         if ($hardwareInformation.Processor.EnvironmentProcessorCount -eq -1)
         {
-            $displayValue = "Unknown --- Warning: If we aren't able to see all processor cores from Exchange, we could see performance related issues."
+            $displayValue = "Unknown `r`n`t`tWarning: If we aren't able to see all processor cores from Exchange, we could see performance related issues."
         }
         elseif ($hardwareInformation.Processor.EnvironmentProcessorCount -ne $logicalValue)
         {
-            $displayValue = "Failed --- Error: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
+            $displayValue = "Failed `r`n`t`tError: Not all Processor Cores are visible to Exchange and this will cause a performance impact"
             $displayWriteType = "Red"
             $testingValue = "Failed"
         }
@@ -4125,16 +4125,16 @@ param(
     {
         if ($totalPhysicalMemory -gt 256)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
         }
         elseif ($totalPhysicalMemory -lt 64 -and
             $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
         }
         elseif ($totalPhysicalMemory -lt 128)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
         }
         else
         {
@@ -4145,11 +4145,11 @@ param(
     elseif ($totalPhysicalMemory -gt 128 -and
         $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
     {
-        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
+        $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
     }
     elseif ($totalPhysicalMemory -gt 96)
     {
-        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
+        $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
     }
     else
     {
@@ -4437,7 +4437,7 @@ param(
         {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False --- Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
         }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `
@@ -4456,13 +4456,13 @@ param(
 
     if ($tcpKeepAlive -eq 0)
     {
-        $displayValue = "Not Set --- Error: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
+        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
         $displayWriteType = "Red"
     }
     elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000)
     {
-        $displayValue = "{0} --- Warning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
+        $displayValue = "{0} `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     }
     else
@@ -4489,7 +4489,7 @@ param(
     if ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage -ne 0)
     {
         $displayWriteType = "Red"
-        $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+        $displayValue = "{0} `r`n`t`tError: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     }
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "CTS Processor Affinity Percentage" -Details $displayValue `
@@ -4504,7 +4504,7 @@ param(
 
     if($osInformation.CredentialGuardEnabled)
     {
-        $displayValue = "{0} --- Error: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
         $displayWriteType = "Red"
     }
 
