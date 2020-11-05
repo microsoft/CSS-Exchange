@@ -4407,19 +4407,6 @@ param(
         -HtmlName "TCPKeepAlive" `
         -AnalyzedInformation $analyzedResults
 
-    #TODO: Determine what i am going to do for handling this. Do we want to flag it or not. Otherwise, just display it vs doing the If Statements
-    #Leaving the IF statement here to know what i was doing. But just note that all of them were write grey
-
-    if ($osInformation.NetworkInformation.RpcMinConnectionTimeout -eq 0)
-    {
-    }
-    elseif ($osInformation.NetworkInformation.RpcMinConnectionTimeout -eq 120)
-    {
-    }
-    else
-    {
-    }
-
     $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
         -DisplayGroupingKey $keyFrequentConfigIssues `
         -HtmlName "RPC Minimum Connection Timeout" `
