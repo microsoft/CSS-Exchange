@@ -4125,16 +4125,16 @@ param(
     {
         if ($totalPhysicalMemory -gt 256)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
         }
         elseif ($totalPhysicalMemory -lt 64 -and
             $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
         }
         elseif ($totalPhysicalMemory -lt 128)
         {
-            $displayDetails = "{0} GB --- Warning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
         }
         else
         {
@@ -4145,11 +4145,11 @@ param(
     elseif ($totalPhysicalMemory -gt 128 -and
         $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
     {
-        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
+        $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
     }
     elseif ($totalPhysicalMemory -gt 96)
     {
-        $displayDetails = "{0} GB --- Warning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
+        $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
     }
     else
     {
@@ -4437,7 +4437,7 @@ param(
         {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False --- Error: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://docs.microsoft.com/en-us/archive/blogs/rmilne/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
         }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `
