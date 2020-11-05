@@ -4325,8 +4325,8 @@ param(
             -DisplayGroupingKey $keyNICSettings `
             -AnalyzedInformation $analyzedResults
 
-        #Assuming that only physical machines/NICs will allow this to occur.
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical)
+        #Assuming that all versions of Hyper-V doesn't allow sleepy NICs
+        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV)
         {
             $displayWriteType = "Yellow"
             if ($adapter.SleepyNicDisabled)
