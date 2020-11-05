@@ -4489,7 +4489,7 @@ param(
     if ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage -ne 0)
     {
         $displayWriteType = "Red"
-        $displayValue = "{0} --- Error: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+        $displayValue = "{0} `r`n`t`tError: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     }
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "CTS Processor Affinity Percentage" -Details $displayValue `
@@ -4504,7 +4504,7 @@ param(
 
     if($osInformation.CredentialGuardEnabled)
     {
-        $displayValue = "{0} --- Error: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
         $displayWriteType = "Red"
     }
 
