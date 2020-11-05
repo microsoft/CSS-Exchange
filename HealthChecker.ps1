@@ -1461,7 +1461,7 @@ Function Get-DotNetDllFileVersions {
     [scriptblock]$CatchActionFunction
     )
 
-    #Function Version 1.0
+    #Function Version 1.1
     <#
     Required Functions:
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
@@ -1475,7 +1475,20 @@ Function Get-DotNetDllFileVersions {
     param(
     [string]$FilePath
     )
-        return Get-Item $FilePath
+        $getItem = Get-Item $FilePath
+
+        $returnObject = ([PSCustomObject]@{
+            GetItem = $getItem
+            LastWriteTimeUtc = $getItem.LastWriteTimeUtc
+            VersionInfo = ([PSCustomObject]@{
+                FileMajorPart = $getItem.VersionInfo.FileMajorPart
+                FileMinorPart = $getItem.VersionInfo.FileMinorPart
+                FileBuildPart = $getItem.VersionInfo.FileBuildPart
+                FilePrivatePart = $getItem.VersionInfo.FilePrivatePart
+            })
+        })
+
+        return $returnObject
     }
 
     $dotNetInstallPath = Invoke-RegistryGetValue -MachineName $ComputerName -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -GetValue "InstallPath" -CatchActionFunction $CatchActionFunction
@@ -4914,23 +4927,24 @@ param(
     }
 
     Write-VerboseOutput("System.Data.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemDataDll = $osInformation.NETFramework.FileInformation["System.Data.dll"]).VersionInfo.FileBuildPart, `
-        $systemDataDll.LastAccessTimeUtc)
+        $systemDataDll.LastWriteTimeUtc)
     Write-VerboseOutput("System.Configuration.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemConfigurationDll = $osInformation.NETFramework.FileInformation["System.Configuration.dll"]).VersionInfo.FileBuildPart, `
-        $systemConfigurationDll.LastAccessTimeUtc)
+        $systemConfigurationDll.LastWriteTimeUtc)
 
     if($systemDataDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
         $systemConfigurationDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
-        $systemDataDll.LastWriteTime -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) -and
-        $systemConfigurationDll.LastWriteTime -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))
+        $systemDataDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) -and
+        $systemConfigurationDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)))
     {
         Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
     }
     else
     {
-        $AllVulnerabilitiesPassed = $false
+        $Script:AllVulnerabilitiesPassed = $false
         $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147") `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayWriteType "Red" `
+            -AddHtmlDetailRow $false `
             -AnalyzedInformation $Script:AnalyzedInformation
     }
 
