@@ -2784,23 +2784,27 @@ param(
     {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2013"
     }
-    else 
+    elseif([HealthChecker.ExchangeMajorVersion]::Exchange2016 -eq $ExchangeMajorVersion) 
     {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2016"
+    }
+    else 
+    {
+        $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2019"
     }
 
     $RegKey = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey $RegLocation -ReturnAfterOpenSubKey $true -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    if($RegKey -ne $null)
+    if($null -ne $RegKey)
     {
         $IU = $RegKey.GetSubKeyNames()
-        if($IU -ne $null)
+        if($null -ne $IU)
         {
             Write-VerboseOutput("Detected fixes installed on the server")
             $fixes = @()
             foreach($key in $IU)
             {
-                $IUKey = $Reg.OpenSubKey($RegLocation + "\" + $key)
+                $IUKey = $RegKey.OpenSubKey($key)
                 $IUName = $IUKey.GetValue("PackageName")
                 Write-VerboseOutput("Found: " + $IUName)
                 $fixes += $IUName
