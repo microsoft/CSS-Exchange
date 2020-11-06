@@ -5431,8 +5431,9 @@ Function Main {
         (-not $AnalyzeDataOnly -and
         -not $BuildHtmlServersReport))
 	{
-		Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." 
-		sleep 2;
+        Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
+        $Script:ErrorStartCount = $Error.Count
+		Start-Sleep -Seconds 2;
 		exit
     }
 
