@@ -397,7 +397,7 @@ using System.Collections;
             public string LinkSpeed;    //speed of the adapter 
             public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
             public string DriverVersion; // version of the driver that we are on 
-            public string RSSEnabled;  //bool to determine if RSS is enabled 
+            public int RSSEnabled;  //int to determine if RSS is enabled. 0 disabled, 1, enabled, 2 no RSS detection available
             public string Name;        //name of the adapter 
             public object NICObject; //object to store the adapter info 
             public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
@@ -1616,7 +1616,7 @@ Function Get-AllNicInformation {
     [Parameter(Mandatory=$false)][string]$ComputerFQDN,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.2
+    #Function Version 1.3
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
@@ -1734,17 +1734,41 @@ Function Get-AllNicInformation {
         [array]$nicObjects = @()
         foreach($networkConfig in $NetworkConfigurations)
         {
+            $dnsClient = $null
+            $rssEnabledValue = 2
+            $netAdapterRss = $null
             if (!$WmiObject)
             {
+                Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.InterfaceDescription)
                 $adapter = $networkConfig.NetAdapter
                 $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
     
                 try
                 {
                     $dnsClient = $adapter | Get-DnsClient
+                    Write-VerboseWriter("Got DNS Client information")
                 }
                 catch
                 {
+                    Write-VerboseWriter("Failed to get the DNS Client information")
+                    if ($CatchActionFunction -ne $null)
+                    {
+                        & $CatchActionFunction
+                    }
+                }
+    
+                try
+                {
+                    $netAdapterRss = $adapter | Get-NetAdapterRss
+                    Write-VerboseWriter("Got Net Adapter RSS information")
+                    if ($netAdapterRss -ne $null)
+                    {
+                        [int]$rssEnabledValue = $netAdapterRss.Enabled
+                    }
+                }
+                catch
+                {
+                    Write-VerboseWriter("Failed to get RSS Information")
                     if ($CatchActionFunction -ne $null)
                     {
                         & $CatchActionFunction
@@ -1753,6 +1777,7 @@ Function Get-AllNicInformation {
             }
             else
             {
+                Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.Description)
                 $adapter = $networkConfig
                 $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
             }
@@ -1763,6 +1788,8 @@ Function Get-AllNicInformation {
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "LinkSpeed" -Value ((($adapter.Speed)/1000000).ToString() + " Mbps")
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value [DateTime]::MaxValue
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NICObject" -Value $networkConfig
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NetAdapterRss" -Value $netAdapterRss
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "RssEnabledValue" -Value $rssEnabledValue
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "IPv6Enabled" -Value $false
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Description" -Value $adapter.Description
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value [string]::Empty
@@ -4241,24 +4268,25 @@ param(
                 -AnalyzedInformation $analyzedResults
 
             $writeType = "Yellow"
-            $testingValue = [string]::Empty
+            $testingValue = $null
 
-            if ($adapter.RSSEnabled -eq "NoRSS")
+            if ($adapter.RssEnabledValue -eq 0)
             {
-                $detailsValue = "No RSS Feature Detected."
+                $detailsValue = "False --- Warning: Enabling RSS is recommended."
+                $testingValue = $false
             }
-            elseif ($adapter.RSSEnabled -eq "True")
+            elseif ($adapter.RssEnabledValue -eq 1)
             {
-                $detailsValue = "Enabled"
+                $detailsValue = "True"
+                $testingValue = $true
                 $writeType = "Green"
             }
             else
             {
-                $detailsValue = "Disabled --- Warning: Enabling RSS is recommended."
-                $testingValue = "Disabled"
+                $detailsValue = "No RSS Feature Detected."
             }
 
-            $analyzedResults = Add-AnalyzedResultInformation -Name "RSS" -Details $detailsValue `
+            $analyzedResults = Add-AnalyzedResultInformation -Name "RSS Enabled" -Details $detailsValue `
                 -DisplayGroupingKey $keyNICSettings `
                 -DisplayWriteType $writeType `
                 -DisplayTestingValue $testingValue `
