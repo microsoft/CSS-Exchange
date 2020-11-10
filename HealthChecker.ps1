@@ -4784,6 +4784,7 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.4" -CVENames "CVE-2019-1373"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.6" -CVENames "CVE-2020-0688","CVE-2020-0692"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.7" -CVENames "CVE-2020-16969"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.8" -CVENames "CVE-2020-17083","CVE-2020-17084","CVE-2020-17085"
         }
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
@@ -4833,6 +4834,7 @@ param(
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18)
         {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.7","2106.3" -CVENames "CVE-2020-16969"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.8","2106.4" -CVENames "CVE-2020-17083","CVE-2020-17084","CVE-2020-17085"
         }
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
@@ -4865,6 +4867,7 @@ param(
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7)
         {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.7","721.3" -CVENames "CVE-2020-16969"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.8","721.4" -CVENames "CVE-2020-17083","CVE-2020-17084","CVE-2020-17085"
         }
     }
     else
