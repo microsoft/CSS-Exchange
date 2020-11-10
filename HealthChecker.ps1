@@ -391,19 +391,6 @@ using System.Collections;
             WindowsCore
         }
     
-        public class NICInformation 
-        {
-            public string Description;  //Friendly name of the adapter 
-            public string LinkSpeed;    //speed of the adapter 
-            public System.DateTime DriverDate;   // date of the driver that is currently installed on the server 
-            public string DriverVersion; // version of the driver that we are on 
-            public int RSSEnabled;  //int to determine if RSS is enabled. 0 disabled, 1, enabled, 2 no RSS detection available
-            public string Name;        //name of the adapter 
-            public object NICObject; //object to store the adapter info 
-            public bool IPv6Enabled; //Checks to see if we have an IPv6 address on the NIC 
-            public int MTUSize; //Size of the MTU on the network card. 
-        }
-    
         //enum for the dword value of the .NET frame 4 that we are on 
         public enum NetMajorVersion 
         {
