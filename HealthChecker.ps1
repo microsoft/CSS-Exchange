@@ -1895,7 +1895,6 @@ Function Get-HttpProxySetting {
 	$httpProxy32 = [String]::Empty
 	$httpProxy64 = [String]::Empty
 	Write-VerboseOutput("Calling: Get-HttpProxySetting")
-	Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
     
     Function Get-WinHttpSettings {
     param(
