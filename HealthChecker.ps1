@@ -5378,7 +5378,7 @@ Function Get-ErrorsThatOccurred {
             }
             Write-Grey(" "); Write-Grey(" ")
             "Errors that were handled" | Out-File ($Script:OutputFullPath) -Append
-            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that occurred that wasn't handled")
+            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that were handled")
             foreach($okayErrors in $Script:ErrorsExcluded)
             {
                 $okayErrors | Out-File ($Script:OutputFullPath) -Append
