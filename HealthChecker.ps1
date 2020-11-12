@@ -1603,7 +1603,7 @@ Function Get-AllNicInformation {
     [Parameter(Mandatory=$false)][string]$ComputerFQDN,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.3
+    #Function Version 1.5
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
@@ -1612,7 +1612,6 @@ Function Get-AllNicInformation {
     #>
     Write-VerboseWriter("Calling: Get-AllNicInformation")
     Write-VerboseWriter("Passed [string]ComputerName: {0} | [string]ComputerFQDN: {1}" -f $ComputerName, $ComputerFQDN)
-    
     
     Function Get-NicPnpCapabilitiesSetting {
     [CmdletBinding()]
@@ -1670,7 +1669,7 @@ Function Get-AllNicInformation {
         {
             $currentErrors = $Error.Count
             $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop
-            $networkIpConfiguration = Get-NetIPConfiguration -CimSession $CimSession -ErrorAction Stop | ?{$_.NetAdapter.MediaConnectionState -eq "Connected"}
+            $networkIpConfiguration = Get-NetIPConfiguration -CimSession $CimSession -ErrorAction Stop | Where-Object {$_.NetAdapter.MediaConnectionState -eq "Connected"}
     
             if ($CatchActionFunction -ne $null)
             {
@@ -1716,6 +1715,11 @@ Function Get-AllNicInformation {
             $obj | Add-Member -MemberType NoteProperty -Name "DefaultGateway" -Value ([string]::Empty)
     
             return $obj
+        }
+    
+        if ($WmiObject)
+        {
+            $networkAdapterConfigurations = Get-WmiObjectHandler -ComputerName $ComputerName -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction $CatchActionFunction
         }
     
         [array]$nicObjects = @()
@@ -1790,7 +1794,15 @@ Function Get-AllNicInformation {
                 $nicInformationObj.DriverDate = $adapter.DriverDate
                 $nicInformationObj.DriverVersion = $adapter.DriverVersionString
                 $nicInformationObj.Description = $adapter.InterfaceDescription
-                
+    
+                foreach ($ipAddress in $networkConfig.AllIPAddresses.IPAddress)
+                {
+                    if ($ipAddress.Contains(":"))
+                    {
+                        $nicInformationObj.IPv6Enabled = $true
+                    }
+                }
+    
                 $ipv4Address = @()
                 for ($i = 0; $i -lt $networkConfig.IPv4Address.Count; $i++)
                 {
@@ -1838,6 +1850,32 @@ Function Get-AllNicInformation {
                 $nicInformationObj | Add-Member -MemberType NoteProperty -Name "RegisteredInDns" -Value $dnsClient.RegisterThisConnectionsAddress
                 $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DnsServer" -Value $networkConfig.DNSServer.ServerAddresses
                 $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DnsClientObject" -Value $dnsClient
+            }
+            else 
+            {
+                $stopProcess = $false
+                foreach ($adapterConfiguration in $networkAdapterConfigurations)
+                {
+                    Write-VerboseWriter("Working on '{0}' | SettingID: {1}" -f $adapterConfiguration.Description, ($settingId = $adapterConfiguration.SettingID))
+                    if ($settingId -eq $networkConfig.GUID -or
+                        $settingId -eq $networkConfig.InterfaceGuid)
+                    {
+                        foreach ($ipAddress in $adapterConfiguration.IPAddress)
+                        {
+                            if ($ipAddress.Contains(":"))
+                            {
+                                $nicInformationObj.IPv6Enabled = $true
+                                $stopProcess = $true
+                                break
+                            }
+                        }
+                    }
+    
+                    if ($stopProcess)
+                    {
+                        break
+                    }
+                }
             }
     
             $nicObjects += $nicInformationObj 
@@ -2295,35 +2333,12 @@ Function Get-OperatingSystemInformation {
     $osInformation.PageFile = Get-PageFileInformation
     $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN $Script:ServerFQDN)
-    foreach($adapter in $osInformation.NetworkInformation.NetworkAdaptersConfiguration)
+    foreach($adapter in $osInformation.NetworkInformation.NetworkAdapters)
     {
-        Write-VerboseOutput("Working on {0}" -f $adapter.Description)
-        $settingID = $adapter.SettingID
-        Write-VerboseOutput("SettingID: {0}" -f $settingID)
-        $IPv6Enabled = $false 
-        foreach($address in $adapter.IPAddress)
+        if (!$adapter.IPv6Enabled)
         {
-            if($address.Contains(":"))
-            {
-                Write-VerboseOutput("Determined IPv6 enabled")
-                $IPv6Enabled = $true 
-            }
-        }
-        Write-VerboseOutput("Going to try to find the Network Adapter that goes with this adapter configuration")
-        foreach($nicAdapter in $osInformation.NetworkInformation.NetworkAdapters)
-        {
-            $nicObject = $nicAdapter.NICObject
-            Write-VerboseOutput("Checking against '{0}'" -f $nicAdapter.Description)
-            Write-VerboseOutput("GUID: '{0}' InterfaceGUID: '{1}'" -f $nicObject.GUID, $nicObject.InterfaceGUID)
-            if($settingID -eq $nicObject.GUID -or $settingID -eq $nicObject.InterfaceGuid)
-            {
-                Write-VerboseOutput("Found setting the ipv6enabled: {0}" -f $IPv6Enabled)
-                $nicAdapter.IPv6Enabled = $IPv6Enabled 
-            }
-        }
-        if(!$IPv6Enabled)
-        {
-            $osInformation.NetworkInformation.IPv6DisabledOnNICs = $true 
+            $osInformation.NetworkInformation.IPv6DisabledOnNICs = $true
+            break
         }
     }
 
