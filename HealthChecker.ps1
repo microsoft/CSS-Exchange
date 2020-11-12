@@ -286,7 +286,6 @@ using System.Collections;
             public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server. 
             public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents 
             public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
-            public System.Array NetworkAdaptersConfiguration;     //Stores the Win32_NetworkAdapterConfiguration for the server. 
             public System.Array NetworkAdapters;           //stores all the NICs on the servers. 
             public string PnPCapabilities;      //Value from PnPCapabilities registry
             public bool SleepyNicDisabled;     //If the NIC can be in power saver mode by the OS.
@@ -2331,7 +2330,6 @@ Function Get-OperatingSystemInformation {
     }
     $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan 
     $osInformation.PageFile = Get-PageFileInformation
-    $osInformation.NetworkInformation.NetworkAdaptersConfiguration = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_NetworkAdapterConfiguration" -Filter "IPEnabled = True" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN $Script:ServerFQDN)
     foreach($adapter in $osInformation.NetworkInformation.NetworkAdapters)
     {
