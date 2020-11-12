@@ -4377,15 +4377,19 @@ param(
         #Assuming that all versions of Hyper-V doesn't allow sleepy NICs
         if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV)
         {
-            $displayWriteType = "Yellow"
-            if ($adapter.SleepyNicDisabled)
+            $displayWriteType = "Grey"
+            $displayValue = $adapter.SleepyNicDisabled
+
+            if (!$adapter.SleepyNicDisabled)
             {
-                $displayWriteType = "Grey"
+                $displayWriteType = "Yellow"
+                $displayValue = "False --- Warning: It's recommended to disable NIC power saving options`r`n`t`t`tMore Information: http://support.microsoft.com/kb/2740020"
             }
 
-            $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $adapter.SleepyNicDisabled `
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
                 -DisplayGroupingKey $keyNICSettings `
                 -DisplayWriteType $displayWriteType `
+                -DisplayTestingValue $adapter.SleepyNicDisabled `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -5391,7 +5395,7 @@ Function Get-ErrorsThatOccurred {
             }
             Write-Grey(" "); Write-Grey(" ")
             "Errors that were handled" | Out-File ($Script:OutputFullPath) -Append
-            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that occurred that wasn't handled")
+            $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that were handled")
             foreach($okayErrors in $Script:ErrorsExcluded)
             {
                 $okayErrors | Out-File ($Script:OutputFullPath) -Append
