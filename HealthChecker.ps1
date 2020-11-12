@@ -1736,7 +1736,7 @@ Function Get-AllNicInformation {
     
                 try
                 {
-                    $dnsClient = $adapter | Get-DnsClient
+                    $dnsClient = $adapter | Get-DnsClient -ErrorAction Stop
                     Write-VerboseWriter("Got DNS Client information")
                 }
                 catch
@@ -1750,7 +1750,7 @@ Function Get-AllNicInformation {
     
                 try
                 {
-                    $netAdapterRss = $adapter | Get-NetAdapterRss
+                    $netAdapterRss = $adapter | Get-NetAdapterRss -ErrorAction Stop
                     Write-VerboseWriter("Got Net Adapter RSS information")
                     if ($netAdapterRss -ne $null)
                     {
