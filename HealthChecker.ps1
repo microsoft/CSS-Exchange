@@ -1626,10 +1626,13 @@ Function Get-AllNicInformation {
     
     $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
     Write-VerboseWriter("Probing started to detect NIC adapter registry path")
-    [int]$i = 0
-    
-    do {
-        $nicAdapterPnPCapabilitiesProbingKey = "{0}\{1}" -f $nicAdapterBasicPath, ($i.ToString().PadLeft(4,"0"))
+
+    $nicAdapterRegKey = Invoke-RegistryGetValue -MachineName $ComputerName -Subkey $nicAdapterBasicPath -ReturnAfterOpenSubKey $true -CatchActionFunction $CatchActionFunction
+    $nicAdapterDeviceIDs = $nicAdapterRegKey.GetSubKeyNames() | Where-Object {$_.StartsWith("0")}
+
+    foreach($deviceID in $nicAdapterDeviceIDs)
+    {
+        $nicAdapterPnPCapabilitiesProbingKey = "{0}\{1}" -f $nicAdapterBasicPath, $deviceID
         $netCfgInstanceId = Invoke-RegistryGetValue -MachineName $ComputerName -Subkey $nicAdapterPnPCapabilitiesProbingKey -GetValue "NetCfgInstanceId" -CatchActionFunction $CatchActionFunction
     
         if ($netCfgInstanceId -eq $NicAdapterComponentId)
@@ -1641,9 +1644,8 @@ Function Get-AllNicInformation {
         else
         {
             Write-VerboseWriter("No matching ComponentId found")
-            $i++
         }
-    } while ($null -ne $netCfgInstanceId)
+    }
     
     $obj = New-Object PSCustomObject
     $sleepyNicDisabled = $false
