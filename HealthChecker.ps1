@@ -4760,11 +4760,17 @@ param(
     )
         [int]$fileBuildPart = ($split = $ExchangeBuildRevision.Split("."))[0]
         [int]$filePrivatePart = $split[1]
+        $Script:breakpointHit = $false
 
         foreach ($securityFixedBuild in $SecurityFixedBuilds)
         {
             [int]$securityFixedBuildPart = ($split = $securityFixedBuild.Split("."))[0]
             [int]$securityFixedPrivatePart = $split[1]
+
+            if($fileBuildPart -eq $securityFixedBuildPart)
+            {
+                $Script:breakpointHit = $true
+            }
 
             if (($fileBuildPart -lt $securityFixedBuildPart) -or
                 ($fileBuildPart -eq $securityFixedBuildPart -and
@@ -4781,6 +4787,11 @@ param(
                 }
 
                 $Script:AllVulnerabilitiesPassed = $false
+                break
+            }
+            
+            if($Script:breakpointHit)
+            {
                 break
             }
         }
