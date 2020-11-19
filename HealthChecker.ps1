@@ -5476,7 +5476,17 @@ Function HealthCheckerMain {
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+    $currentErrors = $Error.Count
     $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6
+    if ($currentErrors -ne $Error.Count)
+    {
+        $index = 0
+        while ($index -lt ($Error.Count - $currentErrors))
+        {
+            Invoke-CatchActions $Error[$index]
+            $index++
+        }
+    }
     Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
 }
