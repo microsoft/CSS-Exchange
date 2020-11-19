@@ -4191,7 +4191,7 @@ param(
             $displayWriteType = "Grey"
         }
     }
-    elseif ($totalPhysicalMemory -gt 128 -and
+    elseif ($totalPhysicalMemory -gt 192 -and
         $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016)
     {
         $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
