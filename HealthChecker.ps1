@@ -5177,6 +5177,30 @@ Function Get-ExchangeServerCertificates {
         }
     }
 
+    Function Test-IsCurrentAuthConfigCertificate {
+        [CmdletBinding()]
+        param(
+        [object]$CertificateObject,
+        [object]$AuthConfigObject
+        )
+
+        if (($CertificateObject -eq [object]::Empty) -or ($AuthConfigObject -eq [object]::Empty))
+        {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid Certificate or AuthConfig object"
+        }
+
+        Write-VerboseOutput("Validating if certificate: {0} is current AuthConfig certificate: {1}" -f $CertificateObject.Thumbprint, $AuthConfigObject.CurrentCertificateThumbprint)
+        if($CertificateObject.Thumbprint -eq $AuthConfigObject.CurrentCertificateThumbprint)
+        {
+            $Script:validAuthConfigCertificateFound = $true
+            return $true
+        }
+        else
+        {
+            return $false    
+        }
+    }
+
     Function New-ExchangeCertificateInformation {
         [CmdletBinding()]
         param(
@@ -5187,6 +5211,16 @@ Function Get-ExchangeServerCertificates {
         {
             return $null
         }
+        
+        try
+        {
+            $authConfig = Get-AuthConfig -ErrorAction Stop
+            $authConfigDetected = $true
+        }
+        catch
+        {
+            $authConfigDetected = $false
+        }
 
         [array]$certObject = @()
         foreach ($cert in $CertificateObject)
@@ -5195,6 +5229,14 @@ Function Get-ExchangeServerCertificates {
             {
                 $certificateLifetime = Convert-CertificateLifetimeToDays -CertificateObject $cert
                 $sanCertificateInfo = Test-IsSanCertificate -CertificateObject $cert
+                if($authConfigDetected)
+                {
+                    $isAuthConfigInfo = Test-IsCurrentAuthConfigCertificate -CertificateObject $cert -AuthConfigObject $authConfig
+                }
+                else
+                {
+                    $isAuthConfigInfo = "InvalidAuthConfig"    
+                }
 
                 $certInformationObj = New-Object PSCustomObject
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $cert.FriendlyName
@@ -5203,6 +5245,7 @@ Function Get-ExchangeServerCertificates {
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsSanCertificate" -Value $sanCertificateInfo
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "Namespaces" -Value $cert.DnsNameList
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
+                $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsCurrentAuthConfigCertificate" -Value $isAuthConfigInfo
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "LifetimeInDays" -Value $certificateLifetime
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $cert.Status
                 $certInformationObj | Add-Member -MemberType NoteProperty -Name "CertificateObject" -Value $cert
