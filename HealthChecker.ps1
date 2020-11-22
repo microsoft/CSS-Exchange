@@ -4751,6 +4751,11 @@ param(
         -DisplayCustomTabNumber 2 `
         -AnalyzedInformation $analyzedResults
 
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Current Auth Certificate" -Details $certificate.IsCurrentAuthConfigCertificate `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -AnalyzedInformation $analyzedResults
+
         $analyzedResults = Add-AnalyzedResultInformation -Name "SAN Certificate" -Details $certificate.IsSanCertificate `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 2 `
@@ -4768,6 +4773,31 @@ param(
             -DisplayCustomTabNumber 3 `
             -AnalyzedInformation $analyzedResults
         }
+    }
+
+    if($Script:validAuthConfigCertificateFound)
+    {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $Script:validAuthConfigCertificateFound `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 1 `
+        -DisplayWriteType "Green" `
+        -AnalyzedInformation $analyzedResults
+    }
+    else
+    {
+        $additionalDisplayValue = "No valid Auth Certificate found. This may cause several problems --- Error"
+        
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details "False" `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 1 `
+        -DisplayWriteType "Red" `
+        -AnalyzedInformation $analyzedResults
+        
+        $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -DisplayWriteType "Red" `
+        -AnalyzedInformation $analyzedResults
     }
 
     $additionalDisplayValue = [string]::Empty
