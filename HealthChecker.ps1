@@ -5130,6 +5130,12 @@ Function Get-ExchangeServerCertificates {
     [scriptblock]$CatchActionFunction
     )
 
+    #Function Version 1.0
+    <# 
+    Required Functions: 
+        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
+    #>
+
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
 
     Function Convert-CertificateLifetimeToDays {
