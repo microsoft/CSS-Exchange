@@ -1603,7 +1603,7 @@ Function Get-AllNicInformation {
     [Parameter(Mandatory=$false)][string]$ComputerFQDN,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.5
+    #Function Version 1.6
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
