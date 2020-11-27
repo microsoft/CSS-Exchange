@@ -1734,7 +1734,17 @@ Function Get-AllNicInformation {
             {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.InterfaceDescription)
                 $adapter = $networkConfig.NetAdapter
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                if($adapter.DriverFileName -ne "NdisImPlatform.sys")
+                {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                }
+                else
+                {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
     
                 try
                 {
@@ -1772,7 +1782,17 @@ Function Get-AllNicInformation {
             {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.Description)
                 $adapter = $networkConfig
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                if($adapter.ServiceName -ne "NdisImPlatformMp")
+                {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                }
+                else
+                {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
             }
     
             $nicInformationObj = New-Object PSCustomObject
@@ -4383,17 +4403,20 @@ param(
             $displayWriteType = "Grey"
             $displayValue = $adapter.SleepyNicDisabled
 
-            if (!$adapter.SleepyNicDisabled)
+            if ((!$adapter.SleepyNicDisabled) -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP"))
             {
                 $displayWriteType = "Yellow"
                 $displayValue = "False --- Warning: It's recommended to disable NIC power saving options`r`n`t`t`tMore Information: http://support.microsoft.com/kb/2740020"
             }
 
-            $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
-                -DisplayGroupingKey $keyNICSettings `
-                -DisplayWriteType $displayWriteType `
-                -DisplayTestingValue $adapter.SleepyNicDisabled `
-                -AnalyzedInformation $analyzedResults
+            if($adapter.PnPCapabilities -ne "MultiplexorNoPnP")
+            {
+                $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
+                    -DisplayGroupingKey $keyNICSettings `
+                    -DisplayWriteType $displayWriteType `
+                    -DisplayTestingValue $adapter.SleepyNicDisabled `
+                    -AnalyzedInformation $analyzedResults
+            }
         }
 
         $adapterDescription = $adapter.Description
