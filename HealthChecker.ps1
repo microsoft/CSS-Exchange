@@ -4398,25 +4398,22 @@ param(
             -AnalyzedInformation $analyzedResults
 
         #Assuming that all versions of Hyper-V doesn't allow sleepy NICs
-        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV)
+        if (($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP"))
         {
             $displayWriteType = "Grey"
             $displayValue = $adapter.SleepyNicDisabled
 
-            if ((!$adapter.SleepyNicDisabled) -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP"))
+            if (!$adapter.SleepyNicDisabled)
             {
                 $displayWriteType = "Yellow"
                 $displayValue = "False --- Warning: It's recommended to disable NIC power saving options`r`n`t`t`tMore Information: http://support.microsoft.com/kb/2740020"
             }
 
-            if($adapter.PnPCapabilities -ne "MultiplexorNoPnP")
-            {
-                $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
-                    -DisplayGroupingKey $keyNICSettings `
-                    -DisplayWriteType $displayWriteType `
-                    -DisplayTestingValue $adapter.SleepyNicDisabled `
-                    -AnalyzedInformation $analyzedResults
-            }
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
+                -DisplayGroupingKey $keyNICSettings `
+                -DisplayWriteType $displayWriteType `
+                -DisplayTestingValue $adapter.SleepyNicDisabled `
+                -AnalyzedInformation $analyzedResults
         }
 
         $adapterDescription = $adapter.Description
