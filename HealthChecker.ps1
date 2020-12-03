@@ -3840,7 +3840,7 @@ param(
         if ($maxPageSize -eq 32778)
         {
             $displayValue = "{0}MB" -f $maxPageSize
-            $displayValue = "Grey"
+            $displayWriteType = "Grey"
         }
         else
         {
