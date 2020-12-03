@@ -4196,7 +4196,8 @@ param(
     {
         $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
     }
-    elseif ($totalPhysicalMemory -gt 96)
+    elseif ($totalPhysicalMemory -gt 96 -and
+        $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013)
     {
         $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
     }
