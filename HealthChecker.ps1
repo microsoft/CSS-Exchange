@@ -1603,7 +1603,7 @@ Function Get-AllNicInformation {
     [Parameter(Mandatory=$false)][string]$ComputerFQDN,
     [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.5
+    #Function Version 1.6
     <# 
     Required Functions: 
         https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
@@ -1734,7 +1734,17 @@ Function Get-AllNicInformation {
             {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.InterfaceDescription)
                 $adapter = $networkConfig.NetAdapter
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                if($adapter.DriverFileName -ne "NdisImPlatform.sys")
+                {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                }
+                else
+                {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
     
                 try
                 {
@@ -1772,7 +1782,17 @@ Function Get-AllNicInformation {
             {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.Description)
                 $adapter = $networkConfig
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                if($adapter.ServiceName -ne "NdisImPlatformMp")
+                {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                }
+                else
+                {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
             }
     
             $nicInformationObj = New-Object PSCustomObject
@@ -4379,7 +4399,7 @@ param(
             -AnalyzedInformation $analyzedResults
 
         #Assuming that all versions of Hyper-V doesn't allow sleepy NICs
-        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV)
+        if (($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP"))
         {
             $displayWriteType = "Grey"
             $displayValue = $adapter.SleepyNicDisabled
