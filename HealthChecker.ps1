@@ -4775,25 +4775,23 @@ param(
         }
     }
 
-    if($Script:validAuthConfigCertificateFound)
+    if($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate.Contains($true))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $Script:validAuthConfigCertificateFound `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $true `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 1 `
         -DisplayWriteType "Green" `
         -AnalyzedInformation $analyzedResults
     }
     else
-    {
-        $additionalDisplayValue = "No valid Auth Certificate found. This may cause several problems --- Error"
-        
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details "False" `
+    {   
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $false `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 1 `
         -DisplayWriteType "Red" `
         -AnalyzedInformation $analyzedResults
         
-        $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue `
+        $analyzedResults = Add-AnalyzedResultInformation -Details "No valid Auth Certificate found. This may cause several problems --- Error" `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 2 `
         -DisplayWriteType "Red" `
@@ -5196,7 +5194,6 @@ Function Get-ExchangeServerCertificates {
                         if ($cert.Thumbprint -eq $authConfig.CurrentCertificateThumbprint)
                         {
                             $isAuthConfigInfo = $true
-                            $Script:validAuthConfigCertificateFound = $true #TODO Remove don't like this.
                         }
                     }
                     else
