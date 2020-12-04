@@ -15,46 +15,16 @@ pool:
 
 steps:
 - pwsh: | 
-    $webRequest = Invoke-WebRequest https://api.github.com/repos/dpaulson45/HealthChecker/releases
-    $json = ConvertFrom-Json -InputObject $webRequest.Content
-    $tagString = $json[0].tag_name
-    $split = $tagString.Split(".")
-    $oldMajor = [double]$split[0].Replace("v","")
-    $oldMinor = [double]$split[1]
-    $buildRevision = [double]$split[2]
-    
-    $content = Get-Content .\Build\Version.txt
-    $split = $content.Split(".")
-    $major = $split[0]
-    $minor = $split[1]
-    $buildRevision++
 
-    if ($oldMajor -ne $major -or
-      $oldMinor -ne $minor)
-    {
-      $buildRevision = 0
-    }
+    cd .\Build
 
-    Write-Host("New Script Version: v{0}.{1}.{2}" -f $major, $minor, $buildRevision)
+    $scriptVersion = .\GetScriptVersion.ps1
 
-    $scriptContent = Get-Content .\HealthChecker.ps1 -Encoding UTF8
-    [System.Collections.Generic.List[System.Object]]$updateScript = New-Object -TypeName System.Collections.Generic.List[System.Object]
-
-    foreach($line in $scriptContent)
-    {
-      if($line -like "`$healthCheckerVersion =*")
-      {
-        Write-Host("Line Hit")
-        $line = "`$healthCheckerVersion = `"{0}.{1}.{2}`"" -f $major, $minor, $buildRevision
-      }
-      $updateScript.Add($line)
-    }
+    .\BuildScript.ps1 $scriptVersion
 
     $buildScriptLocation = ".\Build\HealthChecker.ps1"
-
-    $updateScript | Out-File $buildScriptLocation -Encoding UTF8
     
-    $tag = "v{0}.{1}.{2}" -f $major, $minor, $buildRevision
+    $tag = "v{0}.{1}.{2}" -f $scriptVersion.Major, $scriptVersion.Minor, $scriptVersion.BuildRevision
     Write-Host("New tag: {0}" -f $tag)
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
     Write-Host "##vso[task.setvariable variable=BuildScriptLocation]$buildScriptLocation"
