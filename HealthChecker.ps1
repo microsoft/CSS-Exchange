@@ -5157,88 +5157,80 @@ Function Get-ExchangeServerCertificates {
 
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
 
-    Function New-ExchangeCertificateInformation {
-        [CmdletBinding()]
-        param(
-        [object]$CertificateObject
-        )
+    try
+    {
+        Write-VerboseOutput("Trying to receive certificates from Exchange server: {0}" -f $Script:Server)
+        $exchangeServerCertificates = Get-ExchangeCertificate -Server $Script:Server -ErrorAction Stop
 
-        if ($CertificateObject -eq [object]::Empty)
+        if($null -ne $exchangeServerCertificates)
         {
-            return $null
-        }
-        
-        try
-        {
-            $authConfig = Get-AuthConfig -ErrorAction Stop
-            $authConfigDetected = $true
-        }
-        catch
-        {
-            $authConfigDetected = $false
-            Invoke-CatchActions
-        }
-
-        [array]$certObject = @()
-        foreach ($cert in $CertificateObject)
-        {
-            try 
+            try
             {
-                $certificateLifetime = ([DateTime]($cert.NotAfter) - (Get-Date)).Days
-                $sanCertificateInfo = $false 
-
-                if ($null -ne $cert.DnsNameList -and
-                    ($cert.DnsNameList).Count -gt 1)
-                {
-                    $sanCertificateInfo = $true
-                }
-
-                if($authConfigDetected)
-                {
-                    $isAuthConfigInfo = $false
-
-                    if ($cert.Thumbprint -eq $authConfig.CurrentCertificateThumbprint)
-                    {
-                        $isAuthConfigInfo = $true
-                        $Script:validAuthConfigCertificateFound = $true #TODO Remove don't like this.
-                    }
-                }
-                else
-                {
-                    $isAuthConfigInfo = "InvalidAuthConfig"    
-                }
-
-                $certInformationObj = New-Object PSCustomObject
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $cert.FriendlyName
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -value $cert.PublicKeySize
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsSanCertificate" -Value $sanCertificateInfo
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "Namespaces" -Value $cert.DnsNameList
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsCurrentAuthConfigCertificate" -Value $isAuthConfigInfo
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "LifetimeInDays" -Value $certificateLifetime
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $cert.Status
-                $certInformationObj | Add-Member -MemberType NoteProperty -Name "CertificateObject" -Value $cert
-
-                $certObject += $certInformationObj
+                $authConfig = Get-AuthConfig -ErrorAction Stop
+                $authConfigDetected = $true
             }
             catch
             {
-                Write-VerboseOutput("Unable to process certificate: {0}" -f $cert.Thumbprint)
+                $authConfigDetected = $false
                 Invoke-CatchActions
             }
+    
+            [array]$certObject = @()
+            foreach ($cert in $exchangeServerCertificates)
+            {
+                try 
+                {
+                    $certificateLifetime = ([DateTime]($cert.NotAfter) - (Get-Date)).Days
+                    $sanCertificateInfo = $false 
+    
+                    if ($null -ne $cert.DnsNameList -and
+                        ($cert.DnsNameList).Count -gt 1)
+                    {
+                        $sanCertificateInfo = $true
+                    }
+    
+                    if($authConfigDetected)
+                    {
+                        $isAuthConfigInfo = $false
+    
+                        if ($cert.Thumbprint -eq $authConfig.CurrentCertificateThumbprint)
+                        {
+                            $isAuthConfigInfo = $true
+                            $Script:validAuthConfigCertificateFound = $true #TODO Remove don't like this.
+                        }
+                    }
+                    else
+                    {
+                        $isAuthConfigInfo = "InvalidAuthConfig"    
+                    }
+    
+                    $certInformationObj = New-Object PSCustomObject
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $cert.FriendlyName
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -value $cert.PublicKeySize
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsSanCertificate" -Value $sanCertificateInfo
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Namespaces" -Value $cert.DnsNameList
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsCurrentAuthConfigCertificate" -Value $isAuthConfigInfo
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "LifetimeInDays" -Value $certificateLifetime
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $cert.Status
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "CertificateObject" -Value $cert
+    
+                    $certObject += $certInformationObj
+                }
+                catch
+                {
+                    Write-VerboseOutput("Unable to process certificate: {0}" -f $cert.Thumbprint)
+                    Invoke-CatchActions
+                }
+            }
+            Write-VerboseOutput("Processed: {0} certificates" -f $certObject.Count)
+            return $certObject
         }
-        Write-VerboseOutput("Processed: {0} certificates" -f $certObject.Count)
-        return $certObject
-    }
-
-    try
-    {
-        Write-VerboseOutput("Trying to receive certificates from Exchange server: {0}" -f $ComputerName)
-        $exchangeServerCertificates = Get-ExchangeCertificate -Server $ComputerName -ErrorAction Stop
-        if($null -ne $exchangeServerCertificates)
+        else
         {
-            return (New-ExchangeCertificateInformation -CertificateObject $exchangeServerCertificates)
+            Write-VerboseOutput("Failed to find any Exchange certificates")
+            return $null
         }
     }
     catch
