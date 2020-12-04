@@ -1166,7 +1166,7 @@ param(
         {
             $displayColor = "Green"
         }
-        elseif($certificateLifetimeInDays -ge 30)
+        elseif($certificate.LifetimeInDays -ge 30)
         {
             $displayColor = "Yellow"
         }
@@ -1251,7 +1251,7 @@ param(
 
     if($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate.Contains($true))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $true `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 1 `
         -DisplayWriteType "Green" `
@@ -1259,7 +1259,7 @@ param(
     }
     else
     {   
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate found" -Details $false `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
         -DisplayGroupingKey $keySecuritySettings `
         -DisplayCustomTabNumber 1 `
         -DisplayWriteType "Red" `
