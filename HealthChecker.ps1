@@ -162,6 +162,7 @@ using System.Collections;
             public Hashtable ApplicationPools;
             public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
             public ExchangeServerMaintenance ServerMaintenance;
+            public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers. 
         }
     
         public class ExchangeBuildInformation
@@ -262,7 +263,6 @@ using System.Collections;
             public bool ServerPendingReboot; // determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at. 
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information 
             public Hashtable TLSSettings;            // stores the TLS settings on the server. 
-            public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers. 
             public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update 
             public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information 
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
@@ -2385,7 +2385,6 @@ Function Get-OperatingSystemInformation {
     $osInformation.TimeZone.ActionsToTake = $timeZoneInformation.ActionsToTake
     $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.ExchangeCertificates = Get-ExchangeServerCertificates -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableVersion
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
@@ -2930,6 +2929,7 @@ param(
     Write-VerboseOutput("Passed: OSMajorVersion: {0}" -f $OSMajorVersion)
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server)
+    $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
     $buildInformation = $exchangeInformation.BuildInformation 
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion](Get-ExchangeMajorVersion -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion))
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
@@ -4686,7 +4686,7 @@ param(
         }
     }
 
-    foreach($certificate in $osInformation.ExchangeCertificates)
+    foreach($certificate in $exchangeInformation.ExchangeCertificates)
     {
         if($certificate.LifetimeInDays -ge 60)
         {
