@@ -5154,82 +5154,8 @@ param(
 }
 
 Function Get-ExchangeServerCertificates {
-    [CmdletBinding()]
-    param(
-    [string]$ComputerName,
-    [scriptblock]$CatchActionFunction
-    )
-
-    #Function Version 1.0
-    <# 
-    Required Functions: 
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
-    #>
 
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
-
-    Function Convert-CertificateLifetimeToDays {
-        [CmdletBinding()]
-        param(
-        [object]$CertificateObject
-        )
-
-        if ($CertificateObject -eq [object]::Empty)
-        {
-            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid CertificateObject"
-        }
-
-        Write-VerboseOutput("Calculating lifetime for certificate with thumbprint: {0}" -f $CertificateObject.Thumbprint)
-        $certificateLifetimeInDays = (($CertificateObject.NotAfter) - (Get-Date)).Days
-
-        return $certificateLifetimeInDays
-    }
-
-    Function Test-IsSanCertificate {
-        [CmdletBinding()]
-        param(
-        [object]$CertificateObject
-        )
-
-        if ($CertificateObject -eq [object]::Empty)
-        {
-            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid CertificateObject"
-        }
-
-        Write-VerboseOutput("Validating if certificate: {0} is SAN or not" -f $CertificateObject.Thumbprint)
-        if(($CertificateObject.DnsNameList).count -gt 1)
-        {
-            return $true
-        }
-        else
-        {
-            return $false
-        }
-    }
-
-    Function Test-IsCurrentAuthConfigCertificate {
-        [CmdletBinding()]
-        param(
-        [object]$CertificateObject,
-        [object]$AuthConfigObject
-        )
-
-        if (($CertificateObject -eq [object]::Empty) -or ($AuthConfigObject -eq [object]::Empty))
-        {
-            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid Certificate or AuthConfig object"
-        }
-
-        Write-VerboseOutput("Validating if certificate: {0} is current AuthConfig certificate: {1}" -f $CertificateObject.Thumbprint, $AuthConfigObject.CurrentCertificateThumbprint)
-        if($CertificateObject.Thumbprint -eq $AuthConfigObject.CurrentCertificateThumbprint)
-        {
-            $Script:validAuthConfigCertificateFound = $true
-            return $true
-        }
-        else
-        {
-            return $false    
-        }
-    }
 
     Function New-ExchangeCertificateInformation {
         [CmdletBinding()]
@@ -5250,6 +5176,7 @@ Function Get-ExchangeServerCertificates {
         catch
         {
             $authConfigDetected = $false
+            Invoke-CatchActions
         }
 
         [array]$certObject = @()
@@ -5257,11 +5184,24 @@ Function Get-ExchangeServerCertificates {
         {
             try 
             {
-                $certificateLifetime = Convert-CertificateLifetimeToDays -CertificateObject $cert
-                $sanCertificateInfo = Test-IsSanCertificate -CertificateObject $cert
+                $certificateLifetime = ([DateTime]($cert.NotAfter) - (Get-Date)).Days
+                $sanCertificateInfo = $false 
+
+                if ($null -ne $cert.DnsNameList -and
+                    ($cert.DnsNameList).Count -gt 1)
+                {
+                    $sanCertificateInfo = $true
+                }
+
                 if($authConfigDetected)
                 {
-                    $isAuthConfigInfo = Test-IsCurrentAuthConfigCertificate -CertificateObject $cert -AuthConfigObject $authConfig
+                    $isAuthConfigInfo = $false
+
+                    if ($cert.Thumbprint -eq $authConfig.CurrentCertificateThumbprint)
+                    {
+                        $isAuthConfigInfo = $true
+                        $Script:validAuthConfigCertificateFound = $true #TODO Remove don't like this.
+                    }
                 }
                 else
                 {
@@ -5285,10 +5225,7 @@ Function Get-ExchangeServerCertificates {
             catch
             {
                 Write-VerboseOutput("Unable to process certificate: {0}" -f $cert.Thumbprint)
-                if ($null -ne $CatchActionFunction)
-                {
-                    & $CatchActionFunction
-                }
+                Invoke-CatchActions
             }
         }
         Write-VerboseOutput("Processed: {0} certificates" -f $certObject.Count)
@@ -5307,12 +5244,7 @@ Function Get-ExchangeServerCertificates {
     catch
     {
         Write-VerboseWriter("Failed to run Get-ExchangeCertificate. Error: {0}." -f $Error[0].Exception)
-        if ($null -ne $CatchActionFunction)
-        {
-            & $CatchActionFunction
-        }
-
-        throw
+        Invoke-CatchActions
     }
 }
 
