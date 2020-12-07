@@ -158,14 +158,14 @@ param(
             ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
             $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted")))
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenace" -Details "Server is not in Maintenance Mode" `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenance" -Details "Server is not in Maintenance Mode" `
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green" `
             -AnalyzedInformation $analyzedResults
     }
     else
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Exchange Server Maintenace" `
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Exchange Server Maintenance" `
             -DisplayGroupingKey $keyExchangeInformation `
             -AnalyzedInformation $analyzedResults
 
