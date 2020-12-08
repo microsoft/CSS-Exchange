@@ -56,6 +56,8 @@ foreach ($configItem in $config)
             $scriptVersionAdded = $true
         }
 
+        $healthChecker.Add([string]::Empty)
+
         $loadedFiles.Add($file)
     }
 }
