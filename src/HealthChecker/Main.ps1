@@ -100,18 +100,39 @@ Function Main {
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     $currentErrors = $Error.Count
-    $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6
-    if ($currentErrors -ne $Error.Count)
+
+    try
     {
-        $index = 0
-        while ($index -lt ($Error.Count - $currentErrors))
-        {
-            Invoke-CatchActions $Error[$index]
-            $index++
-        }
+        $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
     }
-    Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-    Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
+    catch
+    {
+        Write-VerboseOutput("Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json")
+        $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
+
+        $testOuputxml = [PSCustomObject]@{
+            HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
+            HtmlServerValues = $analyzedResults.HtmlServerValues
+            DisplayResults = $analyzedResults.DisplayResults
+        }
+
+        $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
+    }
+    finally
+    {
+        if ($currentErrors -ne $Error.Count)
+        {
+            $index = 0
+            while ($index -lt ($Error.Count - $currentErrors))
+            {
+                Invoke-CatchActions $Error[$index]
+                $index++
+            }
+        }
+
+        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+        Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
+    }
 }
 
 try 
