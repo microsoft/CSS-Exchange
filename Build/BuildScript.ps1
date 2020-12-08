@@ -63,3 +63,4 @@ foreach ($configItem in $config)
 }
 
 $healthChecker | Out-File .\HealthChecker.ps1 -Encoding utf8
+$healthChecker | Out-File .\HealthChecker.txt -Encoding utf8
