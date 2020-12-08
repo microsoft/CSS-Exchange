@@ -1,0 +1,51 @@
+[
+    {
+      "LoadOrder": 0,
+      "Path": "..\\src\\HealthChecker\\Header.ps1"
+    },
+    {
+      "LoadOrder": 1,
+      "Path": "..\\src\\HealthChecker\\ScriptLocalVariables.ps1"
+    },
+    {
+      "LoadOrder": 2,
+      "Path": "..\\src\\HealthChecker\\Class.ps1"
+    },
+    {
+      "LoadOrder": 3,
+      "Path": "..\\src\\HealthChecker\\Writers\\"
+    },
+    {
+      "LoadOrder": 4,
+      "Path": "..\\src\\DataCollection\\extern\\"
+    },
+    {
+      "LoadOrder": 5,
+      "Path": "..\\src\\DataCollection\\ExchangeInformation\\"
+    },
+    {
+       "LoadOrder": 6,
+       "Path": "..\\src\\DataCollection\\ServerInformation\\"
+    },
+    {
+      "LoadOrder": 7,
+      "Path": "..\\src\\Analyzer\\"
+    },
+    {
+      "LoadOrder": 8,
+      "Path": "..\\src\\HealthChecker\\extern\\"
+    },
+    {
+      "LoadOrder": 9,
+      "Path": "..\\src\\HealthChecker\\Helpers\\"
+    },
+    {
+      "LoadOrder": 10,
+      "Path": "..\\src\\Features\\"
+    },
+    {
+      "LoadOrder": 100,
+      "Path": "..\\src\\HealthChecker\\Main.ps1"
+    }
+  ]
+  
