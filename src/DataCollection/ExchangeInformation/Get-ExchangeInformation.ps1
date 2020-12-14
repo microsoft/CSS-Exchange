@@ -35,9 +35,10 @@ param(
             elseif($buildAndRevision -lt 529.5) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3; $buildInformation.FriendlyName += "CU3"; $buildInformation.ReleaseDate = "09/17/2019"}
             elseif($buildAndRevision -lt 595.3) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4; $buildInformation.FriendlyName += "CU4"; $buildInformation.ReleaseDate = "12/17/2019"}
             elseif($buildAndRevision -lt 659.4) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5; $buildInformation.FriendlyName += "CU5"; $buildInformation.ReleaseDate = "03/17/2020"}
-            elseif($buildAndRevision -lt 721.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6; $buildInformation.FriendlyName += "CU6"; $buildInformation.ReleaseDate = "06/16/2020"; $buildInformation.SupportedBuild = $true}
-            elseif($buildAndRevision -ge 721.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7; $buildInformation.FriendlyName += "CU7"; $buildInformation.ReleaseDate = "09/15/2020"; $buildInformation.SupportedBuild = $true}
-            
+            elseif($buildAndRevision -lt 721.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6; $buildInformation.FriendlyName += "CU6"; $buildInformation.ReleaseDate = "06/16/2020"}
+            elseif($buildAndRevision -lt 792.3) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7; $buildInformation.FriendlyName += "CU7"; $buildInformation.ReleaseDate = "09/15/2020"; $buildInformation.SupportedBuild = $true}
+            elseif($buildAndRevision -ge 792.3) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8; $buildInformation.FriendlyName += "CU8"; $buildInformation.ReleaseDate = "12/15/2020"; $buildInformation.SupportedBuild = $true}
+
             #Exchange 2019 .NET Information
             if($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2){$netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2; $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2}
             elseif($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU4){$netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2; $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8}
@@ -68,8 +69,9 @@ param(
             elseif($buildAndRevision -lt 1913.5) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU14; $buildInformation.FriendlyName += "CU14"; $buildInformation.ReleaseDate = "09/17/2019"}
             elseif($buildAndRevision -lt 1979.3) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU15; $buildInformation.FriendlyName += "CU15"; $buildInformation.ReleaseDate = "12/17/2019"}
             elseif($buildAndRevision -lt 2044.4) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU16; $buildInformation.FriendlyName += "CU16"; $buildInformation.ReleaseDate = "03/17/2020"}
-            elseif($buildAndRevision -lt 2106.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17; $buildInformation.FriendlyName += "CU17"; $buildInformation.ReleaseDate = "06/16/2020"; $buildInformation.SupportedBuild = $true}
-            elseif($buildAndRevision -ge 2106.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18; $buildInformation.FriendlyName += "CU18"; $buildInformation.ReleaseDate = "09/15/2020"; $buildInformation.SupportedBuild = $true}
+            elseif($buildAndRevision -lt 2106.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17; $buildInformation.FriendlyName += "CU17"; $buildInformation.ReleaseDate = "06/16/2020"}
+            elseif($buildAndRevision -lt 2176.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18; $buildInformation.FriendlyName += "CU18"; $buildInformation.ReleaseDate = "09/15/2020"; $buildInformation.SupportedBuild = $true}
+            elseif($buildAndRevision -ge 2176.2) {$buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19; $buildInformation.FriendlyName += "CU19"; $buildInformation.ReleaseDate = "12/15/2020"; $buildInformation.SupportedBuild = $true}
 
             #Exchange 2016 .NET Information
             if($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2){$netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix; $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix}

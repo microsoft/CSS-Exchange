@@ -1495,6 +1495,10 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.8","2106.4" -CVENames "CVE-2020-17083","CVE-2020-17084","CVE-2020-17085"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.12","2106.6" -CVENames "CVE-2020-17117","CVE-2020-17132","CVE-2020-17141","CVE-2020-17142","CVE-2020-17143"
         }
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU19)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        }
     }
     elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019)
     {
@@ -1528,6 +1532,10 @@ param(
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.7","721.3" -CVENames "CVE-2020-16969"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.8","721.4" -CVENames "CVE-2020-17083","CVE-2020-17084","CVE-2020-17085"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.11","721.6" -CVENames "CVE-2020-17117","CVE-2020-17132","CVE-2020-17141","CVE-2020-17142","CVE-2020-17143"
+        }
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU8)
+        {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
         }
     }
     else
