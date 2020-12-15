@@ -1,11 +1,18 @@
-# This reports the number of pages taken up by various tables based on
-# an eseutil /ms /v dump.
+# This script reports the space taken up by various tables based on a database space dump.
+# The space dump must be obtained while the database is dismounted, or on a suspended copy
+# if the issue is happening there. To obtain the space dump, use the following syntax:
+#
+# eseutil /ms /v > C:\spacedump.txt
+#
+# Then, feed that file to this script as follows:
+#
+# .\Analyze-SpaceDump.ps1 -File C:\spacedump.txt
 #
 # This script will only work with Exchange 2013 and later space dumps.
 
-param([string]$inputFilePath)
+param([string]$File)
 
-$fileReader = new-object System.IO.StreamReader($inputFilePath)
+$fileReader = new-object System.IO.StreamReader($File)
 $foundHeaderLine = $false
 while ($null -ne ($buffer = $fileReader.ReadLine())) {
     if ($buffer.StartsWith("Name ")) {
