@@ -1,12 +1,17 @@
-# This script compares two sets of mailbox statistics from the same database,
-# and highlights mailbox growth that has occurred between the two snapshots.
-# The statistics should be passed as a parameter.
+# This script compares two sets of mailbox statistics from the same database and highlights mailbox growth 
+# that occurred between the two snapshots.
 #
-# For example, here we read the "before" statistics from a CliXML export, and "after" from the live data:
+# For a growing database, a typical approach would be to start by exporting the statistics for the database:
+#
+# Get-MailboxStatistics -Database DB1 | Export-CliXML C:\stats-before.xml
+#
+# After the initial export is obtained, wait until significant growth is observed. That could mean
+# waiting an hour, or a day, depending on the scenario. At that point, compare the stats-before.xml
+# with the live data by using this script as follows:
 #
 # .\Compare-MailboxStatistics.ps1 -Before (Import-CliXml C:\stats-before.xml) -After (Get-MailboxStatistics -Database DB1)
 #
-# You could also use a CSV export. Or you could compare two files rather than comparing against live data.
+# This makes it easy to see which mailboxes grew the most.
 
 param($Before, $After)
 
