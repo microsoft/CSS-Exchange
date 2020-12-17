@@ -8,6 +8,7 @@ function IsAdministrator {
 
 function GetGroupMatches($whoamiOutput, $groupName) {
     $m = @($whoamiOutput | Select-String "(^\w+\\$($groupName))\W+Group")
+    if ($m.Count -eq 0) {return $m}
     return $m.Matches | ForEach-Object { $_.Groups[1].Value }
 }
 
@@ -25,6 +26,173 @@ function Test-PendingReboot {
     } catch { }
 
     return $false
+}
+
+function Test-ExchangeAdSetupObjects {
+
+    $AdSetup = Get-ExchangeAdSetupObjects
+    $schemaValue = $AdSetup["Schema"].VersionValue
+    $orgValue = $AdSetup["Org"].VersionValue
+    $MESOValue = $AdSetup["MESO"].VersionValue
+
+    $exch2016Ready = "Exchange 2016 {0} Ready."
+    $exch2019Ready = "Exchange 2019 {0} Ready."
+    
+    function Write-Mismatch {
+    param(
+    [string]$exchVersion,
+    [bool]$displayMismatch = $true
+    )
+        if ($displayMismatch)
+        {
+            Write-Warning("Exchange {0} AD Level Failed. Mismatch detected." -f $exchVersion)
+        }
+        
+        foreach ($key in $AdSetup.Keys)
+        {
+            Write-Warning("DN Value: '{0}' - Version: {1}" -f [string]($AdSetup[$key].DN), [string]($AdSetup[$key].VersionValue))
+        }
+        Write-Warning("More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-{0}" -f $exchVersion)
+    }
+
+    #Schema doesn't change often and and quickly tell the highest ExchangeVersion
+    if ($schemaValue -lt 15332)
+    {
+        Write-Warning("Unable to determine AD Exchange Level readiness.")
+        Write-Mismatch -exchVersion "Unknown" -displayMismatch $false
+        return
+    }
+    #Exchange 2016 CU10+
+    elseif ($schemaValue -eq 15332)
+    {
+        if ($MESOValue -eq 13236)
+        {
+            if ($orgValue -eq 16213)
+            {
+                Write-Host($exch2016Ready -f "CU10")
+            }
+            elseif ($orgValue -eq 16214)
+            {
+                Write-Host($exch2016Ready -f "CU11")
+            }
+            elseif ($orgValue -eq 16215)
+            {
+                Write-Host($exch2016Ready -f "CU12")
+            }
+            else
+            {
+                Write-Mismatch -exchVersion "2016"
+            }
+        }
+        elseif ($MESOValue -eq 13237 -and
+            $orgValue -eq 16217)
+        {
+            Write-Host($exch2016Ready -f "CU17")
+        }
+        elseif ($MESOValue -eq 13238 -and
+            $orgValue -eq 16218)
+        {
+            Write-Host($exch2016Ready -f "CU18")
+        }
+        else
+        {
+            Write-Mismatch -exchVersion "2016"
+        }
+    }
+    elseif ($schemaValue -eq 15333)
+    {
+        if ($MESOValue -eq 13239 -and
+            $orgValue -eq 16219)
+        {
+            Write-Host($exch2016Ready -f "CU19")
+        }
+        else
+        {
+            Write-Mismatch -exchVersion "2016"
+        }
+    }
+    #Exchange 2019 CU2+
+    elseif($schemaValue -eq 17001)
+    {
+        if ($MESOValue -eq 13237 -and
+            $orgValue -eq 16754)
+        {
+            Write-Host($exch2019Ready -f "CU6")
+        }
+        elseif ($MESOValue -eq 13238 -and
+            $orgValue -eq 16755)
+        {
+            Write-Host($exch2019Ready -f "CU7")
+        }
+        else
+        {
+            Write-Mismatch -exchVersion "2019"
+        }
+    }
+    elseif ($schemaValue -eq 17002)
+    {
+        if ($MESOValue -eq 13239 -and
+            $orgValue -eq 16756)
+        {
+            Write-Host($exch2019Ready -f "CU8")
+        }
+        else
+        {
+            Write-Mismatch -exchVersion "2019"
+        }
+    }
+    else 
+    {
+        Write-Mismatch -exchVersion "2019"    
+    }
+}
+
+#https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
+function Get-ExchangeAdSetupObjects {
+    $rootDSE = [ADSI]("LDAP://RootDSE")
+    if ([string]::IsNullOrEmpty($rootDSE.configurationNamingContext) -or
+        [string]::IsNullOrEmpty($rootDSE.defaultNamingContext))
+    {
+        return $null
+    }
+
+    Function New-VersionObject {
+    param(
+    [object]$SearchResults,
+    [string]$VersionValueName = "ObjectVersion"
+    )
+        $versionObject = [PSCustomObject]@{
+            DN = $SearchResults.Properties["DistinguishedName"]
+            VersionValue = $SearchResults.Properties[$VersionValueName]
+        }
+
+        return $versionObject
+    }
+
+    $hash = @{}
+
+    $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
+    $directorySearcher.SearchScope = "Subtree"
+    $directorySearcher.SearchRoot =  [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
+    $directorySearcher.Filter = "(objectCategory=msExchOrganizationContainer)"
+    
+    $findAll = $directorySearcher.FindAll()
+    $hash.Add("Org", (New-VersionObject -SearchResults $findAll))
+
+    $directorySearcher.SearchRoot = [ADSI]("LDAP://CN=Schema," + $rootDSE.configurationNamingContext.ToString())
+    $directorySearcher.Filter = "(&(name=ms-Exch-Schema-Version-Pt)(objectCategory=attributeSchema))"
+
+    $findAll = $directorySearcher.FindAll()
+    $hash.Add("Schema", (New-VersionObject -SearchResults $findAll -VersionValueName "RangeUpper"))
+
+    $directorySearcher.SearchScope = "OneLevel"
+    $directorySearcher.SearchRoot =  [ADSI]("LDAP://" + $rootDSE.rootDomainNamingContext.ToString())
+    $directorySearcher.Filter = "(objectCategory=msExchSystemObjectsContainer)"
+
+    $findAll = $directorySearcher.FindAll()
+    $hash.Add("MESO", (New-VersionObject -SearchResults $findAll))
+    
+    return $hash
 }
 
 if (IsAdministrator) {
@@ -97,3 +265,5 @@ if (Test-PendingReboot) {
 } else {
     Write-Host "No reboot pending."
 }
+
+Test-ExchangeAdSetupObjects
