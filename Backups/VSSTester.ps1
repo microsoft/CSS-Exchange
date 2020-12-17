@@ -48,7 +48,7 @@ Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction Silentl
 write-host "****************************************************************************************"
 write-host "****************************************************************************************" 
 write-host "**                                                                                    **" -BackgroundColor DarkMagenta
-write-host "**             VSSTESTER SCRIPT VERSION 1.2 (for Exchange 2010, 2013, 2016)           **" -foregroundcolor Cyan -BackgroundColor DarkMagenta
+write-host "**        VSSTESTER SCRIPT VERSION 1.2 (for Exchange 2010, 2013, 2016, 2019)          **" -foregroundcolor Cyan -BackgroundColor DarkMagenta
 write-host "**                                                                                    **" -BackgroundColor DarkMagenta
 write-host "****************************************************************************************" 
 write-host "****************************************************************************************" 
@@ -287,12 +287,15 @@ function exchVersion
                 }
                 "1" {
 	                $script:exchVer = "2016"
-                }
+				}
+				"2" {
+					$script:exchVer = "2019"
+				}
             }
         }
             
         default {
-            write-host "This script is only for Exchange 2010, 2013, and 2016 servers." -foregroundcolor red $nl
+            write-host "This script is only for Exchange 2010, 2013, 2016, and 2019 servers." -foregroundcolor red $nl
 		    do
 			{
 				Write-Host
@@ -911,7 +914,7 @@ function create-ExTRATracingConfig
 	Out-ExTRAConfigFile "TraceLevels:Debug,Warning,Error,Fatal,Info,Performance,Function,Pfd"
     if ($exchVer -eq "2010") {
 	   Out-ExTRAConfigFile "Store:tagEseBack,tagVSS,tagJetBackup,tagJetRestore"
-    } elseif ($exchVer -eq "2013" -or $exchVer -eq "2016") {
+    } elseif ($exchVer -eq "2013" -or $exchVer -eq "2016" -or $exchVer -eq "2019") {
         Out-ExTRAConfigFile "ManagedStore.PhysicalAccess:JetBackup,JetRestore"
     }
 	Out-ExTRAConfigFile "Cluster.Replay:ReplicaVssWriterInterop,ReplicaInstance,LogTruncater"
