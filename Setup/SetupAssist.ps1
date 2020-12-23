@@ -1,11 +1,8 @@
-<# SetupAssist.ps1 is used for running on the Exchange Server that we are wanting to install or upgrade.
-We validate common prerequisites that or overlooked and look at AD to make sure it is able to upgrade 
-
-    Authors: Bill Long, David Paulson
-
-#TODO: Add AD Object Permissions check
-#>
-
+# SetupAssist.ps1 is used for running on the Exchange Server that we are wanting to install or upgrade.
+# We validate common prerequisites that or overlooked and look at AD to make sure it is able to upgrade 
+#
+# TODO: Add AD Object Permissions check
+#
 function IsAdministrator {
     $ident = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $prin = New-Object System.Security.Principal.WindowsPrincipal($ident)
