@@ -1,4 +1,10 @@
-# SetupAssist.ps1
+<# SetupAssist.ps1 is used for running on the Exchange Server that we are wanting to install or upgrade.
+We validate common prerequisites that or overlooked and look at AD to make sure it is able to upgrade 
+
+    Authors: Bill Long, David Paulson
+
+#TODO: Add AD Object Permissions check
+#>
 
 function IsAdministrator {
     $ident = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -216,7 +222,7 @@ $g = GetGroupMatches $whoamiOutput "Schema Admins"
 if ($g.Count -gt 0) {
     $g | ForEach-Object { Write-Host "User is a member of" $_ }
 } else {
-    Write-Warning "User is not a member of Schema Admins."
+    Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
 }
 
 $g = GetGroupMatches $whoamiOutput "Enterprise Admins"
@@ -224,7 +230,7 @@ $g = GetGroupMatches $whoamiOutput "Enterprise Admins"
 if ($g.Count -gt 0) {
     $g | ForEach-Object { Write-Host "User is a member of" $_ }
 } else {
-    Write-Warning "User is not a member of Enterprise Admins."
+    Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
 }
 
 $g = GetGroupMatches $whoamiOutput "Organization Management"
