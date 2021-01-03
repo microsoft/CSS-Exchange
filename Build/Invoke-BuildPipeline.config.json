@@ -1,0 +1,73 @@
+[
+  {
+    "ScriptName": "ExchangeLogCollector",
+    "ScriptUri": "https://api.github.com/repos/dpaulson45/ExchangeLogCollector/releases",
+    "ScriptVersion": "3.1",
+    "FilePaths": [
+      {
+        "LoadOrder": 0,
+        "Path": "..\\src\\ExchangeLogCollector\\Header.ps1",
+        "ScriptVersionName": "scriptVersion"
+      },
+      {
+        "LoadOrder": 1,
+        "Path": "..\\src\\ExchangeLogCollector\\extern\\"
+      },
+      {
+        "LoadOrder": 2,
+        "Path": "..\\src\\ExchangeLogCollector\\ExchangeServerInfo\\"
+      },
+      {
+        "LoadOrder": 3,
+        "Path": "..\\src\\ExchangeLogCollector\\Write\\"
+      },
+      {
+        "LoadOrder": 4,
+        "Path": "..\\src\\ExchangeLogCollector\\",
+        "ExcludedFiles": [
+          {
+            "FileName": "Main.ps1"
+          }
+        ]
+      },
+      {
+        "LoadOrder": 5,
+        "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\Remote-Functions.ps1",
+        "SubFunctions": [
+          {
+            "LoadOrder": 1,
+            "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\",
+            "ExcludedFiles": [
+              {
+                "FileName": "Remote-Functions.ps1"
+              },
+              {
+                "FileName": "Remote-Main.ps1"
+              }
+            ]
+          },
+          {
+            "LoadOrder": 0,
+            "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\extern\\"
+          },
+          {
+            "LoadOrder": 2,
+            "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\IO\\"
+          },
+          {
+            "LoadOrder": 3,
+            "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\Logman\\"
+          },
+          {
+            "LoadOrder": 10,
+            "Path": "..\\src\\ExchangeLogCollector\\RemoteScriptBlock\\Remote-Main.ps1"
+          }
+        ]
+      },
+      {
+        "LoadOrder": 100,
+        "Path": "..\\src\\ExchangeLogCollector\\Main.ps1"
+      }
+    ]
+  }
+]
