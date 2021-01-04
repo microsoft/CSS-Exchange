@@ -1249,7 +1249,8 @@ param(
         }
     }
 
-    if($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate.Contains($true))
+    if(($null -ne $exchangeInformation.ExchangeCertificates) -and
+       ($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate.Contains($true)))
     {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
         -DisplayGroupingKey $keySecuritySettings `
