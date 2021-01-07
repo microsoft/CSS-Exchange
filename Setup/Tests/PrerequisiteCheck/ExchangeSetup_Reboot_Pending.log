@@ -1,0 +1,667 @@
+[12/21/2020 13:39:58.0893] [0] **********************************************
+[12/21/2020 13:39:58.0893] [0] Starting Microsoft Exchange Server 2016 Setup
+[12/21/2020 13:39:58.0893] [0] **********************************************
+[12/21/2020 13:39:58.0909] [0] Local time zone: (UTC-08:00) Pacific Time (US & Canada).
+[12/21/2020 13:39:58.0909] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[12/21/2020 13:39:58.0909] [0] Setup version: 15.1.2106.2.
+[12/21/2020 13:39:58.0909] [0] Logged on user: SOLO\Han.
+[12/21/2020 13:39:58.0924] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[12/21/2020 13:39:58.0940] [0] Command Line Parameter Name='prepareschema', Value=''.
+[12/21/2020 13:39:58.0940] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[12/21/2020 13:39:58.0940] [0] Command Line Parameter Name='sourcedir', Value='D:\'.
+[12/21/2020 13:39:59.0065] [0] RuntimeAssembly was started with the following command: '/prepareSchema /IAcceptExchangeServerLicenseTerms /sourcedir:D:"'.
+[12/21/2020 13:39:59.0081] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[12/21/2020 13:39:59.0081] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[12/21/2020 13:39:59.0081] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[12/21/2020 13:39:59.0081] [0] Copying Files...
+[12/21/2020 13:39:59.0081] [0] Starting copy from D:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[12/21/2020 13:40:05.0472] [0] Finished copy from D:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[12/21/2020 13:40:05.0472] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[12/21/2020 13:40:05.0503] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[12/21/2020 13:40:08.0800] [0] Setup is choosing the domain controller to use
+[12/21/2020 13:40:15.0535] [0] Setup is choosing a local domain controller...
+[12/21/2020 13:40:19.0144] [0] Setup has chosen the local domain controller Solo-DC1.Solo.net for initial queries
+[12/21/2020 13:40:19.0316] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller Solo-DC1.Solo.net
+[12/21/2020 13:40:19.0316] [0] The schema master domain controller is available
+[12/21/2020 13:40:19.0316] [0] The schema master domain controller is in the local domain; setup will use Solo-DC1.Solo.net
+[12/21/2020 13:40:19.0316] [0] Setup is choosing a global catalog...
+[12/21/2020 13:40:19.0332] [0] Setup has chosen the global catalog server Solo-DC1.Solo.net.
+[12/21/2020 13:40:19.0332] [0] Setup will use the domain controller 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:19.0332] [0] Setup will use the global catalog 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:19.0347] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net'.
+[12/21/2020 13:40:19.0347] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net'.
+[12/21/2020 13:40:19.0363] [0] Setup will search for an Exchange Server object for the local machine with name 'SOLO-DC1'.
+[12/21/2020 13:40:19.0394] [0] No Exchange Server with identity 'SOLO-DC1' was found.
+[12/21/2020 13:40:19.0472] [0] The following roles have been unpacked: 
+[12/21/2020 13:40:19.0472] [0] The following datacenter roles are unpacked: 
+[12/21/2020 13:40:19.0472] [0] The following roles are installed: 
+[12/21/2020 13:40:19.0488] [0] The local server does not have any Exchange files installed.
+[12/21/2020 13:40:19.0488] [0] Server Name=SOLO-DC1
+[12/21/2020 13:40:19.0504] [0] Setup will use the path 'D:\' for installing Exchange.
+[12/21/2020 13:40:19.0519] [0] The installation mode is set to: 'Install'.
+[12/21/2020 13:40:25.0066] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[12/21/2020 13:40:25.0066] [0] Active Directory Initialization status : 'True'.
+[12/21/2020 13:40:25.0066] [0] Schema Update Required Status : 'True'.
+[12/21/2020 13:40:25.0066] [0] Organization Configuration Update Required Status : 'True'.
+[12/21/2020 13:40:25.0066] [0] Domain Configuration Update Required Status : 'True'.
+[12/21/2020 13:40:25.0379] [0] Applying default role selection state
+[12/21/2020 13:40:25.0410] [0] Setup is determining what organization-level operations to perform.
+[12/21/2020 13:40:25.0410] [0] The command-line option prepareschema has been specified.
+[12/21/2020 13:40:25.0410] [0] Because the command-line option prepareschema was specified, setup is adding the argument PrepareSchema.
+[12/21/2020 13:40:25.0410] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[12/21/2020 13:40:25.0410] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[12/21/2020 13:40:25.0410] [0] InstallModeDataHandler has 1 DataHandlers
+[12/21/2020 13:40:25.0410] [0] RootDataHandler has 1 DataHandlers
+[12/21/2020 13:40:25.0441] [0] Validating options for the 0 requested roles
+[12/21/2020 13:40:25.0472] [0] Performing Microsoft Exchange Server Prerequisite Check
+[12/21/2020 13:40:25.0488] [0] Setup is determining what organization-level operations to perform.
+[12/21/2020 13:40:25.0488] [0] The command-line option prepareschema has been specified.
+[12/21/2020 13:40:25.0488] [0] Because the command-line option prepareschema was specified, setup is adding the argument PrepareSchema.
+[12/21/2020 13:40:25.0488] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[12/21/2020 13:40:25.0566] [0] **************
+[12/21/2020 13:40:25.0566] [0] Setup will run the task 'test-SetupPrerequisites'
+[12/21/2020 13:40:25.0566] [1] Setup launched task 'test-SetupPrerequisites -DomainController 'Solo-DC1.Solo.net' -ExchangeVersion '15.1.2106.2' -Roles 'Global' -ScanType 'PrecheckInstall' -SetupRoles 'Global' -PrepareSchema $true -CustomerFeedbackEnabled $true -HostingDeploymentEnabled $false'  
+[12/21/2020 13:40:26.0988] [1] Active Directory session settings for 'test-SetupPrerequisites' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.net', Preferred Global Catalog: 'Solo-DC1.Solo.net', Preferred Domain Controllers: '{ Solo-DC1.Solo.net }'
+[12/21/2020 13:40:27.0004] [1] User specified parameters:  -DomainController:'Solo-DC1.Solo.net' -ExchangeVersion:'15.1.2106.2' -Roles:'Global' -ScanType:'PrecheckInstall' -SetupRoles:'Global' -PrepareSchema:'True' -CustomerFeedbackEnabled:'True' -HostingDeploymentEnabled:'False'
+[12/21/2020 13:40:27.0004] [1] Beginning processing test-SetupPrerequisites
+[12/21/2020 13:40:27.0426] [1] Started [Analysis:Prereq]
+[12/21/2020 13:40:27.0519] [1] Started [Rule:OSCheckedBuild] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0519] [1] Started [Rule:PrimaryDNSTestFailed] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0519] [1] Started [Rule:ComputerNotPartofDomain] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0519] [1] Started [Setting:PrimaryDNSPortAvailable] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0519] [1] Started [Setting:DebugVersion] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0519] [1] Started [Setting:DomainRole] [Parent:RootAnalysisMember] [ValueType:UInt16]
+[12/21/2020 13:40:27.0535] [1] Started [Rule:W2K8R2PrepareSchemaLdifdeNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0535] [1] Started [Rule:W2K8R2PrepareAdLdifdeNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0535] [1] Started [Rule:Exchange2000or2003PresentInOrg] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0535] [1] Started [Rule:RebootPending] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0535] [1] Started [Rule:PendingRebootWindowsComponents] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0535] [1] Started [Setting:PrimaryDns] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0535] [1] Started [Setting:Exchange200x] [Parent:ExchangeSerialNumber] [ValueType:Boolean]
+[12/21/2020 13:40:27.0535] [1] Started [Setting:ExchangeSerialNumber] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0535] [1] Started [Setting:PendingFileRenames] [Parent:RootAnalysisMember] [ValueType:String[]]
+[12/21/2020 13:40:27.0535] [1] Started [Setting:OrgDistinguishedName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:DnsAddress] [Parent:NicConfiguration] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:NicConfiguration] [Parent:NicCaption] [ValueType:Dictionary`2]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:NicCaption] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:OrgMicrosoftExchServicesConfig] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:MicrosoftExchServicesConfigDistinguishedName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:MicrosoftExchServicesConfig] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0551] [1] Evaluated [Setting:PendingFileRenames] [HasException:False] [Value:"<NULL>"] [ParentValue:"<NULL>"] [Thread:18] [Duration:00:00:00.0156533]
+[12/21/2020 13:40:27.0551] [1] Evaluated [Rule:PendingRebootWindowsComponents] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00.0156533]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:ConfigurationNamingContext] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Finished [Setting:PendingFileRenames] [Duration:00:00:00.0156533]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:RootDSEProperties] [Parent:RootAnalysisMember] [ValueType:List`1]
+[12/21/2020 13:40:27.0551] [1] Finished [Rule:PendingRebootWindowsComponents] [Duration:00:00:00.0156533]
+[12/21/2020 13:40:27.0551] [1] Started [Rule:UpdateNeedsReboot] [Parent:RootAnalysisMember] [RuleType:None]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:SetupRoles] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0551] [1] Evaluated [Rule:UpdateNeedsReboot] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:18] [Duration:00:00:00]
+[12/21/2020 13:40:27.0551] [1] Finished [Rule:UpdateNeedsReboot] [Duration:00:00:00]
+[12/21/2020 13:40:27.0551] [1] Evaluated [Setting:SetupRoles] [HasException:False] [Value:"Global"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00]
+[12/21/2020 13:40:27.0551] [1] Finished [Setting:SetupRoles] [Duration:00:00:00]
+[12/21/2020 13:40:27.0551] [1] Started [Setting:GlobalCatalog] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Setting:GlobalCatalog] [HasException:False] [Value:"Solo-DC1.Solo.net"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Finished [Setting:GlobalCatalog] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Started [Rule:SendConnectorException] [Parent:OrgMicrosoftExchServicesConfig] [RuleType:Error]
+[12/21/2020 13:40:27.0566] [1] Started [Rule:RemoteRegException] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Setting:RootDSEProperties] [HasException:False] [Value:"System.Collections.Generic.List`1[System.String]"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Finished [Setting:RootDSEProperties] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Setting:ConfigurationNamingContext] [HasException:False] [Value:"CN=Configuration,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Finished [Setting:ConfigurationNamingContext] [Duration:00:00:00.0155961]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Rule:W2K8R2PrepareAdLdifdeNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0566] [1] Finished [Rule:W2K8R2PrepareAdLdifdeNotInstalled] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Rule:W2K8R2PrepareSchemaLdifdeNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0566] [1] Finished [Rule:W2K8R2PrepareSchemaLdifdeNotInstalled] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0566] [1] Evaluated [Rule:RebootPending] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:18] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0566] [1] Finished [Rule:RebootPending] [Duration:00:00:00.0312494]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:MicrosoftExchServicesConfig] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:MicrosoftExchServicesConfig] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:MicrosoftExchServicesConfigDistinguishedName] [HasException:False] [Value:"CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:MicrosoftExchServicesConfigDistinguishedName] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:OrgMicrosoftExchServicesConfig] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:OrgMicrosoftExchServicesConfig] [Duration:00:00:00.0312216]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:OrgDistinguishedName] [HasException:False] [Value:"CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:OrgDistinguishedName] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:ExchangeSerialNumber] [HasException:False] [Value:"Version 15.0 (Build 31497.2)"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:Exchange200x] [HasException:False] [Value:"False"] [ParentValue:"Version 15.0 (Build 31497.2)"] [Thread:17] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:ExchangeSerialNumber] [HasException:False] [Value:"Version 15.0 (Build 31395.4)"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:Exchange200x] [HasException:False] [Value:"False"] [ParentValue:"Version 15.0 (Build 31395.4)"] [Thread:17] [Duration:00:00:00]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:ExchangeSerialNumber] [HasException:False] [Value:"Version 15.0 (Build 31395.4)"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Setting:Exchange200x] [HasException:False] [Value:"False"] [ParentValue:"Version 15.0 (Build 31395.4)"] [Thread:17] [Duration:00:00:00]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:ExchangeSerialNumber] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Finished [Setting:Exchange200x] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Evaluated [Rule:Exchange2000or2003PresentInOrg] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:17] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0582] [1] Finished [Rule:Exchange2000or2003PresentInOrg] [Duration:00:00:00.0468749]
+[12/21/2020 13:40:27.0597] [1] Started [Rule:RsatAddsToolsInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0597] [1] Started [Rule:PowerShellExecutionPolicyCheckSet] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0597] [1] Started [Setting:MailboxRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0597] [1] Started [Setting:PowerShellExecutionPolicy] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:ExchangeCurrentServerRoles] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:MicrosoftExchServicesAdminGroupsConfig] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:ShortServerName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:PrepareSchema] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0613] [1] Evaluated [Setting:PrepareSchema] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:00]
+[12/21/2020 13:40:27.0613] [1] Finished [Setting:PrepareSchema] [Duration:00:00:00]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:IsRsatAddsToolsInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:InstalledWindowsFeatures] [Parent:RootAnalysisMember] [ValueType:Object[]]
+[12/21/2020 13:40:27.0613] [1] Started [Setting:ClientAccessRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0629] [1] Started [Setting:CafeRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:FrontendTransportRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:UnifiedMessagingRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:BridgeheadRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:GatewayRoleInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:ServerIsProvisioned] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:ExchangeConfigurationUnitsConfiguration] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:ExchangeConfigurationUnitsDomain] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0644] [1] Started [Setting:SMOSchemaSiteName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:DnsHostName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:SmoSchemaDN] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:RootNamingContext] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0660] [1] Evaluated [Setting:RootNamingContext] [HasException:False] [Value:"DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:34] [Duration:00:00:00]
+[12/21/2020 13:40:27.0660] [1] Finished [Setting:RootNamingContext] [Duration:00:00:00]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:SmoRoleOwner] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:SchemaDN] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0660] [1] Evaluated [Setting:ExchangeConfigurationUnitsConfiguration] [HasException:True] [Value:
+System.DirectoryServices.DirectoryServicesCOMException (0x80072030): There is no such object on the server.
+
+   at System.DirectoryServices.DirectoryEntry.Bind(Boolean throwIfFail)
+   at System.DirectoryServices.DirectoryEntry.Bind()
+   at System.DirectoryServices.DirectoryEntry.get_AdsObject()
+   at System.DirectoryServices.DirectorySearcher.FindAll(Boolean findMoreThanOne)
+   at Microsoft.Exchange.Management.Deployment.ADProvider.Run(Boolean useGC, String directoryEntry, String[] listOfPropertiesToCollect, String filter, SearchScope searchScope)
+   at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<CreateActiveDirectoryPrereqProperties>b__2400_111(Result`1 x)
+   at Microsoft.Exchange.Management.Analysis.Builders.SettingBuilder`2.<>c__DisplayClass2_0.<SetValue>b__0(Result x)
+] [ParentValue:"<NULL>"] [Thread:33] [Duration:00:00:00.0156234]
+[12/21/2020 13:40:27.0660] [1] Finished [Setting:ExchangeConfigurationUnitsConfiguration] [Duration:00:00:00.0156234]
+[12/21/2020 13:40:27.0660] [1] Evaluated [Setting:ExchangeConfigurationUnitsDomain] [HasException:True] [Value:
+System.DirectoryServices.DirectoryServicesCOMException (0x80072030): There is no such object on the server.
+
+   at System.DirectoryServices.DirectoryEntry.Bind(Boolean throwIfFail)
+   at System.DirectoryServices.DirectoryEntry.Bind()
+   at System.DirectoryServices.DirectoryEntry.get_AdsObject()
+   at System.DirectoryServices.DirectorySearcher.FindAll(Boolean findMoreThanOne)
+   at Microsoft.Exchange.Management.Deployment.ADProvider.Run(Boolean useGC, String directoryEntry, String[] listOfPropertiesToCollect, String filter, SearchScope searchScope)
+   at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<CreateActiveDirectoryPrereqProperties>b__2400_112(Result`1 x)
+   at Microsoft.Exchange.Management.Analysis.Builders.SettingBuilder`2.<>c__DisplayClass2_0.<SetValue>b__0(Result x)
+] [ParentValue:"<NULL>"] [Thread:34] [Duration:00:00:00.0156234]
+[12/21/2020 13:40:27.0660] [1] Finished [Setting:ExchangeConfigurationUnitsDomain] [Duration:00:00:00.0156234]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:SchemaNamingContext] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0660] [1] Evaluated [Setting:SchemaNamingContext] [HasException:False] [Value:"CN=Schema,CN=Configuration,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00]
+[12/21/2020 13:40:27.0660] [1] Finished [Setting:SchemaNamingContext] [Duration:00:00:00]
+[12/21/2020 13:40:27.0660] [1] Started [Setting:ShortProvisionedName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0676] [1] Evaluated [Setting:SchemaDN] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Finished [Setting:SchemaDN] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Evaluated [Setting:SmoRoleOwner] [HasException:False] [Value:"SOLO-DC1"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Finished [Setting:SmoRoleOwner] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Started [Rule:SchemaFSMONotWin2003SPn] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0676] [1] Evaluated [Setting:SmoSchemaDN] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Finished [Setting:SmoSchemaDN] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Evaluated [Setting:DnsHostName] [HasException:False] [Value:"Solo-DC1.Solo.net"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Finished [Setting:DnsHostName] [Duration:00:00:00.0156307]
+[12/21/2020 13:40:27.0676] [1] Started [Rule:AllServersOfHigherVersionRule] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0676] [1] Started [Rule:HostingModeNotAvailable] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0676] [1] Started [Setting:Win2003FSMOSchemaServer] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0676] [1] Started [Setting:AllServersOfHigherVersion] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0676] [1] Started [Rule:InconsistentlyConfiguredDomain] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0676] [1] Evaluated [Rule:HostingModeNotAvailable] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00]
+[12/21/2020 13:40:27.0676] [1] Finished [Rule:HostingModeNotAvailable] [Duration:00:00:00]
+[12/21/2020 13:40:27.0676] [1] Started [Rule:SetADSplitPermissionWhenExchangeServerRolesOnDC] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:SmoOperatingSystemVersion] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:ActiveDirectorySplitPermissions] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0691] [1] Evaluated [Setting:ActiveDirectorySplitPermissions] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Finished [Setting:ActiveDirectorySplitPermissions] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Evaluated [Rule:SetADSplitPermissionWhenExchangeServerRolesOnDC] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00.0156221]
+[12/21/2020 13:40:27.0691] [1] Finished [Rule:SetADSplitPermissionWhenExchangeServerRolesOnDC] [Duration:00:00:00.0156221]
+[12/21/2020 13:40:27.0691] [1] Started [Rule:LoggedOntoDomain] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:CurrentLogOn] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:NonAuthoritativeDomainsArray] [Parent:RootAnalysisMember] [ValueType:String[]]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:NewProvisionedServerName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:ExchNonAuthoritativeDomains] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0691] [1] Evaluated [Setting:NewProvisionedServerName] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:36] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Finished [Setting:NewProvisionedServerName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Finished [Setting:ShortProvisionedName] [Duration:00:00:00.0312528]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:ExchangeRecipientPolicyConfiguration] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0691] [1] Started [Rule:WindowsServer2008CoreServerEdition] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0691] [1] Started [Rule:InvalidADSite] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0691] [1] Evaluated [Setting:CurrentLogOn] [HasException:False] [Value:"SOLO\Han"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Finished [Setting:CurrentLogOn] [Duration:00:00:00]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:LocalServerName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0691] [1] Started [Setting:SiteName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:SiteName] [HasException:False] [Value:"Default-First-Site-Name"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:SiteName] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Rule:InvalidADSite] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Rule:InvalidADSite] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:MinimumFrameworkNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:WindowsVersion] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:SchemaUpdateRequired] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:WindowsVersion] [HasException:False] [Value:"6.3"] [ParentValue:"<NULL>"] [Thread:37] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:WindowsVersion] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Rule:WindowsServer2008CoreServerEdition] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:37] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Rule:WindowsServer2008CoreServerEdition] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:ServicesAreMarkedForDeletion] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:SchemaAdmin] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:ServiceMarkedForDeletion] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:SMOSchemaSiteName] [HasException:False] [Value:"Default-First-Site-Name"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:00.0625000]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:SMOSchemaSiteName] [Duration:00:00:00.0625000]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:SidRootDomain] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:DomainControllerIsOutOfSite] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:DomainControllerSiteName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:RootDN] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:ExchangeRecipientPolicyConfiguration] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:ExchangeRecipientPolicyConfiguration] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:ExchNonAuthoritativeDomains] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:ExchNonAuthoritativeDomains] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:NonAuthoritativeDomainsArray] [HasException:False] [Value:"System.String[]"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:NonAuthoritativeDomainsArray] [Duration:00:00:00.0156238]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Rule:InconsistentlyConfiguredDomain] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Finished [Rule:InconsistentlyConfiguredDomain] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:ExchangeAlreadyInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:DomainController] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:DomainController] [HasException:False] [Value:"Solo-DC1.Solo.net"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:DomainController] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:ClrReleaseNumber] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:AllServersOfHigherVersion] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:AllServersOfHigherVersion] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Rule:AllServersOfHigherVersionRule] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Finished [Rule:AllServersOfHigherVersionRule] [Duration:00:00:00.0312459]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:GlobalUpdateRequired] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:DomainControllerSiteName] [HasException:False] [Value:"Default-First-Site-Name"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:DomainControllerSiteName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Rule:DomainControllerIsOutOfSite] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Finished [Rule:DomainControllerIsOutOfSite] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:CannotAccessAD] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Started [Rule:DidTenantSettingCreatedAnException] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0707] [1] Evaluated [Setting:RootDN] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Finished [Setting:RootDN] [Duration:00:00:00]
+[12/21/2020 13:40:27.0707] [1] Started [Setting:MsiProductMajor] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:PrepareOrganization] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:PrepareOrganization] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:PrepareOrganization] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:PrepareAllDomains] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:IsHybridObjectFoundOnPremises] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:CannotAccessAD] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:CannotAccessAD] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:ConfigDCHostNameMismatch] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:WasSetupStartedFromGUI] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:MsiProductMajor] [HasException:True] [Value:
+Expected failure for MsiProductMajor:The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup, wasn't found.
+] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:SidRootDomain] [HasException:False] [Value:"S-1-5-21-285178403-2417141560-1536836385"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:MsiProductMajor] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:SidRootDomain] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:PrepareAllDomains] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:PrepareAllDomains] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:GlobalUpdateRequired] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:GlobalUpdateRequired] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:ClrReleaseNumber] [HasException:False] [Value:"528049"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:ClrReleaseNumber] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:DomainPrepWithoutADUpdate] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:NewestBuild] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:NewestBuild] [HasException:True] [Value:
+Expected failure for NewestBuild:The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup, wasn't found.
+] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:NewestBuild] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:ExchangeAlreadyInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:ExchangeAlreadyInstalled] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:InstallWatermark] [Parent:Watermarks] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:Watermarks] [Parent:ServerRoleUnpacked] [ValueType:String]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:ServerRoleUnpacked] [Parent:Roles] [ValueType:String]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:Roles] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:ConfigDCHostName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:ConfigDCHostName] [HasException:True] [Value:
+Expected failure for ConfigDCHostName:The registry key, HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\MSExchange ADAccess\Instance0, wasn't found.
+] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:ConfigDCHostName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:ConfigDCHostNameMismatch] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:ConfigDCHostNameMismatch] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:WindowsInstallerServiceDisabledOrNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:Roles] [HasException:True] [Value:
+Expected failure for Roles:The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15, wasn't found.
+] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:Roles] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:ServerRoleUnpacked] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:Watermarks] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:InstallWatermark] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:E16E14CoexistenceMinVersionRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:SchemaAdmin] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:SchemaAdmin] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:EnterpriseAdmin] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:E14ServersNotMinVersionRequirement] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:WindowsInstallerServiceStartMode] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:MinimumFrameworkNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:MinimumFrameworkNotInstalled] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:NotLocalAdmin] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:EnterpriseAdmin] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:EnterpriseAdmin] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:SchemaUpdateRequired] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:SchemaUpdateRequired] [Duration:00:00:00.0159097]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:AdUpdateRequired] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Started [Setting:LocalAdmin] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Setting:LocalAdmin] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Setting:LocalAdmin] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:NotLocalAdmin] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:NotLocalAdmin] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Started [Rule:ExchangeVersionBlock] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0723] [1] Evaluated [Rule:AdUpdateRequired] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0723] [1] Finished [Rule:AdUpdateRequired] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Started [Rule:NoE15ServerWarning] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0754] [1] Started [Rule:ProvisionedUpdateRequired] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0754] [1] Evaluated [Rule:NoE15ServerWarning] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Finished [Rule:NoE15ServerWarning] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Started [Rule:NoE14ServerWarning] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0754] [1] Evaluated [Rule:ProvisionedUpdateRequired] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:41] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Finished [Rule:ProvisionedUpdateRequired] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Started [Rule:HybridIsEnabledAndTenantVersionIsNotUpgraded] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0754] [1] Evaluated [Rule:NoE14ServerWarning] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Finished [Rule:NoE14ServerWarning] [Duration:00:00:00]
+[12/21/2020 13:40:27.0754] [1] Started [Rule:NotInSchemaMasterDomain] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0754] [1] Started [Setting:ComputerDomainDN] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0754] [1] Started [Setting:SmoRoleSchemaRef] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0754] [1] Started [Setting:ComputerDomain] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0754] [1] Started [Setting:ServerReference] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:ServerReference] [HasException:False] [Value:"CN=SOLO-DC1,OU=Domain Controllers,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156248]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:ServerReference] [Duration:00:00:00.0156248]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:SmoRoleSchemaRef] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156248]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:SmoRoleSchemaRef] [Duration:00:00:00.0156248]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:SmoOperatingSystemVersion] [HasException:False] [Value:"6.3 (9600)"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0781252]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:SmoOperatingSystemVersion] [Duration:00:00:00.0781252]
+[12/21/2020 13:40:27.0769] [1] Started [Setting:SchemaVersionRangeUpper] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:Win2003FSMOSchemaServer] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0937473]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:Win2003FSMOSchemaServer] [Duration:00:00:00.0937473]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Rule:SchemaFSMONotWin2003SPn] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0937473]
+[12/21/2020 13:40:27.0769] [1] Finished [Rule:SchemaFSMONotWin2003SPn] [Duration:00:00:00.0937473]
+[12/21/2020 13:40:27.0769] [1] Started [Rule:AdInitErrorRule] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0769] [1] Started [Setting:AdInitError] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:AdInitError] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:AdInitError] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Rule:AdInitErrorRule] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Finished [Rule:AdInitErrorRule] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Started [Rule:DuplicateShortProvisionedName] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Rule:DuplicateShortProvisionedName] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Finished [Rule:DuplicateShortProvisionedName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Started [Rule:ForestLevelNotWin2003Native] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0769] [1] Started [Setting:MsDSBehaviorVersion] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:WindowsInstallerServiceStartMode] [HasException:False] [Value:"3"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0465917]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:WindowsInstallerServiceStartMode] [Duration:00:00:00.0465917]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Rule:WindowsInstallerServiceDisabledOrNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0465917]
+[12/21/2020 13:40:27.0769] [1] Finished [Rule:WindowsInstallerServiceDisabledOrNotInstalled] [Duration:00:00:00.0465917]
+[12/21/2020 13:40:27.0769] [1] Started [Rule:WinRMServiceDisabledOrNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0769] [1] Started [Setting:WinRMServiceStartMode] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Setting:WinRMServiceStartMode] [HasException:False] [Value:"2"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Finished [Setting:WinRMServiceStartMode] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Evaluated [Rule:WinRMServiceDisabledOrNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Finished [Rule:WinRMServiceDisabledOrNotInstalled] [Duration:00:00:00]
+[12/21/2020 13:40:27.0769] [1] Started [Rule:E16E12CoexistenceMinVersionRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:MsDSBehaviorVersion] [HasException:False] [Value:"4"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:MsDSBehaviorVersion] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Rule:ForestLevelNotWin2003Native] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Finished [Rule:ForestLevelNotWin2003Native] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Started [Rule:PrepareDomainNotFound] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:SchemaVersionRangeUpper] [HasException:False] [Value:"15312"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:SchemaVersionRangeUpper] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:ExchangeServersGroupAMAccountName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:PrepareDomain] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:ExchangeServicesConfigExchangeServersGroup] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:PrepareDomain] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:PrepareDomain] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Rule:PrepareDomainNotFound] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Finished [Rule:PrepareDomainNotFound] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Started [Rule:PrepareDomainModeMixed] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:E12ServersNotMinVersionRequirement] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:NtMixedDomainPrepareDomain] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:ExchangeServersGroupOtherWellKnownObjects] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:ExchangeVersionPrefix] [Parent:RootAnalysisMember] [ValueType:Single]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:PrepareDomainNCNameConfig] [Parent:RootAnalysisMember] [ValueType:ResultPropertyCollection]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:ExchangeServersGroupOtherWellKnownObjects] [HasException:False] [Value:"CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:ExchangeServersGroupOtherWellKnownObjects] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:E14ServersNotMinVersionRequirement] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:E14ServersNotMinVersionRequirement] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Rule:E16E14CoexistenceMinVersionRequirement] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Finished [Rule:E16E14CoexistenceMinVersionRequirement] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Started [Rule:E16E15CoexistenceMinVersionRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:ExchangeServicesConfigExchangeServersGroup] [HasException:False] [Value:"System.DirectoryServices.ResultPropertyCollection"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:PrepareDomainNCName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:ExchangeServicesConfigExchangeServersGroup] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:ExchangeServersGroupAMAccountName] [HasException:False] [Value:"Exchange Servers"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:ExchangeServersGroupAMAccountName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Rule:DomainPrepWithoutADUpdate] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Finished [Rule:DomainPrepWithoutADUpdate] [Duration:00:00:00.0622163]
+[12/21/2020 13:40:27.0785] [1] Started [Rule:LocalDomainPrep] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0785] [1] Started [Setting:E15ServersNotMinVersionRequirement] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Setting:E12ServersNotMinVersionRequirement] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Finished [Setting:E12ServersNotMinVersionRequirement] [Duration:00:00:00]
+[12/21/2020 13:40:27.0785] [1] Evaluated [Rule:E16E12CoexistenceMinVersionRequirement] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Finished [Rule:E16E12CoexistenceMinVersionRequirement] [Duration:00:00:00.0156246]
+[12/21/2020 13:40:27.0785] [1] Started [Rule:MsDSBehaviorVersionRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Rule:LocalDomainPrep] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Rule:LocalDomainPrep] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Started [Rule:PrepareDomainNotAdmin] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:PrepareDomainNCName] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:PrepareDomainNCName] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:PrepareDomainNCNameConfig] [HasException:False] [Value:"<NULL>"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:PrepareDomainNCNameConfig] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:NtMixedDomainPrepareDomain] [HasException:False] [Value:"0"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:NtMixedDomainPrepareDomain] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Rule:PrepareDomainModeMixed] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Rule:PrepareDomainModeMixed] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Started [Rule:RusMissing] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:RusName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:HostFQDNCheck] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Rule:PrepareDomainNotAdmin] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Finished [Rule:PrepareDomainNotAdmin] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Started [Rule:ServerFQDNMatchesSMTPPolicy] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:GatewayProxy] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:GatewayProxy] [HasException:False] [Value:"solo.net"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:GatewayProxy] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:ComputerNameDnsFullyQualified] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:MicrosoftExchangeSystemObjectsCN] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:HostFQDNCheck] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:HostFQDNCheck] [Duration:00:00:00]
+[12/21/2020 13:40:27.0801] [1] Started [Setting:MsDSBehaviorVersionDomain] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Setting:E15ServersNotMinVersionRequirement] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Setting:E15ServersNotMinVersionRequirement] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Evaluated [Rule:E16E15CoexistenceMinVersionRequirement] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Finished [Rule:E16E15CoexistenceMinVersionRequirement] [Duration:00:00:00.0156250]
+[12/21/2020 13:40:27.0801] [1] Started [Rule:E16E14CoexistenceMinVersionRequirementForDC] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0816] [1] Started [Setting:DomainNCName] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:E16E14CoexistenceMinVersionRequirementForDC] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:E16E14CoexistenceMinVersionRequirementForDC] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Started [Rule:E16E15CoexistenceMinVersionRequirementForDC] [Parent:RootAnalysisMember] [RuleType:Warning]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"Solo-DC1.Solo.net"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Finished [Setting:ComputerNameDnsFullyQualified] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:ServerFQDNMatchesSMTPPolicy] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:ServerFQDNMatchesSMTPPolicy] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:E16E15CoexistenceMinVersionRequirementForDC] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:E16E15CoexistenceMinVersionRequirementForDC] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Started [Rule:SmtpAddressLiteral] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:SmtpAddressLiteral] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:SmtpAddressLiteral] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Started [Rule:RootDomainModeMixed] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Setting:DomainNCName] [HasException:False] [Value:"DC=Child,DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Finished [Setting:DomainNCName] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Started [Setting:NtMixedDomainRoot] [Parent:RootAnalysisMember] [ValueType:Int32]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Setting:NtMixedDomainRoot] [HasException:False] [Value:"0"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Finished [Setting:NtMixedDomainRoot] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:RootDomainModeMixed] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:RootDomainModeMixed] [Duration:00:00:00]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Setting:MsDSBehaviorVersionDomain] [HasException:True] [Value:
+System.DirectoryServices.DirectoryServicesCOMException (0x80072030): There is no such object on the server.
+
+   at System.DirectoryServices.DirectoryEntry.Bind(Boolean throwIfFail)
+   at System.DirectoryServices.DirectoryEntry.Bind()
+   at System.DirectoryServices.DirectoryEntry.get_AdsObject()
+   at System.DirectoryServices.DirectorySearcher.FindAll(Boolean findMoreThanOne)
+   at Microsoft.Exchange.Management.Deployment.ADProvider.Run(Boolean useGC, String directoryEntry, String[] listOfPropertiesToCollect, String filter, SearchScope searchScope)
+   at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<CreateActiveDirectoryPrereqProperties>b__2400_116(Result`1 x)
+   at Microsoft.Exchange.Management.Analysis.Builders.SettingBuilder`2.<>c__DisplayClass2_0.<SetValue>b__0(Result x)
+] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Finished [Setting:MsDSBehaviorVersionDomain] [Duration:00:00:00.0156253]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Rule:MsDSBehaviorVersionRequirement] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:42] [Duration:00:00:00.0312503]
+[12/21/2020 13:40:27.0816] [1] Finished [Rule:MsDSBehaviorVersionRequirement] [Duration:00:00:00.0312503]
+[12/21/2020 13:40:27.0816] [1] Evaluated [Setting:ExchangeVersionPrefix] [HasException:False] [Value:"0"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.0312503]
+[12/21/2020 13:40:27.0816] [1] Finished [Setting:ExchangeVersionPrefix] [Duration:00:00:00.0312503]
+[12/21/2020 13:40:27.0832] [1] Evaluated [Rule:ExchangeVersionBlock] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:38] [Duration:00:00:00.1090922]
+[12/21/2020 13:40:27.0832] [1] Finished [Rule:ExchangeVersionBlock] [Duration:00:00:00.1090922]
+[12/21/2020 13:40:27.0879] [1] Evaluated [Setting:WasSetupStartedFromGUI] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00.1559671]
+[12/21/2020 13:40:27.0879] [1] Finished [Setting:WasSetupStartedFromGUI] [Duration:00:00:00.1559671]
+[12/21/2020 13:40:27.0879] [1] Running the on-premises test.
+[12/21/2020 13:40:27.0895] [1] Evaluated [Setting:IsHybridObjectFoundOnPremises] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00.1718317]
+[12/21/2020 13:40:27.0895] [1] Finished [Setting:IsHybridObjectFoundOnPremises] [Duration:00:00:00.1718317]
+[12/21/2020 13:40:27.0895] [1] Started [Setting:IsExchangeVersionCorrectForTenant] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[12/21/2020 13:40:27.0895] [1] Evaluated [Rule:DidTenantSettingCreatedAnException] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00.1877414]
+[12/21/2020 13:40:27.0895] [1] Finished [Rule:DidTenantSettingCreatedAnException] [Duration:00:00:00.1877414]
+[12/21/2020 13:40:27.0895] [1] Started [Rule:DidOnPremisesSettingCreatedAnException] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0895] [1] Evaluated [Rule:DidOnPremisesSettingCreatedAnException] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:39] [Duration:00:00:00]
+[12/21/2020 13:40:27.0895] [1] Finished [Rule:DidOnPremisesSettingCreatedAnException] [Duration:00:00:00]
+[12/21/2020 13:40:27.0910] [1] Running the Office 365 tenant hybrid test with input file at: .
+[12/21/2020 13:40:27.0910] [1] Testing . 
+[12/21/2020 13:40:27.0910] [1] Evaluated [Setting:IsExchangeVersionCorrectForTenant] [HasException:True] [Value:
+Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetectionException: A hybrid deployment with Office 365 has been detected.  Please ensure that you are running setup with the /TenantOrganizationConfig switch.  To use the TenantOrganizationConfig switch you must first connect to your Exchange Online tenant via PowerShell and execute the following command: "Get-OrganizationConfig | Export-Clixml -Path MyTenantOrganizationConfig.XML".  Once the XML file has been generated, run setup with the TenantOrganizationConfig switch as follows "/TenantOrganizationConfig MyTenantOrganizationConfig.XML". 
+If you continue to see this this message then it indicates that either the XML file specified is corrupt, or you are attempting to upgrade your on-premises Exchange installation to a build that isn't compatible with the Exchange version of your Office 365 tenant. Your Office 365 tenant must be upgraded to a compatible version of Exchange before upgrading your on-premises Exchange installation. For more information, see: http://go.microsoft.com/fwlink/?LinkId=262888 
+   at Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetection.TestDCConfigFile(String pathToConfigFile)
+   at Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetection.RunTenantHybridTest(String pathToConfigFile)
+   at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<.ctor>b__2_42(Result`1 x)
+   at Microsoft.Exchange.Management.Analysis.Builders.SettingBuilder`2.<>c__DisplayClass2_0.<SetValue>b__0(Result x)
+] [ParentValue:"<NULL>"] [Thread:41] [Duration:00:00:00.0153845]
+[12/21/2020 13:40:27.0910] [1] Finished [Setting:IsExchangeVersionCorrectForTenant] [Duration:00:00:00.0153845]
+[12/21/2020 13:40:27.0910] [1] Evaluated [Rule:HybridIsEnabledAndTenantVersionIsNotUpgraded] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:41] [Duration:00:00:00.1562493]
+[12/21/2020 13:40:27.0910] [1] Finished [Rule:HybridIsEnabledAndTenantVersionIsNotUpgraded] [Duration:00:00:00.1562493]
+[12/21/2020 13:40:27.0910] [1] Started [Rule:AdcFound] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0910] [1] Started [Setting:AdcServer] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0910] [1] Evaluated [Setting:DomainRole] [HasException:False] [Value:"5"] [ParentValue:"<NULL>"] [Thread:10] [Duration:00:00:00.3906242]
+[12/21/2020 13:40:27.0910] [1] Finished [Setting:DomainRole] [Duration:00:00:00.3906242]
+[12/21/2020 13:40:27.0910] [1] Evaluated [Rule:ComputerNotPartofDomain] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:10] [Duration:00:00:00.3906242]
+[12/21/2020 13:40:27.0910] [1] Finished [Rule:ComputerNotPartofDomain] [Duration:00:00:00.4062443]
+[12/21/2020 13:40:27.0910] [1] Finished [Setting:AdcServer] [Duration:00:00:00]
+[12/21/2020 13:40:27.0910] [1] Evaluated [Rule:AdcFound] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:41] [Duration:00:00:00]
+[12/21/2020 13:40:27.0910] [1] Finished [Rule:AdcFound] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:LocalServerName] [HasException:False] [Value:"SOLO-DC1"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00.2500006]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:LocalServerName] [Duration:00:00:00.2500006]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Rule:LoggedOntoDomain] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00.2500006]
+[12/21/2020 13:40:27.0941] [1] Finished [Rule:LoggedOntoDomain] [Duration:00:00:00.2500006]
+[12/21/2020 13:40:27.0941] [1] Started [Rule:LocalDomainModeMixed] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Rule:LocalDomainModeMixed] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:7] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Finished [Rule:LocalDomainModeMixed] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:ComputerDomain] [HasException:False] [Value:"Solo.net"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:ComputerDomain] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:ComputerDomainDN] [HasException:False] [Value:"DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:ComputerDomainDN] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Started [Setting:SmoSchemaDomain] [Parent:RootAnalysisMember] [ValueType:String]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:SmoSchemaDomain] [HasException:False] [Value:"DC=Solo,DC=net"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:SmoSchemaDomain] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Rule:NotInSchemaMasterDomain] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Finished [Rule:NotInSchemaMasterDomain] [Duration:00:00:00.1875002]
+[12/21/2020 13:40:27.0941] [1] Started [Rule:NotInSchemaMasterSite] [Parent:RootAnalysisMember] [RuleType:Error]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:MicrosoftExchangeSystemObjectsCN] [HasException:True] [Value:
+System.DirectoryServices.DirectoryServicesCOMException (0x80072030): There is no such object on the server.
+
+   at System.DirectoryServices.DirectoryEntry.Bind(Boolean throwIfFail)
+   at System.DirectoryServices.DirectoryEntry.Bind()
+   at System.DirectoryServices.DirectoryEntry.get_AdsObject()
+   at System.DirectoryServices.DirectorySearcher.FindAll(Boolean findMoreThanOne)
+   at Microsoft.Exchange.Management.Deployment.ADProvider.Run(Boolean useGC, String directoryEntry, String[] listOfPropertiesToCollect, String filter, SearchScope searchScope)
+   at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<CreateActiveDirectoryPrereqProperties>b__2400_138(Result`1 x)
+   at Microsoft.Exchange.Management.Analysis.Builders.SettingBuilder`2.<>c__DisplayClass2_0.<SetValue>b__0(Result x)
+] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:MicrosoftExchangeSystemObjectsCN] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Setting:RusName] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0941] [1] Finished [Setting:RusName] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Rule:NotInSchemaMasterSite] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:40] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Finished [Rule:NotInSchemaMasterSite] [Duration:00:00:00]
+[12/21/2020 13:40:27.0941] [1] Evaluated [Rule:RusMissing] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0941] [1] Finished [Rule:RusMissing] [Duration:00:00:00.1406258]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:ShortServerName] [HasException:False] [Value:"SOLO-DC1"] [ParentValue:"<NULL>"] [Thread:25] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:ShortServerName] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:MicrosoftExchServicesAdminGroupsConfig] [HasException:False] [Value:"<NULL>"] [ParentValue:"<NULL>"] [Thread:25] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:MicrosoftExchServicesAdminGroupsConfig] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:ExchangeCurrentServerRoles] [HasException:False] [Value:"0"] [ParentValue:"<NULL>"] [Thread:25] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:ExchangeCurrentServerRoles] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:ServerIsProvisioned] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:32] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:ServerIsProvisioned] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:GatewayRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:31] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:GatewayRoleInstalled] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:CafeRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:27] [Duration:00:00:00.3281252]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:CafeRoleInstalled] [Duration:00:00:00.3281252]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:UnifiedMessagingRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:29] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:UnifiedMessagingRoleInstalled] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:BridgeheadRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:30] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:BridgeheadRoleInstalled] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:ClientAccessRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:26] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:ClientAccessRoleInstalled] [Duration:00:00:00.3437486]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:MailboxRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:25] [Duration:00:00:00.3593751]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:MailboxRoleInstalled] [Duration:00:00:00.3593751]
+[12/21/2020 13:40:27.0957] [1] Evaluated [Setting:FrontendTransportRoleInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:28] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0957] [1] Finished [Setting:FrontendTransportRoleInstalled] [Duration:00:00:00.3124998]
+[12/21/2020 13:40:27.0988] [1] Evaluated [Rule:RemoteRegException] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:20] [Duration:00:00:00.4218746]
+[12/21/2020 13:40:27.0988] [1] Finished [Rule:RemoteRegException] [Duration:00:00:00.4218746]
+[12/21/2020 13:40:28.0004] [1] Evaluated [Setting:DebugVersion] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00.4843747]
+[12/21/2020 13:40:28.0004] [1] Finished [Setting:DebugVersion] [Duration:00:00:00.4843747]
+[12/21/2020 13:40:28.0004] [1] Evaluated [Rule:OSCheckedBuild] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00.4843747]
+[12/21/2020 13:40:28.0004] [1] Finished [Rule:OSCheckedBuild] [Duration:00:00:00.4999948]
+[12/21/2020 13:40:28.0051] [1] Active Directory session settings for 'Get-SendConnector' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.net', Preferred Global Catalog: 'Solo-DC1.Solo.net', Preferred Domain Controllers: '{ Solo-DC1.Solo.net }'
+[12/21/2020 13:40:28.0051] [1] User specified parameters: 
+[12/21/2020 13:40:28.0051] [1] Beginning processing Get-SendConnector
+[12/21/2020 13:40:28.0098] [1] Evaluated [Setting:NicCaption] [HasException:False] [Value:"[00000010] Microsoft Hyper-V Network Adapter"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.5468483]
+[12/21/2020 13:40:28.0160] [1] Evaluated [Setting:NicConfiguration] [HasException:False] [Value:"System.Collections.Generic.Dictionary`2[System.String,System.Object]"] [ParentValue:"[00000010] Microsoft Hyper-V Network Adapter"] [Thread:9] [Duration:00:00:00.6093474]
+[12/21/2020 13:40:28.0160] [1] Evaluated [Setting:DnsAddress] [HasException:False] [Value:"127.0.0.1"] [ParentValue:"System.Collections.Generic.Dictionary`2[System.String,System.Object]"] [Thread:9] [Duration:00:00:00.6093474]
+[12/21/2020 13:40:28.0160] [1] Evaluated [Setting:PrimaryDns] [HasException:False] [Value:"127.0.0.1"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.6250007]
+[12/21/2020 13:40:28.0160] [1] Finished [Setting:PrimaryDns] [Duration:00:00:00.6250007]
+[12/21/2020 13:40:28.0176] [1] Evaluated [Setting:PrimaryDNSPortAvailable] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.6562500]
+[12/21/2020 13:40:28.0176] [1] Finished [Setting:PrimaryDNSPortAvailable] [Duration:00:00:00.6562500]
+[12/21/2020 13:40:28.0176] [1] Evaluated [Rule:PrimaryDNSTestFailed] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.6562500]
+[12/21/2020 13:40:28.0176] [1] Finished [Rule:PrimaryDNSTestFailed] [Duration:00:00:00.6718701]
+[12/21/2020 13:40:28.0285] [1] Searching objects of type "SmtpSendConnectorConfig" with filter "$null", scope "SubTree" under the root "Administrative Groups".
+[12/21/2020 13:40:28.0285] [1] Request filter in Get Task: (&(objectCategory=msExchRoutingSMTPConnector)(|(&(msExchVersion<=1125899906842624)(!(msExchVersion=1125899906842624)))(!(msExchVersion=*)))).
+[12/21/2020 13:40:28.0285] [1] Previous operation run on domain controller 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:28.0285] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[12/21/2020 13:40:28.0394] [1] Ending processing Get-SendConnector
+[12/21/2020 13:40:28.0488] [1] Evaluated [Setting:ServiceMarkedForDeletion] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:37] [Duration:00:00:00.7812511]
+[12/21/2020 13:40:28.0488] [1] Finished [Setting:ServiceMarkedForDeletion] [Duration:00:00:00.7812511]
+[12/21/2020 13:40:28.0488] [1] Evaluated [Rule:ServicesAreMarkedForDeletion] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:37] [Duration:00:00:00.7812511]
+[12/21/2020 13:40:28.0488] [1] Finished [Rule:ServicesAreMarkedForDeletion] [Duration:00:00:00.7812511]
+[12/21/2020 13:40:28.0566] [1] Evaluated [Rule:SendConnectorException] [HasException:False] [Value:"False"] [ParentValue:"System.DirectoryServices.ResultPropertyCollection"] [Thread:19] [Duration:00:00:01.0000058]
+[12/21/2020 13:40:28.0566] [1] Finished [Rule:SendConnectorException] [Duration:00:00:01.0000058]
+[12/21/2020 13:40:33.0693] [1] Evaluated [Setting:InstalledWindowsFeatures] [HasException:False] [Value:"System.Object[]"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:06.0796289]
+[12/21/2020 13:40:33.0693] [1] Finished [Setting:InstalledWindowsFeatures] [Duration:00:00:06.0796289]
+[12/21/2020 13:40:33.0693] [1] Evaluated [Setting:IsRsatAddsToolsInstalled] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:06.0796289]
+[12/21/2020 13:40:33.0693] [1] Finished [Setting:IsRsatAddsToolsInstalled] [Duration:00:00:06.0796289]
+[12/21/2020 13:40:33.0693] [1] Evaluated [Rule:RsatAddsToolsInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:06.0952554]
+[12/21/2020 13:40:33.0693] [1] Finished [Rule:RsatAddsToolsInstalled] [Duration:00:00:06.0952554]
+[12/21/2020 13:40:33.0740] [1] Evaluated [Setting:PowerShellExecutionPolicy] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:23] [Duration:00:00:06.1421417]
+[12/21/2020 13:40:33.0740] [1] Finished [Setting:PowerShellExecutionPolicy] [Duration:00:00:06.1421417]
+[12/21/2020 13:40:33.0740] [1] Evaluated [Rule:PowerShellExecutionPolicyCheckSet] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:23] [Duration:00:00:06.1421417]
+[12/21/2020 13:40:33.0740] [1] Finished [Rule:PowerShellExecutionPolicyCheckSet] [Duration:00:00:06.1421417]
+[12/21/2020 13:40:33.0740] [1] Finished [Analysis:Prereq] [Duration:00:00:06.3140184]
+[12/21/2020 13:40:33.0755] [1] Failed [Rule:PendingRebootWindowsComponents] [Message:There is a pending reboot from a previous installation of a Windows Server role or feature. Please restart the computer and then run Setup again.]
+[12/21/2020 13:40:33.0755] [1] [REQUIRED] There is a pending reboot from a previous installation of a Windows Server role or feature. Please restart the computer and then run Setup again.
+[12/21/2020 13:40:33.0755] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.PendingRebootWindowsComponents.aspx
+[12/21/2020 13:40:33.0787] [1] Ending processing test-SetupPrerequisites
+[12/21/2020 13:40:33.0802] [0] CurrentResult console.ProcessRunInternal:136: 1
+[12/21/2020 13:40:33.0802] [0] Exchange Server installation failed during prereq check. Trying to restore the server state back to active.
+[12/21/2020 13:40:33.0802] [0] RestoreServer Script Path: C:\Windows\Temp\ExchangeSetup\RestoreServerOnPrereqFailure.ps1
+[12/21/2020 13:40:33.0927] [0] Beginning processing Write-ExchangeSetupLog
+[12/21/2020 13:40:33.0927] [0] Trying to restore server state.
+[12/21/2020 13:40:33.0927] [0] Ending processing Write-ExchangeSetupLog
+[12/21/2020 13:40:33.0943] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.net', Preferred Global Catalog: 'Solo-DC1.Solo.net', Preferred Domain Controllers: '{ Solo-DC1.Solo.net }'
+[12/21/2020 13:40:33.0943] [0] User specified parameters:  -ErrorAction:'SilentlyContinue' -Identity:'SOLO-DC1'
+[12/21/2020 13:40:33.0943] [0] Beginning processing get-ExchangeServer
+[12/21/2020 13:40:33.0990] [0] Searching objects "SOLO-DC1" of type "Server" under the root "$null".
+[12/21/2020 13:40:34.0068] [0] Previous operation run on domain controller 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:34.0083] [0] Previous operation run on domain controller 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:34.0083] [0] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[12/21/2020 13:40:34.0083] [0] The operation couldn't be performed because object 'SOLO-DC1' couldn't be found on 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:34.0099] [0] The operation couldn't be performed because object 'SOLO-DC1' couldn't be found on 'Solo-DC1.Solo.net'.
+[12/21/2020 13:40:34.0099] [0] Ending processing get-ExchangeServer
+[12/21/2020 13:40:34.0115] [0] Beginning processing Write-ExchangeSetupLog
+[12/21/2020 13:40:34.0115] [0] [WARNING] SOLO-DC1 is not an Exchange Server. Unable to set monitoring and server state to active.
+[12/21/2020 13:40:34.0115] [0] Ending processing Write-ExchangeSetupLog
+[12/21/2020 13:40:34.0115] [0] CurrentResult launcherbase.maincore:90: 1
+[12/21/2020 13:40:34.0115] [0] CurrentResult console.startmain:52: 1
+[12/21/2020 13:40:34.0115] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[12/21/2020 13:40:34.0115] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[12/21/2020 13:40:34.0115] [0] CurrentResult main.run:235: 1
+[12/21/2020 13:40:34.0115] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[12/21/2020 13:40:34.0115] [0] CurrentResult setupbase.maincore:396: 1
+[12/21/2020 13:40:34.0115] [0] End of Setup
+[12/21/2020 13:40:34.0115] [0] **********************************************
