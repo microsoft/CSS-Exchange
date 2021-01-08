@@ -5,8 +5,6 @@ param (
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
-Set-Location $repoRoot
-
 <#
     Create the dist folder. Wipe and recreate if it exists.
 #>
@@ -27,7 +25,7 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
     File names must be unique across the repo since we release in a flat structure.
 #>
 
-$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" } | ForEach-Object { Get-ChildItem -Path $_.Name *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" } | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
 if ($nonUnique.Count -gt 0) {
