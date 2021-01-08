@@ -13,6 +13,16 @@ steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
 
+- pwsh: |
+    cd .\.build
+    .\CodeFormatter.ps1
+  displayName: "Code Formatting Script"
+
+- pwsh: |
+    cd .\.build
+    .\Build.ps1
+  displayName: "Build Script"
+
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'CSS Exchange Code Sign'
