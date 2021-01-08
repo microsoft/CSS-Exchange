@@ -2656,7 +2656,7 @@ param(
                 Write-ScriptDebug("Updating Copy From Date to: '{0}'" -f $filterDate)
             }
 
-            $childItems = Get-ChildItem $strDirectory | ?{($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate)}
+            $childItems = Get-ChildItem $strDirectory -Recurse | ?{($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate)}
             $items = @()
             foreach($childItem in $childItems)
             {
