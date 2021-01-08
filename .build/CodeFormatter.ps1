@@ -4,12 +4,13 @@ param(
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
-$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" } | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" -and
+    $_.Name -ne "dist"} | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
 $filesFailed = $false
 
 foreach ($file in $scriptFiles) {
 
-    $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer
+    $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer -ExcludeRules PSAvoidUsingWriteHost
 
     if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript -or
         $null -ne $scriptFormatter.AnalyzedResults) {

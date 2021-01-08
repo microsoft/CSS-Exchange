@@ -3,7 +3,8 @@ param(
     [string]$ScriptLocation,
     [string]$CodeFormattingLocation,
     [switch]$OutputFormattedScript,
-    [switch]$ScriptAnalyzer
+    [switch]$ScriptAnalyzer,
+    [array]$ExcludeRules
 )
 
 if (!(Test-Path $ScriptLocation)) {
@@ -41,7 +42,14 @@ try {
 
     $analyzedResults = $null
     if ($ScriptAnalyzer) {
-        $analyzedResults = Invoke-ScriptAnalyzer -Path $ScriptLocation
+        $params = @{
+            Path = $ScriptLocation
+        }
+        if ($null -ne $ExcludeRules -and
+            $ExcludeRules.Count -gt 0) {
+                $params.Add("ExcludeRule", $ExcludeRules)
+            }
+        $analyzedResults = Invoke-ScriptAnalyzer @params
     }
 
     $results = [PSCustomObject]@{
