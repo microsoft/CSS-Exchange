@@ -26,7 +26,7 @@ steps:
 - task: EsrpCodeSigning@1
   inputs:
     ConnectedServiceName: 'CSS Exchange Code Sign'
-    FolderPath: 'D:\a\1\s'
+    FolderPath: 'D:\a\1\s\dist'
     Pattern: '*.ps1'
     signConfigType: 'inlineSignParams'
     inlineOperation: |
@@ -63,8 +63,3 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
