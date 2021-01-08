@@ -1,17 +1,18 @@
 function Get-BadPermissions {
     [CmdletBinding()]
+    [OutputType("System.Object[]")]
     param (
         [Parameter()]
         [PSCustomObject]
         $FolderData
     )
-    
+
     begin {
         $startTime = Get-Date
         $progressCount = 0
         $badPermissions = @()
     }
-    
+
     process {
         $FolderData.IpmSubtree | ForEach-Object {
             if (++$progressCount % 10 -eq 0) {
@@ -22,9 +23,9 @@ function Get-BadPermissions {
 
             Get-PublicFolderClientPermission $_.EntryId | ForEach-Object {
                 if (
-                    ($_.User.DisplayName -ne "Default") -and 
-                    ($_.User.DisplayName -ne "Anonymous") -and 
-                    ($null -eq $_.User.ADRecipient) -and 
+                    ($_.User.DisplayName -ne "Default") -and
+                    ($_.User.DisplayName -ne "Anonymous") -and
+                    ($null -eq $_.User.ADRecipient) -and
                     ($_.User.UserType -eq "Unknown")
                 ) {
                     $badPermissions += $_
@@ -32,7 +33,7 @@ function Get-BadPermissions {
             }
         }
     }
-    
+
     end {
         Write-Host "Get-BadPermissions duration" ((Get-Date) - $startTime)
         return $badPermissions

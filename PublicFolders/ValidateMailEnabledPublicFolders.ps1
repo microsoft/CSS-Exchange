@@ -1,19 +1,3 @@
-#################################################################################
-#
-# The sample scripts are not supported under any Microsoft standard support 
-# program or service. The sample scripts are provided AS IS without warranty 
-# of any kind. Microsoft further disclaims all implied warranties including, without 
-# limitation, any implied warranties of merchantability or of fitness for a particular 
-# purpose. The entire risk arising out of the use or performance of the sample scripts 
-# and documentation remains with you. In no event shall Microsoft, its authors, or 
-# anyone else involved in the creation, production, or delivery of the scripts be liable 
-# for any damages whatsoever (including, without limitation, damages for loss of business 
-# profits, business interruption, loss of business information, or other pecuniary loss) 
-# arising out of the use of or inability to use the sample scripts or documentation, 
-# even if Microsoft has been advised of the possibility of such damages.
-#
-#################################################################################
-
 # ValidateMailEnabledPublicFolders.ps1
 #
 # Note: If running on Exchange 2010, the ExFolders tool must be in the V14\bin folder
@@ -61,7 +45,7 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
     }
 
     New-ItemProperty -Path $registryPath -Name $valueName -Value $value -PropertyType MultiString -Force | Out-Null
-    
+
     $result = (Get-ItemProperty -Path $registryPath -Name $valueName).PublicFolderPropertiesSelected
 
     if ($result[0] -ne $value[0] -or $result[1] -ne $value[1] -or $result[2] -ne $value[2]) {
@@ -72,8 +56,8 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
     $msiInstallPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup" -Name "MsiInstallPath").MsiInstallPath
     $exFoldersExe = "$msiInstallPath\bin\ExFolders.exe"
 
-    $pfDbToUse = Get-PublicFolderDatabase | Select -First 1
-    
+    $pfDbToUse = Get-PublicFolderDatabase | Select-Object -First 1
+
     Write-Host "Generating ExFolders export."
     Write-Warning "NOTE: ExFolders will appear to be Not Responding during the export. That is normal."
     Write-Host "Waiting for export to finish..."
@@ -87,7 +71,7 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
         Write-Error "any mail-disabled folders have invalid proxy GUIDs, those will be missed."
     } else {
         $exportResults = Import-Csv .\ExFoldersMailEnabledPropertyExport.txt -Delimiter `t
-        $mailDisabledWithProxyGuid = @($exportResults | ? { $_."PR_PF_PROXY_REQUIRED: 0x671F000B" -ne "True" -and $_."PR_PF_PROXY: 0x671D0102" -ne "PropertyError: NotFound" -and $_."DS:legacyExchangeDN".length -lt 1 } | ForEach-Object { $_."Folder Path" })
+        $mailDisabledWithProxyGuid = @($exportResults | Where-Object { $_."PR_PF_PROXY_REQUIRED: 0x671F000B" -ne "True" -and $_."PR_PF_PROXY: 0x671D0102" -ne "PropertyError: NotFound" -and $_."DS:legacyExchangeDN".length -lt 1 } | ForEach-Object { $_."Folder Path" })
     }
 }
 
@@ -98,6 +82,7 @@ $mailPublicFoldersLinked = New-Object 'System.Collections.Generic.Dictionary[str
 for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
     Write-Progress -Activity "Checking for missing AD objects" -PercentComplete ($i * 100 / $ipmSubtreeMailEnabled.Count) -Status ("$i of $($ipmSubtreeMailEnabled.Count)")
     $result = $ipmSubtreeMailEnabled[$i] | Get-MailPublicFolder -ErrorAction SilentlyContinue
+
     if ($null -eq $result) {
         $mailEnabledFoldersWithNoADObject += $ipmSubtreeMailEnabled[$i]
     } else {
@@ -107,7 +92,7 @@ for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
 
 Write-Host "$($mailEnabledFoldersWithNoADObject.Count) folders are mail-enabled with no AD object."
 
-Write-Host "$($mailPublicFoldersLinked.Keys.Count) folders are mail-enabled and are properly linked to an existing AD object." 
+Write-Host "$($mailPublicFoldersLinked.Keys.Count) folders are mail-enabled and are properly linked to an existing AD object."
 
 Write-Host "Getting all MailPublicFolder objects..."
 
@@ -117,6 +102,7 @@ $orphanedMailPublicFolders = @()
 
 for ($i = 0; $i -lt $allMailPublicFolders.Count; $i++) {
     Write-Progress -Activity "Checking for orphaned MailPublicFolders" -PercentComplete ($i * 100 / $allMailPublicFolders.Count) -Status ("$i of $($allMailPublicFolders.Count)")
+
     if (!($mailPublicFoldersLinked.ContainsKey($allMailPublicFolders[$i].Guid.ToString()))) {
         $orphanedMailPublicFolders += $allMailPublicFolders[$i]
     }
@@ -143,6 +129,7 @@ function GetCommandToMergeEmailAddresses($publicFolder, $orphanedMailPublicFolde
     $emailAddressesOnBadObject = @($orphanedMailPublicFolder.EmailAddresses | Where-Object { $_.ToString().StartsWith("smtp:", "OrdinalIgnoreCase") } | ForEach-Object { $_.ToString().Substring($_.ToString().IndexOf(':') + 1) })
     $emailAddressesToAdd = $emailAddressesOnBadObject | Where-Object { -not $emailAddressesOnGoodObject.Contains($_) }
     $emailAddressesToAdd = $emailAddressesToAdd | ForEach-Object { "`"" + $_ + "`"" }
+
     if ($emailAddressesToAdd.Count -gt 0) {
         $emailAddressesToAddString = [string]::Join(",", $emailAddressesToAdd)
         $command = "Get-PublicFolder `"$($publicFolder.Identity)`" | Get-MailPublicFolder | Set-MailPublicFolder -EmailAddresses @{add=$emailAddressesToAddString}"
@@ -156,13 +143,17 @@ for ($i = 0; $i -lt $orphanedMailPublicFolders.Count; $i++) {
     Write-Progress -Activity "Checking for orphans that point to a valid folder" -PercentComplete ($i * 100 / $orphanedMailPublicFolders.Count) -Status ("$i of $($orphanedMailPublicFolders.Count)")
     $thisMPF = $orphanedMailPublicFolders[$i]
     $pf = $null
+
     if ($null -ne $thisMPF.ExternalEmailAddress -and $thisMPF.ExternalEmailAddress.ToString().StartsWith("expf")) {
         $partialEntryId = $thisMPF.ExternalEmailAddress.ToString().Substring(5).Replace("-", "")
         $partialEntryId += "0000"
+
         if ($byPartialEntryId.TryGetValue($partialEntryId, [ref]$pf)) {
+
             if ($pf.MailEnabled) {
 
                 $command = GetCommandToMergeEmailAddresses $pf $thisMPF
+
                 if ($null -ne $command) {
                     $emailAddressMergeCommands += $command
                 }
@@ -171,15 +162,16 @@ for ($i = 0; $i -lt $orphanedMailPublicFolders.Count; $i++) {
             } else {
                 $orphanedMPFsThatPointToAMailDisabledFolder += $thisMPF
             }
-
             continue
         }
     }
-    
+
     if ($null -ne $thisMPF.EntryId -and $byEntryId.TryGetValue($thisMPF.EntryId.ToString(), [ref]$pf)) {
+
         if ($pf.MailEnabled) {
 
             $command = GetCommandToMergeEmailAddresses $pf $thisMPF
+
             if ($null -ne $command) {
                 $emailAddressMergeCommands += $command
             }
@@ -211,6 +203,7 @@ if ($foldersToMailDisable.Count -gt 0) {
     Write-Host $foldersToMailDisable.Count "folders should be mail-disabled, either because the MailRecipientGuid"
     Write-Host "does not exist, or because they are system folders. These are listed in the file called:"
     Write-Host $foldersToMailDisableFile -ForegroundColor Green
+
     if ($null -ne $allIpmSubtree[0].DumpsterEntryId) {
         # This is modern public folders, which means we can just toggle the attribute
         Write-Host "After confirming the accuracy of the results, you can mail-disable them with the following command:"

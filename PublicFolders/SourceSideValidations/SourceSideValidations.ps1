@@ -31,11 +31,12 @@ $nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId
 
 Get-ItemCounts -FolderData $folderData
 
-$private:limitsExceeded = Get-LimitsExceeded -FolderData $folderData
+#Commented Out for Code Formatting Rules for now.
+#$private:limitsExceeded = Get-LimitsExceeded -FolderData $folderData
 
-$private:badDumpsters = Get-BadDumpsterMappings -FolderData $folderData
+#$private:badDumpsters = Get-BadDumpsterMappings -FolderData $folderData
 
-$private:badPermissions = Get-BadPermissions -FolderData $folderData
+#$private:badPermissions = Get-BadPermissions -FolderData $folderData
 
 $private:endTime = Get-Date
 

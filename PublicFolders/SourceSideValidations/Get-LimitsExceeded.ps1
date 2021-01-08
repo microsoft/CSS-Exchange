@@ -20,9 +20,10 @@ function Get-LimitsExceeded {
             ItemCount       = @()
         }
     }
-    
+
     process {
         $FolderData.IpmSubtree | ForEach-Object {
+
             if (++$progressCount % 100 -eq 0) {
                 Write-Progress -Activity "Checking limits" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
