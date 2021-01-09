@@ -1,5 +1,5 @@
 Function Save-WindowsEventLogs {
-        
+
     Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
     $SaveLogs = @{}
@@ -29,7 +29,7 @@ Function Save-WindowsEventLogs {
         $Logs += "Microsoft-Exchange-ActiveMonitoring%4ResponderDefinition.evtx"
         $Logs += "Microsoft-Exchange-ActiveMonitoring%4ResponderResult.evtx"
         $SaveLogs.Add("Microsoft-Exchange-ActiveMonitoring", $Logs)
-        
+
         $Logs = @()
         $Logs += "Microsoft-Exchange-ManagedAvailability%4InvokeNowRequest.evtx"
         $Logs += "Microsoft-Exchange-ManagedAvailability%4InvokeNowResult.evtx"
@@ -48,13 +48,13 @@ Function Save-WindowsEventLogs {
         $Logs += "Microsoft-Exchange-HighAvailability%4Debug.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4Operational.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4TruncationDebug.evtx"
-        $Logs += "Microsoft-Exchange-HighAvailability%4SeedingDebug.evtx"    
+        $Logs += "Microsoft-Exchange-HighAvailability%4SeedingDebug.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4Network.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4Seeding.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4Monitoring.evtx"
         $Logs += "Microsoft-Exchange-HighAvailability%4AppLogMirror.evtx"
         $SaveLogs.Add("Microsoft-Exchange-HighAvailability", $Logs)
-        
+
         $Logs = @()
         $Logs += "Microsoft-Exchange-MailboxDatabaseFailureItems%4Operational.evtx"
         $Logs += "Microsoft-Exchange-MailboxDatabaseFailureItems%4Debug.evtx"
@@ -71,26 +71,31 @@ Function Save-WindowsEventLogs {
         $validLogs = @()
         Write-ScriptDebug("Working on directory: {0}" -f $directory)
         foreach ($log in $SaveLogs[$directory]) {
-            $path = $log 
+            $path = $log
+
             if (!($log.StartsWith("C:\"))) {
-                $path = "{0}\System32\Winevt\Logs\{1}" -f $env:SystemRoot, $log 
+                $path = "{0}\System32\Winevt\Logs\{1}" -f $env:SystemRoot, $log
             }
+
             if (Test-Path $path) {
-                $validLogs += $path 
+                $validLogs += $path
             } else {
                 Write-ScriptDebug("Failed to find path: '{0}'" -f $path)
             }
         }
-        $zipFolder = $true 
+        $zipFolder = $true
+
         if ($directory -notlike "ROOT*") {
-            $saveLocation = "{0}\{1}" -f $baseSaveLocation, $directory 
+            $saveLocation = "{0}\{1}" -f $baseSaveLocation, $directory
         } else {
-            $zipFolder = $false 
+            $zipFolder = $false
             $saveLocation = $baseSaveLocation
         }
-        if ($validLogs -ne $null) {
-            Copy-BulkItems -CopyToLocation $saveLocation -ItemsToCopyLocation $validLogs 
-            Remove-EventLogChar -location $saveLocation 
+
+        if ($null -ne $validLogs) {
+            Copy-BulkItems -CopyToLocation $saveLocation -ItemsToCopyLocation $validLogs
+            Remove-EventLogChar -location $saveLocation
+
             if ($zipFolder) {
                 Zip-Folder -Folder $saveLocation
             }

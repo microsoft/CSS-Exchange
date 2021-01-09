@@ -1,19 +1,16 @@
-#Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
-#Function Version 1.1
+#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Write-HostWriters/Write-HostWriter.ps1
+#v21.01.08.2133
+
 Function Write-HostWriter {
-param(
-[Parameter(Mandatory=$true)][string]$WriteString 
-)
-    if($Script:Logger -ne $null)
-    {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Need to use Write Host')]
+    param(
+        [Parameter(Mandatory = $true)][string]$WriteString
+    )
+    if ($null -ne $Script:Logger) {
         $Script:Logger.WriteHost($WriteString)
-    }
-    elseif($HostFunctionCaller -eq $null)
-    {
+    } elseif ($null -eq $HostFunctionCaller) {
         Write-Host $WriteString
-    }
-    else
-    {
-        &$HostFunctionCaller $WriteString    
+    } else {
+        &$HostFunctionCaller $WriteString
     }
 }

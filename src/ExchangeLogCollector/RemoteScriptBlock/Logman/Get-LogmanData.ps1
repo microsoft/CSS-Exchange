@@ -4,7 +4,8 @@ Function Get-LogmanData {
         [Parameter(Mandatory = $true)][string]$ServerName
     )
     $objLogman = Get-LogmanObject -LogmanName $LogmanName -ServerName $ServerName
-    if ($objLogman -ne $null) {
+
+    if ($null -ne $objLogman) {
         switch ($objLogman.Status) {
             "Running" {
                 Write-ScriptHost -WriteString ("Looks like logman {0} is running...." -f $LogmanName)
@@ -14,12 +15,12 @@ Function Get-LogmanData {
                 Write-ScriptHost -WriteString ("Starting Logman {0} again for you...." -f $LogmanName)
                 Start-Logman -LogmanName $LogmanName -ServerName $ServerName
                 Write-ScriptHost -WriteString ("Done starting Logman {0} for you" -f $LogmanName)
-                break;
+                break
             }
             "Stopped" {
                 Write-ScriptHost -WriteString ("Doesn't look like Logman {0} is running, so not going to stop it..." -f $LogmanName)
                 Copy-LogmanData -ObjLogman $objLogman
-                break;
+                break
             }
             Default {
                 Write-ScriptHost -WriteString  ("Don't know what the status of Logman '{0}' is in" -f $LogmanName)
@@ -29,11 +30,10 @@ Function Get-LogmanData {
                 Copy-LogmanData -ObjLogman $objLogman
                 Write-ScriptHost -WriteString ("Not going to start it back up again....")
                 Write-ScriptHost -WriteString ("Please start this logman '{0}' if you need to...." -f $LogmanName) -ForegroundColor "Yellow"
-                break; 
+                break
             }
         }
     } else {
-        Write-ScriptHost -WriteString ("Can't find {0} on {1} ..... Moving on." -f $LogmanName, $ServerName)    
+        Write-ScriptHost -WriteString ("Can't find {0} on {1} ..... Moving on." -f $LogmanName, $ServerName)
     }
-    
 }

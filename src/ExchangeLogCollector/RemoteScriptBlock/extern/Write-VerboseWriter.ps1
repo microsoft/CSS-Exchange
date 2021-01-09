@@ -1,19 +1,14 @@
-#Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
-#Function Version 1.1
+#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Write-VerboseWriters/Write-VerboseWriter.ps1
+#v21.01.08.2133
 Function Write-VerboseWriter {
-param(
-[Parameter(Mandatory=$true)][string]$WriteString
-)
-    if($Script:Logger -ne $null)
-    {
+    param(
+        [Parameter(Mandatory = $true)][string]$WriteString
+    )
+    if ($null -ne $Script:Logger) {
         $Script:Logger.WriteHost($WriteString)
-    }
-    elseif($VerboseFunctionCaller -eq $null)
-    {
+    } elseif ($null -eq $VerboseFunctionCaller) {
         Write-Verbose $WriteString
-    }
-    else 
-    {
+    } else {
         &$VerboseFunctionCaller $WriteString
     }
 }

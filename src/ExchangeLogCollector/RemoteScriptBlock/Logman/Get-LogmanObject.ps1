@@ -4,6 +4,7 @@ Function Get-LogmanObject {
         [Parameter(Mandatory = $true)][string]$ServerName
     )
     $rawDataResults = logman -s $ServerName $LogmanName
+
     if ($rawDataResults[$rawDataResults.Count - 1].Contains("Set was not found.")) {
         return $null
     } else {
@@ -17,8 +18,7 @@ Function Get-LogmanObject {
         $objLogman | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
         $objLogman | Add-Member -MemberType NoteProperty -Name RawData -Value $rawDataResults
         $objLogman | Add-Member -MemberType NoteProperty -Name SaveRootLocation -Value $FilePath
-    
+
         return $objLogman
     }
-    
 }

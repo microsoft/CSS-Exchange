@@ -1,90 +1,93 @@
-#Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
+#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ExchangeInformation/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
+#v21.01.08.2133
 Function Confirm-ExchangeShell {
+    #TODO: Fix this
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '', Justification = 'Because it is required to find stuff at times.')]
     [CmdletBinding()]
+    [OutputType("System.Boolean")]
     param(
-    [Parameter(Mandatory=$false)][bool]$LoadExchangeShell = $true,
-    [Parameter(Mandatory=$false)][bool]$LoadExchangeVariables = $true,
-    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+        [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,
+        [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.5
-    <#
-    Required Functions: 
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-HostWriter.ps1
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
-    #>
-    
-    $passed = $false 
+
+    $passed = $false
     Write-VerboseWriter("Calling: Confirm-ExchangeShell")
-    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0} | [bool]LoadExchangeVariables: {1}" -f $LoadExchangeShell,
-    $LoadExchangeVariables)
-    #Test that we are on Exchange 2010 or newer
-    if((Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') -or 
-    (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'))
-    {
-        Write-VerboseWriter("We are on Exchange 2010 or newer")
-        try 
-        {
-            Get-ExchangeServer -ErrorAction Stop | Out-Null
-            Write-VerboseWriter("Exchange PowerShell Module already loaded.")
-            $passed = $true 
-        }
-        catch 
-        {
-            Write-VerboseWriter("Failed to run Get-ExchangeServer")
-            if($CatchActionFunction -ne $null)
-            {
-                & $CatchActionFunction
-                $watchErrors = $true
+    Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0}" -f $LoadExchangeShell)
+
+    try {
+        $currentErrors = $Error.Count
+        Get-ExchangeServer -ErrorAction Stop | Out-Null
+        Write-VerboseWriter("Exchange PowerShell Module already loaded.")
+        $passed = $true
+
+        if ($null -ne $CatchActionFunction -and
+            $Error.Count -ne $currentErrors) {
+            $i = 0
+            while ($i -lt ($Error.Count - $currentErrors)) {
+                & $CatchActionFunction $Error[$i]
+                $i++
             }
-            if($LoadExchangeShell)
-            {
-                Write-HostWriter "Loading Exchange PowerShell Module..."
-                try
-                {
-                    if($watchErrors)
-                    {
-                        $currentErrors = $Error.Count
+        }
+    } catch {
+        Write-VerboseWriter("Failed to run Get-ExchangeServer")
+
+        if ($null -ne $CatchActionFunction) {
+            & $CatchActionFunction
+        }
+
+        if (!$LoadExchangeShell) {
+            return $false
+        }
+
+        #Test 32 bit process, as we can't see the registry if that is the case.
+        if (![System.Environment]::Is64BitProcess) {
+            Write-HostWriter("Open a 64 bit PowerShell process to continue")
+            return $false
+        }
+
+        $currentErrors = $Error.Count
+
+        if (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup') {
+            Write-VerboseWriter("We are on Exchange 2013 or newer")
+
+            try {
+                if (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole') {
+                    Write-VerboseWriter("We are on Exchange Edge Transport Server")
+                    [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
+
+                    foreach ($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn) {
+                        Write-VerboseWriter("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
+                        Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
                     }
+
+                    Import-Module $env:ExchangeInstallPath\bin\Exchange.ps1 -ErrorAction Stop
+                } else {
                     Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
-                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell 
-                    $passed = $true #We are just going to assume this passed. 
-                    if($watchErrors)
-                    {
-                        $index = 0
-                        while($index -lt ($Error.Count - $currentErrors))
-                        {
-                            & $CatchActionFunction $Error[$index]
-                            $index++
-                        }
-                    } 
+                    Connect-ExchangeServer -Auto -ClientApplication:ManagementShell
                 }
-                catch 
-                {
-                    Write-HostWriter("Failed to Load Exchange PowerShell Module...")
+
+                Write-VerboseWriter("Imported Module. Trying Get-Exchange Server Again")
+                Get-ExchangeServer -ErrorAction Stop | Out-Null
+                $passed = $true
+                Write-VerboseWriter("Successfully loaded Exchange Management Shell")
+
+                if ($null -ne $CatchActionFunction -and
+                    $currentErrors -ne $Error.Count) {
+                    $i = 0
+                    while ($i -lt ($Error.Count - $currentErrors)) {
+                        & $CatchActionFunction $Error[$i]
+                        $i ++
+                    }
                 }
-            }
-        }
-        finally 
-        {
-            if($LoadExchangeVariables -and 
-                $passed)
-            {
-                if($ExInstall -eq $null -or $ExBin -eq $null)
-                {
-                    $Global:ExInstall = Get-ExchangeInstallDirectory 
-                    $Global:ExBin = $Global:ExInstall + "\Bin"
-    
-                    Write-VerboseWriter("Set ExInstall: {0}" -f $Global:ExInstall)
-                    Write-VerboseWriter("Set ExBin: {0}" -f $Global:ExBin)
+            } catch {
+                Write-HostWriter("Failed to Load Exchange PowerShell Module...")
+                if ($null -ne $CatchActionFunction) {
+                    & $CatchActionFunction
                 }
             }
         }
     }
-    else 
-    {
-        Write-VerboseWriter("Does not appear to be an Exchange 2010 or newer server.")
-    }
+
     Write-VerboseWriter("Returned: {0}" -f $passed)
     return $passed
 }

@@ -1,0 +1,50 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - master
+      - release
+
+pool:
+  vmImage: 'windows-2019'
+
+steps:
+- pwsh: |
+    cd .\.build
+
+    $content = Get-Content .\Invoke-BuildPipeline.config.json
+    $jsonConfig = $content | ConvertFrom-Json
+    $scriptVersion = .\Get-ScriptVersion.ps1 -GitHubWebRequestUri $jsonConfig.ScriptUri -ScriptVersion $jsonConfig.ScriptVersion
+
+    $tag = "v{0}.{1}.{2}" -f $scriptVersion.Major, $scriptVersion.Minor, $scriptVersion.BuildRevision
+
+    Write-Host("New tag: {0}" -f $tag)
+    Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
+
+    .\Invoke-BuildPipeline.ps1 -CodeFormatCheck
+    Write-Host "##vso[task.setvariable variable=BuidScriptLocation].\.build\ExchangeLogCollector.ps1"
+    $title = "{0} Release" -f $tag
+    Write-Host "##vso[task.setvariable variable=ReleaseTitleValue]$title"
+
+    cp .\ExchangeLogCollector.ps1 $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+
+  displayName: "Setting Release Information Values"
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Release'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+  inputs:
+    gitHubConnection: github.com_dpaulson45
+    repositoryName: dpaulson45/ExchangeLogCollector
+    action: create
+    tagSource: manual
+    tagPattern: 'v[0-9].[0-9].[0-9]'
+    tag: $(ReleaseTagValue)
+    title: $(ReleaseTitleValue)
+    releaseNotesSource: 'file'
+    addChangeLog: true
+    assets: $(Build.ArtifactStagingDirectory)\*
