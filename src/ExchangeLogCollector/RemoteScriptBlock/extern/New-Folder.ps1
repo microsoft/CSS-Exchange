@@ -1,72 +1,55 @@
-# Template Master: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/New-Folder/New-Folder.ps1
+#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/New-Folder/New-Folder.ps1
+#v21.01.08.2133
 Function New-Folder {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer New here')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Multiple output types')]
     [CmdletBinding()]
     param(
-    [Alias("NewFolder")]
-    [Parameter(Mandatory=$false)][array]$NewFolders,
-    [Parameter(Mandatory=$false)][bool]$IncludeDisplayCreate,
-    [Parameter(Mandatory=$false,Position=1)][object]$PassedParametersObject
+        [Alias("NewFolder")]
+        [Parameter(Mandatory = $false)][array]$NewFolders,
+        [Parameter(Mandatory = $false)][bool]$IncludeDisplayCreate,
+        [Parameter(Mandatory = $false, Position = 1)][object]$PassedParametersObject
     )
-    
-    #Function Version 1.5
-    <#
-    Required Functions:
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
-    #>
+
     Function New-Directory {
-    param(
-    [Parameter(Mandatory=$false)][string]$NewFolder
-    )
-        if(-not (Test-Path -Path $NewFolder))
-        {
-            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
-            {
+        param(
+            [Parameter(Mandatory = $false)][string]$NewFolder
+        )
+        if (-not (Test-Path -Path $NewFolder)) {
+            if ($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray) {
                 Write-InvokeCommandReturnHostWriter("Creating Directory: {0}" -f $NewFolder)
             }
             [System.IO.Directory]::CreateDirectory($NewFolder) | Out-Null
-        }
-        else 
-        {
-            if($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray)
-            {
+        } else {
+            if ($IncludeDisplayCreate -or $InvokeCommandReturnWriteArray) {
                 Write-InvokeCommandReturnHostWriter("Directory {0} is already created!" -f $NewFolder)
             }
         }
     }
-    
-    $Script:stringArray = @() 
-    if($PassedParametersObject -ne $null)
-    {
-        if($PassedParametersObject.NewFolders -ne $null)
-        {
+
+    $Script:stringArray = @()
+    if ($null -ne $PassedParametersObject) {
+        if ($null -ne $PassedParametersObject.NewFolders) {
             $NewFolders = $PassedParametersObject.NewFolders
-        }
-        else 
-        {
+        } else {
             $NewFolders = $PassedParametersObject
         }
-        $InvokeCommandReturnWriteArray = $true 
+        $InvokeCommandReturnWriteArray = $true
     }
-    if($NewFolders.Count -gt 1)
-    {
+    if ($NewFolders.Count -gt 1) {
         $verboseDisplayNewFolders = "Multiple ('{0}') Folders Passed" -f $NewFolders.Count
-    }
-    else 
-    {
+    } else {
         $verboseDisplayNewFolders = $NewFolders[0]
     }
     Write-InvokeCommandReturnVerboseWriter("Calling: New-Folder")
     Write-InvokeCommandReturnVerboseWriter("Passed: [string]NewFolders: {0} | [bool]IncludeDisplayCreate: {1}" -f $verboseDisplayNewFolders,
-    $IncludeDisplayCreate)
-    
-    foreach($newFolder in $NewFolders)
-    {
+        $IncludeDisplayCreate)
+
+    foreach ($newFolder in $NewFolders) {
         New-Directory -NewFolder $newFolder
     }
-    
-    if($InvokeCommandReturnWriteArray)
-    {
+
+    if ($InvokeCommandReturnWriteArray) {
         return $Script:stringArray
     }
 }
