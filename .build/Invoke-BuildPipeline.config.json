@@ -2,7 +2,7 @@
   {
     "ScriptName": "ExchangeLogCollector",
     "ScriptUri": "https://api.github.com/repos/dpaulson45/ExchangeLogCollector/releases",
-    "ScriptVersion": "3.1",
+    "ScriptVersion": "3.0",
     "FilePaths": [
       {
         "LoadOrder": 0,

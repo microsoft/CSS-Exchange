@@ -13,23 +13,24 @@ pool:
   vmImage: 'windows-2019'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 - pwsh: |
-    cd .\Build
+    cd .\.build
 
-    $scriptVersion = .\GetScriptVersion.ps1
+    $content = Get-Content .\Invoke-BuildPipeline.config.json
+    $jsonConfig = $content | ConvertFrom-Json
+    $scriptVersion = .\Get-ScriptVersion.ps1 -GitHubWebRequestUri $jsonConfig.ScriptUri -ScriptVersion $jsonConfig.ScriptVersion
 
     $tag = "v{0}.{1}.{2}" -f $scriptVersion.Major, $scriptVersion.Minor, $scriptVersion.BuildRevision
 
     Write-Host("New tag: {0}" -f $tag)
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
-    Write-Host "##vso[task.setvariable variable=BuidScriptLocation]..\ExchangeLogCollector.ps1"
+
+    .\Invoke-BuildPipeline.ps1 -CodeFormatCheck
+    Write-Host "##vso[task.setvariable variable=BuidScriptLocation].\.build\ExchangeLogCollector.ps1"
     $title = "{0} Release" -f $tag
     Write-Host "##vso[task.setvariable variable=ReleaseTitleValue]$title"
 
-    cp ..\ExchangeLogCollector.ps1 $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+    cp .\ExchangeLogCollector.ps1 $env:BUILD_ARTIFACTSTAGINGDIRECTORY
 
   displayName: "Setting Release Information Values"
 
