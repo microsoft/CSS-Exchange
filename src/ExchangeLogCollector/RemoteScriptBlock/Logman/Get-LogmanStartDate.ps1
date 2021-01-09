@@ -17,8 +17,8 @@ Function Get-LogmanStartDate {
         $i = 11
     }
     $strLine = $RawLogmanData[$i]
-    
-    [int]$index = $strLine.LastIndexOf(" ") + 1 
+
+    [int]$index = $strLine.LastIndexOf(" ") + 1
     $strReturn = $strLine.SubString($index)
     return $strReturn
 }

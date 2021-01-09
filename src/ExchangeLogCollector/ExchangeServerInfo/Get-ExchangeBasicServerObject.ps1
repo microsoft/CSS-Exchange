@@ -9,26 +9,25 @@ Function Get-ExchangeBasicServerObject {
     $ErrorActionPreference = "Stop"
     $failure = $false
     try {
-        $exchServerObject = New-Object PSCustomObject 
+        $exchServerObject = New-Object PSCustomObject
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
-        $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop 
+        $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop
         if ($AddGetServerProperty) {
             $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
         }
-            
     } catch {
         Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
-        $failure = $true 
+        $failure = $true
     } finally {
         $ErrorActionPreference = $oldErrorAction
     }
-    
+
     if ($failure -eq $true) {
         return $failure
     }
-    
+
     $exchAdminDisplayVersion = $getExchangeServer.AdminDisplayVersion
-    $exchServerRole = $getExchangeServer.ServerRole 
+    $exchServerRole = $getExchangeServer.ServerRole
     Write-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
     if ($exchAdminDisplayVersion.GetType().Name -eq "string") {
         $start = $exchAdminDisplayVersion.IndexOf(" ")
@@ -49,9 +48,9 @@ Function Get-ExchangeBasicServerObject {
         }
     } else {
         Write-ScriptHost -WriteString ("Failed to determine what version server {0} is. AdminDisplayVersion: {1}." -f $ServerName, $exchAdminDisplayVersion.ToString()) -ShowServer $false -ForegroundColor "Red"
-        return $true 
+        return $true
     }
-    
+
     Function Confirm-MailboxServer {
         param([string]$Value)
         if ($value -like "*Mailbox*" -and (-not(Confirm-EdgeServer -Value $Value))) {
@@ -60,7 +59,7 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-CASServer {
         param([string]$Value, [int]$Version)
         if ((-not(Confirm-EdgeServer -Value $Value)) -and (($Version -ge 16) -or ($Value -like "*ClientAccess*"))) {
@@ -69,7 +68,7 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-CASOnlyServer {
         param([string]$Value)
         if ($Value -eq "ClientAccess") {
@@ -78,7 +77,7 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-MailboxOnlyServer {
         param([string]$Value)
         if ($Value -eq "Mailbox") {
@@ -87,7 +86,7 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-HubServer {
         param([string]$Value, [int]$Version)
         if ((($Version -ge 15) -and (-not (Confirm-CASOnlyServer -Value $Value))) -or ($Value -like "*HubTransport*")) {
@@ -96,7 +95,7 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-EdgeServer {
         param([string]$Value)
         if ($Value -eq "Edge") {
@@ -105,11 +104,11 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     Function Confirm-DAGMember {
         param([bool]$MailboxServer, [string]$ServerName)
         if ($MailboxServer) {
-            if ((Get-MailboxServer $ServerName).DatabaseAvailabilityGroup -ne $null) {
+            if ($null -ne (Get-MailboxServer $ServerName).DatabaseAvailabilityGroup) {
                 return $true
             } else {
                 return $false
@@ -118,16 +117,16 @@ Function Get-ExchangeBasicServerObject {
             return $false
         }
     }
-    
+
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -Value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -Value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CASOnly -Value (Confirm-CASOnlyServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name MailboxOnly -Value (Confirm-MailboxOnlyServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Edge -Value (Confirm-EdgeServer -Value $exchServerRole)
-    $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion 
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion
     $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -MailboxServer $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
-    
+
     Write-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-CASOnlyServer: {3} | Confirm-MailboxOnlyServer: {4} | Confirm-EdgeServer: {5} | Confirm-DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8}" -f $exchServerObject.Mailbox,
         $exchServerObject.CAS,
         $exchServerObject.Hub,
@@ -138,6 +137,6 @@ Function Get-ExchangeBasicServerObject {
         $exchServerObject.Version,
         $Script:AnyTransportSwitchesEnabled
     )
-    
+
     return $exchServerObject
 }

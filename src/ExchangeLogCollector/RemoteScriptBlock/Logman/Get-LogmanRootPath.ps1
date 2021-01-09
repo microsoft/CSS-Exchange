@@ -11,7 +11,7 @@ Function Get-LogmanRootPath {
     } else {
         $i = 3
     }
-    
+
     $strRootPath = $RawLogmanData[$i]
     $replace = $strRootPath.Replace("Root Path:", "")
     [int]$index = $replace.IndexOf(":") - 1

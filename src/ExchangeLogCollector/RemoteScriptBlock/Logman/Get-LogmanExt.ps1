@@ -1,6 +1,6 @@
 Function Get-LogmanExt {
     param(
-        [Parameter(Mandatory = $true)]$RawLogmanData 
+        [Parameter(Mandatory = $true)]$RawLogmanData
     )
     $strLocation = "Output Location:"
     if (-not($RawLogmanData[15].Contains($strLocation))) {
@@ -11,7 +11,7 @@ Function Get-LogmanExt {
     } else {
         $i = 15
     }
-    
+
     $strLine = $RawLogmanData[$i]
     [int]$index = $strLine.LastIndexOf(".")
     if ($index -ne -1) {

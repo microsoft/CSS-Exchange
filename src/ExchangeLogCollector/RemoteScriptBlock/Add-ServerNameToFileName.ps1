@@ -5,7 +5,7 @@ Function Add-ServerNameToFileName {
     Write-ScriptDebug("Calling: Add-ServerNameToFileName")
     Write-ScriptDebug("Passed: [string]FilePath: {0}" -f $FilePath)
     $fileName = "{0}_{1}" -f $env:COMPUTERNAME, ($name = $FilePath.Substring($FilePath.LastIndexOf("\") + 1))
-    $filePathWithServerName = $FilePath.Replace($name, $fileName) 
+    $filePathWithServerName = $FilePath.Replace($name, $fileName)
     Write-ScriptDebug("Returned: {0}" -f $filePathWithServerName)
     return $filePathWithServerName
 }

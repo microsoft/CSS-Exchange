@@ -3,7 +3,7 @@ Function Get-ItemsSize {
         [Parameter(Mandatory = $true)][array]$FilePaths
     )
     Write-ScriptDebug("Calling: Get-ItemsSize")
-    $totalSize = 0 
+    $totalSize = 0
     $hashSizes = @{}
     foreach ($file in $FilePaths) {
         if (Test-Path $file) {
@@ -11,7 +11,7 @@ Function Get-ItemsSize {
             Write-ScriptDebug("File: {0} | Size: {1} MB" -f $file, ($fileSizeMB = $fileSize / 1MB))
             $hashSizes.Add($file, ("{0}" -f $fileSizeMB))
         } else {
-            Write-ScriptDebug("File no longer exists: {0}" -f $file)    
+            Write-ScriptDebug("File no longer exists: {0}" -f $file)
         }
     }
     Set-Variable -Name ItemSizesHashed -Value $hashSizes -Scope Script

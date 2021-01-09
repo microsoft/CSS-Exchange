@@ -2,20 +2,20 @@ Function Copy-FullLogFullPathRecurse {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation
-    )   
+    )
     Write-ScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
     Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
     New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
     if (Test-Path $LogPath) {
         $childItems = Get-ChildItem $LogPath -Recurse
-        $items = @() 
+        $items = @()
         foreach ($childItem in $childItems) {
             if (!($childItem.Mode.StartsWith("d-"))) {
-                $items += $childItem.VersionInfo.FileName 
+                $items += $childItem.VersionInfo.FileName
             }
         }
-            
-        if ($items -ne $null) {
+
+        if ($null -ne $items) {
             if (Test-FreeSpace -FilePaths $items) {
                 Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
                 Zip-Folder $CopyToThisLocation
