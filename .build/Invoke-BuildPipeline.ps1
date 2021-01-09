@@ -39,12 +39,24 @@ if ($CodeFormatCheck) {
         } elseif (!$allFiles.Contains($path)) {
             $allFiles += (Get-ChildItem $path).VersionInfo.FileName
         }
+
+        if ($null -ne $configItem.SubFunctions) {
+            
+            foreach ($subConfigItem in $configItem.SubFunctions) {
+                $files = Get-ChildItem $subConfigItem.Path -Recurse | Where-Object { $_.Name.EndsWith(".ps1") }
+                foreach ($item in $files) {
+                    if (!$allFiles.Contains($item.VersionInfo.FileName)) {
+                        $allFiles += $item.VersionInfo.FileName
+                    }
+                }
+            }
+        }
     }
 
     $filesFailed = $false
     foreach ($file in $allFiles) {
 
-        $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer
+        $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer -ExcludeRules $jsonConfig.ScriptAnalyzerExcludeRules.RuleName
 
         if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript -or
             $null -ne $scriptFormatter.AnalyzedResults) {
@@ -59,8 +71,8 @@ if ($CodeFormatCheck) {
             if ($null -ne $scriptFormatter.AnalyzedResults) {
                 Write-Host ("Failed Results from Invoke-PSScriptAnalyzer:")
             }
-            
-            Write-Output("{0}`r`n`r`n" -f $scriptFormatter.AnalyzedResults)
+            $scriptFormatter.AnalyzedResults | Format-Table -AutoSize
+            Write-Host("`r`n`r`n")
         }
     }
 
