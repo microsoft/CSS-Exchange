@@ -1,4 +1,4 @@
 debug.log 
-Build/ExchangeLogCollector.*
+.build/ExchangeLogCollector.*
 .externRepo
 *.bak
