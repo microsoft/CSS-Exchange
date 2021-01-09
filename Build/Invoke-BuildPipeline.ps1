@@ -24,35 +24,47 @@ if ($CodeFormatCheck) {
         [string]$path = $configItem.Path
         
         if ($path.EndsWith("\")) {
-            $files = Get-ChildItem $path | Where-Object { $_.Name.EndsWith(".ps1") }
+
+            if ($configItem.IncludeRecurse) {
+                $files = Get-ChildItem $path -Recurse | Where-Object { $_.Name.EndsWith(".ps1") }
+            } else {
+                $files = Get-ChildItem $path | Where-Object { $_.Name.EndsWith(".ps1") }
+            }
+            
             foreach ($item in $files) {
                 if (!$allFiles.Contains($item.VersionInfo.FileName)) {
                     $allFiles += $item.VersionInfo.FileName
                 }
             }
-        }
-        elseif ($allFiles.Contains($path)) {
+        } elseif (!$allFiles.Contains($path)) {
             $allFiles += (Get-ChildItem $path).VersionInfo.FileName
         }
     }
 
-    $failedFiles = @()
-
+    $filesFailed = $false
     foreach ($file in $allFiles) {
 
-        $testFormat = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ReturnFormattedScript
+        $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer
 
-        $content = Get-Content $file
+        if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript -or
+            $null -ne $scriptFormatter.AnalyzedResults) {
 
-        if ($testFormat -ne $content) {
-            $failedFiles += $file
+            $filesFailed = $true
+            Write-Host ("{0}:" -f $file)
+
+            if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript) {
+                Write-Host ("Failed to follow the same format defined in the repro")
+            }
+            
+            if ($null -ne $scriptFormatter.AnalyzedResults) {
+                Write-Host ("Failed Results from Invoke-PSScriptAnalyzer:")
+            }
+            
+            Write-Output("{0}`r`n`r`n" -f $scriptFormatter.AnalyzedResults)
         }
     }
 
-    if ($failedFiles.Count -ge 1) {
-        foreach ($failedFile in $failedFiles) {
-            Write-Host $failedFile
-        }
+    if ($filesFailed) {
 
         throw "Failed to match coding formatting requirements for the project"
     }
@@ -60,6 +72,8 @@ if ($CodeFormatCheck) {
 
 if ($BuildScript) {
     foreach ($configItem in $jsonConfig) {
-        .\Invoke-BuildScript.ps1 -Configuration $configItem
+        if (!$configItem.BuildScriptDisabled) {
+            .\Invoke-BuildScript.ps1 -Configuration $configItem
+        }
     }
 }
