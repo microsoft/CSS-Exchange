@@ -25,12 +25,12 @@ steps:
     Write-Host("New tag: {0}" -f $tag)
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
 
-    .\Invoke-BuildPipeline.ps1 -CodeFormatCheck
+    .\Invoke-BuildPipeline.ps1 -CodeFormatCheck -ScriptVersion $scriptVersion
     Write-Host "##vso[task.setvariable variable=BuidScriptLocation].\.build\ExchangeLogCollector.ps1"
     $title = "{0} Release" -f $tag
     Write-Host "##vso[task.setvariable variable=ReleaseTitleValue]$title"
 
-    cp .\ExchangeLogCollector.ps1 $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+    cp .\dist\ExchangeLogCollector.ps1 $env:BUILD_ARTIFACTSTAGINGDIRECTORY
 
   displayName: "Setting Release Information Values"
 
