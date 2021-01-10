@@ -1,4 +1,4 @@
-Function Remote-Main {
+Function Invoke-RemoteMain {
     Write-ScriptDebug("Function Enter: Remote-Main")
 
     Set-InstanceRunningVars
@@ -444,6 +444,6 @@ Function Remote-Main {
     if ((-not($PassedInfo.ExchangeServerInfo)) -and
         $env:COMPUTERNAME -ne ($PassedInfo.HostExeServerName)) {
         #Zip it all up
-        Zip-Folder -Folder $Script:RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
+        Invoke-ZipFolder -Folder $Script:RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
     }
 }

@@ -97,7 +97,7 @@ Function Save-WindowsEventLogs {
             Remove-EventLogChar -location $saveLocation
 
             if ($zipFolder) {
-                Zip-Folder -Folder $saveLocation
+                Invoke-ZipFolder -Folder $saveLocation
             }
         }
     }

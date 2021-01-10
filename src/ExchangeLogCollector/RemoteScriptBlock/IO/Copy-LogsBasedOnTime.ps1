@@ -66,7 +66,7 @@ Function Copy-LogsBasedOnTime {
                     $filesFullPath = @()
                     $files | ForEach-Object { $filesFullPath += $_.VersionInfo.FileName }
                     Copy-BulkItems -CopyToLocation $newCopyToThisLocation -ItemsToCopyLocation $filesFullPath
-                    Zip-Folder -Folder $newCopyToThisLocation
+                    Invoke-ZipFolder -Folder $newCopyToThisLocation
                 }
             }
             Write-ScriptDebug("Function Exit: Copy-LogsBasedOnTime")
@@ -89,7 +89,7 @@ Function Copy-LogsBasedOnTime {
 
     if (-not ($skipCopy)) {
         Copy-BulkItems -CopyToLocation $CopyToThisLocation -ItemsToCopyLocation $filesFullPath
-        Zip-Folder -Folder $CopyToThisLocation
+        Invoke-ZipFolder -Folder $CopyToThisLocation
     }
     Write-ScriptDebug("Function Exit: Copy-LogsBasedOnTime")
 }

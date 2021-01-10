@@ -1,4 +1,4 @@
-Function Verify-LocalServerIsUsed {
+Function Test-LocalServerIsUsed {
     param(
         [Parameter(Mandatory = $true)]$Servers
     )

@@ -204,10 +204,9 @@ $scriptVersion = "1.0.0"
 . .\Test-NoSwitchesProvided.ps1
 . .\Test-PossibleCommonScenarios.ps1
 . .\Test-RemoteExecutionOfServers.ps1
-. .\Verify-LocalServerIsUsed.ps1
+. .\Test-LocalServerIsUsed.ps1
 
-
-Function Remote-Functions {
+Function Invoke-RemoteFunctions {
     param(
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
@@ -231,7 +230,7 @@ Function Remote-Functions {
     . .\RemoteScriptBlock\Set-RootCopyDirectory.ps1
     . .\RemoteScriptBlock\Test-CommandExists.ps1
     . .\RemoteScriptBlock\Test-FreeSpace.ps1
-    . .\RemoteScriptBlock\Zip-Folder.ps1
+    . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
     . .\RemoteScriptBlock\IO\Copy-BulkItems.ps1
     . .\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
     . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
@@ -251,7 +250,7 @@ Function Remote-Functions {
     . .\RemoteScriptBlock\Logman\Get-LogmanStatus.ps1
     . .\RemoteScriptBlock\Logman\Start-Logman.ps1
     . .\RemoteScriptBlock\Logman\Stop-Logman.ps1
-    . .\RemoteScriptBlock\Remote-Main.ps1
+    . .\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
     $oldErrorAction = $ErrorActionPreference
     $ErrorActionPreference = "Stop"
@@ -259,17 +258,17 @@ Function Remote-Functions {
         $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
         $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
         if ($PassedInfo.ByPass -ne $true) {
-            Remote-Main
+            Invoke-RemoteMain
         } else {
             Write-ScriptDebug("Loading common functions")
         }
     } catch {
-        Write-ScriptHost -WriteString ("An error occurred in Remote-Functions") -ForegroundColor "Red"
+        Write-ScriptHost -WriteString ("An error occurred in Invoke-RemoteFunctions") -ForegroundColor "Red"
         Write-ScriptHost -WriteString ("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor "Red"
         Write-ScriptHost -WriteString ("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor "Red"
     } finally {
         $ErrorActionPreference = $oldErrorAction
-        Write-ScriptDebug("Exiting: Remote-Functions")
+        Write-ScriptDebug("Exiting: Invoke-RemoteFunctions")
         Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
             $Script:TotalBytesSizeCompressed,
             $Script:AdditionalFreeSpaceCushionGB,
@@ -287,7 +286,7 @@ Function Main {
     #>
     $obj = New-Object PSCustomObject
     $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true
-    . Remote-Functions -PassedInfo $obj
+    . Invoke-RemoteFunctions -PassedInfo $obj
     Start-Sleep 1
     Write-Disclaimer
     Test-PossibleCommonScenarios
@@ -317,12 +316,12 @@ Function Main {
         $Script:ValidServers = Test-RemoteExecutionOfServers -ServerList $Servers
         if ($null -ne $Script:ValidServers) {
             $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize
-            Verify-LocalServerIsUsed $Script:ValidServers
+            Test-LocalServerIsUsed $Script:ValidServers
 
             $argumentList = Get-ArgumentList -Servers $Script:ValidServers
             #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
             try {
-                Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Remote-Functions} -ArgumentList $argumentList -ErrorAction Stop
+                Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
             } catch {
                 Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
                 exit
@@ -360,7 +359,7 @@ Function Main {
                 exit
             }
             if ((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction { return $true } -NoAction { return $false })) {
-                Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+                Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
                 $Script:ValidServers = @($env:COMPUTERNAME)
                 Start-WriteExchangeDataOnMachines
                 Write-DataOnlyOnceOnLocalMachine
@@ -375,7 +374,7 @@ Function Main {
             Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
             Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
-        Remote-Functions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
         $Script:ValidServers = @($env:COMPUTERNAME)
         Start-WriteExchangeDataOnMachines
         Write-DataOnlyOnceOnLocalMachine
