@@ -2,7 +2,8 @@
 param(
     [switch]$CodeFormatCheck,
     [bool]$BuildScript = $true,
-    [string]$ConfigFile
+    [string]$ConfigFile,
+    [object]$ScriptVersion
 )
 
 if ([string]::IsNullOrEmpty($ConfigFile)) {
@@ -16,45 +17,16 @@ if (!(Test-Path $ConfigFile)) {
 $content = Get-Content $ConfigFile
 $jsonConfig = $content | ConvertFrom-Json
 
+$repoRoot = Get-Item "$PSScriptRoot\.."
+
+$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
+    $_.Name -ne ($PSScriptRoot.Replace("$([IO.Path]::GetDirectoryName($PSScriptRoot))\", "")) } | ForEach-Object { 
+    Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+
 if ($CodeFormatCheck) {
 
-    $allFiles = @()
-
-    foreach ($configItem in $jsonConfig.FilePaths) {
-        [string]$path = $configItem.Path
-        
-        if ($path.EndsWith("\")) {
-
-            if ($configItem.IncludeRecurse) {
-                $files = Get-ChildItem $path -Recurse | Where-Object { $_.Name.EndsWith(".ps1") }
-            } else {
-                $files = Get-ChildItem $path | Where-Object { $_.Name.EndsWith(".ps1") }
-            }
-            
-            foreach ($item in $files) {
-                if (!$allFiles.Contains($item.VersionInfo.FileName)) {
-                    $allFiles += $item.VersionInfo.FileName
-                }
-            }
-        } elseif (!$allFiles.Contains($path)) {
-            $allFiles += (Get-ChildItem $path).VersionInfo.FileName
-        }
-
-        if ($null -ne $configItem.SubFunctions) {
-            
-            foreach ($subConfigItem in $configItem.SubFunctions) {
-                $files = Get-ChildItem $subConfigItem.Path -Recurse | Where-Object { $_.Name.EndsWith(".ps1") }
-                foreach ($item in $files) {
-                    if (!$allFiles.Contains($item.VersionInfo.FileName)) {
-                        $allFiles += $item.VersionInfo.FileName
-                    }
-                }
-            }
-        }
-    }
-
     $filesFailed = $false
-    foreach ($file in $allFiles) {
+    foreach ($file in $scriptFiles) {
 
         $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer -ExcludeRules $jsonConfig.ScriptAnalyzerExcludeRules.RuleName
 
@@ -85,7 +57,12 @@ if ($CodeFormatCheck) {
 if ($BuildScript) {
     foreach ($configItem in $jsonConfig) {
         if (!$configItem.BuildScriptDisabled) {
-            .\Invoke-BuildScript.ps1 -Configuration $configItem
+
+            if ($null -ne $ScriptVersion) {
+                .\Invoke-BuildScript.ps1 -ScriptFiles $scriptFiles -NewScriptVersion ("$($ScriptVersion.Major).$($ScriptVersion.Minor).$($ScriptVersion.BuildRevision)")
+            } else {
+                .\Invoke-BuildScript.ps1 -ScriptFiles $scriptFiles
+            }
         }
     }
 }
