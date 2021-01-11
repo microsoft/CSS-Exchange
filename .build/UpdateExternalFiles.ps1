@@ -68,6 +68,7 @@ try {
 
             if ($foundExtra) {
                 $scriptContent.RemoveRange($startRemoveIndex, $count)
+                $scriptContent.Insert($startRemoveIndex, "#Function Version $reproScriptVersion")
             }
 
             $scriptContent.Insert(0,$reproScriptVersion)

@@ -8,6 +8,7 @@ Function Get-FreeSpace {
         [Parameter(Mandatory = $false)][ValidateScript( { $_.ToString().EndsWith("\") })][string]$FilePath,
         [Parameter(Mandatory = $false, Position = 1)][object]$PassedObjectParameter
     )
+#Function Version #v21.01.08.2133
 
     if ($null -ne $PassedObjectParameter) {
         if ($null -ne $PassedObjectParameter.FilePath) {

@@ -6,6 +6,7 @@ Function Get-ExchangeInstallDirectory {
     param(
         [Parameter(Mandatory = $false)][bool]$InvokeCommandReturnWriteArray
     )
+#Function Version #v21.01.08.2133
 
     $stringArray = @()
     Write-InvokeCommandReturnVerboseWriter("Calling: Get-ExchangeInstallDirectory")
