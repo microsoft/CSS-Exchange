@@ -97,7 +97,8 @@ Function Start-AnalyzerEngine {
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
 
-        if ($null -ne $exchangeInformation.ApplicationPools) {
+        if ($null -ne $exchangeInformation.ApplicationPools -and
+            $exchangeInformation.ApplicationPools.Count -gt 0) {
             $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
             [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
             [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
