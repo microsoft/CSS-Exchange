@@ -96,6 +96,6 @@ Function Save-ServerInfoData {
         Write-ScriptDebug("Get-Partition isn't a valid command")
     }
 
-    Zip-Folder -Folder $copyTo
+    Invoke-ZipFolder -Folder $copyTo
     Write-ScriptDebug("Function Exit: Save-ServerInfoData")
 }

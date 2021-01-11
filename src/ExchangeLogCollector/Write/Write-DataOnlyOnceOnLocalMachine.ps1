@@ -33,7 +33,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
                 Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
             }
 
-            Zip-Folder -Folder $create -AddCompressedSize $false
+            Invoke-ZipFolder -Folder $create -AddCompressedSize $false
         }
     }
 
@@ -44,6 +44,6 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
 
-    Zip-Folder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
+    Invoke-ZipFolder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
     Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }

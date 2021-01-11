@@ -18,7 +18,7 @@ Function Copy-FullLogFullPathRecurse {
         if ($null -ne $items) {
             if (Test-FreeSpace -FilePaths $items) {
                 Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
-                Zip-Folder $CopyToThisLocation
+                Invoke-ZipFolder $CopyToThisLocation
             } else {
                 Write-ScriptDebug("Not going to copy over this set of data due to size restrictions.")
                 New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
