@@ -9,7 +9,7 @@ Function Get-HardwareInformation {
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} 
+    $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     #Need to do it this way because of Windows 2012R2
     $processor = New-Object HealthChecker.ProcessorInformation
@@ -26,7 +26,7 @@ Function Get-HardwareInformation {
     $processor.ProcessorClassObject = $processorInformation.ProcessorClassObject
 
     $hardware_obj.Processor = $processor
-    $hardware_obj.Model = $system.Model 
+    $hardware_obj.Model = $system.Model
 
     Write-VerboseOutput("Exiting: Get-HardwareInformation")
     return $hardware_obj

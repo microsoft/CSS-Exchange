@@ -1,75 +1,57 @@
-#Master Template: https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+#v21.01.08.2133
 Function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
-    [Parameter(Mandatory=$true)][string]$ComputerName,
-    [Parameter(Mandatory=$true)][scriptblock]$ScriptBlock,
-    [Parameter(Mandatory=$false)][string]$ScriptBlockDescription,
-    [Parameter(Mandatory=$false)][object]$ArgumentList,
-    [Parameter(Mandatory=$false)][bool]$IncludeNoProxyServerOption = $true, #Default in HealthChecker
-    [Parameter(Mandatory=$false)][scriptblock]$CatchActionFunction
+        [Parameter(Mandatory = $true)][string]$ComputerName,
+        [Parameter(Mandatory = $true)][scriptblock]$ScriptBlock,
+        [Parameter(Mandatory = $false)][string]$ScriptBlockDescription,
+        [Parameter(Mandatory = $false)][object]$ArgumentList,
+        [Parameter(Mandatory = $false)][bool]$IncludeNoProxyServerOption,
+        [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version 1.1
-    <# 
-    Required Functions: 
-        https://raw.githubusercontent.com/dpaulson45/PublicPowerShellScripts/master/Functions/Write-VerboseWriters/Write-VerboseWriter.ps1
-    #>
+    #Function Version #v21.01.08.2133
+
     Write-VerboseWriter("Calling: Invoke-ScriptBlockHandler")
-    if(![string]::IsNullOrEmpty($ScriptBlockDescription))
-    {
+    if (![string]::IsNullOrEmpty($ScriptBlockDescription)) {
         Write-VerboseWriter($ScriptBlockDescription)
     }
-    try 
-    {
-        if($ComputerName -ne $env:COMPUTERNAME)
-        {
+    try {
+        if ($ComputerName -ne $env:COMPUTERNAME) {
             $params = @{
                 ComputerName = $ComputerName
-                ScriptBlock = $ScriptBlock
-                ErrorAction = "Stop"
+                ScriptBlock  = $ScriptBlock
+                ErrorAction  = "Stop"
             }
 
-            if ($IncludeNoProxyServerOption)
-            {
+            if ($IncludeNoProxyServerOption) {
                 Write-VerboseWriter("Including SessionOption")
                 $params.Add("SessionOption", (New-PSSessionOption -ProxyAccessType NoProxyServer))
             }
-    
-            if($ArgumentList -ne $null) 
-            {
+
+            if ($null -ne $ArgumentList) {
                 $params.Add("ArgumentList", $ArgumentList)
                 Write-VerboseWriter("Running Invoke-Command with argument list.")
-                
-            }
-            else
-            {
+            } else {
                 Write-VerboseWriter("Running Invoke-Command without argument list.")
             }
-    
+
             $invokeReturn = Invoke-Command @params
-            return $invokeReturn 
-        }
-        else 
-        {
-            if($ArgumentList -ne $null)
-            {
+            return $invokeReturn
+        } else {
+            if ($null -ne $ArgumentList) {
                 Write-VerboseWriter("Running Script Block locally with argument list.")
-                $localReturn = & $ScriptBlock $ArgumentList 
-            }
-            else 
-            {
+                $localReturn = & $ScriptBlock $ArgumentList
+            } else {
                 Write-VerboseWriter("Running Script Block locally without argument list.")
-                $localReturn = & $ScriptBlock      
+                $localReturn = & $ScriptBlock
             }
-            return $localReturn 
+            return $localReturn
         }
-    }
-    catch 
-    {
+    } catch {
         Write-VerboseWriter("Failed to Invoke-ScriptBlockHandler")
-        if($CatchActionFunction -ne $null)
-        {
-            & $CatchActionFunction 
+        if ($null -ne $CatchActionFunction) {
+            & $CatchActionFunction
         }
     }
 }

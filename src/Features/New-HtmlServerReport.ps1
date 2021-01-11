@@ -1,8 +1,8 @@
-Function Create-HtmlServerReport {
-param(
-[Parameter(Mandatory=$true)][array]$AnalyzedHtmlServerValues
-)
-    Write-VerboseOutput("Calling: Create-HtmlServerReport")
+Function New-HtmlServerReport {
+    param(
+        [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
+    )
+    Write-VerboseOutput("Calling: New-HtmlServerReport")
 
     $htmlHeader = "<html>
         <style>
@@ -19,30 +19,27 @@ param(
         td.Info{background: #85D4FF;}
         </style>
         <body>
-        <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1><br>
+        <h1 align=""center"">Exchange Health Checker v$($Script:scriptVersion)</h1><br>
         <h2>Servers Overview</h2>"
 
     [array]$htmlOverviewTable += "<p>
         <table>
         <tr>"
-    
-    foreach ($tableHeaderName in $AnalyzedHtmlServerValues[0]["OverviewValues"].Name)
-    {
+
+    foreach ($tableHeaderName in $AnalyzedHtmlServerValues[0]["OverviewValues"].Name) {
         $htmlOverviewTable += "<th>{0}</th>" -f $tableHeaderName
     }
 
     $htmlOverviewTable += "</tr>"
 
-    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
-    {
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues) {
         $htmlTableRow = @()
         [array]$htmlTableRow += "<tr>"
-        foreach ($htmlTableDataRow in $serverHtmlServerValues["OverviewValues"])
-        {
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["OverviewValues"]) {
             $htmlTableRow += "<td class=`"{0}`">{1}</td>" -f $htmlTableDataRow.Class, `
                 $htmlTableDataRow.DetailValue
         }
-        
+
         $htmlTableRow += "</tr>"
         $htmlOverviewTable += $htmlTableRow
     }
@@ -51,17 +48,12 @@ param(
 
     [array]$htmlServerDetails += "<p><h2>Server Details</h2><table>"
 
-    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues)
-    {
-        foreach ($htmlTableDataRow in $serverHtmlServerValues["ServerDetails"])
-        {
-            if ($htmlTableDataRow.Name -eq "Server Name")
-            {
+    foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues) {
+        foreach ($htmlTableDataRow in $serverHtmlServerValues["ServerDetails"]) {
+            if ($htmlTableDataRow.Name -eq "Server Name") {
                 $htmlServerDetails += "<tr><th>{0}</th><th>{1}</th><tr>" -f $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue
-            }
-            else
-            {
+            } else {
                 $htmlServerDetails += "<tr><td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td><tr>" -f $htmlTableDataRow.Class, `
                     $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue

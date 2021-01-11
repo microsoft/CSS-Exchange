@@ -1,83 +1,63 @@
 Function Get-ExchangeServerMaintenanceState {
-param(
-[Parameter(Mandatory=$false)][array]$ComponentsToSkip
-)
+    param(
+        [Parameter(Mandatory = $false)][array]$ComponentsToSkip
+    )
     Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
 
     [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
     $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
 
-    try
-    {
+    try {
         $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $Script:Server -ErrorAction SilentlyContinue
-    }
-    catch
-    {
+    } catch {
         Write-VerboseOutput("Failed to run Get-MailboxServer")
         Invoke-CatchActions
     }
 
-    try
-    {
+    try {
         $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
-    }
-    catch
-    {
+    } catch {
         Write-VerboseOutput("Failed to run Get-ClusterNode")
         Invoke-CatchActions
     }
 
     Write-VerboseOutput("Running ServerComponentStates checks")
 
-    foreach ($component in $serverMaintenance.GetServerComponentState)
-    {
-        if (($ComponentsToSkip -ne $null -and
-            $ComponentsToSkip.Count -ne 0) -and
-            $ComponentsToSkip -notcontains $component.Component)
-        {
-            if ($component.State -ne "Active")
-            {
+    foreach ($component in $serverMaintenance.GetServerComponentState) {
+        if (($null -ne $ComponentsToSkip -and
+                $ComponentsToSkip.Count -ne 0) -and
+            $ComponentsToSkip -notcontains $component.Component) {
+            if ($component.State -ne "Active") {
                 $latestLocalState = $null
                 $latestRemoteState = $null
 
-                if ($component.LocalStates -ne $null)
-                {
-                    $latestLocalState = ($component.LocalStates | Sort-Object {$_.TimeStamp} -ErrorAction SilentlyContinue)[-1]
+                if ($null -ne $component.LocalStates) {
+                    $latestLocalState = ($component.LocalStates | Sort-Object { $_.TimeStamp } -ErrorAction SilentlyContinue)[-1]
                 }
 
-                if ($component.RemoteStates -ne $null)
-                {
-                    $latestRemoteState = ($component.RemoteStates | Sort-Object {$_.TimeStamp} -ErrorAction SilentlyContinue)[-1]
+                if ($null -ne $component.RemoteStates) {
+                    $latestRemoteState = ($component.RemoteStates | Sort-Object { $_.TimeStamp } -ErrorAction SilentlyContinue)[-1]
                 }
 
                 Write-VerboseOutput("Component: {0} LocalState: '{1}' RemoteState: '{2}'" -f $component.Component, $latestLocalState.State, $latestRemoteState.State)
 
-                if ($latestLocalState.State -eq $latestRemoteState.State)
-                {
+                if ($latestLocalState.State -eq $latestRemoteState.State) {
                     $serverMaintenance.InactiveComponents += "'{0}' is in Maintenance Mode" -f $component.Component
-                }
-                else
-                {
-                    if (($latestLocalState -ne $null) -and
-                        ($latestLocalState.State -ne "Active"))
-                    {
+                } else {
+                    if (($null -ne $latestLocalState) -and
+                        ($latestLocalState.State -ne "Active")) {
                         $serverMaintenance.InactiveComponents += "'{0}' is in Local Maintenance Mode only" -f $component.Component
                     }
 
-                    if (($latestRemoteState -ne $null) -and
-                        ($latestRemoteState.State -ne "Active"))
-                    {
+                    if (($null -ne $latestRemoteState) -and
+                        ($latestRemoteState.State -ne "Active")) {
                         $serverMaintenance.InactiveComponents += "'{0}' is in Remote Maintenance Mode only" -f $component.Component
                     }
                 }
-            }
-            else
-            {
+            } else {
                 Write-VerboseOutput("Component '{0}' is Active" -f $component.Component)
             }
-        }
-        else
-        {
+        } else {
             Write-VerboseOutput("Component: {0} will be skipped" -f $component.Component)
         }
     }
