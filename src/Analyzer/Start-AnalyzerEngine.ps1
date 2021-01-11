@@ -102,37 +102,44 @@ param(
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)
     {
-        $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
-        [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
-        [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
-        $warning = [string]::Empty
-        $displayWriteType = "Green"
-        $displayValue = "Server"
+        if($null -ne $exchangeInformation.ApplicationPools)
+        {
+            $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
+            [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
+            [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
+            $warning = [string]::Empty
+            $displayWriteType = "Green"
+            $displayValue = "Server"
 
-        if ($hardwareInformation.TotalMemory -ge 21474836480 -and
-            $enabled -eq $false)
-        {
-            $displayWriteType = "Red"
-            $displayValue = "Workstation --- Error"
-            $warning = "To Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin directory and change the GCServer to true and recycle the MAPI Front End App Pool"
-        }
-        elseif ($unknown)
-        {
-            $displayValue = "Unknown --- Warning"
-            $displayWriteType = "Yellow"
-        }
-        elseif (!($enabled))
-        {
-            $displayWriteType = "Yellow"
-            $displayValue = "Workstation --- Warning"
-            $warning = "You could be seeing some GC issues within the Mapi Front End App Pool. However, you don't have enough memory installed on the system to recommend switching the GC mode by default without consulting a support professional."
-        }
+            if ($hardwareInformation.TotalMemory -ge 21474836480 -and
+                $enabled -eq $false)
+            {
+                $displayWriteType = "Red"
+                $displayValue = "Workstation --- Error"
+                $warning = "To Fix this issue go into the file MSExchangeMapiFrontEndAppPool_CLRConfig.config in the Exchange Bin directory and change the GCServer to true and recycle the MAPI Front End App Pool"
+            }
+            elseif ($unknown)
+            {
+                $displayValue = "Unknown --- Warning"
+                $displayWriteType = "Yellow"
+            }
+            elseif (!($enabled))
+            {
+                $displayWriteType = "Yellow"
+                $displayValue = "Workstation --- Warning"
+                $warning = "You could be seeing some GC issues within the Mapi Front End App Pool. However, you don't have enough memory installed on the system to recommend switching the GC mode by default without consulting a support professional."
+            }
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI Front End App Pool GC Mode" -Details $displayValue `
-            -DisplayGroupingKey $keyExchangeInformation `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType $displayWriteType `
-            -AnalyzedInformation $analyzedResults
+            $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI Front End App Pool GC Mode" -Details $displayValue `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $displayWriteType `
+                -AnalyzedInformation $analyzedResults
+        }
+        else
+        {
+            $warning = "Unable to determine MAPI Front End App Pool GC Mode status. This may be a temporary issue. You should try to re-run the script"
+        }
 
         if ($warning -ne [string]::Empty)
         {
