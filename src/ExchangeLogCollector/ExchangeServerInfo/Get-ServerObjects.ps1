@@ -7,8 +7,6 @@ Function Get-ServerObjects {
     Write-ScriptDebug ("Passed: {0} number of Servers" -f $ValidServers.Count)
     $svrsObject = @()
     $validServersList = @()
-    $oldErrorAction = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
     foreach ($svr in $ValidServers) {
         Write-ScriptDebug -stringdata ("Working on Server {0}" -f $svr)
 
@@ -42,7 +40,7 @@ Function Get-ServerObjects {
 
         $svrsObject += $sobj
     }
-    $ErrorActionPreference = $oldErrorAction
+
     if (($null -eq $svrsObject) -or
         ($svrsObject.Count -eq 0)) {
         Write-ScriptHost -WriteString ("Something wrong happened in Get-ServerObjects stopping script") -ShowServer $false -ForegroundColor "Red"
