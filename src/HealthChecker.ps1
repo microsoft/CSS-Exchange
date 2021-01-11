@@ -10,7 +10,7 @@
         11/10/2020 - Initial Public Release of version 3.
         1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
         3/30/2015 - Initial Public Release.
-    
+
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
 	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -19,7 +19,7 @@
 .SYNOPSIS
 	Checks the target Exchange server for various configuration recommendations from the Exchange product group.
 .DESCRIPTION
-	This script checks the Exchange server for various configuration recommendations outlined in the 
+	This script checks the Exchange server for various configuration recommendations outlined in the
 	"Exchange 2013 Performance Recommendations" section on Microsoft Docs, found here:
 
 	https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
@@ -29,35 +29,35 @@
 	problems are reported in red.  Please note that most of these recommendations only apply to Exchange
 	2013/2016.  The script will run against Exchange 2010/2007 but the output is more limited.
 .PARAMETER Server
-	This optional parameter allows the target Exchange server to be specified.  If it is not the 		
+	This optional parameter allows the target Exchange server to be specified.  If it is not the
 	local server is assumed.
 .PARAMETER OutputFilePath
-	This optional parameter allows an output directory to be specified.  If it is not the local 		
-	directory is assumed.  This parameter must not end in a \.  To specify the folder "logs" on 		
+	This optional parameter allows an output directory to be specified.  If it is not the local
+	directory is assumed.  This parameter must not end in a \.  To specify the folder "logs" on
 	the root of the E: drive you would use "-OutputFilePath E:\logs", not "-OutputFilePath E:\logs\".
 .PARAMETER MailboxReport
 	This optional parameter gives a report of the number of active and passive databases and
 	mailboxes on the server.
 .PARAMETER LoadBalancingReport
     This optional parameter will check the connection count of the Default Web Site for every server
-    running Exchange 2013/2016 with the Client Access role in the org.  It then breaks down servers by percentage to 
+    running Exchange 2013/2016 with the Client Access role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
 .PARAMETER CasServerList
-    Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without 
+    Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without
     this switch the report will use all 2013/2016 Client Access servers in the organization.
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
     in the organization.
 .PARAMETER XMLDirectoryPath
-    Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers 
+    Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers
     which you want to be included in the report. Default location is the current directory.
-.PARAMETER BuildHtmlServersReport 
+.PARAMETER BuildHtmlServersReport
     Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location.
-.PARAMETER HtmlReportFile 
+.PARAMETER HtmlReportFile
     Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
-.PARAMETER DCCoreRatio 
+.PARAMETER DCCoreRatio
     Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.
-.PARAMETER Verbose	
+.PARAMETER Verbose
 	This optional parameter enables verbose logging.
 .EXAMPLE
 	.\HealthChecker.ps1 -Server SERVERNAME
@@ -79,60 +79,61 @@
     https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization
     https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019#requirements-for-hardware-virtualization
 #>
-[CmdletBinding(DefaultParameterSetName="HealthChecker")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
+[CmdletBinding(DefaultParameterSetName = "HealthChecker")]
 param(
-[Parameter(Mandatory=$false,ParameterSetName="HealthChecker")]
-[Parameter(Mandatory=$false,ParameterSetName="MailboxReport")]
-    [string]$Server=($env:COMPUTERNAME),
-[Parameter(Mandatory=$false)]
-    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$OutputFilePath = ".",
-[Parameter(Mandatory=$false,ParameterSetName="MailboxReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker")]
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
+    [string]$Server = ($env:COMPUTERNAME),
+    [Parameter(Mandatory = $false)]
+    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$OutputFilePath = ".",
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
     [switch]$MailboxReport,
-[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
     [switch]$LoadBalancingReport,
-[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
     [array]$CasServerList = $null,
-[Parameter(Mandatory=$false,ParameterSetName="LoadBalancingReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
     [string]$SiteName = ([string]::Empty),
-[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
-[Parameter(Mandatory=$false,ParameterSetName="AnalyzeDataOnly")]
-    [ValidateScript({-not $_.ToString().EndsWith('\')})][string]$XMLDirectoryPath = ".",
-[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
+    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$XMLDirectoryPath = ".",
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
     [switch]$BuildHtmlServersReport,
-[Parameter(Mandatory=$false,ParameterSetName="HTMLReport")]
-    [string]$HtmlReportFile="ExchangeAllServersReport.html",
-[Parameter(Mandatory=$false,ParameterSetName="DCCoreReport")]
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+    [string]$HtmlReportFile = "ExchangeAllServersReport.html",
+    [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport")]
     [switch]$DCCoreRatio,
-[Parameter(Mandatory=$false,ParameterSetName="AnalyzeDataOnly")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
     [switch]$AnalyzeDataOnly,
-[Parameter(Mandatory=$false)][switch]$SaveDebugLog
+    [Parameter(Mandatory = $false)][switch]$SaveDebugLog
 )
 
 $scriptVersion = "1.0.0"
 
 $VirtualizationWarning = @"
-Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that: 
+Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
 
     - There is no more than a 1:1 Physical Core to Virtual CPU ratio (no oversubscribing)
     - If Hyper-Threading is enabled do NOT count Hyper-Threaded cores as physical cores
     - Do not oversubscribe memory or use dynamic memory allocation
-    
-Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.  
 
-VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.  
-Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495. 
+Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.
 
-For further details, please review the virtualization recommendations on Microsoft Docs at the following locations: 
-Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.  
-Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019. 
+VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.
+Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495.
+
+For further details, please review the virtualization recommendations on Microsoft Docs at the following locations:
+Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.
+Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019.
 
 "@
 
-#this is to set the verbose information to a different color 
-if($PSBoundParameters["Verbose"]){
-    #Write verose output in cyan since we already use yellow for warnings 
+#this is to set the verbose information to a different color
+if ($PSBoundParameters["Verbose"]) {
+    #Write verose output in cyan since we already use yellow for warnings
     $Script:VerboseEnabled = $true
-    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor 
+    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
@@ -184,55 +185,50 @@ if($PSBoundParameters["Verbose"]){
 . .\Helpers\Set-ScriptLogFileLocation.ps1
 . .\Helpers\Test-RequiresServerFqdn.ps1
 . .\Helpers\Test-ScriptVersion.ps1
-. .\Features\Create-HtmlServerReport.ps1
+. .\Features\New-HtmlServerReport.ps1
 . .\Features\Get-CasLoadBalancingReport.ps1
 . .\Features\Get-ExchangeDcCoreRatio.ps1
 . .\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
 Function Main {
-    
-    if(-not (Confirm-Administrator) -and
+
+    if (-not (Confirm-Administrator) -and
         (-not $AnalyzeDataOnly -and
-        -not $BuildHtmlServersReport))
-	{
+            -not $BuildHtmlServersReport)) {
         Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
         $Script:ErrorStartCount = $Error.Count
-		Start-Sleep -Seconds 2;
-		exit
+        Start-Sleep -Seconds 2;
+        exit
     }
 
-    if ($Error.Count -gt 175)
-    {
+    if ($Error.Count -gt 175) {
         Write-Verbose("Clearing Error to avoid script issues")
         $Error.Clear()
     }
 
-    $Script:ErrorStartCount = $Error.Count #useful for debugging 
-    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues. 
-    $Script:ErrorsExcluded = @() 
+    $Script:ErrorStartCount = $Error.Count #useful for debugging
+    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues.
+    $Script:ErrorsExcluded = @()
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
-    
-    if($BuildHtmlServersReport)
-    {
+
+    if ($BuildHtmlServersReport) {
         Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
-        Create-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
-        sleep 2;
+        New-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
+        Start-Sleep 2;
         return
     }
 
-    if((Test-Path $OutputFilePath) -eq $false)
-    {
+    if ((Test-Path $OutputFilePath) -eq $false) {
         Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
-        return 
+        return
     }
 
-    if($LoadBalancingReport)
-    {
-        Set-ScriptLogFileLocation -FileName "LoadBalancingReport" 
+    if ($LoadBalancingReport) {
+        Set-ScriptLogFileLocation -FileName "LoadBalancingReport"
         Write-HealthCheckerVersion
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
@@ -242,45 +238,38 @@ Function Main {
         return
     }
 
-    if($DCCoreRatio)
-    {
+    if ($DCCoreRatio) {
         $oldErrorAction = $ErrorActionPreference
         $ErrorActionPreference = "Stop"
-        try 
-        {
+        try {
             Get-ExchangeDCCoreRatio
             return
-        }
-        finally
-        {
+        } finally {
             $ErrorActionPreference = $oldErrorAction
         }
     }
 
-	if($MailboxReport)
-	{
-        Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true 
+    if ($MailboxReport) {
+        Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true
         Get-MailboxDatabaseAndMailboxStatistics
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
     }
 
-    if ($AnalyzeDataOnly)
-    {
+    if ($AnalyzeDataOnly) {
         Set-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
 
         $analyzedResults = @()
-        foreach ($serverData in $importData)
-        {
+        foreach ($serverData in $importData) {
             $analyzedServerResults = Start-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
             Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
             $analyzedResults += $analyzedServerResults
         }
 
-        Create-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+        New-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
         return
     }
 
@@ -292,30 +281,23 @@ Function Main {
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     $currentErrors = $Error.Count
 
-    try
-    {
+    try {
         $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
-    }
-    catch
-    {
+    } catch {
         Write-VerboseOutput("Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json")
         $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
 
         $testOuputxml = [PSCustomObject]@{
             HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
-            HtmlServerValues = $analyzedResults.HtmlServerValues
-            DisplayResults = $analyzedResults.DisplayResults
+            HtmlServerValues            = $analyzedResults.HtmlServerValues
+            DisplayResults              = $analyzedResults.DisplayResults
         }
 
         $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
-    }
-    finally
-    {
-        if ($currentErrors -ne $Error.Count)
-        {
+    } finally {
+        if ($currentErrors -ne $Error.Count) {
             $index = 0
-            while ($index -lt ($Error.Count - $currentErrors))
-            {
+            while ($index -lt ($Error.Count - $currentErrors)) {
                 Invoke-CatchActions $Error[$index]
                 $index++
             }
@@ -326,21 +308,16 @@ Function Main {
     }
 }
 
-try 
-{
+try {
     $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $true -EnableDateTime $false -ErrorAction SilentlyContinue
     Main
-}
-finally 
-{
+} finally {
     Get-ErrorsThatOccurred
-    if($Script:VerboseEnabled)
-    {
+    if ($Script:VerboseEnabled) {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
     }
     $Script:Logger.RemoveLatestLogFile()
-    if($Script:Logger.PreventLogCleanup)
-    {
+    if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
 }

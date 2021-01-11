@@ -1,46 +1,38 @@
 
-function Write-Red($message)
-{
+function Write-Red($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
     $message | Out-File ($OutputFullPath) -Append
 }
 
-function Write-Yellow($message)
-{
+function Write-Yellow($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Yellow
     $message | Out-File ($OutputFullPath) -Append
 }
 
-function Write-Green($message)
-{
+function Write-Green($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Green
     $message | Out-File ($OutputFullPath) -Append
 }
 
-function Write-Grey($message)
-{
+function Write-Grey($message) {
     Write-DebugLog $message
     Write-Host $message
     $message | Out-File ($OutputFullPath) -Append
 }
 
-function Write-VerboseOutput($message)
-{
+function Write-VerboseOutput($message) {
     Write-Verbose $message
     Write-DebugLog $message
-    if($Script:VerboseEnabled)
-    {
+    if ($Script:VerboseEnabled) {
         $message | Out-File ($OutputFullPath) -Append
     }
 }
 
-function Write-DebugLog($message)
-{
-    if(![string]::IsNullOrEmpty($message))
-    {
+function Write-DebugLog($message) {
+    if (![string]::IsNullOrEmpty($message)) {
         $Script:Logger.WriteToFileOnly($message)
     }
 }
@@ -51,74 +43,27 @@ Function Write-Break {
 
 #Function Version 1.1
 Function Write-HostWriter {
-param(
-[Parameter(Mandatory=$true)][string]$WriteString 
-)
-    if($Script:Logger -ne $null)
-    {
+    param(
+        [Parameter(Mandatory = $true)][string]$WriteString
+    )
+    if ($null -ne $Script:Logger) {
         $Script:Logger.WriteHost($WriteString)
-    }
-    elseif($HostFunctionCaller -eq $null)
-    {
+    } elseif ($null -eq $HostFunctionCaller) {
         Write-Host $WriteString
-    }
-    else
-    {
-        &$HostFunctionCaller $WriteString    
+    } else {
+        &$HostFunctionCaller $WriteString
     }
 }
-    
+
 Function Write-VerboseWriter {
-param(
-[Parameter(Mandatory=$true)][string]$WriteString 
-)
-    if($VerboseFunctionCaller -eq $null)
-    {
-            Write-Verbose $WriteString
-    }
-    else 
-    {
+    param(
+        [Parameter(Mandatory = $true)][string]$WriteString
+    )
+    if ($null -eq $VerboseFunctionCaller) {
+        Write-Verbose $WriteString
+    } else {
         &$VerboseFunctionCaller $WriteString
     }
 }
 
 $Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
-
-#Function Version 1.0
-Function Write-ScriptMethodHostWriter{
-param(
-[Parameter(Mandatory=$true)][string]$WriteString
-)
-    if($this.LoggerObject -ne $null)
-    {
-        $this.LoggerObject.WriteHost($WriteString) 
-    }
-    elseif($this.HostFunctionCaller -eq $null)
-    {
-        Write-Host $WriteString
-    }
-    else 
-    {
-        $this.HostFunctionCaller($WriteString)
-    }
-}
-
-#Function Version 1.0
-Function Write-ScriptMethodVerboseWriter {
-param(
-[Parameter(Mandatory=$true)][string]$WriteString
-)
-    if($this.LoggerObject -ne $null)
-    {
-        $this.LoggerObject.WriteVerbose($WriteString)
-    }
-    elseif($this.VerboseFunctionCaller -eq $null -and 
-        $this.WriteVerboseData)
-    {
-        Write-Host $WriteString -ForegroundColor Cyan 
-    }
-    elseif($this.WriteVerboseData)
-    {
-        $this.VerboseFunctionCaller($WriteString)
-    }
-}

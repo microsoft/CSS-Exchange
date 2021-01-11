@@ -15,29 +15,24 @@ Function Get-OperatingSystemInformation {
     $osInformation.ServerBootUp.Hours = ($currentDateTime - $lastBootUpTime).Hours
     $osInformation.ServerBootUp.Minutes = ($currentDateTime - $lastBootUpTime).Minutes
     $osInformation.ServerBootUp.Seconds = ($currentDateTime - $lastBootUpTime).Seconds
-    
-    if($win32_PowerPlan -ne $null)
-    {
-        if($win32_PowerPlan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}")
-        {
+
+    if ($null -ne $win32_PowerPlan) {
+
+        if ($win32_PowerPlan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}") {
             Write-VerboseOutput("High Performance Power Plan is set to true")
             $osInformation.PowerPlan.HighPerformanceSet = $true
-        }
-        else{Write-VerboseOutput("High Performance Power Plan is NOT set to true")}
+        } else { Write-VerboseOutput("High Performance Power Plan is NOT set to true") }
         $osInformation.PowerPlan.PowerPlanSetting = $win32_PowerPlan.ElementName
-    }
-    else
-    {
+    } else {
         Write-VerboseOutput("Power Plan Information could not be read")
         $osInformation.PowerPlan.PowerPlanSetting = "N/A"
     }
-    $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan 
+    $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan
     $osInformation.PageFile = Get-PageFileInformation
     $osInformation.NetworkInformation.NetworkAdapters = (Get-AllNicInformation -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN $Script:ServerFQDN)
-    foreach($adapter in $osInformation.NetworkInformation.NetworkAdapters)
-    {
-        if (!$adapter.IPv6Enabled)
-        {
+    foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters) {
+
+        if (!$adapter.IPv6Enabled) {
             $osInformation.NetworkInformation.IPv6DisabledOnNICs = $true
             break
         }
@@ -46,12 +41,12 @@ Function Get-OperatingSystemInformation {
     $osInformation.NetworkInformation.IPv6DisabledComponents = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
-	$osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
-    $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe 
+    $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
+    $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
     $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
     $counterSamples = (Get-CounterSamples -MachineNames $Script:Server -Counters "\Network Interface(*)\Packets Received Discarded")
-    if($counterSamples -ne $null)
-    {
+
+    if ($null -ne $counterSamples) {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
     $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
@@ -62,7 +57,10 @@ Function Get-OperatingSystemInformation {
     $osInformation.TimeZone.DaylightStart = $timeZoneInformation.DaylightStart
     $osInformation.TimeZone.DstIssueDetected = $timeZoneInformation.DstIssueDetected
     $osInformation.TimeZone.ActionsToTake = $timeZoneInformation.ActionsToTake
-    $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {([System.TimeZone]::CurrentTimeZone).StandardName} -ScriptBlockDescription "Getting Current Time Zone" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.TimeZone.CurrentTimeZone = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+        -ScriptBlock { ([System.TimeZone]::CurrentTimeZone).StandardName } `
+        -ScriptBlockDescription "Getting Current Time Zone" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableVersion
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled

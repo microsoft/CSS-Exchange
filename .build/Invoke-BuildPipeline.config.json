@@ -5,6 +5,9 @@
   "ScriptAnalyzerExcludeRules": [
     {
       "RuleName": "PSAvoidUsingWriteHost"
+    },
+    {
+      "RuleName": "PSUseShouldProcessForStateChangingFunctions"
     }
   ]
 }

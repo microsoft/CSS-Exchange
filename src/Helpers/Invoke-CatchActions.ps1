@@ -1,16 +1,13 @@
-Function Invoke-CatchActions{
-param(
-[object]$CopyThisError
-)
-    
+Function Invoke-CatchActions {
+    param(
+        [object]$CopyThisError
+    )
     Write-VerboseOutput("Calling: Invoke-CatchActions")
     $Script:ErrorsExcludedCount++
-    if($CopyThisError -eq $null)
-    {
+
+    if ($null -eq $CopyThisError) {
         $Script:ErrorsExcluded += $Error[0]
-    }
-    else 
-    {
+    } else {
         $Script:ErrorsExcluded += $CopyThisError
     }
 }
