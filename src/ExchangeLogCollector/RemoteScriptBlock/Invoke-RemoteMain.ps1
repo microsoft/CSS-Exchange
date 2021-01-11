@@ -318,10 +318,6 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.QueueInformationThisServer -and
             (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
-            $create = $Script:RootCopyToDirectory + "\Queue_Data"
-            New-Folder -NewFolder $create -IncludeDisplayCreate $true
-            $saveLocation = $create + "\Current_Queue_Info"
-            Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.QueueData) -SaveToLocation $saveLocation
 
             if ($Script:localServerObject.Version -ge 15 -and
                 $null -ne $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath) {

@@ -76,7 +76,8 @@ Function Test-PossibleCommonScenarios {
     }
 
     #Because we right out our Receive Connector information in Exchange Server Info now
-    if ($ReceiveConnectors) {
+    if ($ReceiveConnectors -or
+        $QueueInformationThisServer) {
         $Script:ExchangeServerInfo = $true
     }
 

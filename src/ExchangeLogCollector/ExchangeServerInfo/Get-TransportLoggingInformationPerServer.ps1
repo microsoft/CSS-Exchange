@@ -62,14 +62,6 @@ Function Get-TransportLoggingInformationPerServer {
         Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
         return
     }
-    Write-ScriptDebug("QueueInformationThisServer: {0}" -f $QueueInformationThisServer)
-
-    if ($QueueInformationThisServer -and
-        (-not($Version -eq 15 -and
-                $CASOnly))) {
-        $value = Get-Queue -Server $Server
-        $transportLoggingObject | Add-Member -MemberType NoteProperty -Name QueueData -Value $value
-    }
 
     Write-ScriptDebug("Function Exit: Get-TransportLoggingInformationPerServer")
     return $transportLoggingObject
