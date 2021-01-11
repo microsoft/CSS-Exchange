@@ -22,7 +22,7 @@ try {
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation(); 
                 public bool MapiHttpEnabled; //Stored from organization config 
                 public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth 
-                public Hashtable ApplicationPools;
+                public Hashtable ApplicationPools = new Hashtable();
                 public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
                 public ExchangeServerMaintenance ServerMaintenance;
                 public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers. 
