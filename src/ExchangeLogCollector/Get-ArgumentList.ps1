@@ -29,7 +29,6 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name MailboxConnectivityLogs -MemberType NoteProperty -Value $MailboxConnectivityLogs
     $obj | Add-Member -Name MailboxProtocolLogs -MemberType NoteProperty -Value $MailboxProtocolLogs
     $obj | Add-Member -Name QueueInformationThisServer -MemberType NoteProperty -Value $QueueInformationThisServer
-    $obj | Add-Member -Name ReceiveConnectors -MemberType NoteProperty -Value $ReceiveConnectors
     $obj | Add-Member -Name SendConnectors -MemberType NoteProperty -Value $SendConnectors
     $obj | Add-Member -Name DAGInformation -MemberType NoteProperty -Value $DAGInformation
     $obj | Add-Member -Name GetVdirs -MemberType NoteProperty -Value $GetVdirs

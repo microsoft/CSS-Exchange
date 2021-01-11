@@ -1,3 +1,6 @@
+#This function job is to write out the Data that is too large to pass into the main script block
+#This is for mostly Exchange Related objects.
+#To handle this, we export the data locally and copy the data over the correct server.
 Function Write-ExchangeDataOnMachines {
 
     Function Write-ExchangeData {
@@ -6,14 +9,6 @@ Function Write-ExchangeDataOnMachines {
         )
 
         $location = $PassedInfo.Location
-        Function Write-Data {
-            param(
-                [Parameter(Mandatory = $true)][object]$DataIn,
-                [Parameter(Mandatory = $true)][string]$FilePathNoEXT
-            )
-            $DataIn | Format-List * > "$FilePathNoEXT.txt"
-            $DataIn | Export-Clixml "$FilePathNoEXT.xml"
-        }
         $exchBin = "{0}\Bin" -f $PassedInfo.InstallDirectory
         $configFiles = Get-ChildItem $exchBin | Where-Object { $_.Name -like "*.config" }
         $copyTo = "{0}\Config" -f $location
@@ -72,6 +67,8 @@ Function Write-ExchangeDataOnMachines {
 
         if ($ServerData.Hub) {
             Save-DataToFile -DataIn $ServerData.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.ReceiveConnectors -SaveToLocation ("{0}_ReceiveConnectors" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.QueueData -SaveToLocation ("{0}_InstantQueueInfo" -f $tempLocation)
         }
         if ($ServerData.CAS) {
             Save-DataToFile -DataIn $ServerData.CAServerInfo -SaveToLocation ("{0}_ClientAccessServer" -f $tempLocation)

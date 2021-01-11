@@ -318,23 +318,12 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.QueueInformationThisServer -and
             (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
-            $create = $Script:RootCopyToDirectory + "\Queue_Data"
-            New-Folder -NewFolder $create -IncludeDisplayCreate $true
-            $saveLocation = $create + "\Current_Queue_Info"
-            Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.QueueData) -SaveToLocation $saveLocation
 
             if ($Script:localServerObject.Version -ge 15 -and
                 $null -ne $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath) {
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath), ($Script:RootCopyToDirectory + "\Queue_V15_Data"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
-        }
-
-        if ($PassedInfo.ReceiveConnectors) {
-            $create = $Script:RootCopyToDirectory + "\Connectors"
-            New-Folder -NewFolder $create -IncludeDisplayCreate $true
-            $saveLocation = ($create + "\{0}_Receive_Connectors") -f $env:COMPUTERNAME
-            Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.ReceiveConnectorData) -SaveToLocation $saveLocation
         }
 
         if ($PassedInfo.TransportConfig) {
