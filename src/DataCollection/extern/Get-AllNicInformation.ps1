@@ -202,13 +202,13 @@ Function Get-AllNicInformation {
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "WmiObject" -Value $WmiObject
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Name" -Value ($adapter.Name)
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "LinkSpeed" -Value ((($adapter.Speed)/1000000).ToString() + " Mbps")
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value [DateTime]::MaxValue
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverDate" -Value ([DateTime]::MaxValue)
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NICObject" -Value $networkConfig
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "NetAdapterRss" -Value $netAdapterRss
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "RssEnabledValue" -Value $rssEnabledValue
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "IPv6Enabled" -Value $false
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "Description" -Value $adapter.Description
-            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value [string]::Empty
+            $nicInformationObj | Add-Member -MemberType NoteProperty -Name "DriverVersion" -Value ([string]::Empty)
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "MTUSize" -Value 0
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "PnPCapabilities" -Value ($nicPnpCapabilitiesSetting.PnPCapabilities)
             $nicInformationObj | Add-Member -MemberType NoteProperty -Name "SleepyNicDisabled" -Value ($nicPnpCapabilitiesSetting.SleepyNicDisabled)
