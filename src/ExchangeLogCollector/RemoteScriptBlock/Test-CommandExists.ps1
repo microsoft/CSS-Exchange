@@ -2,16 +2,12 @@ Function Test-CommandExists {
     param(
         [string]$command
     )
-    $oldAction = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
 
     try {
-        if (Get-Command $command) {
+        if (Get-Command $command -ErrorAction Stop) {
             return $true
         }
     } catch {
         return $false
-    } finally {
-        $ErrorActionPreference = $oldAction
     }
 }

@@ -25,13 +25,11 @@ Function Test-RemoteExecutionOfServers {
     Write-ScriptHost -WriteString "For all the servers that are up, we are going to see if remote execution will work" -ShowServer $false
     #shouldn't need to test if they are Exchange servers, as we should be doing that locally as well.
     $validServers = @()
-    $oldErrorAction = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
     foreach ($server in $serversUp) {
 
         try {
             Write-ScriptHost -WriteString ("Checking Server {0}....." -f $server) -ShowServer $false -NoNewLine $true
-            Invoke-Command -ComputerName $server -ScriptBlock { Get-Process | Out-Null }
+            Invoke-Command -ComputerName $server -ScriptBlock { Get-Process | Out-Null } -ErrorAction Stop
             #if that doesn't fail, we should be okay to add it to the working list
             Write-ScriptHost -WriteString ("Passed") -ShowServer $false -ForegroundColor "Green"
             $validServers += $server
@@ -41,6 +39,5 @@ Function Test-RemoteExecutionOfServers {
         }
     }
     Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")
-    $ErrorActionPreference = $oldErrorAction
     return $validServers
 }

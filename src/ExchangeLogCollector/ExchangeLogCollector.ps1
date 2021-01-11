@@ -252,8 +252,6 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\Logman\Stop-Logman.ps1
     . .\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
-    $oldErrorAction = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
     try {
         $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
         $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
@@ -267,7 +265,6 @@ Function Invoke-RemoteFunctions {
         Write-ScriptHost -WriteString ("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor "Red"
         Write-ScriptHost -WriteString ("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor "Red"
     } finally {
-        $ErrorActionPreference = $oldErrorAction
         Write-ScriptDebug("Exiting: Invoke-RemoteFunctions")
         Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
             $Script:TotalBytesSizeCompressed,

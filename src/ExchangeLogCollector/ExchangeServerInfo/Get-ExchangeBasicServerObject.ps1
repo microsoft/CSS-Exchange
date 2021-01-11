@@ -5,9 +5,6 @@ Function Get-ExchangeBasicServerObject {
     )
     Write-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
     Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
-    $oldErrorAction = $ErrorActionPreference
-    $ErrorActionPreference = "Stop"
-    $failure = $false
     try {
         $exchServerObject = New-Object PSCustomObject
         $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
@@ -17,13 +14,7 @@ Function Get-ExchangeBasicServerObject {
         }
     } catch {
         Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
-        $failure = $true
-    } finally {
-        $ErrorActionPreference = $oldErrorAction
-    }
-
-    if ($failure -eq $true) {
-        return $failure
+        return $null
     }
 
     $exchAdminDisplayVersion = $getExchangeServer.AdminDisplayVersion
