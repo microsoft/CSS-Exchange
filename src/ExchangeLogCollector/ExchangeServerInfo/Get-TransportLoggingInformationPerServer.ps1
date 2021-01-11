@@ -62,12 +62,7 @@ Function Get-TransportLoggingInformationPerServer {
         Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
         return
     }
-    Write-ScriptDebug("ReceiveConnectors: {0} | QueueInformationThisServer: {1}" -f $ReceiveConnectors, $QueueInformationThisServer)
-
-    if ($ReceiveConnectors) {
-        $value = Get-ReceiveConnector -Server $Server
-        $transportLoggingObject | Add-Member -MemberType NoteProperty -Name ReceiveConnectorData -Value $value
-    }
+    Write-ScriptDebug("QueueInformationThisServer: {0}" -f $QueueInformationThisServer)
 
     if ($QueueInformationThisServer -and
         (-not($Version -eq 15 -and

@@ -14,6 +14,7 @@ Function Get-ExchangeObjectServerData {
                 $hubInfo = Get-TransportServer $server
             }
             $obj | Add-Member -MemberType NoteProperty -Name TransportServerInfo -Value $hubInfo
+            $obj | Add-Member -MemberType NoteProperty -Name ReceiveConnectors -Value (Get-ReceiveConnector -Server $server)
         }
         if ($obj.CAS) {
             if ($obj.Version -ge 16) {

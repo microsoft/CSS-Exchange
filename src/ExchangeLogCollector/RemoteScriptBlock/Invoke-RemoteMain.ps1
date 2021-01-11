@@ -330,13 +330,6 @@ Function Invoke-RemoteMain {
             }
         }
 
-        if ($PassedInfo.ReceiveConnectors) {
-            $create = $Script:RootCopyToDirectory + "\Connectors"
-            New-Folder -NewFolder $create -IncludeDisplayCreate $true
-            $saveLocation = ($create + "\{0}_Receive_Connectors") -f $env:COMPUTERNAME
-            Save-DataInfoToFile -dataIn ($Script:localServerObject.TransportInfo.ReceiveConnectorData) -SaveToLocation $saveLocation
-        }
-
         if ($PassedInfo.TransportConfig) {
 
             if ($Script:localServerObject.Version -ge 15 -and (-not($Script:localServerObject.Edge))) {

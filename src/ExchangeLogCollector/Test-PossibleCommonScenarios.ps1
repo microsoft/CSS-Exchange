@@ -75,6 +75,11 @@ Function Test-PossibleCommonScenarios {
         $Script:ServerInfo = $true
     }
 
+    #Because we right out our Receive Connector information in Exchange Server Info now
+    if ($ReceiveConnectors) {
+        $Script:ExchangeServerInfo = $true
+    }
+
     #See if any transport logging is enabled.
     $Script:AnyTransportSwitchesEnabled = $false
     if ($HubProtocolLogs -or
