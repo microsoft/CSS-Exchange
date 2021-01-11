@@ -10,7 +10,7 @@ Function Compress-Folder {
         [Parameter(Mandatory = $false)][bool]$ReturnCompressedLocation = $false,
         [Parameter(Mandatory = $false, Position = 1)][object]$PassedObjectParameter
     )
-#Function Version #v21.01.08.2133
+    #Function Version #v21.01.08.2133
 
     Function Get-DirectorySize {
         param(
