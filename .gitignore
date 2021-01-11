@@ -2,3 +2,5 @@
 #https://github.com/microsoft/vscode/issues/105191
 debug.log
 .build/dist
+*.bak
+.build/.externRepo
