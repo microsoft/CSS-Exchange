@@ -19,7 +19,7 @@ param(
         td.Info{background: #85D4FF;}
         </style>
         <body>
-        <h1 align=""center"">Exchange Health Checker v$($Script:healthCheckerVersion)</h1><br>
+        <h1 align=""center"">Exchange Health Checker v$($Script:scriptVersion)</h1><br>
         <h2>Servers Overview</h2>"
 
     [array]$htmlOverviewTable += "<p>

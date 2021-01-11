@@ -25,7 +25,7 @@ param(
 
     if (!$Script:DisplayedScriptVersionAlready)
     {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:healthCheckerVersion `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:scriptVersion `
             -DisplayGroupingKey $keyBeginningInfo `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
