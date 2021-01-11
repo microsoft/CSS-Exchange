@@ -2,7 +2,7 @@
 #TODO: Add ability to update single file vs all.
 $repoRoot = Get-Item "$PSScriptRoot\.."
 Write-Host $repoRoot
-$externReproRoot = "$repoRoot\.externRepo"
+$externReproRoot = "$PSScriptRoot\.externRepo"
 $reproPublicScripts = "$externReproRoot\PublicPowerShellScripts"
 $rootPath = "$repoRoot\src"
 $gitCloneUrl = 'https://github.com/dpaulson45/PublicPowerShellScripts.git'
