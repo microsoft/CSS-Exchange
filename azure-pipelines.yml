@@ -16,27 +16,22 @@ pool:
 steps:
 - pwsh: | 
 
-    cd .\Build
-
-    $scriptVersion = .\GetScriptVersion.ps1
-
-    .\BuildScript.ps1 $scriptVersion
-
-    $buildScriptLocation = ".\Build\HealthChecker.ps1"
+    cd .\.build
     
+    $content = Get-Content .\Invoke-BuildPipeline.config.json
+    $jsonConfig = $content | ConvertFrom-Json
+    $scriptVersion = .\Get-ScriptVersion.ps1 -GitHubWebRequestUri $jsonConfig.ScriptUri -ScriptVersion $jsonConfig.ScriptVersion
     $tag = "v{0}.{1}.{2}" -f $scriptVersion.Major, $scriptVersion.Minor, $scriptVersion.BuildRevision
     Write-Host("New tag: {0}" -f $tag)
+
+    .\Invoke-BuildPipeline.ps1 -CodeFormatCheck -ScriptVersion $scriptVersion
+
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
-    Write-Host "##vso[task.setvariable variable=BuildScriptLocation]$buildScriptLocation"
-
-  displayName: "Setting Tag Value"
-
-- pwsh: |
-    $value = "$(ReleaseTagValue)"
-    $title = "{0} Release" -f $value
+    Write-Host "##vso[task.setvariable variable=BuildScriptLocation].\.build\dist\HealthChecker.ps1"
+    $title = "{0} Release" -f $tag
     Write-Host "##vso[task.setvariable variable=ReleaseTitleValue]$title"
-  
-  displayName: "Setting Release Title"
+
+  displayName: "Setting Script Version and Running build pipeline"
 
 - pwsh: |
     $scriptLocation = "$(BuildScriptLocation)"
@@ -51,7 +46,7 @@ steps:
     "@ -f $hashValue 
 
     Write-Host("$releaseInfo")
-    $releaseInfo | Out-File .\Build\ReleaseNotes.txt
+    $releaseInfo | Out-File .\.build\dist\ReleaseNotes.txt
 
     cp $scriptLocation $env:BUILD_ARTIFACTSTAGINGDIRECTORY
 
@@ -59,8 +54,8 @@ steps:
 
 - pwsh: | 
     Get-ChildItem "$(Build.ArtifactStagingDirectory)"
-    Get-Content .\Build\ReleaseNotes.txt
-  displayName: "Testing"
+    Get-Content .\.build\dist\ReleaseNotes.txt
+  displayName: "Display Release Notes text"
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Release'
@@ -74,6 +69,6 @@ steps:
     tag: $(ReleaseTagValue)
     title: $(ReleaseTitleValue)
     releaseNotesSource: 'file'
-    releaseNotesFile: .\Build\ReleaseNotes.txt
+    releaseNotesFile: .\.build\dist\ReleaseNotes.txt
     addChangeLog: true
     assets: $(Build.ArtifactStagingDirectory)\*
