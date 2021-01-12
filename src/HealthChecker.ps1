@@ -138,14 +138,16 @@ if ($PSBoundParameters["Verbose"]) {
 }
 
 . .\Helpers\Class.ps1
-. .\Writers\Write-Functions.ps1
 . .\Writers\Write-HealthCheckerVersion.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\extern\Confirm-Administrator.ps1
 . .\extern\Confirm-ExchangeShell.ps1
 . .\extern\New-LoggerObject.ps1
+. .\extern\Write-HostWriter.ps1
 . .\extern\Write-ScriptMethodHostWriters.ps1
 . .\extern\Write-ScriptMethodVerboseWriter.ps1
+. .\extern\Write-VerboseWriter.ps1
+. .\Writers\Write-Functions.ps1
 . .\DataCollection\extern\Get-AllNicInformation.ps1
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1

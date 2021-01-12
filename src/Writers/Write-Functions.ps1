@@ -41,29 +41,4 @@ Function Write-Break {
     Write-Host ""
 }
 
-#Function Version 1.1
-Function Write-HostWriter {
-    param(
-        [Parameter(Mandatory = $true)][string]$WriteString
-    )
-    if ($null -ne $Script:Logger) {
-        $Script:Logger.WriteHost($WriteString)
-    } elseif ($null -eq $HostFunctionCaller) {
-        Write-Host $WriteString
-    } else {
-        &$HostFunctionCaller $WriteString
-    }
-}
-
-Function Write-VerboseWriter {
-    param(
-        [Parameter(Mandatory = $true)][string]$WriteString
-    )
-    if ($null -eq $VerboseFunctionCaller) {
-        Write-Verbose $WriteString
-    } else {
-        &$VerboseFunctionCaller $WriteString
-    }
-}
-
 $Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}
