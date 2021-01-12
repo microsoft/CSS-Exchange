@@ -1,7 +1,7 @@
 function Get-IpmSubtree {
     [CmdletBinding()]
     param (
-        
+
     )
 
     begin {
@@ -43,9 +43,9 @@ function Get-IpmSubtree {
                     break
                 }
             }
-        }        
+        }
     }
-    
+
     end {
         if ($errors -lt 1) {
             if ($progressCount -gt 0) {
@@ -56,7 +56,7 @@ function Get-IpmSubtree {
             $ipmSubtree = @()
         }
 
-        Write-Host "Get-IpmSubtree duration" ((Get-Date) - $startTime) "folder count" $ipmSubtree.Count
+        Write-Host "Get-IpmSubtree duration $((Get-Date) - $startTime) folder count $($ipmSubtree.Count)"
 
         return $ipmSubtree
     }

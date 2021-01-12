@@ -5,12 +5,12 @@ function Get-BadPermissions {
         [PSCustomObject]
         $FolderData
     )
-    
+
     begin {
         $startTime = Get-Date
         $badPermissions = @()
     }
-    
+
     process {
         $folderData.IpmSubtreeByMailbox | Foreach-Object {
             $argumentList = $mailboxNameToServerMap[$_.Name], $_.Name, $_.Group
@@ -30,7 +30,7 @@ function Get-BadPermissions {
             }
         }
     }
-    
+
     end {
         Write-Host "Get-BadPermissions duration" ((Get-Date) - $startTime)
         return $badPermissions

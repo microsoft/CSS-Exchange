@@ -1,7 +1,7 @@
 function Get-NonIpmSubtree {
     [CmdletBinding()]
     param (
-        
+
     )
 
     begin {
@@ -39,9 +39,9 @@ function Get-NonIpmSubtree {
                     break
                 }
             }
-        }        
+        }
     }
-    
+
     end {
         if ($errors -lt 1) {
             if ($progressCount -gt 0) {
@@ -52,7 +52,7 @@ function Get-NonIpmSubtree {
             $nonIpmSubtree = @()
         }
 
-        Write-Host "Get-NonIpmSubtree duration" ((Get-Date) - $startTime) "folder count" $nonIpmSubtree.Count
+        Write-Host "Get-NonIpmSubtree duration $((Get-Date) - $startTime) folder count $($nonIpmSubtree.Count)"
 
         return $nonIpmSubtree
     }

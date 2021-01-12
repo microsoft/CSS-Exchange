@@ -20,7 +20,7 @@ function Get-LimitsExceeded {
             ItemCount       = @()
         }
     }
-    
+
     process {
         $FolderData.IpmSubtree | ForEach-Object {
             if (++$progressCount % 100 -eq 0) {

@@ -13,7 +13,7 @@ function Get-BadPermissionsJob {
         [PSCustomObject[]]
         $Folders
     )
-    
+
     begin {
         $WarningPreference = "SilentlyContinue"
         Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
@@ -21,7 +21,7 @@ function Get-BadPermissionsJob {
         $progressCount = 0
         $badPermissions = @()
     }
-    
+
     process {
         $Folders | ForEach-Object {
             if (++$progressCount % 10 -eq 0) {
@@ -34,9 +34,9 @@ function Get-BadPermissionsJob {
             $entryId = $_.EntryId.ToString()
             Get-PublicFolderClientPermission $entryId | ForEach-Object {
                 if (
-                    ($_.User.DisplayName -ne "Default") -and 
-                    ($_.User.DisplayName -ne "Anonymous") -and 
-                    ($null -eq $_.User.ADRecipient) -and 
+                    ($_.User.DisplayName -ne "Default") -and
+                    ($_.User.DisplayName -ne "Anonymous") -and
+                    ($null -eq $_.User.ADRecipient) -and
                     ($_.User.UserType -eq "Unknown")
                 ) {
                     $badPermissions += [PSCustomObject]@{
@@ -48,7 +48,7 @@ function Get-BadPermissionsJob {
             }
         }
     }
-    
+
     end {
         $duration = ((Get-Date) - $startTime)
         return [PSCustomObject]@{
