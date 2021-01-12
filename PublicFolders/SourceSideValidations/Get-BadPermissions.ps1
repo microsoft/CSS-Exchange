@@ -18,8 +18,8 @@ function Get-BadPermissions {
             $scriptBlock = ${Function:Get-BadPermissionsJob}
             Add-JobQueueJob @{
                 ArgumentList = $argumentList
-                Name = "$name Permissions Check"
-                ScriptBlock = $scriptBlock
+                Name         = "$name Permissions Check"
+                ScriptBlock  = $scriptBlock
             }
         }
 

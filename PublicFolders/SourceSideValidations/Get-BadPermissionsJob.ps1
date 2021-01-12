@@ -1,5 +1,6 @@
 function Get-BadPermissionsJob {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
     param (
         [Parameter(Position = 0)]
         [string]
@@ -41,8 +42,8 @@ function Get-BadPermissionsJob {
                 ) {
                     $badPermissions += [PSCustomObject]@{
                         Identity = $identity
-                        EntryId = $entryId
-                        User = $_.User.DisplayName
+                        EntryId  = $entryId
+                        User     = $_.User.DisplayName
                     }
                 }
             }
@@ -52,8 +53,8 @@ function Get-BadPermissionsJob {
     end {
         $duration = ((Get-Date) - $startTime)
         return [PSCustomObject]@{
-            Count = $progressCount
-            Duration = $duration
+            Count          = $progressCount
+            Duration       = $duration
             BadPermissions = $badPermissions
         }
     }

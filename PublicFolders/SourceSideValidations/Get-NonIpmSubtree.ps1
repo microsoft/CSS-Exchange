@@ -1,8 +1,6 @@
 function Get-NonIpmSubtree {
     [CmdletBinding()]
-    param (
-
-    )
+    param ()
 
     begin {
         $startTime = Get-Date
@@ -12,7 +10,6 @@ function Get-NonIpmSubtree {
     }
 
     process {
-
         if (Test-Path $PSScriptRoot\NonIpmSubtree.csv) {
             Write-Progress -Activity "Reading NON_IPM_SUBTREE from file"
             $nonIpmSubtree = Import-Csv $PSScriptRoot\NonIpmSubtree.csv
@@ -32,8 +29,7 @@ function Get-NonIpmSubtree {
                         EntryId         = $_.EntryId.ToString()
                         DumpsterEntryId = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
                     }
-                }
-                catch {
+                } catch {
                     $errors++
                     Write-Error -Message $currentFolder -Exception $_.Exception
                     break
