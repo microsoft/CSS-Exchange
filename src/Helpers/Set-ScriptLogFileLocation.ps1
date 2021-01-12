@@ -17,15 +17,7 @@ Function Set-ScriptLogFileLocation {
         return
     }
 
-    $byPassLocalExchangeServerTest = $false
-
-    if ($Script:Server -ne $env:COMPUTERNAME) {
-        $byPassLocalExchangeServerTest = $true
-    }
-
-    if (!(Confirm-ExchangeShell `
-                -ByPassLocalExchangeServerTest $byPassLocalExchangeServerTest `
-                -CatchActionFunction ${Function:Invoke-CatchActions} )) {
+    if (!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} )) {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
         exit
     }
