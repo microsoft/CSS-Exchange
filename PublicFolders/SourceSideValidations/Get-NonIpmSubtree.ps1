@@ -15,26 +15,26 @@ function Get-NonIpmSubtree {
             $nonIpmSubtree = Import-Csv $PSScriptRoot\NonIpmSubtree.csv
         } else {
             $nonIpmSubtree = Get-PublicFolder \non_ipm_subtree -Recurse -ResultSize Unlimited |
-            Select-Object Identity, EntryId, DumpsterEntryId |
-            ForEach-Object {
-                $currentFolder = $_.Identity.ToString()
-                try {
-                    # Updating progress too often has a perf impact, so we only update every 100 folders.
-                    if (++$progressCount % 100 -eq 0) {
-                        Write-Progress -Activity "Retrieving NON_IPM_SUBTREE folders" -Status $progressCount
-                    }
+                Select-Object Identity, EntryId, DumpsterEntryId |
+                ForEach-Object {
+                    $currentFolder = $_.Identity.ToString()
+                    try {
+                        # Updating progress too often has a perf impact, so we only update every 100 folders.
+                        if (++$progressCount % 100 -eq 0) {
+                            Write-Progress -Activity "Retrieving NON_IPM_SUBTREE folders" -Status $progressCount
+                        }
 
-                    [PSCustomObject]@{
-                        Identity        = $_.Identity.ToString()
-                        EntryId         = $_.EntryId.ToString()
-                        DumpsterEntryId = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
+                        [PSCustomObject]@{
+                            Identity        = $_.Identity.ToString()
+                            EntryId         = $_.EntryId.ToString()
+                            DumpsterEntryId = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
+                        }
+                    } catch {
+                        $errors++
+                        Write-Error -Message $currentFolder -Exception $_.Exception
+                        break
                     }
-                } catch {
-                    $errors++
-                    Write-Error -Message $currentFolder -Exception $_.Exception
-                    break
                 }
-            }
         }
     }
 

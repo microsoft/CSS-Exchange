@@ -1,3 +1,4 @@
 {
-    "powershell.codeFormatting.newLineAfterCloseBrace": false
+    "powershell.codeFormatting.newLineAfterCloseBrace": false,
+    "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationForFirstPipeline"
 }
