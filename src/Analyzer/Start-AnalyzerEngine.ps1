@@ -96,6 +96,10 @@ Function Start-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
     }
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "AD Site" -Details ($exchangeInformation.GetExchangeServer.Site.Name) `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AnalyzedInformation $analyzedResults
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI/HTTP Enabled" -Details ($exchangeInformation.MapiHttpEnabled) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AnalyzedInformation $analyzedResults
