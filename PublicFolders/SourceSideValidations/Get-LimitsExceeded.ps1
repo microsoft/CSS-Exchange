@@ -20,29 +20,29 @@ function Get-LimitsExceeded {
             ItemCount       = @()
         }
     }
-
+    
     process {
         $FolderData.IpmSubtree | ForEach-Object {
-
             if (++$progressCount % 100 -eq 0) {
                 Write-Progress -Activity "Checking limits" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
             if ($FolderData.ParentEntryIdCounts[$_.EntryId] -gt 10000) {
-                $limitsExceeded.ChildCount += $_
+                $limitsExceeded.ChildCount += $_.Identity.ToString()
             }
 
             if ($_.FolderPathDepth -gt 299) {
-                $limitsExceeded.FolderPathDepth += $_
+                $limitsExceeded.FolderPathDepth += $_.Identity.ToString()
             }
 
             if ($_.ItemCount -gt 1000000) {
-                $limitsExceeded.ItemCount += $_
+                $limitsExceeded.ItemCount += $_.Identity.ToString()
             }
         }
     }
 
     end {
+        Write-Progress -Activity "None" -Completed
         Write-Host "Get-LimitsExceeded duration" ((Get-Date) - $startTime)
         return $limitsExceeded
     }

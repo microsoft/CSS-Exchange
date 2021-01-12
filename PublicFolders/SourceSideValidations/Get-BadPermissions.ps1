@@ -1,39 +1,36 @@
 function Get-BadPermissions {
     [CmdletBinding()]
-    [OutputType("System.Object[]")]
     param (
         [Parameter()]
         [PSCustomObject]
         $FolderData
     )
-
+    
     begin {
         $startTime = Get-Date
-        $progressCount = 0
         $badPermissions = @()
     }
-
+    
     process {
-        $FolderData.IpmSubtree | ForEach-Object {
-            if (++$progressCount % 10 -eq 0) {
-                $elapsed = ((Get-Date) - $startTime)
-                $estimatedRemaining = [TimeSpan]::FromTicks($FolderData.IpmSubtree.Count / $progressCount * $elapsed.Ticks - $elapsed.Ticks).ToString("hh\:mm\:ss")
-                Write-Progress -Activity "Checking permissions. Estimated time remaining: $estimatedRemaining" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
+        $folderData.IpmSubtreeByMailbox | Foreach-Object {
+            $argumentList = $mailboxNameToServerMap[$_.Name], $_.Name, $_.Group
+            $name = $_.Name
+            $scriptBlock = ${Function:Get-BadPermissionsJob}
+            Add-JobQueueJob @{
+                ArgumentList = $argumentList
+                Name = "$name Permissions Check"
+                ScriptBlock = $scriptBlock
             }
+        }
 
-            Get-PublicFolderClientPermission $_.EntryId | ForEach-Object {
-                if (
-                    ($_.User.DisplayName -ne "Default") -and
-                    ($_.User.DisplayName -ne "Anonymous") -and
-                    ($null -eq $_.User.ADRecipient) -and
-                    ($_.User.UserType -eq "Unknown")
-                ) {
-                    $badPermissions += $_
-                }
+        $completedJobs = Wait-QueuedJobs
+        foreach ($job in $completedJobs) {
+            if ($job.BadPermissions.Count -gt 0) {
+                $badPermissions = $badPermissions + $job.BadPermissions
             }
         }
     }
-
+    
     end {
         Write-Host "Get-BadPermissions duration" ((Get-Date) - $startTime)
         return $badPermissions
