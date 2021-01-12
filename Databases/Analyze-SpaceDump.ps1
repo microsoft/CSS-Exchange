@@ -12,7 +12,7 @@
 
 param([string]$File)
 
-$fileReader = new-object System.IO.StreamReader($File)
+$fileReader = New-Object System.IO.StreamReader($File)
 $foundHeaderLine = $false
 while ($null -ne ($buffer = $fileReader.ReadLine())) {
     if ($buffer.StartsWith("Name ")) {
@@ -29,18 +29,15 @@ while ($null -ne ($buffer = $fileReader.ReadLine())) {
                     $availColumnIndex = $x
                 }
             }
-            
+
             break
         } else {
             # now find the Owned header and figure out where that column starts and ends
             $typeLabelIndex = $buffer.IndexOf("Type")
-            $typeLabelEnd = $typeLabelIndex + 4
             $ownedLabelIndex = $buffer.IndexOf("Owned(MB)")
             $ownedColumnEnd = $ownedLabelIndex + 9
             $ownedColumnStart = $ownedColumnEnd - 12
 
-            $ofTableLabelIndex = $buffer.IndexOf("%OfTable")
-            $ofTableLabelEnd = $ofTableLabelIndex + 8
             $availableColumnIndex = $buffer.IndexOf("Avail(MB)")
             $availableColumnEnd = $availableColumnIndex + 9
             $availableColumnStart = $availableColumnEnd - 12
@@ -67,9 +64,9 @@ if ($isCSV) {
     $fileReader.ReadLine() | Out-Null
 }
 
-$attachmentTableSizes = new-object 'System.Collections.Generic.Dictionary[string, double]'
-$attachmentTableFree = new-object 'System.Collections.Generic.Dictionary[string, double]'
-$piTablesPerMailbox = new-object 'System.Collections.Generic.Dictionary[string, double]'
+$attachmentTableSizes = New-Object 'System.Collections.Generic.Dictionary[string, double]'
+$attachmentTableFree = New-Object 'System.Collections.Generic.Dictionary[string, double]'
+$piTablesPerMailbox = New-Object 'System.Collections.Generic.Dictionary[string, double]'
 
 [double]$spaceOwnedByAttachmentTables = 0
 [double]$freeSpaceByAttachmentTables = 0
@@ -107,7 +104,7 @@ while ($null -ne ($buffer = $fileReader.ReadLine())) {
             $thisOwnedSpace = [System.Double]::Parse($buffer.Substring($ownedColumnStart, $ownedColumnLength))
             $thisAvailSpace = [System.Double]::Parse($buffer.Substring($availableColumnStart, $availableColumnLength))
         }
-        
+
         if ($buffer.StartsWith("  Attachment_")) {
             $numberOfAttachmentTables++
             $spaceOwnedByAttachmentTables += $thisOwnedSpace

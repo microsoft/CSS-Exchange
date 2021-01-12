@@ -1,19 +1,3 @@
-#################################################################################
-#
-# The sample scripts are not supported under any Microsoft standard support 
-# program or service. The sample scripts are provided AS IS without warranty 
-# of any kind. Microsoft further disclaims all implied warranties including, without 
-# limitation, any implied warranties of merchantability or of fitness for a particular 
-# purpose. The entire risk arising out of the use or performance of the sample scripts 
-# and documentation remains with you. In no event shall Microsoft, its authors, or 
-# anyone else involved in the creation, production, or delivery of the scripts be liable 
-# for any damages whatsoever (including, without limitation, damages for loss of business 
-# profits, business interruption, loss of business information, or other pecuniary loss) 
-# arising out of the use of or inability to use the sample scripts or documentation, 
-# even if Microsoft has been advised of the possibility of such damages.
-#
-#################################################################################
-
 # ValidateMailEnabledPublicFolders.ps1
 #
 # Note: If running on Exchange 2010, the ExFolders tool must be in the V14\bin folder
@@ -61,7 +45,7 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
     }
 
     New-ItemProperty -Path $registryPath -Name $valueName -Value $value -PropertyType MultiString -Force | Out-Null
-    
+
     $result = (Get-ItemProperty -Path $registryPath -Name $valueName).PublicFolderPropertiesSelected
 
     if ($result[0] -ne $value[0] -or $result[1] -ne $value[1] -or $result[2] -ne $value[2]) {
@@ -72,8 +56,8 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
     $msiInstallPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup" -Name "MsiInstallPath").MsiInstallPath
     $exFoldersExe = "$msiInstallPath\bin\ExFolders.exe"
 
-    $pfDbToUse = Get-PublicFolderDatabase | Select -First 1
-    
+    $pfDbToUse = Get-PublicFolderDatabase | Select-Object -First 1
+
     Write-Host "Generating ExFolders export."
     Write-Warning "NOTE: ExFolders will appear to be Not Responding during the export. That is normal."
     Write-Host "Waiting for export to finish..."
@@ -87,7 +71,7 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
         Write-Error "any mail-disabled folders have invalid proxy GUIDs, those will be missed."
     } else {
         $exportResults = Import-Csv .\ExFoldersMailEnabledPropertyExport.txt -Delimiter `t
-        $mailDisabledWithProxyGuid = @($exportResults | ? { $_."PR_PF_PROXY_REQUIRED: 0x671F000B" -ne "True" -and $_."PR_PF_PROXY: 0x671D0102" -ne "PropertyError: NotFound" -and $_."DS:legacyExchangeDN".length -lt 1 } | ForEach-Object { $_."Folder Path" })
+        $mailDisabledWithProxyGuid = @($exportResults | Where-Object { $_."PR_PF_PROXY_REQUIRED: 0x671F000B" -ne "True" -and $_."PR_PF_PROXY: 0x671D0102" -ne "PropertyError: NotFound" -and $_."DS:legacyExchangeDN".length -lt 1 } | ForEach-Object { $_."Folder Path" })
     }
 }
 
@@ -107,7 +91,7 @@ for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
 
 Write-Host "$($mailEnabledFoldersWithNoADObject.Count) folders are mail-enabled with no AD object."
 
-Write-Host "$($mailPublicFoldersLinked.Keys.Count) folders are mail-enabled and are properly linked to an existing AD object." 
+Write-Host "$($mailPublicFoldersLinked.Keys.Count) folders are mail-enabled and are properly linked to an existing AD object."
 
 Write-Host "Getting all MailPublicFolder objects..."
 
@@ -175,7 +159,7 @@ for ($i = 0; $i -lt $orphanedMailPublicFolders.Count; $i++) {
             continue
         }
     }
-    
+
     if ($null -ne $thisMPF.EntryId -and $byEntryId.TryGetValue($thisMPF.EntryId.ToString(), [ref]$pf)) {
         if ($pf.MailEnabled) {
 

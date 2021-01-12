@@ -1,4 +1,4 @@
-# This script compares two sets of mailbox statistics from the same database and highlights mailbox growth 
+# This script compares two sets of mailbox statistics from the same database and highlights mailbox growth
 # that occurred between the two snapshots.
 #
 # For a growing database, a typical approach would be to start by exporting the statistics for the database:
@@ -12,7 +12,7 @@
 # .\Compare-MailboxStatistics.ps1 -Before (Import-CliXml C:\stats-before.xml) -After (Get-MailboxStatistics -Database DB1)
 #
 # This makes it easy to see which mailboxes grew the most.
-
+[CmdletBinding()]
 param($Before, $After)
 
 $numberOfTopResults = 100
@@ -99,8 +99,8 @@ $created | ForEach-Object { $createdSizeSum += $_.TotalItemSize; $createdDeleted
 
 Write-Host "New Mailboxes" -ForegroundColor Green
 Write-Host "=============" -ForegroundColor Green
-Write-Host "The following" $created.Count "mailboxes are present after that were not present before. These may be new, or may have been moved to this database." -ForegroundColor Green
-Write-Host "These account for" ([long]($createdSizeSum / 1024 / 1024)) "MB item size and" ([long]($createdDeletedSum / 1024 / 1024)) "MB deleted item size." -ForegroundColor Green
+Write-Host "The following $($created.Count) mailboxes are present after that were not present before. These may be new, or may have been moved to this database." -ForegroundColor Green
+Write-Host "These account for $([long]($createdSizeSum / 1024 / 1024)) MB item size and $([long]($createdDeletedSum / 1024 / 1024)) MB deleted item size." -ForegroundColor Green
 
 $created | Sort-Object TotalItemSize -Descending | Select-Object -First $numberOfTopResults | Format-Table -a DisplayName, MailboxGuid, TotalItemSize, TotalDeletedItemSize
 
@@ -111,8 +111,8 @@ $deleted | ForEach-Object { $deletedSizeSum += $_.TotalItemSize; $deletedDeleted
 
 Write-Host "Deleted Mailboxes" -ForegroundColor Green
 Write-Host "=================" -ForegroundColor Green
-Write-Host "The following" $deleted.Count "mailboxes are no longer present in the database. These may have been deleted or moved off." -ForegroundColor Green
-Write-Host "These accounted for" ([long]($deletedSizeSum / 1024 / 1024)) "MB item size and" ([long]($deletedDeletedSum / 1024 / 1024)) "MB deleted item size in the `"before`" data." -ForegroundColor Green
+Write-Host "The following $($deleted.Count) mailboxes are no longer present in the database. These may have been deleted or moved off." -ForegroundColor Green
+Write-Host "These accounted for $([long]($deletedSizeSum / 1024 / 1024)) MB item size and $([long]($deletedDeletedSum / 1024 / 1024)) MB deleted item size in the `"before`" data." -ForegroundColor Green
 
 $deleted | Sort-Object TotalItemSize -Descending | Select-Object -First $numberOfTopResults | Format-Table -a DisplayName, MailboxGuid, TotalItemSize, TotalDeletedItemSize
 
