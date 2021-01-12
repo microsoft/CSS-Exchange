@@ -129,9 +129,10 @@ Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/vi
 
 "@
 
+$Script:VerboseEnabled = $false
 #this is to set the verbose information to a different color
 if ($PSBoundParameters["Verbose"]) {
-    #Write verose output in cyan since we already use yellow for warnings
+    #Write verbose output in cyan since we already use yellow for warnings
     $Script:VerboseEnabled = $true
     $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
@@ -313,7 +314,7 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $true -EnableDateTime $false -ErrorAction SilentlyContinue
+    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
     Main
 } finally {
     Get-ErrorsThatOccurred
