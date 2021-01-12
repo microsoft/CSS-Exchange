@@ -49,7 +49,13 @@ Function Get-OperatingSystemInformation {
     if ($null -ne $counterSamples) {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
-    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
+    $serverReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
+    $osInformation.ServerPendingReboot.PendingFileRenameOperations = $serverReboot.PendingFileRenameOperations
+    $osInformation.ServerPendingReboot.SccmReboot = $serverReboot.SccmReboot
+    $osInformation.ServerPendingReboot.SccmRebootPending = $serverReboot.SccmRebootPending
+    $osInformation.ServerPendingReboot.ComponentBasedServicingRebootPending = $serverReboot.ComponentBasedServicingRebootPending
+    $osInformation.ServerPendingReboot.AutoUpdatePendingReboot = $serverReboot.AutoUpdatePendingReboot
+    $osInformation.ServerPendingReboot.PendingReboot = $serverReboot.PendingReboot
     $timeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TimeZone.DynamicDaylightTimeDisabled = $timeZoneInformation.DynamicDaylightTimeDisabled
     $osInformation.TimeZone.TimeZoneKeyName = $timeZoneInformation.TimeZoneKeyName
