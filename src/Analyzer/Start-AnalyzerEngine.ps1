@@ -90,6 +90,12 @@ Function Start-AnalyzerEngine {
         -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
+    if ($exchangeInformation.BuildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "DAG Name" -Details ($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup.Name) `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -AnalyzedInformation $analyzedResults
+    }
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "MAPI/HTTP Enabled" -Details ($exchangeInformation.MapiHttpEnabled) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AnalyzedInformation $analyzedResults
