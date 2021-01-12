@@ -129,21 +129,26 @@ Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/vi
 
 "@
 
+$Script:VerboseEnabled = $false
 #this is to set the verbose information to a different color
 if ($PSBoundParameters["Verbose"]) {
-    #Write verose output in cyan since we already use yellow for warnings
+    #Write verbose output in cyan since we already use yellow for warnings
     $Script:VerboseEnabled = $true
     $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
 . .\Helpers\Class.ps1
-. .\Writers\Write-Functions.ps1
 . .\Writers\Write-HealthCheckerVersion.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\extern\Confirm-Administrator.ps1
 . .\extern\Confirm-ExchangeShell.ps1
 . .\extern\New-LoggerObject.ps1
+. .\extern\Write-HostWriter.ps1
+. .\extern\Write-ScriptMethodHostWriters.ps1
+. .\extern\Write-ScriptMethodVerboseWriter.ps1
+. .\extern\Write-VerboseWriter.ps1
+. .\Writers\Write-Functions.ps1
 . .\DataCollection\extern\Get-AllNicInformation.ps1
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
@@ -309,7 +314,7 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $true -EnableDateTime $false -ErrorAction SilentlyContinue
+    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
     Main
 } finally {
     Get-ErrorsThatOccurred
