@@ -5,7 +5,7 @@ Function Get-ExchangeInformation {
     Write-VerboseOutput("Calling: Get-ExchangeInformation")
     Write-VerboseOutput("Passed: OSMajorVersion: {0}" -f $OSMajorVersion)
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
-    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server)
+    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
     $buildInformation = $exchangeInformation.BuildInformation
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion](Get-ExchangeMajorVersion -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion))
