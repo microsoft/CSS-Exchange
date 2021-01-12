@@ -19,6 +19,7 @@ try {
             {
                 public ExchangeBuildInformation BuildInformation = new ExchangeBuildInformation();   //Exchange build information
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
+                public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config
                 public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth

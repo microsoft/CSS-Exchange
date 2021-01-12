@@ -12,6 +12,10 @@ Function Get-ExchangeInformation {
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails
 
+    if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
+        $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
+    }
+
     #Exchange 2013 or greater
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework
