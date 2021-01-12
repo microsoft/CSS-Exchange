@@ -123,7 +123,7 @@ try {
                 public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
                 public PageFileInformation PageFile;             //stores the page file information
                 public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
-                public bool ServerPendingReboot; // determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at.
+                public ServerPendingReboot ServerPendingReboot = new ServerPendingReboot();// determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at.
                 public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
                 public Hashtable TLSSettings;            // stores the TLS settings on the server.
                 public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
@@ -133,6 +133,16 @@ try {
                 public bool CredentialGuardEnabled;
                 public OSRegistryValues RegistryValues = new OSRegistryValues();
                 public Smb1ServerSettings Smb1ServerSettings = new Smb1ServerSettings();
+            }
+
+            public class ServerPendingReboot
+            {
+                public bool PendingFileRenameOperations;
+                public object SccmReboot;
+                public bool SccmRebootPending;
+                public bool ComponentBasedServicingRebootPending;
+                public bool AutoUpdatePendingReboot;
+                public bool PendingReboot;
             }
 
             public class OSBuildInformation

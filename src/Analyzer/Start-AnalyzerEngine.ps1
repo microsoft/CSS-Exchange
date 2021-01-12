@@ -400,7 +400,7 @@ Function Start-AnalyzerEngine {
     $displayValue = "False"
     $writeType = "Grey"
 
-    if ($osInformation.ServerPendingReboot) {
+    if ($osInformation.ServerPendingReboot.PendingReboot) {
         $displayValue = "True --- Warning a reboot is pending and can cause issues on the server."
         $writeType = "Yellow"
     }
@@ -408,7 +408,7 @@ Function Start-AnalyzerEngine {
     $analyzedResults = Add-AnalyzedResultInformation -Name "Server Pending Reboot" -Details $displayValue `
         -DisplayGroupingKey $keyOSInformation `
         -DisplayWriteType $writeType `
-        -DisplayTestingValue ($osInformation.ServerPendingReboot) `
+        -DisplayTestingValue ($osInformation.ServerPendingReboot.PendingReboot) `
         -AnalyzedInformation $analyzedResults
 
     ################################
