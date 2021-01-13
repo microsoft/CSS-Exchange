@@ -1,12 +1,8 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
   branches:
     include:
       - main
+      - release
 
 pool:
   vmImage: 'windows-latest'
@@ -24,6 +20,10 @@ steps:
     cd .\.build
     .\Build.ps1
   displayName: "Build Script"
+
+- pwsh: |
+    $tag = "v$((Get-Date).ToString(`"yy.MM.dd.HHmm`"))"
+    Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
 
 - task: EsrpCodeSigning@1
   inputs:
@@ -65,3 +65,17 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Release'
+  condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+  inputs:
+    gitHubConnection: 'GitHub Release'
+    repositoryName: microsoft/CSS-Exchange
+    action: create
+    tagSource: manual
+    tagPattern: 'v[0-9].[0-9].[0-9].[0-9]'
+    tag: $(ReleaseTagValue)
+    title: $(ReleaseTagValue)
+    assets: dist\*.ps1
+    addChangeLog: true
