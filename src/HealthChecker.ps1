@@ -110,6 +110,7 @@ param(
 )
 
 $scriptVersion = "1.0.0"
+$scriptBuildDate = "Today"
 
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:

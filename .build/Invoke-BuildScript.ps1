@@ -53,6 +53,12 @@ $scriptFiles | ForEach-Object {
             $scriptContent.RemoveAt($i)
             $scriptContent.Insert($i, "`$scriptVersion = `"$NewScriptVersion`"")
         }
+
+        if ($line -eq '$scriptBuildDate = "Today"') {
+            $scriptContent.RemoveAt($i)
+            $today = Get-Date
+            $scriptContent.Insert($i, "`$scriptBuildDate = `"$today`"")
+        }
     }
 
     $outputLocation = ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_)))

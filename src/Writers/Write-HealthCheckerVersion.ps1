@@ -1,10 +1,12 @@
 Function Write-HealthCheckerVersion {
 
-    $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" `
-        -RepoName "HealthChecker" `
-        -CurrentVersion $scriptVersion `
-        -DaysOldLimit 90 `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
+    if (([DateTime]::Parse($scriptBuildDate)).AddDays(10) -lt [DateTime]::Now) {
+        $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" `
+            -RepoName "HealthChecker" `
+            -CurrentVersion $scriptVersion `
+            -DaysOldLimit 90 `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
+    } else { $currentVersion = $true }
 
     $Script:DisplayedScriptVersionAlready = $true
 
