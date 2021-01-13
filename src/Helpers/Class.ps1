@@ -114,6 +114,7 @@ try {
             public class ExchangeRegistryValues
             {
                 public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
+                public int FipsAlgorithmPolicyEnabled;       //Stores the Enabled value from HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy
             }
             // End ExchangeInformation
 

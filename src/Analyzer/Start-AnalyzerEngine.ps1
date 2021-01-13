@@ -940,6 +940,11 @@ Function Start-AnalyzerEngine {
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "FIPS Algorithm Policy Enabled" -Details ($exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled) `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
+        -HtmlName "FipsAlgorithmPolicy-Enabled" `
+        -AnalyzedInformation $analyzedResults
+
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
 
