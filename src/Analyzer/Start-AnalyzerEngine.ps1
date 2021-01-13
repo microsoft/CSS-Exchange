@@ -511,35 +511,46 @@ Function Start-AnalyzerEngine {
         -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
+    $displayValue = "Disabled"
+    $displayWriteType = "Green"
+    $displayTestingValue = $false
+    $additionalDisplayValue = [string]::Empty
+    $additionalWriteType = "Red"
+
     if ($logicalValue -gt $physicalValue) {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details "Enabled --- Error: Having Hyper-Threading enabled goes against best practices and can cause performance issues. Please disable as soon as possible." `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Red" `
-            -DisplayTestingValue $true `
-            -AnalyzedInformation $analyzedResults
+
+        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) {
+            $displayValue = "Enabled --- Error: Having Hyper-Threading enabled goes against best practices and can cause performance issues. Please disable as soon as possible."
+            $displayTestingValue = $true
+            $displayWriteType = "Red"
+        } else {
+            $displayValue = "Enabled --- Not Applicable"
+            $displayTestingValue = $true
+            $displayWriteType = "Grey"
+        }
 
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-            $analyzedResults = Add-AnalyzedResultInformation -Details "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/" `
-                -DisplayGroupingKey $keyHardwareInformation `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Red" `
-                -AddHtmlDetailRow $false `
-                -AnalyzedInformation $analyzedResults
+            $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/"
         }
 
         if ($hardwareInformation.Processor.Name.StartsWith("AMD")) {
-            $analyzedResults = Add-AnalyzedResultInformation -Details "This script may incorrectly report that Hyper-Threading is enabled on certain AMD processors. Check with the manufacturer to see if your mondel supports SMT." `
-                -DisplayGroupingKey $keyHardwareInformation `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
-                -AddHtmlDetailRow $false `
-                -AnalyzedInformation $analyzedResults
+            $additionalDisplayValue = "This script may incorrectly report that Hyper-Threading is enabled on certain AMD processors. Check with the manufacturer to see if your model supports SMT."
+            $additionalWriteType = "Yellow"
         }
-    } else {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details "Disabled" `
+    }
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details $displayValue `
+        -DisplayGroupingKey $keyHardwareInformation `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $displayTestingValue `
+        -AnalyzedInformation $analyzedResults
+
+    if (!([string]::IsNullOrEmpty($additionalDisplayValue))) {
+        $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue `
             -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Green" `
-            -DisplayTestingValue $false `
+            -DisplayWriteType $additionalWriteType `
+            -DisplayCustomTabNumber 2 `
+            -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
     }
 
