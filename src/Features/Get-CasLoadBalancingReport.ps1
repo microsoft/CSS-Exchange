@@ -1,7 +1,6 @@
 Function Get-CASLoadBalancingReport {
 
     Write-VerboseOutput("Calling: Get-CASLoadBalancingReport")
-    Write-Yellow("Note: CAS Load Balancing Report has known issues with attempting to get counter from servers. If you see errors regarding 'Get-Counter path not valid', please ignore for the time being. This is going to be addressed in later versions")
     #Connection and requests per server and client type values
     $CASConnectionStats = @{}
     $TotalCASConnectionCount = 0
@@ -49,12 +48,17 @@ Function Get-CASLoadBalancingReport {
     $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\Requests Executing"
     $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_owa)\Requests Executing"
     $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Rpc)\Requests Executing"
+    $currentErrors = $Error.Count
+    $AllCounterResults = Get-Counter -ComputerName $CASServers -Counter $PerformanceCounters -ErrorAction SilentlyContinue
 
-    try {
-        $AllCounterResults = Get-Counter -ComputerName $CASServers -Counter $PerformanceCounters
-    } catch {
-        Invoke-CatchActions
-        Write-VerboseOutput("Failed to get counter samples")
+    if ($currentErrors -ne $Error.Count) {
+        $i = 0
+        while ($i -lt ($Error.Count - $currentErrors)) {
+            Invoke-CatchActions -CopyThisError $Error[$i]
+            $i++
+        }
+
+        Write-VerboseWriter("Failed to get some counters")
     }
 
     foreach ($Result in $AllCounterResults.CounterSamples) {
