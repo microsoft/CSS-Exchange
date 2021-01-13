@@ -23,4 +23,10 @@ Function Set-ScriptLogFileLocation {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
         exit
     }
+
+    if ($Script:ExchangeShellComputer.ToolsOnly -and
+        $env:COMPUTERNAME -eq $Script:Server) {
+        Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
+        exit
+    }
 }
