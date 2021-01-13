@@ -706,6 +706,18 @@ Function Start-AnalyzerEngine {
                 -DisplayGroupingKey $keyNICSettings `
                 -AnalyzedInformation $analyzedResults
 
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Max Processors" -Details ($adapter.NetAdapterRss.MaxProcessors) `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Max Processor Number" -Details ($adapter.NetAdapterRss.MaxProcessorNumber) `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Number of Receive Queues" -Details ($adapter.NetAdapterRss.NumberOfReceiveQueues) `
+                -DisplayGroupingKey $keyNICSettings `
+                -AnalyzedInformation $analyzedResults
+
             $writeType = "Yellow"
             $testingValue = $null
 
