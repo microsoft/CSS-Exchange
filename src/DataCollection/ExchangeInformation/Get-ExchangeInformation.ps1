@@ -334,7 +334,14 @@ Function Get-ExchangeInformation {
         }
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" -GetValue "CtsProcessorAffinityPercentage" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
+            -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
+            -GetValue "CtsProcessorAffinityPercentage" `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Invoke-RegistryGetValue -MachineName $Script:Server `
+            -SubKey "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" `
+            -GetValue "Enabled" `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) {
