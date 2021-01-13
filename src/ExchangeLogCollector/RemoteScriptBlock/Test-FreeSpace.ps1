@@ -1,8 +1,15 @@
 Function Test-FreeSpace {
     param(
-        [Parameter(Mandatory = $true)][array]$FilePaths
+        [Parameter(Mandatory = $false)][array]$FilePaths
     )
     Write-ScriptDebug("Calling: Test-FreeSpace")
+
+    if ($null -eq $FilePaths -or
+        $FilePaths.Count -eq 0) {
+        Write-ScriptDebug("Null FilePaths provided returning true.")
+        return $true
+    }
+
     $passed = $true
     $currentSizeCopy = Get-ItemsSize -FilePaths $FilePaths
     #It is better to be safe than sorry, checking against probably a value way higher than needed.

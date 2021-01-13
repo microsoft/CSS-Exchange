@@ -15,7 +15,8 @@ Function Copy-FullLogFullPathRecurse {
             }
         }
 
-        if ($null -ne $items) {
+        if ($null -ne $items -and
+            $items.Count -gt 0) {
             if (Test-FreeSpace -FilePaths $items) {
                 Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
                 Invoke-ZipFolder $CopyToThisLocation
