@@ -70,6 +70,20 @@ Function Start-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
     }
 
+    if ($null -ne $exchangeInformation.BuildInformation.LocalBuildNumber) {
+        $local = $exchangeInformation.BuildInformation.LocalBuildNumber
+        $remote = $exchangeInformation.BuildInformation.BuildNumber
+
+        if ($local.Substring(0, $local.LastIndexOf(".")) -ne $remote.Substring(0, $remote.LastIndexOf("."))) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Warning" -Details ("Running commands from a different version box can cause issues. Local Tools Server Version: {0}" -f $local) `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
         $analyzedResults = Add-AnalyzedResultInformation -Details ("Exchange IU or Security Hotfix Detected.") `
             -DisplayGroupingKey $keyExchangeInformation `

@@ -18,6 +18,12 @@ Function Get-ExchangeInformation {
         $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
     }
 
+    if ($Script:ExchangeShellComputer.ToolsOnly) {
+        $buildInformation.LocalBuildNumber = "{0}.{1}.{2}.{3}" -f $Script:ExchangeShellComputer.Major, $Script:ExchangeShellComputer.Minor, `
+            $Script:ExchangeShellComputer.Build, `
+            $Script:ExchangeShellComputer.Revision
+    }
+
     #Exchange 2013 or greater
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework

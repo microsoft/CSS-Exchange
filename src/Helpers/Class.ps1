@@ -36,6 +36,7 @@ try {
                 public ExchangeCULevel CU;             // Exchange CU Level
                 public string FriendlyName;     //Exchange Friendly Name is provided
                 public string BuildNumber;      //Exchange Build Number
+                public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
                 public string ReleaseDate;      // Exchange release date for which the CU they are currently on
                 public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
                 public object ExchangeSetup;    //Stores the Get-Command ExSetup object
