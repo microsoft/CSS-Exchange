@@ -1,12 +1,12 @@
 #https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ExchangeInformation/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
-#v21.01.12.2020
+#v21.01.12.2326
 Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.12.2020
+    #Function Version #v21.01.12.2326
 
     Function Invoke-CatchActionErrorLoop {
         param(
@@ -99,7 +99,7 @@ Function Confirm-ExchangeShell {
         Minor       = ((Get-ItemProperty -Path $setupKey -Name "MsiProductMinor" -ErrorAction SilentlyContinue).MsiProductMinor)
         Build       = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMajor" -ErrorAction SilentlyContinue).MsiBuildMajor)
         Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
-        ToolsOnly   = $passed -and (Test-Path $setupKey) -and (!(Test-Path "$setupKey\Services"))
+        ToolsOnly   = $passed -and (Test-Path $setupKey) -and ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
         RemoteShell = $passed -and (!(Test-Path $setupKey))
     }
 
