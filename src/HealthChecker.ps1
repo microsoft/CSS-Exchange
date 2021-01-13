@@ -152,7 +152,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-AllNicInformation.ps1
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
-. .\DataCollection\extern\Get-ExchangeMajorVersion.ps1
+. .\DataCollection\extern\Get-ExchangeBuildVersionInformation.ps1
 . .\DataCollection\extern\Get-NETFrameworkVersion.ps1
 . .\DataCollection\extern\Get-ProcessorInformation.ps1
 . .\DataCollection\extern\Get-ServerOperatingSystemVersion.ps1

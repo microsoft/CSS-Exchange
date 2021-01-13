@@ -8,7 +8,9 @@ Function Get-ExchangeInformation {
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
     $buildInformation = $exchangeInformation.BuildInformation
-    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion](Get-ExchangeMajorVersion -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion))
+    $buildVersionInfo = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
+    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildVersionInfo.MajorVersion)
+    $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $buildVersionInfo.Major, $buildVersionInfo.Minor, $buildVersionInfo.Build, $buildVersionInfo.Revision
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails
 
@@ -16,15 +18,18 @@ Function Get-ExchangeInformation {
         $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
     }
 
+    if ($Script:ExchangeShellComputer.ToolsOnly) {
+        $buildInformation.LocalBuildNumber = "{0}.{1}.{2}.{3}" -f $Script:ExchangeShellComputer.Major, $Script:ExchangeShellComputer.Minor, `
+            $Script:ExchangeShellComputer.Build, `
+            $Script:ExchangeShellComputer.Revision
+    }
+
     #Exchange 2013 or greater
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework
-        $adminDisplayVersion = $exchangeInformation.GetExchangeServer.AdminDisplayVersion
-        $revisionNumber = if ($adminDisplayVersion.Revision -lt 10) { $adminDisplayVersion.Revision / 10 } else { $adminDisplayVersion.Revision / 100 }
-        $buildAndRevision = $adminDisplayVersion.Build + $revisionNumber
+        $buildAndRevision = $buildVersionInfo.BuildVersion
         Write-VerboseOutput("The build and revision number: {0}" -f $buildAndRevision)
         #Build Numbers: https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
-        $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $adminDisplayVersion.Major, $adminDisplayVersion.Minor, $adminDisplayVersion.Build, $adminDisplayVersion.Revision
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             Write-VerboseOutput("Exchange 2019 is detected. Checking build number...")
             $buildInformation.FriendlyName = "Exchange 2019 "
