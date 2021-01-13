@@ -17,7 +17,9 @@ Function Set-ScriptLogFileLocation {
         return
     }
 
-    if (!(Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions} )) {
+    $Script:ExchangeShellComputer = Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    if (!($Script:ExchangeShellComputer.ShellLoaded)) {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
         exit
     }
