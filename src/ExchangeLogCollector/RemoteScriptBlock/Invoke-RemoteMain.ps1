@@ -427,7 +427,13 @@ Function Invoke-RemoteMain {
     #Execute the cmds
     foreach ($cmd in $cmdsToRun) {
         Write-ScriptDebug("cmd: {0}" -f $cmd)
-        Invoke-Expression $cmd
+
+        try {
+            & $cmd
+        } catch {
+            Write-ScriptDebug("Failed to finish running command: $cmd")
+            #TODO Add Error Information Here.
+        }
     }
 
     if ((-not($PassedInfo.ExchangeServerInfo)) -and
