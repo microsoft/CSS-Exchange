@@ -292,7 +292,10 @@ Function Main {
         Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
         exit
     }
-    if (-not(Confirm-ExchangeShell)) {
+
+    $Script:LocalExchangeShell = Confirm-ExchangeShell
+
+    if (!($Script:LocalExchangeShell.ShellLoaded)) {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false
         exit
     }
