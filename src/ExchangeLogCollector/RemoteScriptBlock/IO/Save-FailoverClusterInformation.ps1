@@ -35,7 +35,7 @@ Function Save-FailoverClusterInformation {
     }
 
     try {
-        Get-ClusterLog -Node $env:ComputerName -Destination $copyTo -ErrorAction Stop
+        Get-ClusterLog -Node $env:ComputerName -Destination $copyTo -ErrorAction Stop | Out-Null
     } catch {
         Write-ScriptDebug "Failed to run Get-ClusterLog"
     }
