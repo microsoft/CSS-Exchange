@@ -226,7 +226,6 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
     . .\RemoteScriptBlock\Get-ThisServerObject.ps1
-    . .\RemoteScriptBlock\Remove-EventLogChar.ps1
     . .\RemoteScriptBlock\Set-IISDirectoryInfo.ps1
     . .\RemoteScriptBlock\Set-InstanceRunningVars.ps1
     . .\RemoteScriptBlock\Set-RootCopyDirectory.ps1
