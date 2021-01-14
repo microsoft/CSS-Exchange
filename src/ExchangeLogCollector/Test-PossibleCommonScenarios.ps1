@@ -39,6 +39,7 @@ Function Test-PossibleCommonScenarios {
         $Script:FrontEndConnectivityLogs = $true
         $Script:MailboxConnectivityLogs = $true
         $Script:FrontEndProtocolLogs = $true
+        $Script:MailboxDeliveryThrottlingLogs = $true
     }
 
     if ($DatabaseFailoverIssue) {
@@ -94,6 +95,7 @@ Function Test-PossibleCommonScenarios {
         $FrontEndProtocolLogs -or
         $MailboxConnectivityLogs -or
         $MailboxProtocolLogs -or
+        $MailboxDeliveryThrottlingLogs -or
         $DefaultTransportLogging) {
         $Script:AnyTransportSwitchesEnabled = $true
     }
