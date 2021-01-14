@@ -54,12 +54,5 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
     $obj | Add-Member -Name WindowsSecurityLogs -MemberType NoteProperty $WindowsSecurityLogs
 
-    if ($SendConnectors) {
-        #TODO move this to a different location, but for now this should work.
-        $value = Get-SendConnector
-        $Script:SendConnectorData = $value
-        #$obj | Add-Member -MemberType NoteProperty -Name SendConnectorData -Value $value
-    }
-
     return $obj
 }
