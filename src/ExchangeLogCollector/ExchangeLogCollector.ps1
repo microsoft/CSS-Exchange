@@ -213,6 +213,7 @@ Function Invoke-RemoteFunctions {
     )
 
     . .\RemoteScriptBlock\extern\Compress-Folder.ps1
+    . .\RemoteScriptBlock\extern\Get-ClusterNodeFileVersions.ps1
     . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
     . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
     . .\RemoteScriptBlock\extern\New-Folder.ps1

@@ -41,6 +41,14 @@ Function Save-FailoverClusterInformation {
     }
 
     try {
+        $clusterNodeFileVersions = Get-ClusterNodeFileVersions
+        Save-DataInfoToFile -DataIn $clusterNodeFileVersions -SaveToLocation "$copyTo\ClusterNodeFileVersions" -SaveTextFile $false
+        Save-DataInfoToFile -DataIn ($clusterNodeFileVersions.Files.Values) -SaveToLocation "$copyTo\ClusterNodeFileVersions" -SaveXMLFile $false -FormatList $false
+    } catch {
+        Write-ScriptDebug "Failed to run Get-ClusterNodeFileVersions"
+    }
+
+    try {
         $saveName = "$copyTo\ClusterHive.hiv"
         reg save "HKEY_LOCAL_MACHINE\Cluster" $saveName
         "To read the cluster hive. Run 'reg load HKLM\TempHive ClusterHive.hiv'. Then Open your regedit then go to HKLM:\TempHive to view the data." |
