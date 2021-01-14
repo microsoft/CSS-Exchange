@@ -383,6 +383,14 @@ Function Invoke-RemoteMain {
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Send_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
+
+            if ($PassedInfo.MailboxDeliveryThrottlingLogs -and
+                (!($Script:localServerObject.Version -eq 15 -and
+                        $Script:localServerObject.CASOnly))) {
+                Write-ScriptDebug("Collecting Mailbox Delivery Throttling Logs")
+                $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxDeliveryThrottlingLogPath), ($Script:RootCopyToDirectory + "\MBX_Delivery_Throttling_Logs"))
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            }
         }
     }
 

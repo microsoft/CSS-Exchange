@@ -145,6 +145,7 @@ Param (
     [switch]$FrontEndProtocolLogs,
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxProtocolLogs,
+    [switch]$MailboxDeliveryThrottlingLogs,
     [switch]$QueueInformationThisServer,
     [switch]$ReceiveConnectors,
     [switch]$SendConnectors,
