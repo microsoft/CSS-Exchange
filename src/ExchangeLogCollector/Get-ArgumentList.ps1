@@ -54,23 +54,6 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
     $obj | Add-Member -Name WindowsSecurityLogs -MemberType NoteProperty $WindowsSecurityLogs
 
-    #Collect only if enabled we are going to just keep it on the base of the passed parameter object to make it simple
-    $mbx = $false
-    foreach ($svr in $obj.ServerObjects) {
-        if ($svr.ServerName -eq $env:COMPUTERNAME) {
-            $mbx = $true
-            $checkSvr = $svr
-        }
-    }
-
-    if (($mbx) -and ($HighAvailabilityLogs) -and ($checkSvr.DAGMember)) {
-        Write-ScriptHost -WriteString ("Generating cluster logs for the local server's DAG only") -ShowServer $false
-        Write-ScriptHost -WriteString ("Server: {0}" -f $checkSvr.ServerName) -ShowServer $false
-        #Only going to do this for the local server's DAG
-        $cmd = "Cluster log /g"
-        Invoke-Expression -Command $cmd | Out-Null
-    }
-
     if ($SendConnectors) {
         #TODO move this to a different location, but for now this should work.
         $value = Get-SendConnector

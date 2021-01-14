@@ -237,6 +237,7 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
     . .\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
     . .\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
+    . .\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
     . .\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
     . .\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
     . .\RemoteScriptBlock\IO\Save-ServerInfoData.ps1
