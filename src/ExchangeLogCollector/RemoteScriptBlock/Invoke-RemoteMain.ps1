@@ -437,7 +437,7 @@ Function Invoke-RemoteMain {
         Write-ScriptDebug("cmd: {0}" -f $cmd)
 
         try {
-            & $cmd
+            Invoke-Expression $cmd -ErrorAction Stop
         } catch {
             Write-ScriptDebug("Failed to finish running command: $cmd")
             #TODO Add Error Information Here.
