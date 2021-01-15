@@ -251,6 +251,11 @@ Function Invoke-RemoteMain {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
             }
         }
+
+        if ($Script:localServerObject.DAGMember -and
+            $PassedInfo.DAGInformation) {
+            $cmdsToRun += "Save-FailoverClusterInformation"
+        }
     }
 
     ############################################
