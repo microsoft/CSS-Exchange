@@ -179,6 +179,10 @@ Param (
 
 $scriptVersion = "1.0.0"
 
+$Script:VerboseEnabled = $false
+
+if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
+
 . .\extern\Confirm-Administrator.ps1
 . .\extern\Confirm-ExchangeShell.ps1
 . .\extern\Enter-YesNoLoopAction.ps1
@@ -217,10 +221,13 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
     . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
     . .\RemoteScriptBlock\extern\New-Folder.ps1
+    . .\RemoteScriptBlock\extern\New-LoggerObject.ps1
     . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
     . .\RemoteScriptBlock\extern\Write-HostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnHostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnVerboseWriter.ps1
+    . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
+    . .\RemoteScriptBlock\extern\Write-ScriptMethodVerboseWriter.ps1
     . .\RemoteScriptBlock\extern\Write-VerboseWriter.ps1
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
@@ -228,7 +235,6 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\Get-ThisServerObject.ps1
     . .\RemoteScriptBlock\Set-IISDirectoryInfo.ps1
     . .\RemoteScriptBlock\Set-InstanceRunningVars.ps1
-    . .\RemoteScriptBlock\Set-RootCopyDirectory.ps1
     . .\RemoteScriptBlock\Test-CommandExists.ps1
     . .\RemoteScriptBlock\Test-FreeSpace.ps1
     . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
@@ -242,6 +248,7 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
     . .\RemoteScriptBlock\IO\Save-ServerInfoData.ps1
     . .\RemoteScriptBlock\IO\Save-WindowsEventLogs.ps1
+    . .\RemoteScriptBlock\IO\Write-DebugLog.ps1
     . .\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
     . .\RemoteScriptBlock\IO\Write-ScriptHost.ps1
     . .\RemoteScriptBlock\Logman\Get-LogmanData.ps1
@@ -257,7 +264,11 @@ Function Invoke-RemoteFunctions {
     try {
         $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
         $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
+
         if ($PassedInfo.ByPass -ne $true) {
+            $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
+            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootCopyToDirectory -LogName ("ExchangeLogCollector-Instance-Debug")
+            Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
             Write-ScriptDebug("Loading common functions")
@@ -278,14 +289,6 @@ Function Invoke-RemoteFunctions {
 
 Function Main {
 
-    <#
-    Added the ability to call functions from within a bundled function so i don't have to duplicate work.
-    Loading the functions into memory by using the '.' allows me to do this,
-    providing that the calling of that function doesn't do anything of value when doing this.
-    #>
-    $obj = New-Object PSCustomObject
-    $obj | Add-Member -MemberType NoteProperty -Name ByPass -Value $true
-    . Invoke-RemoteFunctions -PassedInfo $obj
     Start-Sleep 1
     Write-Disclaimer
     Test-PossibleCommonScenarios
@@ -302,7 +305,6 @@ Function Main {
         exit
     }
 
-    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
     if ((Confirm-LocalEdgeServer) -and
         $null -ne $Servers) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
@@ -326,12 +328,17 @@ Function Main {
                 Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
             } catch {
                 Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
+                $Script:Logger.WriteVerbose($Error[0])
                 exit
             }
 
             Start-WriteExchangeDataOnMachines
             Write-DataOnlyOnceOnLocalMachine
+            #New Logger Instance incase we want the data for the copy.
+            $Script:ErrorsFromStartOfCopy = $Error.Count
+            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-Copy-Debug"
             $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
+
             if ((-not($SkipEndCopyOver)) -and
                 (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath)) {
                 Write-ScriptHost -ShowServer $false -WriteString (" ")
@@ -385,4 +392,23 @@ Function Main {
     Write-FeedBack
 }
 
-Main
+try {
+    <#
+    Added the ability to call functions from within a bundled function so i don't have to duplicate work.
+    Loading the functions into memory by using the '.' allows me to do this,
+    providing that the calling of that function doesn't do anything of value when doing this.
+    #>
+    $obj = [PSCustomObject]@{
+        ByPass = $true
+    }
+    . Invoke-RemoteFunctions -PassedInfo $obj
+    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug"
+    Main
+} finally {
+
+    if ($Script:VerboseEnabled -or
+        ($Error.Count -ne $Script:ErrorsFromStartOfCopy)) {
+        $Script:Logger.RemoveLatestLogFile()
+    }
+}
