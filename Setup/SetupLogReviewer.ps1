@@ -307,9 +307,9 @@ Function Main {
         }
 
         Write-Host "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
-            "If that doesn't find the cause, please notify {0} to help us improve the scripts." -f $feedbackEmail
+            "If that doesn't find the cause, please notify $feedbackEmail to help us improve the scripts."
     } catch {
-        Write-Warning "Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail
+        Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail)
     }
 }
 
