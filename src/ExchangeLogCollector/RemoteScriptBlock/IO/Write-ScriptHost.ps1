@@ -5,6 +5,8 @@ Function Write-ScriptHost {
         [Parameter(Mandatory = $false)][string]$ForegroundColor = "Gray",
         [Parameter(Mandatory = $false)][bool]$NoNewLine = $false
     )
+    Write-DebugLog $WriteString
+
     if ($ShowServer) {
         Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
     } else {

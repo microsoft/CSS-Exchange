@@ -1,7 +1,7 @@
 Function Set-InstanceRunningVars {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Function name fits')]
     param()
-    $Script:RootCopyToDirectory = Set-RootCopyDirectory
+
     #Set the local Server Object Information
     Get-ThisServerObject
 

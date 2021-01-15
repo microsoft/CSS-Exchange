@@ -2,7 +2,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
     Write-ScriptDebug("Writting only once data")
 
-    $RootCopyToDirectory = Set-RootCopyDirectory
+    $RootCopyToDirectory = "{0}{1}" -f $Script:RootFilePath, $env:COMPUTERNAME
 
     if ($GetVdirs -and (-not($Script:EdgeRoleDetected))) {
         $target = $RootCopyToDirectory + "\ConfigNC_msExchVirtualDirectory_All.CSV"
