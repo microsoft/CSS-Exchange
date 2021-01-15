@@ -206,8 +206,22 @@ Function Invoke-RemoteMain {
         }
 
         if ($PassedInfo.DailyPerformanceLogs) {
-            #Daily Performace Logs are always by days worth
-            $info = ($copyInfo -f ($Script:localExinstall + "Logging\Diagnostics\DailyPerformanceLogs"), ($Script:RootCopyToDirectory + "\Daily_Performance_Logs"))
+            #Daily Performance Logs are always by days worth
+            $copyFrom = "$Script:localExinstall`Logging\Diagnostics\DailyPerformanceLogs"
+
+            try {
+                $logmanOutput = logman ExchangeDiagnosticsDailyPerformanceLog
+                $logmanRootPath = $logmanOutput | Select-String "Root Path:"
+
+                if (!$logmanRootPath.ToString().Contains($copyFrom)) {
+                    $copyFrom = $logmanRootPath.ToString().Replace("Root Path:", "").Trim()
+                    Write-ScriptDebug "Changing the location to get the daily performance logs to '$copyFrom'"
+                }
+            } catch {
+                Write-ScriptDebug "Couldn't get logman info to verify Daily Performance Logs location"
+            }
+
+            $info = ($copyInfo -f $copyFrom, ($Script:RootCopyToDirectory + "\Daily_Performance_Logs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
