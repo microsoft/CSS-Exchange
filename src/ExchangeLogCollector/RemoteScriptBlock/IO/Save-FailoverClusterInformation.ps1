@@ -50,7 +50,7 @@ Function Save-FailoverClusterInformation {
 
     try {
         $saveName = "$copyTo\ClusterHive.hiv"
-        reg save "HKEY_LOCAL_MACHINE\Cluster" $saveName
+        reg save "HKEY_LOCAL_MACHINE\Cluster" $saveName | Out-Null
         "To read the cluster hive. Run 'reg load HKLM\TempHive ClusterHive.hiv'. Then Open your regedit then go to HKLM:\TempHive to view the data." |
             Out-File -FilePath "$copyTo\ClusterHive_HowToRead.txt"
     } catch {
