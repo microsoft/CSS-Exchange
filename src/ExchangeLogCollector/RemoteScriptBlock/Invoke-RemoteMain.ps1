@@ -219,6 +219,7 @@ Function Invoke-RemoteMain {
                 }
             } catch {
                 Write-ScriptDebug "Couldn't get logman info to verify Daily Performance Logs location"
+                Invoke-CatchBlockActions
             }
 
             $info = ($copyInfo -f $copyFrom, ($Script:RootCopyToDirectory + "\Daily_Performance_Logs"))
@@ -459,8 +460,15 @@ Function Invoke-RemoteMain {
             Invoke-Expression $cmd -ErrorAction Stop
         } catch {
             Write-ScriptDebug("Failed to finish running command: $cmd")
-            #TODO Add Error Information Here.
+            Invoke-CatchBlockActions
         }
+    }
+
+    if ($Error.Count -ne 0) {
+        Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$Script:RootCopyToDirectory\AllErrors")
+        Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$Script:RootCopyToDirectory\HandledErrors")
+    } else {
+        Write-ScriptDebug ("No errors occurred within the script")
     }
 
     if ((-not($PassedInfo.ExchangeServerInfo)) -and

@@ -8,6 +8,7 @@ Function Test-CommandExists {
             return $true
         }
     } catch {
+        Invoke-CatchBlockActions
         return $false
     }
 }

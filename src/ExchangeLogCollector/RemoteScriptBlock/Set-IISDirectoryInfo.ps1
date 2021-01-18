@@ -33,6 +33,7 @@ Function Set-IISDirectoryInfo {
                 Get-IISDirectoryFromGetWebSite
             }
         } catch {
+            Invoke-CatchBlockActions
             Get-IISDirectoryFromDefaultSettings
         }
     }
