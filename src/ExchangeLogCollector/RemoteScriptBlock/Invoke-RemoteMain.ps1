@@ -1,7 +1,27 @@
 Function Invoke-RemoteMain {
     Write-ScriptDebug("Function Enter: Remote-Main")
 
-    Set-InstanceRunningVars
+    foreach ($server in $PassedInfo.ServerObjects) {
+
+        if ($server.ServerName -eq $env:COMPUTERNAME) {
+            $Script:localServerObject = $server
+            break
+        }
+    }
+
+    if ($null -eq $Script:localServerObject -or
+        $Script:localServerObject.ServerName -ne $env:COMPUTERNAME) {
+        Write-ScriptHost -WriteString ("Something went wrong trying to find the correct Server Object for this server. Stopping this instance of execution.")
+        exit
+    }
+
+    $Script:TotalBytesSizeCopied = 0
+    $Script:TotalBytesSizeCompressed = 0
+    $Script:AdditionalFreeSpaceCushionGB = $PassedInfo.StandardFreeSpaceInGBCheckSize
+    $Script:CurrentFreeSpaceGB = Get-FreeSpace -FilePath ("{0}\" -f $Script:RootCopyToDirectory)
+    $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:CurrentFreeSpaceGB
+    $Script:localExInstall = Get-ExchangeInstallDirectory
+    $Script:localExBin = $Script:localExInstall + "Bin\"
 
     $cmdsToRun = @()
     #############################################
