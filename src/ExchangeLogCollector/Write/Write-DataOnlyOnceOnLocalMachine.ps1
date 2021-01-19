@@ -44,6 +44,13 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
     }
 
+    if ($Error.Count -ne 0) {
+        Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$RootCopyToDirectory\AllErrors")
+        Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$RootCopyToDirectory\HandledErrors")
+    } else {
+        Write-ScriptDebug ("No errors occurred within the script")
+    }
+
     Invoke-ZipFolder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
     Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
 }

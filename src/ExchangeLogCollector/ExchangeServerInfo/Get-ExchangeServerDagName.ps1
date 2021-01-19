@@ -11,6 +11,7 @@ Function Get-ExchangeServerDAGName {
         return $dagName
     } catch {
         Write-ScriptHost -WriteString ("Looks like this server {0} isn't a Mailbox Server. Unable to get DAG Information." -f $Server) -ShowServer $false
+        Invoke-CatchBlockActions
         return $null
     }
 }

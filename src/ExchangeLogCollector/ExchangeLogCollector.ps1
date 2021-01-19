@@ -242,6 +242,7 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
     . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
     . .\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
+    . .\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
     . .\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
     . .\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
     . .\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
@@ -275,8 +276,10 @@ Function Invoke-RemoteFunctions {
         }
     } catch {
         Write-ScriptHost -WriteString ("An error occurred in Invoke-RemoteFunctions") -ForegroundColor "Red"
-        Write-ScriptHost -WriteString ("Error Exception: {0}" -f $Error[0].Exception) -ForegroundColor "Red"
-        Write-ScriptHost -WriteString ("Error Stack: {0}" -f $Error[0].ScriptStackTrace) -ForegroundColor "Red"
+        Invoke-CatchBlockActions
+        #This is a bad place to catch the error that just occurred
+        #Being that there is a try catch block around each command that we run now, we should never hit an issue here unless it is is prior to that.
+        Write-ScriptDebug "Critical Failure occurred."
     } finally {
         Write-ScriptDebug("Exiting: Invoke-RemoteFunctions")
         Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
@@ -328,7 +331,7 @@ Function Main {
                 Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
             } catch {
                 Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
-                $Script:Logger.WriteVerbose($Error[0])
+                Invoke-CatchBlockActions
                 exit
             }
 
@@ -393,6 +396,7 @@ Function Main {
 }
 
 try {
+    $Error.Clear()
     <#
     Added the ability to call functions from within a bundled function so i don't have to duplicate work.
     Loading the functions into memory by using the '.' allows me to do this,

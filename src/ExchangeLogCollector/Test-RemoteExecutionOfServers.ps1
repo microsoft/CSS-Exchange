@@ -36,6 +36,7 @@ Function Test-RemoteExecutionOfServers {
         } catch {
             Write-ScriptHost -WriteString "Failed" -ShowServer $false -ForegroundColor "Red"
             Write-ScriptHost -WriteString ("Removing Server {0} from the list to collect data from" -f $server) -ShowServer $false
+            Invoke-CatchBlockActions
         }
     }
     Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")

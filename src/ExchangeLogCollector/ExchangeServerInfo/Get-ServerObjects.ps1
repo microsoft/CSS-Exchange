@@ -8,7 +8,7 @@ Function Get-ServerObjects {
     $svrsObject = @()
     $validServersList = @()
     foreach ($svr in $ValidServers) {
-        Write-ScriptDebug -stringdata ("Working on Server {0}" -f $svr)
+        Write-ScriptDebug ("Working on Server {0}" -f $svr)
 
         $sobj = Get-ExchangeBasicServerObject -ServerName $svr
         if ($sobj -eq $true) {

@@ -16,6 +16,7 @@ Function Save-ServerInfoData {
         $tlsSettings += Get-ChildItem "HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols" -Recurse | Where-Object { $_.Name -like "*TLS*" } -ErrorAction stop
     } catch {
         Write-ScriptDebug("Failed to get child items of 'HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols'")
+        Invoke-CatchBlockActions
     }
     try {
         $regBaseV4 = "HKLM:SOFTWARE\{0}\.NETFramework\v4.0.30319"
@@ -23,6 +24,7 @@ Function Save-ServerInfoData {
         $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Wow6432Node\Microsoft") -ErrorAction stop
     } catch {
         Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        Invoke-CatchBlockActions
     }
     try {
         $regBaseV2 = "HKLM:SOFTWARE\{0}\.NETFramework\v2.0.50727"
@@ -30,6 +32,7 @@ Function Save-ServerInfoData {
         $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Wow6432Node\Microsoft") -ErrorAction stop
     } catch {
         Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        Invoke-CatchBlockActions
     }
     Save-DataInfoToFile -DataIn $tlsSettings -SaveToLocation ("{0}\TLS_RegistrySettings" -f $copyTo) -FormatList $false
 
@@ -70,6 +73,7 @@ Function Save-ServerInfoData {
     } catch {
         #at this point don't do anything besides debug log
         Write-ScriptDebug("Failed to get child item on HKLM:\SOFTWARE\Microsoft\Exchange\")
+        Invoke-CatchBlockActions
     }
     $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
     Save-DataInfoToFile -DataIn $hiveKey -SaveToLocation ("{0}\Exchange_Registry_Hive" -f $copyTo) -SaveTextFile $false
