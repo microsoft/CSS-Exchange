@@ -266,7 +266,9 @@ Function Invoke-RemoteFunctions {
 
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
-            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootCopyToDirectory -LogName ("ExchangeLogCollector-Instance-Debug")
+            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootCopyToDirectory -LogName ("ExchangeLogCollector-Instance-Debug") `
+                -HostFunctionCaller $Script:HostFunctionCaller `
+                -VerboseFunctionCaller $Script:VerboseFunctionCaller
             Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
@@ -337,7 +339,9 @@ Function Main {
             Write-DataOnlyOnceOnLocalMachine
             #New Logger Instance incase we want the data for the copy.
             $Script:ErrorsFromStartOfCopy = $Error.Count
-            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-Copy-Debug"
+            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-Copy-Debug" `
+                -HostFunctionCaller $Script:HostFunctionCaller `
+                -VerboseFunctionCaller $Script:VerboseFunctionCaller
             $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
 
             if ((-not($SkipEndCopyOver)) -and
@@ -405,7 +409,9 @@ try {
     }
     . Invoke-RemoteFunctions -PassedInfo $obj
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug"
+    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
+        -HostFunctionCaller $Script:HostFunctionCaller `
+        -VerboseFunctionCaller $Script:VerboseFunctionCaller
     Main
 } finally {
 
