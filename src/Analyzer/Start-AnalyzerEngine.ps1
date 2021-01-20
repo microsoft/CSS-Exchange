@@ -1048,7 +1048,7 @@ Function Start-AnalyzerEngine {
                 $currentTlsVersion.ClientDisabledByDefault) -and
             ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
                 $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
-            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: Failed to set .NET SystemDefaultTlsVersions. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
+            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
