@@ -8,7 +8,12 @@ Function Write-ScriptHost {
     Write-DebugLog $WriteString
 
     if ($ShowServer) {
-        Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
+
+        if ($WriteString.StartsWith("[")) {
+            Write-Host ($WriteString.Insert(1, "$env:COMPUTERNAME - ")) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
+        } else {
+            Write-Host("[{0}] : {1}" -f $env:COMPUTERNAME, $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
+        }
     } else {
         Write-Host("{0}" -f $WriteString) -ForegroundColor $ForegroundColor -NoNewline:$NoNewLine
     }
