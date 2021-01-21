@@ -1,8 +1,15 @@
 Function Write-DataOnlyOnceOnLocalMachine {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
+    param()
     Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
-    Write-ScriptDebug("Writting only once data")
+    Write-ScriptDebug("Writing only once data")
 
-    $RootCopyToDirectory = "{0}{1}" -f $Script:RootFilePath, $env:COMPUTERNAME
+    if (!$Script:MasterServer.ToUpper().Contains($env:COMPUTERNAME.ToUpper())) {
+        $serverName = Invoke-Command -ComputerName $Script:MasterServer -ScriptBlock { return $env:COMPUTERNAME }
+        $RootCopyToDirectory = "\\{0}\{1}" -f $Script:MasterServer, (("{0}{1}" -f $Script:RootFilePath, $serverName).Replace(":", "$"))
+    } else {
+        $RootCopyToDirectory = "{0}{1}" -f $Script:RootFilePath, $env:COMPUTERNAME
+    }
 
     if ($GetVdirs -and (-not($Script:EdgeRoleDetected))) {
         $target = $RootCopyToDirectory + "\ConfigNC_msExchVirtualDirectory_All.CSV"
@@ -13,7 +20,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
     if ($OrganizationConfig) {
         $target = $RootCopyToDirectory + "\OrganizationConfig"
         $data = Get-OrganizationConfig
-        Save-DataInfoToFile -dataIn (Get-OrganizationConfig) -SaveToLocation $target
+        Save-DataInfoToFile -dataIn (Get-OrganizationConfig) -SaveToLocation $target -AddServerName $false
     }
 
     if ($DAGInformation -and (-not($Script:EdgeRoleDetected))) {
@@ -41,7 +48,7 @@ Function Write-DataOnlyOnceOnLocalMachine {
         $create = $RootCopyToDirectory + "\Connectors"
         New-Folder -NewFolder $create -IncludeDisplayCreate $true
         $saveLocation = $create + "\Send_Connectors"
-        Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation
+        Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation -AddServerName $false
     }
 
     if ($Error.Count -ne 0) {

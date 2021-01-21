@@ -4,6 +4,22 @@ Function Get-ArgumentList {
         [Parameter(Mandatory = $true)][array]$Servers
     )
 
+    #First we need to verify if the local computer is in the list or not. If it isn't we need to pick a master server to store
+    #the additional information vs having a small amount of data dumped into the local directory.
+    $localServerInList = $false
+    $Script:MasterServer = $env:COMPUTERNAME
+    foreach ($server in $Servers) {
+
+        if ($server.ToUpper().Contains($env:COMPUTERNAME.ToUpper())) {
+            $localServerInList = $true
+            break
+        }
+    }
+
+    if (!$localServerInList) {
+        $Script:MasterServer = $Servers[0]
+    }
+
     $obj = New-Object PSCustomObject
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
     $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
@@ -53,6 +69,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name OABLogs -MemberType NoteProperty -Value $OABLogs
     $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
     $obj | Add-Member -Name WindowsSecurityLogs -MemberType NoteProperty $WindowsSecurityLogs
+    $obj | Add-Member -Name MasterServer -MemberType NoteProperty -Value $Script:MasterServer
 
     return $obj
 }

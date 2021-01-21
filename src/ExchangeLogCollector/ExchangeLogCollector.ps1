@@ -332,7 +332,9 @@ Function Main {
         exit
     }
 
-    if (Confirm-LocalEdgeServer) {
+    if (!$Script:LocalExchangeShell.ToolsOnly -and
+        !$Script:LocalExchangeShell.RemoteShell -and
+        (Confirm-LocalEdgeServer)) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
         #Because it isn't a domain joined computer, we can't use remote execution
         Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"
@@ -345,7 +347,7 @@ Function Main {
             $Servers[0].ToUpper().Equals($env:COMPUTERNAME.ToUpper()))) {
         [array]$Script:ValidServers = Test-RemoteExecutionOfServers -ServerList $Servers
     } else {
-        $Script:ValidServers = $Servers
+        [array]$Script:ValidServers = $Servers
     }
 
     #possible to return null or only a single server back (localhost)

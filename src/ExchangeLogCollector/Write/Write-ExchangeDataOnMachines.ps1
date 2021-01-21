@@ -86,7 +86,8 @@ Function Write-ExchangeDataOnMachines {
 
     $exchangeServerData = Get-ExchangeObjectServerData -Servers $Script:ValidServers
     #if single server or Exchange 2010 where invoke-command doesn't work
-    if ($Script:ValidServers.count -gt 1) {
+    if (!($Script:ValidServers.count -eq 1 -and
+            $Script:ValidServers[0].ToUpper().Contains($env:COMPUTERNAME.ToUpper()))) {
         #Need to have install directory run through the loop first as it could be different on each server
         $serversObjectListInstall = @()
         $serverListCreateDirectories = @()
@@ -139,8 +140,8 @@ Function Write-ExchangeDataOnMachines {
             $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
             $serverListLocalDataGet += $serverDumpData
 
-            #Zip data if not local cause we might have more stuff to run
-            if ($server.ServerName -ne $env:COMPUTERNAME) {
+            #Zip data if not Master Server cause we might have more stuff to run
+            if ($server.ServerName -ne $Script:MasterServer) {
                 $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
                 $parameters = New-Object PSCustomObject
                 $parameters | Add-Member -MemberType NoteProperty -Name "Folder" -Value $folder
