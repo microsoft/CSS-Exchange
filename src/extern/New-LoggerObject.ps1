@@ -1,5 +1,5 @@
 #https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/New-LoggerObject/New-LoggerObject.ps1
-#v21.01.08.2133
+#v21.01.15.1618
 Function New-LoggerObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer New here')]
     [CmdletBinding()]
@@ -15,7 +15,7 @@ Function New-LoggerObject {
         [Parameter(Mandatory = $false)][scriptblock]$HostFunctionCaller,
         [Parameter(Mandatory = $false)][scriptblock]$VerboseFunctionCaller
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.15.1618
 
     ########################
     #
@@ -37,16 +37,22 @@ Function New-LoggerObject {
     #
     ########################
 
-
     ########## Parameter Binding Exceptions ##############
     if ($LogDirectory -eq ".") {
         $LogDirectory = (Get-Location).Path
     }
+
     if ([string]::IsNullOrWhiteSpace($LogName)) {
         throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogName"
     }
+
     if (!(Test-Path $LogDirectory)) {
-        throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogDirectory"
+
+        try {
+            New-Item -Path $LogDirectory -ItemType Directory | Out-Null
+        } catch {
+            throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LogDirectory"
+        }
     }
 
     $loggerObject = New-Object PSCustomObject
@@ -63,6 +69,7 @@ Function New-LoggerObject {
     $loggerObject | Add-Member -MemberType NoteProperty -Name "NumberOfLogsToKeep" -Value $NumberOfLogsToKeep
     $loggerObject | Add-Member -MemberType NoteProperty -Name "WriteVerboseData" -Value $VerboseEnabled
     $loggerObject | Add-Member -MemberType NoteProperty -Name "PreventLogCleanup" -Value $false
+    $loggerObject | Add-Member -MemberType NoteProperty -Name "LoggerDisabled" -Value $false
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "ToLog" -Value ${Function:Write-ToLog}
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteHostWriter" -Value ${Function:Write-ScriptMethodHostWriter}
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "WriteVerboseWriter" -Value ${Function:Write-ScriptMethodVerboseWriter}
@@ -70,6 +77,7 @@ Function New-LoggerObject {
     if ($null -ne $HostFunctionCaller) {
         $loggerObject | Add-Member -MemberType ScriptMethod -Name "HostFunctionCaller" -Value $HostFunctionCaller
     }
+
     if ($null -ne $VerboseFunctionCaller) {
         $loggerObject | Add-Member -MemberType ScriptMethod -Name "VerboseFunctionCaller" -Value $VerboseFunctionCaller
     }
@@ -78,6 +86,11 @@ Function New-LoggerObject {
         param(
             [object]$LoggingString
         )
+
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if ($null -eq $LoggingString) {
             throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
         }
@@ -95,6 +108,11 @@ Function New-LoggerObject {
         param(
             [object]$LoggingString
         )
+
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if ($null -eq $LoggingString) {
             throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
         }
@@ -111,6 +129,11 @@ Function New-LoggerObject {
         param(
             [object]$LoggingString
         )
+
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if ($null -eq $LoggingString) {
             throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid LoggingString"
         }
@@ -124,7 +147,12 @@ Function New-LoggerObject {
 
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "UpdateFileLocation" -Value {
 
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if ($null -eq $this.FullPath) {
+
             if ($this.IncludeDateTimeToFileName) {
                 $this.InstanceBaseName = "{0}_{1}" -f $this.FileName, ((Get-Date).ToString('yyyyMMddHHmmss'))
                 $this.FullPath = "{0}\{1}.txt" -f $this.FileDirectory, $this.InstanceBaseName
@@ -144,6 +172,10 @@ Function New-LoggerObject {
 
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "LogUpKeep" -Value {
 
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if ($this.NextFileCheckTime -gt [System.DateTime]::Now) {
             return
         }
@@ -155,7 +187,12 @@ Function New-LoggerObject {
 
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckFileSize" -Value {
 
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         $item = Get-ChildItem $this.FullPath
+
         if (($item.Length / 1MB) -gt $this.MaxFileSizeInMB) {
             $this.UpdateFileLocation()
         }
@@ -163,8 +200,13 @@ Function New-LoggerObject {
 
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "CheckNumberOfFiles" -Value {
 
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         $filter = "{0}*" -f $this.InstanceBaseName
         $items = Get-ChildItem -Path $this.FileDirectory | Where-Object { $_.Name -like $filter }
+
         if ($items.Count -gt $this.NumberOfLogsToKeep) {
             do {
                 $items | Sort-Object LastWriteTime | Select-Object -First 1 | Remove-Item -Force
@@ -175,10 +217,22 @@ Function New-LoggerObject {
 
     $loggerObject | Add-Member -MemberType ScriptMethod -Name "RemoveLatestLogFile" -Value {
 
+        if ($this.LoggerDisabled) {
+            return
+        }
+
         if (!$this.PreventLogCleanup) {
             $item = Get-ChildItem $this.FullPath
             Remove-Item $item -Force
         }
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "DisableLogger" -Value {
+        $this.LoggerDisabled = $true
+    }
+
+    $loggerObject | Add-Member -MemberType ScriptMethod -Name "EnableLogger" -Value {
+        $this.LoggerDisabled = $false
     }
 
     $loggerObject.UpdateFileLocation()
