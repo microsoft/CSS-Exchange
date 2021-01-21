@@ -29,4 +29,7 @@ Function Set-ScriptLogFileLocation {
         Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
         exit
     }
+
+    Write-VerboseWriter("Script Executing on Server $env:COMPUTERNAME")
+    Write-VerboseWriter("ToolsOnly: $($Script:ExchangeShellComputer.ToolsOnly) | RemoteShell $($Script:ExchangeShellComputer.RemoteShell)")
 }
