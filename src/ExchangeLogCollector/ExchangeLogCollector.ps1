@@ -202,14 +202,14 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\Write\Write-Disclaimer.ps1
 . .\Write\Write-ExchangeDataOnMachines.ps1
 . .\Write\Write-Feedback.ps1
-. .\Get-ArgumentList.ps1
-. .\Get-RemoteLogLocation.ps1
-. .\Test-DiskSpace.ps1
-. .\Test-DiskSpaceForCopyOver.ps1
-. .\Test-NoSwitchesProvided.ps1
-. .\Test-PossibleCommonScenarios.ps1
-. .\Test-RemoteExecutionOfServers.ps1
-. .\Test-LocalServerIsUsed.ps1
+. .\Helpers\Get-ArgumentList.ps1
+. .\Helpers\Get-RemoteLogLocation.ps1
+. .\Helpers\Test-DiskSpace.ps1
+. .\Helpers\Test-DiskSpaceForCopyOver.ps1
+. .\Helpers\Test-NoSwitchesProvided.ps1
+. .\Helpers\Test-PossibleCommonScenarios.ps1
+. .\Helpers\Test-RemoteExecutionOfServers.ps1
+. .\Helpers\Test-LocalServerIsUsed.ps1
 
 Function Invoke-RemoteFunctions {
     param(
