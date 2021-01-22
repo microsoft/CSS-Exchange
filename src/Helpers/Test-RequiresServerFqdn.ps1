@@ -1,14 +1,37 @@
 Function Test-RequiresServerFqdn {
 
     Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
+    $tempServerName = ($Script:Server).Split(".")
+
+    if ($tempServerName[0] -eq $env:COMPUTERNAME) {
+        Write-VerboseOutput("Executed against the local machine. No need to pass '-ComputerName' parameter.")
+        return
+    } else {
+        try {
+            $Script:ServerFQDN = (Get-ExchangeServer $Script:Server -ErrorAction Stop).FQDN
+        } catch {
+            Invoke-CatchActions
+            Write-VerboseOutput("Unable to query Fqdn via 'Get-ExchangeServer'")
+        }
+    }
 
     try {
-        $Script:ServerFQDN = (Get-ExchangeServer $Script:Server).FQDN
         Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
-        Write-VerboseOutput("Connected successfully using NetBIOS name.")
+        Write-VerboseOutput("Connected successfully using: {0}." -f $Script:Server)
     } catch {
         Invoke-CatchActions
-        Write-VerboseOutput("Failed to connect to {0} using NetBIOS name. Fallback to Fqdn: {1}" -f $Script:Server, $Script:ServerFQDN)
-        $Script:Server = $Script:ServerFQDN
+        if ($tempServerName.Count -gt 1) {
+            $Script:Server = $tempServerName[0]
+        } else {
+            $Script:Server = $Script:ServerFQDN
+        }
+
+        try {
+            Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
+            Write-VerboseOutput("Fallback to: {0} Connection was successfully established." -f $Script:Server)
+        } catch {
+            Invoke-CatchActions
+            Write-VerboseOutput("Failed to successfully run 'Test-RequiresServerFqdn'")
+        }
     }
 }
