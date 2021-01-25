@@ -26,15 +26,15 @@ function Get-ExchangeVersion {
         }
 
         default {
-            Write-Host "This script is only for Exchange 2010, 2013, 2016, and 2019 servers." -ForegroundColor red $nl
-            do {
-                Write-Host
-                $continue = Read-Host "Please use the <Enter> key to exit..."
-            }
-            While ($null -notmatch $continue)
+            Write-Host "This script is only for Exchange 2013, 2016, and 2019 servers." -ForegroundColor red $nl
             exit
         }
     }
 
     Write-Host "$serverName is an Exchange $exchVer server. $nl"
+
+    if ($exchVer -eq "2010") {
+        Write-Host "This script no longer supports Exchange 2010."
+        exit
+    }
 }

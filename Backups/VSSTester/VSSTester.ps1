@@ -48,7 +48,7 @@ Function Main {
     Write-Host "****************************************************************************************"
     Write-Host "****************************************************************************************"
     Write-Host "**                                                                                    **" -BackgroundColor DarkMagenta
-    Write-Host "**               VSSTESTER SCRIPT (for Exchange 2010, 2013, 2016, 2019)               **" -ForegroundColor Cyan -BackgroundColor DarkMagenta
+    Write-Host "**                 VSSTESTER SCRIPT (for Exchange 2013, 2016, 2019)                   **" -ForegroundColor Cyan -BackgroundColor DarkMagenta
     Write-Host "**                                                                                    **" -BackgroundColor DarkMagenta
     Write-Host "****************************************************************************************"
     Write-Host "****************************************************************************************"

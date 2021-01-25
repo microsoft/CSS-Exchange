@@ -13,11 +13,7 @@ function Invoke-CreateExTRATracingConfig {
     New-Item -Path "C:\EnabledTraces.Config" -type file -Force
 
     Out-ExTRAConfigFile "TraceLevels:Debug,Warning,Error,Fatal,Info,Performance,Function,Pfd"
-    if ($exchVer -eq "2010") {
-        Out-ExTRAConfigFile "Store:tagEseBack,tagVSS,tagJetBackup,tagJetRestore"
-    } elseif ($exchVer -eq "2013" -or $exchVer -eq "2016" -or $exchVer -eq "2019") {
-        Out-ExTRAConfigFile "ManagedStore.PhysicalAccess:JetBackup,JetRestore"
-    }
+    Out-ExTRAConfigFile "ManagedStore.PhysicalAccess:JetBackup,JetRestore"
     Out-ExTRAConfigFile "Cluster.Replay:ReplicaVssWriterInterop,ReplicaInstance,LogTruncater"
     Out-ExTRAConfigFile "FilteredTracing:No"
     Out-ExTRAConfigFile "InMemoryTracing:No"
