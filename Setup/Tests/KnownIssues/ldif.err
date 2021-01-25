@@ -1,0 +1,12 @@
+Entry DN: CN=ms-Exch-Coexistence-Domains,CN=Schema,CN=Configuration,DC=Solo,DC=local
+Add error on entry starting on line 78: Unwilling To Perform
+
+The server side error is: 0x20bb Schema update failed: duplicate OID.
+
+The extended server error is:
+
+000020BB: SvcErr: DSID-0326036D, problem 5003 (WILL_NOT_PERFORM), data 8379
+
+
+An error has occurred in the program
+

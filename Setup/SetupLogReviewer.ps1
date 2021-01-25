@@ -103,7 +103,7 @@ Function Test-PrerequisiteCheck {
 
     if ((Test-EvaluatedSettingOrRule -SettingName "PendingRebootWindowsComponents" -SettingOrRule "Rule") -eq "True") {
         Write-Error ("Computer is pending reboot based off the Windows Component is the registry")
-        return 1
+        return $true
     }
 
     $adValidationError = Get-StringInLastRunOfExchangeSetup `
@@ -112,7 +112,7 @@ Function Test-PrerequisiteCheck {
     if ($adValidationError) {
         Write-Warning "Setup failed to validate AD environment level. This is the internal exception that occurred:"
         Write-Host($adValidationError.Matches.Groups[1].Value) -ForegroundColor Yellow
-        return 1
+        return $true
     }
 
     $schemaUpdateRequired = Get-StringInLastRunOfExchangeSetup `
@@ -127,31 +127,33 @@ Function Test-PrerequisiteCheck {
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "SchemaAdmin") -eq "False") {
         Write-Error ("/PrepareSchema is required and user {0} isn't apart of the Schema Admins group." -f $currentLogOnUser)
-        return 1
+        return $true
     }
 
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
         Write-Error ("/PrepareSchema is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser)
-        return 1
+        return $true
     }
 
     if ($orgConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
         Write-Error ("/PrepareAD is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser)
-        return 1
+        return $true
     }
 
     if ($domainConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
         Write-Error ("/PrepareDomain needs to be run in this domain, but we actually require Enterprise Admin group to properly run this command.")
-        return 1
+        return $true
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
         Write-Error ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser)
-        return 1
+        return $true
     }
+
+    return $false
 }
 
 Function Write-ErrorContext {
@@ -183,7 +185,7 @@ Function Test-KnownErrorReferenceSetupIssues {
 
     if ($null -eq $errorReference -or
         !(Test-LastRunOfExchangeSetup -TestingMatchInfo $errorReference)) {
-        return
+        return $false
     }
 
     $allErrors = Select-String "\[ERROR\]" $SetupLog -Context 0, 200
@@ -210,7 +212,7 @@ Function Test-KnownErrorReferenceSetupIssues {
         Write-ActionPlan ("Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
             $invalidWKObjectTargetException.Matches.Groups[4].Value)
 
-        return 1
+        return $true
     }
 
     $msExchangeSecurityGroupsContainerDeleted = $errorContext | Select-String `
@@ -223,7 +225,7 @@ Function Test-KnownErrorReferenceSetupIssues {
             Write-ErrorContext -WriteInfo @($msExchangeSecurityGroupsContainerDeleted[0].Line,
                 $msExchangeSecurityGroupsContainerDeleted[1].Line)
             Write-ActionPlan("'OU=Microsoft Exchange Security Groups' was deleted from the root of the domain. We need to have it created again at the root of the domain to continue.")
-            return 1
+            return $true
         }
     }
 
@@ -234,8 +236,10 @@ Function Test-KnownErrorReferenceSetupIssues {
     if ($null -ne $exceptionADOperationFailedAlreadyExist) {
         Write-ErrorContext -WriteInfo $exceptionADOperationFailedAlreadyExist.Line
         Write-ActionPlan("Validate permissions are inherited to object `"{0}`" and that there aren't any denies that shouldn't be there" -f $exceptionADOperationFailedAlreadyExist.Matches.Groups[2])
-        return 1
+        return $true
     }
+
+    return $false
 }
 
 Function Test-OtherKnownIssues {
@@ -246,7 +250,7 @@ Function Test-OtherKnownIssues {
         if ($null -eq $isHybridObjectFoundOnPremises -or
             !(Test-LastRunOfExchangeSetup -TestingMatchInfo $isHybridObjectFoundOnPremises)) {
             Write-LogicalError
-            return 1
+            return $true
         }
 
         $errorContext = @()
@@ -265,13 +269,27 @@ Function Test-OtherKnownIssues {
         if ($null -eq $targetApplicationUri -or
             $targetApplicationUri.Count -gt 1) {
             Write-LogicalError
-            return 1
+            return $true
         }
 
         Write-ErrorContext -WriteInfo $errorContext
         Write-ActionPlan("One of the Organization Relationship objects has a null value to the ApplicationURI attribute. `r`n`tPlease add `"{0}`" to it" -f $targetApplicationUri.Matches.Groups[1].Value)
-        return 1
+        return $true
     }
+
+    return $false
+}
+
+Function Test-KnownLdifErrors {
+    $schemaImportProcessFailure = Select-String "\[ERROR\] There was an error while running 'ldifde.exe' to import the schema file '(.*)'. The error code is: (\d+). More details can be found in the error file: '(.*)'" $SetupLog | Select-Object -Last 1
+
+    if ($null -ne $schemaImportProcessFailure) {
+        Write-ActionPlan("Failed to import schema setting from file '{0}'`r`n`tReview ldif.err file '{1}' to help determine which object in the file '{0}' was trying to be imported that was causing problems.`r`n`tIf you can't find the ldf file in the C:\Windows\Temp location, then find the file in the ISO." -f $schemaImportProcessFailure.Matches.Groups[1].Value,
+            $schemaImportProcessFailure.Matches.Groups[3].Value)
+        return $true
+    }
+
+    return $false
 }
 
 Function Main {
@@ -298,6 +316,10 @@ Function Main {
             return
         }
 
+        if (Test-KnownLdifErrors) {
+            return
+        }
+
         if (Test-KnownErrorReferenceSetupIssues) {
             return
         }
@@ -307,9 +329,9 @@ Function Main {
         }
 
         Write-Host "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
-            "If that doesn't find the cause, please notify {0} to help us improve the scripts." -f $feedbackEmail
+            "If that doesn't find the cause, please notify $feedbackEmail to help us improve the scripts."
     } catch {
-        Write-Warning "Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail
+        Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail)
     }
 }
 
