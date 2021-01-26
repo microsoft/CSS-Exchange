@@ -81,7 +81,7 @@ try {
                 break
             } else {
                 $context = $task.GetAwaiter().GetResult()
-            }          
+            }
         }
 
         if ($context.Request.HttpMethod -eq "GET") {
