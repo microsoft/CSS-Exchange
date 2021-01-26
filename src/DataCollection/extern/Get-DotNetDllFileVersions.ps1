@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-DotNetDllFileVersions/Get-DotNetDllFileVersions.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-DotNetDllFileVersions/Get-DotNetDllFileVersions.ps1
+#v21.01.22.2234
 Function Get-DotNetDllFileVersions {
     [CmdletBinding()]
     [OutputType("System.Collections.Hashtable")]
@@ -8,7 +8,7 @@ Function Get-DotNetDllFileVersions {
         [array]$FileNames,
         [scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-DotNetDllFileVersions")
 

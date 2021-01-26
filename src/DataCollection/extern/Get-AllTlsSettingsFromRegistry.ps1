@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-AllTlsSettingsFromRegistry/Get-AllTlsSettingsFromRegistry.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-AllTlsSettingsFromRegistry/Get-AllTlsSettingsFromRegistry.ps1
+#v21.01.22.2234
 Function Get-AllTlsSettingsFromRegistry {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Just creating internal objects')]
     [CmdletBinding()]
@@ -8,7 +8,7 @@ Function Get-AllTlsSettingsFromRegistry {
         [Parameter(Mandatory = $true)][string]$MachineName,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-AllTlsSettingsFromRegistry")
     Write-VerboseWriter("Passed: [string]MachineName: {0}" -f $MachineName)

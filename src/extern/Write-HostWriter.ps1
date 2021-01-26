@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Write-HostWriters/Write-HostWriter.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-HostWriters/Write-HostWriter.ps1
+#v21.01.22.2212
 
 Function Write-HostWriter {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Need to use Write Host')]

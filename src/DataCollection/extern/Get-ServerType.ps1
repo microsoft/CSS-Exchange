@@ -1,12 +1,12 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-ServerType/Get-ServerType.ps1
-#v21.01.11.2243
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ServerType/Get-ServerType.ps1
+#v21.01.22.2234
 Function Get-ServerType {
     [CmdletBinding()]
     [OutputType("System.String")]
     param(
         [Parameter(Mandatory = $true)][string]$ServerType
     )
-    #Function Version #v21.01.11.2243
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-ServerType")
     $returnServerType = [string]::Empty

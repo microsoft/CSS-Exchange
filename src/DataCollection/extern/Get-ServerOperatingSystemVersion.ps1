@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-ServerOperatingSystemVersion/Get-ServerOperatingSystemVersion.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ServerOperatingSystemVersion/Get-ServerOperatingSystemVersion.ps1
+#v21.01.22.2234
 Function Get-ServerOperatingSystemVersion {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Need it for old legacy servers')]
     [CmdletBinding()]
@@ -7,7 +7,7 @@ Function Get-ServerOperatingSystemVersion {
     param(
         [string]$OsCaption
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     if ($OsCaption -eq [string]::Empty -or
         $null -eq $OsCaption) {

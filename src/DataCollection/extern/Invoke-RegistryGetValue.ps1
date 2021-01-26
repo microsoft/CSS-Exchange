@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+#v21.01.22.2234
 Function Invoke-RegistryGetValue {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Multiple output types occur')]
     [CmdletBinding()]
@@ -12,7 +12,7 @@ Function Invoke-RegistryGetValue {
         [Parameter(Mandatory = $false)][object]$DefaultValue,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Invoke-RegistryGetValue")
     try {
