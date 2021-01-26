@@ -83,10 +83,10 @@ $scriptFiles | ForEach-Object {
     # Expand Get-Content calls for local files that are marked -AsByteStream -Raw
     for ($i = 0; $i -lt $scriptContent.Count; $i++) {
         $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\`$(.+) = Get-Content `"?[`$PSScriptRoot|\.]\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
+        $m = $line | Select-String "\`$(.+) = Get-Content `"?(\`$PSScriptRoot|\.)\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
         if ($m.Matches.Count -gt 0) {
             $parentPath = [IO.Path]::GetDirectoryName($_)
-            $filePath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[2].Value)
+            $filePath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[3].Value)
             $fileAsBase64 = [Convert]::ToBase64String(([IO.File]::ReadAllBytes($filePath)), "InsertLineBreaks")
             $scriptContent.RemoveAt($i)
             [string[]]$linesToInsert = @()

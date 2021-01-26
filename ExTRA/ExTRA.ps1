@@ -1,6 +1,6 @@
-$tagFileBytes = Get-Content ".\tags2016.txt" -AsByteStream -Raw
+$tagFileBytes = Get-Content "$PSScriptRoot\tags2016.txt" -AsByteStream -Raw
 
-$htmlFileBytes = Get-Content ".\ui.html" -AsByteStream -Raw
+$htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
 
 $tagFileContent = [System.Text.Encoding]::UTF8.GetString($tagFileBytes)
 
