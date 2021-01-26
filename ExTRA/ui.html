@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Exchange ExTRA</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        #checkboxesDiv {
+            margin-top: 20px;
+        }
+
+        .tag-grid {
+            margin-left: 100px;
+            column-count: 3;
+        }
+
+        .tag {
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .toolbar {
+            margin-top: 20px;
+        }
+
+        label {
+            color: black;
+        }
+    </style>
+</head>
+
+<body onload="showTags()">
+    <div class="container">
+        <div class="row toolbar">
+            <div class="input-field col s3">
+                <input id="categoryFilter" onchange="categoryFilterChanged(event)"
+                    onkeyup="categoryFilterChanged(event)" />
+                <label for="categoryFilter" class="active">Category Filter</label>
+            </div>
+            <div class="input-field col s3">
+                <input id="tagFilter" onchange="tagFilterChanged(event)" onkeyup="tagFilterChanged(event)" />
+                <label for="tagFilter" class="active">Tag Filter</label>
+            </div>
+            <label for="showOnlySelectedCheckbox" class="col s3">
+                <input id="showOnlySelectedCheckbox" class="filled-in" type="checkbox"
+                    onchange="updateVisibility(event)" />
+                <span>Only Show Selected</span>
+            </label>
+            <button class="btn waves-effect waves-light col s3" onclick="save()">Save</button>
+        </div>
+
+        <div id="checkboxesDiv">
+
+        </div>
+        <script>
+            var exchange2016Tags = [];
+
+            function categoryFilterChanged(event) {
+                updateVisibility();
+            }
+
+            function tagFilterChanged(event) {
+                updateVisibility();
+            }
+
+            async function save() {
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(exchange2016Tags, ['name', 'isSelected', 'tags'])
+                });
+
+                window.close();
+            }
+
+            function setSelectedOnCategory(category, selected) {
+                if (category.isSelected !== selected) {
+                    category.isSelected = selected;
+
+                    category.tags.forEach(t => setSelectedOnTag(t, selected, false));
+
+                    if (category.element.checked !== selected) {
+                        category.element.checked = selected;
+                    }
+
+                    if (document.getElementById('showOnlySelectedCheckbox').checked) {
+                        updateVisibility();
+                    }
+                }
+            }
+
+            function setSelectedOnTag(tag, selected, updateCategoryState) {
+                if (tag.isSelected !== selected) {
+                    tag.isSelected = selected;
+                    if (tag.element.checked !== selected) {
+                        tag.element.checked = selected;
+                    }
+
+                    if (updateCategoryState) {
+                        checkCategorySelectionState(tag.category);
+                        if (document.getElementById('showOnlySelectedCheckbox').checked) {
+                            updateVisibility();
+                        }
+                    }
+                }
+            }
+
+            function checkCategorySelectionState(category) {
+                let shouldBeSelected = category.tags.filter(t => t.isSelected).length === category.tags.length;
+                if (category.isSelected !== shouldBeSelected) {
+                    category.isSelected = shouldBeSelected;
+                }
+
+                if (category.element.checked !== shouldBeSelected) {
+                    category.element.checked = shouldBeSelected;
+                }
+            }
+
+            function updateVisibility() {
+                let categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+                let tagFilter = document.getElementById('tagFilter').value.toLowerCase();
+                let onlyShowSelected = document.getElementById('showOnlySelectedCheckbox').checked;
+
+                exchange2016Tags.forEach(category => {
+                    category.tags.forEach(tag => {
+                        if ((tagFilter == "" || tag.name.toLowerCase().includes(tagFilter)) && (tag.isSelected || !onlyShowSelected)) {
+                            if (tag.element.parentElement.parentElement.classList.contains("hidden")) {
+                                tag.element.parentElement.parentElement.classList.remove("hidden");
+                            }
+                        } else {
+                            if (!tag.element.parentElement.parentElement.classList.contains("hidden")) {
+                                tag.element.parentElement.parentElement.classList.add("hidden");
+                            }
+                        }
+
+                        if (category.tags.filter(t => !t.element.parentElement.parentElement.classList.contains("hidden")).length > 0 && (categoryFilter == "" || category.name.toLowerCase().includes(categoryFilter))) {
+                            if (category.element.parentElement.parentElement.classList.contains("hidden")) {
+                                category.element.parentElement.parentElement.classList.remove("hidden");
+                            }
+                        } else {
+                            if (!category.element.parentElement.parentElement.classList.contains("hidden")) {
+                                category.element.parentElement.parentElement.classList.add("hidden");
+                            }
+
+                            category.tags.forEach(t => {
+                                if (!tag.element.parentElement.parentElement.classList.contains("hidden")) {
+                                    tag.element.parentElement.parentElement.classList.add("hidden");
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            function showTags() {
+                let newChildElements = [];
+
+                exchange2016Tags.forEach(category => {
+                    let tagGrid = document.createElement("div");
+                    tagGrid.className = "tag-grid";
+
+                    category.tags.forEach(tag => {
+                        let tagDiv = document.createElement("div");
+                        tagDiv.className = "tag";
+
+                        let tagElement = document.createElement("input");
+                        tagElement.id = category.name + tag.name;
+                        tagElement.type = "checkbox";
+                        tagElement.className = "filled-in";
+                        tagElement.oninput = (event) => setSelectedOnTag(tag, event.srcElement.checked, true);
+                        tagElement.checked = tag.isSelected;
+
+                        let spanElement = document.createElement("span");
+                        spanElement.textContent = tag.name;
+
+                        let labelElement = document.createElement("label");
+                        labelElement.for = category.name + tag.name;
+
+                        labelElement.appendChild(tagElement);
+                        labelElement.appendChild(spanElement);
+                        tagDiv.appendChild(labelElement);
+
+                        tagGrid.appendChild(tagDiv);
+
+                        tag.element = tagElement;
+                        tag.category = category;
+                    });
+
+
+                    let categoryDiv = document.createElement("div");
+                    categoryDiv.className = "category";
+
+                    let categoryElement = document.createElement("input");
+                    categoryElement.type = "checkbox";
+                    categoryElement.className = "filled-in";
+                    categoryElement.oninput = (event) => setSelectedOnCategory(category, event.srcElement.checked);
+                    categoryElement.checked = category.tags.filter(t => t.isSelected).length === category.tags.length;
+
+                    let spanElement = document.createElement("span");
+                    spanElement.textContent = category.name;
+
+                    let labelElement = document.createElement("label");
+                    labelElement.for = category.name;
+
+                    labelElement.appendChild(categoryElement);
+                    labelElement.appendChild(spanElement);
+                    categoryDiv.appendChild(labelElement);
+
+                    newChildElements.push(categoryDiv);
+                    newChildElements.push(tagGrid);
+
+                    category.element = categoryElement;
+                });
+
+                let checkboxesDiv = document.getElementById('checkboxesDiv');
+                checkboxesDiv.append(...newChildElements);
+            }
+
+            window.onbeforeunload = () => {
+                fetch(window.location.href, {
+                    method: 'PUT'
+                });
+            };
+        </script>
+    </div>
+</body>
+
+</html>
