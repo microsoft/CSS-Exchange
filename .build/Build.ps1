@@ -80,6 +80,31 @@ $scriptFiles | ForEach-Object {
         }
     }
 
+    # Expand Get-Content calls for local files that are marked -AsByteStream -Raw
+    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
+        $line = $scriptContent[$i].Trim()
+        $m = $line | Select-String "\`$(.+) = Get-Content `"?(\`$PSScriptRoot|\.)\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
+        if ($m.Matches.Count -gt 0) {
+            $parentPath = [IO.Path]::GetDirectoryName($_)
+            $filePath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[3].Value)
+            $fileAsBase64 = [Convert]::ToBase64String(([IO.File]::ReadAllBytes($filePath)), "InsertLineBreaks")
+            $scriptContent.RemoveAt($i)
+            [string[]]$linesToInsert = @()
+            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value)Base64 = @'"
+            $linesToInsert += $fileAsBase64
+            $linesToInsert += "'@"
+            $linesToInsert += ""
+            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value) = [Convert]::FromBase64String(`$$($m.Matches[0].Groups[1].Value)Base64)"
+            $scriptContent.InsertRange($i, $linesToInsert)
+            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $dotloadedScriptPath))
+
+            if ($commitTimeTest -gt $commitTime) {
+                $commitTime = $commitTimeTest
+                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
+            }
+        }
+    }
+
     Write-Host ("Setting version for script '$_' to '$($commitTime.ToString("yy.MM.dd.HHmm"))'")
     $version = "# Version $($commitTime.ToString("yy.MM.dd.HHmm"))"
     # Stamp version
