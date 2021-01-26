@@ -1,11 +1,11 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
-#v21.01.12.2118
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
+#v21.01.22.2234
 Function Get-ExchangeBuildVersionInformation {
     [CmdletBinding()]
     param(
         [object]$AdminDisplayVersion
     )
-    #Function Version #v21.01.12.2118
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-ExchangeBuildVersionInformation")
     Write-VerboseWriter("Passed $($AdminDisplayVersion.ToString())")

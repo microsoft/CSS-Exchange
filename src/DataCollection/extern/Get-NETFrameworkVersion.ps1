@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-NETFrameworkVersion/Get-NETFrameworkVersion.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-NETFrameworkVersion/Get-NETFrameworkVersion.ps1
+#v21.01.22.2234
 Function Get-NETFrameworkVersion {
     [CmdletBinding()]
     param(
@@ -7,7 +7,7 @@ Function Get-NETFrameworkVersion {
         [int]$NetVersionKey = -1,
         [scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-NETFrameworkVersion")
     if ($NetVersionKey -eq -1) {

@@ -3,10 +3,10 @@
 $repoRoot = Get-Item "$PSScriptRoot\.."
 Write-Host $repoRoot
 $externReproRoot = "$PSScriptRoot\.externRepo"
-$reproPublicScripts = "$externReproRoot\PublicPowerShellScripts"
+$reproPublicScripts = "$externReproRoot\PublicPowerShellFunctions"
 $rootPath = "$repoRoot\src"
-$gitCloneUrl = 'https://github.com/dpaulson45/PublicPowerShellScripts.git'
-$lineHeader = '#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/'
+$gitCloneUrl = 'https://github.com/dpaulson45/PublicPowerShellFunctions.git'
+$lineHeader = '#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/'
 
 try {
     if (!(Test-Path $externReproRoot)) {

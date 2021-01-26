@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+#v21.01.22.2234
 Function Get-WmiObjectHandler {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'This is what this function is for')]
     [CmdletBinding()]
@@ -10,7 +10,7 @@ Function Get-WmiObjectHandler {
         [Parameter(Mandatory = $false)][string]$Namespace,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-WmiObjectHandler")
     Write-VerboseWriter("Passed: [string]ComputerName: {0} | [string]Class: {1} | [string]Filter: {2} | [string]Namespace: {3}" -f $ComputerName, $Class, $Filter, $Namespace)

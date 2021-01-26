@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Invoke-ScriptBlockHandler/Invoke-ScriptBlockHandler.ps1
+#v21.01.25.0238
 Function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
@@ -10,14 +10,14 @@ Function Invoke-ScriptBlockHandler {
         [Parameter(Mandatory = $false)][bool]$IncludeNoProxyServerOption,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.25.0238
 
     Write-VerboseWriter("Calling: Invoke-ScriptBlockHandler")
     if (![string]::IsNullOrEmpty($ScriptBlockDescription)) {
         Write-VerboseWriter($ScriptBlockDescription)
     }
     try {
-        if ($ComputerName -ne $env:COMPUTERNAME) {
+        if (($ComputerName).Split(".")[0] -ne $env:COMPUTERNAME) {
             $params = @{
                 ComputerName = $ComputerName
                 ScriptBlock  = $ScriptBlock

@@ -1,12 +1,12 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-ServerRebootPending/Get-ServerRebootPending.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ServerRebootPending/Get-ServerRebootPending.ps1
+#v21.01.22.2234
 Function Get-ServerRebootPending {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$ServerName,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Function Get-PendingFileReboot {
         try {

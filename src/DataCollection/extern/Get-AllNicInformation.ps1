@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-AllNicInformation/Get-AllNicInformation.ps1
-#v21.01.21.0637
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-AllNicInformation/Get-AllNicInformation.ps1
+#v21.01.25.0238
 Function Get-AllNicInformation {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Just creating internal objects')]
     [CmdletBinding()]
@@ -8,7 +8,7 @@ Function Get-AllNicInformation {
         [Parameter(Mandatory = $false)][string]$ComputerFQDN,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.21.0637
+    #Function Version #v21.01.25.0238
 
     Write-VerboseWriter("Calling: Get-AllNicInformation")
     Write-VerboseWriter("Passed [string]ComputerName: {0} | [string]ComputerFQDN: {1}" -f $ComputerName, $ComputerFQDN)
@@ -61,8 +61,14 @@ Function Get-AllNicInformation {
         )
         try {
             $currentErrors = $Error.Count
-            $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop
-            $networkIpConfiguration = Get-NetIPConfiguration -CimSession $CimSession -ErrorAction Stop | Where-Object { $_.NetAdapter.MediaConnectionState -eq "Connected" }
+            $params = @{
+                ErrorAction = "Stop"
+            }
+            if (($ComputerName).Split(".")[0] -ne $env:COMPUTERNAME) {
+                $cimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop
+                $params.Add("CimSession", $cimSession)
+            }
+            $networkIpConfiguration = Get-NetIPConfiguration @params | Where-Object { $_.NetAdapter.MediaConnectionState -eq "Connected" }
 
             if ($null -ne $CatchActionFunction) {
                 $index = 0

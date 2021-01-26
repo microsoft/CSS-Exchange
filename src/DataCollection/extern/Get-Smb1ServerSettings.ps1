@@ -1,12 +1,12 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-Smb1ServerSettings/Get-Smb1ServerSettings.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-Smb1ServerSettings/Get-Smb1ServerSettings.ps1
+#v21.01.22.2234
 Function Get-Smb1ServerSettings {
     [CmdletBinding()]
     param(
         [string]$ServerName = $env:COMPUTERNAME,
         [scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-Smb1ServerSettings")
     Write-VerboseWriter("Passed ServerName: {0}" -f $ServerName)

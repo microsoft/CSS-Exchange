@@ -1,12 +1,12 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ComputerInformation/Get-ProcessorInformation/Get-ProcessorInformation.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ProcessorInformation/Get-ProcessorInformation.ps1
+#v21.01.22.2234
 Function Get-ProcessorInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$MachineName,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Get-ProcessorInformation")
     $wmiObject = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction
