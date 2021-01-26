@@ -141,11 +141,11 @@ Function Main {
             Invoke-CreateExTRATracingConfig
             Invoke-EnableExTRATracing
             Invoke-DiskShadow #---
+            Get-VSSWritersAfter
+            Invoke-RemoveExposedDrives #---
             Invoke-DisableExTRATracing
             Invoke-DisableDiagnosticsLogging
             Invoke-DisableVSSTracing
-            Get-VSSWritersAfter
-            Invoke-RemoveExposedDrives #---
             Get-ApplicationAndSystemLogs
         } elseif ($Selection -eq 2) {
             Get-ExchangeVersion
