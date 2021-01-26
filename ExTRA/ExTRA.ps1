@@ -1,14 +1,20 @@
+$tagFileBytes = Get-Content ".\tags2016.txt" -AsByteStream -Raw
+
+$htmlFileBytes = Get-Content ".\ui.html" -AsByteStream -Raw
+
+$tagFileContent = [System.Text.Encoding]::UTF8.GetString($tagFileBytes)
+
+$htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
+
 $uri = "http://localhost:5002/"
 
 $outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
 
 function GetTagsFromFile($file) {
-    $tags = Get-Content $file | ForEach-Object {
-        if ($_ -match "(^TraceLevels|^InMemoryTracing|^FilteredTracing)") {
+    $tags = $file | ForEach-Object {
+        if ($_ -match "(^TraceLevels|^InMemoryTracing|^FilteredTracing)" -or $_.Length -lt 1) {
             # Skip these lines
-        }
-        else {
-
+        } else {
             [PSCustomObject]@{
                 name       = $_.Substring(0, $_.IndexOf(':'))
                 isSelected = $false
@@ -25,7 +31,7 @@ function GetTagsFromFile($file) {
     return $tags
 }
 
-$ex2016Tags = GetTagsFromFile "$PSScriptRoot\tags2016.txt"
+$extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine)
 
 $alreadySelectedTags = $null
 
@@ -36,7 +42,7 @@ if (Test-Path $outputPath) {
 if ($null -ne $alreadySelectedTags) {
     foreach ($category in $alreadySelectedTags) {
         $selectedTags = $category.tags | ForEach-Object { $_.name }
-        $categoryToUpdate = $ex2016Tags | Where-Object { $_.name -eq $category.name }
+        $categoryToUpdate = $extraTags | Where-Object { $_.name -eq $category.name }
         $categoryToUpdate.tags | ForEach-Object {
             if ($selectedTags.Contains($_.name)) {
                 $_.isSelected = $true
@@ -45,7 +51,7 @@ if ($null -ne $alreadySelectedTags) {
     }
 }
 
-$ex2016Tags = ConvertTo-Json $ex2016Tags -Depth 3
+$extraTags = ConvertTo-Json $extraTags -Depth 3
 
 $httpListener = New-Object System.Net.HttpListener
 $httpListener.Prefixes.Add($uri)
@@ -73,22 +79,19 @@ try {
             if (-not $task.AsyncWaitHandle.WaitOne(1000)) {
                 Write-Host "Browser tab was closed without saving changes."
                 break
-            }
-            else {
+            } else {
                 $context = $task.GetAwaiter().GetResult()
             }          
         }
 
         if ($context.Request.HttpMethod -eq "GET") {
             Write-Host "Showing tag selector UI in the default browser."
-            $pageContent = [IO.File]::ReadAllText("$PSScriptRoot\ui.html")
-            $pageContent = $pageContent.Replace("var exchange2016Tags = [];", "var exchange2016Tags = $ex2016Tags;")
+            $pageContent = $htmlFileContent.Replace("var exchange2016Tags = [];", "var exchange2016Tags = $extraTags;")
             $pageContentUTF8 = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
             $context.Response.StatusCode = 200
             $context.Response.OutputStream.Write($pageContentUTF8, 0, $pageContentUTF8.Length)
             $context.Response.Close()
-        }
-        elseif ($context.Request.HttpMethod -eq "POST") {
+        } elseif ($context.Request.HttpMethod -eq "POST") {
             $reader = New-Object System.IO.StreamReader($context.Request.InputStream, "UTF8")
             $body = $reader.ReadToEnd()
             $context.Response.StatusCode = 200
@@ -127,26 +130,29 @@ try {
             break
         }
     }
-}
-finally {
+} finally {
     $httpListener.Close()
 }
 
 if (Test-Path $outputPath) {
-    $choice = Read-Host "Would you like to start an ExTRA with the current settings? (y/n) "
-
-    if ($choice -eq "y") {
-        Copy-Item $outputPath C:\EnabledTraces.config -Force
-
-        $collectorExistsTest = & logman query ExchangeDebugTraces
-        if ($collectorExistsTest -match "not found") {
-            & cmd /c "logman create trace ExchangeDebugTraces -p {79bb49e6-2a2c-46e4-9167-fa122525d540} -o c:\tracing\trace.etl -ow -f bin -max 1024"
-        }
-
-        & logman start ExchangeDebugTraces
-
-        Write-Host
-        Write-Host "To stop the trace run the following command:"
-        Write-Host "logman stop ExchangeDebugTraces"
-    }
+    Write-Host "The trace can be created, started, and stopped from the command line. Note that"
+    Write-Host "the `"logman create`" commands should be run from CMD, not PowerShell."
+    Write-Host
+    Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p {79bb49e6-2a2c-46e4-9167-fa122525d540} -o c:\tracing\trace.etl -ow -f bin -max 1024" -ForegroundColor Green
+    Write-Host
+    Write-Host "To create a data collector which is circular and stops at 2 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p {79bb49e6-2a2c-46e4-9167-fa122525d540} -o c:\tracing\trace.etl -ow -f bincirc -max 2048" -ForegroundColor Green
+    Write-Host
+    Write-Host "To start the trace:"
+    Write-Host
+    Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "To stop the trace:"
+    Write-Host
+    Write-Host "logman stop ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "The collector can also be started and stopped from Perfmon."
 }
