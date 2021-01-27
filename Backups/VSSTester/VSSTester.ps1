@@ -27,7 +27,7 @@ param(
 . .\ExchangeInformation\Get-Databases.ps1
 . .\ExchangeInformation\Get-DbToBackup.ps1
 . .\ExchangeInformation\Get-ExchangeVersion.ps1
-. .\Logging\Get-ApplicationAndSystemLogs.ps1
+. .\Logging\Get-WindowsEventLogs.ps1
 . .\Logging\Get-VSSWritersAfter.ps1
 . .\Logging\Get-VSSWritersBefore.ps1
 . .\Logging\Invoke-CreateExtraTracingConfig.ps1
@@ -146,7 +146,7 @@ Function Main {
             Invoke-DisableExTRATracing
             Invoke-DisableDiagnosticsLogging
             Invoke-DisableVSSTracing
-            Get-ApplicationAndSystemLogs
+            Get-WindowsEventLogs
         } elseif ($Selection -eq 2) {
             Get-ExchangeVersion
             Get-VSSWritersBefore
@@ -172,7 +172,7 @@ Function Main {
             Invoke-DisableDiagnosticsLogging
             Invoke-DisableVSSTracing
             Get-VSSWritersAfter
-            Get-ApplicationAndSystemLogs
+            Get-WindowsEventLogs
         }
     } finally {
         # always stop our transcript at end of script's execution
