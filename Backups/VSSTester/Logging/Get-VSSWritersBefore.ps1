@@ -6,11 +6,18 @@ function Get-VSSWritersBefore {
     " "
     $writers = (vssadmin list writers)
     $writers > $path\vssWritersBefore.txt
+    $exchangeWriter = $false
 
     foreach ($line in $writers) {
+
         if ($line -like "Writer name:*") {
             "$line"
+
+            if ($line.Contains("Microsoft Exchange Writer")) {
+                $exchangeWriter = $true
+            }
         } elseif ($line -like "   State:*") {
+
             if ($line -ne "   State: [1] Stable") {
                 $nl
                 Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!   WARNING   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor red
@@ -35,4 +42,15 @@ function Get-VSSWritersBefore {
         }
     }
     " " + $nl
+
+    if (!$exchangeWriter) {
+        Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!   WARNING   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor red
+        Write-Host "Microsoft Exchange Writer not present on server. Unable to preform proper backups on the server."  -ForegroundColor Red
+        Write-Host
+        Write-Host " - Recommend to restart MSExchangeRepl service to see if the writer comes back. If it doesn't, review the application logs for any events to determine why." -ForegroundColor Cyan
+        Write-Host " - If still not able to determine why, need to have a Microsoft Engineer review ExTrace with Cluster.Replay tags of the MSExchangeRepl service starting up." -ForegroundColor Cyan
+        Write-Host
+        Write-Host "Stopping Script"
+        exit
+    }
 }
