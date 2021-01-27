@@ -30,8 +30,8 @@ Function Test-RequiresServerFqdn {
             Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
             Write-VerboseOutput("Fallback to: {0} Connection was successfully established." -f $Script:Server)
         } catch {
-            Invoke-CatchActions
-            Write-VerboseOutput("Failed to successfully run 'Test-RequiresServerFqdn'")
+            Write-Red("Failed to run against: {0}. Please try to run the script locally on: {0} for results. " -f $Script:Server)
+            exit
         }
     }
 }
