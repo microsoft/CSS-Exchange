@@ -12,12 +12,6 @@ function Get-CopyStatus {
             } else {
                 Write-Host "$($copyStatus[$i].name) is $($copyStatus[$i].status)"
                 Write-Host "One of the copies of the selected database is not healthy. Please run backup after ensuring that the database copy is healthy" -ForegroundColor Yellow
-                stopTransLog
-                do {
-                    Write-Host
-                    $continue = Read-Host "Please use the <Enter> key to exit..."
-                }
-                While ($null -notmatch $continue)
                 exit
             }
         }

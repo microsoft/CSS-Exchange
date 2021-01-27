@@ -29,12 +29,6 @@ function Get-VSSWritersBefore {
                 $nl
                 Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor red
                 $nl
-                stopTransLog
-                do {
-                    Write-Host
-                    $continue = Read-Host "Please use the <Enter> key to exit..."
-                }
-                While ($null -notmatch $continue)
                 exit
             } else {
                 "$line" + $nl
