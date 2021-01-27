@@ -5,7 +5,7 @@ function Invoke-EnableExTRATracing {
             [string]$ComputerName,
             [string]$LogmanName
         )
-        [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName
+        [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
         $results
 
         if ($results[-1] -eq "Data Collector already exists.") {
@@ -13,7 +13,7 @@ function Invoke-EnableExTRATracing {
             [array]$results = logman delete $LogmanName -s $ComputerName
             $results
 
-            [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName
+            [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
             $results
         }
 
