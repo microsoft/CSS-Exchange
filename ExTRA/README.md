@@ -5,6 +5,12 @@ The script can be run on any machine where a modern browser (Edge/Chrome/Firefox
 browser. It does not need to be run on an Exchange server. It will _not_ work if Internet Explorer
 is the default browser.
 
+## Download
+
+Get the latest release here:
+
+https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExTRA.ps1
+
 ## Usage
 
 Generally, you will want to run this script on a user workstation and use it to generate the
