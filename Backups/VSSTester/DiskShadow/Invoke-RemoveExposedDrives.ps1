@@ -19,6 +19,9 @@ function Invoke-RemoveExposedDrives {
     "If the snapshot was successful, the snapshot should be exposed as drive(s) $exposedDrives."
     "You should be able to see and navigate the snapshot with File Explorer. How would you like to proceed?"
     Write-Host " "
+    Write-Host "NOTE: It is recommended to wait a few minutes to allow truncation to possibly occur before moving past this point." -ForegroundColor Cyan
+    Write-Host "      This allows time for the logs that are automatically collected to include the window for the truncation to occur." -ForegroundColor Cyan
+    Write-Host
     Write-Host "When ready, choose from the options below:" -ForegroundColor Yellow
     " "
     Write-Host "  1. Remove exposed snapshot now"
