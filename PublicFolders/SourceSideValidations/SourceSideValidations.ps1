@@ -105,6 +105,22 @@ if ($badPermissions.Count -gt 0) {
     Write-Host ".\RemoveInvalidPermissions.ps1 $badPermissionsFile"
 }
 
+$folderCountMigrationLimit = 250000
+
+if ($folderData.IpmSubtree.Count -gt $folderCountMigrationLimit) {
+    Write-Host
+    Write-Host "There are $($folderData.IpmSubtree.Count) public folders in the hierarchy. This exceeds"
+    Write-Host "the supported migration limit of $folderCountMigrationLimit for Exchange Online. The number"
+    Write-Host "of public folders must be reduced prior to migrating to Exchange Online."
+} elseif ($folderData.IpmSubtree.Count * 2 -gt $folderCountMigrationLimit) {
+    Write-Host
+    Write-Host "There are $($folderData.IpmSubtree.Count) public folders in the hierarchy. Because each of these"
+    Write-Host "has a dumpster folder, the total number of folders to migrate will be $($folderData.IpmSubtree.Count * 2)."
+    Write-Host "This exceeds the supported migration limit of $folderCountMigrationLimit for Exchange Online."
+    Write-Host "New-MigrationBatch can be run with the -ExcludeDumpsters switch to skip the dumpster"
+    Write-Host "folders, or public folders may be deleted to reduce the number of folders."
+}
+
 $private:endTime = Get-Date
 
 Write-Host
