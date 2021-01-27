@@ -13,8 +13,9 @@ function Invoke-CreateExTRATracingConfig {
     New-Item -Path "C:\EnabledTraces.Config" -type file -Force
 
     Out-ExTRAConfigFile "TraceLevels:Debug,Warning,Error,Fatal,Info,Performance,Function,Pfd"
-    Out-ExTRAConfigFile "ManagedStore.PhysicalAccess:JetBackup,JetRestore"
-    Out-ExTRAConfigFile "Cluster.Replay:ReplicaVssWriterInterop,ReplicaInstance,LogTruncater"
+    Out-ExTRAConfigFile "ManagedStore.PhysicalAccess:JetBackup,JetRestore,JetEventlog,SnapshotOperation"
+    Out-ExTRAConfigFile "Cluster.Replay:LogTruncater,ReplayApi,ReplicaInstance,ReplicaVssWriterInterop"
+    Out-ExTRAConfigFile "ManagedStore.HA:BlockModeSender,Eseback"
     Out-ExTRAConfigFile "FilteredTracing:No"
     Out-ExTRAConfigFile "InMemoryTracing:No"
     " "
