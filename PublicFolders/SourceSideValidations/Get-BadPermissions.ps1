@@ -13,7 +13,7 @@ function Get-BadPermissions {
 
     process {
         $folderData.IpmSubtreeByMailbox | Foreach-Object {
-            $argumentList = $mailboxNameToServerMap[$_.Name], $_.Name, $_.Group
+            $argumentList = $FolderData.MailboxToServerMap[$_.Name], $_.Name, $_.Group
             $name = $_.Name
             $scriptBlock = ${Function:Get-BadPermissionsJob}
             Add-JobQueueJob @{
