@@ -1128,10 +1128,12 @@ Function Start-AnalyzerEngine {
                 -AnalyzedInformation $analyzedResults
         }
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Bound to services" -Details $certificate.Services `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -AnalyzedInformation $analyzedResults
+        if ($null -ne $certificate.Services) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Bound to services" -Details $certificate.Services `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Current Auth Certificate" -Details $certificate.IsCurrentAuthConfigCertificate `
             -DisplayGroupingKey $keySecuritySettings `
