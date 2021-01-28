@@ -1,3 +1,10 @@
+[CmdletBinding()]
+param (
+    [Parameter()]
+    [bool]
+    $StartFresh = $true
+)
+
 . .\Get-IpmSubtree.ps1
 . .\Get-NonIpmSubtree.ps1
 . .\Get-ItemCounts.ps1
@@ -9,13 +16,13 @@
 
 $startTime = Get-Date
 
-$ipmSubtree = Get-IpmSubtree
+$ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
 
 if ($ipmSubtree.Count -lt 1) {
     return
 }
 
-$nonIpmSubtree = Get-NonIpmSubtree
+$nonIpmSubtree = Get-NonIpmSubtree -startFresh $StartFresh
 
 Write-Progress -Activity "Populating hashtables"
 

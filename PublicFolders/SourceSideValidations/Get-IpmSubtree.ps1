@@ -1,6 +1,10 @@
 function Get-IpmSubtree {
     [CmdletBinding()]
-    param ()
+    param (
+        [Parameter()]
+        [bool]
+        $startFresh = $true
+    )
 
     begin {
         $startTime = Get-Date
@@ -10,7 +14,7 @@ function Get-IpmSubtree {
     }
 
     process {
-        if (Test-Path $PSScriptRoot\IpmSubtree.csv) {
+        if (-not $startFresh -and (Test-Path $PSScriptRoot\IpmSubtree.csv)) {
             Write-Progress -Activity "Reading IPM_SUBTREE from file"
             $ipmSubtree = Import-Csv $PSScriptRoot\IpmSubtree.csv
         } else {
