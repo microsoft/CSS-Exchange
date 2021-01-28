@@ -41,9 +41,24 @@ $folderData = [PSCustomObject]@{
 $ipmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
 $ipmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
 $nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
+$anyDatabaseDown = $false
 Get-Mailbox -PublicFolder | ForEach-Object {
-    $server = (Get-MailboxDatabase $_.Database).Server
-    $folderData.MailboxToServerMap[$_.DisplayName] = $server
+    try {
+        $db = Get-MailboxDatabase $_.Database -Status
+        if (-not $db.Mounted) {
+            Write-Error "Database $db is not mounted. This database holds PF mailbox $_ and must be mounted."
+            $anyDatabaseDown = $true
+        } else {
+            $folderData.MailboxToServerMap[$_.DisplayName] = $db.Server
+        }
+    } catch {
+        Write-Error $_
+        $anyDatabaseDown = $true
+    }
+}
+
+if ($anyDatabaseDown) {
+    return
 }
 
 Get-ItemCounts -FolderData $FolderData
