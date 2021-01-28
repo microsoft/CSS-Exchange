@@ -1,6 +1,10 @@
 function Get-NonIpmSubtree {
     [CmdletBinding()]
-    param ()
+    param (
+        [Parameter()]
+        [bool]
+        $startFresh = $true
+    )
 
     begin {
         $startTime = Get-Date
@@ -10,7 +14,7 @@ function Get-NonIpmSubtree {
     }
 
     process {
-        if (Test-Path $PSScriptRoot\NonIpmSubtree.csv) {
+        if (-not $startFresh -and (Test-Path $PSScriptRoot\NonIpmSubtree.csv)) {
             Write-Progress -Activity "Reading NON_IPM_SUBTREE from file"
             $nonIpmSubtree = Import-Csv $PSScriptRoot\NonIpmSubtree.csv
         } else {
