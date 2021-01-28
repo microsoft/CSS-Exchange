@@ -16,6 +16,8 @@ param (
 
 $startTime = Get-Date
 
+Set-ADServerSettings -ViewEntireForest $true
+
 $ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
 
 if ($ipmSubtree.Count -lt 1) {
