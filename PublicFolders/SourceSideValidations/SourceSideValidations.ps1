@@ -50,7 +50,7 @@ $badPermissions = Get-BadPermissions -FolderData $folderData
 # Output the results
 
 if ($badDumpsters.Count -gt 0) {
-    $badDumpsterFile = Join-Path $PSScriptRoot, "BadDumpsterMappings.txt"
+    $badDumpsterFile = Join-Path $PSScriptRoot "BadDumpsterMappings.txt"
     Set-Content -Path $badDumpsterFile -Value $badDumpsters
 
     Write-Host
@@ -62,7 +62,7 @@ if ($badDumpsters.Count -gt 0) {
 }
 
 if ($limitsExceeded.ChildCount.Count -gt 0) {
-    $tooManyChildFoldersFile = Join-Path $PSScriptRoot, "TooManyChildFolders.txt"
+    $tooManyChildFoldersFile = Join-Path $PSScriptRoot "TooManyChildFolders.txt"
     Set-Content -Path $tooManyChildFoldersFile -Value $limitsExceeded.ChildCount
 
     Write-Host
@@ -73,7 +73,7 @@ if ($limitsExceeded.ChildCount.Count -gt 0) {
 }
 
 if ($limitsExceeded.FolderPathDepth.Count -gt 0) {
-    $pathTooDeepFile = Join-Path $PSScriptRoot, "PathTooDeep.txt"
+    $pathTooDeepFile = Join-Path $PSScriptRoot "PathTooDeep.txt"
     Set-Content -Path $pathTooDeepFile -Value $limitsExceeded.FolderPathDepth
 
     Write-Host
@@ -84,7 +84,7 @@ if ($limitsExceeded.FolderPathDepth.Count -gt 0) {
 }
 
 if ($limitsExceeded.ItemCount.Count -gt 0) {
-    $tooManyItemsFile = Join-Path $PSScriptRoot, "TooManyItems.txt"
+    $tooManyItemsFile = Join-Path $PSScriptRoot "TooManyItems.txt"
     Set-Content -Path $tooManyItemsFile -Value $limitsExceeded.ItemCount
 
     Write-Host
