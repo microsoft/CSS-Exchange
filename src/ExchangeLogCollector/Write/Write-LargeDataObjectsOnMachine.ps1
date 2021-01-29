@@ -3,13 +3,14 @@
 #To handle this, we export the data locally and copy the data over the correct server.
 Function Write-LargeDataObjectsOnMachine {
 
+    Write-ScriptDebug("Function Enter Write-LargeDataObjectsOnMachine")
     #Collect the Exchange Data that resides on their own machine.
     Function Invoke-ExchangeResideDataCollectionWrite {
         param(
             [Parameter(Mandatory = $true)][object]$PassedInfo
         )
 
-        $location = $PassedInfo.Location
+        $location = $PassedInfo.SaveToLocation
         $exchBin = "{0}\Bin" -f $PassedInfo.InstallDirectory
         $configFiles = Get-ChildItem $exchBin | Where-Object { $_.Name -like "*.config" }
         $copyTo = "{0}\Config" -f $location
@@ -129,100 +130,126 @@ Function Write-LargeDataObjectsOnMachine {
     #if single server or Exchange 2010 where invoke-command doesn't work
     if (!($Script:ValidServers.count -eq 1 -and
             $Script:ValidServers[0].ToUpper().Contains($env:COMPUTERNAME.ToUpper()))) {
-        #Need to have install directory run through the loop first as it could be different on each server
-        $serversObjectListInstall = @()
-        $serverListCreateDirectories = @()
-        foreach ($server in $exchangeServerData) {
-            $serverObject = New-Object PSCustomObject
-            $serverObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $serverObject | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $true
-            $serversObjectListInstall += $serverObject
 
-            #Create Directory
-            $serverCreateDirectory = New-Object PSCustomObject
-            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $argumentObject = New-Object PSCustomObject
-            [array]$value = "{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $server.ServerName
-            $value += "{0}{1}\Exchange_Server_Data\WebAppPools" -f $Script:RootFilePath, $server.ServerName
-            $argumentObject | Add-Member -MemberType NoteProperty -Name NewFolders -Value $value
-            $serverCreateDirectory | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentObject
-            $serverListCreateDirectories += $serverCreateDirectory
-        }
+        <#
+        To pass an action to Start-JobManager, need to create objects like this.
+            Where ArgumentList is the arguments for the scriptblock that we are running
+        [array]
+            [PSCustom]
+                [string]ServerName
+                [object]ArgumentList
+
+        Need to do the following:
+            Collect Exchange Install Directory Location
+            Create directories where data is being stored with the upcoming requests
+            Write out the Exchange Server Object Data and copy them over to the correct server
+            Zip up the root directories
+        #>
+
+        #Setup all the Script blocks that we are going to use.
         Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
         $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
         Write-ScriptDebug("Creating Script Block")
         $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
-        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
-            -NeedReturnData $true `
-            -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
 
         Write-ScriptDebug("Getting New-Folder string to create Script Block")
         $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
         Write-ScriptDebug("Creating script block")
         $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
-        Write-ScriptDebug("Calling job for folder creation")
-        Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock `
-            -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine"
 
-        $serverListLocalDataGet = @()
-        $serverListZipData = @()
-
-        foreach ($server in $exchangeServerData) {
-
-            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName
-            #Write Data
-            $argumentList = New-Object PSCustomObject
-            $argumentList | Add-Member -MemberType NoteProperty -Name Location -Value $location
-            $argumentList | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $serverInstallDirectories[$server.ServerName]
-            $serverDumpData = New-Object PSCustomObject
-            $serverDumpData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-            $serverDumpData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $argumentList
-            $serverListLocalDataGet += $serverDumpData
-
-            #Zip data if not Master Server cause we might have more stuff to run
-            if ($server.ServerName -ne $Script:MasterServer) {
-                $folder = "{0}{1}" -f $Script:RootFilePath, $server.ServerName
-                $parameters = New-Object PSCustomObject
-                $parameters | Add-Member -MemberType NoteProperty -Name "Folder" -Value $folder
-                $parameters | Add-Member -MemberType NoteProperty -Name "IncludeMonthDay" -Value $true
-                $parameters | Add-Member -MemberType NoteProperty -Name "IncludeDisplayZipping" -Value $true
-
-                $serverZipData = New-Object PSCustomObject
-                $serverZipData | Add-Member -MemberType NoteProperty -Name ServerName -Value $server.ServerName
-                $serverZipData | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $parameters
-                $serverListZipData += $serverZipData
-            }
-        }
-
-        $localServerTempLocation = "{0}{1}\Exchange_Server_Data_Temp\" -f $Script:RootFilePath, $env:COMPUTERNAME
-        #Write the data locally to the temp file, then copy the data to the correct location.
-        foreach ($server in $exchangeServerData) {
-            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $server.ServerName
-            Write-ScriptDebug("Location of data should be at: {0}" -f $location)
-            $remoteLocation = "\\{0}\{1}" -f $server.ServerName, $location.Replace(":", "$")
-            Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
-            $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $server.ServerName
-            Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
-            New-Folder -NewFolders $rootTempLocation
-
-            Write-ExchangeObjectDataLocal -ServerData $server -Location $rootTempLocation
-
-            $items = Get-ChildItem $rootTempLocation
-            $items | ForEach-Object { Copy-Item $_.VersionInfo.FileName $remoteLocation }
-        }
-        Remove-Item $localServerTempLocation -Force -Recurse
-        Write-ScriptDebug("Calling Invoke-ExchangeResideDataCollectionWrite")
-        Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Invoke-ExchangeResideDataCollectionWrite} `
-            -DisplayReceiveJob $false `
-            -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
-        Write-ScriptDebug("Calling job for Zipping the data")
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
         Write-ScriptDebug("Creating script block")
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
-        Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock $compressFolderScriptBlock `
+
+        $serverArgListExchangeInstallDirectory = @()
+        $serverArgListDirectoriesToCreate = @()
+        $serverArgListExchangeResideData = @()
+        $serverArgListZipFolder = @()
+        $localServerTempLocation = "{0}{1}\Exchange_Server_Data_Temp\" -f $Script:RootFilePath, $env:COMPUTERNAME
+
+        #Need to do two loops as both of these actions are required before we can do actions in the next loop.
+        foreach ($serverData in $exchangeServerData) {
+            $serverName = $serverData.ServerName
+
+            $serverArgListExchangeInstallDirectory += [PSCustomObject]@{
+                ServerName   = $serverName
+                ArgumentList = $true
+            }
+
+            $serverArgListDirectoriesToCreate += [PSCustomObject]@{
+                ServerName   = $serverName
+                ArgumentList = [PSCustomObject]@{
+                    NewFolders = (@(
+                            ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $serverName),
+                            ("{0}{1}\Exchange_Server_Data\WebAppPools" -f $Script:RootFilePath, $serverName)
+                        ))
+                }
+            }
+        }
+
+        Write-ScriptDebug ("Calling job for Get Exchange Install Directory")
+        $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
+            -NeedReturnData $true `
+            -DisplayReceiveJobInCorrectFunction $true `
+            -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
+
+        Write-ScriptDebug("Calling job for folder creation")
+        Start-JobManager -ServersWithArguments $serverArgListDirectoriesToCreate -ScriptBlock $newFolderScriptBlock `
+            -DisplayReceiveJobInCorrectFunction $true `
+            -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine"
+
+        #Now do the rest of the actions
+        foreach ($serverData in $exchangeServerData) {
+            $serverName = $serverData.ServerName
+
+            $saveToLocation = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $serverName
+            $serverArgListExchangeResideData += [PSCustomObject]@{
+                ServerName   = $serverName
+                ArgumentList = [PSCustomObject]@{
+                    SaveToLocation   = $saveToLocation
+                    InstallDirectory = $serverInstallDirectories[$serverName]
+                }
+            }
+
+            #Write out the Exchange object data locally as a temp and copy it over to the remote server
+            $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $serverName
+            Write-ScriptDebug("Location of data should be at: {0}" -f $location)
+            $remoteLocation = "\\{0}\{1}" -f $serverName, $location.Replace(":", "$")
+            Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
+            $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $serverName
+            Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
+            #Create the temp location and write out the data
+            New-Folder -NewFolders $rootTempLocation
+            Write-ExchangeObjectDataLocal -ServerData $serverData -Location $rootTempLocation
+            Get-ChildItem $rootTempLocation |
+                ForEach-Object {
+                    Copy-Item $_.VersionInfo.FileName $remoteLocation
+                }
+
+            if ($serverName -ne $Script:MasterServer) {
+                $folder = "{0}{1}" -f $Script:RootFilePath, $serverName
+                $serverArgListZipFolder += [PSCustomObject]@{
+                    ServerName   = $serverName
+                    ArgumentList = [PSCustomObject]@{
+                        Folder                = $folder
+                        IncludeMonthDay       = $true
+                        IncludeDisplayZipping = $true
+                    }
+                }
+            }
+        }
+
+        #Remove the temp data location right away
+        Remove-Item $localServerTempLocation -Force -Recurse
+
+        Write-ScriptDebug("Calling Invoke-ExchangeResideDataCollectionWrite")
+        Start-JobManager -ServersWithArguments $serverArgListExchangeResideData -ScriptBlock ${Function:Invoke-ExchangeResideDataCollectionWrite} `
+            -DisplayReceiveJob $false `
+            -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
+
+        Write-ScriptDebug("Calling Compress-Folder")
+        Start-JobManager -ServersWithArguments $serverArgListZipFolder -ScriptBlock $compressFolderScriptBlock `
             -DisplayReceiveJobInCorrectFunction $true `
             -JobBatchName "Zipping up the data for Write-LargeDataObjectsOnMachine"
     } else {
@@ -233,14 +260,14 @@ Function Write-LargeDataObjectsOnMachine {
         $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
         [array]$createFolders = @(("{0}\Config" -f $location), ("{0}\WebAppPools" -f $location))
         New-Folder -NewFolders $createFolders -IncludeDisplayCreate $true
-        $passInfo = New-Object PSCustomObject
-        $passInfo | Add-Member -MemberType NoteProperty -Name ServerObject -Value $exchangeServerData
-        $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
-        $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $ExInstall
-
         Write-ExchangeObjectDataLocal -Location $location -ServerData $exchangeServerData
+
+        $passInfo = [PSCustomObject]@{
+            SaveToLocation   = $location
+            InstallDirectory = $ExInstall
+        }
+
         Write-ScriptDebug("Writing out the Exchange data")
         Invoke-ExchangeResideDataCollectionWrite -PassedInfo $passInfo
-        $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
     }
 }
