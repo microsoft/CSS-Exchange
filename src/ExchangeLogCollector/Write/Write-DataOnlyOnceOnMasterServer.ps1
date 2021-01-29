@@ -1,7 +1,7 @@
-Function Write-DataOnlyOnceOnLocalMachine {
+Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
-    Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnLocalMachine")
+    Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnMasterServer")
     Write-ScriptDebug("Writing only once data")
 
     if (!$Script:MasterServer.ToUpper().Contains($env:COMPUTERNAME.ToUpper())) {
@@ -23,27 +23,6 @@ Function Write-DataOnlyOnceOnLocalMachine {
         Save-DataInfoToFile -dataIn (Get-OrganizationConfig) -SaveToLocation $target -AddServerName $false
     }
 
-    if ($DAGInformation -and (-not($Script:EdgeRoleDetected))) {
-        $data = Get-DAGInformation
-        if ($null -ne $data) {
-            $dagName = $data.DAGInfo.Name
-            $create = $RootCopyToDirectory + "\" + $dagName + "_DAG_MDB_Information"
-            New-Folder -NewFolder $create -IncludeDisplayCreate $true
-            $saveLocation = $create + "\{0}"
-
-            Save-DataInfoToFile -dataIn ($data.DAGInfo) -SaveToLocation ($saveLocation -f ($dagName + "_DAG_Info"))
-
-            Save-DataInfoToFile -dataIn ($data.DAGNetworkInfo) -SaveToLocation ($saveLocation -f ($dagName + "DAG_Network_Info"))
-
-            foreach ($mdb in $data.AllMdbs) {
-                Save-DataInfoToFile -dataIn ($mdb.MDBInfo) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_Info"))
-                Save-DataInfoToFile -dataIn ($mdb.MDBCopyStatus) -SaveToLocation ($saveLocation -f ($mdb.MDBName + "_DB_CopyStatus"))
-            }
-
-            Invoke-ZipFolder -Folder $create -AddCompressedSize $false
-        }
-    }
-
     if ($SendConnectors) {
         $create = $RootCopyToDirectory + "\Connectors"
         New-Folder -NewFolder $create -IncludeDisplayCreate $true
@@ -59,5 +38,5 @@ Function Write-DataOnlyOnceOnLocalMachine {
     }
 
     Invoke-ZipFolder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
-    Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnLocalMachine")
+    Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnMasterServer")
 }

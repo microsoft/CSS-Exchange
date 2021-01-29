@@ -197,7 +197,7 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . .\Write\Get-WritersToAddToScriptBlock.ps1
 . .\Write\Invoke-LargeDataObjectsWrite.ps1
-. .\Write\Write-DataOnlyOnceOnLocalMachine.ps1
+. .\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
 . .\Helpers\Get-RemoteLogLocation.ps1
@@ -366,7 +366,7 @@ Function Main {
         }
 
         Invoke-LargeDataObjectsWrite
-        Write-DataOnlyOnceOnLocalMachine
+        Write-DataOnlyOnceOnMasterServer
 
         #New Logger Instance incase we want the data for the copy.
         $Script:ErrorsFromStartOfCopy = $Error.Count
@@ -407,7 +407,7 @@ Function Main {
         }
         Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
         Invoke-LargeDataObjectsWrite
-        Write-DataOnlyOnceOnLocalMachine
+        Write-DataOnlyOnceOnMasterServer
     }
 
     Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false
