@@ -143,7 +143,6 @@ Function Write-LargeDataObjectsOnMachine {
             Collect Exchange Install Directory Location
             Create directories where data is being stored with the upcoming requests
             Write out the Exchange Server Object Data and copy them over to the correct server
-            Zip up the root directories
         #>
 
         #Setup all the Script blocks that we are going to use.
@@ -157,15 +156,9 @@ Function Write-LargeDataObjectsOnMachine {
         Write-ScriptDebug("Creating script block")
         $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
 
-        Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
-        $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
-        Write-ScriptDebug("Creating script block")
-        $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
-
         $serverArgListExchangeInstallDirectory = @()
         $serverArgListDirectoriesToCreate = @()
         $serverArgListExchangeResideData = @()
-        $serverArgListZipFolder = @()
         $localServerTempLocation = "{0}{1}\Exchange_Server_Data_Temp\" -f $Script:RootFilePath, $env:COMPUTERNAME
 
         #Need to do two loops as both of these actions are required before we can do actions in the next loop.
@@ -226,18 +219,6 @@ Function Write-LargeDataObjectsOnMachine {
                 ForEach-Object {
                     Copy-Item $_.VersionInfo.FileName $remoteLocation
                 }
-
-            if ($serverName -ne $Script:MasterServer) {
-                $folder = "{0}{1}" -f $Script:RootFilePath, $serverName
-                $serverArgListZipFolder += [PSCustomObject]@{
-                    ServerName   = $serverName
-                    ArgumentList = [PSCustomObject]@{
-                        Folder                = $folder
-                        IncludeMonthDay       = $true
-                        IncludeDisplayZipping = $true
-                    }
-                }
-            }
         }
 
         #Remove the temp data location right away
@@ -247,11 +228,6 @@ Function Write-LargeDataObjectsOnMachine {
         Start-JobManager -ServersWithArguments $serverArgListExchangeResideData -ScriptBlock ${Function:Invoke-ExchangeResideDataCollectionWrite} `
             -DisplayReceiveJob $false `
             -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
-
-        Write-ScriptDebug("Calling Compress-Folder")
-        Start-JobManager -ServersWithArguments $serverArgListZipFolder -ScriptBlock $compressFolderScriptBlock `
-            -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Zipping up the data for Write-LargeDataObjectsOnMachine"
     } else {
 
         if ($null -eq $ExInstall) {

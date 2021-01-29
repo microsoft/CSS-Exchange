@@ -201,8 +201,8 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
 . .\Helpers\Get-RemoteLogLocation.ps1
+. .\Helpers\Invoke-ServerRootZipAndCopy.ps1
 . .\Helpers\Test-DiskSpace.ps1
-. .\Helpers\Test-DiskSpaceForCopyOver.ps1
 . .\Helpers\Test-NoSwitchesProvided.ps1
 . .\Helpers\Test-PossibleCommonScenarios.ps1
 . .\Helpers\Test-RemoteExecutionOfServers.ps1
@@ -365,36 +365,9 @@ Function Main {
             exit
         }
 
-        Invoke-LargeDataObjectsWrite
         Write-DataOnlyOnceOnMasterServer
-
-        #New Logger Instance incase we want the data for the copy.
-        $Script:ErrorsFromStartOfCopy = $Error.Count
-        $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-Copy-Debug" `
-            -HostFunctionCaller $Script:HostFunctionCaller `
-            -VerboseFunctionCaller $Script:VerboseFunctionCaller
-        $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
-
-        if ((-not($SkipEndCopyOver)) -and
-            (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath)) {
-            Write-ScriptHost -ShowServer $false -WriteString (" ")
-            Write-ScriptHost -ShowServer $false -WriteString ("Copying over the data may take some time depending on the network")
-            foreach ($svr in $LogPaths) {
-                #Don't want to do the local host
-                if ($svr.ServerName -ne $env:COMPUTERNAME) {
-                    $remoteCopyLocation = "\\{0}\{1}" -f $svr.ServerName, ($svr.ZipFolder.Replace(":", "$"))
-                    Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation)
-                    Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
-                    Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Done copying file" -f $svr.ServerName)
-                }
-            }
-        } else {
-            Write-ScriptHost -ShowServer $false -WriteString (" ")
-            Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
-            foreach ($svr in $LogPaths) {
-                Write-ScriptHost -ShowServer $false -WriteString ("Server: {0} Path: {1}" -f $svr.ServerName, $svr.ZipFolder)
-            }
-        }
+        Invoke-LargeDataObjectsWrite
+        Invoke-ServerRootZipAndCopy
     } else {
 
         if ($null -eq (Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
@@ -406,8 +379,9 @@ Function Main {
             Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
         Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
-        Invoke-LargeDataObjectsWrite
         Write-DataOnlyOnceOnMasterServer
+        Invoke-LargeDataObjectsWrite
+        Invoke-ServerRootZipAndCopy -RemoteExecute $false
     }
 
     Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false

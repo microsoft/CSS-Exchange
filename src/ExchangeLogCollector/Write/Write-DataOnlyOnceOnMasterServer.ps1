@@ -37,6 +37,5 @@ Function Write-DataOnlyOnceOnMasterServer {
         Write-ScriptDebug ("No errors occurred within the script")
     }
 
-    Invoke-ZipFolder -Folder $RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
     Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnMasterServer")
 }
