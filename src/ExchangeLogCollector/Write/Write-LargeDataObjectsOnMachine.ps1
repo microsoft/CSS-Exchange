@@ -3,7 +3,8 @@
 #To handle this, we export the data locally and copy the data over the correct server.
 Function Write-LargeDataObjectsOnMachine {
 
-    Function Write-ExchangeData {
+    #Collect the Exchange Data that resides on their own machine.
+    Function Invoke-ExchangeResideDataCollectionWrite {
         param(
             [Parameter(Mandatory = $true)][object]$PassedInfo
         )
@@ -57,7 +58,11 @@ Function Write-LargeDataObjectsOnMachine {
         }
     }
 
-    Function Write-ExchangeDataLocally {
+    #Write the Exchange Object Information locally first to then allow it to be copied over to the remote machine.
+    #Exchange objects can be rather large preventing them to be passed within an Invoke-Command -ArgumentList
+    #In order to get around this and to avoid going through a loop of doing an Invoke-Command per server per object,
+    #Write the data out locally, copy that directory over to the remote location.
+    Function Write-ExchangeObjectDataLocal {
         param(
             [object]$ServerData,
             [string]$Location
@@ -166,14 +171,14 @@ Function Write-LargeDataObjectsOnMachine {
             Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
             New-Folder -NewFolders $rootTempLocation
 
-            Write-ExchangeDataLocally -ServerData $server -Location $rootTempLocation
+            Write-ExchangeObjectDataLocal -ServerData $server -Location $rootTempLocation
 
             $items = Get-ChildItem $rootTempLocation
             $items | ForEach-Object { Copy-Item $_.VersionInfo.FileName $remoteLocation }
         }
         Remove-Item $localServerTempLocation -Force -Recurse
-        Write-ScriptDebug("Calling Write-ExchangeData")
-        Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Write-ExchangeData} `
+        Write-ScriptDebug("Calling Invoke-ExchangeResideDataCollectionWrite")
+        Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Invoke-ExchangeResideDataCollectionWrite} `
             -DisplayReceiveJob $false `
             -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
         Write-ScriptDebug("Calling job for Zipping the data")
@@ -197,9 +202,9 @@ Function Write-LargeDataObjectsOnMachine {
         $passInfo | Add-Member -MemberType NoteProperty -Name Location -Value $location
         $passInfo | Add-Member -MemberType NoteProperty -Name InstallDirectory -Value $ExInstall
 
-        Write-ExchangeDataLocally -Location $location -ServerData $exchangeServerData
+        Write-ExchangeObjectDataLocal -Location $location -ServerData $exchangeServerData
         Write-ScriptDebug("Writing out the Exchange data")
-        Write-ExchangeData -PassedInfo $passInfo
+        Invoke-ExchangeResideDataCollectionWrite -PassedInfo $passInfo
         $folder = "{0}{1}" -f $Script:RootFilePath, $exchangeServerData.ServerName
     }
 }
