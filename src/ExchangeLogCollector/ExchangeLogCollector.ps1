@@ -190,8 +190,6 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Confirm-LocalEdgeServer.ps1
 . .\ExchangeServerInfo\Get-DAGInformation.ps1
 . .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. .\ExchangeServerInfo\Get-ExchangeServerDagName.ps1
-. .\ExchangeServerInfo\Get-MailboxDatabaseInformationFromDag.ps1
 . .\ExchangeServerInfo\Get-ServerObjects.ps1
 . .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
@@ -354,8 +352,7 @@ Function Main {
             $Script:ValidServers.Count -eq 1 -and
             $Script:ValidServers[0].ToUpper().Equals($env:COMPUTERNAME.ToUpper()))) {
 
-        $argumentList = Get-ArgumentList -Servers $Script:ValidServers
-
+        $Script:ArgumentList = Get-ArgumentList -Servers $Script:ValidServers
         #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
         try {
             Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
@@ -366,7 +363,7 @@ Function Main {
         }
 
         Write-DataOnlyOnceOnMasterServer
-        Invoke-LargeDataObjectsWrite
+        Write-LargeDataObjectsOnMachine
         Invoke-ServerRootZipAndCopy
     } else {
 
@@ -378,9 +375,10 @@ Function Main {
             Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
             Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
-        Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        $Script:ArgumentList = (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        Invoke-RemoteFunctions -PassedInfo $Script:ArgumentList
         Write-DataOnlyOnceOnMasterServer
-        Invoke-LargeDataObjectsWrite
+        Write-LargeDataObjectsOnMachine
         Invoke-ServerRootZipAndCopy -RemoteExecute $false
     }
 
