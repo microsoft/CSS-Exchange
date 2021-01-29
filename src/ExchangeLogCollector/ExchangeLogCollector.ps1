@@ -197,9 +197,9 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Start-WriteExchangeDataOnMachine.ps1
+. .\Write\Invoke-LargeDataObjectsWrite.ps1
 . .\Write\Write-DataOnlyOnceOnLocalMachine.ps1
-. .\Write\Write-ExchangeDataOnMachines.ps1
+. .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
 . .\Helpers\Get-RemoteLogLocation.ps1
 . .\Helpers\Test-DiskSpace.ps1
@@ -366,7 +366,7 @@ Function Main {
             exit
         }
 
-        Start-WriteExchangeDataOnMachines
+        Invoke-LargeDataObjectsWrite
         Write-DataOnlyOnceOnLocalMachine
 
         #New Logger Instance incase we want the data for the copy.
@@ -407,7 +407,7 @@ Function Main {
             Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
         Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
-        Start-WriteExchangeDataOnMachines
+        Invoke-LargeDataObjectsWrite
         Write-DataOnlyOnceOnLocalMachine
     }
 

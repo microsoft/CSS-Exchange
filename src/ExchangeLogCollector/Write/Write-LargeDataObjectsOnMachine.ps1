@@ -1,7 +1,7 @@
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
-Function Write-ExchangeDataOnMachines {
+Function Write-LargeDataObjectsOnMachine {
 
     Function Write-ExchangeData {
         param(
@@ -114,7 +114,7 @@ Function Write-ExchangeDataOnMachines {
         $serverInstallDirectories = Start-JobManager -ServersWithArguments $serversObjectListInstall -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
             -NeedReturnData $true `
             -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Exchange Install Directories for Write-ExchangeDataOnMachines"
+            -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
 
         Write-ScriptDebug("Getting New-Folder string to create Script Block")
         $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
@@ -123,7 +123,7 @@ Function Write-ExchangeDataOnMachines {
         Write-ScriptDebug("Calling job for folder creation")
         Start-JobManager -ServersWithArguments $serverListCreateDirectories -ScriptBlock $newFolderScriptBlock `
             -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Creating folders for Write-ExchangeDataOnMachines"
+            -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine"
 
         $serverListLocalDataGet = @()
         $serverListZipData = @()
@@ -175,7 +175,7 @@ Function Write-ExchangeDataOnMachines {
         Write-ScriptDebug("Calling Write-ExchangeData")
         Start-JobManager -ServersWithArguments $serverListLocalDataGet -ScriptBlock ${Function:Write-ExchangeData} `
             -DisplayReceiveJob $false `
-            -JobBatchName "Write the data for Write-ExchangeDataOnMachines"
+            -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
         Write-ScriptDebug("Calling job for Zipping the data")
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
@@ -183,7 +183,7 @@ Function Write-ExchangeDataOnMachines {
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
         Start-JobManager -ServersWithArguments $serverListZipData -ScriptBlock $compressFolderScriptBlock `
             -DisplayReceiveJobInCorrectFunction $true `
-            -JobBatchName "Zipping up the data for Write-ExchangeDataOnMachines"
+            -JobBatchName "Zipping up the data for Write-LargeDataObjectsOnMachine"
     } else {
 
         if ($null -eq $ExInstall) {
