@@ -190,7 +190,6 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Confirm-LocalEdgeServer.ps1
 . .\ExchangeServerInfo\Get-DAGInformation.ps1
 . .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. .\ExchangeServerInfo\Get-ExchangeObjectServerData.ps1
 . .\ExchangeServerInfo\Get-ExchangeServerDagName.ps1
 . .\ExchangeServerInfo\Get-MailboxDatabaseInformationFromDag.ps1
 . .\ExchangeServerInfo\Get-ServerObjects.ps1
