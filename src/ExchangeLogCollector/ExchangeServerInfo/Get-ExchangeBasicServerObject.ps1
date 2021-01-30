@@ -6,12 +6,7 @@ Function Get-ExchangeBasicServerObject {
     Write-ScriptDebug("Function Enter: Get-ExchangeBasicServerObject")
     Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
     try {
-        $exchServerObject = New-Object PSCustomObject
-        $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop
-        if ($AddGetServerProperty) {
-            $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
-        }
     } catch {
         Write-ScriptHost -WriteString ("Failed to detect server {0} as an Exchange Server" -f $ServerName) -ShowServer $false -ForegroundColor "Red"
         Invoke-CatchBlockActions
@@ -97,19 +92,8 @@ Function Get-ExchangeBasicServerObject {
         }
     }
 
-    Function Confirm-DAGMember {
-        param([bool]$MailboxServer, [string]$ServerName)
-        if ($MailboxServer) {
-            if ($null -ne (Get-MailboxServer $ServerName).DatabaseAvailabilityGroup) {
-                return $true
-            } else {
-                return $false
-            }
-        } else {
-            return $false
-        }
-    }
-
+    $exchServerObject = New-Object PSCustomObject
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -Value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -Value $exchServerRole -version $exchVersion)
@@ -117,9 +101,23 @@ Function Get-ExchangeBasicServerObject {
     $exchServerObject | Add-Member -MemberType NoteProperty -Name MailboxOnly -Value (Confirm-MailboxOnlyServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Edge -Value (Confirm-EdgeServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Version -Value $exchVersion
-    $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (Confirm-DAGMember -MailboxServer $exchServerObject.Mailbox -ServerName $exchServerObject.ServerName)
 
-    Write-ScriptDebug("Confirm-MailboxServer: {0} | Confirm-CASServer: {1} | Confirm-HubServer: {2} | Confirm-CASOnlyServer: {3} | Confirm-MailboxOnlyServer: {4} | Confirm-EdgeServer: {5} | Confirm-DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8}" -f $exchServerObject.Mailbox,
+    if ($exchServerObject.Mailbox) {
+        $getMailboxServer = Get-MailboxServer $ServerName
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value (![string]::IsNullOrEmpty($getMailboxServer.DatabaseAvailabilityGroup))
+
+        if ($exchServerObject.DAGMember) {
+            $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGName -Value ($getMailboxServer.DatabaseAvailabilityGroup.ToString())
+        }
+    } else {
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name DAGMember -Value $false
+    }
+
+    if ($AddGetServerProperty) {
+        $exchServerObject | Add-Member -MemberType NoteProperty -Name ExchangeServer -Value $getExchangeServer
+    }
+
+    Write-ScriptDebug("Mailbox: {0} | CAS: {1} | Hub: {2} | CASOnly: {3} | MailboxOnly: {4} | Edge: {5} | DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8} | DAGName: {9}" -f $exchServerObject.Mailbox,
         $exchServerObject.CAS,
         $exchServerObject.Hub,
         $exchServerObject.CASOnly,
@@ -127,7 +125,8 @@ Function Get-ExchangeBasicServerObject {
         $exchServerObject.Edge,
         $exchServerObject.DAGMember,
         $exchServerObject.Version,
-        $Script:AnyTransportSwitchesEnabled
+        $Script:AnyTransportSwitchesEnabled,
+        $exchServerObject.DAGName
     )
 
     return $exchServerObject

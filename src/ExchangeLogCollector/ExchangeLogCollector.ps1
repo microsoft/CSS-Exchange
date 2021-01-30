@@ -123,7 +123,7 @@
 [CmdletBinding()]
 Param (
     [string]$FilePath = "C:\MS_Logs_Collection",
-    [Array]$Servers,
+    [Array]$Servers = @($env:COMPUTERNAME),
     [switch]$EWSLogs,
     [switch]$IISLogs,
     [switch]$DailyPerformanceLogs,
@@ -190,26 +190,20 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Confirm-LocalEdgeServer.ps1
 . .\ExchangeServerInfo\Get-DAGInformation.ps1
 . .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. .\ExchangeServerInfo\Get-ExchangeObjectServerData.ps1
-. .\ExchangeServerInfo\Get-ExchangeServerDagName.ps1
-. .\ExchangeServerInfo\Get-MailboxDatabaseInformationFromDag.ps1
 . .\ExchangeServerInfo\Get-ServerObjects.ps1
 . .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Start-WriteExchangeDataOnMachine.ps1
-. .\Write\Write-DataOnlyOnceOnLocalMachine.ps1
-. .\Write\Write-Disclaimer.ps1
-. .\Write\Write-ExchangeDataOnMachines.ps1
-. .\Write\Write-Feedback.ps1
+. .\Write\Invoke-LargeDataObjectsWrite.ps1
+. .\Write\Write-DataOnlyOnceOnMasterServer.ps1
+. .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
 . .\Helpers\Get-RemoteLogLocation.ps1
+. .\Helpers\Invoke-ServerRootZipAndCopy.ps1
 . .\Helpers\Test-DiskSpace.ps1
-. .\Helpers\Test-DiskSpaceForCopyOver.ps1
 . .\Helpers\Test-NoSwitchesProvided.ps1
 . .\Helpers\Test-PossibleCommonScenarios.ps1
 . .\Helpers\Test-RemoteExecutionOfServers.ps1
-. .\Helpers\Test-LocalServerIsUsed.ps1
 
 Function Invoke-RemoteFunctions {
     param(
@@ -293,9 +287,36 @@ Function Invoke-RemoteFunctions {
 Function Main {
 
     Start-Sleep 1
-    Write-Disclaimer
     Test-PossibleCommonScenarios
-    Test-NoSwitchesProvided
+
+    $display = @"
+
+        Exchange Log Collector v{0}
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+        BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+        NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+        DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+        -This script will copy over data based off the switches provided.
+        -We will check for at least {1} GB of free space at the local target directory BEFORE
+            attempting to do the remote execution. It will continue to check to make sure that we have
+            at least {2} GB of free space throughout the data collection. If some data is determined
+            that if we were to copy it over it would place us over that threshold, we will not copy that
+            data set over. The script will continue to run while still constantly check the free space
+            available before doing a copy action.
+        -Please run this script at your own risk.
+
+"@ -f $scriptVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
+
+    Clear-Host
+    Write-ScriptHost -WriteString $display -ShowServer $false
+
+    if (-not($AcceptEULA)) {
+        Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
+    }
+
     if (-not (Confirm-Administrator)) {
         Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
         exit
@@ -308,95 +329,61 @@ Function Main {
         exit
     }
 
-    if ((Confirm-LocalEdgeServer) -and
-        $null -ne $Servers) {
+    if (!$Script:LocalExchangeShell.ToolsOnly -and
+        !$Script:LocalExchangeShell.RemoteShell -and
+        (Confirm-LocalEdgeServer)) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
         #Because it isn't a domain joined computer, we can't use remote execution
         Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"
         $Script:EdgeRoleDetected = $true
-        $Servers = $null
+        $Servers = @($env:COMPUTERNAME)
     }
 
-    if ($null -ne $Servers) {
+    if ($null -ne $Servers -and
+        !($Servers.Count -eq 1 -and
+            $Servers[0].ToUpper().Equals($env:COMPUTERNAME.ToUpper()))) {
+        [array]$Script:ValidServers = Test-RemoteExecutionOfServers -ServerList $Servers
+    } else {
+        [array]$Script:ValidServers = $Servers
+    }
 
-        #possible to return null or only a single server back (localhost)
-        $Script:ValidServers = Test-RemoteExecutionOfServers -ServerList $Servers
-        if ($null -ne $Script:ValidServers) {
-            $Script:ValidServers = Test-DiskSpace -Servers $Script:ValidServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize
-            Test-LocalServerIsUsed $Script:ValidServers
+    #possible to return null or only a single server back (localhost)
+    if (!($null -ne $Script:ValidServers -and
+            $Script:ValidServers.Count -eq 1 -and
+            $Script:ValidServers[0].ToUpper().Equals($env:COMPUTERNAME.ToUpper()))) {
 
-            $argumentList = Get-ArgumentList -Servers $Script:ValidServers
-            #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
-            try {
-                Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
-            } catch {
-                Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
-                Invoke-CatchBlockActions
-                exit
-            }
-
-            Start-WriteExchangeDataOnMachines
-            Write-DataOnlyOnceOnLocalMachine
-            #New Logger Instance incase we want the data for the copy.
-            $Script:ErrorsFromStartOfCopy = $Error.Count
-            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-Copy-Debug" `
-                -HostFunctionCaller $Script:HostFunctionCaller `
-                -VerboseFunctionCaller $Script:VerboseFunctionCaller
-            $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
-
-            if ((-not($SkipEndCopyOver)) -and
-                (Test-DiskSpaceForCopyOver -LogPathObject $LogPaths -RootPath $Script:RootFilePath)) {
-                Write-ScriptHost -ShowServer $false -WriteString (" ")
-                Write-ScriptHost -ShowServer $false -WriteString ("Copying over the data may take some time depending on the network")
-                foreach ($svr in $LogPaths) {
-                    #Don't want to do the local host
-                    if ($svr.ServerName -ne $env:COMPUTERNAME) {
-                        $remoteCopyLocation = "\\{0}\{1}" -f $svr.ServerName, ($svr.ZipFolder.Replace(":", "$"))
-                        Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Copying File {1}...." -f $svr.ServerName, $remoteCopyLocation)
-                        Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
-                        Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Done copying file" -f $svr.ServerName)
-                    }
-                }
-            } else {
-                Write-ScriptHost -ShowServer $false -WriteString (" ")
-                Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
-                foreach ($svr in $LogPaths) {
-                    Write-ScriptHost -ShowServer $false -WriteString ("Server: {0} Path: {1}" -f $svr.ServerName, $svr.ZipFolder)
-                }
-            }
-        } else {
-            #We have failed to do invoke-command on all the servers.... so we are going to do the same logic locally
-            Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
-            #want to test local server's free space first before moving to just collecting the data
-            if ($null -eq (Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
-                Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally as well. We can't continue with the data collection") -ForegroundColor "Yellow"
-                exit
-            }
-            if ((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction { return $true } -NoAction { return $false })) {
-                Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
-                $Script:ValidServers = @($env:COMPUTERNAME)
-                Start-WriteExchangeDataOnMachines
-                Write-DataOnlyOnceOnLocalMachine
-            }
+        $Script:ArgumentList = Get-ArgumentList -Servers $Script:ValidServers
+        #I can do a try catch here, but i also need to do a try catch in the remote so i don't end up failing here and assume the wrong failure location
+        try {
+            Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
+        } catch {
+            Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
+            Invoke-CatchBlockActions
+            exit
         }
+
+        Write-DataOnlyOnceOnMasterServer
+        Write-LargeDataObjectsOnMachine
+        Invoke-ServerRootZipAndCopy
     } else {
 
         if ($null -eq (Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
+            Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally. We can't continue with the data collection") -ForegroundColor "Yellow"
             exit
         }
         if (-not($Script:EdgeRoleDetected)) {
             Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
             Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
         }
-        Invoke-RemoteFunctions -PassedInfo (Get-ArgumentList -Servers $env:COMPUTERNAME)
-        $Script:ValidServers = @($env:COMPUTERNAME)
-        Start-WriteExchangeDataOnMachines
-        Write-DataOnlyOnceOnLocalMachine
+        $Script:ArgumentList = (Get-ArgumentList -Servers $env:COMPUTERNAME)
+        Invoke-RemoteFunctions -PassedInfo $Script:ArgumentList
+        Write-DataOnlyOnceOnMasterServer
+        Write-LargeDataObjectsOnMachine
+        Invoke-ServerRootZipAndCopy -RemoteExecute $false
     }
 
-    Write-FeedBack
+    Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false
 }
-
 try {
     $Error.Clear()
     <#

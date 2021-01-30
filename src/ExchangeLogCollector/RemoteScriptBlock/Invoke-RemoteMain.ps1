@@ -490,10 +490,4 @@ Function Invoke-RemoteMain {
     } else {
         Write-ScriptDebug ("No errors occurred within the script")
     }
-
-    if ((-not($PassedInfo.ExchangeServerInfo)) -and
-        $env:COMPUTERNAME -ne ($PassedInfo.HostExeServerName)) {
-        #Zip it all up
-        Invoke-ZipFolder -Folder $Script:RootCopyToDirectory -ZipItAll $true -AddCompressedSize $false
-    }
 }

@@ -39,6 +39,37 @@ Function Test-RemoteExecutionOfServers {
             Invoke-CatchBlockActions
         }
     }
+
+    if ($validServers.Count -gt 0) {
+        $validServers = Test-DiskSpace -Servers $validServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize
+    }
+
+    #all servers in teh list weren't able to do Invoke-Command or didn't have enough free space. Try to do against local server.
+    if ($null -ne $validServers -and
+        $validServers.Count -eq 0) {
+
+        #Can't do this on a tools or remote shell
+        if ($Script:LocalExchangeShell.ToolsOnly -or
+            $Script:LocalExchangeShell.RemoteShell) {
+            Write-ScriptHost -WriteString "Failed to invoke against the machines to do remote collection from a tools box or a remote machine." -ForegroundColor "Red"
+            exit
+        }
+
+        Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
+
+        if ((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction { return $true } -NoAction { return $false })) {
+            $validServers = @($env:COMPUTERNAME)
+        } else {
+            exit
+        }
+
+        #want to test local server's free space first before moving to just collecting the data
+        if ($null -eq (Test-DiskSpace -Servers $validServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
+            Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally. We can't continue with the data collection") -ForegroundColor "Yellow"
+            exit
+        }
+    }
+
     Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")
     return $validServers
 }
