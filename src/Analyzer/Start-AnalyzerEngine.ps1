@@ -1157,7 +1157,7 @@ Function Start-AnalyzerEngine {
     }
 
     if (($null -ne $exchangeInformation.ExchangeCertificates) -and
-        ($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate.Contains($true))) {
+        ($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate -contains $true)) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 1 `
