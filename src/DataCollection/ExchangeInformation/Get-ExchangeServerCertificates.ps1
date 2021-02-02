@@ -36,10 +36,16 @@ Function Get-ExchangeServerCertificates {
                         $isAuthConfigInfo = "InvalidAuthConfig"
                     }
 
+                    if ([String]::IsNullOrEmpty($cert.FriendlyName)) {
+                        $certFriendlyName = $cert.DnsNameList[0].Unicode
+                    } else {
+                        $certFriendlyName = $cert.FriendlyName
+                    }
+
                     $certInformationObj = New-Object PSCustomObject
-                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $cert.FriendlyName
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $certFriendlyName
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
-                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -Value $cert.PublicKeySize
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -Value $cert.PublicKey.Key.KeySize
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsSanCertificate" -Value $sanCertificateInfo
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Namespaces" -Value $cert.DnsNameList
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
