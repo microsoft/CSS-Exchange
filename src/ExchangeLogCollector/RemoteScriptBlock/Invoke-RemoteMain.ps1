@@ -246,7 +246,7 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
-        if ($PassedInfo.ManagedAvailability) {
+        if ($PassedInfo.ManagedAvailabilityLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\Monitoring"), ($Script:RootCopyToDirectory + "\ManagedAvailabilityMonitoringLogs"))
             $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
         }
@@ -355,7 +355,7 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
-        if ($PassedInfo.QueueInformationThisServer -and
+        if ($PassedInfo.QueueInformation -and
             (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
 
@@ -458,7 +458,7 @@ Function Invoke-RemoteMain {
         $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
 
-    if ($PassedInfo.ServerInfo) {
+    if ($PassedInfo.ServerInformation) {
         $cmdsToRun += "Save-ServerInfoData"
     }
 

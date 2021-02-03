@@ -24,7 +24,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
     $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
     $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value (Get-ServerObjects -ValidServers $Servers)
-    $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
+    $obj | Add-Member -Name ManagedAvailabilityLogs -MemberType NoteProperty -Value $ManagedAvailabilityLogs
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
     $obj | Add-Member -Name EWSLogs -MemberType NoteProperty -Value $EWSLogs
     $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs
@@ -45,13 +45,13 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name MailboxConnectivityLogs -MemberType NoteProperty -Value $MailboxConnectivityLogs
     $obj | Add-Member -Name MailboxProtocolLogs -MemberType NoteProperty -Value $MailboxProtocolLogs
     $obj | Add-Member -Name MailboxDeliveryThrottlingLogs -MemberType NoteProperty -Value $MailboxDeliveryThrottlingLogs
-    $obj | Add-Member -Name QueueInformationThisServer -MemberType NoteProperty -Value $QueueInformationThisServer
+    $obj | Add-Member -Name QueueInformation -MemberType NoteProperty -Value $QueueInformation
     $obj | Add-Member -Name SendConnectors -MemberType NoteProperty -Value $SendConnectors
     $obj | Add-Member -Name DAGInformation -MemberType NoteProperty -Value $DAGInformation
     $obj | Add-Member -Name GetVdirs -MemberType NoteProperty -Value $GetVdirs
     $obj | Add-Member -Name TransportConfig -MemberType NoteProperty -Value $TransportConfig
     $obj | Add-Member -Name DefaultTransportLogging -MemberType NoteProperty -Value $DefaultTransportLogging
-    $obj | Add-Member -Name ServerInfo -MemberType NoteProperty -Value $ServerInfo
+    $obj | Add-Member -Name ServerInformation -MemberType NoteProperty -Value $ServerInformation
     $obj | Add-Member -Name CollectAllLogsBasedOnDaysWorth -MemberType NoteProperty -Value $CollectAllLogsBasedOnDaysWorth
     $obj | Add-Member -Name DaysWorth -MemberType NoteProperty -Value $DaysWorth
     $obj | Add-Member -Name IISLogs -MemberType NoteProperty -Value $IISLogs
@@ -62,7 +62,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name Exmon -MemberType NoteProperty -Value $Exmon
     $obj | Add-Member -Name ExmonLogmanName -MemberType NoteProperty -Value $ExmonLogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
-    $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
+    $obj | Add-Member -Name ExchangeServerInformation -MemberType NoteProperty -Value $ExchangeServerInformation
     $obj | Add-Member -Name StandardFreeSpaceInGBCheckSize -MemberType NoteProperty $Script:StandardFreeSpaceInGBCheckSize
     $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs

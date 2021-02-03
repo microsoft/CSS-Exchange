@@ -2,7 +2,7 @@ Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or
-        $ManagedAvailability -or
+        $ManagedAvailabilityLogs -or
         $Experfwiz -or
         $RPCLogs -or
         $EASLogs -or
@@ -18,13 +18,13 @@ Function Test-NoSwitchesProvided {
         $GetVdirs -or
         $OrganizationConfig -or
         $Exmon -or
-        $ServerInfo -or
+        $ServerInformation -or
         $PopLogs -or
         $ImapLogs -or
         $OABLogs -or
         $PowerShellLogs -or
         $WindowsSecurityLogs -or
-        $ExchangeServerInfo
+        $ExchangeServerInformation
     ) {
         return
     } else {

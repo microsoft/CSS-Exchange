@@ -5,7 +5,7 @@ Function Test-PossibleCommonScenarios {
         $Script:EWSLogs = $true
         $Script:IISLogs = $true
         $Script:DailyPerformanceLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:RPCLogs = $true
         $Script:EASLogs = $true
         $Script:AutoDLogs = $true
@@ -13,14 +13,14 @@ Function Test-PossibleCommonScenarios {
         $Script:ADDriverLogs = $true
         $Script:SearchLogs = $true
         $Script:HighAvailabilityLogs = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
         $Script:GetVdirs = $true
         $Script:DAGInformation = $true
         $Script:DefaultTransportLogging = $true
         $Script:MapiLogs = $true
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
-        $Script:ExchangeServerInfo = $true
+        $Script:ExchangeServerInformation = $true
         $Script:PopLogs = $true
         $Script:ImapLogs = $true
         $Script:Experfwiz = $true
@@ -32,7 +32,7 @@ Function Test-PossibleCommonScenarios {
     if ($DefaultTransportLogging) {
         $Script:HubConnectivityLogs = $true
         $Script:MessageTrackingLogs = $true
-        $Script:QueueInformationThisServer = $true
+        $Script:QueueInformation = $true
         $Script:SendConnectors = $true
         $Script:ReceiveConnectors = $true
         $Script:TransportConfig = $true
@@ -45,15 +45,15 @@ Function Test-PossibleCommonScenarios {
     if ($DatabaseFailoverIssue) {
         $Script:DailyPerformanceLogs = $true
         $Script:HighAvailabilityLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:DAGInformation = $true
         $Script:Experfwiz = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
     }
 
     if ($PerformanceIssues) {
         $Script:DailyPerformanceLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:Experfwiz = $true
     }
 
@@ -61,7 +61,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DailyPerformanceLogs = $true
         $Script:Experfwiz = $true
         $Script:MessageTrackingLogs = $true
-        $Script:QueueInformationThisServer = $true
+        $Script:QueueInformation = $true
         $Script:TransportConfig = $true
     }
 
@@ -73,13 +73,13 @@ Function Test-PossibleCommonScenarios {
         $Script:RPCLogs = $true
         $Script:AutoDLogs = $true
         $Script:EWSLogs = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
     }
 
     #Because we right out our Receive Connector information in Exchange Server Info now
     if ($ReceiveConnectors -or
-        $QueueInformationThisServer) {
-        $Script:ExchangeServerInfo = $true
+        $QueueInformation) {
+        $Script:ExchangeServerInformation = $true
     }
 
     #See if any transport logging is enabled.
@@ -87,7 +87,7 @@ Function Test-PossibleCommonScenarios {
     if ($HubProtocolLogs -or
         $HubConnectivityLogs -or
         $MessageTrackingLogs -or
-        $QueueInformationThisServer -or
+        $QueueInformation -or
         $SendConnectors -or
         $ReceiveConnectors -or
         $TransportConfig -or
@@ -100,7 +100,7 @@ Function Test-PossibleCommonScenarios {
         $Script:AnyTransportSwitchesEnabled = $true
     }
 
-    if ($ServerInfo -or $ManagedAvailability) {
-        $Script:ExchangeServerInfo = $true
+    if ($ServerInformation -or $ManagedAvailabilityLogs) {
+        $Script:ExchangeServerInformation = $true
     }
 }
