@@ -24,7 +24,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name FilePath -MemberType NoteProperty -Value $FilePath
     $obj | Add-Member -Name RootFilePath -MemberType NoteProperty -Value $Script:RootFilePath
     $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value (Get-ServerObjects -ValidServers $Servers)
-    $obj | Add-Member -Name ManagedAvailability -MemberType NoteProperty -Value $ManagedAvailability
+    $obj | Add-Member -Name ManagedAvailabilityLogs -MemberType NoteProperty -Value $ManagedAvailabilityLogs
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
     $obj | Add-Member -Name EWSLogs -MemberType NoteProperty -Value $EWSLogs
     $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs

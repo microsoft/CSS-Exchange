@@ -246,7 +246,7 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
-        if ($PassedInfo.ManagedAvailability) {
+        if ($PassedInfo.ManagedAvailabilityLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\Monitoring"), ($Script:RootCopyToDirectory + "\ManagedAvailabilityMonitoringLogs"))
             $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
         }

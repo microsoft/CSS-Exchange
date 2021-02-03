@@ -41,7 +41,8 @@ Param (
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
     [switch]$MailboxProtocolLogs,
-    [switch]$ManagedAvailability,
+    [Alias("ManagedAvailability")]
+    [switch]$ManagedAvailabilityLogs,
     [switch]$MapiLogs,
     [switch]$MessageTrackingLogs,
     [switch]$OABLogs,

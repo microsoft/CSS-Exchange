@@ -2,7 +2,7 @@ Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or
-        $ManagedAvailability -or
+        $ManagedAvailabilityLogs -or
         $Experfwiz -or
         $RPCLogs -or
         $EASLogs -or

@@ -5,7 +5,7 @@ Function Test-PossibleCommonScenarios {
         $Script:EWSLogs = $true
         $Script:IISLogs = $true
         $Script:DailyPerformanceLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:RPCLogs = $true
         $Script:EASLogs = $true
         $Script:AutoDLogs = $true
@@ -45,7 +45,7 @@ Function Test-PossibleCommonScenarios {
     if ($DatabaseFailoverIssue) {
         $Script:DailyPerformanceLogs = $true
         $Script:HighAvailabilityLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:DAGInformation = $true
         $Script:Experfwiz = $true
         $Script:ServerInfo = $true
@@ -53,7 +53,7 @@ Function Test-PossibleCommonScenarios {
 
     if ($PerformanceIssues) {
         $Script:DailyPerformanceLogs = $true
-        $Script:ManagedAvailability = $true
+        $Script:ManagedAvailabilityLogs = $true
         $Script:Experfwiz = $true
     }
 
@@ -100,7 +100,7 @@ Function Test-PossibleCommonScenarios {
         $Script:AnyTransportSwitchesEnabled = $true
     }
 
-    if ($ServerInfo -or $ManagedAvailability) {
+    if ($ServerInfo -or $ManagedAvailabilityLogs) {
         $Script:ExchangeServerInfo = $true
     }
 }

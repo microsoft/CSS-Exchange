@@ -24,7 +24,7 @@ Function Save-WindowsEventLogs {
         $SaveLogs.Add("Windows-Logs", $logs)
     }
 
-    if ($PassedInfo.ManagedAvailability) {
+    if ($PassedInfo.ManagedAvailabilityLogs) {
         Write-ScriptDebug("Adding Managed Availability Logs")
 
         $logs = $allLogPaths | Where-Object { $_.Contains("Microsoft-Exchange-ActiveMonitoring") }
