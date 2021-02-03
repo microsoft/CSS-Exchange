@@ -51,7 +51,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name GetVdirs -MemberType NoteProperty -Value $GetVdirs
     $obj | Add-Member -Name TransportConfig -MemberType NoteProperty -Value $TransportConfig
     $obj | Add-Member -Name DefaultTransportLogging -MemberType NoteProperty -Value $DefaultTransportLogging
-    $obj | Add-Member -Name ServerInfo -MemberType NoteProperty -Value $ServerInfo
+    $obj | Add-Member -Name ServerInformation -MemberType NoteProperty -Value $ServerInformation
     $obj | Add-Member -Name CollectAllLogsBasedOnDaysWorth -MemberType NoteProperty -Value $CollectAllLogsBasedOnDaysWorth
     $obj | Add-Member -Name DaysWorth -MemberType NoteProperty -Value $DaysWorth
     $obj | Add-Member -Name IISLogs -MemberType NoteProperty -Value $IISLogs

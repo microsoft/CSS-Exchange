@@ -458,7 +458,7 @@ Function Invoke-RemoteMain {
         $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
 
-    if ($PassedInfo.ServerInfo) {
+    if ($PassedInfo.ServerInformation) {
         $cmdsToRun += "Save-ServerInfoData"
     }
 

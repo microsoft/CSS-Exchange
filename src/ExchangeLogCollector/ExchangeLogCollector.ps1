@@ -56,7 +56,8 @@ Param (
     [switch]$RPCLogs,
     [switch]$SearchLogs,
     [switch]$SendConnectors,
-    [switch]$ServerInfo,
+    [Alias("ServerInfo")]
+    [switch]$ServerInformation,
     [switch]$TransportConfig,
     [switch]$WindowsSecurityLogs,
     [switch]$AcceptEULA,

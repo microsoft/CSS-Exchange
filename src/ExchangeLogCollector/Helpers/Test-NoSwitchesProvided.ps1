@@ -18,7 +18,7 @@ Function Test-NoSwitchesProvided {
         $GetVdirs -or
         $OrganizationConfig -or
         $Exmon -or
-        $ServerInfo -or
+        $ServerInformation -or
         $PopLogs -or
         $ImapLogs -or
         $OABLogs -or

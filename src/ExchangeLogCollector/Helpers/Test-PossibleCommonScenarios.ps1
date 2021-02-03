@@ -13,7 +13,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ADDriverLogs = $true
         $Script:SearchLogs = $true
         $Script:HighAvailabilityLogs = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
         $Script:GetVdirs = $true
         $Script:DAGInformation = $true
         $Script:DefaultTransportLogging = $true
@@ -48,7 +48,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ManagedAvailabilityLogs = $true
         $Script:DAGInformation = $true
         $Script:Experfwiz = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
     }
 
     if ($PerformanceIssues) {
@@ -73,7 +73,7 @@ Function Test-PossibleCommonScenarios {
         $Script:RPCLogs = $true
         $Script:AutoDLogs = $true
         $Script:EWSLogs = $true
-        $Script:ServerInfo = $true
+        $Script:ServerInformation = $true
     }
 
     #Because we right out our Receive Connector information in Exchange Server Info now
@@ -100,7 +100,7 @@ Function Test-PossibleCommonScenarios {
         $Script:AnyTransportSwitchesEnabled = $true
     }
 
-    if ($ServerInfo -or $ManagedAvailabilityLogs) {
+    if ($ServerInformation -or $ManagedAvailabilityLogs) {
         $Script:ExchangeServerInformation = $true
     }
 }

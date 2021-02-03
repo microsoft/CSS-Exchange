@@ -46,7 +46,7 @@ DefaultTransportLogging | Enables the following switches and their logs to be co
 EASLogs | Enable to collect Exchange Active Sync Logging. Location: `V15\Logging\HttpProxy\Eas`
 ECPLogs | Enable to collect ECP Logs. Location: `V15\Logging\ECP` and `V15\Logging\HttpProxy\Ecp`
 EWSLogs | Enable to collect EWS Logs. Location: `V15\Logging\HttpProxy\Ews` and `V15\Logging\Ews`
-ExchangeServerInfo | Enable to collect Exchange Information like Get-ExchangeServer, Get-MailboxServer, etc... This is also collected when `-ServerInfo` is also enabled.
+ExchangeServerInformation | Enable to collect Exchange Information like Get-ExchangeServer, Get-MailboxServer, etc... This is also collected when `-ServerInformation` is also enabled.
 Exmon | Enable to collect exmon data from the server.
 Experfwiz | Enable to collect Experfwiz data if found. 
 FrontEndConnectivityLogs | Enable to collect the connectivity logging on the FE. Location: `(Get-FrontendTransportService $server).ConnectivityLogPath`
@@ -73,17 +73,17 @@ ReceiveConnectors | Enable to collect the Receive Connector information from the
 RPCLogs | Enable to collect RPC Logs. Location: `V15\Logging\RPC Client Access`, `V15\Logging\HttpProxy\RpcHttp`, and `V15\Logging\RpcHttp`
 SearchLogs | Enable to collect Search Logs. Location: `V15\Bin\Search\Ceres\Diagnostics\Logs`, `V15\Bin\Search\Ceres\Diagnostics\ETLTraces`
 SendConnectors | Enable to collect the send connector information from the environment.
-ServerInfo | Enable to collect general server information.
+ServerInformation | Enable to collect general server information.
 TransportConfig | Enable to collect the Transport Configuration from the Server. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\Winevt\Logs\Security.evtx'`
 AcceptEULA | Enable to accept the conditions of the script and not get prompted.
 AllPossibleLogs | Enables the collection of all default logging collection on the Server. 
 CollectAllLogsBasedOnDaysWorth | Boolean to determine if you collect all the logs based off day's worth or all the logs in that directory. Default value `$true`
-DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInfo`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInfo`.
+DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInformation`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInformation`.
 DaysWorth | The number of days to go back from today for log collection. Default value: 3
 ExmonLogmanName | A list of names that we want to collect for Exmon data. The default name is `Exmon_Trace`.
 ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz` and `ExPerfwiz`. (For both styles of Experfwiz)
-OutlookConnectivityIssues | Enables the following switches and their logs to be collected: `AutoDLogs`, `DailyPerformanceLogs`, `EWSLogs`, `Experfwiz`, `IISLogs`, `MAPILogs`, `RPCLogs`, and `ServerInfo`
+OutlookConnectivityIssues | Enables the following switches and their logs to be collected: `AutoDLogs`, `DailyPerformanceLogs`, `EWSLogs`, `Experfwiz`, `IISLogs`, `MAPILogs`, `RPCLogs`, and `ServerInformation`
 PerformanceIssues | Enables the following switches and their logs to be collected: `DailyPerformanceLogs`, `Experfwiz`, and `ManagedAvailabilityLogs`
 PerformanceMailflowIssues | Enables the following switches and their logs to be collected: `DailyPerformanceLogs`, `Experfwiz`, `MessageTrackingLogs`, `QueueInformation`, and `TransportConfig`
 ScriptDebug | Enable to display all the verbose lines in the script.
