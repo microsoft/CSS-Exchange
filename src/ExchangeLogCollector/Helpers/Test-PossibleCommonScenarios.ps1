@@ -32,7 +32,7 @@ Function Test-PossibleCommonScenarios {
     if ($DefaultTransportLogging) {
         $Script:HubConnectivityLogs = $true
         $Script:MessageTrackingLogs = $true
-        $Script:QueueInformationThisServer = $true
+        $Script:QueueInformation = $true
         $Script:SendConnectors = $true
         $Script:ReceiveConnectors = $true
         $Script:TransportConfig = $true
@@ -61,7 +61,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DailyPerformanceLogs = $true
         $Script:Experfwiz = $true
         $Script:MessageTrackingLogs = $true
-        $Script:QueueInformationThisServer = $true
+        $Script:QueueInformation = $true
         $Script:TransportConfig = $true
     }
 
@@ -78,7 +78,7 @@ Function Test-PossibleCommonScenarios {
 
     #Because we right out our Receive Connector information in Exchange Server Info now
     if ($ReceiveConnectors -or
-        $QueueInformationThisServer) {
+        $QueueInformation) {
         $Script:ExchangeServerInfo = $true
     }
 
@@ -87,7 +87,7 @@ Function Test-PossibleCommonScenarios {
     if ($HubProtocolLogs -or
         $HubConnectivityLogs -or
         $MessageTrackingLogs -or
-        $QueueInformationThisServer -or
+        $QueueInformation -or
         $SendConnectors -or
         $ReceiveConnectors -or
         $TransportConfig -or

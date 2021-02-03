@@ -355,7 +355,7 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
-        if ($PassedInfo.QueueInformationThisServer -and
+        if ($PassedInfo.QueueInformation -and
             (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
 

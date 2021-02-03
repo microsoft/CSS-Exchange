@@ -59,7 +59,7 @@
     Used to collect the Mailbox Connectivity Logs from the server
 .PARAMETER MailboxProtocolLogs
     Used to collect the Mailbox Protocol Logs from the server
-.PARAMETER QueueInformationThisServer
+.PARAMETER QueueInformation
     Used to collect the Queue Information from this server
 .PARAMETER ReceiveConnectors
     Used to collect the Receive Connector information from this server
@@ -146,7 +146,7 @@ Param (
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxProtocolLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
-    [switch]$QueueInformationThisServer,
+    [switch]$QueueInformation,
     [switch]$ReceiveConnectors,
     [switch]$SendConnectors,
     [switch]$DAGInformation,
