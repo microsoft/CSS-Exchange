@@ -62,7 +62,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name Exmon -MemberType NoteProperty -Value $Exmon
     $obj | Add-Member -Name ExmonLogmanName -MemberType NoteProperty -Value $ExmonLogmanName
     $obj | Add-Member -Name ScriptDebug -MemberType NoteProperty -Value $ScriptDebug
-    $obj | Add-Member -Name ExchangeServerInfo -MemberType NoteProperty -Value $ExchangeServerInfo
+    $obj | Add-Member -Name ExchangeServerInformation -MemberType NoteProperty -Value $ExchangeServerInformation
     $obj | Add-Member -Name StandardFreeSpaceInGBCheckSize -MemberType NoteProperty $Script:StandardFreeSpaceInGBCheckSize
     $obj | Add-Member -Name PopLogs -MemberType NoteProperty -Value $PopLogs
     $obj | Add-Member -Name ImapLogs -MemberType NoteProperty -Value $ImapLogs

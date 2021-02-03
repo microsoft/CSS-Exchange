@@ -20,7 +20,7 @@ Function Test-PossibleCommonScenarios {
         $Script:MapiLogs = $true
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
-        $Script:ExchangeServerInfo = $true
+        $Script:ExchangeServerInformation = $true
         $Script:PopLogs = $true
         $Script:ImapLogs = $true
         $Script:Experfwiz = $true
@@ -79,7 +79,7 @@ Function Test-PossibleCommonScenarios {
     #Because we right out our Receive Connector information in Exchange Server Info now
     if ($ReceiveConnectors -or
         $QueueInformation) {
-        $Script:ExchangeServerInfo = $true
+        $Script:ExchangeServerInformation = $true
     }
 
     #See if any transport logging is enabled.
@@ -101,6 +101,6 @@ Function Test-PossibleCommonScenarios {
     }
 
     if ($ServerInfo -or $ManagedAvailabilityLogs) {
-        $Script:ExchangeServerInfo = $true
+        $Script:ExchangeServerInformation = $true
     }
 }

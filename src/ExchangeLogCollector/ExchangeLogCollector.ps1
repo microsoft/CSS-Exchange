@@ -27,7 +27,8 @@ Param (
     [switch]$EASLogs,
     [switch]$ECPLogs,
     [switch]$EWSLogs,
-    [switch]$ExchangeServerInfo,
+    [Alias("ExchangeServerInfo")]
+    [switch]$ExchangeServerInformation,
     [switch]$Exmon,
     [switch]$Experfwiz,
     [switch]$FrontEndConnectivityLogs,

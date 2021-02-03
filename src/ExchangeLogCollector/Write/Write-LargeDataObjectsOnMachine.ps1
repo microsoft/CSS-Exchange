@@ -161,7 +161,7 @@ Function Write-LargeDataObjectsOnMachine {
         Remove-Item $localServerTempLocation -Force -Recurse
     }
 
-    if ($ExchangeServerInfo) {
+    if ($ExchangeServerInformation) {
 
         #Create a list that contains all the information that we need to dump out locally then copy over to each respective server within "Exchange_Server_Data"
         $exchangeServerData = @()
