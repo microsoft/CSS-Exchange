@@ -1,1 +1,4 @@
 debug.log 
+.build/dist/*
+.build/.externRepo/*
+*.bak
