@@ -1,3 +1,7 @@
 Function  Save-LogmanExperfwizData {
-    Get-LogmanData -LogmanName $PassedInfo.ExperfwizLogmanName -ServerName $env:COMPUTERNAME
+
+    $PassedInfo.ExperfwizLogmanName |
+        ForEach-Object {
+            Get-LogmanData -LogmanName $_ -ServerName $env:COMPUTERNAME
+        }
 }

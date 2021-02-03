@@ -171,7 +171,7 @@ Param (
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
     [switch]$OutlookConnectivityIssues,
-    [string]$ExperfwizLogmanName = "Exchange_Perfwiz",
+    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
     [string]$ExmonLogmanName = "Exmon_Trace",
     [switch]$AcceptEULA,
     [switch]$ScriptDebug
