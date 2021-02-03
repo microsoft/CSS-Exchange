@@ -5,11 +5,13 @@ To download this script, download the latest version [here](https://github.com/d
 This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data. 
 
 # How to Run 
-The script MUST be run as Administrator in Exchange Management Shell on an Exchange Server that you would like to collect the data from. This script is mainly built around Exchange 2013 and greater, but it should be able to collect data in Exchange 2010 still just fine. This script is great to collect a set of data for an issue without needing to collect a lot of data that isn't needed for an issue. 
+The script **must** be run as Administrator in PowerShell session on an Exchange Server or Tools box. Supported to run and collected logs against Exchange 2013 and greater. The intent of the script is to collect logs only that you need from X servers quickly without needing to have to manually collect it yourself and label zip them all up for you. If you don't know what logs to collect, it is recommended to use `-AllPossibleLogs`.
 
-Within the version 2.1 or greater, we are now able to do remote collections if the target machine is on Windows Server 2012 or greater to use Invoke-Command. If Invoke-Command works remotely, then we will allow you to attempt to collect the data. You can still utilize the script to collect locally as it used to be able to, if the target OS doesn't allow this. 
+This script no longer supports collecting logs from Exchange 2010. However, the last release of v2 should still work just fine. You can download that [here](https://github.com/dpaulson45/ExchangeLogCollector/releases/tag/v2.17.1). 
 
-Prior to collecting the data, we check to make sure that there is at least 15GB of free space at the location of where we are trying to save the data of the target server. You have the option to use the Disk Override switch but use at your own discretion. 
+The script is able to collect from the large set of servers while using the Invoke-Command. Prior to executing the main script, we check to make sure the server is up and that we are able to use Invoke-Command against the server. If Invoke-Command works remotely, then we will allow you to attempt to collect the data. You can still utilize the script to collect locally as it used to be able to, if the target OS doesn't allow this. 
+
+Prior to collecting the data, we check to make sure that there is at least 10GB of free space at the location of where we are trying to save the data of the target server. The script will continue to keep track of all the logs and data that is being copied over and will stop if we have less than 10GB of free space.
 
 Examples: 
 
