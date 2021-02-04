@@ -62,7 +62,8 @@ Function Write-LargeDataObjectsOnMachine {
                         $cacheConfigFileListLocation += $config.ToLower()
                         $saveConfigLocation = "{0}\{1}_{2}" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME,
                         $config.Substring($config.LastIndexOf("\") + 1)
-                        (Get-Content $config) > $saveConfigLocation
+                        #Copy item to keep the date modify time
+                        Copy-Item $config -Destination $saveConfigLocation
                     }
                     $saveAllInfoLocation = "{0}\{1}_{2}.txt" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $_
                     $allInfo | Format-List * > $saveAllInfoLocation
