@@ -20,6 +20,7 @@ Param (
     [array]$Servers = @($env:COMPUTERNAME),
     [switch]$ADDriverLogs,
     [bool]$AppSysLogs = $true,
+    [bool]$AppSysLogsToXml = $true,
     [switch]$AutoDLogs,
     [switch]$DAGInformation,
     [switch]$DailyPerformanceLogs,

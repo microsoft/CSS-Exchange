@@ -26,6 +26,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name ServerObjects -MemberType NoteProperty -Value (Get-ServerObjects -ValidServers $Servers)
     $obj | Add-Member -Name ManagedAvailabilityLogs -MemberType NoteProperty -Value $ManagedAvailabilityLogs
     $obj | Add-Member -Name AppSysLogs -MemberType NoteProperty -Value $AppSysLogs
+    $obj | Add-Member -Name AppSysLogsToXml -MemberType NoteProperty -Value $AppSysLogsToXml
     $obj | Add-Member -Name EWSLogs -MemberType NoteProperty -Value $EWSLogs
     $obj | Add-Member -Name DailyPerformanceLogs -MemberType NoteProperty -Value $DailyPerformanceLogs
     $obj | Add-Member -Name RPCLogs -MemberType NoteProperty -Value $RPCLogs
