@@ -26,35 +26,95 @@ Function Write-LargeDataObjectsOnMachine {
         $appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
         if (Test-Path $appCmd) {
             $appPools = &$appCmd list apppool
-            $exchangeAppPools = @()
-            foreach ($appPool in $appPools) {
-                $startIndex = $appPool.IndexOf('"') + 1
-                $appPoolName = $appPool.SubString($startIndex,
-                    ($appPool.SubString($startIndex).IndexOf('"')))
-                if ($appPoolName.StartsWith("MSExchange")) {
-                    $exchangeAppPools += $appPoolName
-                }
-            }
+            $sites = &$appCmd list sites
 
-            $configFileListLocation = @()
-            foreach ($exchAppPool in $exchangeAppPools) {
-                $config = &$appCmd list apppool $exchAppPool /text:CLRConfigFile
-                $allResult = &$appCmd list apppool $exchAppPool /text:*
-                if (($null -ne $config -and
-                        $config -ne [string]::Empty) -and
-                    (Test-Path $config) -and
-                    (!($configFileListLocation.Contains($config.ToLower())))) {
-                    $configFileListLocation += $config.ToLower()
+            $exchangeAppPools = $appPools |
+                ForEach-Object {
+                    $startIndex = $_.IndexOf('"') + 1
+                    $appPoolName = $_.Substring($startIndex,
+                        ($_.Substring($startIndex).IndexOf('"')))
+                    return $appPoolName
+                } |
+                Where-Object {
+                    $_.StartsWith("MSExchange")
                 }
-                $saveLocation = "{0}\WebAppPools\{1}_{2}.txt" -f $location, $env:COMPUTERNAME, $exchAppPool
-                $allResult | Format-List * > $saveLocation
-            }
 
-            foreach ($configFile in $configFileListLocation) {
-                $content = Get-Content $configFile
-                $saveLocation = "{0}\WebAppPools\{1}_{2}" -f $location, $env:COMPUTERNAME,
-                $configFile.Substring($configFile.LastIndexOf("\") + 1)
-                $content > $saveLocation
+            $sitesContent = @{}
+            $sites |
+                ForEach-Object {
+                    $startIndex = $_.IndexOf('"') + 1
+                    $siteName = $_.Substring($startIndex,
+                        ($_.Substring($startIndex).IndexOf('"')))
+                    $sitesContent.Add($siteName, (&$appCmd list site $siteName /text:*))
+                }
+
+            $webAppPoolsSaveRoot = "{0}\WebAppPools" -f $location
+            $cacheConfigFileListLocation = @()
+            $exchangeAppPools |
+                ForEach-Object {
+                    $config = &$appCmd list apppool $_ /text:CLRConfigFile
+                    $allInfo = &$appCmd list apppool $_ /text:*
+
+                    if (![string]::IsNullOrEmpty($config) -and
+                        (Test-Path $config) -and
+                        (!($cacheConfigFileListLocation.Contains($config.ToLower())))) {
+
+                        $cacheConfigFileListLocation += $config.ToLower()
+                        $saveConfigLocation = "{0}\{1}_{2}" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME,
+                        $config.Substring($config.LastIndexOf("\") + 1)
+                        #Copy item to keep the date modify time
+                        Copy-Item $config -Destination $saveConfigLocation
+                    }
+                    $saveAllInfoLocation = "{0}\{1}_{2}.txt" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $_
+                    $allInfo | Format-List * > $saveAllInfoLocation
+                }
+
+            $sitesContent.Keys |
+                ForEach-Object {
+                    $sitesContent[$_] > ("{0}\{1}_{2}_Site.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, ($_.Replace(" ", "")))
+                    $slsResults = $sitesContent[$_] | Select-String applicationPool:, physicalPath:
+                    $appPoolName = [string]::Empty
+                    foreach ($matchInfo in $slsResults) {
+                        $line = $matchInfo.Line
+
+                        if ($line.Trim().StartsWith("applicationPool:")) {
+                            $correctAppPoolSection = $false
+                        }
+
+                        if ($line.Trim().StartsWith("applicationPool:`"MSExchange")) {
+                            $correctAppPoolSection = $true
+                            $startIndex = $line.IndexOf('"') + 1
+                            $appPoolName = $line.Substring($startIndex,
+                                ($line.Substring($startIndex).IndexOf('"')))
+                        }
+
+                        if ($correctAppPoolSection -and
+                            (!($line.Trim() -eq 'physicalPath:""')) -and
+                            $line.Trim().StartsWith("physicalPath:")) {
+                            $startIndex = $line.IndexOf('"') + 1
+                            $path = $line.Substring($startIndex,
+                                ($line.Substring($startIndex).IndexOf('"')))
+                            $fullPath = "{0}\web.config" -f $path
+
+                            if ((Test-Path $path) -and
+                                (Test-Path $fullPath)) {
+                                $saveFileName = "{0}\{1}_{2}_{3}_web.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $appPoolName, ($_.Replace(" ", ""))
+                                #Use Copy-Item to keep date modified
+                                Copy-Item $fullPath -Destination $saveFileName
+                                $bakFullPath = "$fullPath.bak"
+
+                                if (Test-Path $bakFullPath) {
+                                    Copy-Item $bakFullPath -Destination ("$saveFileName.bak")
+                                }
+                            }
+                        }
+                    }
+                }
+
+            $machineConfig = [System.Runtime.InteropServices.RuntimeEnvironment]::SystemConfigurationFile
+
+            if (Test-Path $machineConfig) {
+                Copy-Item $machineConfig -Destination ("{0}\{1}_machine.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME)
             }
         }
     }
