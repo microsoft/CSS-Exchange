@@ -26,6 +26,7 @@ Function Write-LargeDataObjectsOnMachine {
         $appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
         if (Test-Path $appCmd) {
             $appPools = &$appCmd list apppool
+            $sites = &$appCmd list sites
 
             $exchangeAppPools = $appPools |
                 ForEach-Object {
@@ -36,6 +37,15 @@ Function Write-LargeDataObjectsOnMachine {
                 } |
                 Where-Object {
                     $_.StartsWith("MSExchange")
+                }
+
+            $sitesContent = @{}
+            $sites |
+                ForEach-Object {
+                    $startIndex = $_.IndexOf('"') + 1
+                    $siteName = $_.Substring($startIndex,
+                        ($_.Substring($startIndex).IndexOf('"')))
+                    $sitesContent.Add($siteName, (&$appCmd list site $siteName /text:*))
                 }
 
             $webAppPoolsSaveRoot = "{0}\WebAppPools" -f $location
@@ -56,6 +66,48 @@ Function Write-LargeDataObjectsOnMachine {
                     }
                     $saveAllInfoLocation = "{0}\{1}_{2}.txt" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $_
                     $allInfo | Format-List * > $saveAllInfoLocation
+                }
+
+            $sitesContent.Keys |
+                ForEach-Object {
+                    $sitesContent[$_] > ("{0}\{1}_{2}_Site.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, ($_.Replace(" ", "")))
+                    $slsResults = $sitesContent[$_] | Select-String applicationPool:, physicalPath:
+                    $appPoolName = [string]::Empty
+                    foreach ($matchInfo in $slsResults) {
+                        $line = $matchInfo.Line
+
+                        if ($line.Trim().StartsWith("applicationPool:")) {
+                            $correctAppPoolSection = $false
+                        }
+
+                        if ($line.Trim().StartsWith("applicationPool:`"MSExchange")) {
+                            $correctAppPoolSection = $true
+                            $startIndex = $line.IndexOf('"') + 1
+                            $appPoolName = $line.Substring($startIndex,
+                                ($line.Substring($startIndex).IndexOf('"')))
+                        }
+
+                        if ($correctAppPoolSection -and
+                            (!($line.Trim() -eq 'physicalPath:""')) -and
+                            $line.Trim().StartsWith("physicalPath:")) {
+                            $startIndex = $line.IndexOf('"') + 1
+                            $path = $line.Substring($startIndex,
+                                ($line.Substring($startIndex).IndexOf('"')))
+                            $fullPath = "{0}\web.config" -f $path
+
+                            if ((Test-Path $path) -and
+                                (Test-Path $fullPath)) {
+                                $saveFileName = "{0}\{1}_{2}_{3}_web.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $appPoolName, ($_.Replace(" ", ""))
+                                #Use Copy-Item to keep date modified
+                                Copy-Item $fullPath -Destination $saveFileName
+                                $bakFullPath = "$fullPath.bak"
+
+                                if (Test-Path $bakFullPath) {
+                                    Copy-Item $bakFullPath -Destination ("$saveFileName.bak")
+                                }
+                            }
+                        }
+                    }
                 }
         }
     }
