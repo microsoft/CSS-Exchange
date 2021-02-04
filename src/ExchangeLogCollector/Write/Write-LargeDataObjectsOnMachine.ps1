@@ -110,6 +110,12 @@ Function Write-LargeDataObjectsOnMachine {
                         }
                     }
                 }
+
+            $machineConfig = [System.Runtime.InteropServices.RuntimeEnvironment]::SystemConfigurationFile
+
+            if (Test-Path $machineConfig) {
+                Copy-Item $machineConfig -Destination ("{0}\{1}_machine.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME)
+            }
         }
     }
 
