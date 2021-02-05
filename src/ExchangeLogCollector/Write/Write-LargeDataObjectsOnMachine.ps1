@@ -221,6 +221,52 @@ Function Write-LargeDataObjectsOnMachine {
         Remove-Item $localServerTempLocation -Force -Recurse
     }
 
+    # Can not invoke CollectOverMetrics.ps1 script inside of a script block against a different machine.
+    if ($CollectFailoverMetrics -and
+        !$Script:LocalExchangeShell.RemoteShell) {
+
+        $localServerTempLocation = "{0}{1}\Temp_Exchange_Failover_Reports" -f $Script:RootFilePath, $env:COMPUTERNAME
+        $argumentList.ServerObjects |
+            Group-Object DAGName |
+            Where-Object { ![string]::IsNullOrEmpty($_.Name) } |
+            ForEach-Object {
+                $failed = $false
+                $reportPath = "{0}\{1}_FailoverMetrics" -f $localServerTempLocation, $_.Name
+                New-Folder -NewFolders $reportPath
+
+                try {
+                    Write-ScriptHost("Attempting to run CollectOverMetrics.ps1 against $($_.Name)")
+                    &"$Script:localExInstall\Scripts\CollectOverMetrics.ps1" -DatabaseAvailabilityGroup $_.Name `
+                        -IncludeExtendedEvents `
+                        -GenerateHtmlReport `
+                        -ReportPath $reportPath
+                } catch {
+                    Write-ScriptDebug("Failed to collect failover metrics")
+                    Invoke-CatchBlockActions
+                    $failed = $true
+                }
+
+                if (!$failed) {
+                    $zipCopyLocation = Compress-Folder -Folder $reportPath -ReturnCompressedLocation $true
+                    $_.Group |
+                        ForEach-Object {
+                            $location = "{0}{1}" -f $Script:RootFilePath, $_.ServerName
+                            Write-ScriptDebug("Location of the data should be at: $location")
+                            $remoteLocation = "\\{0}\{1}" -f $_.ServerName, $location.Replace(":", "$")
+                            Write-ScriptDebug("Remote Copy Location: $remoteLocation")
+
+                            Copy-Item $zipCopyLocation $remoteLocation
+                        }
+                    } else {
+                        Write-ScriptDebug("Not compressing or copying over this folder.")
+                    }
+                }
+
+        Remove-Item $localServerTempLocation -Recurse -Force
+    } elseif ($CollectFailoverMetrics) {
+        Write-ScriptHost("Unable to run CollectOverMetrics.ps1 script from a remote shell session not on an Exchange Server or Tools box.") -ForegroundColor Yellow
+    }
+
     if ($ExchangeServerInformation) {
 
         #Create a list that contains all the information that we need to dump out locally then copy over to each respective server within "Exchange_Server_Data"

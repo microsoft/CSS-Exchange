@@ -22,6 +22,7 @@ Param (
     [bool]$AppSysLogs = $true,
     [bool]$AppSysLogsToXml = $true,
     [switch]$AutoDLogs,
+    [switch]$CollectFailoverMetrics,
     [switch]$DAGInformation,
     [switch]$DailyPerformanceLogs,
     [switch]$DefaultTransportLogging,
@@ -225,6 +226,10 @@ Function Main {
     if (!($Script:LocalExchangeShell.ShellLoaded)) {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false
         exit
+    }
+
+    if (!$Script:LocalExchangeShell.RemoteShell) {
+        $Script:localExInstall = Get-ExchangeInstallDirectory
     }
 
     if (!$Script:LocalExchangeShell.ToolsOnly -and

@@ -43,6 +43,7 @@ ADDriverLogs | Enable to collect AD Driver Logs. Location: `V15\Logging\ADDriver
 AppSysLogs | Collects the Windows Event Application, System, and MSExchange Management Logs. Default value `$true`
 AppSysLogsToXml | Collects the Windows Event Application and System and saves them out to XML. The date range only is from the time the script run and the value set on `DaysWorth`. Default value: `$true`
 AutoDLogs | Enable to collect AutoDiscover Logs. Location: `V15\Logging\Autodiscover` and `V15\Logging\HttpProxy\Autodiscover`
+CollectFailoverMetrics | Enable to run the `CollectOverMetrics.ps1` script against the DAG. Only able to be run on an Exchange tools box or an Exchange Server.
 DAGInformation | Enable to collect the DAG Information from all different DAGs that are in the list of servers.
 DailyPerformanceLogs | Enable to collect Daily Performance Logs. Default Location: `V15\Logging\Diagnostics\DailyPerformanceLogs`
 DefaultTransportLogging | Enables the following switches and their logs to be collected. `FrontEndConnectivityLogs`, `FrontEndProtocolLogs`, `HubConnectivityLogs`, `MailboxConnectivityLogs`, `MailboxDeliveryThrottlingLogs`, `MessageTrackingLogs`, `QueueInformation`, `ReceiveConnectors`, `SendConnectors`, and `TransportConfig`
