@@ -86,7 +86,6 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\extern\Confirm-ExchangeShell.ps1
 . .\extern\Enter-YesNoLoopAction.ps1
 . .\extern\Start-JobManager.ps1
-. .\ExchangeServerInfo\Confirm-LocalEdgeServer.ps1
 . .\ExchangeServerInfo\Get-DAGInformation.ps1
 . .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
 . .\ExchangeServerInfo\Get-ServerObjects.ps1
@@ -232,9 +231,7 @@ Function Main {
         $Script:localExInstall = Get-ExchangeInstallDirectory
     }
 
-    if (!$Script:LocalExchangeShell.ToolsOnly -and
-        !$Script:LocalExchangeShell.RemoteShell -and
-        (Confirm-LocalEdgeServer)) {
+    if ($Script:LocalExchangeShell.EdgeServer) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
         #Because it isn't a domain joined computer, we can't use remote execution
         Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"

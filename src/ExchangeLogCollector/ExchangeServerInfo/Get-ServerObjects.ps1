@@ -30,11 +30,13 @@ Function Get-ServerObjects {
             $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false
         }
 
-        if ($PopLogs) {
+        if ($PopLogs -and
+            !$Script:EdgeRoleDetected) {
             $sobj | Add-Member -Name PopLogsLocation -MemberType NoteProperty -Value ((Get-PopSettings -Server $svr).LogFileLocation)
         }
 
-        if ($ImapLogs) {
+        if ($ImapLogs -and
+            !$Script:EdgeRoleDetected) {
             $sobj | Add-Member -Name ImapLogsLocation -MemberType NoteProperty -Value ((Get-ImapSettings -Server $svr).LogFileLocation)
         }
 

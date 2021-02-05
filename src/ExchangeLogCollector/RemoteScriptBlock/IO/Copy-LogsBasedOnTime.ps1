@@ -1,10 +1,16 @@
 Function Copy-LogsBasedOnTime {
     param(
-        [Parameter(Mandatory = $true)][string]$LogPath,
+        [Parameter(Mandatory = $false)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation
     )
     Write-ScriptDebug("Function Enter: Copy-LogsBasedOnTime")
     Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
+
+    if ([string]::IsNullOrEmpty($LogPath)) {
+        Write-ScriptDebug("Failed to provide a valid log path to copy.")
+        return
+    }
+
     New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
 
     Function No-FilesInLocation {
