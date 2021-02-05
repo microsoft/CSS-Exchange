@@ -21,9 +21,13 @@ Function Get-TransportLoggingInformationPerServer {
                 PipelineTracingPath    = $data.PipelineTracingPath.ToString()
                 ReceiveProtocolLogPath = $data.ReceiveProtocolLogPath.ToString()
                 SendProtocolLogPath    = $data.SendProtocolLogPath.ToString()
-                QueueLogPath           = $data.QueueLogPath.ToString()
                 WlmLogPath             = $data.WlmLogPath.ToString()
             }
+
+            if (![string]::IsNullOrEmpty($data.QueueLogPath)) {
+                $hubObject | Add-Member -MemberType NoteProperty -Name "QueueLogPath" -Value ($data.QueueLogPath.ToString())
+            }
+
             $transportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
         }
 
