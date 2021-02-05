@@ -4,6 +4,11 @@ Function Invoke-ServerRootZipAndCopy {
         [bool]$RemoteExecute = $true
     )
 
+    $serverNames = $Script:ArgumentList.ServerObjects |
+        Foreach-Object {
+            return $_.ServerName
+        }
+
     Function Write-CollectFilesFromLocation {
         Write-ScriptHost -ShowServer $false -WriteString (" ")
         Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
@@ -26,7 +31,7 @@ Function Invoke-ServerRootZipAndCopy {
 
         $serverArgListZipFolder = @()
 
-        foreach ($serverName in $Script:ValidServers) {
+        foreach ($serverName in $serverNames) {
 
             $folder = "{0}{1}" -f $Script:RootFilePath, $serverName
             $serverArgListZipFolder += [PSCustomObject]@{
@@ -44,7 +49,7 @@ Function Invoke-ServerRootZipAndCopy {
             -DisplayReceiveJobInCorrectFunction $true `
             -JobBatchName "Zipping up the data for Invoke-ServerRootZipAndCopy"
 
-        $LogPaths = Get-RemoteLogLocation -Servers $Script:ValidServers -RootPath $Script:RootFilePath
+        $LogPaths = Get-RemoteLogLocation -Servers $serverNames -RootPath $Script:RootFilePath
 
         if (!($SkipEndCopyOver)) {
             #Check to see if we have enough free space.

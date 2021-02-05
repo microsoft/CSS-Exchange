@@ -93,7 +93,7 @@ Function Get-ExchangeBasicServerObject {
     }
 
     $exchServerObject = New-Object PSCustomObject
-    $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value $ServerName
+    $exchServerObject | Add-Member -MemberType NoteProperty -Name ServerName -Value ($getExchangeServer.Name.ToUpper())
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Mailbox -Value (Confirm-MailboxServer -Value $exchServerRole)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name CAS -Value (Confirm-CASServer -Value $exchServerRole -version $exchVersion)
     $exchServerObject | Add-Member -MemberType NoteProperty -Name Hub -Value (Confirm-HubServer -Value $exchServerRole -version $exchVersion)

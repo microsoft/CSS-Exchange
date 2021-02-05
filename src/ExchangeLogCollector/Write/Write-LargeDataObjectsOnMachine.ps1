@@ -4,6 +4,12 @@
 Function Write-LargeDataObjectsOnMachine {
 
     Write-ScriptDebug("Function Enter Write-LargeDataObjectsOnMachine")
+
+    $serverNames = $Script:ArgumentList.ServerObjects |
+        ForEach-Object {
+            return $_.ServerName
+        }
+
     #Collect the Exchange Data that resides on their own machine.
     Function Invoke-ExchangeResideDataCollectionWrite {
         param(
@@ -271,7 +277,7 @@ Function Write-LargeDataObjectsOnMachine {
 
         #Create a list that contains all the information that we need to dump out locally then copy over to each respective server within "Exchange_Server_Data"
         $exchangeServerData = @()
-        foreach ($server in $Script:ValidServers) {
+        foreach ($server in $serverNames) {
             $basicServerObject = Get-ExchangeBasicServerObject -ServerName $server -AddGetServerProperty $true
 
             if ($basicServerObject.Hub) {
@@ -305,8 +311,8 @@ Function Write-LargeDataObjectsOnMachine {
         }
 
         #if single server or Exchange 2010 where invoke-command doesn't work
-        if (!($Script:ValidServers.count -eq 1 -and
-                $Script:ValidServers[0].ToUpper().Contains($env:COMPUTERNAME.ToUpper()))) {
+        if (!($serverNames.count -eq 1 -and
+                $serverNames[0].ToUpper().Contains($env:COMPUTERNAME.ToUpper()))) {
 
             <#
             To pass an action to Start-JobManager, need to create objects like this.
