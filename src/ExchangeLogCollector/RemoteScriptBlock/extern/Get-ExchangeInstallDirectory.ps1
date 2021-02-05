@@ -1,12 +1,12 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/ExchangeInformation/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
+#v21.01.22.2234
 Function Get-ExchangeInstallDirectory {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Different types returned')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$InvokeCommandReturnWriteArray
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     $stringArray = @()
     Write-InvokeCommandReturnVerboseWriter("Calling: Get-ExchangeInstallDirectory")

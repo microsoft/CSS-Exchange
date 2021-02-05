@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Write-VerboseWriters/Write-ScriptMethodVerboseWriter.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-VerboseWriters/Write-ScriptMethodVerboseWriter.ps1
+#v21.01.22.2212
 Function Write-ScriptMethodVerboseWriter {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Need to use Write Host')]
     param(

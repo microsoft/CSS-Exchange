@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/New-Folder/New-Folder.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/New-Folder/New-Folder.ps1
+#v21.01.22.2234
 Function New-Folder {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer New here')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Multiple output types')]
@@ -10,7 +10,7 @@ Function New-Folder {
         [Parameter(Mandatory = $false)][bool]$IncludeDisplayCreate,
         [Parameter(Mandatory = $false, Position = 1)][object]$PassedParametersObject
     )
-    #Function Version #v21.01.08.2133
+    #Function Version #v21.01.22.2234
 
     Function New-Directory {
         param(
