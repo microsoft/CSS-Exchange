@@ -5,7 +5,7 @@ Function Write-LargeDataObjectsOnMachine {
 
     Write-ScriptDebug("Function Enter Write-LargeDataObjectsOnMachine")
 
-    $serverNames = $Script:ArgumentList.ServerObjects |
+    [array]$serverNames = $Script:ArgumentList.ServerObjects |
         ForEach-Object {
             return $_.ServerName
         }
