@@ -1,12 +1,12 @@
 #https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
-#v21.01.22.2234
+#v21.02.05.1407
 Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.22.2234
+    #Function Version #v21.02.05.1407
 
     Function Invoke-CatchActionErrorLoop {
         param(
@@ -24,6 +24,7 @@ Function Confirm-ExchangeShell {
     }
 
     $passed = $false
+    $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
     $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
     Write-VerboseWriter("Calling: Confirm-ExchangeShell")
     Write-VerboseWriter("Passed: [bool]LoadExchangeShell: {0}" -f $LoadExchangeShell)
@@ -61,7 +62,7 @@ Function Confirm-ExchangeShell {
             Write-VerboseWriter("We are on Exchange 2013 or newer")
 
             try {
-                if (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole') {
+                if (Test-Path $edgeTransportKey) {
                     Write-VerboseWriter("We are on Exchange Edge Transport Server")
                     [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
 
@@ -99,7 +100,8 @@ Function Confirm-ExchangeShell {
         Minor       = ((Get-ItemProperty -Path $setupKey -Name "MsiProductMinor" -ErrorAction SilentlyContinue).MsiProductMinor)
         Build       = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMajor" -ErrorAction SilentlyContinue).MsiBuildMajor)
         Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
-        ToolsOnly   = $passed -and (Test-Path $setupKey) -and ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+        EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
+        ToolsOnly   = $passed -and (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
         RemoteShell = $passed -and (!(Test-Path $setupKey))
     }
 
