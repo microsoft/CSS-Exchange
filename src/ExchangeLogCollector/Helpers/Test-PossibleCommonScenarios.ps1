@@ -27,6 +27,7 @@ Function Test-PossibleCommonScenarios {
         $Script:OABLogs = $true
         $Script:PowerShellLogs = $true
         $Script:WindowsSecurityLogs = $true
+        $Script:CollectFailoverMetrics = $true
     }
 
     if ($DefaultTransportLogging) {
@@ -49,6 +50,7 @@ Function Test-PossibleCommonScenarios {
         $Script:DAGInformation = $true
         $Script:Experfwiz = $true
         $Script:ServerInformation = $true
+        $Script:CollectFailoverMetrics = $true
     }
 
     if ($PerformanceIssues) {
