@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Enter-YesNoLoopAction/Enter-YesNoLoopAction.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Enter-YesNoLoopAction/Enter-YesNoLoopAction.ps1
+#v21.01.22.2234
 Function Enter-YesNoLoopAction {
     [CmdletBinding()]
     param(
@@ -7,6 +7,7 @@ Function Enter-YesNoLoopAction {
         [Parameter(Mandatory = $true)][scriptblock]$YesAction,
         [Parameter(Mandatory = $true)][scriptblock]$NoAction
     )
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Enter-YesNoLoopAction")
     Write-VerboseWriter("Passed: [string]Question: {0}" -f $Question)

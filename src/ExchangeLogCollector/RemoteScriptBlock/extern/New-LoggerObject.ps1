@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/New-LoggerObject/New-LoggerObject.ps1
-#v21.01.15.1618
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/New-LoggerObject/New-LoggerObject.ps1
+#v21.01.22.2234
 Function New-LoggerObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer New here')]
     [CmdletBinding()]
@@ -15,7 +15,7 @@ Function New-LoggerObject {
         [Parameter(Mandatory = $false)][scriptblock]$HostFunctionCaller,
         [Parameter(Mandatory = $false)][scriptblock]$VerboseFunctionCaller
     )
-    #Function Version #v21.01.15.1618
+    #Function Version #v21.01.22.2234
 
     ########################
     #

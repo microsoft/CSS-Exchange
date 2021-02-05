@@ -1,5 +1,5 @@
-#https://github.com/dpaulson45/PublicPowerShellScripts/blob/master/Functions/Common/Save-DataToFile/Save-DataToFile.ps1
-#v21.01.08.2133
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Save-DataToFile/Save-DataToFile.ps1
+#v21.01.22.2234
 Function Save-DataToFile {
     [CmdletBinding()]
     param(
@@ -9,6 +9,7 @@ Function Save-DataToFile {
         [Parameter(Mandatory = $false)][bool]$SaveTextFile = $true,
         [Parameter(Mandatory = $false)][bool]$SaveXMLFile = $true
     )
+    #Function Version #v21.01.22.2234
 
     Write-VerboseWriter("Calling: Save-DataToFile")
     Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3}" -f $SaveToLocation,
