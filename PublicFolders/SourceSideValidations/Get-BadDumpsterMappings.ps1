@@ -41,17 +41,17 @@ function Get-BadDumpsterMappings {
 }
 
 function Test-DumpsterValid {
-        [CmdletBinding()]
-        [OutputType([bool])]
-        param (
-            [Parameter()]
-            [PSCustomObject]
-            $Folder,
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [Parameter()]
+        [PSCustomObject]
+        $Folder,
 
-            [Parameter()]
-            [PSCustomObject]
-            $FolderData
-        )
+        [Parameter()]
+        [PSCustomObject]
+        $FolderData
+    )
 
     begin {
         $valid = $true
@@ -60,12 +60,12 @@ function Test-DumpsterValid {
     process {
         $dumpster = $FolderData.NonIpmEntryIdDictionary[$Folder.DumpsterEntryId]
 
-            if ($null -eq $dumpster -or
-                (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or
-                $dumpster.DumpsterEntryId -ne $_.EntryId) {
+        if ($null -eq $dumpster -or
+            (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or
+            $dumpster.DumpsterEntryId -ne $_.EntryId) {
 
-                $valid = $false
-            }
+            $valid = $false
+        }
     }
 
     end {
