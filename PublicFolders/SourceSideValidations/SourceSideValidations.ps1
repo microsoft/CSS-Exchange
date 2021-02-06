@@ -41,7 +41,7 @@ $folderData = [PSCustomObject]@{
 $ipmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
 $ipmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
 $nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
-$anyDatabaseDown = $false
+$script:anyDatabaseDown = $false
 Get-Mailbox -PublicFolder | ForEach-Object {
     try {
         $db = Get-MailboxDatabase $_.Database -Status
@@ -49,15 +49,15 @@ Get-Mailbox -PublicFolder | ForEach-Object {
             $folderData.MailboxToServerMap[$_.DisplayName] = $db.Server
         } else {
             Write-Error "Database $db is not mounted. This database holds PF mailbox $_ and must be mounted."
-            $anyDatabaseDown = $true
+            $script:anyDatabaseDown = $true
         }
     } catch {
         Write-Error $_
-        $anyDatabaseDown = $true
+        $script:anyDatabaseDown = $true
     }
 }
 
-if ($anyDatabaseDown) {
+if ($script:anyDatabaseDown) {
     Write-Host "One or more PF mailboxes cannot be reached. Unable to proceed."
     return
 }
