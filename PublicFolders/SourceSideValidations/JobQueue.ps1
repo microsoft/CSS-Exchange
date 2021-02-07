@@ -20,7 +20,7 @@ function Add-JobQueueJob {
     }
 }
 
-function Wait-QueuedJobs {
+function Wait-QueuedJob {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
     param (

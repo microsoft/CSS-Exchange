@@ -7,11 +7,11 @@ param (
 
 . .\Get-IpmSubtree.ps1
 . .\Get-NonIpmSubtree.ps1
-. .\Get-ItemCounts.ps1
+. .\Get-ItemCount.ps1
 . .\Get-LimitsExceeded.ps1
 . .\Get-BadDumpsterMappings.ps1
-. .\Get-BadPermissions.ps1
-. .\Get-BadPermissionsJob.ps1
+. .\Get-BadPermission.ps1
+. .\Get-BadPermissionJob.ps1
 . .\JobQueue.ps1
 
 $startTime = Get-Date
@@ -62,7 +62,7 @@ if ($script:anyDatabaseDown) {
     return
 }
 
-Get-ItemCounts -FolderData $FolderData
+Get-ItemCount -FolderData $FolderData
 
 # Now we're ready to do the checks
 
@@ -70,7 +70,7 @@ $badDumpsters = Get-BadDumpsterMappings -FolderData $folderData
 
 $limitsExceeded = Get-LimitsExceeded -FolderData $folderData
 
-$badPermissions = Get-BadPermissions -FolderData $folderData
+$badPermissions = Get-BadPermission -FolderData $folderData
 
 # Output the results
 

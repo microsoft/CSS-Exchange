@@ -1,4 +1,4 @@
-function Get-ItemCounts {
+function Get-ItemCount {
     <#
     .SYNOPSIS
         Populates the ItemCount property on our PSCustomObjects.
@@ -40,6 +40,6 @@ function Get-ItemCounts {
             $FolderData.IpmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
         }
 
-        Write-Host "Get-ItemCounts duration" ((Get-Date) - $startTime)
+        Write-Host "Get-ItemCount duration" ((Get-Date) - $startTime)
     }
 }
