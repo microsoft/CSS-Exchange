@@ -1,4 +1,4 @@
-Function Get-VdirsLDAP {
+Function Get-VirtualDirectoriesLdap {
 
     $authTypeEnum = @"
     namespace AuthMethods
