@@ -95,7 +95,6 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
-. .\Helpers\Get-RemoteLogLocation.ps1
 . .\Helpers\Invoke-ServerRootZipAndCopy.ps1
 . .\Helpers\Test-DiskSpace.ps1
 . .\Helpers\Test-NoSwitchesProvided.ps1
