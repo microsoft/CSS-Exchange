@@ -13,6 +13,25 @@ The script is able to collect from the large set of servers while using the Invo
 
 Prior to collecting the data, we check to make sure that there is at least 10GB of free space at the location of where we are trying to save the data of the target server. The script will continue to keep track of all the logs and data that is being copied over and will stop if we have less than 10GB of free space.
 
+You are able to use a config file to load up all the parameters you wish to choose and the servers you wish to run the script against. Just create a file called `ExchangeLogCollector.ps1.json` and place at the same location as the script. Then provide the switches you would like to use in the file like so:
+
+```
+{
+  "Servers": [
+    "ADT-E16A",
+    "ADT-E16B",
+    "ADT-E16C"
+  ],
+  "FilePath": "C:\\MS_Logs",
+  "IISLogs": true,
+  "AcceptEULA": true,
+  "AppSysLogsToXml": false,
+  "ScriptDebug": true
+}
+```
+
+**NOTE:** It is import that you use `\\` for the file path otherwise the settings will fail to load.
+
 Examples: 
 
 This cmdlet will collect all default logs of the local Exchange Server and store them in the default location of "C:\MS_Logs_Collection" 

@@ -87,6 +87,7 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\extern\Confirm-Administrator.ps1
 . .\extern\Confirm-ExchangeShell.ps1
 . .\extern\Enter-YesNoLoopAction.ps1
+. .\extern\Import-ScriptConfigFile.ps1
 . .\extern\Start-JobManager.ps1
 . .\ExchangeServerInfo\Get-DAGInformation.ps1
 . .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
@@ -285,6 +286,9 @@ Function Main {
 
     Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false
 }
+#Need to do this here otherwise can't find the script path
+$configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
+
 try {
     $Error.Clear()
     <#
@@ -299,6 +303,16 @@ try {
     $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
         -HostFunctionCaller $Script:HostFunctionCaller `
         -VerboseFunctionCaller $Script:VerboseFunctionCaller
+
+    if (Test-Path $configPath) {
+        try {
+            Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
+        } catch {
+            Write-ScriptHost "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
+            Invoke-CatchBlockActions
+            Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
+        }
+    }
     Main
 } finally {
 
