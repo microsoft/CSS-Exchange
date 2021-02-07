@@ -453,7 +453,7 @@ function createDiskShadowFile {
     #	add the volumes for the included database
     #	-----------------------------------------
     #gets a list of mount points on local server
-    $mpvolumes = get-wmiobject -query "select name, deviceid from win32_volume where drivetype=3 AND driveletter=NULL"
+    $mpvolumes = Get-WmiObject -Query "select name, deviceid from win32_volume where drivetype=3 AND driveletter=NULL"
     $deviceIDs = @()
 
     #if selected database is a mailbox database, get mailbox paths
