@@ -28,6 +28,8 @@ Function Test-PossibleCommonScenarios {
         $Script:PowerShellLogs = $true
         $Script:WindowsSecurityLogs = $true
         $Script:CollectFailoverMetrics = $true
+        $Script:ConnectivityLogs = $true
+        $Script:ProtocolLogs = $true
     }
 
     if ($DefaultTransportLogging) {
@@ -41,6 +43,18 @@ Function Test-PossibleCommonScenarios {
         $Script:MailboxConnectivityLogs = $true
         $Script:FrontEndProtocolLogs = $true
         $Script:MailboxDeliveryThrottlingLogs = $true
+    }
+
+    if ($ConnectivityLogs) {
+        $Script:FrontEndConnectivityLogs = $true
+        $Script:HubConnectivityLogs = $true
+        $Script:MailboxConnectivityLogs = $true
+    }
+
+    if ($ProtocolLogs) {
+        $Script:FrontEndProtocolLogs = $true
+        $Script:HubProtocolLogs = $true
+        $Script:MailboxProtocolLogs = $true
     }
 
     if ($DatabaseFailoverIssue) {

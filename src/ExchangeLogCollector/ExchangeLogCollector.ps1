@@ -69,9 +69,11 @@ Param (
     [int]$DaysWorth = 3,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
+    [switch]$ConnectivityLogs,
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
+    [switch]$ProtocolLogs,
     [switch]$ScriptDebug,
     [bool]$SkipEndCopyOver
 )
@@ -92,11 +94,9 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Invoke-LargeDataObjectsWrite.ps1
 . .\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
-. .\Helpers\Get-RemoteLogLocation.ps1
 . .\Helpers\Invoke-ServerRootZipAndCopy.ps1
 . .\Helpers\Test-DiskSpace.ps1
 . .\Helpers\Test-NoSwitchesProvided.ps1
@@ -124,7 +124,7 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
-    . .\RemoteScriptBlock\Set-IISDirectoryInfo.ps1
+    . .\RemoteScriptBlock\Get-IISLogDirectory.ps1
     . .\RemoteScriptBlock\Test-CommandExists.ps1
     . .\RemoteScriptBlock\Test-FreeSpace.ps1
     . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
@@ -186,6 +186,7 @@ Function Main {
 
     Start-Sleep 1
     Test-PossibleCommonScenarios
+    Test-NoSwitchesProvided
 
     $display = @"
 
@@ -291,10 +292,9 @@ try {
     Loading the functions into memory by using the '.' allows me to do this,
     providing that the calling of that function doesn't do anything of value when doing this.
     #>
-    $obj = [PSCustomObject]@{
-        ByPass = $true
-    }
-    . Invoke-RemoteFunctions -PassedInfo $obj
+    . Invoke-RemoteFunctions -PassedInfo ([PSCustomObject]@{
+            ByPass = $true
+        })
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
     $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
         -HostFunctionCaller $Script:HostFunctionCaller `

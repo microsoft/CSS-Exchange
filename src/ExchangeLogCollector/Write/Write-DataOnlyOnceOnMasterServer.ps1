@@ -13,7 +13,7 @@ Function Write-DataOnlyOnceOnMasterServer {
 
     if ($GetVdirs -and (-not($Script:EdgeRoleDetected))) {
         $target = $RootCopyToDirectory + "\ConfigNC_msExchVirtualDirectory_All.CSV"
-        $data = (Get-VdirsLDAP)
+        $data = (Get-VirtualDirectoriesLdap)
         $data | Sort-Object -Property Server | Export-Csv $target -NoTypeInformation
     }
 

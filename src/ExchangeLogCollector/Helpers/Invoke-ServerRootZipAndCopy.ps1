@@ -5,7 +5,7 @@ Function Invoke-ServerRootZipAndCopy {
     )
 
     $serverNames = $Script:ArgumentList.ServerObjects |
-        Foreach-Object {
+        ForEach-Object {
             return $_.ServerName
         }
 
@@ -49,7 +49,19 @@ Function Invoke-ServerRootZipAndCopy {
             -DisplayReceiveJobInCorrectFunction $true `
             -JobBatchName "Zipping up the data for Invoke-ServerRootZipAndCopy"
 
-        $LogPaths = Get-RemoteLogLocation -Servers $serverNames -RootPath $Script:RootFilePath
+        $LogPaths = Invoke-Command -ComputerName $serverNames -ScriptBlock {
+
+            $item = $Using:RootFilePath + (Get-ChildItem $Using:RootFilePath |
+                    Where-Object { $_.Name -like ("*-{0}*.zip" -f (Get-Date -Format Md)) } |
+                    Sort-Object CreationTime -Descending |
+                    Select-Object -First 1)
+
+            return [PSCustomObject]@{
+                ServerName = $env:COMPUTERNAME
+                ZipFolder  = $item
+                Size       = ((Get-Item $item).Length)
+            }
+        }
 
         if (!($SkipEndCopyOver)) {
             #Check to see if we have enough free space.
