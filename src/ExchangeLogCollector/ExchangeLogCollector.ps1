@@ -184,6 +184,7 @@ Function Main {
 
     Start-Sleep 1
     Test-PossibleCommonScenarios
+    Test-NoSwitchesProvided
 
     $display = @"
 
