@@ -92,7 +92,6 @@ if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 . .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Invoke-LargeDataObjectsWrite.ps1
 . .\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . .\Write\Write-LargeDataObjectsOnMachine.ps1
 . .\Helpers\Get-ArgumentList.ps1
