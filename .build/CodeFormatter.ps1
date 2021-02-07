@@ -20,6 +20,7 @@ foreach ($file in $scriptFiles) {
 
         if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript) {
             Write-Host ("Failed to follow the same format defined in the repro")
+            git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
         }
         
         if ($null -ne $scriptFormatter.AnalyzedResults) {

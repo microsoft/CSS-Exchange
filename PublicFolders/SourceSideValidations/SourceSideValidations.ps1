@@ -16,6 +16,8 @@ param (
 
 $startTime = Get-Date
 
+Set-ADServerSettings -ViewEntireForest $true
+
 $ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
 
 if ($ipmSubtree.Count -lt 1) {
@@ -39,9 +41,25 @@ $folderData = [PSCustomObject]@{
 $ipmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
 $ipmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
 $nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
+$script:anyDatabaseDown = $false
 Get-Mailbox -PublicFolder | ForEach-Object {
-    $server = (Get-MailboxDatabase $_.Database).Server
-    $folderData.MailboxToServerMap[$_.DisplayName] = $server
+    try {
+        $db = Get-MailboxDatabase $_.Database -Status
+        if ($db.Mounted) {
+            $folderData.MailboxToServerMap[$_.DisplayName] = $db.Server
+        } else {
+            Write-Error "Database $db is not mounted. This database holds PF mailbox $_ and must be mounted."
+            $script:anyDatabaseDown = $true
+        }
+    } catch {
+        Write-Error $_
+        $script:anyDatabaseDown = $true
+    }
+}
+
+if ($script:anyDatabaseDown) {
+    Write-Host "One or more PF mailboxes cannot be reached. Unable to proceed."
+    return
 }
 
 Get-ItemCounts -FolderData $FolderData
