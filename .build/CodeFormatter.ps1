@@ -10,19 +10,19 @@ $filesFailed = $false
 
 foreach ($file in $scriptFiles) {
 
-    $scriptFormatter = .\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation .\CodeFormatting.psd1 -ScriptAnalyzer -ExcludeRules PSAvoidUsingWriteHost
+    $scriptFormatter = & $PSScriptRoot\Invoke-CodeFormatter.ps1 -ScriptLocation $file -CodeFormattingLocation $PSScriptRoot\CodeFormatting.psd1 -ScriptAnalyzer -ExcludeRules PSAvoidUsingWriteHost
 
-    if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript -or
+    if ($scriptFormatter.StringContent -cne $scriptFormatter.FormattedScript -or
         $null -ne $scriptFormatter.AnalyzedResults) {
 
         $filesFailed = $true
         Write-Host ("{0}:" -f $file)
 
-        if ($scriptFormatter.StringContent -ne $scriptFormatter.FormattedScript) {
+        if ($scriptFormatter.StringContent -cne $scriptFormatter.FormattedScript) {
             Write-Host ("Failed to follow the same format defined in the repro")
             git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
         }
-        
+
         if ($null -ne $scriptFormatter.AnalyzedResults) {
             Write-Host ("Failed Results from Invoke-PSScriptAnalyzer:")
             $scriptFormatter.AnalyzedResults | Format-Table -AutoSize
