@@ -122,7 +122,7 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
-    . .\RemoteScriptBlock\Set-IISDirectoryInfo.ps1
+    . .\RemoteScriptBlock\Get-IISLogDirectory.ps1
     . .\RemoteScriptBlock\Test-CommandExists.ps1
     . .\RemoteScriptBlock\Test-FreeSpace.ps1
     . .\RemoteScriptBlock\Invoke-ZipFolder.ps1

@@ -446,16 +446,20 @@ Function Invoke-RemoteMain {
         $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
 
-    if ($PassedInfo.IISLogs -and
-        (Set-IISDirectoryInfo)) {
-        foreach ($directory in $Script:IISLogDirectory.Split(";")) {
-            $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($directory.Substring($directory.LastIndexOf("\") + 1))
-            $info = ($copyInfo -f $directory, $copyTo)
+    if ($PassedInfo.IISLogs) {
+        $iisLogDirectory = Get-IISLogDirectory
+
+        if ($null -ne $iisLogDirectory) {
+            $iisLogDirectory |
+                ForEach-Object {
+                    $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($_.Substring($_.LastIndexOf("\") + 1))
+                    $info = ($copyInfo -f $_, $copyTo)
+                    $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+                }
+
+            $info = ($copyInfo -f ($env:SystemRoot + "\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
-
-        $info = ($copyInfo -f ($env:SystemRoot + "\System32\LogFiles\HTTPERR"), ($Script:RootCopyToDirectory + "\HTTPERR_Logs"))
-        $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
 
     if ($PassedInfo.ServerInformation) {
