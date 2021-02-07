@@ -290,10 +290,9 @@ try {
     Loading the functions into memory by using the '.' allows me to do this,
     providing that the calling of that function doesn't do anything of value when doing this.
     #>
-    $obj = [PSCustomObject]@{
-        ByPass = $true
-    }
-    . Invoke-RemoteFunctions -PassedInfo $obj
+    . Invoke-RemoteFunctions -PassedInfo ([PSCustomObject]@{
+            ByPass = $true
+        })
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
     $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
         -HostFunctionCaller $Script:HostFunctionCaller `
