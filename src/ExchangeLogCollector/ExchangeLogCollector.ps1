@@ -69,9 +69,11 @@ Param (
     [int]$DaysWorth = 3,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
+    [switch]$ConnectivityLogs,
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
+    [switch]$ProtocolLogs,
     [switch]$ScriptDebug,
     [bool]$SkipEndCopyOver
 )
