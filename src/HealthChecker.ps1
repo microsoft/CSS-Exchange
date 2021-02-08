@@ -202,17 +202,12 @@ Function Main {
         (-not $AnalyzeDataOnly -and
             -not $BuildHtmlServersReport)) {
         Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
-        $Script:ErrorStartCount = $Error.Count
+        $Error.Clear()
         Start-Sleep -Seconds 2;
         exit
     }
 
-    if ($Error.Count -gt 175) {
-        Write-Verbose("Clearing Error to avoid script issues")
-        $Error.Clear()
-    }
-
-    $Script:ErrorStartCount = $Error.Count #useful for debugging
+    $Error.Clear() #Always clear out the errors
     $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues.
     $Script:ErrorsExcluded = @()
     $Script:date = (Get-Date)

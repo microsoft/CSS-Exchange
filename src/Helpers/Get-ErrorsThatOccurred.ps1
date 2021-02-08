@@ -1,13 +1,13 @@
 Function Get-ErrorsThatOccurred {
 
-    if ($Error.Count -gt $Script:ErrorStartCount) {
+    if ($Error.Count -gt 0) {
         Write-Grey(" "); Write-Grey(" ")
         Function Write-Errors {
             $index = 0
             "`r`n`r`nErrors that occurred that wasn't handled" | Out-File ($Script:OutputFullPath) -Append
             $Script:Logger.WriteToFileOnly("`r`n`r`nErrors that occurred that wasn't handled")
 
-            while ($index -lt ($Error.Count - $Script:ErrorStartCount)) {
+            while ($index -lt $Error.Count) {
                 #for 2008R2 can't use .Contains on an array object, need to do something else.
                 $goodError = $false
 
@@ -35,7 +35,7 @@ Function Get-ErrorsThatOccurred {
             }
         }
 
-        if (($Error.Count - $Script:ErrorStartCount) -ne $Script:ErrorsExcludedCount) {
+        if ($Error.Count -ne $Script:ErrorsExcludedCount) {
             Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt and .xml file to ExToolsFeedback@microsoft.com.")
             $Script:Logger.PreventLogCleanup = $true
             Write-Errors
