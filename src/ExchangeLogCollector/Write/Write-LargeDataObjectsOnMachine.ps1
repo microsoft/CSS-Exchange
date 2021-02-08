@@ -225,7 +225,12 @@ Function Write-LargeDataObjectsOnMachine {
                 Write-DatabaseAvailabilityGroupDataLocal -DAGWriteInfo $_
 
                 $zipCopyLocation = Compress-Folder -Folder $rootTempLocation -ReturnCompressedLocation $true
-                Copy-Item $zipCopyLocation $remoteLocation
+                try {
+                    Copy-Item $zipCopyLocation $remoteLocation
+                } catch {
+                    Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                    Invoke-CatchBlockActions
+                }
             }
         #Remove the temp data location
         Remove-Item $localServerTempLocation -Force -Recurse
@@ -268,7 +273,12 @@ Function Write-LargeDataObjectsOnMachine {
                             $remoteLocation = "\\{0}\{1}" -f $_.ServerName, $location.Replace(":", "$")
                             Write-ScriptDebug("Remote Copy Location: $remoteLocation")
 
-                            Copy-Item $zipCopyLocation $remoteLocation
+                            try {
+                                Copy-Item $zipCopyLocation $remoteLocation
+                            } catch {
+                                Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                                Invoke-CatchBlockActions
+                            }
                         }
                     } else {
                         Write-ScriptDebug("Not compressing or copying over this folder.")
@@ -412,7 +422,12 @@ Function Write-LargeDataObjectsOnMachine {
                 Write-ExchangeObjectDataLocal -ServerData $serverData -Location $rootTempLocation
                 Get-ChildItem $rootTempLocation |
                     ForEach-Object {
-                        Copy-Item $_.VersionInfo.FileName $remoteLocation
+                        try {
+                            Copy-Item $_.VersionInfo.FileName $remoteLocation
+                        } catch {
+                            Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                            Invoke-CatchBlockActions
+                        }
                     }
             }
 
