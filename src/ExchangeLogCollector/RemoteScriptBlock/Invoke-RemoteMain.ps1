@@ -275,6 +275,14 @@ Function Invoke-RemoteMain {
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
             }
+
+            $info = ($copyInfo -f ($Script:localExinstall + "\Logging\MAPI AddressBook Service"), ($Script:RootCopyToDirectory + "\MAPI_AddressBook_Service_Logs"))
+
+            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            } else {
+                $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
+            }
         }
 
         if ($PassedInfo.PowerShellLogs) {
