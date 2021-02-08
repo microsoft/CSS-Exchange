@@ -67,6 +67,7 @@ Param (
     [bool]$CollectAllLogsBasedOnDaysWorth = $true,
     [switch]$DatabaseFailoverIssue,
     [int]$DaysWorth = 3,
+    [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
     [switch]$ConnectivityLogs,
@@ -300,7 +301,8 @@ try {
             ByPass = $true
         })
 
-    if (Test-Path $configPath) {
+    if ((Test-Path $configPath) -and
+        !$DisableConfigImport) {
         try {
             Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
         } catch {

@@ -107,6 +107,7 @@ AllPossibleLogs | Enables the collection of all default logging collection on th
 CollectAllLogsBasedOnDaysWorth | Boolean to determine if you collect all the logs based off day's worth or all the logs in that directory. Default value `$true`
 DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInformation`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInformation`.
 DaysWorth | The number of days to go back from today for log collection. Default value: 3
+DisableConfigImport | Enable to not import the `ExchangeLogCollector.ps1.json` file if it exists.
 ExmonLogmanName | A list of names that we want to collect for Exmon data. The default name is `Exmon_Trace`.
 ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz` and `ExPerfwiz`. (For both styles of Experfwiz)
 ConnectivityLogs | Enables the following switches and their logs to be collected: `FrontEndConnectivityLogs`, `HubConnectivityLogs`, and `MailboxConnectivityLogs`
