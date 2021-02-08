@@ -299,10 +299,6 @@ try {
     . Invoke-RemoteFunctions -PassedInfo ([PSCustomObject]@{
             ByPass = $true
         })
-    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
-        -HostFunctionCaller $Script:HostFunctionCaller `
-        -VerboseFunctionCaller $Script:VerboseFunctionCaller
 
     if (Test-Path $configPath) {
         try {
@@ -313,6 +309,11 @@ try {
             Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
         }
     }
+    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
+        -HostFunctionCaller $Script:HostFunctionCaller `
+        -VerboseFunctionCaller $Script:VerboseFunctionCaller
+
     Main
 } finally {
 
