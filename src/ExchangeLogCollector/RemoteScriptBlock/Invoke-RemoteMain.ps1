@@ -223,6 +223,17 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             $info = ($copyInfo -f ($Script:localExBin + "Search\Ceres\Diagnostics\ETLTraces"), ($Script:RootCopyToDirectory + "\Search_Diag_ETLs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            $info = ($copyInfo -f ($Script:localExInstall + "Logging\Search"), ($Script:RootCopyToDirectory + "\Search"))
+            $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
+
+            if ($Script:localServerObject.Version -ge 19) {
+                $info = ($copyInfo -f ($Script:localExInstall + "Logging\BigFunnelMetricsCollectionAssistant"), ($Script:RootCopyToDirectory + "\BigFunnelMetricsCollectionAssistant"))
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+                $info = ($copyInfo -f ($Script:localExInstall + "Logging\BigFunnelQueryParityAssistant"), ($Script:RootCopyToDirectory + "\BigFunnelQueryParityAssistant")) #This might not provide anything
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+                $info = ($copyInfo -f ($Script:localExInstall + "Logging\BigFunnelRetryFeederTimeBasedAssistant"), ($Script:RootCopyToDirectory + "\BigFunnelRetryFeederTimeBasedAssistant"))
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            }
         }
 
         if ($PassedInfo.DailyPerformanceLogs) {
