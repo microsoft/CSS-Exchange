@@ -7,14 +7,16 @@ param (
 
 . .\Get-IpmSubtree.ps1
 . .\Get-NonIpmSubtree.ps1
-. .\Get-ItemCounts.ps1
+. .\Get-ItemCount.ps1
 . .\Get-LimitsExceeded.ps1
 . .\Get-BadDumpsterMappings.ps1
-. .\Get-BadPermissions.ps1
-. .\Get-BadPermissionsJob.ps1
+. .\Get-BadPermission.ps1
+. .\Get-BadPermissionJob.ps1
 . .\JobQueue.ps1
 
 $startTime = Get-Date
+
+Set-ADServerSettings -ViewEntireForest $true
 
 $ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
 
@@ -39,12 +41,28 @@ $folderData = [PSCustomObject]@{
 $ipmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
 $ipmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
 $nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
+$script:anyDatabaseDown = $false
 Get-Mailbox -PublicFolder | ForEach-Object {
-    $server = (Get-MailboxDatabase $_.Database).Server
-    $folderData.MailboxToServerMap[$_.DisplayName] = $server
+    try {
+        $db = Get-MailboxDatabase $_.Database -Status
+        if ($db.Mounted) {
+            $folderData.MailboxToServerMap[$_.DisplayName] = $db.Server
+        } else {
+            Write-Error "Database $db is not mounted. This database holds PF mailbox $_ and must be mounted."
+            $script:anyDatabaseDown = $true
+        }
+    } catch {
+        Write-Error $_
+        $script:anyDatabaseDown = $true
+    }
 }
 
-Get-ItemCounts -FolderData $FolderData
+if ($script:anyDatabaseDown) {
+    Write-Host "One or more PF mailboxes cannot be reached. Unable to proceed."
+    return
+}
+
+Get-ItemCount -FolderData $FolderData
 
 # Now we're ready to do the checks
 
@@ -52,7 +70,7 @@ $badDumpsters = Get-BadDumpsterMappings -FolderData $folderData
 
 $limitsExceeded = Get-LimitsExceeded -FolderData $folderData
 
-$badPermissions = Get-BadPermissions -FolderData $folderData
+$badPermissions = Get-BadPermission -FolderData $folderData
 
 # Output the results
 
