@@ -184,14 +184,17 @@ Function Write-LargeDataObjectsOnMachine {
             }
     }
 
-    if ($DAGInformation -and
-        !$Script:EdgeRoleDetected) {
+    $dagNameGroup = $argumentList.ServerObjects |
+        Group-Object DAGName |
+        Where-Object { ![string]::IsNullOrEmpty($_.Name) }
 
-        $serverArgListDirectoriesToCreate = @()
+    if ($DAGInformation -and
+        !$Script:EdgeRoleDetected -and
+        $null -ne $dagNameGroup -and
+        $dagNameGroup.Count -ne 0) {
+
         $dagWriteInformation = @()
-        $argumentList.ServerObjects |
-            Group-Object DAGName |
-            Where-Object { ![string]::IsNullOrEmpty($_.Name) } |
+        $dagNameGroup |
             ForEach-Object {
                 $dagName = $_.Name
                 $getDAGInformation = Get-DAGInformation -DAGName $dagName
@@ -231,7 +234,9 @@ Function Write-LargeDataObjectsOnMachine {
     # Can not invoke CollectOverMetrics.ps1 script inside of a script block against a different machine.
     if ($CollectFailoverMetrics -and
         !$Script:LocalExchangeShell.RemoteShell -and
-        !$Script:EdgeRoleDetected) {
+        !$Script:EdgeRoleDetected -and
+        $null -ne $dagNameGroup -and
+        $dagNameGroup.Count -ne 0) {
 
         $localServerTempLocation = "{0}{1}\Temp_Exchange_Failover_Reports" -f $Script:RootFilePath, $env:COMPUTERNAME
         $argumentList.ServerObjects |
@@ -271,6 +276,9 @@ Function Write-LargeDataObjectsOnMachine {
                 }
 
         Remove-Item $localServerTempLocation -Recurse -Force
+    } elseif ($null -eq $dagNameGroup -or
+        $dagNameGroup.Count -eq 0) {
+        Write-ScriptDebug("No DAGs were found. Didn't run CollectOverMetrics.ps1")
     } elseif ($Script:EdgeRoleDetected) {
         Write-ScriptHost("Unable to run CollectOverMetrics.ps1 script from an edge server") -ForegroundColor Yellow
     } elseif ($CollectFailoverMetrics) {
