@@ -20,7 +20,7 @@ function Add-JobQueueJob {
     }
 }
 
-function Wait-QueuedJobs {
+function Wait-QueuedJob {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
     param (
@@ -46,6 +46,7 @@ function Wait-QueuedJobs {
             if ($justFinished.Count -gt 0) {
                 foreach ($job in $justFinished) {
                     Receive-Job $job
+                    Write-Host $job.Name "job finished."
                     Remove-Job $job -Force
                     $jobResults += $job
                 }
@@ -53,7 +54,7 @@ function Wait-QueuedJobs {
                 $jobsRunning = @($jobsRunning | Where-Object { -not $justFinished.Contains($_) })
             }
 
-            for ($i = 0; $i -lt $maxConcurrency; $i++) {
+            for ($i = 0; $i -lt $jobQueueMaxConcurrency; $i++) {
                 if ($jobsRunning.Count -gt $i) {
                     $lastProgress = $jobsRunning[$i].ChildJobs.Progress | Select-Object -Last 1
                     if ($lastProgress) {

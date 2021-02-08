@@ -19,12 +19,15 @@ function Get-BadDumpsterMappings {
                 Write-Progress -Activity "Checking dumpster mappings" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
-            $dumpster = $FolderData.NonIpmEntryIdDictionary[$_.DumpsterEntryId]
+            if (-not (Test-DumpsterValid $_ $FolderData)) {
+                $badDumpsterMappings += $_
+            }
+        }
 
-            if ($null -eq $dumpster -or
-                (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or
-                $dumpster.DumpsterEntryId -ne $_.EntryId) {
+        Write-Progress -Activity "Checking EFORMS dumpster mappings"
 
+        $FolderData.NonIpmSubtree | Where-Object { $_.Identity -like "\NON_IPM_SUBTREE\EFORMS REGISTRY\*" } | ForEach-Object {
+            if (-not (Test-DumpsterValid $_ $FolderData)) {
                 $badDumpsterMappings += $_
             }
         }
@@ -34,5 +37,38 @@ function Get-BadDumpsterMappings {
         Write-Progress -Activity "None" -Completed
         Write-Host "Get-BadDumpsterMappings duration" ((Get-Date) - $startTime)
         return $badDumpsterMappings
+    }
+}
+
+function Test-DumpsterValid {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [Parameter()]
+        [PSCustomObject]
+        $Folder,
+
+        [Parameter()]
+        [PSCustomObject]
+        $FolderData
+    )
+
+    begin {
+        $valid = $true
+    }
+
+    process {
+        $dumpster = $FolderData.NonIpmEntryIdDictionary[$Folder.DumpsterEntryId]
+
+        if ($null -eq $dumpster -or
+            (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or
+            $dumpster.DumpsterEntryId -ne $_.EntryId) {
+
+            $valid = $false
+        }
+    }
+
+    end {
+        return $valid
     }
 }

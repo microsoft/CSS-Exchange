@@ -31,7 +31,7 @@ function Get-LimitsExceeded {
                 $limitsExceeded.ChildCount += $_.Identity.ToString()
             }
 
-            if ($_.FolderPathDepth -gt 299) {
+            if ([int]$_.FolderPathDepth -gt 299) {
                 $limitsExceeded.FolderPathDepth += $_.Identity.ToString()
             }
 
