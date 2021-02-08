@@ -1,5 +1,15 @@
+# CSS Exchange Scripts
 
-# Contributing
+[![Build Status](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_apis/build/status/microsoft.CSS-Exchange?branchName=main)](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_build/latest?definitionId=7&branchName=main)
+
+## The Repository
+
+This repository is the home of several scripts that are developed and maintained by Support Engineers
+for Microsoft Exchange Server. The scripts are intended for identifying and resolving
+a wide range of issues that impact on-premise or hybrid deployments and migrations. For for information,
+see the documentation for individual scripts.
+
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -13,7 +23,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-# Development
+## Development
 
 It is recommended to use Visual Studio Code when developing scripts for this project. Opening VSCode at
 the root of this repo will ensure that VSCode uses the settings in the repro to enforce most of the
@@ -25,13 +35,13 @@ set the following setting to avoid erroneous ^M characters in the diff output:
 
 `git config core.whitespace cr-at-eol`
 
-# Building
+## Building
 
 This repo uses a unique and fairly simple build system to create a single release script from a multi-file
 script project. You can check the output of this system by running the `.build\Build.ps1` script and
-checking the `dist` folder. There are currently two things the build system looks for.
+checking the `dist` folder. This system provides two ways to combine files into a single .ps1.
 
-## Including a script in another script
+### Including a script in another script
 
 Dot-sourcing a script inside another script embeds the target script into the source script. For example,
 placing the following line inside of Script1.ps1 causes Script2.ps1 to be embedded at that point in Script1.
@@ -45,7 +55,7 @@ You can embed any number of scripts. These could be in the same folder or in a c
 Because dot-sourcing works normally at development time, the multi-file script can be run and debugged
 without building at dev time.
 
-## Including other file types in a script
+### Including other file types in a script
 
 Non-script files can be embedded in a script as well. This is accomplished with the following syntax:
 
