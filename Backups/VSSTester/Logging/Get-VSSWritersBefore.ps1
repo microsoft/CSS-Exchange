@@ -42,6 +42,8 @@ function Get-VSSWritersBefore {
         Write-Host "Microsoft Exchange Writer not present on server. Unable to preform proper backups on the server."  -ForegroundColor Red
         Write-Host
         Write-Host " - Recommend to restart MSExchangeRepl service to see if the writer comes back. If it doesn't, review the application logs for any events to determine why." -ForegroundColor Cyan
+        Write-Host " --- Look for Event ID 2003 to verify that all internal components come online. If you see this event, try to use PSExec.exe to start a cmd.exe as the SYSTEM account and run 'vssadmin list writers'" -ForegroundColor Cyan
+        Write-Host " --- If you find the Microsoft Exchange Writer, then we have a permissions issue on the computer that is preventing normal user accounts from finding all the writers." -ForegroundColor Cyan
         Write-Host " - If still not able to determine why, need to have a Microsoft Engineer review ExTrace with Cluster.Replay tags of the MSExchangeRepl service starting up." -ForegroundColor Cyan
         Write-Host
         Write-Host "Stopping Script"
