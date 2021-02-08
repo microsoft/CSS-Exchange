@@ -7,7 +7,7 @@ The Exchange Server Health Checker script helps detect common configuration issu
 # How To Run
 This script **must** be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server.
 
-Examples:
+### Examples:
 
 This cmdlet with run Health Checker Script by default and run against the local server.
 
