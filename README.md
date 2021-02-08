@@ -1,15 +1,15 @@
-# Download 
+# Download
 To download this script, download the latest version [here](https://github.com/dpaulson45/ExchangeLogCollector/releases)
 
 # ExchangeLogCollector
-This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data. 
+This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data.
 
-# How to Run 
+# How to Run
 The script **must** be run as Administrator in PowerShell session on an Exchange Server or Tools box. Supported to run and collected logs against Exchange 2013 and greater. The intent of the script is to collect logs only that you need from X servers quickly without needing to have to manually collect it yourself and label zip them all up for you. If you don't know what logs to collect, it is recommended to use `-AllPossibleLogs`.
 
-This script no longer supports collecting logs from Exchange 2010. However, the last release of v2 should still work just fine. You can download that [here](https://github.com/dpaulson45/ExchangeLogCollector/releases/tag/v2.17.1). 
+This script no longer supports collecting logs from Exchange 2010. However, the last release of v2 should still work just fine. You can download that [here](https://github.com/dpaulson45/ExchangeLogCollector/releases/tag/v2.17.1).
 
-The script is able to collect from the large set of servers while using the Invoke-Command. Prior to executing the main script, we check to make sure the server is up and that we are able to use Invoke-Command against the server. If Invoke-Command works remotely, then we will allow you to attempt to collect the data. You can still utilize the script to collect locally as it used to be able to, if the target OS doesn't allow this. 
+The script is able to collect from the large set of servers while using the Invoke-Command. Prior to executing the main script, we check to make sure the server is up and that we are able to use Invoke-Command against the server. If Invoke-Command works remotely, then we will allow you to attempt to collect the data. You can still utilize the script to collect locally as it used to be able to, if the target OS doesn't allow this.
 
 Prior to collecting the data, we check to make sure that there is at least 10GB of free space at the location of where we are trying to save the data of the target server. The script will continue to keep track of all the logs and data that is being copied over and will stop if we have less than 10GB of free space.
 
@@ -32,15 +32,15 @@ You are able to use a config file to load up all the parameters you wish to choo
 
 **NOTE:** It is import that you use `\\` for the file path otherwise the settings will fail to load.
 
-Examples: 
+Examples:
 
-This cmdlet will collect all default logs of the local Exchange Server and store them in the default location of "C:\MS_Logs_Collection" 
+This cmdlet will collect all default logs of the local Exchange Server and store them in the default location of "C:\MS_Logs_Collection"
 
 ```
 .\ExchangeLogCollector.ps1 -AllPossibleLogs
 ```
 
-This cmdlet will collect all relevant data regarding database failovers from server EXCH1 and EXCH2 and store them at Z:\Data\Logs. Note: at the end of the collection, the script will copy over the data to the local host execution server to make data collection even easier. 
+This cmdlet will collect all relevant data regarding database failovers from server EXCH1 and EXCH2 and store them at Z:\Data\Logs. Note: at the end of the collection, the script will copy over the data to the local host execution server to make data collection even easier.
 
 ```
 .\ExchangeLogCollector.ps1 -DatabaseFailoverIssue -Servers EXCH1,EXCH2 -FilePath Z:\Data\Logs
@@ -52,7 +52,7 @@ This cmdlet will collect all relevant data regarding IIS Logs (within the last 3
 .\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 ```
 
-# Parameters 
+# Parameters
 
 Parameter | Description |
 ----------|-------------|
@@ -71,10 +71,10 @@ ECPLogs | Enable to collect ECP Logs. Location: `V15\Logging\ECP` and `V15\Loggi
 EWSLogs | Enable to collect EWS Logs. Location: `V15\Logging\HttpProxy\Ews` and `V15\Logging\Ews`
 ExchangeServerInformation | Enable to collect Exchange Information like Get-ExchangeServer, Get-MailboxServer, etc... This is also collected when `-ServerInformation` is also enabled.
 Exmon | Enable to collect exmon data from the server.
-Experfwiz | Enable to collect Experfwiz data if found. 
+Experfwiz | Enable to collect Experfwiz data if found.
 FrontEndConnectivityLogs | Enable to collect the connectivity logging on the FE. Location: `(Get-FrontendTransportService $server).ConnectivityLogPath`
 FrontEndProtocolLogs | Enable to collect the protocol logging on the FE. Location: `(Get-FrontendTransportService $server).ReceiveProtocolLogPath` and `(Get-FrontendTransportService $server).SendProtocolLogPath`
-GetVdirs | Enable to collect the Virtual Directories of the environment. 
+GetVdirs | Enable to collect the Virtual Directories of the environment.
 HighAvailabilityLogs | Enable to collect High Availability Logs. Windows Event Logs like: `Microsoft-Exchange-HighAvailability`, `Microsoft-Exchange-MailboxDatabaseFailureItems`, and `Microsoft-Windows-FailoverClustering`
 HubConnectivityLogs | Enable to collect the Hub connectivity logging. Location: `(Get-TransportService $server).ConnectivityLogPath`
 HubProtocolLogs | Enable to collect the protocol logging. Location: `(Get-TransportService $server).ReceiveProtocolLogPath` and `(Get-TransportService $server).SendProtocolLogPath`
@@ -100,7 +100,7 @@ ServerInformation | Enable to collect general server information.
 TransportConfig | Enable to collect the Transport Configuration from the Server. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\Winevt\Logs\Security.evtx'`
 AcceptEULA | Enable to accept the conditions of the script and not get prompted.
-AllPossibleLogs | Enables the collection of all default logging collection on the Server. 
+AllPossibleLogs | Enables the collection of all default logging collection on the Server.
 CollectAllLogsBasedOnDaysWorth | Boolean to determine if you collect all the logs based off day's worth or all the logs in that directory. Default value `$true`
 DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInformation`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInformation`.
 DaysWorth | The number of days to go back from today for log collection. Default value: 3
