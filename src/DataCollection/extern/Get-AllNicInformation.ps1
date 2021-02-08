@@ -1,5 +1,5 @@
 #https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-AllNicInformation/Get-AllNicInformation.ps1
-#v21.01.25.0238
+#v21.02.08.0458
 Function Get-AllNicInformation {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Just creating internal objects')]
     [CmdletBinding()]
@@ -8,7 +8,7 @@ Function Get-AllNicInformation {
         [Parameter(Mandatory = $false)][string]$ComputerFQDN,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.01.25.0238
+    #Function Version #v21.02.08.0458
 
     Write-VerboseWriter("Calling: Get-AllNicInformation")
     Write-VerboseWriter("Passed [string]ComputerName: {0} | [string]ComputerFQDN: {1}" -f $ComputerName, $ComputerFQDN)
@@ -118,7 +118,14 @@ Function Get-AllNicInformation {
             if (!$WmiObject) {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.InterfaceDescription)
                 $adapter = $networkConfig.NetAdapter
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                if ($adapter.DriverFileName -ne "NdisImPlatform.sys") {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                } else {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
 
                 try {
                     $dnsClient = $adapter | Get-DnsClient -ErrorAction Stop
@@ -145,7 +152,14 @@ Function Get-AllNicInformation {
             } else {
                 Write-VerboseWriter("Working on NIC: {0}" -f $networkConfig.Description)
                 $adapter = $networkConfig
-                $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                if ($adapter.ServiceName -ne "NdisImPlatformMp") {
+                    $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                } else {
+                    Write-VerboseWriter("Multiplexor adapter detected. Going to skip PnpCapabilities check")
+                    $nicPnpCapabilitiesSetting = @{
+                        PnPCapabilities = "MultiplexorNoPnP"
+                    }
+                }
             }
 
             $nicInformationObj = New-Object PSCustomObject
