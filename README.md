@@ -1,8 +1,11 @@
+# HealthChecker
+
+[![Build Status](https://dev.azure.com/CSS-Exchange-Tools/Exchange%20Health%20Checker/_apis/build/status/dpaulson45.HealthChecker?branchName=master)](https://dev.azure.com/CSS-Exchange-Tools/Exchange%20Health%20Checker/_build/latest?definitionId=5&branchName=master)
+
+The Exchange Server Health Checker script helps detect common configuration issues that are known to cause performance issues and other long running issues that are caused by a simple configuration change within an Exchange Environment. It also helps collect useful information of your server to help speed up the process of common information gathering of your server.
+
 # Download
 To download this script, download the latest version [here](https://github.com/dpaulson45/HealthChecker/releases)
-
-# HealthChecker
-The Exchange Server Health Checker script helps detect common configuration issues that are known to cause performance issues and other long running issues that are caused by a simple configuration change within an Exchange Environment. It also helps collect useful information of your server to help speed up the process of common information gathering of your server.
 
 # How To Run
 This script **must** be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server.
