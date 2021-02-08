@@ -15,5 +15,6 @@
     "powershell.codeFormatting.whitespaceBeforeOpenParen": true,
     "powershell.codeFormatting.whitespaceBetweenParameters": false,
     "powershell.codeFormatting.whitespaceInsideBrace": true,
-    "powershell.codeFormatting.addWhitespaceAroundPipe": true
+    "powershell.codeFormatting.addWhitespaceAroundPipe": true,
+    "files.trimTrailingWhitespace": true
 }
