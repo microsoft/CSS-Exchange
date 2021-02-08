@@ -1,8 +1,11 @@
+# Exchange Log Collector
+
+[![Build Status](https://dev.azure.com/CSS-Exchange-Tools/Exchange%20Log%20Collector/_apis/build/status/dpaulson45.ExchangeLogCollector?branchName=master)](https://dev.azure.com/CSS-Exchange-Tools/Exchange%20Log%20Collector/_build/latest?definitionId=8&branchName=master)
+
+This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data.
+
 # Download
 To download this script, download the latest version [here](https://github.com/dpaulson45/ExchangeLogCollector/releases)
-
-# ExchangeLogCollector
-This script is intended to collect the Exchange default logging data from the server in a consistent manner to make it easier to troubleshoot an issue when large amounts of data is needed to be collected. You can specify what logs you want to collect by the switches that are available, then the script has logic built in to determine how to collect the data.
 
 # How to Run
 The script **must** be run as Administrator in PowerShell session on an Exchange Server or Tools box. Supported to run and collected logs against Exchange 2013 and greater. The intent of the script is to collect logs only that you need from X servers quickly without needing to have to manually collect it yourself and label zip them all up for you. If you don't know what logs to collect, it is recommended to use `-AllPossibleLogs`.
