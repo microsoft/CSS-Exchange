@@ -6,7 +6,7 @@
 
 This repository is the home of several scripts that are developed and maintained by Support Engineers
 for Microsoft Exchange Server. The scripts are intended for identifying and resolving
-a wide range of issues that impact on-premise or hybrid deployments and migrations. For for information,
+a wide range of issues that impact on-premise or hybrid deployments and migrations. For more information,
 see the documentation for individual scripts.
 
 ## Contributing
