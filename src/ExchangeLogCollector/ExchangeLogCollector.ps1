@@ -67,6 +67,7 @@ Param (
     [bool]$CollectAllLogsBasedOnDaysWorth = $true,
     [switch]$DatabaseFailoverIssue,
     [int]$DaysWorth = 3,
+    [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
     [switch]$ConnectivityLogs,
@@ -299,12 +300,9 @@ try {
     . Invoke-RemoteFunctions -PassedInfo ([PSCustomObject]@{
             ByPass = $true
         })
-    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
-        -HostFunctionCaller $Script:HostFunctionCaller `
-        -VerboseFunctionCaller $Script:VerboseFunctionCaller
 
-    if (Test-Path $configPath) {
+    if ((Test-Path $configPath) -and
+        !$DisableConfigImport) {
         try {
             Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
         } catch {
@@ -313,6 +311,11 @@ try {
             Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
         }
     }
+    $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
+    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
+        -HostFunctionCaller $Script:HostFunctionCaller `
+        -VerboseFunctionCaller $Script:VerboseFunctionCaller
+
     Main
 } finally {
 
