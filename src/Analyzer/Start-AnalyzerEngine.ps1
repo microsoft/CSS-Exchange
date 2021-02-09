@@ -1135,10 +1135,12 @@ Function Start-AnalyzerEngine {
                 -AnalyzedInformation $analyzedResults
         }
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Current Auth Certificate" -Details $certificate.IsCurrentAuthConfigCertificate `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -AnalyzedInformation $analyzedResults
+        if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Current Auth Certificate" -Details $certificate.IsCurrentAuthConfigCertificate `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "SAN Certificate" -Details $certificate.IsSanCertificate `
             -DisplayGroupingKey $keySecuritySettings `
@@ -1164,6 +1166,18 @@ Function Start-AnalyzerEngine {
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 1 `
             -DisplayWriteType "Green" `
+            -AnalyzedInformation $analyzedResults
+    } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 1 `
+            -DisplayWriteType "Yellow" `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResults = Add-AnalyzedResultInformation -Details "We can't check for Auth Certificates on Edge Transport Servers" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
     } else {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
