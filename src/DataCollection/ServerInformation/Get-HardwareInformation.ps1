@@ -4,10 +4,13 @@ Function Get-HardwareInformation {
 
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
     $system = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
-    $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
+    ForEach ($memory in $hardware_obj.MemoryInformation) {
+        $hardware_obj.TotalMemory += $memory.Capacity
+    }
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
     $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 

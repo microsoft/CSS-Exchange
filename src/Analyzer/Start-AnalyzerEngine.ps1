@@ -315,10 +315,10 @@ Function Start-AnalyzerEngine {
         $displayValue = "Multiple page files detected. `r`n`t`tError: This has been know to cause performance issues please address this."
         $displayWriteType = "Red"
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Truncate(($totalPhysicalMemory / 1MB) / 4))
+        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) / 4))
         Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
         if ($recommendedPageFileSize -ne $maxPageSize) {
-            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Truncate($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Round($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
         } else {
             $displayValue = "{0}MB" -f $recommendedPageFileSize
             $displayWriteType = "Grey"

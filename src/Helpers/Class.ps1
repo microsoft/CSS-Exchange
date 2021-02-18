@@ -300,7 +300,8 @@ try {
             {
                 public string Manufacturer; //String to display the hardware information
                 public ServerType ServerType; //Enum to determine if the hardware is VMware, HyperV, Physical, or Unknown
-                public double TotalMemory; //Stores the total memory available
+                public System.Array MemoryInformation; //Detailed information about the installed memory
+                public UInt64 TotalMemory; //Stores the total memory cooked value
                 public object System;   //object to store the system information that we have collected
                 public ProcessorInformation Processor;   //Detailed processor Information
                 public bool AutoPageFile; //True/False if we are using a page file that is being automatically set
