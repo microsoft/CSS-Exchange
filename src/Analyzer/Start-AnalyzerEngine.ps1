@@ -105,7 +105,7 @@ Function Start-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($exchangeInformation.BuildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "DAG Name" -Details ($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup.Name) `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "DAG Name" -Details ([System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)) `
             -DisplayGroupingKey $keyExchangeInformation `
             -AnalyzedInformation $analyzedResults
     }
