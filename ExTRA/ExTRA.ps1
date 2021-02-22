@@ -36,7 +36,7 @@ $extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine
 $alreadySelectedTags = $null
 
 if (Test-Path $outputPath) {
-    $alreadySelectedTags = GetTagsFromFile $outputPath
+    $alreadySelectedTags = GetTagsFromFile (Get-Content $outputPath)
 }
 
 if ($null -ne $alreadySelectedTags) {
