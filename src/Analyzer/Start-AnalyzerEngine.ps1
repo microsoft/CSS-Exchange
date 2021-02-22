@@ -110,7 +110,7 @@ Function Start-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
     }
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "AD Site" -Details ($exchangeInformation.GetExchangeServer.Site.Name) `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "AD Site" -Details ([System.Convert]::ToString(($exchangeInformation.GetExchangeServer.Site)).Split("/")[-1]) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AnalyzedInformation $analyzedResults
 
