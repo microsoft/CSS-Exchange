@@ -66,11 +66,11 @@ Get-ItemCount -FolderData $FolderData
 
 # Now we're ready to do the checks
 
-$badDumpsters = Get-BadDumpsterMappings -FolderData $folderData
+$badDumpsters = @(Get-BadDumpsterMappings -FolderData $folderData)
 
 $limitsExceeded = Get-LimitsExceeded -FolderData $folderData
 
-$badPermissions = Get-BadPermission -FolderData $folderData
+$badPermissions = @(Get-BadPermission -FolderData $folderData)
 
 # Output the results
 
@@ -121,11 +121,11 @@ if ($limitsExceeded.ItemCount.Count -gt 0) {
 
 if ($badPermissions.Count -gt 0) {
     $badPermissionsFile = Join-Path $PSScriptRoot "InvalidPermissions.csv"
-    $badPermissions | Export-Csv -Path $badDumpsterFile -InputObject $badPermissions -NoTypeInformation
+    $badPermissions | Export-Csv -Path $badPermissionsFile -NoTypeInformation
 
     Write-Host
     Write-Host $badPermissions.Count "invalid permissions were found. These are listed in the following CSV file:"
-    Write-Host $badDumpsterFile -ForegroundColor Green
+    Write-Host $badPermissionsFile -ForegroundColor Green
     Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions script as follows:"
     Write-Host ".\RemoveInvalidPermissions.ps1 $badPermissionsFile"
 }

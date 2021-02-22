@@ -85,7 +85,7 @@ for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
     if ($null -eq $result) {
         $mailEnabledFoldersWithNoADObject += $ipmSubtreeMailEnabled[$i]
     } else {
-        $mailPublicFoldersLinked.Add($result.Guid.ToString(), $result)
+        $mailPublicFoldersLinked.TryAdd($result.Guid.ToString(), $result) | Out-Null
     }
 }
 
@@ -221,7 +221,7 @@ if ($orphanedMPFsThatPointToNothing.Count -gt 0) {
     Write-Host "but are not linked to any public folder. These are listed in a file called:"
     Write-Host $mailPublicFoldersToDeleteFile -ForegroundColor Green
     Write-Host "After confirming the accuracy of the results, you can delete them with the following command:"
-    Write-Host "Get-Content `"$mailPublicFoldersToDeleteFile`" | % { ([ADSI](`"LDAP://`$_`")).DeleteTree() }" -ForegroundColor Green
+    Write-Host "Get-Content `"$mailPublicFoldersToDeleteFile`" | % { `$folder = ([ADSI](`"LDAP://`$_`")); `$parent = ([ADSI]`"`$(`$folder.Parent)`"); `$parent.Children.Remove(`$folder) }" -ForegroundColor Green
 } else {
     Write-Host
     Write-Host "No orphaned MailPublicFolders were found."
