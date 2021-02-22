@@ -38,7 +38,7 @@ function Get-BadPermissionJob {
                     ($_.User.DisplayName -ne "Default") -and
                     ($_.User.DisplayName -ne "Anonymous") -and
                     ($null -eq $_.User.ADRecipient) -and
-                    ($_.User.UserType -eq "Unknown")
+                    ($_.User.UserType.ToString() -eq "Unknown")
                 ) {
                     $badPermissions += [PSCustomObject]@{
                         Identity = $identity

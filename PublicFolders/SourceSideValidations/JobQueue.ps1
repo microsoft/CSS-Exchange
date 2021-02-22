@@ -45,10 +45,10 @@ function Wait-QueuedJob {
             $justFinished = @($jobsRunning | Where-Object { $_.State -ne "Running" })
             if ($justFinished.Count -gt 0) {
                 foreach ($job in $justFinished) {
-                    Receive-Job $job
+                    $result = Receive-Job $job
                     Write-Host $job.Name "job finished."
                     Remove-Job $job -Force
-                    $jobResults += $job
+                    $jobResults += $result
                 }
 
                 $jobsRunning = @($jobsRunning | Where-Object { -not $justFinished.Contains($_) })
