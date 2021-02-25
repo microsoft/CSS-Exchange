@@ -25,7 +25,8 @@ Function Set-ScriptLogFileLocation {
     }
 
     if ($Script:ExchangeShellComputer.ToolsOnly -and
-        $env:COMPUTERNAME -eq $Script:Server) {
+        $env:COMPUTERNAME -eq $Script:Server -and
+        !($LoadBalancingReport)) {
         Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
         exit
     }

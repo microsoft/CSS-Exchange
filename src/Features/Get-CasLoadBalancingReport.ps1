@@ -28,7 +28,7 @@ Function Get-CASLoadBalancingReport {
         $CASServers = Get-ExchangeServer | Where-Object { `
             ($_.IsClientAccessServer -eq $true) -and `
             ($_.AdminDisplayVersion -Match "^Version 15") -and `
-            ($_.Site.Name -eq $SiteName) }
+            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) }
     } else {
         Write-Grey("Site filtering OFF.  All Exchange 2013/2016 CAS servers will be used in the report.")
         $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") }
