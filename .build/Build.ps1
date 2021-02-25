@@ -25,7 +25,11 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
     File names must be unique across the repo since we release in a flat structure.
 #>
 
-$scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" } | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+$scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
+    Where-Object { $_.Name -ne ".build" } |
+    ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
+    Sort-Object Name |
+    ForEach-Object { $_.FullName }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
 if ($nonUnique.Count -gt 0) {
@@ -53,6 +57,10 @@ $scriptFiles = $scriptFiles | Where-Object {
 #>
 
 $disclaimer = [IO.File]::ReadAllLines("$repoRoot\.build\disclaimer.txt")
+
+$versionFile = "$distFolder\ScriptVersions.txt"
+New-Item -Path $versionFile -ItemType File | Out-Null
+"# Script Versions" | Out-File $versionFile -Append
 
 $scriptFiles | ForEach-Object {
     $scriptContent = New-Object 'System.Collections.Generic.List[string]'
@@ -114,6 +122,8 @@ $scriptFiles | ForEach-Object {
     # Add disclaimer
     $scriptContent.Insert(0, "")
     $scriptContent.InsertRange(0, $disclaimer)
+
+    "$([IO.Path]::GetFileName($_)): v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
