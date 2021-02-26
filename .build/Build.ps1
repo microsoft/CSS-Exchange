@@ -61,6 +61,7 @@ $disclaimer = [IO.File]::ReadAllLines("$repoRoot\.build\disclaimer.txt")
 $versionFile = "$distFolder\ScriptVersions.txt"
 New-Item -Path $versionFile -ItemType File | Out-Null
 "# Script Versions" | Out-File $versionFile -Append
+"Script | Version" | Out-File $versionFile -Append
 
 $scriptFiles | ForEach-Object {
     $scriptContent = New-Object 'System.Collections.Generic.List[string]'
@@ -123,7 +124,7 @@ $scriptFiles | ForEach-Object {
     $scriptContent.Insert(0, "")
     $scriptContent.InsertRange(0, $disclaimer)
 
-    "$([IO.Path]::GetFileName($_)): v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
+    "$([IO.Path]::GetFileName($_)) | v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
