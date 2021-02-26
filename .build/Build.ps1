@@ -62,6 +62,7 @@ $versionFile = "$distFolder\ScriptVersions.txt"
 New-Item -Path $versionFile -ItemType File | Out-Null
 "# Script Versions" | Out-File $versionFile -Append
 "Script | Version" | Out-File $versionFile -Append
+"-------|--------" | Out-File $versionFile -Append
 
 $scriptFiles | ForEach-Object {
     $scriptContent = New-Object 'System.Collections.Generic.List[string]'
