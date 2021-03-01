@@ -22,6 +22,10 @@ steps:
   displayName: "Build Script"
 
 - pwsh: |
+    Get-Content dist\ScriptVersions.txt
+  displayName: "Display Script Versions file"
+
+- pwsh: |
     $tag = "v$((Get-Date).ToString(`"yy.MM.dd.HHmm`"))"
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
 
@@ -77,5 +81,7 @@ steps:
     tagPattern: 'v[0-9].[0-9].[0-9].[0-9]'
     tag: $(ReleaseTagValue)
     title: $(ReleaseTagValue)
+    releaseNotesSource: 'file'
+    releaseNotesFile: dist\ScriptVersions.txt
     assets: dist\*.ps1
     addChangeLog: true
