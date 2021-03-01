@@ -85,7 +85,10 @@ for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
     if ($null -eq $result) {
         $mailEnabledFoldersWithNoADObject += $ipmSubtreeMailEnabled[$i]
     } else {
-        $mailPublicFoldersLinked.TryAdd($result.Guid.ToString(), $result) | Out-Null
+        $guidString = $result.Guid.ToString()
+        if (-not $mailPublicFoldersLinked.ContainsKey($guidString)) {
+            $mailPublicFoldersLinked.Add($guidString, $result) | Out-Null
+        }
     }
 }
 
