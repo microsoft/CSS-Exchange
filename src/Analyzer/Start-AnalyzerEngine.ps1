@@ -1078,6 +1078,50 @@ Function Start-AnalyzerEngine {
         }
     }
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions" -Details ($currentNetVersion.SystemDefaultTlsVersions) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions - Wow6432Node" -Details ($currentNetVersion.WowSystemDefaultTlsVersions) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SchUseStrongCrypto" -Details ($currentNetVersion.SchUseStrongCrypto) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SchUseStrongCrypto - Wow6432Node" -Details ($currentNetVersion.WowSchUseStrongCrypto) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($currentNetVersion.SecurityProtocol) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -AnalyzedInformation $analyzedResults
+
+    <#
+    [array]$securityProtocols = $currentNetVersion.SecurityProtocol.Split(",").Trim().ToUpper()
+    $lowerTLSVersions = @("1.0", "1.1")
+
+    foreach ($tlsKey in $lowerTLSVersions) {
+        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
+        $securityProtocolCheck = "TLS"
+        if ($tlsKey -eq "1.1") {
+            $securityProtocolCheck = "TLS11"
+        }
+
+        if (($currentTlsVersion.ServerEnabled -eq $false -or
+                $currentTlsVersion.ClientEnabled -eq $false) -and
+            $securityProtocols.Contains($securityProtocolCheck)) {
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details ("Security Protocol is able to use TLS when we have TLS {0} disabled in the registry. This can cause issues with connectivity. It is recommended to follow the proper TLS settings. In some cases, it may require to also set SchUseStrongCrypto in the registry." -f $tlsKey) `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+#>
+
     if ($detectedTlsMismatch) {
         $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649",
             "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761",
