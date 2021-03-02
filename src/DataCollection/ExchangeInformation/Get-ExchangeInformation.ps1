@@ -333,6 +333,15 @@ Function Get-ExchangeInformation {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
         }
 
+        $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+            -ScriptBlockDescription "Getting Exchange Bin Directory" `
+            -CatchActionFunction ${Function:Invoke-CatchActions} `
+            -ScriptBlock {
+            "{0}Bin\" -f (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+        }
+        Write-VerboseOutput("Found Exchange Bin: $serverExchangeBinDirectory")
+        $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `

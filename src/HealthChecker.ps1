@@ -164,6 +164,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-WmiObjectHandler.ps1
 . .\DataCollection\extern\Invoke-RegistryGetValue.ps1
 . .\DataCollection\extern\Invoke-ScriptBlockHandler.ps1
+. .\DataCollection\ExchangeInformation\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeAppPoolsInformation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeInformation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeServerCertificates.ps1

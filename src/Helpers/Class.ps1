@@ -27,6 +27,7 @@ try {
                 public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
                 public ExchangeServerMaintenance ServerMaintenance;
                 public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
+                public Hashtable ApplicationConfigFileStatus = new Hashtable();
             }
 
             public class ExchangeBuildInformation
