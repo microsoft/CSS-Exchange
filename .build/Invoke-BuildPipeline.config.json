@@ -1,7 +1,7 @@
 {
   "ScriptName": "HealthChecker",
   "ScriptUri": "https://api.github.com/repos/dpaulson45/HealthChecker/releases",
-  "ScriptVersion": "3.2",
+  "ScriptVersion": "3.3",
   "ScriptAnalyzerExcludeRules": [
     {
       "RuleName": "PSAvoidUsingWriteHost"
