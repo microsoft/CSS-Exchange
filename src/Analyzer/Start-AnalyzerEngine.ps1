@@ -985,6 +985,28 @@ Function Start-AnalyzerEngine {
         -DisplayWriteType $displayWriteType `
         -AnalyzedInformation $analyzedResults
 
+    if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
+        $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
+
+        foreach ($configKey in $exchangeInformation.ApplicationConfigFileStatus.Keys) {
+            $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
+
+            $writeType = "Green"
+            $writeName = "{0} Present" -f $configKey
+            $writeValue = $configStatus.Present
+
+            if (!$configStatus.Present) {
+                $writeType = "Red"
+                $writeValue = "{0} --- Error" -f $writeValue
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name $writeName -Details $writeValue `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType $writeType `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
         -DisplayGroupingKey $keySecuritySettings `
         -AnalyzedInformation $analyzedResults
