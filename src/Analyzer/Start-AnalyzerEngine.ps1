@@ -1076,6 +1076,7 @@ Function Start-AnalyzerEngine {
         -DisplayGroupingKey $keySecuritySettings `
         -AnalyzedInformation $analyzedResults
 
+    <#
     [array]$securityProtocols = $currentNetVersion.SecurityProtocol.Split(",").Trim().ToUpper()
     $lowerTLSVersions = @("1.0", "1.1")
 
@@ -1097,6 +1098,7 @@ Function Start-AnalyzerEngine {
                 -AnalyzedInformation $analyzedResults
         }
     }
+#>
 
     if ($detectedTlsMismatch) {
         $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649",
