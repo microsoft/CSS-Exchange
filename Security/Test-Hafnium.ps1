@@ -1,6 +1,6 @@
 ﻿#Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 
-function Check-26855() {
+function Get-26855() {
     Write-Host "Checking for CVE-2021-26855 in the HttpProxy logs"
     $csv = Import-Csv -Path (Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\HttpProxy" -Filter '*.log').FullName -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' }
     if ($csv.Length -gt 0) {
@@ -14,7 +14,7 @@ function Check-26855() {
     }
 }
 
-function Check-26858() {
+function Get-26858() {
     Write-Host "`r`nChecking for CVE-2021-26858 in the OABGenerator logs"
     $logs = Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
@@ -25,7 +25,7 @@ function Check-26858() {
     }
 }
 
-function Check-26857() {
+function Get-26857() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the Event Logs"
     $eventLogs = Get-EventLog -LogName Application -Source "MSExchange Unified Messaging" -EntryType Error -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" }
     if ($eventLogs.Count -gt 0) {
@@ -35,7 +35,7 @@ function Check-26857() {
     }
 }
 
-function Check-27065() {
+function Get-27065() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the ECP Logs"
     $logs = Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
@@ -46,7 +46,7 @@ function Check-27065() {
     }
 }
 
-function Check-SuspiciousFiles() {
+function Get-SuspiciousFiles() {
     Write-Host "`r`nChecking for suspicious files"
     $lsassFiles = Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp"
     $lsassFiles += Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp"
@@ -67,8 +67,8 @@ function Check-SuspiciousFiles() {
 }
 
 Write-Host "This script checks for exploits using the instructions outlined in https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers`r`n"
-Check-26855
-Check-26858
-Check-26857
-Check-27065
-Check-SuspiciousFiles
+Get-26855
+Get-26858
+Get-26857
+Get-27065
+Get-SuspiciousFiles
