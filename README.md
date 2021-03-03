@@ -62,6 +62,12 @@ This cmdlet will run the Health Checker Mailbox Report against the Server EXCH1
 .\HealthChecker.ps1 -MailboxReport -Server EXCH1
 ```
 
+This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.
+
+```
+Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | %{.\HealthChecker.ps1 -Server $_.Name}; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
+```
+
 # Parameters
 
 Parameter | Description
