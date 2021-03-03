@@ -1360,7 +1360,9 @@ Function Start-AnalyzerEngine {
                 ($fileBuildPart -eq $securityFixedBuildPart -and
                     $filePrivatePart -lt $securityFixedPrivatePart)) {
                 foreach ($cveName in $CVENames) {
-                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
+                    $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName
+                    $Script:Vulnerabilities += $details
+                    $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details $details `
                         -DisplayGroupingKey $keySecuritySettings `
                         -DisplayTestingValue $cveName `
                         -DisplayWriteType "Red" `
@@ -1379,6 +1381,7 @@ Function Start-AnalyzerEngine {
     }
 
     $Script:AllVulnerabilitiesPassed = $true
+    $Script:Vulnerabilities = @()
     $Script:AnalyzedInformation = $analyzedResults
     [string]$buildRevision = ("{0}.{1}" -f $exchangeInformation.BuildInformation.ExchangeSetup.FileBuildPart, $exchangeInformation.BuildInformation.ExchangeSetup.FilePrivatePart)
 
@@ -1537,7 +1540,9 @@ Function Start-AnalyzerEngine {
                 $Script:AllVulnerabilitiesPassed = $false
             }
 
-            $analyzedResults = Add-AnalyzedResultInformation -Name "CVE-2020-0796" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information." -f $writeValue) `
+            $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796 for more information." -f $writeValue
+            $Script:Vulnerabilities += $details
+            $analyzedResults = Add-AnalyzedResultInformation -Name "CVE-2020-0796" -Details $details `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType $writeType `
                 -AddHtmlDetailRow $false `
@@ -1571,7 +1576,9 @@ Function Start-AnalyzerEngine {
         Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
     } else {
         $Script:AllVulnerabilitiesPassed = $false
-        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147") `
+        $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147"
+        $Script:Vulnerabilities += $details
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details $details `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayWriteType "Red" `
             -AddHtmlDetailRow $false `
@@ -1582,6 +1589,29 @@ Function Start-AnalyzerEngine {
         $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Details "All known security issues in this version of the script passed." `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayWriteType "Green" `
+            -AddHtmlDetailRow $false `
+            -AnalyzedInformation $Script:AnalyzedInformation
+
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerabilities" -Details "None" `
+            -AddDisplayResultsLineInfo $false `
+            -AddHtmlOverviewValues $true `
+            -AnalyzedInformation $Script:AnalyzedInformation
+    } else {
+
+        $details = $Script:Vulnerabilities |
+            ForEach-Object {
+                return $_ + "<br>"
+            }
+
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Security Vulnerabilities" -Details $details `
+            -AddDisplayResultsLineInfo $false `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $Script:AnalyzedInformation
+
+        $Script:AnalyzedInformation = Add-AnalyzedResultInformation -Name "Vulnerability Detected" -Details $true `
+            -AddDisplayResultsLineInfo $false `
+            -DisplayWriteType "Red" `
+            -AddHtmlOverviewValues $true `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $Script:AnalyzedInformation
     }
