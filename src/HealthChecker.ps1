@@ -310,6 +310,12 @@ Function Main {
     }
 }
 
+if ($scriptBuildDate -eq "Today") {
+    Write-Error ("Script isn't built. Do not run source code directly.`r`nIf developer, follow build process.")
+    Write-Host("`r`n`r`nDownload Built Script: http://aka.ms/ExHCDownload")
+    exit
+}
+
 try {
     $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
     Main
