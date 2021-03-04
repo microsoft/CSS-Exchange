@@ -20,10 +20,10 @@ function Get-26855() {
 
     if ($allResults.Length -gt 0) {
         Write-Warning "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries."
-        if (Test-Path ".\CVE-2021-26855.log") {
-            Remove-Item .\CVE-2021-26855.log -Force
+        if (Test-Path "$PSScriptRoot\CVE-2021-26855.log") {
+            Remove-Item $PSScriptRoot\CVE-2021-26855.log -Force
         }
-        $allResults | Out-File .\CVE-2021-26855.log -Append
+        $allResults | Out-File $PSScriptRoot\CVE-2021-26855.log -Append
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
     }
