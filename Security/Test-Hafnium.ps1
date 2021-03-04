@@ -42,7 +42,7 @@ function Get-26858() {
 
 function Get-26857() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the Event Logs"
-    $eventLogs = Get-EventLog -LogName Application -Source "MSExchange Unified Messaging" -EntryType Error -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" }
+    $eventLogs = @(Get-WinEvent -FilterHashtable @{LogName = 'Application'; ProviderName = 'MSExchange Unified Messaging'; Level = '2' } -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" })
     if ($eventLogs.Count -gt 0) {
         Write-Warning "Suspicious event log entries for Source `"MSExchange Unified Messaging`" and Message `"System.InvalidCastException`" were found.  These may indicate exploitation.  Please review these event log entries for more details."
     } else {
