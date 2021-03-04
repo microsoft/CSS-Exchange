@@ -63,8 +63,8 @@ function Get-27065() {
 
 function Get-SuspiciousFiles() {
     Write-Host "`r`nChecking for suspicious files"
-    $lsassFiles = Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp"
-    $lsassFiles += Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp"
+    $lsassFiles = @(Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp")
+    $lsassFiles += @(Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp")
     if ($lsassFiles.Count -gt 0) {
         Write-Warning "lsass.exe dumps found, please verify these are expected:"
         $lsassFiles.FullName
