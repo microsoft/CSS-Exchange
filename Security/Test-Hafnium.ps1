@@ -42,7 +42,7 @@ function Get-26858() {
 
 function Get-26857() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the Event Logs"
-    $eventLogs = Get-EventLog -LogName Application -Source "MSExchange Unified Messaging" -EntryType Error -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" }
+    $eventLogs = @(Get-WinEvent -FilterHashtable @{LogName = 'Application'; ProviderName = 'MSExchange Unified Messaging'; Level = '2' } -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" })
     if ($eventLogs.Count -gt 0) {
         Write-Warning "Suspicious event log entries for Source `"MSExchange Unified Messaging`" and Message `"System.InvalidCastException`" were found.  These may indicate exploitation.  Please review these event log entries for more details."
     } else {
@@ -51,7 +51,7 @@ function Get-26857() {
 }
 
 function Get-27065() {
-    Write-Host "`r`nChecking for CVE-2021-26857 in the ECP Logs"
+    Write-Host "`r`nChecking for CVE-2021-27065 in the ECP Logs"
     $logs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
         Write-Warning "Suspicious virtual directory modifications found in the following logs, please review them for `"Set-*VirtualDirectory`" entries:"
