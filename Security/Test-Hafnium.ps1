@@ -19,7 +19,7 @@ function Get-26855() {
     }
 
     if ($allResults.Length -gt 0) {
-        Write-Host "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries." -ForegroundColor Yellow
+        Write-Warning "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries."
         if (Test-Path ".\CVE-2021-26855.log") {
             Remove-Item .\CVE-2021-26855.log -Force
         }
@@ -33,7 +33,7 @@ function Get-26858() {
     Write-Host "`r`nChecking for CVE-2021-26858 in the OABGenerator logs"
     $logs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
-        Write-Host "Suspicious OAB download entries found in the following logs, please review them for `"Download failed and temporary file`" entries:" -ForegroundColor Yellow
+        Write-Warning "Suspicious OAB download entries found in the following logs, please review them for `"Download failed and temporary file`" entries:"
         $logs.Path
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
@@ -44,7 +44,7 @@ function Get-26857() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the Event Logs"
     $eventLogs = Get-EventLog -LogName Application -Source "MSExchange Unified Messaging" -EntryType Error -ErrorAction SilentlyContinue | Where-Object { $_.Message -like "*System.InvalidCastException*" }
     if ($eventLogs.Count -gt 0) {
-        Write-Host "Suspicious event log entries for Source `"MSExchange Unified Messaging`" and Message `"System.InvalidCastException`" were found.  These may indicate exploitation.  Please review these event log entries for more details." -ForegroundColor Yellow
+        Write-Warning "Suspicious event log entries for Source `"MSExchange Unified Messaging`" and Message `"System.InvalidCastException`" were found.  These may indicate exploitation.  Please review these event log entries for more details."
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
     }
@@ -54,7 +54,7 @@ function Get-27065() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the ECP Logs"
     $logs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
-        Write-Host "Suspicious virtual directory modifications found in the following logs, please review them for `"Set-*VirtualDirectory`" entries:" -ForegroundColor Yellow
+        Write-Warning "Suspicious virtual directory modifications found in the following logs, please review them for `"Set-*VirtualDirectory`" entries:"
         $logs.Path
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
@@ -66,7 +66,7 @@ function Get-SuspiciousFiles() {
     $lsassFiles = Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp"
     $lsassFiles += Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp"
     if ($lsassFiles.Count -gt 0) {
-        Write-Host "lsass.exe dumps found, please verify these are expected:" -ForegroundColor Yellow
+        Write-Warning "lsass.exe dumps found, please verify these are expected:"
         $lsassFiles.FullName
     } else {
         Write-Host "No suspicious lsass dumps found." -ForegroundColor Green
@@ -74,7 +74,7 @@ function Get-SuspiciousFiles() {
 
     $zipFiles = Get-ChildItem -Recurse -Path "$env:ProgramData" -Include *.7z, *.zip, *.rar -ErrorAction SilentlyContinue
     if ($zipFiles.Count -gt 0) {
-        Write-Host "`r`nZipped files found in $env:ProgramData, please verify these are expected:" -ForegroundColor Yellow
+        Write-Warning "`r`nZipped files found in $env:ProgramData, please verify these are expected:"
         $zipFiles.FullName
     } else {
         Write-Host "`r`nNo suspicious zip files found." -ForegroundColor Green
