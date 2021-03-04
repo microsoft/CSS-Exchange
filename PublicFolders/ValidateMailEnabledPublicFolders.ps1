@@ -243,7 +243,7 @@ if ($orphanedMPFsThatPointToAMailEnabledFolder.Count -gt 0) {
     Write-Host "These are listed in a file called:"
     Write-Host $mailPublicFolderDuplicatesFile -ForegroundColor Green
     Write-Host "After confirming the accuracy of the results, you can delete them with the following command:"
-    Write-Host "Get-Content `"$mailPublicFolderDuplicatesFile`" | % { ([ADSI](`"LDAP://`$_`")).DeleteTree() }" -ForegroundColor Green
+    Write-Host "Get-Content `"$mailPublicFolderDuplicatesFile`" | % { `$folder = ([ADSI](`"LDAP://`$_`")); `$parent = ([ADSI]`"`$(`$folder.Parent)`"); `$parent.Children.Remove(`$folder) }" -ForegroundColor Green
 
     if ($emailAddressMergeCommands.Count -gt 0) {
         $emailAddressMergeScriptFile = Join-Path $PWD "AddAddressesFromDuplicates.ps1"
