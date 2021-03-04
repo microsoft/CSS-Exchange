@@ -1,10 +1,12 @@
 ﻿#Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 
+$exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+
 function Get-26855() {
     Write-Host "Checking for CVE-2021-26855 in the HttpProxy logs"
-    $csv = Import-Csv -Path (Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\HttpProxy" -Filter '*.log').FullName -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' }
+    $csv = Import-Csv -Path (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' }
     if ($csv.Length -gt 0) {
-        Write-Host "Suspicious entries found in $env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries." -ForegroundColor Yellow
+        Write-Host "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries." -ForegroundColor Yellow
         if (Test-Path ".\CVE-2021-26855.log") {
             Remove-Item .\CVE-2021-26855.log -Force
         }
@@ -16,7 +18,7 @@ function Get-26855() {
 
 function Get-26858() {
     Write-Host "`r`nChecking for CVE-2021-26858 in the OABGenerator logs"
-    $logs = Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object Path
+    $logs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
         Write-Host "Suspicious OAB download entries found in the following logs, please review them for `"Download failed and temporary file`" entries:" -ForegroundColor Yellow
         $logs.Path
@@ -37,7 +39,7 @@ function Get-26857() {
 
 function Get-27065() {
     Write-Host "`r`nChecking for CVE-2021-26857 in the ECP Logs"
-    $logs = Get-ChildItem -Recurse -Path "$env:PROGRAMFILES\Microsoft\Exchange Server\V15\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object Path
+    $logs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object Path
     if ($logs.Path.Count -gt 0) {
         Write-Host "Suspicious virtual directory modifications found in the following logs, please review them for `"Set-*VirtualDirectory`" entries:" -ForegroundColor Yellow
         $logs.Path
