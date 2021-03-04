@@ -10,7 +10,7 @@ function Get-26855() {
     $files | ForEach-Object {
         $count++
         Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
-        if ((Get-ChildItem $_ | Select-String "ServerInfo~").Count -gt 0) {
+        if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
             $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' })
             $fileResults | ForEach-Object {
                 $allResults += $_
