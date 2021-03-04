@@ -9,7 +9,9 @@ function Get-26855() {
     $allResults = @()
     $files | ForEach-Object {
         $count++
-        Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+        if ($count % 10 -eq 0) {
+            Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+        }
         if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
             $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' })
             $fileResults | ForEach-Object {
@@ -63,8 +65,8 @@ function Get-27065() {
 
 function Get-SuspiciousFiles() {
     Write-Host "`r`nChecking for suspicious files"
-    $lsassFiles = Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp"
-    $lsassFiles += Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp"
+    $lsassFiles = @(Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp")
+    $lsassFiles += @(Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp")
     if ($lsassFiles.Count -gt 0) {
         Write-Warning "lsass.exe dumps found, please verify these are expected:"
         $lsassFiles.FullName
