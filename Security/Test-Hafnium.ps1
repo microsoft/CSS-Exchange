@@ -4,13 +4,26 @@ $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Mi
 
 function Get-26855() {
     Write-Host "Checking for CVE-2021-26855 in the HttpProxy logs"
-    $csv = Import-Csv -Path (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' }
-    if ($csv.Length -gt 0) {
+    $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
+    $count = 0
+    $allResults = @()
+    $files | ForEach-Object {
+        $count++
+        Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+        if ((Get-ChildItem $_ | Select-String "ServerInfo~").Count -gt 0) {
+            $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' })
+            $fileResults | ForEach-Object {
+                $allResults += $_
+            }
+        }
+    }
+
+    if ($allResults.Length -gt 0) {
         Write-Host "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries." -ForegroundColor Yellow
         if (Test-Path ".\CVE-2021-26855.log") {
             Remove-Item .\CVE-2021-26855.log -Force
         }
-        $csv | Out-File .\CVE-2021-26855.log -Append
+        $allResults | Out-File .\CVE-2021-26855.log -Append
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
     }
