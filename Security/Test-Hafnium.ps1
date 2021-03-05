@@ -48,7 +48,7 @@ function Test-ExchangeHafnium {
                 $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
 
                 foreach ($httpProxyLogfile in Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log') {
-                    Import-Csv -Path $httpProxyLogfile.FullName | Where-Object AnchorMailbox -Like 'ServerInfo~*/*' | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox
+                    Import-Csv -Path $httpProxyLogfile.FullName | Where-Object AnchorMailbox -Like 'ServerInfo~*/*' | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus
                 }
             }
 
