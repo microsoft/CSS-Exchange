@@ -314,7 +314,35 @@ Function Main {
             return
         }
 
-        $Script:currentLogOnUser = (Get-EvaluatedSettingOrRule -SettingName "CurrentLogOn" -ValueType ".").Matches.Groups[1].Value
+        $Script:currentLogOnUser = Get-EvaluatedSettingOrRule -SettingName "CurrentLogOn" -ValueType "."
+
+        if ($null -ne $Script:currentLogOnUser) {
+            $Script:currentLogOnUser = $Script:currentLogOnUser.Matches.Groups[1].Value
+        }
+
+        $Script:SetupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
+        $runDate = [DateTime]::Parse(
+            $SetupBuildNumber.Line.Substring(1,
+                $SetupBuildNumber.Line.IndexOf("]") - 1)
+        )
+
+        $color = "Gray"
+        if ($runDate -lt ([datetime]::Now.AddDays(-14))) {
+            $color = "Yellow"
+        }
+
+        Write-Host("Setup.exe Run Date: $runDate") -ForegroundColor $color
+        $Script:SetupBuildNumber = $Script:SetupBuildNumber.Matches.Groups[1].Value
+        $localInstall = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "The locally installed version is (.+)\."
+
+        if ($null -ne $localInstall) {
+            $exBuild = $localInstall.Matches.Groups[1].Value
+            Write-Host "Current Exchange Build: $exBuild"
+
+            if ($exBuild -eq $SetupBuildNumber) {
+                Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor Red
+            }
+        }
 
         if ($DelegatedSetup) {
             Get-DelegatedInstallerHasProperRights
@@ -326,13 +354,20 @@ Function Main {
             Write-Host "`r`nAdditional Context:"
             Write-Host ("User Logged On: {0}" -f $Script:currentLogOnUser)
 
-            $serverFQDN = (Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType ".").Matches.Groups[1].Value
-            Write-Host "Setup Running on: $serverFQDN"
-            $setupDomain = $serverFQDN.Split('.')[1]
-            Write-Host "Setup Running in Domain: $setupDomain"
+            $serverFQDN = Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType "."
+
+            if ($null -ne $serverFQDN) {
+                $serverFQDN = $serverFQDN.Matches.Groups[1].Value
+                Write-Host "Setup Running on: $serverFQDN"
+                $setupDomain = $serverFQDN.Split('.')[1]
+                Write-Host "Setup Running in Domain: $setupDomain"
+            }
 
             $siteName = Get-EvaluatedSettingOrRule -SettingName "SiteName" -ValueType "."
-            Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+
+            if ($null -ne $siteName) {
+                Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+            }
 
             $schemaMaster = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "Setup will attempt to use the Schema Master domain controller (.+)"
 
@@ -365,6 +400,8 @@ Function Main {
         Write-Host "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
             "If that doesn't find the cause, please notify $feedbackEmail to help us improve the scripts."
     } catch {
+        Write-Host "$($Error[0].Exception)"
+        Write-Host "$($Error[0].ScriptStackTrace)"
         Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail)
     }
 }
