@@ -83,5 +83,7 @@ steps:
     title: $(ReleaseTagValue)
     releaseNotesSource: 'file'
     releaseNotesFile: dist\ScriptVersions.txt
-    assets: dist\*.ps1
+    assets:
+      dist\*.ps1
+      dist\*.nse
     addChangeLog: true
