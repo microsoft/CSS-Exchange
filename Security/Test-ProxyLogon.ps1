@@ -137,11 +137,11 @@ function Test-ExchangeHafnium {
 
             [PSCustomObject]@{
                 ComputerName = $env:COMPUTERNAME
-                Cve26855     = Get-Cve26855
-                Cve26857     = Get-Cve26857
-                Cve26858     = Get-Cve26858
-                Cve27065     = Get-Cve27065
-                Suspicious   = Get-SuspiciousFile
+                Cve26855     = @(Get-Cve26855)
+                Cve26857     = @(Get-Cve26857)
+                Cve26858     = @(Get-Cve26858)
+                Cve27065     = @(Get-Cve27065)
+                Suspicious   = @(Get-SuspiciousFile)
             }
         }
         #endregion Remoting Scriptblock
@@ -187,13 +187,13 @@ function Write-HafniumReport {
     process {
         foreach ($report in $InputObject) {
             Write-Host "Hafnium Status: Exchange Server $($report.ComputerName)"
-            if (-not ($report.Cve26855 -or $report.Cve26857 -or $report.Cve26858 -or $report.Cve27065 -or $report.Suspicious)) {
+            if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
                 Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                 Write-Host ""
                 continue
             }
 
-            if ($report.Cve26855) {
+            if ($report.Cve26855.Count -gt 0) {
                 Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
                 if ($OutPath) {
                     $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
@@ -204,7 +204,7 @@ function Write-HafniumReport {
                 }
                 Write-Host ""
             }
-            if ($report.Cve26857) {
+            if ($report.Cve26857.Count -gt 0) {
                 Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
                 Write-Host "  $(@($report.Cve26857).Count) events found"
                 if ($OutPath) {
@@ -214,7 +214,7 @@ function Write-HafniumReport {
                 }
                 Write-Host ""
             }
-            if ($report.Cve26858) {
+            if ($report.Cve26858.Count -gt 0) {
                 Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
                 Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
                 foreach ($entry in $report.Cve26858) {
@@ -227,7 +227,7 @@ function Write-HafniumReport {
                 }
                 Write-Host ""
             }
-            if ($report.Suspicious) {
+            if ($report.Suspicious.Count -gt 0) {
                 Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
                 if ($OutPath) {
                     $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
