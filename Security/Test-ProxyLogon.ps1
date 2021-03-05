@@ -212,7 +212,7 @@ process {
                         $report.Cve26855 | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
                     } else {
-                        $report.Cve26855 | Format-Table -AutoSize | Out-Host
+                        $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
                     }
                     Write-Host ""
                 }
