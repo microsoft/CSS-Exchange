@@ -7,10 +7,13 @@ function Get-26855() {
     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
     $count = 0
     $allResults = @()
+    $sw = New-Object System.Diagnostics.Stopwatch
+    $sw.Start()
     $files | ForEach-Object {
         $count++
-        if ($count % 10 -eq 0) {
+        if ($sw.ElapsedMilliseconds -gt 500) {
             Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+            $sw.Restart()
         }
         if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
             $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' })
@@ -19,6 +22,8 @@ function Get-26855() {
             }
         }
     }
+
+    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Completed
 
     if ($allResults.Length -gt 0) {
         Write-Warning "Suspicious entries found in $exchangePath\Logging\HttpProxy.  Check the .\CVE-2021-26855.csv log for specific entries."
@@ -74,7 +79,8 @@ function Get-SuspiciousFiles() {
         Write-Host "No suspicious lsass dumps found." -ForegroundColor Green
     }
 
-    $zipFiles = Get-ChildItem -Recurse -Path "$env:ProgramData" -Include *.7z, *.zip, *.rar -ErrorAction SilentlyContinue
+    $zipFiles = @(Get-ChildItem -Recurse -Path "$env:ProgramData" -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match ".7z|.zip|.rar" })
+
     if ($zipFiles.Count -gt 0) {
         Write-Warning "`r`nZipped files found in $env:ProgramData, please verify these are expected:"
         $zipFiles.FullName
