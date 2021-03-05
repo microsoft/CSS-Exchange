@@ -1,4 +1,16 @@
-﻿#Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+#
+# Examples
+#
+# Check the local Exchange server only and save the report:
+# .\Test-ProxyLogon.ps1 -OutputPath $home\desktop\logs
+#
+# Check all Exchange servers and save the reports:
+# Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutputPath $home\desktop\logs
+#
+# Check all Exchange servers, but only display the results, don't save them:
+# Get-ExchangeServer | .\Test-ProxyLogon.ps1
+
 
 [CmdletBinding()]
 param (
