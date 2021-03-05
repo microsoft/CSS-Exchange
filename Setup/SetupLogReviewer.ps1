@@ -56,12 +56,21 @@ Function Get-DelegatedInstallerHasProperRights {
     }
 }
 
+Function Get-EvaluatedSettingOrRule {
+    param(
+        [string]$SettingName,
+        [string]$SettingOrRule = "Setting",
+        [string]$ValueType = "\w"
+    )
+    return Select-String ("Evaluated \[{0}:{1}\].+\[Value:`"({2}+)`"\] \[ParentValue:" -f $SettingOrRule, $SettingName, $ValueType) $SetupLog | Select-Object -Last 1
+}
+
 Function Test-EvaluatedSettingOrRule {
     param(
         [string]$SettingName,
         [string]$SettingOrRule = "Setting"
     )
-    $selectString = Select-String ("Evaluated \[{0}:{1}\].+\[Value:`"(\w+)`"`]" -f $SettingOrRule, $SettingName) $SetupLog | Select-Object -Last 1
+    $selectString = Get-EvaluatedSettingOrRule -SettingName $SettingName -SettingOrRule $SettingOrRule
 
     if ($null -ne $selectString -and
         (Test-LastRunOfExchangeSetup -TestingMatchInfo $selectString) -and
@@ -305,7 +314,7 @@ Function Main {
             return
         }
 
-        $Script:currentLogOnUser = Test-EvaluatedSettingOrRule -SettingName "CurrentLogOn"
+        $Script:currentLogOnUser = (Get-EvaluatedSettingOrRule -SettingName "CurrentLogOn" -ValueType ".").Matches.Groups[1].Value
 
         if ($DelegatedSetup) {
             Get-DelegatedInstallerHasProperRights
@@ -313,6 +322,31 @@ Function Main {
         }
 
         if (Test-PrerequisiteCheck) {
+
+            Write-Host "`r`nAdditional Context:"
+            Write-Host ("User Logged On: {0}" -f $Script:currentLogOnUser)
+
+            $serverFQDN = (Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType ".").Matches.Groups[1].Value
+            Write-Host "Setup Running on: $serverFQDN"
+            $setupDomain = $serverFQDN.Split('.')[1]
+            Write-Host "Setup Running in Domain: $setupDomain"
+
+            $siteName = Get-EvaluatedSettingOrRule -SettingName "SiteName" -ValueType "."
+            Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+
+            $schemaMaster = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "Setup will attempt to use the Schema Master domain controller (.+)"
+
+            if ($null -ne $schemaMaster) {
+                Write-Host "----------------------------------"
+                Write-Host "Schema Master: $($schemaMaster.Matches.Groups[1].Value)"
+                $smDomain = $schemaMaster.Matches.Groups[1].Value.Split(".")[1]
+                Write-Host "Schema Master in Domain: $smDomain"
+
+                if ($smDomain -ne $setupDomain) {
+                    Write-Host "Unable to run setup in current domain."
+                }
+            }
+
             return
         }
 
