@@ -25,3 +25,16 @@ Formerly known as Test-Hafnium, this script automates all four of the commands f
 Download the latest release here:
 
 [Download Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
+
+The most typical usage of this script is to check all Exchange servers and save the output,
+by using the following syntax from Exchange Management Shell:
+
+`Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
+
+To check the local server only, just run the script:
+
+`.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
+
+To display the results without saving them, drop the -Outpath parameter from either example above:
+
+`.\Test-ProxyLogon.ps1`
