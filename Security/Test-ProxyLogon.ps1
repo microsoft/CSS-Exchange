@@ -205,6 +205,10 @@ process {
             $OutPath
         )
 
+        begin {
+            New-Item $OutPath -ItemType Directory -Force | Out-Null
+        }
+
         process {
             foreach ($report in $InputObject) {
                 Write-Host "Hafnium Status: Exchange Server $($report.ComputerName)"
