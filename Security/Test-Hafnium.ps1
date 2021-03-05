@@ -79,7 +79,8 @@ function Get-SuspiciousFiles() {
         Write-Host "No suspicious lsass dumps found." -ForegroundColor Green
     }
 
-    $zipFiles = Get-ChildItem -Recurse -Path "$env:ProgramData" -Include *.7z, *.zip, *.rar -ErrorAction SilentlyContinue
+    $zipFiles = @(Get-ChildItem -Recurse -Path "$env:ProgramData" -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match ".7z|.zip|.rar" })
+
     if ($zipFiles.Count -gt 0) {
         Write-Warning "`r`nZipped files found in $env:ProgramData, please verify these are expected:"
         $zipFiles.FullName
