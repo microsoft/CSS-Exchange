@@ -31,6 +31,12 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Sort-Object Name |
     ForEach-Object { $_.FullName }
 
+$otherFiles = Get-ChildItem -Path $repoRoot -Directory |
+    Where-Object { $_.Name -ne ".build" } |
+    ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |
+    Sort-Object Name |
+    ForEach-Object { $_.FullName }
+
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
 if ($nonUnique.Count -gt 0) {
     $nonUnique | ForEach-Object {
@@ -128,4 +134,8 @@ $scriptFiles | ForEach-Object {
     "$([IO.Path]::GetFileName($_)) | v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
+}
+
+$otherFiles | ForEach-Object {
+    Copy-Item $_ $distFolder
 }
