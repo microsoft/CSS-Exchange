@@ -30,7 +30,7 @@ function Get-26855() {
         if (Test-Path "$PSScriptRoot\CVE-2021-26855.log") {
             Remove-Item $PSScriptRoot\CVE-2021-26855.log -Force
         }
-        $allResults | Select-Object DateTime, AnchorMailbox | Export-Csv $PSScriptRoot\CVE-2021-26855.log
+        $allResults | Select-Object DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox | Export-Csv $PSScriptRoot\CVE-2021-26855.log
     } else {
         Write-Host "No suspicious entries found." -ForegroundColor Green
     }
