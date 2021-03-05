@@ -30,6 +30,7 @@ steps:
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
 
 - task: EsrpCodeSigning@1
+  condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
   inputs:
     ConnectedServiceName: 'CSS Exchange Code Sign'
     FolderPath: 'D:\a\1\s\dist'
