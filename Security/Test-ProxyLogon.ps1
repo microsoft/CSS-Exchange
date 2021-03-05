@@ -242,3 +242,5 @@ function Write-HafniumReport {
         }
     }
 }
+
+$input | Test-ExchangeHafnium | Write-HafniumReport
