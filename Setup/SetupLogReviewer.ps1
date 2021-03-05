@@ -320,6 +320,30 @@ Function Main {
             $Script:currentLogOnUser = $Script:currentLogOnUser.Matches.Groups[1].Value
         }
 
+        $Script:SetupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
+        $runDate = [DateTime]::Parse(
+            $SetupBuildNumber.Line.Substring(1,
+            $SetupBuildNumber.Line.IndexOf("]") - 1)
+        )
+
+        $color = "Gray"
+        if ($runDate -lt ([datetime]::Now.AddDays(-14))) {
+            $color = "Yellow"
+        }
+
+        Write-Host("Setup.exe Run Date: $runDate") -ForegroundColor $color
+        $Script:SetupBuildNumber = $Script:SetupBuildNumber.Matches.Groups[1].Value
+        $localInstall = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "The locally installed version is (.+)\."
+
+        if ($null -ne $localInstall) {
+            $exBuild = $localInstall.Matches.Groups[1].Value
+            Write-Host "Current Exchange Build: $exBuild"
+
+            if ($exBuild -eq $SetupBuildNumber) {
+                Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor Red
+            }
+        }
+
         if ($DelegatedSetup) {
             Get-DelegatedInstallerHasProperRights
             return
