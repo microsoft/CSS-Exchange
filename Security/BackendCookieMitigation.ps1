@@ -18,7 +18,7 @@
     Examples:
 
     To apply with MSI install via PowerShell:
-        . \BackendCookieMitigation.ps1 -FullPathToMSI “<FullPathToMSI>" -WebSiteNames "Default Web Site" -Verbose
+        .\BackendCookieMitigation.ps1 -FullPathToMSI “<FullPathToMSI>" -WebSiteNames "Default Web Site" -Verbose
 
     To apply without MSI install via PowerShell:
         .\BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -Verbose
