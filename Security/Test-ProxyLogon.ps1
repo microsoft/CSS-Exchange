@@ -53,13 +53,22 @@ process {
             #region Remoting Scriptblock
             $scriptBlock = {
                 #region Functions
+                function Get-ExchangeInstallPath {
+                    $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+                    if ($null -eq $p) {
+                        $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+                    }
+
+                    return $p
+                }
+
                 function Get-Cve26855 {
                     [CmdletBinding()]
                     param ()
 
                     Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
 
-                    $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+                    $exchangePath = Get-ExchangeInstallPath
 
                     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
                     $count = 0
@@ -102,7 +111,7 @@ process {
                     [CmdletBinding()]
                     param ()
 
-                    $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+                    $exchangePath = Get-ExchangeInstallPath
 
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path
                 }
@@ -111,7 +120,7 @@ process {
                     [CmdletBinding()]
                     param ()
 
-                    $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+                    $exchangePath = Get-ExchangeInstallPath
 
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" | Select-String "Set-.*VirtualDirectory" -List | Select-Object -ExpandProperty Path
                 }
