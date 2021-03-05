@@ -1,4 +1,4 @@
-#Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+﻿#Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 
 function Test-ExchangeHafnium {
     <#
@@ -45,11 +45,34 @@ function Test-ExchangeHafnium {
                 [CmdletBinding()]
                 param ()
 
+                Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
+
                 $exchangePath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
 
-                foreach ($httpProxyLogfile in Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log') {
-                    Import-Csv -Path $httpProxyLogfile.FullName | Where-Object AnchorMailbox -Like 'ServerInfo~*/*' | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus
+                $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
+                $count = 0
+                $allResults = @()
+                $sw = New-Object System.Diagnostics.Stopwatch
+                $sw.Start()
+                $files | ForEach-Object {
+                    $count++
+
+                    if ($sw.ElapsedMilliseconds -gt 500) {
+                        Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+                        $sw.Restart()
+                    }
+
+                    if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
+                        $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object AnchorMailbox -Like 'ServerInfo~*/*' | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus)
+                        $fileResults | ForEach-Object {
+                            $allResults += $_
+                        }
+                    }
                 }
+
+                Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Completed
+
+                return $allResults
             }
 
             function Get-Cve26857 {
