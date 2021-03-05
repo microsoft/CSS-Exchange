@@ -323,7 +323,7 @@ Function Main {
         $Script:SetupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
         $runDate = [DateTime]::Parse(
             $SetupBuildNumber.Line.Substring(1,
-            $SetupBuildNumber.Line.IndexOf("]") - 1)
+                $SetupBuildNumber.Line.IndexOf("]") - 1)
         )
 
         $color = "Gray"
