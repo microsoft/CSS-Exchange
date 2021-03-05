@@ -96,7 +96,6 @@ if (!$RollbackMitigation) {
             Write-Verbose "[OK] Rewrite rule configuration complete for $env:COMPUTERNAME :: $website"
             Get-WebConfiguration -Filter $filter -PSPath $site
             Get-WebConfiguration -Filter $filter2 -PSPath $site
-
         } catch {
             throw $_
         }
