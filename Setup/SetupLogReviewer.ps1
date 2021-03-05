@@ -314,7 +314,11 @@ Function Main {
             return
         }
 
-        $Script:currentLogOnUser = (Get-EvaluatedSettingOrRule -SettingName "CurrentLogOn" -ValueType ".").Matches.Groups[1].Value
+        $Script:currentLogOnUser = Get-EvaluatedSettingOrRule -SettingName "CurrentLogOn" -ValueType "."
+
+        if ($null -ne $Script:currentLogOnUser) {
+            $Script:currentLogOnUser = $Script:currentLogOnUser.Matches.Groups[1].Value
+        }
 
         if ($DelegatedSetup) {
             Get-DelegatedInstallerHasProperRights
@@ -326,13 +330,20 @@ Function Main {
             Write-Host "`r`nAdditional Context:"
             Write-Host ("User Logged On: {0}" -f $Script:currentLogOnUser)
 
-            $serverFQDN = (Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType ".").Matches.Groups[1].Value
-            Write-Host "Setup Running on: $serverFQDN"
-            $setupDomain = $serverFQDN.Split('.')[1]
-            Write-Host "Setup Running in Domain: $setupDomain"
+            $serverFQDN = Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType "."
+
+            if ($null -ne $serverFQDN) {
+                $serverFQDN = $serverFQDN.Matches.Groups[1].Value
+                Write-Host "Setup Running on: $serverFQDN"
+                $setupDomain = $serverFQDN.Split('.')[1]
+                Write-Host "Setup Running in Domain: $setupDomain"
+            }
 
             $siteName = Get-EvaluatedSettingOrRule -SettingName "SiteName" -ValueType "."
-            Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+
+            if ($null -ne $siteName) {
+                Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+            }
 
             $schemaMaster = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "Setup will attempt to use the Schema Master domain controller (.+)"
 
