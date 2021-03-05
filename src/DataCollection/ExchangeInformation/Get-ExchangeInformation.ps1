@@ -189,8 +189,11 @@ Function Get-ExchangeInformation {
             } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU8) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU11) {
+            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU10) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
+            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU11) {
+                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
             } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU13) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
@@ -204,7 +207,7 @@ Function Get-ExchangeInformation {
             }
         } else {
             Write-VerboseOutput("Exchange 2013 is detected. Checking build number...")
-            $buildInformation.FriendlyName = "Exchange 2013 "
+            $buildInformation.FriendlyName = "Exchange 2013"
 
             #Exchange 2013 Information
             if ($buildAndRevision -lt 712.24) {
@@ -303,14 +306,17 @@ Function Get-ExchangeInformation {
             }
 
             #Exchange 2013 .NET Information
-            if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU12) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+            if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU4) {
+                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
+                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
+            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU13) {
+                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
             } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU15) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
             } elseif ($buildInformation.CU -eq [HealthChecker.ExchangeCULevel]::CU15) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d1
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
             } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU19) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
@@ -318,7 +324,7 @@ Function Get-ExchangeInformation {
             } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU21) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-            } elseif ($buildInformation.CU -le [HealthChecker.ExchangeCULevel]::CU22) {
+            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU23) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
             } else {
