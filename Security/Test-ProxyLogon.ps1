@@ -218,7 +218,9 @@ process {
         )
 
         begin {
-            New-Item $OutPath -ItemType Directory -Force | Out-Null
+            if ($OutPath) {
+                New-Item $OutPath -ItemType Directory -Force | Out-Null
+            }
         }
 
         process {
