@@ -133,8 +133,7 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
-
-                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.*VirtualDirectory" -List | Select-Object -ExpandProperty Path
+                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory" -List | Select-Object -ExpandProperty Path
                 }
 
                 function Get-SuspiciousFile {
@@ -262,6 +261,19 @@ process {
                     if ($OutPath) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
                         $report.Cve26858 | Set-Content -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
+                if ($report.Cve27065.Count -gt 0) {
+                    Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
+                    foreach ($entry in $report.Cve27065) {
+                        Write-Host "   $entry"
+                    }
+                    if ($OutPath) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
+                        $report.Cve27065 | Set-Content -Path $newFile
                         Write-Host "  Report exported to: $newFile"
                     }
                     Write-Host ""
