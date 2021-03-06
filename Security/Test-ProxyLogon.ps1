@@ -165,6 +165,28 @@ process {
                         }
                     }
                 }
+
+                function Get-OldestLog {
+                    [CmdletBinding()]
+                    param ()
+
+                    $exchangePath = Get-ExchangeInstallPath
+
+                    [PSCustomObject]@{
+                        Oabgen           = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        Ecp              = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        AutodProxy       = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        EasProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        EcpProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        EwsProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        MapiProxy        = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Mapi" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        OabProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Oab" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        OwaProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Owa" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        OwaCalendarProxy = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\OwaCalendar" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        PowershellProxy  = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\PowerShell" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        RpcHttpProxy     = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                    }
+                }
                 #endregion Functions
 
                 [PSCustomObject]@{
@@ -174,6 +196,7 @@ process {
                     Cve26858     = @(Get-Cve26858)
                     Cve27065     = @(Get-Cve27065)
                     Suspicious   = @(Get-SuspiciousFile)
+                    OldestLogs   = Get-OldestLog
                 }
             }
             #endregion Remoting Scriptblock
@@ -289,6 +312,14 @@ process {
                             Write-Host "   $($entry.Type) : $($entry.Path)"
                         }
                     }
+                }
+
+                Write-Host "Oldest log files:"
+                $report.OldestLogs | Format-Table | Out-Host
+                if ($OutPath) {
+                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-OldestLogs.csv"
+                    $report.OldestLogs | Export-Csv -Path $newFile
+                    Write-Host "  Report exported to: $newFile"
                 }
             }
         }
