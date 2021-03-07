@@ -1,5 +1,7 @@
 [CmdletBinding()]
 param(
+    [Switch]
+    $Save
 )
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
@@ -21,6 +23,11 @@ foreach ($file in $scriptFiles) {
         if ($scriptFormatter.StringContent -cne $scriptFormatter.FormattedScript) {
             Write-Host ("Failed to follow the same format defined in the repro")
             git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
+
+            if ($Save) {
+                Set-Content -Path $file -Value $scriptFormatter.FormattedScript -Encoding utf8BOM
+                Write-Host "Saved $file with formatting corrections."
+            }
         }
 
         if ($null -ne $scriptFormatter.AnalyzedResults) {
