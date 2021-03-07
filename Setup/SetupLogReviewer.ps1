@@ -159,6 +159,8 @@ Function Test-PrerequisiteCheck {
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
         Write-Host ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) -ForegroundColor Red
+        $sid = Get-EvaluatedSettingOrRule -SettingName "SidExOrgAdmins" -ValueType "."
+        Write-Host ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
         return $true
     }
 
