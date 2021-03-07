@@ -4,11 +4,14 @@
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue
 #
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = "Main")]
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true, ParameterSetName = "Main")]
     [System.IO.FileInfo]$SetupLog,
-    [switch]$DelegatedSetup
+    [Parameter(ParameterSetName = "Main")]
+    [switch]$DelegatedSetup,
+    [Parameter(ParameterSetName = "PesterLoading")]
+    [switch]$PesterLoad
 )
 
 $feedbackEmail = "ExToolsFeedback@microsoft.com"
@@ -22,25 +25,32 @@ $feedbackEmail = "ExToolsFeedback@microsoft.com"
 # group. The options are either add the delegated installer to that group, or
 # remove them from whatever group is giving them too many rights (usually Domain Admins).
 
+Function Receive-Output {
+    param(
+        [string]$ForegroundColor
+    )
+    process { Write-Host $_ -ForegroundColor $ForegroundColor }
+}
+
 Function Get-DelegatedInstallerHasProperRights {
 
     if ((Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "True") {
-        Write-Host "User that ran setup has EnterpriseAdmin and does not need to be in Server Management."
+        Write-Output "User that ran setup has EnterpriseAdmin and does not need to be in Server Management."
         return
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "True") {
-        Write-Host "User that ran setup has ExOrgAdmin and does not need to be in Server Management."
+        Write-Output "User that ran setup has ExOrgAdmin and does not need to be in Server Management."
         return
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ServerAlreadyExists") -eq "False") {
-        Write-Host "ServerAlreadyExists check came back False, and the user that ran setup does not have ExOrgAdmin or EnterpriseAdmin." -ForegroundColor Red
+        Write-Output "ServerAlreadyExists check came back False, and the user that ran setup does not have ExOrgAdmin or EnterpriseAdmin." -
         return
     }
 
     if ($null -eq (Test-EvaluatedSettingOrRule -SettingName "HasServerDelegatedPermsBlocked")) {
-        Write-Host "HasServerDelegatedPermsBlocked returned no rights. This means the user that ran setup" `
+        Write-Output "HasServerDelegatedPermsBlocked returned no rights. This means the user that ran setup" `
             "does not have extra rights, and thus does not need to be in Server Management."
         return
     }
@@ -48,10 +58,11 @@ Function Get-DelegatedInstallerHasProperRights {
     $serverManagementValue = Test-EvaluatedSettingOrRule -SettingName "ServerManagement"
 
     if ($serverManagementValue -eq "True") {
-        Write-Host "User that ran setup has extra rights to the server object, but is also a member of Server Management, so it's fine."
+        Write-Output "User that ran setup has extra rights to the server object, but is also a member of Server Management, so it's fine."
         return
     } elseif ($serverManagementValue -eq "False") {
-        Write-Host "User that ran setup has extra rights to the server object and is not in Server Management. This causes setup to fail." -ForegroundColor Red
+        Write-Output "User that ran setup has extra rights to the server object and is not in Server Management. This causes setup to fail." |
+            Receive-Output -ForegroundColor Red
         return
     }
 }
@@ -111,7 +122,8 @@ Function Get-StringInLastRunOfExchangeSetup {
 Function Test-PrerequisiteCheck {
 
     if ((Test-EvaluatedSettingOrRule -SettingName "PendingRebootWindowsComponents" -SettingOrRule "Rule") -eq "True") {
-        Write-Host ("Computer is pending reboot based off the Windows Component is the registry") -ForegroundColor Red
+        Write-Output ("Computer is pending reboot based off the Windows Component is the registry") |
+            Receive-Output -ForegroundColor Red
         return $true
     }
 
@@ -120,7 +132,8 @@ Function Test-PrerequisiteCheck {
 
     if ($adValidationError) {
         Write-Warning "Setup failed to validate AD environment level. This is the internal exception that occurred:"
-        Write-Host($adValidationError.Matches.Groups[1].Value) -ForegroundColor Yellow
+        Write-Output($adValidationError.Matches.Groups[1].Value) |
+            Receive-Output -ForegroundColor Yellow
         return $true
     }
 
@@ -135,32 +148,37 @@ Function Test-PrerequisiteCheck {
 
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "SchemaAdmin") -eq "False") {
-        Write-Host ("/PrepareSchema is required and user {0} isn't apart of the Schema Admins group." -f $currentLogOnUser) -ForegroundColor Red
+        Write-Output ("/PrepareSchema is required and user {0} isn't apart of the Schema Admins group." -f $currentLogOnUser) |
+            Receive-Output -ForegroundColor Red
         return $true
     }
 
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Host ("/PrepareSchema is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) -ForegroundColor Red
+        Write-Output ("/PrepareSchema is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) |
+            Receive-Output -ForegroundColor Red
         return $true
     }
 
     if ($orgConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Host ("/PrepareAD is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) -ForegroundColor Red
+        Write-Output ("/PrepareAD is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) |
+            Receive-Output -ForegroundColor Red
         return $true
     }
 
     if ($domainConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Host ("/PrepareDomain needs to be run in this domain, but we actually require Enterprise Admin group to properly run this command.") -ForegroundColor Red
+        Write-Output ("/PrepareDomain needs to be run in this domain, but we actually require Enterprise Admin group to properly run this command.") |
+            Receive-Output -ForegroundColor Red
         return $true
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
-        Write-Host ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) -ForegroundColor Red
+        Write-Output ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) |
+            Receive-Output -ForegroundColor Red
         $sid = Get-EvaluatedSettingOrRule -SettingName "SidExOrgAdmins" -ValueType "."
-        Write-Host ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
+        Write-Output ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
         return $true
     }
 
@@ -173,7 +191,8 @@ Function Write-ErrorContext {
     )
     Write-Warning ("Found Error: `r`n")
     foreach ($line in $WriteInfo) {
-        Write-Host $line -ForegroundColor Yellow
+        Write-Output $line |
+            Receive-Output -ForegroundColor Yellow
     }
 }
 
@@ -181,8 +200,9 @@ Function Write-ActionPlan {
     param(
         [string]$ActionPlan
     )
-    Write-Host("`r`nDo the following action plan:`r`n`t{0}" -f $ActionPlan)
-    Write-Host("`r`nIf this doesn't resolve your issues, please let us know at {0}" -f $feedbackEmail)
+    Write-Output("`r`nDo the following action plan:`r`n`t{0}" -f $ActionPlan) |
+        Receive-Output -ForegroundColor Gray
+    Write-Output("`r`nIf this doesn't resolve your issues, please let us know at {0}" -f $feedbackEmail)
 }
 
 Function Write-LogicalError {
@@ -305,6 +325,11 @@ Function Test-KnownLdifErrors {
 
 Function Main {
     try {
+
+        if ($PesterLoad) {
+            return
+        }
+
         if (-not ([IO.File]::Exists($SetupLog))) {
             Write-Error "Could not find file: $SetupLog"
             return
@@ -333,16 +358,18 @@ Function Main {
             $color = "Yellow"
         }
 
-        Write-Host("Setup.exe Run Date: $runDate") -ForegroundColor $color
+        Write-Output("Setup.exe Run Date: $runDate") |
+            Receive-Output -ForegroundColor $color
         $Script:SetupBuildNumber = $Script:SetupBuildNumber.Matches.Groups[1].Value
         $localInstall = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "The locally installed version is (.+)\."
 
         if ($null -ne $localInstall) {
             $exBuild = $localInstall.Matches.Groups[1].Value
-            Write-Host "Current Exchange Build: $exBuild"
+            Write-Output "Current Exchange Build: $exBuild"
 
             if ($exBuild -eq $SetupBuildNumber) {
-                Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor Red
+                Write-Output "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" |
+                    Receive-Output -ForegroundColor Red
             }
         }
 
@@ -353,34 +380,35 @@ Function Main {
 
         if (Test-PrerequisiteCheck) {
 
-            Write-Host "`r`nAdditional Context:"
-            Write-Host ("User Logged On: {0}" -f $Script:currentLogOnUser)
+            Write-Output "`r`nAdditional Context:"
+            Write-Output ("User Logged On: {0}" -f $Script:currentLogOnUser)
 
             $serverFQDN = Get-EvaluatedSettingOrRule -SettingName "ComputerNameDnsFullyQualified" -ValueType "."
 
             if ($null -ne $serverFQDN) {
                 $serverFQDN = $serverFQDN.Matches.Groups[1].Value
-                Write-Host "Setup Running on: $serverFQDN"
+                Write-Output "Setup Running on: $serverFQDN"
                 $setupDomain = $serverFQDN.Split('.')[1]
-                Write-Host "Setup Running in Domain: $setupDomain"
+                Write-Output "Setup Running in Domain: $setupDomain"
             }
 
             $siteName = Get-EvaluatedSettingOrRule -SettingName "SiteName" -ValueType "."
 
             if ($null -ne $siteName) {
-                Write-Host "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+                Write-Output "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
             }
 
             $schemaMaster = Get-StringInLastRunOfExchangeSetup -SelectStringPattern "Setup will attempt to use the Schema Master domain controller (.+)"
 
             if ($null -ne $schemaMaster) {
-                Write-Host "----------------------------------"
-                Write-Host "Schema Master: $($schemaMaster.Matches.Groups[1].Value)"
+                Write-Output "----------------------------------"
+                Write-Output "Schema Master: $($schemaMaster.Matches.Groups[1].Value)"
                 $smDomain = $schemaMaster.Matches.Groups[1].Value.Split(".")[1]
-                Write-Host "Schema Master in Domain: $smDomain"
+                Write-Output "Schema Master in Domain: $smDomain"
 
                 if ($smDomain -ne $setupDomain) {
-                    Write-Host "Unable to run setup in current domain."
+                    Write-Output "Unable to run setup in current domain." |
+                        Receive-Output -ForegroundColor "Red"
                 }
             }
 
@@ -399,11 +427,11 @@ Function Main {
             return
         }
 
-        Write-Host "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
+        Write-Output "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
             "If that doesn't find the cause, please notify $feedbackEmail to help us improve the scripts."
     } catch {
-        Write-Host "$($Error[0].Exception)"
-        Write-Host "$($Error[0].ScriptStackTrace)"
+        Write-Output "$($Error[0].Exception)"
+        Write-Output "$($Error[0].ScriptStackTrace)"
         Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to {0}, or at least notify them of the issue." -f $feedbackEmail)
     }
 }
