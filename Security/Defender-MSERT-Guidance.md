@@ -15,7 +15,7 @@ To use the Microsoft Support Emergency Response Tool (MSERT) to scan the Microso
 _%IIS installation path%\aspnet_client\*_  
 _%IIS installation path%\aspnet_client\system_web\*_  
 _%Exchange Server installation path%\FrontEnd\HttpProxy\owa\auth\*_  
+_%Exchange Server Installation%\FrontEnd\HttpProxy\ecp\auth\*_  
 _Configured temporary ASP.NET files path_  
-_%Exchange Server Installation%\FrontEnd\HttpProxy\ecp\auth\*_
 
 These remediation steps are effective against known attack patterns but are  **not guaranteed as complete mitigation for all possible exploitation**  of these vulnerabilities. Microsoft Defender will continue to monitor and provide the latest security updates.
