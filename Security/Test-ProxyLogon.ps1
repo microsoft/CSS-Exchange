@@ -56,7 +56,7 @@ process {
         param (
             [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
             [string[]]
-            $ComputerName = $env:COMPUTERNAME,
+            $ComputerName,
 
             [pscredential]
             $Credential
@@ -183,7 +183,11 @@ process {
             if ($Credential) { $parameters.Credential = $Credential }
         }
         process {
-            Invoke-Command @parameters -ComputerName $ComputerName
+            if ($null -ne $ComputerName) {
+                Invoke-Command @parameters -ComputerName $ComputerName
+            } else {
+                Invoke-Command @parameters
+            }
         }
     }
 
