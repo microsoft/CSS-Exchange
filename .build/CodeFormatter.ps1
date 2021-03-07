@@ -5,7 +5,7 @@ param(
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" -and
-    $_.Name -ne "dist"} | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+    $_.Name -ne "dist" } | ForEach-Object { Get-ChildItem -Path $_.FullName -Include "*.ps1", "*.psm1" -Recurse } | ForEach-Object { $_.FullName }
 $filesFailed = $false
 
 foreach ($file in $scriptFiles) {
