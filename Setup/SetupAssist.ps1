@@ -18,7 +18,18 @@ function IsAdministrator {
 function GetGroupMatches($whoamiOutput, $groupName) {
     $m = @($whoamiOutput | Select-String "(^\w+\\$($groupName))\W+Group")
     if ($m.Count -eq 0) { return $m }
-    return $m.Matches | ForEach-Object { $_.Groups[1].Value }
+    return $m | ForEach-Object {
+        [PSCustomObject]@{
+            GroupName = ($_.Matches.Groups[1].Value)
+            SID       = (GetSidFromLine $_.Line)
+        }
+    }
+}
+
+Function GetSidFromLine ([string]$Line) {
+    $startIndex = $Line.IndexOf("S-")
+    return $Line.Substring($startIndex,
+        $Line.IndexOf(" ", $startIndex) - $startIndex)
 }
 
 # From https://stackoverflow.com/questions/47867949/how-can-i-check-for-a-pending-reboot
@@ -174,42 +185,44 @@ function Get-ExchangeAdSetupObjects {
     return $hash
 }
 
+$whoamiOutput = whoami /all
+
+$whoamiOutput | Select-String "User Name" -Context (0, 3)
+
 if (IsAdministrator) {
     Write-Host "User is an administrator."
 } else {
     Write-Warning "User is not an administrator."
 }
 
-$whoamiOutput = whoami /all
-
-$g = GetGroupMatches $whoamiOutput "Domain Admins"
+[array]$g = GetGroupMatches $whoamiOutput "Domain Admins"
 
 if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
+    $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
 } else {
     Write-Warning "User is not a member of Domain Admins."
 }
 
-$g = GetGroupMatches $whoamiOutput "Schema Admins"
+[array]$g = GetGroupMatches $whoamiOutput "Schema Admins"
 
 if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
+    $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
 } else {
     Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
 }
 
-$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
+[array]$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
 
 if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
+    $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
 } else {
     Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
 }
 
-$g = GetGroupMatches $whoamiOutput "Organization Management"
+[array]$g = GetGroupMatches $whoamiOutput "Organization Management"
 
 if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
+    $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
 } else {
     Write-Warning "User is not a member of Organization Management."
 }
