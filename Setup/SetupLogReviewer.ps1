@@ -35,7 +35,7 @@ Function Get-DelegatedInstallerHasProperRights {
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ServerAlreadyExists") -eq "False") {
-        Write-Error "ServerAlreadyExists check came back False, and the user that ran setup does not have ExOrgAdmin or EnterpriseAdmin."
+        Write-Host "ServerAlreadyExists check came back False, and the user that ran setup does not have ExOrgAdmin or EnterpriseAdmin." -ForegroundColor Red
         return
     }
 
@@ -51,7 +51,7 @@ Function Get-DelegatedInstallerHasProperRights {
         Write-Host "User that ran setup has extra rights to the server object, but is also a member of Server Management, so it's fine."
         return
     } elseif ($serverManagementValue -eq "False") {
-        Write-Error "User that ran setup has extra rights to the server object and is not in Server Management. This causes setup to fail."
+        Write-Host "User that ran setup has extra rights to the server object and is not in Server Management. This causes setup to fail." -ForegroundColor Red
         return
     }
 }
@@ -111,7 +111,7 @@ Function Get-StringInLastRunOfExchangeSetup {
 Function Test-PrerequisiteCheck {
 
     if ((Test-EvaluatedSettingOrRule -SettingName "PendingRebootWindowsComponents" -SettingOrRule "Rule") -eq "True") {
-        Write-Error ("Computer is pending reboot based off the Windows Component is the registry")
+        Write-Host ("Computer is pending reboot based off the Windows Component is the registry") -ForegroundColor Red
         return $true
     }
 
@@ -135,30 +135,30 @@ Function Test-PrerequisiteCheck {
 
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "SchemaAdmin") -eq "False") {
-        Write-Error ("/PrepareSchema is required and user {0} isn't apart of the Schema Admins group." -f $currentLogOnUser)
+        Write-Host ("/PrepareSchema is required and user {0} isn't apart of the Schema Admins group." -f $currentLogOnUser) -ForegroundColor Red
         return $true
     }
 
     if ($schemaUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Error ("/PrepareSchema is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser)
+        Write-Host ("/PrepareSchema is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) -ForegroundColor Red
         return $true
     }
 
     if ($orgConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Error ("/PrepareAD is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser)
+        Write-Host ("/PrepareAD is required and user {0} isn't apart of the Enterprise Admins group." -f $currentLogOnUser) -ForegroundColor Red
         return $true
     }
 
     if ($domainConfigUpdateRequired.Matches.Groups[1].Value -eq "True" -and
         (Test-EvaluatedSettingOrRule -SettingName "EnterpriseAdmin") -eq "False") {
-        Write-Error ("/PrepareDomain needs to be run in this domain, but we actually require Enterprise Admin group to properly run this command.")
+        Write-Host ("/PrepareDomain needs to be run in this domain, but we actually require Enterprise Admin group to properly run this command.") -ForegroundColor Red
         return $true
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
-        Write-Error ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser)
+        Write-Host ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) -ForegroundColor Red
         return $true
     }
 
