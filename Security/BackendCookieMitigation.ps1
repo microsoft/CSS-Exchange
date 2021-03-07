@@ -82,8 +82,7 @@ if (!$RollbackMitigation) {
     #Install module
     if ($null -ne $IISRewriteQuery) {
         Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername"
-    }
-    else {
+    } else {
         if ($FullPathToMSI) {
             Write-Verbose "[INFO] Installing IIS URL Rewrite Module 2"
             Start-Process -FilePath 'C:\Windows\System32\msiexec.exe' -ArgumentList "/i $($FullPathToMSI.Fullname) /quiet /log $RewriteModuleInstallLog" -Wait
@@ -93,13 +92,11 @@ if (!$RollbackMitigation) {
 
             if ($null -ne $IISRewriteQuery) {
                 Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
-            }
-            else {
+            } else {
 
                 throw "[ERROR] Issue installing IIS URL Rewrite Module 2, please review $($RewriteModuleInstallLog)"
             }
-        }
-        else {
+        } else {
             throw "[ERROR] Unable to proceed on $env:computername, path to IIS URL Rewrite Module MSI  not provided and module is not installed."
         }
     }
@@ -132,13 +129,11 @@ if (!$RollbackMitigation) {
             Write-Verbose "[OK] Rewrite rule configuration complete for $env:COMPUTERNAME :: $website"
             Get-WebConfiguration -Filter $filter -PSPath $site
             Get-WebConfiguration -Filter $filter2 -PSPath $site
-        }
-        catch {
+        } catch {
             throw $_
         }
     }
-}
-else {
+} else {
     Write-Verbose "[INFO] Starting mitigation rollback process on $env:computername"
     foreach ($website in $WebSiteNames) {
 
@@ -149,8 +144,7 @@ else {
             Clear-WebConfiguration -Filter $filter -PSPath $site
             Clear-WebConfiguration -Filter $filter2 -PSPath $site
             Write-Verbose "[OK] Rewrite rule mitigation removed for $env:COMPUTERNAME :: $website"
-        }
-        else {
+        } else {
             Write-Verbose "[INFO] Rewrite rule mitigation does not exist for $env:COMPUTERNAME :: $website"
         }
     }
