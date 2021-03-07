@@ -23,12 +23,29 @@ To display the results without saving them, pass -DisplayOnly:
 
 ## BackendCookieMitigation.ps1
 
-This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in the SSRF attacks in the wild.
-This will help with defense against the known patterns observed but not the SSRF as a whole. For more information, see the comments at the top of the script.
+This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in cve2021-26855.
+This will help with defense against the known patterns observed but not the SSRF as a whole. For more information please visit https://aka.ms/exchangevulns.
+
+For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter. 
+To obtain the IIS URL Rewrite Module visit the Official Microsoft IIS Site (https://www.iis.net/downloads/microsoft/url-rewrite), download the necessary MSI based off your systems info (x86 or x64), and save to each server locally along with this script.
+
+Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
 Download the latest release here:
 
 [Download BackendCookieMitigation.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
+
+To apply with MSI install of the URL Rewrite module - Note: version may vary depending on system info
+
+`PS C:\> BackendCookieMitigation.ps1 -FullPathToMSI "C:\temp\rewrite_amd64_en-US.msi" -WebSiteNames "Default Web Site" -Verbose `
+
+To apply without MSI install
+
+`PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -Verbose`
+
+To rollback - Note: This does not remove the IIS Rewrite module, only the rules.
+
+`PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -RollbackMitigation -Verbose`
 
 ## http-vuln-cve2021-26855.nse
 
