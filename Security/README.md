@@ -17,9 +17,9 @@ To check the local server only, just run the script:
 
 `.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
 
-To display the results without saving them, drop the -Outpath parameter from either example above:
+To display the results without saving them, pass -DisplayOnly:
 
-`.\Test-ProxyLogon.ps1`
+`.\Test-ProxyLogon.ps1 -DisplayOnly`
 
 ## BackendCookieMitigation.ps1
 
