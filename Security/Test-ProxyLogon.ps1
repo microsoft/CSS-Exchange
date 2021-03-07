@@ -166,25 +166,40 @@ process {
                     }
                 }
 
-                function Get-OldestLog {
+                function Get-AgeInDays {
+                    param (
+                        [string]
+                        $dateString
+                    )
+
+                    $date = [DateTime]::MinValue
+                    if ([DateTime]::TryParse($dateString, [ref]$date)) {
+                        $age = [DateTime]::Now - $date
+                        return $age.TotalDays.ToString("N1")
+                    }
+
+                    return ""
+                }
+
+                function Get-LogAge {
                     [CmdletBinding()]
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
 
                     [PSCustomObject]@{
-                        Oabgen           = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        Ecp              = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        AutodProxy       = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        EasProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        EcpProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        EwsProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        MapiProxy        = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Mapi" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        OabProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Oab" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        OwaProxy         = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Owa" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        OwaCalendarProxy = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\OwaCalendar" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        PowershellProxy  = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\PowerShell" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
-                        RpcHttpProxy     = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime
+                        Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        Ecp              = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        AutodProxy       = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EasProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EcpProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EwsProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        MapiProxy        = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Mapi" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OabProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Oab" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OwaProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Owa" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OwaCalendarProxy = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\OwaCalendar" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        PowershellProxy  = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\PowerShell" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        RpcHttpProxy     = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                     }
                 }
                 #endregion Functions
@@ -196,7 +211,7 @@ process {
                     Cve26858     = @(Get-Cve26858)
                     Cve27065     = @(Get-Cve27065)
                     Suspicious   = @(Get-SuspiciousFile)
-                    OldestLogs   = Get-OldestLog
+                    LogAgeDays   = Get-LogAge
                 }
             }
             #endregion Remoting Scriptblock
@@ -251,76 +266,78 @@ process {
                 if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
-                    continue
-                }
+                } else {
 
-                if ($report.Cve26855.Count -gt 0) {
-                    Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
-                    if ($OutPath) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
-                        $report.Cve26855 | Export-Csv -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
-                    } else {
-                        $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
+                    if ($report.Cve26855.Count -gt 0) {
+                        Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
+                        if ($OutPath) {
+                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
+                            $report.Cve26855 | Export-Csv -Path $newFile
+                            Write-Host "  Report exported to: $newFile"
+                        } else {
+                            $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
+                        }
+                        Write-Host ""
                     }
-                    Write-Host ""
-                }
-                if ($report.Cve26857.Count -gt 0) {
-                    Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
-                    Write-Host "  $(@($report.Cve26857).Count) events found"
-                    if ($OutPath) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
-                        $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
+                    if ($report.Cve26857.Count -gt 0) {
+                        Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
+                        Write-Host "  $(@($report.Cve26857).Count) events found"
+                        if ($OutPath) {
+                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
+                            $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
+                            Write-Host "  Report exported to: $newFile"
+                        }
+                        Write-Host ""
                     }
-                    Write-Host ""
-                }
-                if ($report.Cve26858.Count -gt 0) {
-                    Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
-                    foreach ($entry in $report.Cve26858) {
-                        Write-Host "   $entry"
+                    if ($report.Cve26858.Count -gt 0) {
+                        Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
+                        Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
+                        foreach ($entry in $report.Cve26858) {
+                            Write-Host "   $entry"
+                        }
+                        if ($OutPath) {
+                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
+                            $report.Cve26858 | Set-Content -Path $newFile
+                            Write-Host "  Report exported to: $newFile"
+                        }
+                        Write-Host ""
                     }
-                    if ($OutPath) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
-                        $report.Cve26858 | Set-Content -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
+                    if ($report.Cve27065.Count -gt 0) {
+                        Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
+                        Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
+                        foreach ($entry in $report.Cve27065) {
+                            Write-Host "   $entry"
+                        }
+                        if ($OutPath) {
+                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
+                            $report.Cve27065 | Set-Content -Path $newFile
+                            Write-Host "  Report exported to: $newFile"
+                        }
+                        Write-Host ""
                     }
-                    Write-Host ""
-                }
-                if ($report.Cve27065.Count -gt 0) {
-                    Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
-                    foreach ($entry in $report.Cve27065) {
-                        Write-Host "   $entry"
-                    }
-                    if ($OutPath) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
-                        $report.Cve27065 | Set-Content -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
-                    }
-                    Write-Host ""
-                }
-                if ($report.Suspicious.Count -gt 0) {
-                    Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
-                    if ($OutPath) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
-                        $report.Suspicious | Export-Csv -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
-                    } else {
-                        foreach ($entry in $report.Suspicious) {
-                            Write-Host "   $($entry.Type) : $($entry.Path)"
+                    if ($report.Suspicious.Count -gt 0) {
+                        Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
+                        if ($OutPath) {
+                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
+                            $report.Suspicious | Export-Csv -Path $newFile
+                            Write-Host "  Report exported to: $newFile"
+                        } else {
+                            foreach ($entry in $report.Suspicious) {
+                                Write-Host "   $($entry.Type) : $($entry.Path)"
+                            }
                         }
                     }
                 }
 
-                Write-Host "Oldest log files:"
-                $report.OldestLogs | Format-Table | Out-Host
+                Write-Host "Log file age in days:"
+                $report.LogAgeDays | Format-Table | Out-Host
                 if ($OutPath) {
-                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-OldestLogs.csv"
-                    $report.OldestLogs | Export-Csv -Path $newFile
+                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
+                    $report.LogAgeDays | Export-Csv -Path $newFile
                     Write-Host "  Report exported to: $newFile"
                 }
+
+                Write-Host ""
             }
         }
     }
