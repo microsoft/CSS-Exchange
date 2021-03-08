@@ -454,13 +454,12 @@ function LoadBaseline($installed_versions) {
 
         $zipfile_uptodate = $false
         $loaded_zip = $false
-        $loaded_checksum = $false
 
         if (Test-Path $zip_file) {
             Write-Host "Found $zip_file, validating checksum..."
 
             $checksum_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$checksum_file_name"
-            $loaded_checksum = LoadFromGitHub $checksum_url $checksum_file
+            LoadFromGitHub $checksum_url $checksum_file
 
             $checksum = Get-Content $checksum_file
             $zip_file_hash = Get-FileHash $zip_file
