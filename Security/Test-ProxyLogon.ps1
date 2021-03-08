@@ -72,21 +72,20 @@ process {
             $scriptBlock = {
                 #region Functions
                 function Get-ExchangeInstallPath {
-                    $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-                    if ($null -eq $p) {
-                        $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-                    }
-
-                    return $p
+                    return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
                 }
 
                 function Get-Cve26855 {
                     [CmdletBinding()]
                     param ()
 
-                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
-
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26855 test."
+                        return
+                    }
+
+                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
 
                     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
                     $count = 0
@@ -122,7 +121,7 @@ process {
                         LogName      = 'Application'
                         ProviderName = 'MSExchange Unified Messaging'
                         Level        = '2'
-                    } -ErrorAction SilentlyContinue | Where-Object Message -Like "*System.InvalidCastException*"
+                    } -ErrorAction SilentlyContinue | Where-Object { $_.Message -Like "*System.InvalidCastException*" }
                 }
 
                 function Get-Cve26858 {
@@ -130,6 +129,10 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26858 test."
+                        return
+                    }
 
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path
                 }
@@ -139,6 +142,11 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-27065 test."
+                        return
+                    }
+
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory" -List | Select-Object -ExpandProperty Path
                 }
 
@@ -162,7 +170,7 @@ process {
                             Name         = $file.Name
                         }
                     }
-                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object Extension -Match "\.7z$|\.zip$|\.rar$") {
+                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object { $_.Extension -Match "\.7z$|\.zip$|\.rar$" }) {
                         [PSCustomObject]@{
                             ComputerName = $env:COMPUTERNAME
                             Type         = 'SuspiciousArchive'
@@ -192,6 +200,10 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
+                        return $null
+                    }
 
                     [PSCustomObject]@{
                         Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
@@ -277,24 +289,26 @@ process {
             foreach ($report in $InputObject) {
                 Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
 
-                Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
-                        $report.LogAgeDays.Oabgen, `
-                        $report.LogAgeDays.Ecp, `
-                        $report.LogAgeDays.AutodProxy, `
-                        $report.LogAgeDays.EasProxy, `
-                        $report.LogAgeDays.EcpProxy, `
-                        $report.LogAgeDays.EwsProxy, `
-                        $report.LogAgeDays.MapiProxy, `
-                        $report.LogAgeDays.OabProxy, `
-                        $report.LogAgeDays.OwaProxy, `
-                        $report.LogAgeDays.OwaCalendarProxy, `
-                        $report.LogAgeDays.PowershellProxy, `
-                        $report.LogAgeDays.RpcHttpProxy)
+                if ($null -ne $report.LogAgeDays) {
+                    Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
+                            $report.LogAgeDays.Oabgen, `
+                            $report.LogAgeDays.Ecp, `
+                            $report.LogAgeDays.AutodProxy, `
+                            $report.LogAgeDays.EasProxy, `
+                            $report.LogAgeDays.EcpProxy, `
+                            $report.LogAgeDays.EwsProxy, `
+                            $report.LogAgeDays.MapiProxy, `
+                            $report.LogAgeDays.OabProxy, `
+                            $report.LogAgeDays.OwaProxy, `
+                            $report.LogAgeDays.OwaCalendarProxy, `
+                            $report.LogAgeDays.PowershellProxy, `
+                            $report.LogAgeDays.RpcHttpProxy)
 
-                if (-not $DisplayOnly) {
-                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
-                    $report.LogAgeDays | Export-Csv -Path $newFile
-                    Write-Host "  Report exported to: $newFile"
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
+                        $report.LogAgeDays | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
                 }
 
                 if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
