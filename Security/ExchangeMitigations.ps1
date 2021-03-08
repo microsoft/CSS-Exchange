@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
 		This script contains 4 mitigations to help address the following vulnerabilities:
 
@@ -297,7 +297,6 @@ Function UnifiedMessagingMitigation {
             -unSuccessfullMessage 'Unified Messaging Mitigation Failed. You can increase time out duration by adding -operationTimeOutDuration <timeInSeconds>'
         Get-Service MSExchangeUM
         Get-Service MSExchangeUMCR
-
     }
     if ($RollbackMitigation) {
 
@@ -316,7 +315,6 @@ Function UnifiedMessagingMitigation {
             -unSuccessfullMessage 'Unified Messaging Rollback Failed. You can increase time out duration by adding -operationTimeOutDuration <timeInSeconds>'
         Get-Service MSExchangeUM
         Get-Service MSExchangeUMCR
-
     }
 }
 Function ECPAppPoolMitigation {
@@ -451,7 +449,7 @@ Function StopAndCheckHM {
     if ($MSExchangeHM.Status -ne "Stopped") {
         Stop-Service MSExchangeHM
     }
-    If (((gwmi -Class win32_service | Where-Object { $_.name -eq "msexchangehm" }).StartMode -ne "Disabled" )) {
+    If (((gwmi -Class win32_service |  Where-Object { $_.name -eq "msexchangehm" }).StartMode -ne "Disabled" )) {
         Set-Service MSExchangeHM -StartupType Disabled
     }
 
@@ -462,7 +460,7 @@ Function StopAndCheckHM {
         if ($MSExchangeHMR.Status -ne "Stopped") {
             Stop-Service MSExchangeHMRecovery
         }
-        If (((gwmi -Class win32_service | Where-Object { $_.name -eq "MSExchangeHMRecovery" }).StartMode -ne "Disabled")) {
+        If (((gwmi -Class win32_service |  Where-Object { $_.name -eq "MSExchangeHMRecovery" }).StartMode -ne "Disabled")) {
             Set-Service MSExchangeHMRecovery -StartupType Disabled
         }
 
