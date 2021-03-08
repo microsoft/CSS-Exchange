@@ -234,7 +234,23 @@ $VALID_VERSIONS = @{ `
 
 }
 
-function PerformComparison($baselineData, $pattern, $baseExoVer) {
+function PerformComparison {
+    [CmdletBinding()]
+    [OutputType([System.Object[]])]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Incorrect rule result')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Incorrect rule result')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
+    param (
+        [Parameter()]
+        $baselineData,
+
+        [Parameter()]
+        $pattern,
+
+        [Parameter()]
+        $baseExoVer
+    )
+
     Write-Host "BaselineData - $($baselineData.Keys) $baseExoVer"
     $result = @{}
     $vdirBatches = GetVdirBatches
@@ -327,6 +343,10 @@ function PerformComparison($baselineData, $pattern, $baseExoVer) {
 }
 
 function Main() {
+    [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPositionalParameters', '', Justification = 'Just getting this working for now. Will revisit.')]
+    param()
+
     Write-Host "[$(Get-Date)] Started..." -ForegroundColor Green
     $exchVersion, $installedVers = FindInstalledVersions # Get-ExchangeVersion
 
