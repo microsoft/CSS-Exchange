@@ -16,10 +16,15 @@
 param (
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string[]]
-    $ComputerName = $env:COMPUTERNAME,
+    $ComputerName,
 
+    [Parameter()]
     [string]
-    $OutPath
+    $OutPath = "$PSScriptRoot\Test-ProxyLogonLogs",
+
+    [Parameter()]
+    [switch]
+    $DisplayOnly
 )
 
 process {
@@ -56,7 +61,7 @@ process {
         param (
             [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
             [string[]]
-            $ComputerName = $env:COMPUTERNAME,
+            $ComputerName,
 
             [pscredential]
             $Credential
@@ -221,7 +226,11 @@ process {
             if ($Credential) { $parameters.Credential = $Credential }
         }
         process {
-            Invoke-Command @parameters -ComputerName $ComputerName
+            if ($null -ne $ComputerName) {
+                Invoke-Command @parameters -ComputerName $ComputerName
+            } else {
+                Invoke-Command @parameters
+            }
         }
     }
 
@@ -251,11 +260,14 @@ process {
             $InputObject,
 
             [string]
-            $OutPath
+            $OutPath,
+
+            [switch]
+            $DisplayOnly
         )
 
         begin {
-            if ($OutPath) {
+            if ($OutPath -and -not $DisplayOnly) {
                 New-Item $OutPath -ItemType Directory -Force | Out-Null
             }
         }
@@ -263,84 +275,99 @@ process {
         process {
             foreach ($report in $InputObject) {
                 Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
-                if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
-                    Write-Host "  Nothing suspicious detected" -ForegroundColor Green
-                    Write-Host ""
-                } else {
 
-                    if ($report.Cve26855.Count -gt 0) {
-                        Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
-                        if ($OutPath) {
-                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
-                            $report.Cve26855 | Export-Csv -Path $newFile
-                            Write-Host "  Report exported to: $newFile"
-                        } else {
-                            $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
-                        }
-                        Write-Host ""
-                    }
-                    if ($report.Cve26857.Count -gt 0) {
-                        Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
-                        Write-Host "  $(@($report.Cve26857).Count) events found"
-                        if ($OutPath) {
-                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
-                            $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
-                            Write-Host "  Report exported to: $newFile"
-                        }
-                        Write-Host ""
-                    }
-                    if ($report.Cve26858.Count -gt 0) {
-                        Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
-                        Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
-                        foreach ($entry in $report.Cve26858) {
-                            Write-Host "   $entry"
-                        }
-                        if ($OutPath) {
-                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
-                            $report.Cve26858 | Set-Content -Path $newFile
-                            Write-Host "  Report exported to: $newFile"
-                        }
-                        Write-Host ""
-                    }
-                    if ($report.Cve27065.Count -gt 0) {
-                        Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
-                        Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
-                        foreach ($entry in $report.Cve27065) {
-                            Write-Host "   $entry"
-                        }
-                        if ($OutPath) {
-                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
-                            $report.Cve27065 | Set-Content -Path $newFile
-                            Write-Host "  Report exported to: $newFile"
-                        }
-                        Write-Host ""
-                    }
-                    if ($report.Suspicious.Count -gt 0) {
-                        Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
-                        if ($OutPath) {
-                            $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
-                            $report.Suspicious | Export-Csv -Path $newFile
-                            Write-Host "  Report exported to: $newFile"
-                        } else {
-                            foreach ($entry in $report.Suspicious) {
-                                Write-Host "   $($entry.Type) : $($entry.Path)"
-                            }
-                        }
-                    }
-                }
+                Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
+                        $report.LogAgeDays.Oabgen, `
+                        $report.LogAgeDays.Ecp, `
+                        $report.LogAgeDays.AutodProxy, `
+                        $report.LogAgeDays.EasProxy, `
+                        $report.LogAgeDays.EcpProxy, `
+                        $report.LogAgeDays.EwsProxy, `
+                        $report.LogAgeDays.MapiProxy, `
+                        $report.LogAgeDays.OabProxy, `
+                        $report.LogAgeDays.OwaProxy, `
+                        $report.LogAgeDays.OwaCalendarProxy, `
+                        $report.LogAgeDays.PowershellProxy, `
+                        $report.LogAgeDays.RpcHttpProxy)
 
-                Write-Host "Log file age in days:"
-                $report.LogAgeDays | Format-Table | Out-Host
-                if ($OutPath) {
+                if (-not $DisplayOnly) {
                     $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
                     $report.LogAgeDays | Export-Csv -Path $newFile
                     Write-Host "  Report exported to: $newFile"
                 }
 
-                Write-Host ""
+                if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
+                    Write-Host "  Nothing suspicious detected" -ForegroundColor Green
+                    Write-Host ""
+                    continue
+                }
+
+                if ($report.Cve26855.Count -gt 0) {
+                    Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
+                        $report.Cve26855 | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    } else {
+                        $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
+                    }
+                    Write-Host ""
+                }
+                if ($report.Cve26857.Count -gt 0) {
+                    Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
+                    Write-Host "  $(@($report.Cve26857).Count) events found"
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
+                        $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
+                if ($report.Cve26858.Count -gt 0) {
+                    Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
+                    foreach ($entry in $report.Cve26858) {
+                        Write-Host "   $entry"
+                    }
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
+                        $report.Cve26858 | Set-Content -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
+                if ($report.Cve27065.Count -gt 0) {
+                    Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
+                    foreach ($entry in $report.Cve27065) {
+                        Write-Host "   $entry"
+                    }
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
+                        $report.Cve27065 | Set-Content -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
+                if ($report.Suspicious.Count -gt 0) {
+                    Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
+                        $report.Suspicious | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    } else {
+                        foreach ($entry in $report.Suspicious) {
+                            Write-Host "   $($entry.Type) : $($entry.Path)"
+                        }
+                    }
+                }
             }
         }
     }
 
-    $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+    if ($DisplayOnly) {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
+    } else {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+    }
 }
