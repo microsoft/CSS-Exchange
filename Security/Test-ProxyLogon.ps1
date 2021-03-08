@@ -123,6 +123,24 @@ process {
                         Level        = '2'
                     } -ErrorAction SilentlyContinue | Where-Object Message -Like "*System.InvalidCastException*"
                 }
+		
+		function Get-InetPub {
+                    [CmdletBinding()]
+                    param ()
+
+                    foreach ($file in  Get-ChildItem -Recurse -Path "C:\inetpub\wwwroot\aspnet_client*" | where { ! $_.PSIsContainer }) {
+
+                        [PSCustomObject]@{
+                            ComputerName = $env:COMPUTERNAME
+                            Type         = 'InetPub'
+                            Path         = "$env:WINDIR\inetpub\wwwroot\aspnet_client"
+                            Name         = $file.FullName
+                            CreationTime = $file.CreationTime.ToString()
+                        }
+                    }
+                   
+                }
+                
 
                 function Get-Cve26858 {
                     [CmdletBinding()]
@@ -217,6 +235,7 @@ process {
                     Cve27065     = @(Get-Cve27065)
                     Suspicious   = @(Get-SuspiciousFile)
                     LogAgeDays   = Get-LogAge
+		    InetPub      = @(Get-InetPub)
                 }
             }
             #endregion Remoting Scriptblock
@@ -296,7 +315,7 @@ process {
                     Write-Host "  Report exported to: $newFile"
                 }
 
-                if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
+                if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count -or $report.InetPub.Count)) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
                     continue
@@ -323,6 +342,17 @@ process {
                     }
                     Write-Host ""
                 }
+		
+		 if ($report.InetPub.Count -gt 0) {
+                    Write-Host "[ASPX Files Found] $(@($report.InetPub).Count) files found in C:\inetpub\wwwroot\aspnet_client:"
+                    foreach ($item in $report.InetPub) {
+                        Write-Host $item.Name
+                        Write-Host "File Created @" + $item.CreationTime
+
+                    }
+                   Write-Host "" 
+                }
+		
                 if ($report.Cve26858.Count -gt 0) {
                     Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
                     Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
