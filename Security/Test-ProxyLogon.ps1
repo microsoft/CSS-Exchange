@@ -186,8 +186,6 @@ process {
                         $dateString
                     )
 
-                    $exchangePath = Get-ExchangeInstallPath
-
                     $date = [DateTime]::MinValue
                     if ([DateTime]::TryParse($dateString, [ref]$date)) {
                         $age = [DateTime]::Now - $date
