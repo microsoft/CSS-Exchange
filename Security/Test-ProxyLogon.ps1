@@ -10,7 +10,8 @@
 #
 # Check all Exchange servers, but only display the results, don't save them:
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1
-
+#
+#Requires -Version 4
 
 [CmdletBinding()]
 param (
@@ -101,7 +102,7 @@ process {
                         }
 
                         if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
-                            $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object AnchorMailbox -Like 'ServerInfo~*/*' | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus)
+                            $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus)
                             $fileResults | ForEach-Object {
                                 $allResults += $_
                             }
@@ -161,13 +162,50 @@ process {
                             Name         = $file.Name
                         }
                     }
-                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object Extension -Match ".7z$|.zip$|.rar$") {
+                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object Extension -Match "\.7z$|\.zip$|\.rar$") {
                         [PSCustomObject]@{
                             ComputerName = $env:COMPUTERNAME
                             Type         = 'SuspiciousArchive'
                             Path         = $file.FullName
                             Name         = $file.Name
                         }
+                    }
+                }
+
+                function Get-AgeInDays {
+                    param (
+                        [string]
+                        $dateString
+                    )
+
+                    $date = [DateTime]::MinValue
+                    if ([DateTime]::TryParse($dateString, [ref]$date)) {
+                        $age = [DateTime]::Now - $date
+                        return $age.TotalDays.ToString("N1")
+                    }
+
+                    return ""
+                }
+
+                function Get-LogAge {
+                    [CmdletBinding()]
+                    param ()
+
+                    $exchangePath = Get-ExchangeInstallPath
+
+                    [PSCustomObject]@{
+                        Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        Ecp              = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        AutodProxy       = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EasProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EcpProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        EwsProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        MapiProxy        = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Mapi" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OabProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Oab" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OwaProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Owa" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OwaCalendarProxy = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\OwaCalendar" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        PowershellProxy  = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\PowerShell" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        RpcHttpProxy     = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                     }
                 }
                 #endregion Functions
@@ -179,6 +217,7 @@ process {
                     Cve26858     = @(Get-Cve26858)
                     Cve27065     = @(Get-Cve27065)
                     Suspicious   = @(Get-SuspiciousFile)
+                    LogAgeDays   = Get-LogAge
                 }
             }
             #endregion Remoting Scriptblock
@@ -237,6 +276,27 @@ process {
         process {
             foreach ($report in $InputObject) {
                 Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
+
+                Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
+                        $report.LogAgeDays.Oabgen, `
+                        $report.LogAgeDays.Ecp, `
+                        $report.LogAgeDays.AutodProxy, `
+                        $report.LogAgeDays.EasProxy, `
+                        $report.LogAgeDays.EcpProxy, `
+                        $report.LogAgeDays.EwsProxy, `
+                        $report.LogAgeDays.MapiProxy, `
+                        $report.LogAgeDays.OabProxy, `
+                        $report.LogAgeDays.OwaProxy, `
+                        $report.LogAgeDays.OwaCalendarProxy, `
+                        $report.LogAgeDays.PowershellProxy, `
+                        $report.LogAgeDays.RpcHttpProxy)
+
+                if (-not $DisplayOnly) {
+                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
+                    $report.LogAgeDays | Export-Csv -Path $newFile
+                    Write-Host "  Report exported to: $newFile"
+                }
+
                 if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
