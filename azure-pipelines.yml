@@ -87,4 +87,6 @@ steps:
     assets: |
       dist\*.ps1
       dist\*.nse
+      dist\*.zip
+      dist\*.txt
     addChangeLog: true
