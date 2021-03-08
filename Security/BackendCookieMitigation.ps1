@@ -7,8 +7,18 @@
 		This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in cve2021-26855.
         This will help with defense against the known patterns observed but not the SSRF as a whole.
 
-        For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
-        To obtain the IIS URL Rewrite Module visit the Official Microsoft IIS Site (https://www.iis.net/downloads/microsoft/url-rewrite), download the necessary MSI based off your systems info (x86 or x64), and save to each server locally along with this script.
+        For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 (x86 and x64) here:
+
+        * x86 & x64 -https://www.iis.net/downloads/microsoft/url-rewrite
+
+        For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download version 2.0 here:
+
+        * x86 - https://www.microsoft.com/en-us/download/details.aspx?id=5747
+
+        * x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
+
+        It is important to follow these version guidelines as it was found installing the newer version of the URL rewrite module on older versions of IIS (IIS 8.5 and lower) can cause IIS and Exchange to become unstable.
+        If you find yourself in a scenario where a newer version of the IIS URL rewrite module was installed on an older version of IIS, uninstalling the URL rewrite module and reinstalling the recommended version listed above should resolve any instability issues.
 
         Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
