@@ -80,7 +80,7 @@ Describe "Testing SetupLogReviewer" {
         It "Wrong Group Type" {
             & $sr -SetupLog "$here\KnownIssues\ExchangeSetupWrongGroupType.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $object -like "*Change the CN=Exchange Servers,OU=Test,DC=Solo,DC=local object to Universal, SecurityEnabled" }
+                -ParameterFilter { $object -like "*Change the CN=Exchange Servers,OU=Test,DC=Solo,DC=local object to Universal, SecurityEnabled*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $object -like "*The well-known object entry with the GUID `"6c01d2a7-f083-4503-8132-789eeb127b84`"*" -and $ForegroundColor -eq "Yellow" }
         }

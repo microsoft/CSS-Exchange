@@ -262,8 +262,10 @@ Function Test-KnownErrorReferenceSetupIssues {
 
     if ($null -ne $invalidWKObjectTargetException) {
         Write-ErrorContext -WriteInfo $invalidWKObjectTargetException.Line
-        Write-ActionPlan ("Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
-            $invalidWKObjectTargetException.Matches.Groups[4].Value)
+        $ap = "- Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
+            $invalidWKObjectTargetException.Matches.Groups[4].Value
+        $ap += "`r`n`t- Another problem can be that the group is set correctly, but is mail enabled and shouldn't be."
+        Write-ActionPlan ($ap)
 
         return $true
     }
