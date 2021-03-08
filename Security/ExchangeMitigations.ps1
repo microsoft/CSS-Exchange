@@ -119,6 +119,7 @@
 #>
 
 [CmdLetBinding()]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
 param(
     [switch]$ApplyAllMitigations,
     [switch]$ApplyBackendCookieMitigation,
@@ -423,7 +424,8 @@ Function OABAppPoolMitigation {
 }
 
 Function CheckOperationSuccess {
-
+    [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'TBD')]
     param(
         [string]$conditions,
         [string]$unSuccessfullMessage
