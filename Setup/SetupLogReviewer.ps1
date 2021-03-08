@@ -175,11 +175,17 @@ Function Test-PrerequisiteCheck {
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
-        Write-Output ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) |
-            Receive-Output -ForegroundColor Red
         $sid = Get-EvaluatedSettingOrRule -SettingName "SidExOrgAdmins" -ValueType "."
-        Write-Output ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
-        return $true
+        if ($null -ne $sid) {
+            Write-Output ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) |
+                Receive-Output -ForegroundColor Red
+
+            Write-Output ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
+            return $true
+        } else {
+            Write-Output ("Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet.") |
+                Receive-Output -ForegroundColor Yellow
+        }
     }
 
     return $false
@@ -263,7 +269,7 @@ Function Test-KnownErrorReferenceSetupIssues {
     if ($null -ne $invalidWKObjectTargetException) {
         Write-ErrorContext -WriteInfo $invalidWKObjectTargetException.Line
         $ap = "- Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
-            $invalidWKObjectTargetException.Matches.Groups[4].Value
+        $invalidWKObjectTargetException.Matches.Groups[4].Value
         $ap += "`r`n`t- Another problem can be that the group is set correctly, but is mail enabled and shouldn't be."
         Write-ActionPlan ($ap)
 

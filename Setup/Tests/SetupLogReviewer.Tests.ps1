@@ -39,6 +39,13 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "User SOLO\Kylo isn't apart of Organization Management group." -and $ForegroundColor -eq "Red" }
         }
 
+        It "First Server Run - No ORG Man" {
+            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_FirstRun_NoOrgMan.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -Scope It `
+                -ParameterFilter { $Object -eq "Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet." }
+        }
+
         It "Schema Admins group" {
             & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_NoPerm.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
