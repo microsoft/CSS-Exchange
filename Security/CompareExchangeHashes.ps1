@@ -360,17 +360,13 @@ function Main() {
 }
 
 function LoadFromGitHub($url, $filename) {
-    $loaded = $true
     Write-Host "Loading $filename from GitHub..."
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest -Uri $url -OutFile $filename
     } catch {
-        $loaded = $false
         Write-Host "$filename not found... please open issue on https://github.com/microsoft/CSS-Exchange/issues, we will work on it" -ForegroundColor Red
     }
-
-    return $loaded
 }
 
 function PreProcessBaseline($baselines) {
