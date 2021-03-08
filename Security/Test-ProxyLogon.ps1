@@ -121,7 +121,7 @@ process {
                         LogName      = 'Application'
                         ProviderName = 'MSExchange Unified Messaging'
                         Level        = '2'
-                    } -ErrorAction SilentlyContinue | Where-Object Message -Like "*System.InvalidCastException*"
+                    } -ErrorAction SilentlyContinue | Where-Object { $_.Message -Like "*System.InvalidCastException*" }
                 }
 
                 function Get-Cve26858 {
@@ -170,7 +170,7 @@ process {
                             Name         = $file.Name
                         }
                     }
-                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object Extension -Match "\.7z$|\.zip$|\.rar$") {
+                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object { $_.Extension -Match "\.7z$|\.zip$|\.rar$" }) {
                         [PSCustomObject]@{
                             ComputerName = $env:COMPUTERNAME
                             Type         = 'SuspiciousArchive'
@@ -187,10 +187,6 @@ process {
                     )
 
                     $exchangePath = Get-ExchangeInstallPath
-                    if ($null -eq $exchangePath) {
-                        Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
-                        return
-                    }
 
                     $date = [DateTime]::MinValue
                     if ([DateTime]::TryParse($dateString, [ref]$date)) {
@@ -206,6 +202,10 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
+                        return
+                    }
 
                     [PSCustomObject]@{
                         Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
