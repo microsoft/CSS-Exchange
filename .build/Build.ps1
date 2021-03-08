@@ -32,12 +32,6 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Sort-Object Name |
     ForEach-Object { $_.FullName }
 
-$otherFiles = Get-ChildItem -Path $repoRoot -Directory |
-    Where-Object { $_.Name -ne ".build" } |
-    ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |
-    Sort-Object Name |
-    ForEach-Object { $_.FullName }
-
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
 if ($nonUnique.Count -gt 0) {
     $nonUnique | ForEach-Object {
@@ -136,6 +130,21 @@ $scriptFiles | ForEach-Object {
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
+
+$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\Baselines" -Filter *.csv
+
+$csvHashFiles | ForEach-Object {
+    $zipFilePath = "$distFolder\$($_.BaseName).zip"
+    Compress-Archive -Path $_.FullName -DestinationPath $zipFilePath
+    $hash = Get-Item $zipFilePath | Get-FileHash
+    $hash.Hash | Out-File "$distFolder\$($_.BaseName).checksum.txt"
+}
+
+$otherFiles = Get-ChildItem -Path $repoRoot -Directory |
+    Where-Object { $_.Name -ne ".build" } |
+    ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |
+    Sort-Object Name |
+    ForEach-Object { $_.FullName }
 
 $otherFiles | ForEach-Object {
     Copy-Item $_ $distFolder

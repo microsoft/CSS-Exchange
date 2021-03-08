@@ -3,10 +3,10 @@
 # Examples
 #
 # Check the local Exchange server only and save the report:
-# .\Test-ProxyLogon.ps1 -OutputPath $home\desktop\logs
+# .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
 # Check all Exchange servers and save the reports:
-# Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutputPath $home\desktop\logs
+# Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
 # Check all Exchange servers, but only display the results, don't save them:
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1
@@ -16,21 +16,26 @@
 param (
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string[]]
-    $ComputerName = $env:COMPUTERNAME,
+    $ComputerName,
 
+    [Parameter()]
     [string]
-    $OutPath
+    $OutPath = "$PSScriptRoot\Test-ProxyLogonLogs",
+
+    [Parameter()]
+    [switch]
+    $DisplayOnly
 )
 
 process {
 
-    function Test-ExchangeHafnium {
+    function Test-ExchangeProxyLogon {
         <#
 	.SYNOPSIS
-		Checks targeted exchange servers for signs of Hafnium vulnerability compromise.
+		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
 
 	.DESCRIPTION
-		Checks targeted exchange servers for signs of Hafnium vulnerability compromise.
+		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
 		Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
 
 		The vulnerabilities are described in CVE-2021-26855, 26858, 26857, and 27065
@@ -43,20 +48,20 @@ process {
 		Credentials to use for remote connections.
 
 	.EXAMPLE
-		PS C:\> Test-ExchangeHafnium
+		PS C:\> Test-ExchangeProxyLogon
 
-		Scans the current computer for signs of Hafnium vulnerability compromise.
+		Scans the current computer for signs of ProxyLogon vulnerability compromise.
 
 	.EXAMPLE
-		PS C:\> Test-ExchangeHafnium -ComputerName (Get-ExchangeServer).Fqdn
+		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn
 
-		Scans all exchange servers in the organization for Hafnium vulnerability compromises
+		Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
 #>
         [CmdletBinding()]
         param (
             [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
             [string[]]
-            $ComputerName = $env:COMPUTERNAME,
+            $ComputerName,
 
             [pscredential]
             $Credential
@@ -133,8 +138,7 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
-
-                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.*VirtualDirectory" -List | Select-Object -ExpandProperty Path
+                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory" -List | Select-Object -ExpandProperty Path
                 }
 
                 function Get-SuspiciousFile {
@@ -184,27 +188,31 @@ process {
             if ($Credential) { $parameters.Credential = $Credential }
         }
         process {
-            Invoke-Command @parameters -ComputerName $ComputerName
+            if ($null -ne $ComputerName) {
+                Invoke-Command @parameters -ComputerName $ComputerName
+            } else {
+                Invoke-Command @parameters
+            }
         }
     }
 
-    function Write-HafniumReport {
+    function Write-ProxyLogonReport {
         <#
 	.SYNOPSIS
-		Processes output of Test-ExchangeHafnium for reporting on the console screen.
+		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
 
 	.DESCRIPTION
-		Processes output of Test-ExchangeHafnium for reporting on the console screen.
+		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
 
 	.PARAMETER InputObject
-		The reports provided by Test-ExchangeHafnium
+		The reports provided by Test-ExchangeProxyLogon
 
 	.PARAMETER OutPath
 		Path to a FOLDER in which to generate output logfiles.
 		This command will only write to the console screen if no path is provided.
 
 	.EXAMPLE
-		PS C:\> Test-ExchangeHafnium -ComputerName (Get-ExchangeServer).Fqdn | Write-HafniumReport -OutPath C:\logs
+		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn | Write-ProxyLogonReport -OutPath C:\logs
 
 		Gather data from all exchange servers in the organization and write a report to C:\logs
 #>
@@ -214,16 +222,21 @@ process {
             $InputObject,
 
             [string]
-            $OutPath
+            $OutPath,
+
+            [switch]
+            $DisplayOnly
         )
 
         begin {
-            New-Item $OutPath -ItemType Directory -Force | Out-Null
+            if ($OutPath -and -not $DisplayOnly) {
+                New-Item $OutPath -ItemType Directory -Force | Out-Null
+            }
         }
 
         process {
             foreach ($report in $InputObject) {
-                Write-Host "Hafnium Status: Exchange Server $($report.ComputerName)"
+                Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
                 if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
@@ -232,7 +245,7 @@ process {
 
                 if ($report.Cve26855.Count -gt 0) {
                     Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
                         $report.Cve26855 | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -244,7 +257,7 @@ process {
                 if ($report.Cve26857.Count -gt 0) {
                     Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
                     Write-Host "  $(@($report.Cve26857).Count) events found"
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
                         $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -257,16 +270,29 @@ process {
                     foreach ($entry in $report.Cve26858) {
                         Write-Host "   $entry"
                     }
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
                         $report.Cve26858 | Set-Content -Path $newFile
                         Write-Host "  Report exported to: $newFile"
                     }
                     Write-Host ""
                 }
+                if ($report.Cve27065.Count -gt 0) {
+                    Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
+                    foreach ($entry in $report.Cve27065) {
+                        Write-Host "   $entry"
+                    }
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
+                        $report.Cve27065 | Set-Content -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
                 if ($report.Suspicious.Count -gt 0) {
                     Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
                         $report.Suspicious | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -280,5 +306,9 @@ process {
         }
     }
 
-    $ComputerName | Test-ExchangeHafnium | Write-HafniumReport -OutPath $OutPath
+    if ($DisplayOnly) {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
+    } else {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+    }
 }
