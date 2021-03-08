@@ -210,6 +210,28 @@ Function Write-LogicalError {
     Write-Error $display
 }
 
+Function Test-KnownOrganizationPreparationErrors {
+
+    $errorReference = Select-String "\[ERROR-REFERENCE\] Id=(.+) Component=" $SetupLog | Select-Object -Last 1
+
+    if ($null -eq $errorReference -or
+        !(Test-LastRunOfExchangeSetup -TestingMatchInfo $errorReference)) {
+        return $false
+    }
+
+    $errorLine = Select-String "\[ERROR\] The well-known object entry (.+) on the otherWellKnownObjects attribute in the container object (.+) points to an invalid DN or a deleted object" $SetupLog | Select-Object -Last 1
+
+    if ($null -ne $errorLine -and
+        (Test-LastRunOfExchangeSetup -TestingMatchInfo $errorLine)) {
+
+        Write-ErrorContext -WriteInfo $errorLine.Line
+        [string]$ap = "Option 1: Restore the objects that were deleted."
+        [string]$ap += "`r`n`tOption 2: Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"$($errorLine.Matches.Groups[2].Value)`"' to be able address deleted objects type"
+        Write-ActionPlan $ap
+        return $true
+    }
+}
+
 Function Test-KnownErrorReferenceSetupIssues {
 
     $errorReference = Select-String "\[ERROR-REFERENCE\] Id=(.+) Component=" $SetupLog | Select-Object -Last 1
@@ -416,6 +438,10 @@ Function Main {
         }
 
         if (Test-KnownLdifErrors) {
+            return
+        }
+
+        if (Test-KnownOrganizationPreparationErrors) {
             return
         }
 

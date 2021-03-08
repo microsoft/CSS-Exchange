@@ -84,5 +84,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $object -like "*The well-known object entry with the GUID `"6c01d2a7-f083-4503-8132-789eeb127b84`"*" -and $ForegroundColor -eq "Yellow" }
         }
+
+        It "Invalid Well Known Objects Exception" {
+            & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_InvalidWKObjectException.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local points to an invalid DN or a deleted object*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local`"' to be able address deleted objects type" }
+        }
     }
 }
