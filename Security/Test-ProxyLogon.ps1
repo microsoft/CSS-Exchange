@@ -10,7 +10,8 @@
 #
 # Check all Exchange servers, but only display the results, don't save them:
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1
-
+#
+#Requires -Version 4
 
 [CmdletBinding()]
 param (
