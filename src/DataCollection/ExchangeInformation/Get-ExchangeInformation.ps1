@@ -353,7 +353,8 @@ Function Get-ExchangeInformation {
             -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
 
-        if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) {
+        if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
             $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Script:Server | ForEach-Object { $_.ServicesNotRunning }
         }
     } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010) {
