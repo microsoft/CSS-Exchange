@@ -16,10 +16,15 @@
 param (
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string[]]
-    $ComputerName = $env:COMPUTERNAME,
+    $ComputerName,
 
+    [Parameter()]
     [string]
-    $OutPath
+    $OutPath = "$PSScriptRoot\Test-ProxyLogonLogs",
+
+    [Parameter()]
+    [switch]
+    $DisplayOnly
 )
 
 process {
@@ -217,11 +222,14 @@ process {
             $InputObject,
 
             [string]
-            $OutPath
+            $OutPath,
+
+            [switch]
+            $DisplayOnly
         )
 
         begin {
-            if ($OutPath) {
+            if ($OutPath -and -not $DisplayOnly) {
                 New-Item $OutPath -ItemType Directory -Force | Out-Null
             }
         }
@@ -237,7 +245,7 @@ process {
 
                 if ($report.Cve26855.Count -gt 0) {
                     Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
                         $report.Cve26855 | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -249,7 +257,7 @@ process {
                 if ($report.Cve26857.Count -gt 0) {
                     Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
                     Write-Host "  $(@($report.Cve26857).Count) events found"
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
                         $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -262,7 +270,7 @@ process {
                     foreach ($entry in $report.Cve26858) {
                         Write-Host "   $entry"
                     }
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
                         $report.Cve26858 | Set-Content -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -275,7 +283,7 @@ process {
                     foreach ($entry in $report.Cve27065) {
                         Write-Host "   $entry"
                     }
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
                         $report.Cve27065 | Set-Content -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -284,7 +292,7 @@ process {
                 }
                 if ($report.Suspicious.Count -gt 0) {
                     Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
-                    if ($OutPath) {
+                    if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
                         $report.Suspicious | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
@@ -298,5 +306,9 @@ process {
         }
     }
 
-    $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+    if ($DisplayOnly) {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
+    } else {
+        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+    }
 }
