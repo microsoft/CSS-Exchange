@@ -1,30 +1,44 @@
 ﻿<#
-    BackendCookieMitigation.ps1
+    .SYNOPSIS
+        This script contains a mitigation for CVE-2021-26855
+        For more information please https://aka.ms/exchangevulns
 
-    Description:
-        This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in the SSRF attacks in the wild.
+	.DESCRIPTION
+		This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in cve2021-26855.
         This will help with defense against the known patterns observed but not the SSRF as a whole.
 
-    Note:
-        The IIS ReWrite rules will be removed after Exchange is upgraded and the mitigation will need to be reapplied.
+        For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
+        To obtain the IIS URL Rewrite Module visit the Official Microsoft IIS Site (https://www.iis.net/downloads/microsoft/url-rewrite), download the necessary MSI based off your systems info (x86 or x64), and save to each server locally along with this script.
 
-    Impact:
-        No known impact to Exchange functionality, however, limited testing has been performed
+        Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
-    Requirements:
-        URL Rewrite : The Official Microsoft IIS Site MSI (https://www.iis.net/downloads/microsoft/url-rewrite)
+	.PARAMETER FullPathToMSI
+        This is string parameter is used to specify path of MSI file of URL Rewrite Module.
 
+    .PARAMETER WebSiteNames
+        This is string array parameter is used to specify name of the Default Web Site in IIS.
 
-    Examples:
+    .PARAMETER RollbackMitigation
+        This is a switch parameter is used to roll back the Backend Cookie Mitigation
 
-    To apply with MSI install via PowerShell:
-        .\BackendCookieMitigation.ps1 -FullPathToMSI “<FullPathToMSI>" -WebSiteNames "Default Web Site" -Verbose
+	.EXAMPLE
+		PS C:\> BackendCookieMitigation.ps1 -FullPathToMSI "C:\temp\rewrite_amd64_en-US.msi" -WebSiteNames "Default Web Site" -Verbose
 
-    To apply without MSI install via PowerShell:
-        .\BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -Verbose
+		To apply with MSI install of the URL Rewrite module - Note: version may vary depending on system info
 
-    To rollback:
-        .\BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -RollbackMitigation -Verbose
+	.EXAMPLE
+		PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -Verbose
+
+		To apply without MSI install
+
+    .EXAMPLE
+        PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -RollbackMitigation -Verbose
+
+        To rollback - Note: This does not remove the IIS Rewrite module, only the rules.
+
+    .LINK
+        https://aka.ms/exchangevulns
+        https://www.iis.net/downloads/microsoft/url-rewrite
 #>
 
 [CmdLetBinding()]
@@ -34,6 +48,16 @@ param(
     [string[]]$WebSiteNames,
     [switch]$RollbackMitigation
 )
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (!$currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw "Script must be executed as administrator, please close and re-run Exchange Mangement Shell as administrator"
+    return
+}
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    throw "PowerShell does not meet the minimum requirements, system must have PowerShell 3 or later"
+}
+
+Import-Module WebAdministration
 
 #Configure Rewrite Rule consts
 $HttpCookieInput = '{HTTP_COOKIE}'
@@ -53,7 +77,7 @@ if (!$RollbackMitigation) {
     Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
     $IISRewriteQuery = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{9BCA2118-F753-4A1E-BCF3-5A820729965C}' -ErrorAction SilentlyContinue).DisplayName
 
-    $RewriteModuleInstallLog = ($FullPathToMSI.Directory.FullName + '\' + 'RewriteModuleInstallLog.log')
+    $RewriteModuleInstallLog = ($PSScriptRoot + '\' + 'RewriteModuleInstallLog.log')
 
     #Install module
     if ($null -ne $IISRewriteQuery) {
@@ -83,6 +107,15 @@ if (!$RollbackMitigation) {
         $site = "IIS:\Sites\$($website)"
 
         try {
+            if ((Get-WebConfiguration -Filter $filter -PSPath $site).name -eq $name) {
+                Clear-WebConfiguration -Filter $filter -PSPath $site
+            }
+
+            if ((Get-WebConfiguration -Filter $filter2 -PSPath $site).name -eq $name2) {
+                Clear-WebConfiguration -Filter $filter2 -PSPath $site
+            }
+
+
             Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name; patterSyntax = 'Regular Expressions'; stopProcessing = 'False' }
             Set-WebConfigurationProperty -PSPath $site -filter "$filter/match" -name 'url' -value $inbound
             Set-WebConfigurationProperty -PSPath $site -filter "$filter/conditions" -name '.' -value @{input = $HttpCookieInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
