@@ -341,6 +341,12 @@ Function Main {
             }
         }
 
+        if ([string]::IsNullOrEmpty($outputLines[-1])) {
+            $outputLines[-1] = "-"
+        } else {
+            $outputLines.Add("-")
+        }
+
         $outputLines | Out-File -FilePath "ExchangeContainerImport.txt"
 
         Write-Host("`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:")
