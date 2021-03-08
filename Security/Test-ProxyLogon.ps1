@@ -79,13 +79,13 @@ process {
                     [CmdletBinding()]
                     param ()
 
-                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
-
                     $exchangePath = Get-ExchangeInstallPath
                     if ($null -eq $exchangePath) {
                         Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26855 test."
                         return
                     }
+
+                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
 
                     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
                     $count = 0
