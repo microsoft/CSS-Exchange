@@ -204,7 +204,7 @@ process {
                     $exchangePath = Get-ExchangeInstallPath
                     if ($null -eq $exchangePath) {
                         Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
-                        return
+                        return $null
                     }
 
                     [PSCustomObject]@{
@@ -291,24 +291,26 @@ process {
             foreach ($report in $InputObject) {
                 Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
 
-                Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
-                        $report.LogAgeDays.Oabgen, `
-                        $report.LogAgeDays.Ecp, `
-                        $report.LogAgeDays.AutodProxy, `
-                        $report.LogAgeDays.EasProxy, `
-                        $report.LogAgeDays.EcpProxy, `
-                        $report.LogAgeDays.EwsProxy, `
-                        $report.LogAgeDays.MapiProxy, `
-                        $report.LogAgeDays.OabProxy, `
-                        $report.LogAgeDays.OwaProxy, `
-                        $report.LogAgeDays.OwaCalendarProxy, `
-                        $report.LogAgeDays.PowershellProxy, `
-                        $report.LogAgeDays.RpcHttpProxy)
+                if ($null -ne $report.LogAgeDays) {
+                    Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
+                            $report.LogAgeDays.Oabgen, `
+                            $report.LogAgeDays.Ecp, `
+                            $report.LogAgeDays.AutodProxy, `
+                            $report.LogAgeDays.EasProxy, `
+                            $report.LogAgeDays.EcpProxy, `
+                            $report.LogAgeDays.EwsProxy, `
+                            $report.LogAgeDays.MapiProxy, `
+                            $report.LogAgeDays.OabProxy, `
+                            $report.LogAgeDays.OwaProxy, `
+                            $report.LogAgeDays.OwaCalendarProxy, `
+                            $report.LogAgeDays.PowershellProxy, `
+                            $report.LogAgeDays.RpcHttpProxy)
 
-                if (-not $DisplayOnly) {
-                    $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
-                    $report.LogAgeDays | Export-Csv -Path $newFile
-                    Write-Host "  Report exported to: $newFile"
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-LogAgeDays.csv"
+                        $report.LogAgeDays | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    }
                 }
 
                 if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
