@@ -72,12 +72,7 @@ process {
             $scriptBlock = {
                 #region Functions
                 function Get-ExchangeInstallPath {
-                    $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-                    if ($null -eq $p) {
-                        $p = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-                    }
-
-                    return $p
+                    return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
                 }
 
                 function Get-Cve26855 {
@@ -87,6 +82,10 @@ process {
                     Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26855 test."
+                        return
+                    }
 
                     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
                     $count = 0
@@ -130,6 +129,10 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26858 test."
+                        return
+                    }
 
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path
                 }
@@ -139,6 +142,11 @@ process {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-27065 test."
+                        return
+                    }
+
                     Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory" -List | Select-Object -ExpandProperty Path
                 }
 
@@ -177,6 +185,12 @@ process {
                         [string]
                         $dateString
                     )
+
+                    $exchangePath = Get-ExchangeInstallPath
+                    if ($null -eq $exchangePath) {
+                        Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
+                        return
+                    }
 
                     $date = [DateTime]::MinValue
                     if ([DateTime]::TryParse($dateString, [ref]$date)) {
