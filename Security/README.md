@@ -74,11 +74,11 @@ To rollback multiple or specific mitigations
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
 ## CompareExchangeHashes.ps1
-This script provides detection mechanism for exchange onprem security threats for E13, E16 and E19.
+This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
 For more information please go to https://aka.ms/exchangevulns
 
 The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
-**This script needs to be run as ADMINISTRATOR**
+**This script needs to be run as administrator**
 
 The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest)
 
