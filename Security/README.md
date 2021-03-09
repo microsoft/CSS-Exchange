@@ -103,7 +103,7 @@ This mitigation will filter https requests that contain malicious X-AnonResource
 
 This will help with defense against the known patterns observed but not the SSRF as a whole. For more information please visit https://aka.ms/exchangevulns.
 
-For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
+**For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.**
 
 For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:
 
@@ -115,9 +115,9 @@ For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download ver
 
 * x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
 
-Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version. We do not recommend completely uninstalling the URL rewrite module once it is installed. Uninstalling may cause issues with IIS and Exchange.
+Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, BackendCookieMitigation.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version.
 
-Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
+**Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.**
 
 Download the latest release here:
 
