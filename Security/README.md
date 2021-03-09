@@ -73,13 +73,37 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
+## CompareExchangeHashes.ps1
+This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
+For more information please go to https://aka.ms/exchangevulns
+
+The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
+**This script needs to be run as administrator**
+
+The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest)
+
+The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
+If potential malicious files are found during comparision there is an error generated on the cmdline.
+
+To read the output:
+    Open the result csv file in excel or in powershell:
+    `$result = Import-Csv <Path to result file>
+
+Submitting files for analysis:
+* Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
+* Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide)
+
+[Download CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/download/v21.03.08.2328/CompareExchangeHashes.ps1)
+
+`.\CompareExchangeHashes.ps1
+
 ## BackendCookieMitigation.ps1
 
 This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in CVE-2021-26855.
 
 This will help with defense against the known patterns observed but not the SSRF as a whole. For more information please visit https://aka.ms/exchangevulns.
 
-For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
+**For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.**
 
 For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:
 
@@ -91,9 +115,9 @@ For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download ver
 
 * x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
 
-Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version. We do not recommend completely uninstalling the URL rewrite module once it is installed. Uninstalling may cause issues with IIS and Exchange.
+Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, BackendCookieMitigation.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version.
 
-Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
+**Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.**
 
 Download the latest release here:
 
