@@ -308,7 +308,6 @@ process {
                 if ($CollectFiles) {
                     $LogFileOutPath = $OutPath + "\CollectedLogFiles\" + $report.ComputerName
                     if (-not (Test-Path -Path $LogFileOutPath)) {
-                        Write-Host "`r`n Creating $($LogFileOutPath) Directory"
                         New-Item $LogFileOutPath -ItemType Directory -Force | Out-Null
                     }
                 }
