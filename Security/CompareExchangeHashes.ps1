@@ -307,10 +307,6 @@ function PerformComparison {
                         continue;
                     }
 
-                    if ($KNOWN_ROOT_FILES[$f.FullName]) {
-                        continue;
-                    }
-
                     if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
                         if ($mark_as_suspicious_from -le $f.LastWriteTime) {
                             $newError = New-Object PSObject -Property @{
@@ -323,6 +319,10 @@ function PerformComparison {
                             $fErrors += $newError;
                             $errHappend = $true
                         }
+                    }
+
+                    if ($KNOWN_ROOT_FILES[$f.FullName]) {
+                        continue;
                     }
 
                     $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
