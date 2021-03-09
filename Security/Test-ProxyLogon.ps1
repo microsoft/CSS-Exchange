@@ -305,6 +305,8 @@ process {
         process {
             foreach ($report in $InputObject) {
 
+                $isLocalMachine = $report.ComputerName -eq $env:COMPUTERNAME
+
                 if ($CollectFiles) {
                     $LogFileOutPath = $OutPath + "\CollectedLogFiles\" + $report.ComputerName
                     if (-not (Test-Path -Path $LogFileOutPath)) {
@@ -350,7 +352,7 @@ process {
                     } else {
                         $report.Cve26855.Hits | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
                     }
-                    if ($CollectFiles) {
+                    if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26855")) {
                             Write-Host " Creating CVE26855 Collection Directory"
@@ -376,7 +378,7 @@ process {
                         Write-Host "  Report exported to: $newFile"
                     }
 
-                    if ($CollectFiles) {
+                    if ($CollectFiles -and $isLocalMachine) {
                         Write-Host "`n`r Copying Application Event Log"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26857")) {
                             Write-Host "  Creating CVE26857 Collection Directory"
@@ -392,7 +394,7 @@ process {
                     Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
                     foreach ($entry in $report.Cve26858) {
                         Write-Host "   $entry"
-                        if ($CollectFiles) {
+                        if ($CollectFiles -and $isLocalMachine) {
                             Write-Host " Copying Files:"
                             if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26858")) {
                                 Write-Host " Creating CVE26858 Collection Directory`n`r"
@@ -418,7 +420,7 @@ process {
                     Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
                     foreach ($entry in $report.Cve27065) {
                         Write-Host "   $entry"
-                        if ($CollectFiles) {
+                        if ($CollectFiles -and $isLocalMachine) {
                             Write-Host " Copying Files:"
                             if (-not (Test-Path -Path "$($LogFileOutPath)\CVE27065")) {
                                 Write-Host " Creating CVE27065 Collection Directory"
@@ -450,7 +452,7 @@ process {
                             Write-Host "   $($entry.Type) : $($entry.Path)"
                         }
                     }
-                    if ($CollectFiles) {
+                    if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
                             Write-Host "  Creating SuspiciousFiles Collection Directory"
@@ -473,16 +475,7 @@ process {
     if ($DisplayOnly) {
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
     } elseif ($CollectFiles) {
-
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath -CollectFiles
-
-        $LogCount = (Get-ChildItem -Recurse -Path "$($OutPath)" | Measure-Object).Count
-
-        if ($LogCount -gt 0) {
-            Write-Host "`n`rLog Collection process complete. Review the files in $($OutPath)"
-        } else {
-            Write-Host "`n`rProcess complete."
-        }
     } else {
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
     }
