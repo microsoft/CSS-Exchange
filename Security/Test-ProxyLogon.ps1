@@ -12,7 +12,7 @@
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
 # Check all Exchange servers, but only display the results, don't save them:
-# Get-ExchangeServer | .\Test-ProxyLogon.ps1
+# Get-ExchangeServer | .\Test-ProxyLogon.ps1 -DisplayOnly
 #
 #Requires -Version 4
 

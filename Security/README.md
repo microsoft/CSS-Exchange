@@ -8,7 +8,7 @@ Download the latest release here:
 
 [Download Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
-The most typical usage of this script is to check all Exchange servers and save the output,
+The most typical usage of this script is to check all Exchange servers and save the reports,
 by using the following syntax from Exchange Management Shell:
 
 `Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
@@ -16,6 +16,10 @@ by using the following syntax from Exchange Management Shell:
 To check the local server only, just run the script:
 
 `.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
+
+To check the local server and copy the identified logs and files to the OutPath:
+
+`.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles`
 
 To display the results without saving them, pass -DisplayOnly:
 
