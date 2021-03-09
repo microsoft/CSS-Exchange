@@ -5,10 +5,12 @@
 #
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Justification = 'Need to do nothing about it')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Use is the best verb and do not need to confirm')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(
-
+    [string]$OtherWellKnownObjectsContainer
 )
+
 function IsAdministrator {
     $ident = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $prin = New-Object System.Security.Principal.WindowsPrincipal($ident)
@@ -18,14 +20,34 @@ function IsAdministrator {
 function GetGroupMatches($whoamiOutput, $groupName) {
     $m = @($whoamiOutput | Select-String "(^\w+\\$($groupName))\W+Group")
     if ($m.Count -eq 0) { return $m }
-    return $m.Matches | ForEach-Object { $_.Groups[1].Value }
+    return $m | ForEach-Object {
+        [PSCustomObject]@{
+            GroupName = ($_.Matches.Groups[1].Value)
+            SID       = (GetSidFromLine $_.Line)
+        }
+    }
+}
+
+Function GetSidFromLine ([string]$Line) {
+    $startIndex = $Line.IndexOf("S-")
+    return $Line.Substring($startIndex,
+        $Line.IndexOf(" ", $startIndex) - $startIndex)
 }
 
 # From https://stackoverflow.com/questions/47867949/how-can-i-check-for-a-pending-reboot
 function Test-PendingReboot {
-    if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) { return $true }
-    if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) { return $true }
-    if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -EA Ignore) { return $true }
+    if (Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) {
+        Write-Verbose "Key set in: HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending. Remove it if reboot doesn't work"
+        return $true
+    }
+    if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) {
+        Write-Verbose "Key exists at: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired. Remove it if reboot doesn't work"
+        return $true
+    }
+    if (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -EA Ignore) {
+        Write-Verbose "Key set at: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager - PendingFileRenameOperations. Remove it if reboot doesn't work"
+        return $true
+    }
     try {
         $util = [wmiclass]"\\.\root\ccm\clientsdk:CCM_ClientUtilities"
         $status = $util.DetermineIfRebootPending()
@@ -174,77 +196,166 @@ function Get-ExchangeAdSetupObjects {
     return $hash
 }
 
-if (IsAdministrator) {
-    Write-Host "User is an administrator."
-} else {
-    Write-Warning "User is not an administrator."
+Function MainUse {
+    $whoamiOutput = whoami /all
+
+    $whoamiOutput | Select-String "User Name" -Context (0, 3)
+
+    if (IsAdministrator) {
+        Write-Host "User is an administrator."
+    } else {
+        Write-Warning "User is not an administrator."
+    }
+
+    [array]$g = GetGroupMatches $whoamiOutput "Domain Admins"
+
+    if ($g.Count -gt 0) {
+        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+    } else {
+        Write-Warning "User is not a member of Domain Admins."
+    }
+
+    [array]$g = GetGroupMatches $whoamiOutput "Schema Admins"
+
+    if ($g.Count -gt 0) {
+        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+    } else {
+        Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
+    }
+
+    [array]$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
+
+    if ($g.Count -gt 0) {
+        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+    } else {
+        Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
+    }
+
+    [array]$g = GetGroupMatches $whoamiOutput "Organization Management"
+
+    if ($g.Count -gt 0) {
+        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+    } else {
+        Write-Warning "User is not a member of Organization Management."
+    }
+
+    $p = Get-ExecutionPolicy
+    if ($p -ne "Unrestricted" -and $p -ne "Bypass") {
+        Write-Warning "ExecutionPolicy is $p"
+    } else {
+        Write-Host "ExecutionPolicy is $p"
+    }
+
+    $products = Get-ChildItem Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
+    $packageFiles = $products | ForEach-Object { Get-ItemProperty -Path "Registry::$($_.Name)\InstallProperties" -ErrorAction SilentlyContinue } | ForEach-Object { $_.LocalPackage }
+    $packagesMissing = @($packageFiles | Where-Object { (Test-Path $_) -eq $false })
+
+    if ($packagesMissing.Count -eq 0) {
+        Write-Host "No installer packages missing."
+    } else {
+        Write-Warning "$($packagesMissing.Count) installer packages are missing. Please use this script to repair the installer folder:"
+        Write-Warning "https://gallery.technet.microsoft.com/office/Restore-the-Missing-d11de3a1"
+    }
+
+    $powershellProcesses = @(Get-Process -IncludeUserName powershell)
+
+    if ($powershellProcesses.Count -gt 1) {
+        Write-Warning "More than one PowerShell process was found. Please close other instances of PowerShell."
+        Write-Host ($powershellProcesses | Format-Table -AutoSize | Out-String)
+    } else {
+        Write-Host "No other PowerShell instances were detected."
+    }
+
+    if (Test-PendingReboot) {
+        Write-Warning "Reboot pending."
+    } else {
+        Write-Host "No reboot pending."
+    }
+
+    Test-ExchangeAdSetupObjects
 }
 
-$whoamiOutput = whoami /all
+Function Main {
 
-$g = GetGroupMatches $whoamiOutput "Domain Admins"
+    if (![string]::IsNullOrEmpty($OtherWellKnownObjectsContainer)) {
 
-if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
-} else {
-    Write-Warning "User is not a member of Domain Admins."
+        ldifde -d $OtherWellKnownObjectsContainer -p Base -l otherWellKnownObjects -f ExchangeContainerOriginal.txt
+
+        [array]$content = Get-Content .\ExchangeContainerOriginal.txt
+
+        if ($null -eq $content -or
+            $content.Count -eq 0) {
+            throw "Failed to export ExchangeContainerOriginal.txt file"
+        }
+
+        $owkoLine = "otherWellKnownObjects:"
+        $inOwkoLine = $false
+        $outputLines = New-Object 'System.Collections.Generic.List[string]'
+        $outputLines.Add($content[0])
+        $outputLines.Add("changeType: modify")
+        $outputLines.Add("replace: otherWellKnownObjects")
+
+        Function Test-DeleteObject ([string]$TestLine) {
+
+            if ($TestLine.Contains("CN=Deleted Objects")) {
+                return $true
+            }
+
+            return $false
+        }
+
+        $index = 0
+        while ($index -lt $content.Count) {
+            $line = $content[$index++]
+
+            if ($line.Trim() -eq $owkoLine) {
+
+                if ($null -ne $testStringLine -and
+                    $null -ne $possibleAdd) {
+
+                    if (!(Test-DeleteObject $testStringLine)) {
+                        $outputLines.AddRange($possibleAdd)
+                    } else {
+                        Write-Host "Found object to remove: $testStringLine"
+                    }
+                }
+                $inOwkoLine = $true
+                $possibleAdd = New-Object 'System.Collections.Generic.List[string]'
+                $possibleAdd.Add($line)
+                [string]$testStringLine = $line
+                continue
+            }
+
+            if ($inOwkoLine) {
+                $possibleAdd.Add($line)
+                $testStringLine += $line
+            }
+
+            if ($index -eq $content.Count) {
+
+                if (!(Test-DeleteObject $testStringLine)) {
+                    $outputLines.AddRange($possibleAdd)
+                } else {
+                    Write-Host "Found object to remove: $testStringLine"
+                }
+            }
+        }
+
+        if ([string]::IsNullOrEmpty($outputLines[-1])) {
+            $outputLines[-1] = "-"
+        } else {
+            $outputLines.Add("-")
+        }
+
+        $outputLines | Out-File -FilePath "ExchangeContainerImport.txt"
+
+        Write-Host("`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:")
+        Write-Host("`tldifde -i -f ExchangeContainerImport.txt")
+        Write-Host("Run Setup.exe again afterwards.")
+        return
+    }
+
+    MainUse
 }
 
-$g = GetGroupMatches $whoamiOutput "Schema Admins"
-
-if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
-} else {
-    Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
-}
-
-$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
-
-if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
-} else {
-    Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
-}
-
-$g = GetGroupMatches $whoamiOutput "Organization Management"
-
-if ($g.Count -gt 0) {
-    $g | ForEach-Object { Write-Host "User is a member of" $_ }
-} else {
-    Write-Warning "User is not a member of Organization Management."
-}
-
-$p = Get-ExecutionPolicy
-if ($p -ne "Unrestricted" -and $p -ne "Bypass") {
-    Write-Warning "ExecutionPolicy is $p"
-} else {
-    Write-Host "ExecutionPolicy is $p"
-}
-
-$products = Get-ChildItem Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
-$packageFiles = $products | ForEach-Object { Get-ItemProperty -Path "Registry::$($_.Name)\InstallProperties" -ErrorAction SilentlyContinue } | ForEach-Object { $_.LocalPackage }
-$packagesMissing = @($packageFiles | Where-Object { (Test-Path $_) -eq $false })
-
-if ($packagesMissing.Count -eq 0) {
-    Write-Host "No installer packages missing."
-} else {
-    Write-Warning "$($packagesMissing.Count) installer packages are missing. Please use this script to repair the installer folder:"
-    Write-Warning "https://gallery.technet.microsoft.com/office/Restore-the-Missing-d11de3a1"
-}
-
-$powershellProcesses = @(Get-Process -IncludeUserName powershell)
-
-if ($powershellProcesses.Count -gt 1) {
-    Write-Warning "More than one PowerShell process was found. Please close other instances of PowerShell."
-    Write-Host ($powershellProcesses | Format-Table -AutoSize | Out-String)
-} else {
-    Write-Host "No other PowerShell instances were detected."
-}
-
-if (Test-PendingReboot) {
-    Write-Warning "Reboot pending."
-} else {
-    Write-Host "No reboot pending."
-}
-
-Test-ExchangeAdSetupObjects
+Main
