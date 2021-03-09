@@ -34,7 +34,8 @@
 
     Submitting files for analysis:
         Please submit the output file for analysis in the malware analysis portal
-        in the link below with the tag "ExchangeMarchCVE".
+        in the link below. Please add the text "ExchangeMarchCVE" in
+        "Additional Information" field on the portal submission form.
             https://www.microsoft.com/en-us/wdsi/filesubmission
         Instructions on how to use the portal can be found here:
             https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
@@ -515,12 +516,12 @@ function LoadBaseline($installed_versions) {
             if (Get-Command Expand-Archive -EA SilentlyContinue) {
                 Expand-Archive -Path $zip_file -DestinationPath $filename -Force | Out-Null
             } else {
-                [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" )
+                [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" ) | Out-Null
                 if (Test-Path  $filename) {
                     Remove-Item $filename -Confirm:$false -Force -Recurse
                 }
 
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename)
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename) | Out-Null
             }
 
             $csv_file = Get-ChildItem $filename | Select-Object -First 1 | Select-Object FullName
@@ -564,7 +565,8 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $report_msg = @"
 Submitting files for analysis:
     Please submit the output file for analysis in the malware analysis portal
-    in the link below with the tag "ExchangeMarchCVE".
+    in the link below. Please add the text "ExchangeMarchCVE" in
+    "Additional Information" field on the portal submission form.
         https://www.microsoft.com/en-us/wdsi/filesubmission
     Instructions on how to use the portal can be found here:
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
