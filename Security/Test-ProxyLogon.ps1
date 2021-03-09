@@ -96,34 +96,46 @@ process {
                         return
                     }
 
-                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs"
+                    $HttpProxyPath = Join-Path -Path $exchangePath -ChildPath "Logging\HttpProxy"
+                    $Activity = "Checking for CVE-2021-26855 in the HttpProxy logs"
 
-                    $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
-                    $count = 0
+                    $outProps = @(
+                        "DateTime", "RequestId", "ClientIPAddress", "UrlHost",
+                        "UrlStem", "RoutingHint", "UserAgent", "AnchorMailbox",
+                        "HttpStatus"
+                    )
+
+                    $files = (Get-ChildItem -Recurse -Path $HttpProxyPath -Filter '*.log').FullName
+
                     $allResults = @{
-                        Hits     = @()
-                        FileList = @()
+                        Hits     = [System.Collections.ArrayList]@()
+                        FileList = [System.Collections.ArrayList]@()
                     }
+
+                    Write-Progress -Activity $Activity
+
                     $sw = New-Object System.Diagnostics.Stopwatch
                     $sw.Start()
-                    $files | ForEach-Object {
-                        $count++
 
+                    For ( $i = 0; $i -lt $files.Count; ++$i ) {
                         if ($sw.ElapsedMilliseconds -gt 500) {
-                            Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status "$count / $($files.Count)" -PercentComplete ($count * 100 / $files.Count)
+                            Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count)
                             $sw.Restart()
                         }
 
-                        if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
-                            $allResults.FileList += $_
-                            $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus)
-                            $fileResults | ForEach-Object {
-                                $allResults.Hits += $_
-                            }
+                        if ( ( Test-Path $files[$i] ) -and ( Select-String -Path $files[$i] -Pattern "ServerInfo~" -Quiet ) ) {
+                            [Void]$allResults.FileList.Add( $files[$i] )
+
+                            Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue |
+                                Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } |
+                                Select-Object -Property $outProps |
+                                ForEach-Object {
+                                    [Void]$allResults.Hits.Add( $_ )
+                                }
                         }
                     }
 
-                    Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Completed
+                    Write-Progress -Activity $Activity -Completed
 
                     return $allResults
                 }
@@ -199,17 +211,12 @@ process {
                 }
 
                 function Get-AgeInDays {
-                    param (
-                        [string]
-                        $dateString
-                    )
-
-                    $date = [DateTime]::MinValue
-                    if ([DateTime]::TryParse($dateString, [ref]$date)) {
-                        $age = [DateTime]::Now - $date
+                    param ( $dateString )
+                    if ( $dateString -and $dateString -as [DateTime] ) {
+                        $CURTIME = Get-Date
+                        $age = $CURTIME.Subtract($dateString)
                         return $age.TotalDays.ToString("N1")
                     }
-
                     return ""
                 }
 
