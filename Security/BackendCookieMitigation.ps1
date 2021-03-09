@@ -218,7 +218,7 @@ if (!$RollbackMitigation) {
     Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
 
     #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
-    $RewriteModule = Get-InstalledSoftware | Where-Object {$_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*"}
+    $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
     $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
 
     $RewriteModuleInstallLog = ($PSScriptRoot + '\' + 'RewriteModuleInstallLog.log')
@@ -254,7 +254,7 @@ if (!$RollbackMitigation) {
             $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
-            $RewriteModule = Get-InstalledSoftware | Where-Object {$_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*"}
+            $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
             if ($RewriteModule) {
                 Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
             } else {
@@ -313,7 +313,7 @@ if (!$RollbackMitigation) {
                 Clear-WebConfiguration -PSPath $site -Filter 'system.webServer/rewrite/rules'
             }
             Write-Verbose "[OK] Rewrite rule mitigation removed for $env:COMPUTERNAME :: $website"
-        }else {
+        } else {
             Write-Verbose "[INFO] Rewrite rule mitigation does not exist for $env:COMPUTERNAME :: $website"
         }
     }
