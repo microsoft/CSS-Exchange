@@ -17,28 +17,36 @@
 # V0.2
 
 <#
-    .SYNOPSIS
-        This script provides detection mechanism for exchange onprem security threats for E13, E16 and E19.
-        For more information please https://aka.ms/exchangevulns
+.SYNOPSIS
+    This script provides detection mechanism for exchange onprem security threats for E13, E16 and E19.
+    For more information please go to https://aka.ms/exchangevulns
 
     .DESCRIPTION
-        This script will:
-             1. Examine the files in each exchange virtual directory in IIS and compares the file hashes against the baseline hashes from the exchange installation files.
+    This script will:
+        1. Examine the files in each exchange virtual directory in IIS and compares the file hashes against the baseline hashes from the exchange installation files.
 
-        The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.xml
-        If there are errors during file comparision there is an error generated on the cmdline.
+    The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
+    If there are errors during file comparision there is an error generated on the cmdline.
 
-        How to read the output:
-            Open the result xml file in a browser or in powershell:
-            $result = Import-Clixml <Path to result file>
+    How to read the output:
+        Open the result csv file in excel or in powershell:
+        $result = Import-Csv <Path to result file>
 
-        Disclaimer:
-            The script currently only validates any compromised file in exchange vdirs, it does not check any files in the iis root.
-            This script needs to be run as admin
+    Submitting files for analysis:
+        Please submit the output file for analysis in the malware analysis portal
+        in the link below with the tag "ExchangeMarchCVE".
+            https://www.microsoft.com/en-us/wdsi/filesubmission
+        Instructions on how to use the portal can be found here:
+            https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
+
+    Disclaimer:
+        The script currently only validates any compromised file in exchange vdirs, it does not check any files in the iis root.
+        This script needs to be run as ADMINISTRATOR
 
     .EXAMPLE
     PS C:\> CompareExchangeHashes.ps1
 #>
+
 
 $ErrorActionPreference = 'Stop';
 
@@ -284,13 +292,27 @@ function PerformComparison {
 
                     $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
                     if ($null -eq $hash) {
-                        $fErrors += "VDir: [ $vdir ] PDir: [ $pdir ] FileName: [ $($f.Name) ] FilePath: [ $($f.FullName) ] cannot read file"
+                        $newError = New-Object PSObject -Property @{
+                            VDir     = $vdir
+                            PDir     = $pdir
+                            FileName = $f.Name
+                            FilePath = $f.FullName
+                            Error    = "ReadError"
+                        }
+                        $fErrors += $newError;
                         $errHappend = $true
                     }
 
                     if ($hash.Hash) {
                         if ($known_bad[$hash.Hash]) {
-                            $fErrors += "VDir: [ $vdir ] PDir: [ $pdir ] FileName: [ $($f.Name) ] FilePath: [ $($f.FullName) ] is extra or edited on this server"
+                            $newError = New-Object PSObject -Property @{
+                                VDir     = $vdir
+                                PDir     = $pdir
+                                FileName = $f.Name
+                                FilePath = $f.FullName
+                                Error    = "KnowBadHash"
+                            }
+                            $fErrors += $newError;
                             $errHappend = $true
                         }
 
@@ -307,7 +329,14 @@ function PerformComparison {
                         }
 
                         if ($found -eq $false) {
-                            $fErrors += "VDir: [ $vdir ] PDir: [ $pdir ] FileName: [ $($f.Name) ] FilePath: [ $($f.FullName) ] is extra or edited on this server"
+                            $newError = New-Object PSObject -Property @{
+                                VDir     = $vdir
+                                PDir     = $pdir
+                                FileName = $f.Name
+                                FilePath = $f.FullName
+                                Error    = "NoHashMatch"
+                            }
+                            $fErrors += $newError;
                             $errHappend = $true
                         }
                     }
@@ -360,13 +389,18 @@ function Main() {
 }
 
 function LoadFromGitHub($url, $filename) {
+    $loaded = $false
     Write-Host "Loading $filename from GitHub..."
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest -Uri $url -OutFile $filename
+        $loaded = $true
     } catch {
+        $loaded = $false
         Write-Host "$filename not found... please open issue on https://github.com/microsoft/CSS-Exchange/issues, we will work on it" -ForegroundColor Red
     }
+
+    return $loaded
 }
 
 function PreProcessBaseline($baselines) {
@@ -455,7 +489,7 @@ function LoadBaseline($installed_versions) {
             Write-Host "Found $zip_file, validating checksum..."
 
             $checksum_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$checksum_file_name"
-            LoadFromGitHub $checksum_url $checksum_file
+            LoadFromGitHub $checksum_url $checksum_file | Out-Null
 
             $checksum = Get-Content $checksum_file
             $zip_file_hash = Get-FileHash $zip_file
@@ -477,7 +511,7 @@ function LoadBaseline($installed_versions) {
             $loaded_zip = LoadFromGitHub $zip_file_url $zip_file
         }
 
-        if ($zipfile_uptodate -or $loaded_zip) {
+        if ($loaded_zip -or $zipfile_uptodate) {
             if (Get-Command Expand-Archive -EA SilentlyContinue) {
                 Expand-Archive -Path $zip_file -DestinationPath $filename -Force | Out-Null
             } else {
@@ -503,15 +537,42 @@ function LoadBaseline($installed_versions) {
 }
 
 function WriteScriptResult ($result, $exchVersion, $errFound) {
-    $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.xml")
-    $result['Exchange_Version'] = $exchVersion
-    $result | Export-Clixml -Path $tmp_file
+    $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.csv")
+
+    $resData = @();
+    $result.Keys | ForEach-Object {
+        $currentResult = $result[$_]
+        foreach ($fileError in $currentResult.FileErrors) {
+            $resData += New-Object PsObject -Property @{
+                'FileName' = $fileError.FileName
+                'VDir'     = $fileError.VDir
+                'Error'    = [string]$fileError.Error
+                'FilePath' = [string]$fileError.FilePath
+                'PDir'     = [string]$fileError.PDir
+            }
+        }
+    }
+
+    Write-Host "Exporting ${resData.Count} objects to results"
+    $resData | Select-Object | Export-Csv -Path $tmp_file -NoTypeInformation;
+
     $fgCol = 'Green'
     $msg = "[$(Get-Date)] Done!"
     if ($errFound -eq $true) {
         $fgCol = 'Red'
-        $msg += ' Errors occured during comparison, please inspect the result file'
+        $msg += ' Done. One or more potentially malicious files found, please inspect the result file'
+        $report_msg = @"
+Submitting files for analysis:
+    Please submit the output file for analysis in the malware analysis portal
+    in the link below with the tag "ExchangeMarchCVE".
+        https://www.microsoft.com/en-us/wdsi/filesubmission
+    Instructions on how to use the portal can be found here:
+        https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
+"@
+
+        Write-Host $report_msg
     }
+
     Write-Host "Exported results to $tmp_file"
     Write-Host $msg -ForegroundColor $fgCol
 }
