@@ -14,25 +14,29 @@
 # Check all Exchange servers, but only display the results, don't save them:
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1 -DisplayOnly
 #
-#Requires -Version 4
+#Requires -Version 3
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = "AsScript")]
 param (
-    [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [Parameter(ParameterSetName = "AsScript", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string[]]
     $ComputerName,
 
-    [Parameter()]
+    [Parameter(ParameterSetName = "AsScript")]
     [string]
     $OutPath = "$PSScriptRoot\Test-ProxyLogonLogs",
 
-    [Parameter()]
+    [Parameter(ParameterSetName = "AsScript")]
     [switch]
     $DisplayOnly,
 
-    [Parameter()]
+    [Parameter(ParameterSetName = "AsScript")]
     [switch]
-    $CollectFiles
+    $CollectFiles,
+
+    [Parameter(ParameterSetName = 'AsModule')]
+    [switch]
+    $Export
 )
 
 process {
@@ -66,12 +70,13 @@ process {
 		Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
 #>
         [CmdletBinding()]
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "", Justification = "It's a PSCredential, not plain text")]
         param (
             [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
             [string[]]
             $ComputerName,
 
-            [pscredential]
+            [object]
             $Credential
         )
         begin {
@@ -287,7 +292,7 @@ process {
             $InputObject,
 
             [string]
-            $OutPath,
+            $OutPath = "$PSScriptRoot\Test-ProxyLogonLogs",
 
             [switch]
             $DisplayOnly,
@@ -472,11 +477,16 @@ process {
         }
     }
 
-    if ($DisplayOnly) {
-        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
-    } elseif ($CollectFiles) {
-        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath -CollectFiles
+    if ($Export) {
+        Set-Item function:global:Test-ExchangeProxyLogon (Get-Command Test-ExchangeProxyLogon)
+        Set-Item function:global:Write-ProxyLogonReport (Get-Command Write-ProxyLogonReport)
     } else {
-        $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+        if ($DisplayOnly) {
+            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
+        } elseif ($CollectFiles) {
+            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath -CollectFiles
+        } else {
+            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
+        }
     }
 }
