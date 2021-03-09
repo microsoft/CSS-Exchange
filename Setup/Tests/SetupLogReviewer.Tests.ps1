@@ -99,5 +99,15 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local`"' to be able address deleted objects type" }
         }
+
+        It "INSUFF_ACCESS_RIGHTS CN=Microsoft Exchange System Objects" {
+            & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_AccessDenied.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Used domain controller Solo-DC1.Solo.local to read object CN=Microsoft Exchange System Objects,DC=Solo,DC=local*" }
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Active directory response: 00000005: SecErr: DSID-03152857, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*We failed to have the correct permissions to write ACE to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' as the current user SOLO\Han*" }
+        }
     }
 }
