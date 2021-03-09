@@ -42,6 +42,7 @@ try {
                 public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
                 public object ExchangeSetup;    //Stores the Get-Command ExSetup object
                 public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
+                public bool March2021SUInstalled;    //True if March 2021 SU is installed
             }
 
             public class ExchangeNetFrameworkInformation
