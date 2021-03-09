@@ -39,6 +39,13 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "User SOLO\Kylo isn't apart of Organization Management group." -and $ForegroundColor -eq "Red" }
         }
 
+        It "First Server Run - No ORG Man" {
+            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_FirstRun_NoOrgMan.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -Scope It `
+                -ParameterFilter { $Object -eq "Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet." }
+        }
+
         It "Schema Admins group" {
             & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_NoPerm.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -80,7 +87,7 @@ Describe "Testing SetupLogReviewer" {
         It "Wrong Group Type" {
             & $sr -SetupLog "$here\KnownIssues\ExchangeSetupWrongGroupType.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $object -like "*Change the CN=Exchange Servers,OU=Test,DC=Solo,DC=local object to Universal, SecurityEnabled" }
+                -ParameterFilter { $object -like "*Change the CN=Exchange Servers,OU=Test,DC=Solo,DC=local object to Universal, SecurityEnabled*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $object -like "*The well-known object entry with the GUID `"6c01d2a7-f083-4503-8132-789eeb127b84`"*" -and $ForegroundColor -eq "Yellow" }
         }
@@ -91,6 +98,16 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -like "*CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local points to an invalid DN or a deleted object*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local`"' to be able address deleted objects type" }
+        }
+
+        It "INSUFF_ACCESS_RIGHTS CN=Microsoft Exchange System Objects" {
+            & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_AccessDenied.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Used domain controller Solo-DC1.Solo.local to read object CN=Microsoft Exchange System Objects,DC=Solo,DC=local*" }
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Active directory response: 00000005: SecErr: DSID-03152857, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*We failed to have the correct permissions to write ACE to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' as the current user SOLO\Han*" }
         }
     }
 }
