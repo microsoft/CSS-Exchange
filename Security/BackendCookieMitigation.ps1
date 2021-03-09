@@ -61,23 +61,59 @@ param(
     [string[]]$WebSiteNames,
     [switch]$RollbackMitigation
 )
+function GetMsiProductVersion {
+    param (
+        [System.IO.FileInfo]$filename
+    )
+
+    try {
+        $windowsInstaller = New-Object -com WindowsInstaller.Installer
+
+        $database = $windowsInstaller.GetType().InvokeMember(
+            "OpenDatabase", "InvokeMethod", $Null,
+            $windowsInstaller, @($filename.FullName, 0)
+        )
+
+        $q = "SELECT Value FROM Property WHERE Property = 'ProductVersion'"
+        $View = $database.GetType().InvokeMember(
+            "OpenView", "InvokeMethod", $Null, $database, ($q)
+        )
+
+        $View.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $View, $Null)
+
+        $record = $View.GetType().InvokeMember(
+            "Fetch", "InvokeMethod", $Null, $View, $Null
+        )
+
+        $productVersion = $record.GetType().InvokeMember(
+            "StringData", "GetProperty", $Null, $record, 1
+        )
+
+        $View.GetType().InvokeMember("Close", "InvokeMethod", $Null, $View, $Null)
+
+        return $productVersion
+
+    } catch {
+        throw "Failed to get MSI file version the error was: {0}." -f $_
+    }
+}
 function Get-InstalledSoftware {
     <#
-	.SYNOPSIS
-		Retrieves a list of all software installed on a Windows computer.
-	.EXAMPLE
-		PS> Get-InstalledSoftware
+        .SYNOPSIS
+            Retrieves a list of all software installed on a Windows computer.
+        .EXAMPLE
+            PS> Get-InstalledSoftware
 
-		This example retrieves all software installed on the local computer.
-	.PARAMETER ComputerName
-		If querying a remote computer, use the computer name here.
+            This example retrieves all software installed on the local computer.
+        .PARAMETER ComputerName
+            If querying a remote computer, use the computer name here.
 
-	.PARAMETER Name
-		The software title you'd like to limit the query to.
+        .PARAMETER Name
+            The software title you'd like to limit the query to.
 
-	.PARAMETER Guid
-		The software GUID you'e like to limit the query to
-	#>
+        .PARAMETER Guid
+            The software GUID you'e like to limit the query to
+        #>
     [CmdletBinding()]
     param (
 
@@ -204,11 +240,13 @@ if (!$RollbackMitigation) {
 
         if ($FullPathToMSI) {
 
+            $MSIProductVersion = GetMsiProductVersion -filename $FullPathToMSI
+
             #If IIS 10 assert URL rewrite 2.1 else URL rewrite 2.0
-            if ($IISVersion.VersionString -like "*10.*" -and $FullPathToMSI.Name -ne "rewrite_amd64_en-US.msi" -and $FullPathToMSI.Name -ne "rewrite_x86_en-US.msi") {
+            if ($IISVersion.VersionString -like "*10.*" -and $MSIProductVersion -eq "7.2.2") {
                 throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.1"
             }
-            if ($IISVersion.VersionString -notlike "*10.*" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x64.msi" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x86.msi") {
+            if ($IISVersion.VersionString -notlike "*10.*" -and $MSIProductVersion -eq "7.2.1993") {
                 throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.0"
             }
 
@@ -218,7 +256,6 @@ if (!$RollbackMitigation) {
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
             $RewriteModule = Get-InstalledSoftware -Name "IIS URL Rewrite Module 2"
-
             if ($RewriteModule) {
                 Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
             } else {
