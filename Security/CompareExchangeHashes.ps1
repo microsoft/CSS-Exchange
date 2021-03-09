@@ -14,7 +14,6 @@
 #
 #################################################################################
 #
-# V0.2
 
 <#
 .SYNOPSIS
@@ -50,6 +49,8 @@
 
 
 $ErrorActionPreference = 'Stop';
+
+$SCRIPT_VERSION = "1.0.0.2"
 
 # use native powershell types
 $KNOWN_BAD_HASH = @{ `
@@ -243,6 +244,8 @@ $VALID_VERSIONS = @{ `
 
 }
 
+$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020")
+
 function PerformComparison {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
@@ -270,7 +273,7 @@ function PerformComparison {
         Write-Host "Processing $($vdirs.Count) directories in parallel"
         $vdirs | ForEach-Object {
             $j = Start-Job -ScriptBlock {
-                param ($baselines, $pattern, $l, $known_bad, $KNOWN_ROOT_FILES)
+                param ($baselines, $pattern, $l, $known_bad, $KNOWN_ROOT_FILES, $mark_as_suspicious_from)
                 $vdirErrors = @()
                 $pdirErrors = @()
                 $fErrors = @()
@@ -282,6 +285,23 @@ function PerformComparison {
                 $pdir = $pdir -replace "%SystemDrive%", $env:SystemDrive
                 $pdir = $pdir -replace "%windir%", $env:windir
 
+                if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
+                    $inetpub_files = (Get-ChildItem -Recurse -Path $pdir -File -Exclude *aspx, *asmx, *asax, *js, *css, *htm, *html)
+                    foreach ($f in $inetpub_files) {
+                        if ($mark_as_suspicious_from -le $f.LastWriteTime) {
+                            $newError = New-Object PSObject -Property @{
+                                VDir     = $vdir
+                                PDir     = $pdir
+                                FileName = $f.Name
+                                FilePath = $f.FullName
+                                Error    = "Suspicious"
+                            }
+                            $fErrors += $newError;
+                            $errHappend = $true
+                        }
+                    }
+                }
+
                 foreach ($f in (Get-ChildItem -Recurse -Path $pdir -File -Include *aspx, *asmx, *asax, *js, *css, *htm, *html)) {
                     if ($f.Name.EndsWith(".strings.localized.js")) {
                         continue;
@@ -289,6 +309,21 @@ function PerformComparison {
 
                     if ($KNOWN_ROOT_FILES[$f.FullName]) {
                         continue;
+                    }
+
+                    if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
+                        if ($mark_as_suspicious_from -le $f.LastWriteTime)
+                        {
+                            $newError = New-Object PSObject -Property @{
+                                VDir     = $vdir
+                                PDir     = $pdir
+                                FileName = $f.Name
+                                FilePath = $f.FullName
+                                Error    = "Suspicious"
+                            }
+                            $fErrors += $newError;
+                            $errHappend = $true
+                        }
                     }
 
                     $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
@@ -329,13 +364,14 @@ function PerformComparison {
                             }
                         }
 
-                        if ($found -eq $false) {
+                        if ($found -eq $false)
+                        {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
+                                VDir = $vdir
+                                PDir = $pdir
                                 FileName = $f.Name
                                 FilePath = $f.FullName
-                                Error    = "NoHashMatch"
+                                Error = "NoHashMatch"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -354,7 +390,7 @@ function PerformComparison {
                     PDirErrors = $pdirErrors
                     FileErrors = $fErrors
                 }
-            } -ArgumentList $baselineData, $pattern, $_, $KNOWN_BAD_HASH, $KNOWN_ROOT_FILES
+            } -ArgumentList $baselineData, $pattern, $_, $KNOWN_BAD_HASH, $KNOWN_ROOT_FILES, $MARK_AS_SUSPICIOUS_FROM
 
             $jobs += $j
         }
@@ -389,16 +425,25 @@ function Main() {
     WriteScriptResult $result $exchVersion $errFound
 }
 
-function LoadFromGitHub($url, $filename) {
+function LoadFromGitHub($url, $filename, $installed_versions) {
+
     $loaded = $false
-    Write-Host "Loading $filename from GitHub..."
+    Write-Host "Downloading baseline file from GitHub to $filename"
+
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest"
+    } catch {
+        Write-Error "Cannot reach out to https://github.com/microsoft/CSS-Exchange/releases/latest, please download baseline files for $installed_versions from https://github.com/microsoft/CSS-Exchange/releases/latest manually to $(GetCurrDir), then rerun this script from $(GetCurrDir)."
+    }
+
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest -Uri $url -OutFile $filename
         $loaded = $true
     } catch {
         $loaded = $false
-        Write-Host "$filename not found... please open issue on https://github.com/microsoft/CSS-Exchange/issues, we will work on it" -ForegroundColor Red
+        Write-Error "$filename not found... please open issue on https://github.com/microsoft/CSS-Exchange/issues, we will work on it"
     }
 
     return $loaded
@@ -473,43 +518,20 @@ function GetVdirBatches {
 }
 
 function LoadBaseline($installed_versions) {
-
     $data = @{}
     foreach ($version in $installed_versions) {
         $filename = "baseline_$version"
         $zip_file_name = "${filename}.zip"
-        $checksum_file_name = "${filename}.checksum.txt"
         $filename = (Join-Path (GetCurrDir) $filename)
         $zip_file = "${filename}.zip"
-        $checksum_file = "${filename}.checksum.txt"
 
         $zipfile_uptodate = $false
         $loaded_zip = $false
 
-        if (Test-Path $zip_file) {
-            Write-Host "Found $zip_file, validating checksum..."
-
-            $checksum_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$checksum_file_name"
-            LoadFromGitHub $checksum_url $checksum_file | Out-Null
-
-            $checksum = Get-Content $checksum_file
-            $zip_file_hash = Get-FileHash $zip_file
-
-            if ($checksum -ne $zip_file_hash.Hash) {
-                Remove-Item $checksum_file -Force
-                Remove-Item $zip_file -Force
-
-                Write-Host "Local baseline is stale..."
-                $zip_file_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$zip_file_name"
-                $loaded_zip = LoadFromGitHub $zip_file_url $zip_file
-            } else {
-                Write-Host "Local $zip_file is uptodate"
-                $zipfile_uptodate = $true
-            }
-        } else {
+        if (-not (Test-Path $zip_file)) {
             Write-Host "Can't find local baseline for $version"
             $zip_file_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$zip_file_name"
-            $loaded_zip = LoadFromGitHub $zip_file_url $zip_file
+            $loaded_zip = LoadFromGitHub -url $zip_file_url -filename $zip_file -installed_versions $installed_versions
         }
 
         if ($loaded_zip -or $zipfile_uptodate) {
@@ -529,6 +551,7 @@ function LoadBaseline($installed_versions) {
             $processed_baselines = PreProcessBaseline $baselines
 
             foreach ($k in $processed_baselines.Keys) {
+                Write-Host "Loaded baseline for $k, hashes number $($processed_baselines[$k].Count)"
                 $data[$k] = $processed_baselines[$k]
             }
         }
@@ -542,26 +565,29 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
 
     $resData = @();
     $result.Keys | ForEach-Object {
-        $currentResult = $result[$_]
-        foreach ($fileError in $currentResult.FileErrors) {
-            $resData += New-Object PsObject -Property @{
-                'FileName' = $fileError.FileName
-                'VDir'     = $fileError.VDir
-                'Error'    = [string]$fileError.Error
-                'FilePath' = [string]$fileError.FilePath
-                'PDir'     = [string]$fileError.PDir
-            }
-        }
+         $currentResult = $result[$_]
+	     foreach($fileError in $currentResult.FileErrors) {
+         $resData += New-Object PsObject -property @{
+                    'FileName' = $fileError.FileName
+                    'VDir'     = $fileError.VDir
+                    'Error'    = [string]$fileError.Error
+                    'FilePath' = [string]$fileError.FilePath
+                    'PDir'     = [string]$fileError.PDir
+                    }
+       }
     }
 
     Write-Host "Exporting ${resData.Count} objects to results"
     $resData | Select-Object | Export-Csv -Path $tmp_file -NoTypeInformation;
 
     $fgCol = 'Green'
-    $msg = "[$(Get-Date)] Done!"
+    $msg = "[$(Get-Date)] Done."
     if ($errFound -eq $true) {
         $fgCol = 'Red'
-        $msg += ' Done. One or more potentially malicious files found, please inspect the result file'
+        $msg += ' One or more potentially malicious files found, please inspect the result file.'
+        $msg += " ExchangeVersion: $exchVersion"
+        $msg += " OSVersion: $([environment]::OSVersion.Version)"
+        $msg += " ScriptVersion: $SCRIPT_VERSION"
         $report_msg = @"
 Submitting files for analysis:
     Please submit the output file for analysis in the malware analysis portal
