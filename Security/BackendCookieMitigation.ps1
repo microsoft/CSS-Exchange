@@ -205,10 +205,10 @@ if (!$RollbackMitigation) {
         if ($FullPathToMSI) {
 
             #If IIS 10 assert URL rewrite 2.1 else URL rewrite 2.0
-            if ($IISVersion.VersionString -like "*10.*" -and $FullPathToMSI.Name -ne "rewrite_amd64_en-US.msi") {
+            if ($IISVersion.VersionString -like "*10.*" -and $FullPathToMSI.Name -ne "rewrite_amd64_en-US.msi" -and $FullPathToMSI.Name -ne "rewrite_x86_en-US.msi") {
                 throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.1"
             }
-            if ($IISVersion.VersionString -notlike "*10.*" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x64.msi") {
+            if ($IISVersion.VersionString -notlike "*10.*" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x64.msi" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x86.msi") {
                 throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.0"
             }
 
@@ -217,10 +217,9 @@ if (!$RollbackMitigation) {
             $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
+            $RewriteModule = Get-InstalledSoftware -Name "IIS URL Rewrite Module 2"
 
-            $IISRewriteQuery = (Get-ItemProperty -Path $IISPath -ErrorAction SilentlyContinue).DisplayName
-
-            if ($null -ne $IISRewriteQuery) {
+            if ($RewriteModule) {
                 Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
             } else {
                 throw "[ERROR] Issue installing IIS URL Rewrite Module 2, please review $($RewriteModuleInstallLog)"
