@@ -5,7 +5,7 @@
 # Check the local Exchange server only and save the report:
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
-# Check the local Exchange server, copy the findings to the outpath\<ComputerName>\ path
+# Check the local Exchange server, copy the files and folders to the outpath\<ComputerName>\ path
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles
 #
 # Check all Exchange servers and save the reports:
