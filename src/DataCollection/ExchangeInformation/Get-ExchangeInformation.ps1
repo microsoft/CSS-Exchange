@@ -349,6 +349,13 @@ Function Get-ExchangeInformation {
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
+        if (($null -ne $buildInformation.KBsInstalled) -and ($buildInformation.KBsInstalled -like "*KB5000871*")) {
+            Write-VerboseOutput("March 2021 SU: KB5000871 was detected on the system")
+            $buildInformation.March2021SUInstalled = $true
+        } else {
+            Write-VerboseOutput("March 2021 SU: KB5000871 was not detected on the system")
+            $buildInformation.March2021SUInstalled = $false
+        }
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
             -GetValue "CtsProcessorAffinityPercentage" `
