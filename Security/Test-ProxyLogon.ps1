@@ -456,16 +456,16 @@ process {
                             Write-Host "   $($entry.Type) : $($entry.Path)"
                         }
                     }
-                    if ($CollectFiles -and $isLocalMachine) {
+                   if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
                             Write-Host "  Creating SuspiciousFiles Collection Directory"
                             New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
                         }
                         foreach ($entry in $report.Suspicious) {
-                            if (Test-Path -Path $entry) {
-                                Write-Host "  Copying $($entry.Path) to ($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
-                                Copy-Item -Path $entry.Path -Destination "($LogFileOutPath)\SuspiciousFiles"
+                            if (Test-Path -Path $entry.path) {
+                                Write-Host "  Copying $($entry.Path) to $($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
+                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles"
                             } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
