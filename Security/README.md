@@ -73,6 +73,30 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
+## CompareExchangeHashes.ps1
+This script provides detection mechanism for exchange onprem security threats for E13, E16 and E19.
+For more information please go to https://aka.ms/exchangevulns
+
+The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
+**This script needs to be run as ADMINISTRATOR**
+
+The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest)
+
+The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
+If potential malicious files are found during comparision there is an error generated on the cmdline.
+
+To read the output:
+    Open the result csv file in excel or in powershell:
+    `$result = Import-Csv <Path to result file>
+
+Submitting files for analysis:
+* Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
+* Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide)
+
+[Download CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/download/v21.03.08.2328/CompareExchangeHashes.ps1)
+
+`.\CompareExchangeHashes.ps1
+
 ## BackendCookieMitigation.ps1
 
 This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in CVE-2021-26855.
