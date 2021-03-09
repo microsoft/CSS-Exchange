@@ -70,13 +70,12 @@ process {
 		Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
 #>
         [CmdletBinding()]
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "", Justification = "It's a PSCredential, not plain text")]
         param (
             [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
             [string[]]
             $ComputerName,
 
-            [object]
+            [System.Management.Automation.PSCredential]
             $Credential
         )
         begin {
