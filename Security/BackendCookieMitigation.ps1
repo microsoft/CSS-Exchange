@@ -92,7 +92,6 @@ function GetMsiProductVersion {
         $View.GetType().InvokeMember("Close", "InvokeMethod", $Null, $View, $Null)
 
         return $productVersion
-
     } catch {
         throw "Failed to get MSI file version the error was: {0}." -f $_
     }
