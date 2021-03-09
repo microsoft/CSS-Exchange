@@ -96,7 +96,10 @@ process {
 
                     $files = (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy" -Filter '*.log').FullName
                     $count = 0
-                    $allResults = @()
+                    $allResults = @{
+                        Hits     = @()
+                        FileList = @()
+                    }
                     $sw = New-Object System.Diagnostics.Stopwatch
                     $sw.Start()
                     $files | ForEach-Object {
@@ -108,10 +111,10 @@ process {
                         }
 
                         if ((Get-ChildItem $_ -ErrorAction SilentlyContinue | Select-String "ServerInfo~").Count -gt 0) {
-                            $Global:HttpProxyFileList += $_
+                            $allResults.FileList += $_
                             $fileResults = @(Import-Csv -Path $_ -ErrorAction SilentlyContinue | Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } | Select-Object -Property DateTime, RequestId, ClientIPAddress, UrlHost, UrlStem, RoutingHint, UserAgent, AnchorMailbox, HttpStatus)
                             $fileResults | ForEach-Object {
-                                $allResults += $_
+                                $allResults.Hits += $_
                             }
                         }
                     }
@@ -334,19 +337,19 @@ process {
                     }
                 }
 
-                if (-not ($report.Cve26855.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
+                if (-not ($report.Cve26855.Hits.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
                     continue
                 }
-                if ($report.Cve26855.Count -gt 0) {
+                if ($report.Cve26855.Hits.Count -gt 0) {
                     Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
-                        $report.Cve26855 | Export-Csv -Path $newFile
+                        $report.Cve26855.Hits | Export-Csv -Path $newFile
                         Write-Host "  Report exported to: $newFile"
                     } else {
-                        $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
+                        $report.Cve26855.Hits | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
                     }
                     if ($CollectFiles) {
                         Write-Host " Copying Files:"
@@ -354,7 +357,7 @@ process {
                             Write-Host " Creating CVE26855 Collection Directory"
                             New-Item "$($LogFileOutPath)\CVE26855" -ItemType Directory -Force | Out-Null
                         }
-                        foreach ($entry in $Global:HttpProxyFileList) {
+                        foreach ($entry in $report.Cve26855.FileList) {
                             if (Test-Path -Path $entry) {
                                 Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE26855" -ForegroundColor Green
                                 Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE26855"
@@ -467,8 +470,6 @@ process {
             }
         }
     }
-
-    $Global:HttpProxyFileList = @()
 
     if ($DisplayOnly) {
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
