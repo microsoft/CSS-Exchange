@@ -117,7 +117,6 @@ process {
                     $sw = New-Object System.Diagnostics.Stopwatch
                     $sw.Start()
 
-                    # Start you loop here:
                     For ( $i = 0; $i -lt $files.Count; ++$i ) {
                         if ($sw.ElapsedMilliseconds -gt 500) {
                             Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count)
@@ -133,8 +132,6 @@ process {
                             ForEach-Object{
                                 [Void]$allResults.Hits.Add( $_ )
                             }
-
-
                         }
                     }
 
