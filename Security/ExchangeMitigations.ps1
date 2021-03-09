@@ -10,25 +10,16 @@
         For more information on each mitigation please visit https://aka.ms/exchangevulns
 
 	.DESCRIPTION
-        Pre-Requisites:
-             - Exchange Management Shell
-               This script is intented to be executed via the Exchange Management Shell.
-               Powershell 3 and later must be running on the system.
+        For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 (x86 and x64) here:
+        * x86 & x64 -https://www.iis.net/downloads/microsoft/url-rewrite
 
-             - IIS URL Rewrite Module
-                For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
+        For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download version 2.0 here:
+        * x86 - https://www.microsoft.com/en-us/download/details.aspx?id=5747
 
-                For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 (x86 and x64) here:
-                    https://www.iis.net/downloads/microsoft/url-rewrite
+        * x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
 
-                For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download version 2.0 here
-                    x86 - https://www.microsoft.com/en-us/download/details.aspx?id=5747
-                    x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
-
-                Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable.
-                If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855.
-                You must uninstall the URL Rewrite module and reinstall the correct version. We do not recommend completely uninstalling the URL rewrite module once it is installed.
-                Uninstalling may cause issues with IIS and Exchange.
+        It is important to follow these version guidelines as it was found installing the newer version of the URL rewrite module on older versions of IIS (IIS 8.5 and lower) can cause IIS and Exchange to become unstable.
+        If you find yourself in a scenario where a newer version of the IIS URL rewrite module was installed on an older version of IIS, uninstalling the URL rewrite module and reinstalling the recommended version listed above should resolve any instability issues.
 
 	.PARAMETER FullPathToMSI
         This is string parameter is used to specify path of MSI file of URL Rewrite Module.
@@ -82,13 +73,10 @@
 
         To apply all mitigations without installing the IIS URL Rewrite Module.
 
-	.EXAMPLE
-		PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyBackendCookieMitigation -Verbose
-        PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyUnifiedMessagingMitigation -Verbose
-        PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyECPAppPoolMitigation -Verbose
-        PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyOABAppPoolMitigation -Verbose
+    .EXAMPLE
+        PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackAllMitigations -Verbose
 
-        To apply any specific mitigation (out of the 4)
+        To rollback all mitigations
 
     .EXAMPLE
         PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyECPAppPoolMitigation -ApplyOABAppPoolMitigation -Verbose
@@ -100,21 +88,10 @@
 
         To rollback multiple mitigations (out of the 4)
 
-    .EXAMPLE
-        PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackAllMitigations -Verbose
-
-        To rollback all 4 mitigations
-
     .Link
         https://aka.ms/exchangevulns
-
-    .Link
         https://www.iis.net/downloads/microsoft/url-rewrite
-
-    .Link
         https://www.microsoft.com/en-us/download/details.aspx?id=5747
-
-    .Link
         https://www.microsoft.com/en-us/download/details.aspx?id=7435
 #>
 
@@ -136,6 +113,144 @@ param(
     [System.IO.FileInfo]$FullPathToMSI
 )
 
+function GetMsiProductVersion {
+    param (
+        [System.IO.FileInfo]$filename
+    )
+
+    try {
+        $windowsInstaller = New-Object -com WindowsInstaller.Installer
+
+        $database = $windowsInstaller.GetType().InvokeMember(
+            "OpenDatabase", "InvokeMethod", $Null,
+            $windowsInstaller, @($filename.FullName, 0)
+        )
+
+        $q = "SELECT Value FROM Property WHERE Property = 'ProductVersion'"
+        $View = $database.GetType().InvokeMember(
+            "OpenView", "InvokeMethod", $Null, $database, ($q)
+        )
+
+        $View.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $View, $Null)
+
+        $record = $View.GetType().InvokeMember(
+            "Fetch", "InvokeMethod", $Null, $View, $Null
+        )
+
+        $productVersion = $record.GetType().InvokeMember(
+            "StringData", "GetProperty", $Null, $record, 1
+        )
+
+        $View.GetType().InvokeMember("Close", "InvokeMethod", $Null, $View, $Null)
+
+        return $productVersion
+    } catch {
+        throw "Failed to get MSI file version the error was: {0}." -f $_
+    }
+}
+function Get-InstalledSoftware {
+    <#
+	.SYNOPSIS
+		Retrieves a list of all software installed on a Windows computer.
+	.EXAMPLE
+		PS> Get-InstalledSoftware
+
+		This example retrieves all software installed on the local computer.
+	.PARAMETER ComputerName
+		If querying a remote computer, use the computer name here.
+
+	.PARAMETER Name
+		The software title you'd like to limit the query to.
+
+	.PARAMETER Guid
+		The software GUID you'e like to limit the query to
+	#>
+    [CmdletBinding()]
+    param (
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]$ComputerName = $env:COMPUTERNAME,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]$Name,
+
+        [Parameter()]
+        [guid]$Guid
+    )
+    process {
+        try {
+            $scriptBlock = {
+                $args[0].GetEnumerator() | ForEach-Object { New-Variable -Name $_.Key -Value $_.Value }
+
+                $UninstallKeys = @(
+                    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                    "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+                )
+                New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS | Out-Null
+                $UninstallKeys += Get-ChildItem HKU: | Where-Object { $_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$' } | ForEach-Object {
+                    "HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+                }
+                if (-not $UninstallKeys) {
+                    Write-Warning -Message 'No software registry keys found'
+                } else {
+                    foreach ($UninstallKey in $UninstallKeys) {
+                        $friendlyNames = @{
+                            'DisplayName'    = 'Name'
+                            'DisplayVersion' = 'Version'
+                        }
+                        Write-Verbose -Message "Checking uninstall key [$($UninstallKey)]"
+                        if ($Name) {
+                            $WhereBlock = { $_.GetValue('DisplayName') -like "$Name*" }
+                        } elseif ($GUID) {
+                            $WhereBlock = { $_.PsChildName -eq $Guid.Guid }
+                        } else {
+                            $WhereBlock = { $_.GetValue('DisplayName') }
+                        }
+                        $SwKeys = Get-ChildItem -Path $UninstallKey -ErrorAction SilentlyContinue | Where-Object $WhereBlock
+                        if (-not $SwKeys) {
+                            Write-Verbose -Message "No software keys in uninstall key $UninstallKey"
+                        } else {
+                            foreach ($SwKey in $SwKeys) {
+                                $output = @{ }
+                                foreach ($ValName in $SwKey.GetValueNames()) {
+                                    if ($ValName -ne 'Version') {
+                                        $output.InstallLocation = ''
+                                        if ($ValName -eq 'InstallLocation' -and
+                                            ($SwKey.GetValue($ValName)) -and
+                                            (@('C:', 'C:\Windows', 'C:\Windows\System32', 'C:\Windows\SysWOW64') -notcontains $SwKey.GetValue($ValName).TrimEnd('\'))) {
+                                            $output.InstallLocation = $SwKey.GetValue($ValName).TrimEnd('\')
+                                        }
+                                        [string]$ValData = $SwKey.GetValue($ValName)
+                                        if ($friendlyNames[$ValName]) {
+                                            $output[$friendlyNames[$ValName]] = $ValData.Trim() ## Some registry values have trailing spaces.
+                                        } else {
+                                            $output[$ValName] = $ValData.Trim() ## Some registry values trailing spaces
+                                        }
+                                    }
+                                }
+                                $output.GUID = ''
+                                if ($SwKey.PSChildName -match '\b[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12}\b') {
+                                    $output.GUID = $SwKey.PSChildName
+                                }
+                                New-Object -TypeName PSObject -Prop $output
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($ComputerName -eq $env:COMPUTERNAME) {
+                & $scriptBlock $PSBoundParameters
+            } else {
+                Invoke-Command -ComputerName $ComputerName -ScriptBlock $scriptBlock -ArgumentList $PSBoundParameters
+            }
+        } catch {
+            Write-Error -Message "Error: $($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
+        }
+    }
+}
 Function BackendCookieMitigation {
     [CmdLetBinding()]
     param(
@@ -163,55 +278,44 @@ Function BackendCookieMitigation {
         Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
 
         #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
+        $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
         $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
-        $ReWriteModule2_1Path = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{9BCA2118-F753-4A1E-BCF3-5A820729965C}'
-        $ReWriteModule2_0Path = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{EB675D0A-2C95-405B-BEE8-B42A65D23E11}'
 
-        if ($IISVersion.VersionString -like "*10.*") {
-            $IISPath = $ReWriteModule2_1Path
-        } else {
-            $IISPath = $ReWriteModule2_0Path
-        }
-
-        $IISRewriteQuery = (Get-ItemProperty -Path $IISPath -ErrorAction SilentlyContinue).DisplayName
         $RewriteModuleInstallLog = ($PSScriptRoot + '\' + 'RewriteModuleInstallLog.log')
 
         #Install module
-        if ($null -ne $IISRewriteQuery) {
-            Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername"
-        } else {
+        if ($RewriteModule) {
 
             #Throwing an exception if incorrect rewrite module version is installed
-            $ReWriteModule2_1Installed = (Get-ItemProperty -Path $ReWriteModule2_1Path -ErrorAction SilentlyContinue).DisplayName
-            $ReWriteModule2_0Installed = (Get-ItemProperty -Path $ReWriteModule2_0Path -ErrorAction SilentlyContinue).DisplayName
-            $DocumentationLink = "https://msrc-blog.microsoft.com/2021/03/05/microsoft-exchange-server-vulnerabilities-mitigations-march-2021/"
+            if ($IISVersion.VersionString -like "*10.*" -and ($RewriteModule.Version -eq "7.2.2")) {
+                throw "Incorrect IIS URL Rewrite Module 2.0 Installed. You need to install IIS URL Rewrite Module 2.1 to avoid instability issues."
+            }
+            if ($IISVersion.VersionString -notlike "*10.*" -and ($RewriteModule.Version -eq "7.2.1993")) {
+                throw "Incorrect IIS URL Rewrite Module 2.1 Installed. You need to install IIS URL Rewrite Module 2.0 to avoid instability issues."
+            }
 
-            if ($IISVersion.VersionString -like "*10.*" -and ($null -ne $ReWriteModule2_0Installed)) {
-                throw "Incorrect IIS URL Rewrite Module 2.0 Installed. You need to install IIS URL Rewrite Module 2.1. For details refer: $DocumentationLink"
-            }
-            if ($IISVersion.VersionString -notlike "*10.*" -and ($null -ne $ReWriteModule2_1Installed)) {
-                throw "Incorrect IIS URL Rewrite Module 2.1 Installed. You need to install IIS URL Rewrite Module 2.0. For details refer: $DocumentationLink"
-            }
+            Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername" -Verbose
+        } else {
 
             if ($FullPathToMSI) {
 
+                $MSIProductVersion = GetMsiProductVersion -filename $FullPathToMSI
+
                 #If IIS 10 assert URL rewrite 2.1 else URL rewrite 2.0
-                if ($IISVersion.VersionString -like "*10.*" -and $FullPathToMSI.Name -ne "rewrite_amd64_en-US.msi") {
+                if ($IISVersion.VersionString -like "*10.*" -and $MSIProductVersion -eq "7.2.2") {
                     throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.1"
                 }
-                if ($IISVersion.VersionString -notlike "*10.*" -and $FullPathToMSI.Name -ne "rewrite_2.0_rtw_x64.msi") {
+                if ($IISVersion.VersionString -notlike "*10.*" -and $MSIProductVersion -eq "7.2.1993") {
                     throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.0"
                 }
 
-                Write-Verbose "[INFO] Installing IIS URL Rewrite Module 2"
+                Write-Verbose "[INFO] Installing IIS URL Rewrite Module 2" -Verbose
                 $arguments = " /i " + '"' + $FullPathToMSI.FullName + '"' + " /quiet /log " + '"' + $RewriteModuleInstallLog + '"'
                 $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
                 Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
                 Start-Sleep -Seconds 15
-
-                $IISRewriteQuery = (Get-ItemProperty -Path $IISPath -ErrorAction SilentlyContinue).DisplayName
-
-                if ($null -ne $IISRewriteQuery) {
+                $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
+                if ($RewriteModule) {
                     Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
                 } else {
                     throw "[ERROR] Issue installing IIS URL Rewrite Module 2, please review $($RewriteModuleInstallLog)"
@@ -263,6 +367,11 @@ Function BackendCookieMitigation {
             if ($MitigationConfig) {
                 Clear-WebConfiguration -Filter $filter -PSPath $site
                 Clear-WebConfiguration -Filter $filter2 -PSPath $site
+
+                $Rules = Get-WebConfiguration -Filter 'system.webServer/rewrite/rules/rule' -Recurse
+                if ($null -eq $Rules) {
+                    Clear-WebConfiguration -PSPath $site -Filter 'system.webServer/rewrite/rules'
+                }
                 Write-Verbose "[OK] Rewrite rule mitigation removed for $env:COMPUTERNAME :: $website"
             } else {
                 Write-Verbose "[INFO] Rewrite rule mitigation does not exist for $env:COMPUTERNAME :: $website"
@@ -422,7 +531,6 @@ Function OABAppPoolMitigation {
         Get-WebAppPoolState -Name $AppPoolName
     }
 }
-
 Function CheckOperationSuccess {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'TBD')]
@@ -444,14 +552,13 @@ Function CheckOperationSuccess {
         throw $unSuccessfullMessage
     }
 }
-
 Function StopAndCheckHM {
 
     $MSExchangeHM = Get-Service MSExchangeHM
     if ($MSExchangeHM.Status -ne "Stopped") {
         Stop-Service MSExchangeHM
     }
-    If (((gwmi -Class win32_service |  Where-Object { $_.name -eq "msexchangehm" }).StartMode -ne "Disabled" )) {
+    If (((gwmi -Class win32_service | Where-Object { $_.name -eq "msexchangehm" }).StartMode -ne "Disabled" )) {
         Set-Service MSExchangeHM -StartupType Disabled
     }
 
@@ -462,7 +569,7 @@ Function StopAndCheckHM {
         if ($MSExchangeHMR.Status -ne "Stopped") {
             Stop-Service MSExchangeHMRecovery
         }
-        If (((gwmi -Class win32_service |  Where-Object { $_.name -eq "MSExchangeHMRecovery" }).StartMode -ne "Disabled")) {
+        If (((gwmi -Class win32_service | Where-Object { $_.name -eq "MSExchangeHMRecovery" }).StartMode -ne "Disabled")) {
             Set-Service MSExchangeHMRecovery -StartupType Disabled
         }
 
@@ -482,7 +589,6 @@ Function StopAndCheckHM {
         Get-Service MSExchangeHMRecovery
     }
 }
-
 Function StartAndCheckHM {
 
     $MSExchangeHM = Get-Service MSExchangeHM
@@ -521,7 +627,6 @@ Function StartAndCheckHM {
         Get-Service MSExchangeHMRecovery
     }
 }
-
 
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())

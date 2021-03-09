@@ -234,7 +234,7 @@ if (!$RollbackMitigation) {
             throw "Incorrect IIS URL Rewrite Module 2.1 Installed. You need to install IIS URL Rewrite Module 2.0 to avoid instability issues."
         }
 
-        Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername"
+        Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername" -Verbose
     } else {
 
         if ($FullPathToMSI) {
@@ -249,7 +249,7 @@ if (!$RollbackMitigation) {
                 throw "Incorrect MSI for IIS $($IISVersion.VersionString), please use URL rewrite 2.0"
             }
 
-            Write-Verbose "[INFO] Installing IIS URL Rewrite Module 2"
+            Write-Verbose "[INFO] Installing IIS URL Rewrite Module 2" -Verbose
             $arguments = " /i " + '"' + $FullPathToMSI.FullName + '"' + " /quiet /log " + '"' + $RewriteModuleInstallLog + '"'
             $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait

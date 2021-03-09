@@ -45,7 +45,7 @@ For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download ver
 
 * x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
 
-Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version. We do not recommend completely uninstalling the URL rewrite module once it is installed. Uninstalling may cause issues with IIS and Exchange.
+Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version.
 
 Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
