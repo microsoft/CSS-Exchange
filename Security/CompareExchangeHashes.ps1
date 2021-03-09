@@ -34,7 +34,8 @@
 
     Submitting files for analysis:
         Please submit the output file for analysis in the malware analysis portal
-        in the link below with the tag "ExchangeMarchCVE".
+        in the link below. Please add the text "ExchangeMarchCVE" in
+        "Additional Information" field on the portal submission form.
             https://www.microsoft.com/en-us/wdsi/filesubmission
         Instructions on how to use the portal can be found here:
             https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
@@ -293,11 +294,11 @@ function PerformComparison {
                     $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
                     if ($null -eq $hash) {
                         $newError = New-Object PSObject -Property @{
-                            VDir     = $vdir
-                            PDir     = $pdir
+                            VDir = $vdir
+                            PDir = $pdir
                             FileName = $f.Name
                             FilePath = $f.FullName
-                            Error    = "ReadError"
+                            Error = "ReadError"
                         }
                         $fErrors += $newError;
                         $errHappend = $true
@@ -306,11 +307,11 @@ function PerformComparison {
                     if ($hash.Hash) {
                         if ($known_bad[$hash.Hash]) {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
+                                VDir = $vdir
+                                PDir = $pdir
                                 FileName = $f.Name
                                 FilePath = $f.FullName
-                                Error    = "KnowBadHash"
+                                Error = "KnowBadHash"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -328,13 +329,14 @@ function PerformComparison {
                             }
                         }
 
-                        if ($found -eq $false) {
+                        if ($found -eq $false)
+                        {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
+                                VDir = $vdir
+                                PDir = $pdir
                                 FileName = $f.Name
                                 FilePath = $f.FullName
-                                Error    = "NoHashMatch"
+                                Error = "NoHashMatch"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -489,7 +491,7 @@ function LoadBaseline($installed_versions) {
             Write-Host "Found $zip_file, validating checksum..."
 
             $checksum_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$checksum_file_name"
-            LoadFromGitHub $checksum_url $checksum_file | Out-Null
+            LoadFromGitHub $checksum_url $checksum_file | out-null
 
             $checksum = Get-Content $checksum_file
             $zip_file_hash = Get-FileHash $zip_file
@@ -515,12 +517,12 @@ function LoadBaseline($installed_versions) {
             if (Get-Command Expand-Archive -EA SilentlyContinue) {
                 Expand-Archive -Path $zip_file -DestinationPath $filename -Force | Out-Null
             } else {
-                [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" )
+                [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" ) | Out-Null
                 if (Test-Path  $filename) {
                     Remove-Item $filename -Confirm:$false -Force -Recurse
                 }
 
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename)
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename) | Out-Null
             }
 
             $csv_file = Get-ChildItem $filename | Select-Object -First 1 | Select-Object FullName
@@ -541,16 +543,16 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
 
     $resData = @();
     $result.Keys | ForEach-Object {
-        $currentResult = $result[$_]
-        foreach ($fileError in $currentResult.FileErrors) {
-            $resData += New-Object PsObject -Property @{
-                'FileName' = $fileError.FileName
-                'VDir'     = $fileError.VDir
-                'Error'    = [string]$fileError.Error
-                'FilePath' = [string]$fileError.FilePath
-                'PDir'     = [string]$fileError.PDir
-            }
-        }
+         $currentResult = $result[$_]
+	     foreach($fileError in $currentResult.FileErrors) {
+         $resData += New-Object PsObject -property @{
+                    'FileName' = $fileError.FileName
+                    'VDir' = $fileError.VDir
+                    'Error' = [string]$fileError.Error
+                    'FilePath' = [string]$fileError.FilePath
+                    'PDir' = [string]$fileError.PDir
+                    }
+       }
     }
 
     Write-Host "Exporting ${resData.Count} objects to results"
@@ -564,7 +566,8 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $report_msg = @"
 Submitting files for analysis:
     Please submit the output file for analysis in the malware analysis portal
-    in the link below with the tag "ExchangeMarchCVE".
+    in the link below. Please add the text "ExchangeMarchCVE" in
+    "Additional Information" field on the portal submission form.
         https://www.microsoft.com/en-us/wdsi/filesubmission
     Instructions on how to use the portal can be found here:
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
