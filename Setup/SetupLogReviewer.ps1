@@ -175,11 +175,17 @@ Function Test-PrerequisiteCheck {
     }
 
     if ((Test-EvaluatedSettingOrRule -SettingName "ExOrgAdmin") -eq "False") {
-        Write-Output ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) |
-            Receive-Output -ForegroundColor Red
         $sid = Get-EvaluatedSettingOrRule -SettingName "SidExOrgAdmins" -ValueType "."
-        Write-Output ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
-        return $true
+        if ($null -ne $sid) {
+            Write-Output ("User {0} isn't apart of Organization Management group." -f $currentLogOnUser) |
+                Receive-Output -ForegroundColor Red
+
+            Write-Output ("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)")
+            return $true
+        } else {
+            Write-Output ("Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet.") |
+                Receive-Output -ForegroundColor Yellow
+        }
     }
 
     return $false
@@ -210,6 +216,37 @@ Function Write-LogicalError {
     Write-Error $display
 }
 
+Function Get-FirstErrorWithContextToErrorReference {
+    param(
+        [int]$Before = 0,
+        [int]$After = 200,
+        [int]$ErrorReferenceLine
+    )
+    $allErrors = Select-String "\[ERROR\]" $SetupLog -Context $Before, $After
+    $errorContext = New-Object 'System.Collections.Generic.List[string]'
+
+    foreach ($currentError in $allErrors) {
+        if (Test-LastRunOfExchangeSetup -TestingMatchInfo $currentError) {
+
+            if ($Before -ne 0) {
+                $currentError.Context.PreContext |
+                    ForEach-Object {
+                        $errorContext.Add($_)
+                    }
+            }
+
+            $errorContext.Add($currentError.Line)
+            $linesWant = $ErrorReferenceLine - $currentError.LineNumber
+            $i = 0
+            while ($i -lt $linesWant) {
+                $errorContext.Add($currentError.Context.PostContext[$i])
+                $i++
+            }
+            return $errorContext
+        }
+    }
+}
+
 Function Test-KnownOrganizationPreparationErrors {
 
     $errorReference = Select-String "\[ERROR-REFERENCE\] Id=(.+) Component=" $SetupLog | Select-Object -Last 1
@@ -229,6 +266,26 @@ Function Test-KnownOrganizationPreparationErrors {
         [string]$ap += "`r`n`tOption 2: Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"$($errorLine.Matches.Groups[2].Value)`"' to be able address deleted objects type"
         Write-ActionPlan $ap
         return $true
+    }
+
+    #_27a706ffe123425f9ee60cb02b930e81 initialize permissions of the domain.
+    if ($errorReference.Matches.Groups[1].Value -eq "DomainGlobalConfig___27a706ffe123425f9ee60cb02b930e81") {
+        $errorContext = Get-FirstErrorWithContextToErrorReference -Before 1 -ErrorReferenceLine $errorReference.LineNumber
+        $permissionsError = $errorContext | Select-String "SecErr: DSID-03152857, problem 4003 \(INSUFF_ACCESS_RIGHTS\)"
+
+        if ($null -ne $permissionsError) {
+            $objectDN = $errorContext[0] | Select-String "Used domain controller (.+) to read object (.+)."
+
+            if ($null -ne $objectDN) {
+                Write-ErrorContext -WriteInfo ($errorContext | Select-Object -First 10)
+                [string]$ap = "We failed to have the correct permissions to write ACE to '$($objectDN.Matches.Groups[2].Value)' as the current user $Script:currentLogOnUser"
+                [string]$ap += "`r`n`t- Make sure there are no denies for this user on the object"
+                [string]$ap += "`r`n`t- By default Enterprise Admins and BUILTIN\Administrators give you the rights to do this action (dsacls 'write permissions')"
+                [string]$ap += "`r`n`t- If unable to determine the cause, you can apply FULL CONTROL to '$($objectDN.Matches.Groups[2].Value)' for the user $Script:currentLogOnUser"
+                Write-ActionPlan $ap
+                return $true
+            }
+        }
     }
 }
 
@@ -262,8 +319,10 @@ Function Test-KnownErrorReferenceSetupIssues {
 
     if ($null -ne $invalidWKObjectTargetException) {
         Write-ErrorContext -WriteInfo $invalidWKObjectTargetException.Line
-        Write-ActionPlan ("Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
-            $invalidWKObjectTargetException.Matches.Groups[4].Value)
+        $ap = "- Change the {0} object to {1}" -f $invalidWKObjectTargetException.Matches.Groups[3].Value,
+        $invalidWKObjectTargetException.Matches.Groups[4].Value
+        $ap += "`r`n`t- Another problem can be that the group is set correctly, but is mail enabled and shouldn't be."
+        Write-ActionPlan ($ap)
 
         return $true
     }
