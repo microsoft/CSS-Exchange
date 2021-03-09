@@ -199,17 +199,12 @@ process {
                 }
 
                 function Get-AgeInDays {
-                    param (
-                        [string]
-                        $dateString
-                    )
-
-                    $date = [DateTime]::MinValue
-                    if ([DateTime]::TryParse($dateString, [ref]$date)) {
-                        $age = [DateTime]::Now - $date
+                    param ( $dateString )
+                    if ( $dateString -and $dateString -as [DateTime] ) {
+                        $CURTIME = Get-Date
+                        $age = $CURTIME.Subtract($dateString)
                         return $age.TotalDays.ToString("N1")
                     }
-
                     return ""
                 }
 
