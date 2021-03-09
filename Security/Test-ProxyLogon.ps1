@@ -5,7 +5,7 @@
 # Check the local Exchange server only and save the report:
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
-# Check the local Exchange server, copy the findings to the outpath\<ComputerName>\ path
+# Check the local Exchange server, copy the files and folders to the outpath\<ComputerName>\ path
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles
 #
 # Check all Exchange servers and save the reports:
@@ -48,8 +48,8 @@ process {
 
 	.DESCRIPTION
 		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
-		Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
 
+		Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
 		The vulnerabilities are described in CVE-2021-26855, 26858, 26857, and 27065
 
 	.PARAMETER ComputerName
@@ -463,9 +463,9 @@ process {
                             New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
                         }
                         foreach ($entry in $report.Suspicious) {
-                            if (Test-Path -Path $entry) {
-                                Write-Host "  Copying $($entry.Path) to ($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
-                                Copy-Item -Path $entry.Path -Destination "($LogFileOutPath)\SuspiciousFiles"
+                            if (Test-Path -Path $entry.path) {
+                                Write-Host "  Copying $($entry.Path) to $($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
+                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles"
                             } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
