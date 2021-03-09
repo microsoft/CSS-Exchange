@@ -312,8 +312,7 @@ function PerformComparison {
                     }
 
                     if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
-                        if ($mark_as_suspicious_from -le $f.LastWriteTime)
-                        {
+                        if ($mark_as_suspicious_from -le $f.LastWriteTime) {
                             $newError = New-Object PSObject -Property @{
                                 VDir     = $vdir
                                 PDir     = $pdir
@@ -364,14 +363,13 @@ function PerformComparison {
                             }
                         }
 
-                        if ($found -eq $false)
-                        {
+                        if ($found -eq $false) {
                             $newError = New-Object PSObject -Property @{
-                                VDir = $vdir
-                                PDir = $pdir
+                                VDir     = $vdir
+                                PDir     = $pdir
                                 FileName = $f.Name
                                 FilePath = $f.FullName
-                                Error = "NoHashMatch"
+                                Error    = "NoHashMatch"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -565,16 +563,16 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
 
     $resData = @();
     $result.Keys | ForEach-Object {
-         $currentResult = $result[$_]
-	     foreach($fileError in $currentResult.FileErrors) {
-         $resData += New-Object PsObject -property @{
-                    'FileName' = $fileError.FileName
-                    'VDir'     = $fileError.VDir
-                    'Error'    = [string]$fileError.Error
-                    'FilePath' = [string]$fileError.FilePath
-                    'PDir'     = [string]$fileError.PDir
-                    }
-       }
+        $currentResult = $result[$_]
+        foreach ($fileError in $currentResult.FileErrors) {
+            $resData += New-Object PsObject -Property @{
+                'FileName' = $fileError.FileName
+                'VDir'     = $fileError.VDir
+                'Error'    = [string]$fileError.Error
+                'FilePath' = [string]$fileError.FilePath
+                'PDir'     = [string]$fileError.PDir
+            }
+        }
     }
 
     Write-Host "Exporting ${resData.Count} objects to results"
