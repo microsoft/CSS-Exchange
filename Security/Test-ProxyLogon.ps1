@@ -127,11 +127,11 @@ process {
                             [Void]$allResults.FileList.Add( $files[$i] )
 
                             Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue |
-                            Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } |
-                            Select-Object -Property $outProps |
-                            ForEach-Object{
-                                [Void]$allResults.Hits.Add( $_ )
-                            }
+                                Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } |
+                                Select-Object -Property $outProps |
+                                ForEach-Object {
+                                    [Void]$allResults.Hits.Add( $_ )
+                                }
                         }
                     }
 
