@@ -1,4 +1,4 @@
-# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 #
 # Examples
 #
@@ -41,20 +41,28 @@ process {
         <#
 	.SYNOPSIS
 		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
+
 	.DESCRIPTION
 		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
 		Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
+
 		The vulnerabilities are described in CVE-2021-26855, 26858, 26857, and 27065
+
 	.PARAMETER ComputerName
 		The list of server names to scan for signs of compromise.
 		Do not provide these by pipeline if you want parallel processing.
+
 	.PARAMETER Credential
 		Credentials to use for remote connections.
+
 	.EXAMPLE
 		PS C:\> Test-ExchangeProxyLogon
+
 		Scans the current computer for signs of ProxyLogon vulnerability compromise.
+
 	.EXAMPLE
 		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn
+
 		Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
 #>
         [CmdletBinding()]
@@ -116,17 +124,16 @@ process {
                 function Get-Cve26857 {
                     [CmdletBinding()]
                     param ()
-                        try {
-                            Get-WinEvent -FilterHashtable @{
-                                LogName      = 'Application'
-                                ProviderName = 'MSExchange Unified Messaging'
-                                Level        = '2'
-                            } -ErrorAction SilentlyContinue | Where-Object Message -Like "*System.InvalidCastException*"
-                        }
-                        catch{
-                            Write-Host "`n`r  MSExchange Unified Messaging provider is not present or events not found in the Application Event log "
-                        }
+                    try {
+                        Get-WinEvent -FilterHashtable @{
+                            LogName      = 'Application'
+                            ProviderName = 'MSExchange Unified Messaging'
+                            Level        = '2'
+                        } -ErrorAction SilentlyContinue | Where-Object Message -Like "*System.InvalidCastException*"
+                    } catch {
+                        Write-Host "  MSExchange Unified Messaging provider is not present or events not found in the Application Event log"
                     }
+                }
 
                 function Get-Cve26858 {
                     [CmdletBinding()]
@@ -255,15 +262,20 @@ process {
         <#
 	.SYNOPSIS
 		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
+
 	.DESCRIPTION
 		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
+
 	.PARAMETER InputObject
 		The reports provided by Test-ExchangeProxyLogon
+
 	.PARAMETER OutPath
 		Path to a FOLDER in which to generate output logfiles.
 		This command will only write to the console screen if no path is provided.
+
 	.EXAMPLE
 		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn | Write-ProxyLogonReport -OutPath C:\logs
+
 		Gather data from all exchange servers in the organization and write a report to C:\logs
 #>
         [CmdletBinding()]
@@ -328,11 +340,11 @@ process {
                     continue
                 }
                 if ($report.Cve26855.Count -gt 0) {
-                    Write-Host "`n`r  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
+                    Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26855.csv"
                         $report.Cve26855 | Export-Csv -Path $newFile
-                        Write-Host "`n`r  Report exported to: $newFile`n`r"
+                        Write-Host "  Report exported to: $newFile"
                     } else {
                         $report.Cve26855 | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
                     }
@@ -344,10 +356,9 @@ process {
                         }
                         foreach ($entry in $Global:HttpProxyFileList) {
                             if (Test-Path -Path $entry) {
-                            Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE26855" -ForegroundColor Green
-                            Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE26855"
-                            }
-                            else {
+                                Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE26855" -ForegroundColor Green
+                                Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE26855"
+                            } else {
                                 Write-Host "  Warning: Unable to copy file $($entry). File does not exist." -ForegroundColor Red
                             }
                         }
@@ -355,28 +366,28 @@ process {
                     Write-Host ""
                 }
                 if ($report.Cve26857.Count -gt 0) {
-                    Write-Host "`n`r   [CVE-2021-26857] Suspicious activity found in Eventlog! " -ForegroundColor Red
-                    Write-Host "  $(@($report.Cve26857).Count) events found`n`r "
+                    Write-Host "  [CVE-2021-26857] Suspicious activity found in Eventlog!" -ForegroundColor Red
+                    Write-Host "  $(@($report.Cve26857).Count) events found"
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26857.csv"
                         $report.Cve26857 | Select-Object TimeCreated, MachineName, Message | Export-Csv -Path $newFile
-                        Write-Host "Report exported to: $newFile`n`r "
+                        Write-Host "  Report exported to: $newFile"
                     }
-		    
+
                     if ($CollectFiles) {
                         Write-Host "`n`r Copying Application Event Log"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26857")) {
                             Write-Host "  Creating CVE26857 Collection Directory"
                             New-Item "$($LogFileOutPath)\CVE26857" -ItemType Directory -Force | Out-Null
                         }
-        
-                        start-process wevtutil -ArgumentList "epl Software $($LogFileOutPath)\CVE26857\Application.evtx"
+
+                        Start-Process wevtutil -ArgumentList "epl Software $($LogFileOutPath)\CVE26857\Application.evtx"
                     }
                     Write-Host ""
                 }
                 if ($report.Cve26858.Count -gt 0) {
-                    Write-Host "`n`r   [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Download failed and temporary file' entries:`n`r "
+                    Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
                     foreach ($entry in $report.Cve26858) {
                         Write-Host "   $entry"
                         if ($CollectFiles) {
@@ -388,8 +399,7 @@ process {
                             if (Test-Path -Path $entry) {
                                 Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE26858" -ForegroundColor Green
                                 Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE26858"
-                            }
-                            else {
+                            } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist.`n`r " -ForegroundColor Red
                             }
                         }
@@ -402,22 +412,21 @@ process {
                     Write-Host ""
                 }
                 if ($report.Cve27065.Count -gt 0) {
-                    Write-Host "`n`r   [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:`n`r "
+                    Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
+                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
                     foreach ($entry in $report.Cve27065) {
-                        Write-Host "   $entry`n`r "
+                        Write-Host "   $entry"
                         if ($CollectFiles) {
                             Write-Host " Copying Files:"
                             if (-not (Test-Path -Path "$($LogFileOutPath)\CVE27065")) {
-                                Write-Host " Creating CVE27065 Collection Directory`n`r"
+                                Write-Host " Creating CVE27065 Collection Directory"
                                 New-Item "$($LogFileOutPath)\CVE27065" -ItemType Directory -Force | Out-Null
                             }
                             if (Test-Path -Path $entry) {
                                 Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE27065" -ForegroundColor Green
                                 Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE27065"
-                            }
-                            else {
-                                Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist.`n`r " -ForegroundColor Red
+                            } else {
+                                Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
                         }
                     }
@@ -429,31 +438,29 @@ process {
                     Write-Host ""
                 }
                 if ($report.Suspicious.Count -gt 0) {
-                    Write-Host "`n`r   Other suspicious files found: $(@($report.Suspicious).Count) "
+                    Write-Host "  Other suspicious files found: $(@($report.Suspicious).Count)"
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-other.csv"
                         $report.Suspicious | Export-Csv -Path $newFile
-                        Write-Host "`n`r   Report exported to: $newFile`n`r "
+                        Write-Host "  Report exported to: $newFile"
                     } else {
                         foreach ($entry in $report.Suspicious) {
-                            Write-Host "`n`r    $($entry.Type) : $($entry.Path)`n`r  "
+                            Write-Host "   $($entry.Type) : $($entry.Path)"
                         }
                     }
                     if ($CollectFiles) {
-                        Write-Host " Copying Files:`n`r"
+                        Write-Host "  Copying Files:"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
-                            Write-Host "  Creating SuspiciousFiles Collection Directory`n`r"
+                            Write-Host "  Creating SuspiciousFiles Collection Directory"
                             New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
                         }
                         foreach ($entry in $report.Suspicious) {
                             if (Test-Path -Path $entry) {
                                 Write-Host "  Copying $($entry.Path) to ($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
                                 Copy-Item -Path $entry.Path -Destination "($LogFileOutPath)\SuspiciousFiles"
-                            }
-                            else {
+                            } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
-                            
                         }
                     }
                 }
@@ -466,19 +473,17 @@ process {
     if ($DisplayOnly) {
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
     } elseif ($CollectFiles) {
-        
+
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath -CollectFiles
 
-        $LogCount = (Get-ChildItem -Recurse -Path "$($OutPath)"| Measure-Object).Count
+        $LogCount = (Get-ChildItem -Recurse -Path "$($OutPath)" | Measure-Object).Count
 
         if ($LogCount -gt 0) {
             Write-Host "`n`rLog Collection process complete. Review the files in $($OutPath)"
-        }
-        else {
+        } else {
             Write-Host "`n`rProcess complete."
         }
-    }
-    else {
+    } else {
         $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
     }
 }
