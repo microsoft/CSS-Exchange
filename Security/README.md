@@ -8,7 +8,7 @@ Download the latest release here:
 
 [Download Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
-The most typical usage of this script is to check all Exchange servers and save the output,
+The most typical usage of this script is to check all Exchange servers and save the reports,
 by using the following syntax from Exchange Management Shell:
 
 `Get-ExchangeServer | .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
@@ -16,6 +16,10 @@ by using the following syntax from Exchange Management Shell:
 To check the local server only, just run the script:
 
 `.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs`
+
+To check the local server and copy the identified logs and files to the OutPath:
+
+`.\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles`
 
 To display the results without saving them, pass -DisplayOnly:
 
@@ -74,28 +78,29 @@ To rollback multiple or specific mitigations
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
 ## CompareExchangeHashes.ps1
+
 This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
-For more information please go to https://aka.ms/exchangevulns
+For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/exchangevulns).
+
+[Download CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
+
+`.\CompareExchangeHashes.ps1`
 
 The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
-**This script needs to be run as administrator**
+**This script needs to be run as administrator**.
 
-The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest)
+The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
 
 The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
 If potential malicious files are found during comparision there is an error generated on the cmdline.
 
-To read the output:
-    Open the result csv file in excel or in powershell:
-    `$result = Import-Csv <Path to result file>
+To read the output, open the result csv file in excel or in powershell:
+
+`$result = Import-Csv <Path to result file>`
 
 Submitting files for analysis:
 * Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
-* Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide)
-
-[Download CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/download/v21.03.08.2328/CompareExchangeHashes.ps1)
-
-`.\CompareExchangeHashes.ps1
+* Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide).
 
 ## BackendCookieMitigation.ps1
 
