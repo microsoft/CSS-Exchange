@@ -449,7 +449,7 @@ process {
                         }
                     }
                     if ($CollectFiles) {
-                        Write-Host "  Copying Files:"
+                        Write-Host " Copying Files:"
                         if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
                             Write-Host "  Creating SuspiciousFiles Collection Directory"
                             New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
