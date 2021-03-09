@@ -345,7 +345,7 @@ function PerformComparison {
                                 PDir     = $pdir
                                 FileName = $f.Name
                                 FilePath = $f.FullName
-                                Error    = "KnowBadHash"
+                                Error    = "KnownBadHash"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -523,35 +523,30 @@ function LoadBaseline($installed_versions) {
         $filename = (Join-Path (GetCurrDir) $filename)
         $zip_file = "${filename}.zip"
 
-        $zipfile_uptodate = $false
-        $loaded_zip = $false
-
         if (-not (Test-Path $zip_file)) {
             Write-Host "Can't find local baseline for $version"
             $zip_file_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$zip_file_name"
-            $loaded_zip = LoadFromGitHub -url $zip_file_url -filename $zip_file -installed_versions $installed_versions
+            LoadFromGitHub -url $zip_file_url -filename $zip_file -installed_versions $installed_versions
         }
 
-        if ($loaded_zip -or $zipfile_uptodate) {
-            if (Get-Command Expand-Archive -EA SilentlyContinue) {
-                Expand-Archive -Path $zip_file -DestinationPath $filename -Force | Out-Null
-            } else {
-                [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" ) | Out-Null
-                if (Test-Path  $filename) {
-                    Remove-Item $filename -Confirm:$false -Force -Recurse
-                }
-
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename) | Out-Null
+        if (Get-Command Expand-Archive -EA SilentlyContinue) {
+            Expand-Archive -Path $zip_file -DestinationPath $filename -Force | Out-Null
+        } else {
+            [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" ) | Out-Null
+            if (Test-Path  $filename) {
+                Remove-Item $filename -Confirm:$false -Force -Recurse
             }
 
-            $csv_file = Get-ChildItem $filename | Select-Object -First 1 | Select-Object FullName
-            $baselines = Get-Content $csv_file.FullName
-            $processed_baselines = PreProcessBaseline $baselines
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zip_file, $filename) | Out-Null
+        }
 
-            foreach ($k in $processed_baselines.Keys) {
-                Write-Host "Loaded baseline for $k, hashes number $($processed_baselines[$k].Count)"
-                $data[$k] = $processed_baselines[$k]
-            }
+        $csv_file = Get-ChildItem $filename | Select-Object -First 1 | Select-Object FullName
+        $baselines = Get-Content $csv_file.FullName
+        $processed_baselines = PreProcessBaseline $baselines
+
+        foreach ($k in $processed_baselines.Keys) {
+            Write-Host "Loaded baseline for $k, hashes number $($processed_baselines[$k].Count)"
+            $data[$k] = $processed_baselines[$k]
         }
     }
 
