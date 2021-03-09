@@ -63,7 +63,7 @@ Exchange 2013 Versions < 15.00.1497.012, Exchange 2016 CU18 < 15.01.2106.013, Ex
   local response = http.generic_request(host, port, method, path, { header = header })
   local target = response.header['x-calculatedbetarget']
   
-  if response and response.status == 500 and string.match(target,'localhost') then
+  if response and string.match(target,'localhost') then
     vuln.state = vulns.STATE.VULN
   end
 
