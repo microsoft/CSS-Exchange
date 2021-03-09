@@ -183,7 +183,6 @@ process {
                 function Get-AgeInDays {
                     param ( $dateString )
                     if ( $dateString -and $dateString -as [DateTime] ) {
-                        [System.Globalization.CultureInfo]$provider = [System.Globalization.CultureInfo]::InvariantCulture
                         $CURTIME = Get-Date
                         $age = $CURTIME.Subtract($dateString)
                         return $age.TotalDays.ToString("N1")
