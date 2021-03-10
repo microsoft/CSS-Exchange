@@ -28,8 +28,8 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
-    Where-Object {! $_.Name.Contains(".Tests.ps1")}
-    Sort-Object Name |
+    Where-Object { ! $_.Name.Contains(".Tests.ps1") }
+Sort-Object Name |
     ForEach-Object { $_.FullName }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
@@ -107,7 +107,7 @@ $scriptFiles | ForEach-Object {
             $linesToInsert += ""
             $linesToInsert += "`$$($m.Matches[0].Groups[1].Value) = [Convert]::FromBase64String(`$$($m.Matches[0].Groups[1].Value)Base64)"
             $scriptContent.InsertRange($i, $linesToInsert)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $dotloadedScriptPath))
+            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $filePath))
 
             if ($commitTimeTest -gt $commitTime) {
                 $commitTime = $commitTimeTest
