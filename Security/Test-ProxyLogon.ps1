@@ -184,7 +184,7 @@ process {
                     [CmdletBinding()]
                     param ()
 
-                    $zipFilter = "*.7z", "*,zip", "*.rar"
+                    $zipFilter = ".7z", ".zip", ".rar"
                     $dmpFilter = "lsass.*dmp"
                     $dmpPaths  = "c:\root", "$env:WINDIR\temp"
 
@@ -198,13 +198,15 @@ process {
                         }
                     }
 
-                    Get-ChildItem -Path $env:ProgramData -Include $zipFilter -Recurse -ErrorAction SilentlyContinue |
+                    Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
                     ForEach-Object{
-                        [PSCustomObject]@{
-                            ComputerName = $env:COMPUTERNAME
-                            Type         = 'SuspiciousArchive'
-                            Path         = $_.FullName
-                            Name         = $_.Name
+                        If( $_.Extension -in $zipFilter ) {
+                            [PSCustomObject]@{
+                                ComputerName = $env:COMPUTERNAME
+                                Type         = 'SuspiciousArchive'
+                                Path         = $_.FullName
+                                Name         = $_.Name
+                            }
                         }
                     }
                 }
