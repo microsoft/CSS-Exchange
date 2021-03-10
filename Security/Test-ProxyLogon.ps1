@@ -518,5 +518,10 @@ process {
 }
 end {
     if ($Export) { return }
-    Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+
+    if ($computerTargets.Length -lt 1) {
+        Test-ExchangeProxyLogon @paramTest | Write-ProxyLogonReport @paramWrite
+    } else {
+        Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+    }
 }
