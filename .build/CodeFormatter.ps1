@@ -1,11 +1,13 @@
 [CmdletBinding()]
 param(
+    [Switch]
+    $Save
 )
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object { $_.Name -ne ".build" -and
-    $_.Name -ne "dist"} | ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } | ForEach-Object { $_.FullName }
+    $_.Name -ne "dist" } | ForEach-Object { Get-ChildItem -Path $_.FullName -Include "*.ps1", "*.psm1" -Recurse } | ForEach-Object { $_.FullName }
 $filesFailed = $false
 
 foreach ($file in $scriptFiles) {
@@ -20,7 +22,12 @@ foreach ($file in $scriptFiles) {
 
         if ($scriptFormatter.StringContent -cne $scriptFormatter.FormattedScript) {
             Write-Host ("Failed to follow the same format defined in the repro")
-            git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
+            if ($Save) {
+                Set-Content -Path $file -Value $scriptFormatter.FormattedScript -Encoding utf8BOM
+                Write-Host "Saved $file with formatting corrections."
+            } else {
+                git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
+            }
         }
 
         if ($null -ne $scriptFormatter.AnalyzedResults) {

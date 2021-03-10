@@ -28,13 +28,8 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
-    Sort-Object Name |
-    ForEach-Object { $_.FullName }
-
-$otherFiles = Get-ChildItem -Path $repoRoot -Directory |
-    Where-Object { $_.Name -ne ".build" } |
-    ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |
-    Sort-Object Name |
+    Where-Object { ! $_.Name.Contains(".Tests.ps1") }
+Sort-Object Name |
     ForEach-Object { $_.FullName }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
@@ -112,7 +107,7 @@ $scriptFiles | ForEach-Object {
             $linesToInsert += ""
             $linesToInsert += "`$$($m.Matches[0].Groups[1].Value) = [Convert]::FromBase64String(`$$($m.Matches[0].Groups[1].Value)Base64)"
             $scriptContent.InsertRange($i, $linesToInsert)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $dotloadedScriptPath))
+            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $filePath))
 
             if ($commitTimeTest -gt $commitTime) {
                 $commitTime = $commitTimeTest
@@ -121,11 +116,23 @@ $scriptFiles | ForEach-Object {
         }
     }
 
-    Write-Host ("Setting version for script '$_' to '$($commitTime.ToString("yy.MM.dd.HHmm"))'")
-    $version = "# Version $($commitTime.ToString("yy.MM.dd.HHmm"))"
-    # Stamp version
+    $buildVersionString = $commitTime.ToString("yy.MM.dd.HHmm")
+    Write-Host ("Setting version for script '$_' to $buildVersionString")
+
+    # Set version variable if present
+    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
+        $line = $scriptContent[$i]
+        if ($line.Contains("`$BuildVersion = `"`"")) {
+            $newLine = $line.Replace("`$BuildVersion = `"`"", "`$BuildVersion = `"$buildVersionString`"")
+            Write-Host $newLine
+            $scriptContent.RemoveAt($i)
+            $scriptContent.Insert($i, $newLine)
+        }
+    }
+
+    # Stamp version in comments
     $scriptContent.Insert(0, "")
-    $scriptContent.Insert(0, $version)
+    $scriptContent.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
     $scriptContent.Insert(0, "")
@@ -135,6 +142,21 @@ $scriptFiles | ForEach-Object {
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
+
+$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\Baselines" -Filter *.csv
+
+$csvHashFiles | ForEach-Object {
+    $zipFilePath = "$distFolder\$($_.BaseName).zip"
+    Compress-Archive -Path $_.FullName -DestinationPath $zipFilePath
+    $hash = Get-Item $zipFilePath | Get-FileHash
+    $hash.Hash | Out-File "$distFolder\$($_.BaseName).checksum.txt"
+}
+
+$otherFiles = Get-ChildItem -Path $repoRoot -Directory |
+    Where-Object { $_.Name -ne ".build" } |
+    ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |
+    Sort-Object Name |
+    ForEach-Object { $_.FullName }
 
 $otherFiles | ForEach-Object {
     Copy-Item $_ $distFolder

@@ -21,7 +21,7 @@ local string = require "string"
 -- |     State: VULNERABLE
 -- |     IDs:  CVE:CVE-2021-26855
 -- |
--- |     Disclosure date: 2021-03-09
+-- |     Disclosure date: 2021-03-02
 -- |     References:
 -- |       http://aka.ms/exchangevulns
 --
@@ -47,7 +47,7 @@ Exchange 2013 Versions < 15.00.1497.012, Exchange 2016 CU18 < 15.01.2106.013, Ex
         'http://aka.ms/exchangevulns'
     },
     dates = {
-        disclosure = { year = '2021', month = '03', day = '09' }
+        disclosure = { year = '2021', month = '03', day = '02' }
     }
   }
 
@@ -61,8 +61,9 @@ Exchange 2013 Versions < 15.00.1497.012, Exchange 2016 CU18 < 15.01.2106.013, Ex
   }
 
   local response = http.generic_request(host, port, method, path, { header = header })
+  local target = response.header['x-calculatedbetarget']
   
-  if response and response.status == 500 and response.body:find('NegotiateSecurityContext', 1, true) then
+  if response and target and string.match(target,'localhost') then
     vuln.state = vulns.STATE.VULN
   end
 
