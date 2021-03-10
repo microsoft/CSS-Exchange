@@ -19,6 +19,7 @@
 [CmdletBinding(DefaultParameterSetName = "AsScript")]
 param (
     [Parameter(ParameterSetName = "AsScript", ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [Alias('Fqdn')]
     [string[]]
     $ComputerName,
 
@@ -36,11 +37,14 @@ param (
 
     [Parameter(ParameterSetName = 'AsModule')]
     [switch]
-    $Export
+    $Export,
+
+    [Parameter(ParameterSetName = "AsScript")]
+    [System.Management.Automation.PSCredential]
+    $Credential
 )
-
-process {
-
+begin {
+    #region Functions
     function Test-ExchangeProxyLogon {
         <#
 	.SYNOPSIS
@@ -261,7 +265,7 @@ process {
             $parameters = @{
                 ScriptBlock = $scriptBlock
             }
-            if ($Credential) { $parameters.Credential = $Credential }
+            if ($Credential) { $parameters['Credential'] = $Credential }
         }
         process {
             if ($null -ne $ComputerName) {
@@ -482,17 +486,35 @@ process {
             }
         }
     }
+    #endregion Functions
+
+    $paramTest = @{ }
+    if ($Credential) { $paramTest['Credential'] = $Credential }
+    $paramWrite = @{
+        OutPath = $OutPath
+    }
+    if ($CollectFiles) { $paramWrite['CollectFiles'] = $true }
+    if ($DisplayOnly) {
+        $paramWrite = @{ DisplayOnly = $true}
+    }
+
+    $computerTargets = New-Object System.Collections.ArrayList
+}
+process {
 
     if ($Export) {
         Set-Item function:global:Test-ExchangeProxyLogon (Get-Command Test-ExchangeProxyLogon)
         Set-Item function:global:Write-ProxyLogonReport (Get-Command Write-ProxyLogonReport)
-    } else {
-        if ($DisplayOnly) {
-            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -DisplayOnly
-        } elseif ($CollectFiles) {
-            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath -CollectFiles
-        } else {
-            $ComputerName | Test-ExchangeProxyLogon | Write-ProxyLogonReport -OutPath $OutPath
-        }
+        return
     }
+
+    # Gather up computer targets as they are piped into the command.
+    # Passing them to Test-ExchangeProxyLogon in one batch ensures parallel processing
+    foreach ($computer in $ComputerName) {
+        $null = $computerTargets.Add($computer)
+    }
+}
+end {
+    if ($Export) { return }
+    Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
 }
