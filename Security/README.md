@@ -1,6 +1,6 @@
 # Security scripts
 
-## Test-ProxyLogon.ps1
+## [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
 Formerly known as Test-Hafnium, this script automates all four of the commands found in the [Hafnium blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/). It also has a progress bar and some performance tweaks to make the CVE-2021-26855 test run much faster.
 
@@ -25,7 +25,7 @@ To display the results without saving them, pass -DisplayOnly:
 
 `.\Test-ProxyLogon.ps1 -DisplayOnly`
 
-## ExchangeMitigations.ps1
+## [ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
 This script contains 4 mitigations to help address the following vulnerabilities:
 
 * CVE-2021-26855
@@ -77,7 +77,7 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
-## CompareExchangeHashes.ps1
+## [CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
 
 This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
 For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/exchangevulns).
@@ -104,7 +104,7 @@ Submitting files for analysis:
 * Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
 * Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide).
 
-## BackendCookieMitigation.ps1
+## [BackendCookieMitigation.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
 
 This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in CVE-2021-26855.
 
@@ -142,7 +142,7 @@ To rollback - Note: This does not remove the IIS Rewrite module, only the rules.
 
 `PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -RollbackMitigation -Verbose`
 
-## http-vuln-cve2021-26855.nse
+## [http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
 
 This file is for use with nmap. It detects whether the specified URL is vulnerable to the Exchange Server SSRF Vulnerability (CVE-2021-26855).
 For usage information, please read the top of the file.
