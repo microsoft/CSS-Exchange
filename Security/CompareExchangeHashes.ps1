@@ -50,7 +50,7 @@
 
 $ErrorActionPreference = 'Stop';
 
-$SCRIPT_VERSION = "1.0.0.3"
+$BuildVersion = ""
 
 # use native powershell types
 $KNOWN_BAD_HASH = @{ `
@@ -164,25 +164,19 @@ $VALID_VERSIONS = @{ `
         '15.1.1979.6'  = $true; `
         '15.1.2044.12' = $true; `
         '15.1.2044.4'  = $true; `
-        '15.1.2044.6'  = $true; `
-        '15.1.2044.7'  = $true; `
-        '15.1.2044.8'  = $true; `
-        '15.1.2106.13' = $true; `
-        '15.1.2106.2'  = $true; `
-        '15.1.2106.3'  = $true; `
-        '15.1.2106.4'  = $true; `
-        '15.1.2106.6'  = $true; `
-        '15.1.2106.8'  = $true; `
-        '15.1.2176.2'  = $true; `
-        '15.1.2176.4'  = $true; `
-        '15.1.2176.9'  = $true; `
-        '15.1.2242.4'  = $true; `
-        '15.1.225.16'  = $true; `
-        '15.1.225.42'  = $true; `
-        '15.1.396.30'  = $true; `
-        '15.1.466.34'  = $true; `
-        '15.1.544.27'  = $true; `
-        '15.1.669.32'  = $true; `
+        '15.1.1979.3'  = $true; `
+        '15.1.1913.7'  = $true; `
+        '15.1.1913.5'  = $true; `
+        '15.1.1847.3'  = $true; `
+        '15.1.1779.2'  = $true; `
+        '15.1.1713.5'  = $true; `
+        '15.1.1591.10' = $true; `
+        '15.1.1531.3'  = $true; `
+        '15.1.1466.3'  = $true; `
+        '15.1.1415.2'  = $true; `
+        '15.1.1261.35' = $true; `
+        '15.1.1034.33' = $true; `
+        '15.1.1034.26' = $true; `
         '15.1.845.34'  = $true; `
 
     #E13
@@ -223,13 +217,31 @@ $VALID_VERSIONS = @{ `
         '15.0.1497.6'  = $true; `
         '15.0.1497.7'  = $true; `
         '15.0.1497.8'  = $true; `
-        '15.0.516.30'  = $true; `
-        '15.0.516.32'  = $true; `
-        '15.0.620.29'  = $true; `
-        '15.0.712.24'  = $true; `
-        '15.0.775.38'  = $true; `
-        '15.0.847.32'  = $true; `
-        '15.0.913.22'  = $true; `
+        '15.0.1497.7'  = $true; `
+        '15.0.1497.6'  = $true; `
+        '15.0.1497.4'  = $true; `
+        '15.0.1497.3'  = $true; `
+        '15.0.1497.2'  = $true; `
+        '15.0.1497.0'  = $true; `
+        '15.0.1473.3'  = $true; `
+        '15.0.1395.8'  = $true; `
+        '15.0.1395.7'  = $true; `
+        '15.0.1395.4'  = $true; `
+        '15.0.1367.3'  = $true; `
+        '15.0.1365.1'  = $true; `
+        '15.0.1347.2'  = $true; `
+        '15.0.1320.4'  = $true; `
+        '15.0.1293.2'  = $true; `
+        '15.0.1263.5'  = $true; `
+        '15.0.1236.3'  = $true; `
+        '15.0.1210.3'  = $true; `
+        '15.0.1178.4'  = $true; `
+        '15.0.1156.6'  = $true; `
+        '15.0.1130.10' = $true; `
+        '15.0.1130.7'  = $true; `
+        '15.0.1104.5'  = $true; `
+        '15.0.1076.9'  = $true; `
+        '15.0.1044.25' = $true; `
         '15.0.995.29'  = $true; `
 
     #E10
@@ -314,16 +326,39 @@ function PerformComparison {
                 if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
                     $inetpub_files = (Get-ChildItem -Recurse -Path $pdir -File -Exclude *aspx, *asmx, *asax, *js, *css, *htm, *html)
                     foreach ($f in $inetpub_files) {
-                        if ($mark_as_suspicious_from -le $f.LastWriteTime) {
+
+                        $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
+
+                        if ($null -eq $hash) {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
-                                FileName = $f.Name
-                                FilePath = $f.FullName
-                                Error    = "Suspicious"
+                                VDir              = $vdir
+                                PDir              = $pdir
+                                FileName          = $f.Name
+                                FilePath          = $f.FullName
+                                FileHash          = ""
+                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                Error             = "ReadError"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
+                        } else {
+                            if ($mark_as_suspicious_from -le $f.LastWriteTime) {
+                                $newError = New-Object PSObject -Property @{
+                                    VDir              = $vdir
+                                    PDir              = $pdir
+                                    FileName          = $f.Name
+                                    FilePath          = $f.FullName
+                                    FileHash          = $hash.Hash
+                                    CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                                    LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                                    LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                    Error             = "Suspicious"
+                                }
+                                $fErrors += $newError;
+                                $errHappend = $true
+                            }
                         }
                     }
                 }
@@ -333,14 +368,35 @@ function PerformComparison {
                         continue;
                     }
 
+                    $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
+                    if ($null -eq $hash) {
+                        $newError = New-Object PSObject -Property @{
+                            VDir              = $vdir
+                            PDir              = $pdir
+                            FileName          = $f.Name
+                            FilePath          = $f.FullName
+                            FileHash          = $hash.Hash
+                            CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                            LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                            LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                            Error             = "ReadError"
+                        }
+                        $fErrors += $newError;
+                        $errHappend = $true
+                    }
+
                     if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
                         if ($mark_as_suspicious_from -le $f.LastWriteTime) {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
-                                FileName = $f.Name
-                                FilePath = $f.FullName
-                                Error    = "Suspicious"
+                                VDir              = $vdir
+                                PDir              = $pdir
+                                FileName          = $f.Name
+                                FilePath          = $f.FullName
+                                FileHash          = $hash.Hash
+                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                Error             = "Suspicious"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -351,27 +407,18 @@ function PerformComparison {
                         continue;
                     }
 
-                    $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
-                    if ($null -eq $hash) {
-                        $newError = New-Object PSObject -Property @{
-                            VDir     = $vdir
-                            PDir     = $pdir
-                            FileName = $f.Name
-                            FilePath = $f.FullName
-                            Error    = "ReadError"
-                        }
-                        $fErrors += $newError;
-                        $errHappend = $true
-                    }
-
                     if ($hash.Hash) {
                         if ($known_bad[$hash.Hash]) {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
-                                FileName = $f.Name
-                                FilePath = $f.FullName
-                                Error    = "KnownBadHash"
+                                VDir              = $vdir
+                                PDir              = $pdir
+                                FileName          = $f.Name
+                                FilePath          = $f.FullName
+                                FileHash          = $hash.Hash
+                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                Error             = "KnownBadHash"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -391,11 +438,15 @@ function PerformComparison {
 
                         if ($found -eq $false) {
                             $newError = New-Object PSObject -Property @{
-                                VDir     = $vdir
-                                PDir     = $pdir
-                                FileName = $f.Name
-                                FilePath = $f.FullName
-                                Error    = "NoHashMatch"
+                                VDir              = $vdir
+                                PDir              = $pdir
+                                FileName          = $f.Name
+                                FilePath          = $f.FullName
+                                FileHash          = $hash.Hash
+                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                Error             = "NoHashMatch"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
@@ -456,7 +507,9 @@ function LoadFromGitHub($url, $filename, $installed_versions) {
 
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest"
+
+        # this file is only used for network connectivity test
+        Invoke-WebRequest -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/baseline_15.0.1044.25.checksum.txt"
     } catch {
         Write-Error "Cannot reach out to https://github.com/microsoft/CSS-Exchange/releases/latest, please download baseline files for $installed_versions from https://github.com/microsoft/CSS-Exchange/releases/latest manually to $(GetCurrDir), then rerun this script from $(GetCurrDir)."
     }
@@ -531,7 +584,6 @@ function GetVdirBatches {
     $i = 0
     $batchSize = 10
     $logs = & (Join-Path $env:Windir "system32\inetsrv\appcmd.exe") LIST VDIRS
-
     $logs | ForEach-Object {
         $bt = $i % $batchSize
         $grps[$bt] += @($_)
@@ -587,11 +639,15 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $currentResult = $result[$_]
         foreach ($fileError in $currentResult.FileErrors) {
             $resData += New-Object PsObject -Property @{
-                'FileName' = $fileError.FileName
-                'VDir'     = $fileError.VDir
-                'Error'    = [string]$fileError.Error
-                'FilePath' = [string]$fileError.FilePath
-                'PDir'     = [string]$fileError.PDir
+                'FileName'          = $fileError.FileName
+                'VDir'              = $fileError.VDir
+                'Error'             = [string]$fileError.Error
+                'FilePath'          = [string]$fileError.FilePath
+                'FileHash'          = [string]$fileError.FileHash
+                'CreationTimeUtc'   = [string]$fileError.CreationTimeUtc
+                'LastWriteTimeUtc'  = [string]$fileError.LastWriteTimeUtc
+                'LastAccessTimeUtc' = [string]$fileError.LastAccessTimeUtc
+                'PDir'              = [string]$fileError.PDir
             }
         }
     }
@@ -606,7 +662,7 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $msg += ' One or more potentially malicious files found, please inspect the result file.'
         $msg += " ExchangeVersion: $exchVersion"
         $msg += " OSVersion: $([environment]::OSVersion.Version)"
-        $msg += " ScriptVersion: $SCRIPT_VERSION"
+        $msg += " ScriptVersion: $BuildVersion"
         $report_msg = @"
 Submitting files for analysis:
     Please submit the output file for analysis in the malware analysis portal

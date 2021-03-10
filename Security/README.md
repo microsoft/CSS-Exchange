@@ -98,6 +98,8 @@ To read the output, open the result csv file in excel or in powershell:
 
 `$result = Import-Csv <Path to result file>`
 
+Note: If the server does not have internet connectivity, run the script which would output the exchange versions discovered on the server. The baselines can be downloaded from [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest) and re-run the script.
+
 Submitting files for analysis:
 * Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
 * Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide).
