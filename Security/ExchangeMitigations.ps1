@@ -278,7 +278,7 @@ Function BackendCookieMitigation {
         Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
 
         #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
-        $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
+        $RewriteModule = Get-InstalledSoftware -Name IIS | Where-Object { $_.Name -like "*URL*" -and $_.Name -like "*2*" }
         $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
 
         $RewriteModuleInstallLog = ($PSScriptRoot + '\' + 'RewriteModuleInstallLog.log')
