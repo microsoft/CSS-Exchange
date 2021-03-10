@@ -118,6 +118,7 @@ $KNOWN_ROOT_FILES = @{ `
 
 $VALID_VERSIONS = @{ `
         # E19
+        '15.2.858.5'   = $true; `
         '15.2.792.5'   = $true; `
         '15.2.792.3'   = $true; `
         '15.2.721.13'  = $true; `
@@ -132,7 +133,9 @@ $VALID_VERSIONS = @{ `
         '15.2.659.7'   = $true; `
         '15.2.659.6'   = $true; `
         '15.2.659.4'   = $true; `
+        '15.2.595.6'   = $true; `
         '15.2.595.3'   = $true; `
+        '15.2.529.11'  = $true; `
         '15.2.529.5'   = $true; `
         '15.2.464.5'   = $true; `
         '15.2.397.3'   = $true; `
@@ -141,7 +144,8 @@ $VALID_VERSIONS = @{ `
         '15.2.196.0'   = $true; `
 
     #E16
-    '15.1.2176.9'      = $true; `
+    '15.1.2242.4'      = $true; `
+        '15.1.2176.9'  = $true; `
         '15.1.2176.4'  = $true; `
         '15.1.2176.2'  = $true; `
         '15.1.2106.13' = $true; `
@@ -155,8 +159,14 @@ $VALID_VERSIONS = @{ `
         '15.1.2044.7'  = $true; `
         '15.1.2044.6'  = $true; `
         '15.1.2044.4'  = $true; `
+        '15.1.1979.6'  = $true; `
         '15.1.1979.3'  = $true; `
+        '15.1.1913.10' = $true; `
+        '15.1.1913.7'  = $true; `
         '15.1.1913.5'  = $true; `
+        '15.1.1847.10' = $true; `
+        '15.1.1847.7'  = $true; `
+        '15.1.1847.5'  = $true; `
         '15.1.1847.3'  = $true; `
         '15.1.1779.2'  = $true; `
         '15.1.1713.5'  = $true; `
@@ -185,12 +195,21 @@ $VALID_VERSIONS = @{ `
         '15.0.1497.3'  = $true; `
         '15.0.1497.2'  = $true; `
         '15.0.1497.0'  = $true; `
+        '15.0.1473.5'  = $true; `
+        '15.0.1473.4'  = $true; `
         '15.0.1473.3'  = $true; `
+        '15.0.1395.10' = $true; `
         '15.0.1395.8'  = $true; `
         '15.0.1395.7'  = $true; `
+        '15.0.1395.6'  = $true; `
         '15.0.1395.4'  = $true; `
+        '15.0.1367.9'  = $true; `
+        '15.0.1367.6'  = $true; `
         '15.0.1367.3'  = $true; `
+        '15.0.1365.7'  = $true; `
         '15.0.1365.1'  = $true; `
+        '15.0.1347.5'  = $true; `
+        '15.0.1347.3'  = $true; `
         '15.0.1347.2'  = $true; `
         '15.0.1320.4'  = $true; `
         '15.0.1293.2'  = $true; `
@@ -247,8 +266,7 @@ $VALID_VERSIONS = @{ `
         '14.3.169.1'   = $true; `
         '14.3.158.1'   = $true; `
         '14.3.146.0'   = $true; `
-
-    '14.3.123.4'       = $true; `
+        '14.3.123.4'   = $true; `
 
 }
 
@@ -603,17 +621,21 @@ function LoadBaseline($installed_versions) {
 
 function WriteScriptResult ($result, $exchVersion, $errFound) {
     $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.csv")
-
     $resData = @();
     $result.Keys | ForEach-Object {
         $currentResult = $result[$_]
+        $file_hash = ""
+        if ($null -ne $fileError.FileHash) {
+            $file_hash = $fileError.FileHash
+        }
+
         foreach ($fileError in $currentResult.FileErrors) {
             $resData += New-Object PsObject -Property @{
                 'FileName'          = $fileError.FileName
                 'VDir'              = $fileError.VDir
                 'Error'             = [string]$fileError.Error
                 'FilePath'          = [string]$fileError.FilePath
-                'FileHash'          = [string]$fileError.FileHash
+                'FileHash'          = [string]$file_hash
                 'CreationTimeUtc'   = [string]$fileError.CreationTimeUtc
                 'LastWriteTimeUtc'  = [string]$fileError.LastWriteTimeUtc
                 'LastAccessTimeUtc' = [string]$fileError.LastAccessTimeUtc
@@ -634,12 +656,12 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $msg += " OSVersion: $([environment]::OSVersion.Version)"
         $msg += " ScriptVersion: $BuildVersion"
         $report_msg = @"
-Submitting files for analysis:
-    Please submit the output file for analysis in the malware analysis portal
-    in the link below. Please add the text "ExchangeMarchCVE" in
-    "Additional Information" field on the portal submission form.
+        Submitting files for analysis:
+        Please submit the output file for analysis in the malware analysis portal
+        in the link below. Please add the text 'ExchangeMarchCVE' in
+        'Additional Information' field on the portal submission form.
         https://www.microsoft.com/en-us/wdsi/filesubmission
-    Instructions on how to use the portal can be found here:
+        Instructions on how to use the portal can be found here:
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
 "@
 
