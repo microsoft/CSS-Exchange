@@ -285,7 +285,7 @@ $VALID_VERSIONS = @{ `
 
 }
 
-$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020")
+$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Year "2020" -Month "12" -Day "01")
 
 function PerformComparison {
     [CmdletBinding()]
@@ -345,11 +345,6 @@ function PerformComparison {
                     foreach ($f in $inetpub_files) {
 
                         $hash = GetFileHash $f.FullName
-
-                        $creation_time = Get-Date ($f.CreationTimeUtc)
-                        $lastwrite_time = Get-Date ($f.LastWriteTimeUtc)
-                        $lastaccess_time = Get-Date ($f.LastAccessTimeUtc)
-
                         if ([string]::IsNullOrEmpty($hash)) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
@@ -357,24 +352,24 @@ function PerformComparison {
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
                                 FileHash          = ""
-                                CreationTimeUtc   = $creation_time
-                                LastWriteTimeUtc  = $lastwrite_time
-                                LastAccessTimeUtc = $lastaccess_time
+                                CreationTimeUtc   = $f.CreationTimeUtc
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc
                                 Error             = "ReadError"
                             }
                             $fErrors += $newError;
                             $errHappend = $true
                         } else {
-                            if ($mark_as_suspicious_from -le $lastwrite_time) {
+                            if ($mark_as_suspicious_from -le $f.LastWriteTimeUtc) {
                                 $newError = New-Object PSObject -Property @{
                                     VDir              = $vdir
                                     PDir              = $pdir
                                     FileName          = $f.Name
                                     FilePath          = $f.FullName
                                     FileHash          = $hash
-                                    CreationTimeUtc   = $creation_time
-                                    LastWriteTimeUtc  = $lastwrite_time
-                                    LastAccessTimeUtc = $lastaccess_time
+                                    CreationTimeUtc   = $f.CreationTimeUtc
+                                    LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                    LastAccessTimeUtc = $f.LastAccessTimeUtc
                                     Error             = "Suspicious"
                                 }
                                 $fErrors += $newError;
@@ -389,12 +384,7 @@ function PerformComparison {
                         continue;
                     }
 
-                    $creation_time = Get-Date ($f.CreationTimeUtc)
-                    $lastwrite_time = Get-Date ($f.LastWriteTimeUtc)
-                    $lastaccess_time = Get-Date ($f.LastAccessTimeUtc)
-
                     $hash = GetFileHash $f.FullName
-
                     if ([string]::IsNullOrEmpty($hash)) {
                         $newError = New-Object PSObject -Property @{
                             VDir              = $vdir
@@ -402,9 +392,9 @@ function PerformComparison {
                             FileName          = $f.Name
                             FilePath          = $f.FullName
                             FileHash          = ""
-                            CreationTimeUtc   = $creation_time
-                            LastWriteTimeUtc  = $lastwrite_time
-                            LastAccessTimeUtc = $lastaccess_time
+                            CreationTimeUtc   = $f.CreationTimeUtc
+                            LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                            LastAccessTimeUtc = $f.LastAccessTimeUtc
                             Error             = "ReadError"
                         }
                         $fErrors += $newError;
@@ -412,16 +402,16 @@ function PerformComparison {
                     }
 
                     if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
-                        if ($mark_as_suspicious_from -le $lastwrite_time) {
+                        if ($mark_as_suspicious_from -le $f.LastWriteTimeUtc) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
                                 PDir              = $pdir
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
                                 FileHash          = $hash
-                                CreationTimeUtc   = $creation_time
-                                LastWriteTimeUtc  = $lastwrite_time
-                                LastAccessTimeUtc = $lastaccess_time
+                                CreationTimeUtc   = $f.CreationTimeUtc
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc
                                 Error             = "Suspicious"
                             }
                             $fErrors += $newError;
@@ -441,9 +431,9 @@ function PerformComparison {
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
                                 FileHash          = $hash
-                                CreationTimeUtc   = $creation_time
-                                LastWriteTimeUtc  = $lastwrite_time
-                                LastAccessTimeUtc = $lastaccess_time
+                                CreationTimeUtc   = $f.CreationTimeUtc
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc
                                 Error             = "KnownBadHash"
                             }
                             $fErrors += $newError;
@@ -469,9 +459,9 @@ function PerformComparison {
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
                                 FileHash          = $hash
-                                CreationTimeUtc   = $creation_time
-                                LastWriteTimeUtc  = $lastwrite_time
-                                LastAccessTimeUtc = $lastaccess_time
+                                CreationTimeUtc   = $f.CreationTimeUtc
+                                LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                LastAccessTimeUtc = $f.LastAccessTimeUtc
                                 Error             = "NoHashMatch"
                             }
                             $fErrors += $newError;
