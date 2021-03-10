@@ -87,7 +87,7 @@ For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/
 `.\CompareExchangeHashes.ps1`
 
 The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
-**This script needs to be run as administrator**.
+**This script needs to be run as administrator on all the exchange servers separately**.
 
 The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
 
