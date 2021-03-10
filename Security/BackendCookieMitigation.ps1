@@ -254,7 +254,7 @@ if (!$RollbackMitigation) {
             $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
-            $RewriteModule = Get-InstalledSoftware | Where-Object { $_.Name -like "*IIS*" -and $_.Name -like "*URL*" -and $_.Name -like "*2*" }
+            $RewriteModule = Get-InstalledSoftware -Name IIS | Where-Object { $_.Name -like "*URL*" -and $_.Name -like "*2*" }
             if ($RewriteModule) {
                 Write-Verbose "[OK] IIS URL Rewrite Module 2 installed on $env:computername"
             } else {
