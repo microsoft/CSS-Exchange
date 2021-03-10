@@ -621,17 +621,21 @@ function LoadBaseline($installed_versions) {
 
 function WriteScriptResult ($result, $exchVersion, $errFound) {
     $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.csv")
-
     $resData = @();
     $result.Keys | ForEach-Object {
         $currentResult = $result[$_]
+        $file_hash = ""
+        if ($null -ne $fileError.FileHash) {
+            $file_hash = $fileError.FileHash
+        }
+
         foreach ($fileError in $currentResult.FileErrors) {
             $resData += New-Object PsObject -Property @{
                 'FileName'          = $fileError.FileName
                 'VDir'              = $fileError.VDir
                 'Error'             = [string]$fileError.Error
                 'FilePath'          = [string]$fileError.FilePath
-                'FileHash'          = [string]$fileError.FileHash
+                'FileHash'          = [string]$file_hash
                 'CreationTimeUtc'   = [string]$fileError.CreationTimeUtc
                 'LastWriteTimeUtc'  = [string]$fileError.LastWriteTimeUtc
                 'LastAccessTimeUtc' = [string]$fileError.LastAccessTimeUtc
@@ -652,12 +656,12 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         $msg += " OSVersion: $([environment]::OSVersion.Version)"
         $msg += " ScriptVersion: $BuildVersion"
         $report_msg = @"
-Submitting files for analysis:
-    Please submit the output file for analysis in the malware analysis portal
-    in the link below. Please add the text "ExchangeMarchCVE" in
-    "Additional Information" field on the portal submission form.
+        Submitting files for analysis:
+        Please submit the output file for analysis in the malware analysis portal
+        in the link below. Please add the text 'ExchangeMarchCVE' in
+        'Additional Information' field on the portal submission form.
         https://www.microsoft.com/en-us/wdsi/filesubmission
-    Instructions on how to use the portal can be found here:
+        Instructions on how to use the portal can be found here:
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
 "@
 
