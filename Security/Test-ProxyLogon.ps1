@@ -201,6 +201,7 @@ begin {
                                 Type         = 'LsassDump'
                                 Path         = $_.FullName
                                 Name         = $_.Name
+                                LastWrite    = $_.LastWriteTimeUtc
                             }
                         }
 
@@ -212,6 +213,7 @@ begin {
                                     Type         = 'SuspiciousArchive'
                                     Path         = $_.FullName
                                     Name         = $_.Name
+                                    LastWrite    = $_.LastWriteTimeUtc
                                 }
                             }
                         }
