@@ -116,14 +116,16 @@ begin {
                         FileList = [System.Collections.ArrayList]@()
                     }
 
-                    Write-Progress -Activity $Activity
+                    $progressId = [Math]::Abs(($env:COMPUTERNAME).GetHashCode())
+
+                    Write-Progress -Activity $Activity -Id $progressId
 
                     $sw = New-Object System.Diagnostics.Stopwatch
                     $sw.Start()
 
                     For ( $i = 0; $i -lt $files.Count; ++$i ) {
-                        if ($sw.ElapsedMilliseconds -gt 500) {
-                            Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count)
+                        if ($sw.ElapsedMilliseconds -gt 1000) {
+                            Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count) -Id $progressId
                             $sw.Restart()
                         }
 
@@ -139,7 +141,7 @@ begin {
                         }
                     }
 
-                    Write-Progress -Activity $Activity -Completed
+                    Write-Progress -Activity $Activity -Id $progressId -Completed
 
                     return $allResults
                 }
