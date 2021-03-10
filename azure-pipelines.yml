@@ -7,17 +7,16 @@ name: Health Checker Azure Pipeline
 trigger:
   branches:
     include:
-      - master
       - release
 
 pool:
   vmImage: 'windows-2019'
 
 steps:
-- pwsh: | 
+- pwsh: |
 
     cd .\.build
-    
+
     $content = Get-Content .\Invoke-BuildPipeline.config.json
     $jsonConfig = $content | ConvertFrom-Json
     $scriptVersion = .\Get-ScriptVersion.ps1 -GitHubWebRequestUri $jsonConfig.ScriptUri -ScriptVersion $jsonConfig.ScriptVersion
@@ -37,13 +36,13 @@ steps:
     $scriptLocation = "$(BuildScriptLocation)"
     Write-Host("$scriptLocation")
     $hashValue = (Get-FileHash $scriptLocation -Algorithm SHA256).Hash
-    
+
     $releaseInfo = @"
 
     SHA256: {0}
 
     How to Verify Hash Value: https://github.com/dpaulson45/HealthChecker/wiki/How-to-Verify-Hash-Value
-    "@ -f $hashValue 
+    "@ -f $hashValue
 
     Write-Host("$releaseInfo")
     $releaseInfo | Out-File .\.build\dist\ReleaseNotes.txt
@@ -52,7 +51,7 @@ steps:
 
   displayName: "Setting Release Notes and Assets"
 
-- pwsh: | 
+- pwsh: |
     Get-ChildItem "$(Build.ArtifactStagingDirectory)"
     Get-Content .\.build\dist\ReleaseNotes.txt
   displayName: "Display Release Notes text"
