@@ -455,7 +455,7 @@ function PerformComparison {
                                 continue;
                             }
 
-                            if ($baselines[$key] -and $null -ne $baselines[$key][$hash]) {
+                            if ($baselines[$key] -and [string]::IsNullOrEmpty($baselines[$key][$hash]) -ne $true) {
                                 $found = $true
                                 break;
                             }
