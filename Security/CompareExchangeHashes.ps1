@@ -272,7 +272,7 @@ $VALID_VERSIONS = @{ `
 
 }
 
-$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020")
+$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020" -Format "MM/dd/yyyy HH:mm:ss")
 
 function PerformComparison {
     [CmdletBinding()]
@@ -295,10 +295,10 @@ function PerformComparison {
     $result = @{}
     $vdirBatches = GetVdirBatches
     $errFound = $false
-    $vdirBatches.Keys | ForEach-Object {
+    $vdirBatches.Keys | Sort-Object | ForEach-Object {
         $vdirs = $vdirBatches[$_]
         $jobs = @()
-        Write-Host "Processing $($vdirs.Count) directories in parallel"
+        Write-Host "Processing $($vdirs.Count) directories in parallel. Batch $($_ + 1) of $($vdirBatches.Count) batches."
         $vdirs | ForEach-Object {
             $j = Start-Job -ScriptBlock {
                 param ($baselines, $pattern, $l, $known_bad, $KNOWN_ROOT_FILES, $mark_as_suspicious_from)
@@ -313,22 +313,40 @@ function PerformComparison {
                 $pdir = $pdir -replace "%SystemDrive%", $env:SystemDrive
                 $pdir = $pdir -replace "%windir%", $env:windir
 
+                function GetFileHash([string] $filePath) {
+                    $hash = ""
+                    try {
+                        $sha256 = New-Object -TypeName System.Security.Cryptography.SHA256CryptoServiceProvider
+                        $hash = [System.BitConverter]::ToString($sha256.ComputeHash([System.IO.File]::ReadAllBytes($filePath))).Replace('-', '')
+                    } catch {
+                        return ""
+                    }
+
+                    return $hash
+                }
+
+                $datetime_format = "MM/dd/yyyy HH:mm:ss"
+
                 if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
                     $inetpub_files = (Get-ChildItem -Recurse -Path $pdir -File -Exclude *aspx, *asmx, *asax, *js, *css, *htm, *html)
                     foreach ($f in $inetpub_files) {
 
-                        $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
+                        $hash = GetFileHash $f.FullName
 
-                        if ($null -eq $hash) {
+                        $creation_time = Get-Date ($f.CreationTimeUtc) -Format $datetime_format
+                        $lastwrite_time = Get-Date ($f.LastWriteTimeUtc) -Format $datetime_format
+                        $lastaccess_time = Get-Date ($f.LastAccessTimeUtc) -Format $datetime_format
+
+                        if ([string]::IsNullOrEmpty($hash)) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
                                 PDir              = $pdir
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
                                 FileHash          = ""
-                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                CreationTimeUtc   = $creation_time
+                                LastWriteTimeUtc  = $lastwrite_time
+                                LastAccessTimeUtc = $lastaccess_time
                                 Error             = "ReadError"
                             }
                             $fErrors += $newError;
@@ -340,10 +358,10 @@ function PerformComparison {
                                     PDir              = $pdir
                                     FileName          = $f.Name
                                     FilePath          = $f.FullName
-                                    FileHash          = $hash.Hash
-                                    CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                                    LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                                    LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                    FileHash          = $hash
+                                    CreationTimeUtc   = $creation_time
+                                    LastWriteTimeUtc  = $lastwrite_time
+                                    LastAccessTimeUtc = $lastaccess_time
                                     Error             = "Suspicious"
                                 }
                                 $fErrors += $newError;
@@ -358,17 +376,22 @@ function PerformComparison {
                         continue;
                     }
 
-                    $hash = $f | Get-FileHash -ErrorAction SilentlyContinue
-                    if ($null -eq $hash) {
+                    $creation_time = Get-Date ($f.CreationTimeUtc) -Format $datetime_format
+                    $lastwrite_time = Get-Date ($f.LastWriteTimeUtc) -Format $datetime_format
+                    $lastaccess_time = Get-Date ($f.LastAccessTimeUtc) -Format $datetime_format
+
+                    $hash = GetFileHash $f.FullName
+
+                    if ([string]::IsNullOrEmpty($hash)) {
                         $newError = New-Object PSObject -Property @{
                             VDir              = $vdir
                             PDir              = $pdir
                             FileName          = $f.Name
                             FilePath          = $f.FullName
-                            FileHash          = $hash.Hash
-                            CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                            LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                            LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                            FileHash          = ""
+                            CreationTimeUtc   = $creation_time
+                            LastWriteTimeUtc  = $lastwrite_time
+                            LastAccessTimeUtc = $lastaccess_time
                             Error             = "ReadError"
                         }
                         $fErrors += $newError;
@@ -382,10 +405,10 @@ function PerformComparison {
                                 PDir              = $pdir
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
-                                FileHash          = $hash.Hash
-                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                FileHash          = $hash
+                                CreationTimeUtc   = $creation_time
+                                LastWriteTimeUtc  = $lastwrite_time
+                                LastAccessTimeUtc = $lastaccess_time
                                 Error             = "Suspicious"
                             }
                             $fErrors += $newError;
@@ -397,17 +420,17 @@ function PerformComparison {
                         continue;
                     }
 
-                    if ($hash.Hash) {
-                        if ($known_bad[$hash.Hash]) {
+                    if ($hash) {
+                        if ($known_bad[$hash]) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
                                 PDir              = $pdir
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
-                                FileHash          = $hash.Hash
-                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                FileHash          = $hash
+                                CreationTimeUtc   = $creation_time
+                                LastWriteTimeUtc  = $lastwrite_time
+                                LastAccessTimeUtc = $lastaccess_time
                                 Error             = "KnownBadHash"
                             }
                             $fErrors += $newError;
@@ -420,7 +443,7 @@ function PerformComparison {
                                 continue;
                             }
 
-                            if ($baselines[$key] -and $null -ne $baselines[$key][$hash.Hash]) {
+                            if ($baselines[$key] -and $null -ne $baselines[$key][$hash]) {
                                 $found = $true
                                 break;
                             }
@@ -432,10 +455,10 @@ function PerformComparison {
                                 PDir              = $pdir
                                 FileName          = $f.Name
                                 FilePath          = $f.FullName
-                                FileHash          = $hash.Hash
-                                CreationTimeUtc   = $f.CreationTimeUtc.ToString()
-                                LastWriteTimeUtc  = $f.LastWriteTimeUtc.ToString()
-                                LastAccessTimeUtc = $f.LastAccessTimeUtc.ToString()
+                                FileHash          = $hash
+                                CreationTimeUtc   = $creation_time
+                                LastWriteTimeUtc  = $lastwrite_time
+                                LastAccessTimeUtc = $lastaccess_time
                                 Error             = "NoHashMatch"
                             }
                             $fErrors += $newError;
@@ -564,7 +587,7 @@ function FindInstalledVersions() {
         $vdir_paths += $vdir_physical_path
     }
 
-    $vdir_paths | Where-Object { Test-Path $_ } | ForEach-Object { Get-ChildItem -Directory -Path $_ } | Where-Object { $VALID_VERSIONS[$_.Name] -eq $true } | ForEach-Object { $versions[$_.Name] = $true }
+    $vdir_paths | Where-Object { Test-Path $_ } | ForEach-Object { Get-ChildItem -Directory -Path $_ -Recurse } | Where-Object { $VALID_VERSIONS[$_.Name] -eq $true } | ForEach-Object { $versions[$_.Name] = $true }
 
     return $exchange_version, $versions.Keys
 }
@@ -574,6 +597,7 @@ function GetVdirBatches {
     $i = 0
     $batchSize = 10
     $logs = & (Join-Path $env:Windir "system32\inetsrv\appcmd.exe") LIST VDIRS
+
     $logs | ForEach-Object {
         $bt = $i % $batchSize
         $grps[$bt] += @($_)
@@ -623,28 +647,24 @@ function LoadBaseline($installed_versions) {
 
 function WriteScriptResult ($result, $exchVersion, $errFound) {
     $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.csv")
-    $resData = @();
-    $result.Keys | ForEach-Object {
-        $currentResult = $result[$_]
-        $file_hash = ""
-        if ($null -ne $fileError.FileHash) {
-            $file_hash = $fileError.FileHash
-        }
-
-        foreach ($fileError in $currentResult.FileErrors) {
-            $resData += New-Object PsObject -Property @{
-                'FileName'          = $fileError.FileName
-                'VDir'              = $fileError.VDir
-                'Error'             = [string]$fileError.Error
-                'FilePath'          = [string]$fileError.FilePath
-                'FileHash'          = [string]$file_hash
-                'CreationTimeUtc'   = [string]$fileError.CreationTimeUtc
-                'LastWriteTimeUtc'  = [string]$fileError.LastWriteTimeUtc
-                'LastAccessTimeUtc' = [string]$fileError.LastAccessTimeUtc
-                'PDir'              = [string]$fileError.PDir
+    $resData = @(
+        $result.Keys | ForEach-Object {
+            $currentResult = $result[$_]
+            foreach ($fileError in $currentResult.FileErrors) {
+                New-Object PsObject -Property @{
+                    'FileName'          = $fileError.FileName
+                    'VDir'              = $fileError.VDir
+                    'Error'             = [string]$fileError.Error
+                    'FilePath'          = [string]$fileError.FilePath
+                    'FileHash'          = [string]$fileError.FileHash
+                    'CreationTimeUtc'   = [string]$fileError.CreationTimeUtc
+                    'LastWriteTimeUtc'  = [string]$fileError.LastWriteTimeUtc
+                    'LastAccessTimeUtc' = [string]$fileError.LastAccessTimeUtc
+                    'PDir'              = [string]$fileError.PDir
+                }
             }
         }
-    }
+    )
 
     Write-Host "Exporting ${resData.Count} objects to results"
     $resData | Select-Object | Export-Csv -Path $tmp_file -NoTypeInformation;
