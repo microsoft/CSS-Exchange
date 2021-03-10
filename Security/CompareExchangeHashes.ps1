@@ -285,7 +285,7 @@ $VALID_VERSIONS = @{ `
 
 }
 
-$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020" -Format "MM/dd/yyyy HH:mm:ss")
+$MARK_AS_SUSPICIOUS_FROM = (Get-Date -Date "12/01/2020")
 
 function PerformComparison {
     [CmdletBinding()]
@@ -346,9 +346,9 @@ function PerformComparison {
 
                         $hash = GetFileHash $f.FullName
 
-                        $creation_time = Get-Date ($f.CreationTimeUtc) -Format $datetime_format
-                        $lastwrite_time = Get-Date ($f.LastWriteTimeUtc) -Format $datetime_format
-                        $lastaccess_time = Get-Date ($f.LastAccessTimeUtc) -Format $datetime_format
+                        $creation_time = Get-Date ($f.CreationTimeUtc)
+                        $lastwrite_time = Get-Date ($f.LastWriteTimeUtc)
+                        $lastaccess_time = Get-Date ($f.LastAccessTimeUtc)
 
                         if ([string]::IsNullOrEmpty($hash)) {
                             $newError = New-Object PSObject -Property @{
@@ -365,7 +365,7 @@ function PerformComparison {
                             $fErrors += $newError;
                             $errHappend = $true
                         } else {
-                            if ($mark_as_suspicious_from -le $f.LastWriteTime) {
+                            if ($mark_as_suspicious_from -le $lastwrite_time) {
                                 $newError = New-Object PSObject -Property @{
                                     VDir              = $vdir
                                     PDir              = $pdir
@@ -389,9 +389,9 @@ function PerformComparison {
                         continue;
                     }
 
-                    $creation_time = Get-Date ($f.CreationTimeUtc) -Format $datetime_format
-                    $lastwrite_time = Get-Date ($f.LastWriteTimeUtc) -Format $datetime_format
-                    $lastaccess_time = Get-Date ($f.LastAccessTimeUtc) -Format $datetime_format
+                    $creation_time = Get-Date ($f.CreationTimeUtc)
+                    $lastwrite_time = Get-Date ($f.LastWriteTimeUtc)
+                    $lastaccess_time = Get-Date ($f.LastAccessTimeUtc)
 
                     $hash = GetFileHash $f.FullName
 
@@ -412,7 +412,7 @@ function PerformComparison {
                     }
 
                     if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
-                        if ($mark_as_suspicious_from -le $f.LastWriteTime) {
+                        if ($mark_as_suspicious_from -le $lastwrite_time) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
                                 PDir              = $pdir
