@@ -47,31 +47,31 @@ begin {
     #region Functions
     function Test-ExchangeProxyLogon {
         <#
-	.SYNOPSIS
-		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
+    .SYNOPSIS
+        Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
 
-	.DESCRIPTION
-		Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
+    .DESCRIPTION
+        Checks targeted exchange servers for signs of ProxyLogon vulnerability compromise.
 
-		Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
-		The vulnerabilities are described in CVE-2021-26855, 26858, 26857, and 27065
+        Will do so in parallel if more than one server is specified, so long as names aren't provided by pipeline.
+        The vulnerabilities are described in CVE-2021-26855, 26858, 26857, and 27065
 
-	.PARAMETER ComputerName
-		The list of server names to scan for signs of compromise.
-		Do not provide these by pipeline if you want parallel processing.
+    .PARAMETER ComputerName
+        The list of server names to scan for signs of compromise.
+        Do not provide these by pipeline if you want parallel processing.
 
-	.PARAMETER Credential
-		Credentials to use for remote connections.
+    .PARAMETER Credential
+        Credentials to use for remote connections.
 
-	.EXAMPLE
-		PS C:\> Test-ExchangeProxyLogon
+    .EXAMPLE
+        PS C:\> Test-ExchangeProxyLogon
 
-		Scans the current computer for signs of ProxyLogon vulnerability compromise.
+        Scans the current computer for signs of ProxyLogon vulnerability compromise.
 
-	.EXAMPLE
-		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn
+    .EXAMPLE
+        PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn
 
-		Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
+        Scans all exchange servers in the organization for ProxyLogon vulnerability compromises
 #>
         [CmdletBinding()]
         param (
@@ -278,23 +278,23 @@ begin {
 
     function Write-ProxyLogonReport {
         <#
-	.SYNOPSIS
-		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
+    .SYNOPSIS
+        Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
 
-	.DESCRIPTION
-		Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
+    .DESCRIPTION
+        Processes output of Test-ExchangeProxyLogon for reporting on the console screen.
 
-	.PARAMETER InputObject
-		The reports provided by Test-ExchangeProxyLogon
+    .PARAMETER InputObject
+        The reports provided by Test-ExchangeProxyLogon
 
-	.PARAMETER OutPath
-		Path to a FOLDER in which to generate output logfiles.
-		This command will only write to the console screen if no path is provided.
+    .PARAMETER OutPath
+        Path to a FOLDER in which to generate output logfiles.
+        This command will only write to the console screen if no path is provided.
 
-	.EXAMPLE
-		PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn | Write-ProxyLogonReport -OutPath C:\logs
+    .EXAMPLE
+        PS C:\> Test-ExchangeProxyLogon -ComputerName (Get-ExchangeServer).Fqdn | Write-ProxyLogonReport -OutPath C:\logs
 
-		Gather data from all exchange servers in the organization and write a report to C:\logs
+        Gather data from all exchange servers in the organization and write a report to C:\logs
 #>
         [CmdletBinding()]
         param (
@@ -495,7 +495,7 @@ begin {
     }
     if ($CollectFiles) { $paramWrite['CollectFiles'] = $true }
     if ($DisplayOnly) {
-        $paramWrite = @{ DisplayOnly = $true}
+        $paramWrite = @{ DisplayOnly = $true }
     }
 
     $computerTargets = New-Object System.Collections.ArrayList
