@@ -116,11 +116,23 @@ $scriptFiles | ForEach-Object {
         }
     }
 
-    Write-Host ("Setting version for script '$_' to '$($commitTime.ToString("yy.MM.dd.HHmm"))'")
-    $version = "# Version $($commitTime.ToString("yy.MM.dd.HHmm"))"
-    # Stamp version
+    $buildVersionString = $commitTime.ToString("yy.MM.dd.HHmm")
+    Write-Host ("Setting version for script '$_' to $buildVersionString")
+
+    # Set version variable if present
+    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
+        $line = $scriptContent[$i]
+        if ($line.Contains("`$BuildVersion = `"`"")) {
+            $newLine = $line.Replace("`$BuildVersion = `"`"", "`$BuildVersion = `"$buildVersionString`"")
+            Write-Host $newLine
+            $scriptContent.RemoveAt($i)
+            $scriptContent.Insert($i, $newLine)
+        }
+    }
+
+    # Stamp version in comments
     $scriptContent.Insert(0, "")
-    $scriptContent.Insert(0, $version)
+    $scriptContent.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
     $scriptContent.Insert(0, "")
