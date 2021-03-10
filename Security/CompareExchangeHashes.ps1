@@ -527,29 +527,23 @@ function Main() {
 }
 
 function LoadFromGitHub($url, $filename, $installed_versions) {
-
-    $loaded = $false
     Write-Host "Downloading baseline file from GitHub to $filename"
 
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
         # this file is only used for network connectivity test
-        Invoke-WebRequest -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/baseline_15.0.1044.25.checksum.txt"
+        Invoke-WebRequest -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/baseline_15.0.1044.25.checksum.txt" | Out-Null
     } catch {
         Write-Error "Cannot reach out to https://github.com/microsoft/CSS-Exchange/releases/latest, please download baseline files for $installed_versions from https://github.com/microsoft/CSS-Exchange/releases/latest manually to $(GetCurrDir), then rerun this script from $(GetCurrDir)."
     }
 
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        Invoke-WebRequest -Uri $url -OutFile $filename
-        $loaded = $true
+        Invoke-WebRequest -Uri $url -OutFile $filename | Out-Null
     } catch {
-        $loaded = $false
         Write-Error "$filename not found... please open issue on https://github.com/microsoft/CSS-Exchange/issues, we will work on it"
     }
-
-    return $loaded
 }
 
 function PreProcessBaseline($baselines) {
