@@ -190,30 +190,33 @@ begin {
                     [CmdletBinding()]
                     param ()
 
-                    foreach ($file in Get-ChildItem -Recurse -Path "$env:WINDIR\temp\lsass.*dmp") {
-                        [PSCustomObject]@{
-                            ComputerName = $env:COMPUTERNAME
-                            Type         = 'LsassDump'
-                            Path         = $file.FullName
-                            Name         = $file.Name
+                    $zipFilter = ".7z", ".zip", ".rar"
+                    $dmpFilter = "lsass.*dmp"
+                    $dmpPaths = "c:\root", "$env:WINDIR\temp"
+
+                    Get-ChildItem -Path $dmpPaths -Filter $dmpFilter -Recurse -ErrorAction SilentlyContinue |
+                        ForEach-Object {
+                            [PSCustomObject]@{
+                                ComputerName = $env:COMPUTERNAME
+                                Type         = 'LsassDump'
+                                Path         = $_.FullName
+                                Name         = $_.Name
+                                LastWrite    = $_.LastWriteTimeUtc
+                            }
                         }
-                    }
-                    foreach ($file in Get-ChildItem -Recurse -Path "c:\root\lsass.*dmp" -ErrorAction SilentlyContinue) {
-                        [PSCustomObject]@{
-                            ComputerName = $env:COMPUTERNAME
-                            Type         = 'LsassDump'
-                            Path         = $file.FullName
-                            Name         = $file.Name
+
+                    Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
+                        ForEach-Object {
+                            If ( $_.Extension -in $zipFilter ) {
+                                [PSCustomObject]@{
+                                    ComputerName = $env:COMPUTERNAME
+                                    Type         = 'SuspiciousArchive'
+                                    Path         = $_.FullName
+                                    Name         = $_.Name
+                                    LastWrite    = $_.LastWriteTimeUtc
+                                }
+                            }
                         }
-                    }
-                    foreach ($file in Get-ChildItem -Recurse -Path $env:ProgramData -ErrorAction SilentlyContinue | Where-Object { $_.Extension -Match "\.7z$|\.zip$|\.rar$" }) {
-                        [PSCustomObject]@{
-                            ComputerName = $env:COMPUTERNAME
-                            Type         = 'SuspiciousArchive'
-                            Path         = $file.FullName
-                            Name         = $file.Name
-                        }
-                    }
                 }
 
                 function Get-AgeInDays {
@@ -518,5 +521,10 @@ process {
 }
 end {
     if ($Export) { return }
-    Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+
+    if ($computerTargets.Length -lt 1) {
+        Test-ExchangeProxyLogon @paramTest | Write-ProxyLogonReport @paramWrite
+    } else {
+        Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+    }
 }
