@@ -664,7 +664,7 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
         Instructions on how to use the portal can be found here:
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide
 "@
-      
+
         Write-Host $report_msg
     }
 
