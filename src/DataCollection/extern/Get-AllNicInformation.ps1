@@ -1,5 +1,5 @@
 #https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-AllNicInformation/Get-AllNicInformation.ps1
-#v21.02.08.0458
+#v21.03.08.0445
 Function Get-AllNicInformation {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Just creating internal objects')]
     [CmdletBinding()]
@@ -8,7 +8,7 @@ Function Get-AllNicInformation {
         [Parameter(Mandatory = $false)][string]$ComputerFQDN,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.02.08.0458
+    #Function Version #v21.03.08.0445
 
     Write-VerboseWriter("Calling: Get-AllNicInformation")
     Write-VerboseWriter("Passed [string]ComputerName: {0} | [string]ComputerFQDN: {1}" -f $ComputerName, $ComputerFQDN)
@@ -26,6 +26,7 @@ Function Get-AllNicInformation {
         $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
         Write-VerboseWriter("Probing started to detect NIC adapter registry path")
         [int]$i = 0
+        [int]$retryCounter = 0
 
         do {
             $nicAdapterPnPCapabilitiesProbingKey = "{0}\{1}" -f $nicAdapterBasicPath, ($i.ToString().PadLeft(4, "0"))
@@ -37,9 +38,13 @@ Function Get-AllNicInformation {
                 break
             } else {
                 Write-VerboseWriter("No matching ComponentId found")
+                if ($null -eq $netCfgInstanceId) {
+                    $retryCounter++
+                    Write-VerboseWriter("Enumeration possibly interrupted. Attempt: {0}/3" -f $retryCounter)
+                }
                 $i++
             }
-        } while ($null -ne $netCfgInstanceId)
+        } while ($retryCounter -le 2)
 
         $obj = New-Object PSCustomObject
         $sleepyNicDisabled = $false
