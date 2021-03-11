@@ -31,6 +31,8 @@
         Open the result csv file in excel or in powershell:
         $result = Import-Csv <Path to result file>
 
+        If CompressSuspiciousAndMissingFilesToCSV is specified, you should find files marked as Suspicious and NoHashMatch zipped in current directory.
+
     Submitting files for analysis:
         Please submit the output file for analysis in the malware analysis portal
         in the link below. Please add the text "ExchangeMarchCVE" in
@@ -45,7 +47,16 @@
 
     .EXAMPLE
     PS C:\> CompareExchangeHashes.ps1
+
+    PS C:\> CompareExchangeHashes.ps1 -CompressSuspiciousAndMissingFilesToCSV $true
 #>
+
+[CmdletBinding(SupportsShouldProcess)]
+param
+(
+    [Parameter(Mandatory = $false, HelpMessage = 'Compress files marked with NoHashFound and Suspicious to a zip file?')]
+    [bool]$CompressSuspiciousAndMissingFilesToCSV = $false
+)
 
 
 $ErrorActionPreference = 'Stop';
@@ -325,11 +336,11 @@ function PerformComparison {
                 $pdir = $Matches[3]
                 $pdir = $pdir -replace "%SystemDrive%", $env:SystemDrive
                 $pdir = $pdir -replace "%windir%", $env:windir
+                $sha256 = New-Object -TypeName System.Security.Cryptography.SHA256CryptoServiceProvider
 
                 function GetFileHash([string] $filePath) {
                     $hash = ""
                     try {
-                        $sha256 = New-Object -TypeName System.Security.Cryptography.SHA256CryptoServiceProvider
                         $hash = [System.BitConverter]::ToString($sha256.ComputeHash([System.IO.File]::ReadAllBytes($filePath))).Replace('-', '')
                     } catch {
                         return ""
@@ -339,8 +350,10 @@ function PerformComparison {
                 }
 
                 $datetime_format = "MM/dd/yyyy HH:mm:ss"
+                $isWWWRoot = $false
 
                 if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
+                    $isWWWRoot = $true
                     $inetpub_files = (Get-ChildItem -Recurse -Path $pdir -File -Exclude *aspx, *asmx, *asax, *js, *css, *htm, *html)
                     foreach ($f in $inetpub_files) {
 
@@ -380,10 +393,6 @@ function PerformComparison {
                 }
 
                 foreach ($f in (Get-ChildItem -Recurse -Path $pdir -File -Include *aspx, *asmx, *asax, *js, *css, *htm, *html)) {
-                    if ($f.Name.EndsWith(".strings.localized.js")) {
-                        continue;
-                    }
-
                     $hash = GetFileHash $f.FullName
                     if ([string]::IsNullOrEmpty($hash)) {
                         $newError = New-Object PSObject -Property @{
@@ -401,7 +410,7 @@ function PerformComparison {
                         $errHappend = $true
                     }
 
-                    if ($pdir.StartsWith("$env:SystemDrive\inetpub\wwwroot")) {
+                    if ($isWWWRoot -eq $true) {
                         if ($mark_as_suspicious_from -le $f.LastWriteTimeUtc) {
                             $newError = New-Object PSObject -Property @{
                                 VDir              = $vdir
@@ -416,11 +425,11 @@ function PerformComparison {
                             }
                             $fErrors += $newError;
                             $errHappend = $true
+                        } else {
+                            if ($KNOWN_ROOT_FILES[$f.FullName]) {
+                                continue;
+                            }
                         }
-                    }
-
-                    if ($KNOWN_ROOT_FILES[$f.FullName]) {
-                        continue;
                     }
 
                     if ($hash) {
@@ -453,19 +462,21 @@ function PerformComparison {
                         }
 
                         if ($found -eq $false) {
-                            $newError = New-Object PSObject -Property @{
-                                VDir              = $vdir
-                                PDir              = $pdir
-                                FileName          = $f.Name
-                                FilePath          = $f.FullName
-                                FileHash          = $hash
-                                CreationTimeUtc   = $f.CreationTimeUtc
-                                LastWriteTimeUtc  = $f.LastWriteTimeUtc
-                                LastAccessTimeUtc = $f.LastAccessTimeUtc
-                                Error             = "NoHashMatch"
+                            if ($f.Name.EndsWith(".strings.localized.js") -eq $false) {
+                                $newError = New-Object PSObject -Property @{
+                                    VDir              = $vdir
+                                    PDir              = $pdir
+                                    FileName          = $f.Name
+                                    FilePath          = $f.FullName
+                                    FileHash          = $hash
+                                    CreationTimeUtc   = $f.CreationTimeUtc
+                                    LastWriteTimeUtc  = $f.LastWriteTimeUtc
+                                    LastAccessTimeUtc = $f.LastAccessTimeUtc
+                                    Error             = "NoHashMatch"
+                                }
+                                $fErrors += $newError;
+                                $errHappend = $true
                             }
-                            $fErrors += $newError;
-                            $errHappend = $true
                         }
                     }
                 }
@@ -502,7 +513,7 @@ function PerformComparison {
 function Main() {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPositionalParameters', '', Justification = 'Just getting this working for now. Will revisit.')]
-    param()
+    param([bool]$CompressSuspiciousAndMissingFilesToCSV = $false)
 
     Write-Host "[$(Get-Date)] Started..." -ForegroundColor Green
     $exchVersion, $installedVers = FindInstalledVersions # Get-ExchangeVersion
@@ -513,7 +524,7 @@ function Main() {
 
     $result, $errFound = PerformComparison $baselineData $pattern $exchVersion
     Write-Host "Comparison complete. Writing results."
-    WriteScriptResult $result $exchVersion $errFound
+    WriteScriptResult $result $exchVersion $errFound $CompressSuspiciousAndMissingFilesToCSV
 }
 
 function LoadFromGitHub($url, $filename, $installed_versions) {
@@ -642,12 +653,34 @@ function LoadBaseline($installed_versions) {
     return $data
 }
 
-function WriteScriptResult ($result, $exchVersion, $errFound) {
+function RemoveExistingItem($filepath) {
+    if (Test-Path  $filepath) {
+        Remove-Item $filepath -Confirm:$false -Force -Recurse | Out-Null
+    }
+}
+
+
+function WriteScriptResult ($result, $exchVersion, $errFound, $CompressSuspiciousAndMissingFilesToCSV) {
     $tmp_file = Join-Path (GetCurrDir) ($exchVersion + "_" + "result.csv")
+
+    $idx_suspicious = 0
+    $suspicious_dir = Join-Path (GetCurrDir) ($exchVersion + "_" + "suspicious")
+    if ($CompressSuspiciousAndMissingFilesToCSV -eq $true) {
+        RemoveExistingItem $suspicious_dir
+        RemoveExistingItem ($suspicious_dir + ".zip")
+        mkdir $suspicious_dir | Out-Null
+    }
+
     $resData = @(
         $result.Keys | ForEach-Object {
             $currentResult = $result[$_]
             foreach ($fileError in $currentResult.FileErrors) {
+                if ($CompressSuspiciousAndMissingFilesToCSV -eq $true -and (([string]$fileError.Error -eq "NoHashMatch") -or ([string]$fileError.Error -eq "Suspicious"))) {
+                    $target_path = (Join-Path $suspicious_dir "${idx_suspicious}_$($fileError.FileName)")
+                    Copy-Item $fileError.FilePath $target_path | Out-Null
+                    $idx_suspicious += 1
+                }
+
                 New-Object PsObject -Property @{
                     'FileName'          = $fileError.FileName
                     'VDir'              = $fileError.VDir
@@ -665,6 +698,19 @@ function WriteScriptResult ($result, $exchVersion, $errFound) {
 
     Write-Host "Exporting ${resData.Count} objects to results"
     $resData | Select-Object | Export-Csv -Path $tmp_file -NoTypeInformation;
+
+    if ($CompressSuspiciousAndMissingFilesToCSV -eq $true) {
+        Write-Host "Zipping NoHashMatch and Suspicious files into ${suspicious_dir}.zip"
+
+        if ($tmp_file -gt 5mb) {
+            [Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" ) | Out-Null
+            [System.IO.Compression.ZipFile]::CreateFromDirectory($suspicious_dir, "${suspicious_dir}.zip") | Out-Null
+        } else {
+            Write-Warning "Diff size larger than 5MB, please submit script issue on https://github.com/microsoft/CSS-Exchange/issues"
+        }
+
+        Write-Host "Zipped ${suspicious_dir}.zip"
+    }
 
     $fgCol = 'Green'
     $msg = "[$(Get-Date)] Done."
@@ -699,4 +745,4 @@ function GetCurrDir {
     return Get-Location
 }
 
-Main
+Main $CompressSuspiciousAndMissingFilesToCSV
