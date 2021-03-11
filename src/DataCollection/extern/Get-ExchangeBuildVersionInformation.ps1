@@ -1,11 +1,11 @@
 #https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
-#v21.01.22.2234
+#v21.03.11.0754
 Function Get-ExchangeBuildVersionInformation {
     [CmdletBinding()]
     param(
         [object]$AdminDisplayVersion
     )
-    #Function Version #v21.01.22.2234
+    #Function Version #v21.03.11.0754
 
     Write-VerboseWriter("Calling: Get-ExchangeBuildVersionInformation")
     Write-VerboseWriter("Passed $($AdminDisplayVersion.ToString())")
@@ -35,11 +35,11 @@ Function Get-ExchangeBuildVersionInformation {
 
     Write-VerboseWriter("Determining Major Version based off of $product")
 
-    switch ($product) {
-        14.3 { $exchangeMajorVersion = "Exchange2010" }
-        15 { $exchangeMajorVersion = "Exchange2013" }
-        15.1 { $exchangeMajorVersion = "Exchange2016" }
-        15.2 { $exchangeMajorVersion = "Exchange2019" }
+    switch ([string]$product) {
+        "14.3" { $exchangeMajorVersion = "Exchange2010" }
+        "15" { $exchangeMajorVersion = "Exchange2013" }
+        "15.1" { $exchangeMajorVersion = "Exchange2016" }
+        "15.2" { $exchangeMajorVersion = "Exchange2019" }
         default { $exchangeMajorVersion = "Unknown" }
     }
 
