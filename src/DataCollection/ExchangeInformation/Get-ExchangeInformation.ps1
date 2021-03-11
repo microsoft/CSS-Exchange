@@ -333,7 +333,12 @@ Function Get-ExchangeInformation {
             }
         }
 
-        $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig).MapiHttpEnabled
+        try {
+            $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig -ErrorAction Stop).MapiHttpEnabled
+        } catch {
+            Write-Yellow "Failed to run Get-OrganizationConfig. Mapi HTTP Enabled results not accurate"
+            Invoke-CatchActions
+        }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
