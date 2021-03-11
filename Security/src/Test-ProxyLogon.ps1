@@ -133,7 +133,7 @@ begin {
                             [Void]$allResults.FileList.Add( $files[$i] )
 
                             Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue |
-                                Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } |
+                                Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*' -and $_.AnchorMailbox -notlike 'ServerInfo~*/autodiscover*' -and $_.AnchorMailbox -notlike 'ServerInfo~localhost*/*' } |
                                 Select-Object -Property $outProps |
                                 ForEach-Object {
                                     [Void]$allResults.Hits.Add( $_ )
