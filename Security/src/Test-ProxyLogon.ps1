@@ -1,9 +1,12 @@
-﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 #
 # Examples
 #
 # Check the local Exchange server only and save the report:
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
+#
+# Provide the number of threads using the -Numthreads (defaults to 5 if not specified):
+# .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -Numthreads 6
 #
 # Check the local Exchange server, copy the files and folders to the outpath\<ComputerName>\ path
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles
@@ -13,6 +16,9 @@
 #
 # Check all Exchange servers, but only display the results, don't save them:
 # Get-ExchangeServer | .\Test-ProxyLogon.ps1 -DisplayOnly
+#
+# Provide the number of threads using the -Numthreads (defaults to 5 if not specified):
+# Get-ExchangeServer | .\Test-ProxyLogon.ps1 -DisplayOnly -Numthreads 6
 #
 #Requires -Version 3
 
@@ -41,7 +47,13 @@ param (
 
     [Parameter(ParameterSetName = "AsScript")]
     [System.Management.Automation.PSCredential]
-    $Credential
+    $Credential,
+
+    [Parameter(ParameterSetName = "AsScript")]
+    [ValidateRange(1,10)]
+    [int]
+    $Numthreads = 5
+
 )
 begin {
     #region Functions
@@ -63,6 +75,9 @@ begin {
     .PARAMETER Credential
         Credentials to use for remote connections.
 
+    .PARAMETER NumThreads
+        Number of threads to process http-proxy logs
+
     .EXAMPLE
         PS C:\> Test-ExchangeProxyLogon
 
@@ -80,14 +95,122 @@ begin {
             $ComputerName,
 
             [System.Management.Automation.PSCredential]
-            $Credential
+            $Credential,
+
+            [int]
+            [ValidateRange(1,10)]
+            $Numthreads = 5
         )
         begin {
             #region Remoting Scriptblock
             $scriptBlock = {
+
+                param(
+                    $NumThreads
+                )
+
+                #Scriptblock to find logs for Cve26855 
+                $GetCve26855LogsScriptBlock = {
+
+                    param($batch)
+
+                    $outProps = @(
+                        "DateTime", "RequestId", "ClientIPAddress", "UrlHost",
+                        "UrlStem", "RoutingHint", "UserAgent", "AnchorMailbox",
+                        "HttpStatus"
+                    )
+
+                    $filesProcessed = 0
+                    $totalFiles = $batch.Count
+                    $batchResults = @{
+                        Hits     = [System.Collections.ArrayList]@()
+                        FileList = [System.Collections.ArrayList]@()
+                    }
+
+                    $hitCount = 0 
+                    $fileCount = 0
+                    if( $totalFiles -gt 0 )
+                    {
+                        For ( $i = 0; $i -lt $totalFiles; ++$i ){
+
+                            #Processing each file in the batch of files
+                            if ( ( Test-Path $batch[$i] ) -and ( Select-String -Path $batch[$i] -Pattern "ServerInfo~", "Server~" -Quiet ) ) {
+                                [Void]$batchResults.FileList.Add( $batch[$i] )
+                                $fileCount += 1
+
+                                Import-Csv -Path $batch[$i] -ErrorAction SilentlyContinue |
+                                Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*' -or $_.BackEndCookie -Like 'Server~*/*~*' } |
+                                Select-Object -Property $outProps |
+                                ForEach-Object {
+                                    [Void]$batchResults.Hits.Add( $_ )
+                                    $hitCount += 1
+                                }
+                            }
+                            $filesProcessed += 1
+                            Write-Progress -Activity "Checking for CVE-2021-26855 in the HttpProxy logs" -Status $filesProcessed
+                        } 
+
+                        #Preventing the conversion of System.Collections.ArrayList to PSCustomObject
+                        if($hitCount -eq 1){
+                            $batchResults.Hits = ,$batchResults.Hits
+                        }
+                        if($fileCount -eq 1){
+                            $batchResults.FileList = ,$batchResults.FileList
+                        }
+                    }
+                    
+                    [PSCustomObject]@{
+                        batchResults = $batchResults
+                        fileCount = $fileCount
+                        hitCount = $hitCount
+                        logsFound = $batchResults.Hits.Count -gt 0
+                    }
+                }           
+
                 #region Functions
                 function Get-ExchangeInstallPath {
                     return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+                }
+
+                function Is-Numeric ($Value) {
+                    return $Value -match "^[\d\.]+$"
+                }
+
+                function showJobProgress
+                {
+                    param(
+		            	$jobs,
+			            $totalFiles,
+			            $progressId
+		            )
+
+                    $activity = "Checking for CVE-2021-26855 in the HttpProxy logs"
+                    $percentageComplete = 0.0
+                    $totalFilesCompleted = 0
+
+                    $jobs | ForEach-Object{
+
+                        try{
+                            if( ($_.ChildJobs -ne $null) -and ($_.ChildJobs.Count -gt 0)  )
+                            {
+                                if(($_.ChildJobs[0].Progress -ne $null) -and ($_.ChildJobs[0].Progress.Count -gt 0))
+                                {
+                                    $progressHistory = $_.ChildJobs[0].Progress;
+                                    $currentProgress = $progressHistory[$progressHistory.Count - 1];
+                                    $jobStatus = $currentProgress | Select -expand StatusDescription; 
+
+                                    if(($jobStatus -ne $null) -and (Is-Numeric( $jobStatus))){
+                                        $totalFilesCompleted += [int]$jobStatus
+                                    }
+                                }
+                            }
+                        }
+                        Catch{}
+                    }
+
+                    $percentageComplete = ($totalFilesCompleted/$totalFiles)*100
+                    $status = "$totalFilesCompleted\$totalFiles"
+                    Write-Progress -Activity $activity -Status $status -PercentComplete $percentageComplete -Id $progressId;
                 }
 
                 function Get-Cve26855 {
@@ -109,39 +232,77 @@ begin {
                         "HttpStatus"
                     )
 
-                    $files = (Get-ChildItem -Recurse -Path $HttpProxyPath -Filter '*.log').FullName
-
+                    $files = [System.Array](Get-ChildItem -Recurse -Path $HttpProxyPath -Filter '*.log').FullName
+                    $filesCount = $files.Count              
                     $allResults = @{
                         Hits     = [System.Collections.ArrayList]@()
                         FileList = [System.Collections.ArrayList]@()
                     }
 
+                    if($filesCount -eq 0){
+                        return $allResults
+                    }
+
+                    $fileBatchSize = 0
+                    $fileBatches = @()
+                    if( $filesCount -lt $Numthreads ){
+                        $Numthreads = $filesCount
+                    }
+                    $fileBatchSize = [math]::Truncate($filesCount/$Numthreads)
+
+                    #Creating the batches of files
+                    For ($i = 0; $i -lt $filesCount - ($filesCount%$fileBatchSize); $i += $fileBatchSize) {
+                       $fileBatches += ,@($files[$i..($i+$fileBatchSize-1)])
+                    }
+
+                    #Add the left over files to the first batch
+                    $totalFilesInBatches = $fileBatches.Count * $fileBatchSize
+                    if($totalFilesInBatches -lt $filesCount)
+                    {
+                        $fileBatches[0] = $fileBatches[0] + $files[$totalFilesInBatches..($filesCount-1)]
+                    }        
+
+                    #Triggeing search jobs for each batch of log files
+                    $jobs = @()
+                    $fileBatches | ForEach-Object {
+                        $job = Start-Job -ScriptBlock $GetCve26855LogsScriptBlock -ArgumentList (,$_)
+                        $jobs = $jobs + $job
+                    }
+
                     $progressId = [Math]::Abs(($env:COMPUTERNAME).GetHashCode())
+                    #Waiting for jobs completion and updating progress bar
+                    $notCompletedJobs = $jobs
+                    Do{    
+                        showJobProgress -jobs $jobs -totalFiles $filesCount -progressId $progressId
+                        Start-Sleep -Seconds 1
+                    }While(($jobs | Where-Object {$_.State -ne "Completed"}).Count -gt 0)       
 
-                    Write-Progress -Activity $Activity -Id $progressId
-
-                    $sw = New-Object System.Diagnostics.Stopwatch
-                    $sw.Start()
-
-                    For ( $i = 0; $i -lt $files.Count; ++$i ) {
-                        if ($sw.ElapsedMilliseconds -gt 1000) {
-                            Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count) -Id $progressId
-                            $sw.Restart()
-                        }
-
-                        if ( ( Test-Path $files[$i] ) -and ( Select-String -Path $files[$i] -Pattern "ServerInfo~" -Quiet ) ) {
-                            [Void]$allResults.FileList.Add( $files[$i] )
-
-                            Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue |
-                                Where-Object { $_.AuthenticatedUser -eq '' -and $_.AnchorMailbox -Like 'ServerInfo~*/*' } |
-                                Select-Object -Property $outProps |
-                                ForEach-Object {
-                                    [Void]$allResults.Hits.Add( $_ )
-                                }
+                    #Collecting results, closing all progress bars
+                    $fileCount = 0
+                    $hitCount = 0
+                    $jobs | ForEach-Object {
+                          
+                        $jobOutput = $_.ChildJobs[0].Output
+                        if( $jobOutput.logsFound ){
+                            $allResults.FileList = $allResults.FileList + $jobOutput.batchResults.FileList
+                            $allResults.Hits = $allResults.Hits + $jobOutput.batchResults.Hits
+                            $fileCount += $jobOutput.fileCount
+                            $hitCount += $jobOutput.hitCount
                         }
                     }
 
+                    #Preventing the conversion of System.Collections.ArrayList to PSCustomObject
+                    if($hitCount -eq 1){
+                        $allResults.Hits = ,$allResults.Hits
+                    }
+                    if($fileCount -eq 1){
+                        $allResults.FileList = ,$allResults.FileList
+                    }
+
                     Write-Progress -Activity $Activity -Id $progressId -Completed
+
+                    #Removing Jobs
+                    $jobs | Remove-Job
 
                     return $allResults
                 }
@@ -274,9 +435,9 @@ begin {
         }
         process {
             if ($null -ne $ComputerName) {
-                Invoke-Command @parameters -ComputerName $ComputerName
+                Invoke-Command @parameters -ComputerName $ComputerName -ArgumentList $NumThreads
             } else {
-                Invoke-Command @parameters
+                Invoke-Command @parameters -ArgumentList $NumThreads
             }
         }
     }
@@ -495,6 +656,7 @@ begin {
 
     $paramTest = @{ }
     if ($Credential) { $paramTest['Credential'] = $Credential }
+    if ($NumThreads -ne $null) { $paramTest['NumThreads'] = $NumThreads }
     $paramWrite = @{
         OutPath = $OutPath
     }
