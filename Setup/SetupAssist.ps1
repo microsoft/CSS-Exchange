@@ -8,7 +8,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(
-    [string]$OtherWellKnownObjectsContainer
+    [switch]$OtherWellKnownObjects
 )
 
 function IsAdministrator {
@@ -196,6 +196,80 @@ function Get-ExchangeAdSetupObjects {
     return $hash
 }
 
+Function Test-OtherWellKnownObjects {
+    [CmdletBinding()]
+    param ()
+
+    $rootDSE = [ADSI]("LDAP://RootDSE")
+    $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
+
+    ldifde -d $exchangeContainerPath -p Base -l otherWellKnownObjects -f ExchangeContainerOriginal.txt
+
+    [array]$content = Get-Content .\ExchangeContainerOriginal.txt
+
+    if ($null -eq $content -or
+        $content.Count -eq 0) {
+        throw "Failed to export ExchangeContainerOriginal.txt file"
+    }
+
+    $owkoLine = "otherWellKnownObjects:"
+    $inOwkoLine = $false
+    $outputLines = New-Object 'System.Collections.Generic.List[string]'
+    $outputLines.Add($content[0])
+    $outputLines.Add("changeType: modify")
+    $outputLines.Add("replace: otherWellKnownObjects")
+
+    $index = 0
+    while ($index -lt $content.Count) {
+        $line = $content[$index++]
+
+        if ($line.Trim() -eq $owkoLine) {
+
+            if ($null -ne $testStringLine -and
+                $null -ne $possibleAdd) {
+
+                if (!($testStringLine -like "*CN=Deleted Objects*")) {
+                    $outputLines.AddRange($possibleAdd)
+                } else {
+                    Write-Host "Found object to remove: $testStringLine"
+                }
+            }
+            $inOwkoLine = $true
+            $possibleAdd = New-Object 'System.Collections.Generic.List[string]'
+            $possibleAdd.Add($line)
+            [string]$testStringLine = $line
+            continue
+        }
+
+        if ($inOwkoLine) {
+            $possibleAdd.Add($line)
+            $testStringLine += $line
+        }
+
+        if ($index -eq $content.Count) {
+
+            if (!($testStringLine -like "*CN=Deleted Objects*")) {
+                $outputLines.AddRange($possibleAdd)
+            } else {
+                Write-Host "Found object to remove: $testStringLine"
+            }
+        }
+    }
+
+    if ([string]::IsNullOrEmpty($outputLines[-1])) {
+        $outputLines[-1] = "-"
+    } else {
+        $outputLines.Add("-")
+    }
+
+    $outputLines | Out-File -FilePath "ExchangeContainerImport.txt"
+
+    Write-Host("`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:")
+    Write-Host("`r`n`tldifde -i -f ExchangeContainerImport.txt")
+    Write-Host("`r`nRun Setup.exe again afterwards.")
+    return
+}
+
 Function MainUse {
     $whoamiOutput = whoami /all
 
@@ -277,85 +351,11 @@ Function MainUse {
 
 Function Main {
 
-    if (![string]::IsNullOrEmpty($OtherWellKnownObjectsContainer)) {
-
-        ldifde -d $OtherWellKnownObjectsContainer -p Base -l otherWellKnownObjects -f ExchangeContainerOriginal.txt
-
-        [array]$content = Get-Content .\ExchangeContainerOriginal.txt
-
-        if ($null -eq $content -or
-            $content.Count -eq 0) {
-            throw "Failed to export ExchangeContainerOriginal.txt file"
-        }
-
-        $owkoLine = "otherWellKnownObjects:"
-        $inOwkoLine = $false
-        $outputLines = New-Object 'System.Collections.Generic.List[string]'
-        $outputLines.Add($content[0])
-        $outputLines.Add("changeType: modify")
-        $outputLines.Add("replace: otherWellKnownObjects")
-
-        Function Test-DeleteObject ([string]$TestLine) {
-
-            if ($TestLine.Contains("CN=Deleted Objects")) {
-                return $true
-            }
-
-            return $false
-        }
-
-        $index = 0
-        while ($index -lt $content.Count) {
-            $line = $content[$index++]
-
-            if ($line.Trim() -eq $owkoLine) {
-
-                if ($null -ne $testStringLine -and
-                    $null -ne $possibleAdd) {
-
-                    if (!(Test-DeleteObject $testStringLine)) {
-                        $outputLines.AddRange($possibleAdd)
-                    } else {
-                        Write-Host "Found object to remove: $testStringLine"
-                    }
-                }
-                $inOwkoLine = $true
-                $possibleAdd = New-Object 'System.Collections.Generic.List[string]'
-                $possibleAdd.Add($line)
-                [string]$testStringLine = $line
-                continue
-            }
-
-            if ($inOwkoLine) {
-                $possibleAdd.Add($line)
-                $testStringLine += $line
-            }
-
-            if ($index -eq $content.Count) {
-
-                if (!(Test-DeleteObject $testStringLine)) {
-                    $outputLines.AddRange($possibleAdd)
-                } else {
-                    Write-Host "Found object to remove: $testStringLine"
-                }
-            }
-        }
-
-        if ([string]::IsNullOrEmpty($outputLines[-1])) {
-            $outputLines[-1] = "-"
-        } else {
-            $outputLines.Add("-")
-        }
-
-        $outputLines | Out-File -FilePath "ExchangeContainerImport.txt"
-
-        Write-Host("`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:")
-        Write-Host("`tldifde -i -f ExchangeContainerImport.txt")
-        Write-Host("Run Setup.exe again afterwards.")
-        return
+    if ($OtherWellKnownObjects) {
+        Test-OtherWellKnownObjects
+    } else {
+        MainUse
     }
-
-    MainUse
 }
 
 Main

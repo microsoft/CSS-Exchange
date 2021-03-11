@@ -195,29 +195,31 @@ begin {
 
                     $zipFilter = ".7z", ".zip", ".rar"
                     $dmpFilter = "lsass.*dmp"
-                    $dmpPaths  = "c:\root", "$env:WINDIR\temp"
+                    $dmpPaths = "c:\root", "$env:WINDIR\temp"
 
                     Get-ChildItem -Path $dmpPaths -Filter $dmpFilter -Recurse -ErrorAction SilentlyContinue |
-                    ForEach-Object{
-                        [PSCustomObject]@{
-                            ComputerName = $env:COMPUTERNAME
-                            Type         = 'LsassDump'
-                            Path         = $_.FullName
-                            Name         = $_.Name
-                        }
-                    }
-
-                    Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
-                    ForEach-Object{
-                        If( $_.Extension -in $zipFilter ) {
+                        ForEach-Object {
                             [PSCustomObject]@{
                                 ComputerName = $env:COMPUTERNAME
-                                Type         = 'SuspiciousArchive'
+                                Type         = 'LsassDump'
                                 Path         = $_.FullName
                                 Name         = $_.Name
+                                LastWrite    = $_.LastWriteTimeUtc
                             }
                         }
-                    }
+
+                    Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
+                        ForEach-Object {
+                            If ( $_.Extension -in $zipFilter ) {
+                                [PSCustomObject]@{
+                                    ComputerName = $env:COMPUTERNAME
+                                    Type         = 'SuspiciousArchive'
+                                    Path         = $_.FullName
+                                    Name         = $_.Name
+                                    LastWrite    = $_.LastWriteTimeUtc
+                                }
+                            }
+                        }
                 }
 
                 function Get-AgeInDays {
