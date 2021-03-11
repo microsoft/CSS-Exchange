@@ -368,7 +368,12 @@ Function Get-ExchangeInformation {
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
-            $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Script:Server | ForEach-Object { $_.ServicesNotRunning }
+            try {
+                $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Script:Server -ErrorAction Stop | ForEach-Object { $_.ServicesNotRunning }
+            } catch {
+                Write-VerboseOutput ("Failed to run Test-ServiceHealth")
+                Invoke-CatchActions
+            }
         }
     } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010) {
         Write-VerboseOutput("Exchange 2010 detected.")
