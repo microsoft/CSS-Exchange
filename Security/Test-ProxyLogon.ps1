@@ -169,8 +169,11 @@ begin {
                         Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26858 test."
                         return
                     }
-
-                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path
+                    $Path = Join-Path -Path $exchangePath -ChildPath "Logging\OABGeneratorLog"
+                    $Pattern = "Download failed and temporary file"
+                    If( Test-Path $Path ) {
+                        (Select-String -Path $Path -Pattern $Pattern -List).Path
+                    }
                 }
 
                 function Get-Cve27065 {
@@ -218,7 +221,11 @@ begin {
                 }
 
                 function Get-AgeInDays {
-                    param ( $dateString )
+                    param (
+                        [Parameter( ValueFromPipeline = $true )]
+                        $dateString
+                    )
+
                     if ( $dateString -and $dateString -as [DateTime] ) {
                         $CURTIME = Get-Date
                         $age = $CURTIME.Subtract($dateString)
@@ -232,24 +239,30 @@ begin {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
+                    $logBase = Join-Path -Path $exchangePath -ChildPath "Logging"
+                    $params = @{
+                        ErrorAction = 'SilentlyContinue'
+                        Recurse     = $true
+                    }
+
                     if ($null -eq $exchangePath) {
                         Write-Host "  Exchange 2013 or later not found. Skipping log age checks."
                         return $null
                     }
 
                     [PSCustomObject]@{
-                        Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        Ecp              = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        AutodProxy       = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        EasProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        EcpProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        EwsProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        MapiProxy        = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Mapi" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        OabProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Oab" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        OwaProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Owa" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        OwaCalendarProxy = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\OwaCalendar" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        PowershellProxy  = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\PowerShell" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        RpcHttpProxy     = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        Oabgen           =  (Get-ChildItem @params -Path "$logBase\OABGeneratorLog" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        Ecp              =  (Get-ChildItem @params -Path "$logBase\ECP\Server\*.log" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        AutodProxy       =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Autodiscover" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        EasProxy         =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Eas" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        EcpProxy         =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Ecp" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        EwsProxy         =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Ews" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        MapiProxy        =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Mapi" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        OabProxy         =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Oab" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        OwaProxy         =  (Get-ChildItem @params -Path "$logBase\HttpProxy\Owa" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        OwaCalendarProxy =  (Get-ChildItem @params -Path "$logBase\HttpProxy\OwaCalendar" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        PowershellProxy  =  (Get-ChildItem @params -Path "$logBase\HttpProxy\PowerShell" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
+                        RpcHttpProxy     =  (Get-ChildItem @params -Path "$logBase\HttpProxy\RpcHttp" | Sort-Object CreationTime | Select-Object -First 1).CreationTime | Get-AgeInDays
                     }
                 }
                 #endregion Functions
