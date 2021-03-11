@@ -172,7 +172,7 @@ begin {
                     $Path = Join-Path -Path $exchangePath -ChildPath "Logging\OABGeneratorLog"
                     $Pattern = "Download failed and temporary file"
                     If( Test-Path $Path ) {
-                        (Select-String -Path $Path -Pattern $Pattern -List).Path
+                        Select-String -Path "$Path\*.log" -Pattern $Pattern -List | Select-Object -ExpandProperty Path
                     }
                 }
 
@@ -210,7 +210,7 @@ begin {
 
                     Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
                         ForEach-Object {
-                            If ( $_.Extension -in $zipFilter ) {
+                            If ( $zipFilter -contains $_.Extension ) {
                                 [PSCustomObject]@{
                                     ComputerName = $env:COMPUTERNAME
                                     Type         = 'SuspiciousArchive'
