@@ -1,5 +1,14 @@
-# Security scripts
+# Please download using the links below
 
+Script|More Info|Download
+-|-|-
+BackendCookieMitigation.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#backendcookiemitigationps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
+CompareExchangeHashes.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#compareexchangehashesps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
+ExchangeMitigations.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchangemitigationsps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
+http-vuln-cve2021-26855.nse | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#http-vuln-cve2021-26855nse) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
+Test-ProxyLogon.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#test-proxylogonps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
+
+# Security scripts
 ## [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
 Formerly known as Test-Hafnium, this script automates all four of the commands found in the [Hafnium blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/). It also has a progress bar and some performance tweaks to make the CVE-2021-26855 test run much faster.
