@@ -1,5 +1,3 @@
-# Please download using the links below
-
 Script|More Info|Download
 -|-|-
 BackendCookieMitigation.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#backendcookiemitigationps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
