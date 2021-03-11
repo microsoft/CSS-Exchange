@@ -164,6 +164,18 @@ Function Start-AnalyzerEngine {
     }
 
     ##############################
+    # Exchange Test Services
+    ##############################
+    Write-VerboseOutput("Working on results from Test-ServiceHealth")
+    $servicesNotRunning = $exchangeInformation.ExchangeServicesNotRunning
+    if ($null -ne $servicesNotRunning) {
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Services Not Running" -Details $servicesNotRunning `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    ##############################
     # Exchange Server Maintenance
     ##############################
     Write-VerboseOutput("Working on Exchange Server Maintenance")
