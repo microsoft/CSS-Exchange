@@ -11,7 +11,7 @@ param(
     [switch]$OtherWellKnownObjects
 )
 
-. $PSScriptRoot\Utils\ConvertFrom-Ldif.ps1
+. .\Utils\ConvertFrom-Ldif.ps1
 
 function IsAdministrator {
     $ident = [System.Security.Principal.WindowsIdentity]::GetCurrent()
