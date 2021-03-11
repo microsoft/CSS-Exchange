@@ -20,7 +20,7 @@ Additional Parameters are used for when they are called out from the `SetupLogRe
 
 Parameter | Description
 ----------|------------
-[string]OtherWellKnownObjectsContainer | Pass the Distinguished Name of Microsoft Exchange container to look at the OtherWellKnownObjects attributes
+[string]OtherWellKnownObjects | Tests for deleted objects in the otherWellKnownObjects attribute
 
 # [SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
 
