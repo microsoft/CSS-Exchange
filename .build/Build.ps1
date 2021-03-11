@@ -143,7 +143,7 @@ $scriptFiles | ForEach-Object {
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
 
-$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\Baselines" -Filter *.csv
+$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\src\Baselines" -Filter *.csv
 
 $csvHashFiles | ForEach-Object {
     $zipFilePath = "$distFolder\$($_.BaseName).zip"
