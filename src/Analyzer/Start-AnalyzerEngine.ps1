@@ -119,7 +119,8 @@ Function Start-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
-        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Mailbox) {
 
         if ($null -ne $exchangeInformation.ApplicationPools -and
             $exchangeInformation.ApplicationPools.Count -gt 0) {
