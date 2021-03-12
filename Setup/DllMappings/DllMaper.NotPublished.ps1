@@ -175,8 +175,8 @@ $groupingsByDirectory = $dllMappings | Group-Object InstallDirectory, ISODirecto
 
 foreach ($group in $groupingsByDirectory) {
     $paths = $group.Name.Split(",").Trim()
-    $installDirectory = $paths[0].Replace("C:\Program Files\Microsoft\Exchange Server\V15\", "")
-    $isoDirectory = $paths[1].Replace("D:\", "")
+    $installDirectory = $paths[0].Replace("$ExInstall\", "")
+    $isoDirectory = $paths[1].Replace("$IsoRoot", "")
     $currentMappings = [PSCustomObject]@{
         InstallDirectory = $installDirectory
         IsoDirectory     = $isoDirectory
@@ -189,25 +189,6 @@ foreach ($group in $groupingsByDirectory) {
 
     $mapperObject.Add($currentMappings)
 }
-
-<#For 2013
-foreach ($group in $groupingsByDirectory) {
-    $paths = $group.Name.Split(",").Trim()
-    $installDirectory = $paths[0].Replace("C:\Program Files\Microsoft\Exchange Server\V15\", "")
-    $isoDirectory = $paths[1].Replace("C:\Users\Han\Desktop\CU23", "")
-    $currentMappings = [PSCustomObject]@{
-        InstallDirectory = $installDirectory
-        IsoDirectory     = $isoDirectory
-        DllFileNames     = (New-Object 'System.Collections.Generic.List[object]')
-    }
-
-    foreach ($fileName in $group.Group.FileName) {
-        $currentMappings.DllFileNames.Add($fileName)
-    }
-
-    $mapperObject.Add($currentMappings)
-}
-#>
 
 $groupIso = $mapperObject | Group-Object IsoDirectory | Sort-Object Count -Descending
 $mappings2 = New-Object 'System.Collections.Generic.List[object]'
