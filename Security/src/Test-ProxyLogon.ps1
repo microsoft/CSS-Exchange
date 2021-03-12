@@ -258,7 +258,7 @@ begin {
 
                 [PSCustomObject]@{
                     ComputerName = $env:COMPUTERNAME
-                    Cve26855     = @(Get-Cve26855)
+                    Cve26855     = Get-Cve26855
                     Cve26857     = @(Get-Cve26857)
                     Cve26858     = @(Get-Cve26858)
                     Cve27065     = @(Get-Cve27065)
