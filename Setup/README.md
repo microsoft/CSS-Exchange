@@ -1,4 +1,6 @@
-# SetupAssist.ps1
+# [SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
+
+Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
 
 This script is meant to be run on the system where you are running setup from. It currently checks and displays the following when just running it:
 
@@ -18,11 +20,11 @@ Additional Parameters are used for when they are called out from the `SetupLogRe
 
 Parameter | Description
 ----------|------------
-[string]OtherWellKnownObjectsContainer | Pass the Distinguished Name of Microsoft Exchange container to look at the OtherWellKnownObjects attributes
+[string]OtherWellKnownObjects | Tests for deleted objects in the otherWellKnownObjects attribute
 
-Download the latest release [here](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
+# [SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
 
-# SetupLogReviewer.ps1
+Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
 
 This script is meant to be run against the Exchange Setup Logs located at `C:\ExchangeSetupLogs\ExchangeSetup.log`. You can run this on the server, or on a personal computer.
 
