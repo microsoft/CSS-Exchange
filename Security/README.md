@@ -116,13 +116,17 @@ For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/
 
 `.\CompareExchangeHashes.ps1`
 
-The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
+This script takes the following actions:
+* Checks file hashes in exchange vdirs against known good baseline of hashes.
+* Any file under IIS root which is edited after Dec 1st 2020 is marked as suspicious.
+
 **This script needs to be run as administrator on all the exchange servers separately**.
 
 The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
 
 The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
 If potential malicious files are found during comparision there is an error generated on the cmdline.
+* Note: If the result file contains huge number of rows, it is potentially due to missing baseline hashes, please find the exchange versions found on the machine and leave a comment on issue [313](https://github.com/microsoft/CSS-Exchange/issues/313)
 
 To read the output, open the result csv file in excel or in powershell:
 
