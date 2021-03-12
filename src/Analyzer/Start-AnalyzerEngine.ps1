@@ -1186,6 +1186,19 @@ Function Start-AnalyzerEngine {
             -DisplayWriteType $displayColor `
             -AnalyzedInformation $analyzedResults
 
+        if ($certificate.LifetimeInDays -lt 0) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Certificate has expired" -Details $true `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Certificate has expired" -Details $false `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
         if ($certificate.PublicKeySize -lt 2048) {
             $additionalDisplayValue = "It's recommended to use a key size of at least 2048 bit."
 
@@ -1237,26 +1250,42 @@ Function Start-AnalyzerEngine {
                 -DisplayCustomTabNumber 3 `
                 -AnalyzedInformation $analyzedResults
         }
+
+        if ($certificate.IsCurrentAuthConfigCertificate -eq $true) {
+            $currentAuthCertificate = $certificate
+        }
     }
 
-    if (($null -ne $exchangeInformation.ExchangeCertificates) -and
-        ($exchangeInformation.ExchangeCertificates.IsCurrentAuthConfigCertificate -contains $true)) {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 1 `
-            -DisplayWriteType "Green" `
-            -AnalyzedInformation $analyzedResults
+    if ($null -ne $currentAuthCertificate) {
+        if ($currentAuthCertificate.LifetimeInDays -gt 0) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 1 `
+                -DisplayWriteType "Green" `
+                -AnalyzedInformation $analyzedResults
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 1 `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+
+            $renewExpiredAuthCert = "Auth Certificate has expired `r`n`t`tMore Information: https://docs.microsoft.com/en-us/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired#resolution"
+            $analyzedResults = Add-AnalyzedResultInformation -Details $renewExpiredAuthCert `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
     } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 1 `
-            -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
 
         $analyzedResults = Add-AnalyzedResultInformation -Details "We can't check for Auth Certificates on Edge Transport Servers" `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Yellow" `
             -AnalyzedInformation $analyzedResults
     } else {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
@@ -1265,7 +1294,8 @@ Function Start-AnalyzerEngine {
             -DisplayWriteType "Red" `
             -AnalyzedInformation $analyzedResults
 
-        $analyzedResults = Add-AnalyzedResultInformation -Details "No valid Auth Certificate found. This may cause several problems --- Error" `
+        $createNewAuthCert = "No valid Auth Certificate found. This may cause several problems. `r`n`t`tMore Information: https://docs.microsoft.com/en-us/exchange/troubleshoot/administration/exchange-oauth-authentication-could-not-find-the-authorization"
+        $analyzedResults = Add-AnalyzedResultInformation -Details $createNewAuthCert `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Red" `
