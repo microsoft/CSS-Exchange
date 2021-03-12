@@ -33,5 +33,12 @@ Parameter | Description
 [string]SetupLog | The location of the Exchange Setup Log that needs to be reviewed
 [switch]DelegatedSetup | Use this switch if you are troubleshooting Prerequisites of a Delegated Setup issue
 
+# [CopyMissingDlls.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CopyMissingDlls.ps1)
 
-Download the latest release [here](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
+Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/CopyMissingDlls.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CopyMissingDlls.ps1)
+
+This script is used to copy over missing dlls that might have occurred during a CU install. This script has a mapping of the location of where the .dll should be on the server and where it should be on the ISO and will attempt to copy it over if the file is detected to be missing on the install location.
+
+Parameter | Description
+----------|------------
+[string]IsoRoot | The Root location of the ISO. Example: `D:`
