@@ -28,7 +28,7 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
-    Where-Object { ! $_.Name.Contains(".Tests.ps1") }
+    Where-Object { ! $_.Name.Contains(".Tests.ps1") -and ! $_.Name.Contains(".NotPublished.ps1") }
 Sort-Object Name |
     ForEach-Object { $_.FullName }
 
