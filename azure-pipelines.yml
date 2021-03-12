@@ -89,3 +89,4 @@ steps:
       dist\*.zip
       dist\*.txt
     addChangeLog: true
+    isDraft: true
