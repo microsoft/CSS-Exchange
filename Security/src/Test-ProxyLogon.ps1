@@ -1,4 +1,4 @@
-﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 #
 # Examples
 #
@@ -323,6 +323,7 @@ begin {
         }
 
         process {
+            $issuesFound = $false
             foreach ($report in $InputObject) {
 
                 $isLocalMachine = $report.ComputerName -eq $env:COMPUTERNAME
@@ -363,6 +364,10 @@ begin {
                     Write-Host ""
                     continue
                 }
+
+                #Found issue in atleast one server
+                $issuesFound = $true
+
                 if ($report.Cve26855.Hits.Count -gt 0) {
                     Write-Host "  [CVE-2021-26855] Suspicious activity found in Http Proxy log!" -ForegroundColor Red
                     if (-not $DisplayOnly) {
@@ -474,14 +479,20 @@ begin {
                     }
                     if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
-                        if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
-                            Write-Host "  Creating SuspiciousFiles Collection Directory"
-                            New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
+                        
+                        #Deleting and recreating suspiciousFiles folder to prevent overwrite exceptions due to folders (folder name: myfolder.zip)
+                        if ( Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles" ) {
+                            Remove-Item -Path "$($LogFileOutPath)\SuspiciousFiles" -Recurse -Force    
                         }
+                        Write-Host "  Creating SuspiciousFiles Collection Directory"
+                        New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
+                        
+                        $fileNumber = 0
                         foreach ($entry in $report.Suspicious) {
                             if (Test-Path -Path $entry.path) {
                                 Write-Host "  Copying $($entry.Path) to $($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
-                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles"
+                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles\$($entry.Name)_$fileNumber"
+                                $fileNumber += 1
                             } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
@@ -489,6 +500,7 @@ begin {
                     }
                 }
             }
+            return $issuesFound
         }
     }
     #endregion Functions
@@ -523,8 +535,11 @@ end {
     if ($Export) { return }
 
     if ($computerTargets.Length -lt 1) {
-        Test-ExchangeProxyLogon @paramTest | Write-ProxyLogonReport @paramWrite
+        $issuesFound = Test-ExchangeProxyLogon @paramTest | Write-ProxyLogonReport @paramWrite
     } else {
-        Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+        $issuesFound = Test-ExchangeProxyLogon -ComputerName $computerTargets.ToArray() @paramTest | Write-ProxyLogonReport @paramWrite
+    }
+    [PSCustomObject]@{
+        IssuesFound = $issuesFound
     }
 }
