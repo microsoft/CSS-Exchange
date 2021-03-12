@@ -7,6 +7,12 @@ assignees: ''
 
 ---
 
+<!--
+
+If this is a MISSING BASELINE issue, please comment in #313 rather than opening a new issue.
+
+-->
+
 **Describe the issue**
 A clear and concise description of what the issue is, including what script you are seeing the error in.
 

@@ -263,7 +263,7 @@ Function Test-KnownOrganizationPreparationErrors {
 
         Write-ErrorContext -WriteInfo $errorLine.Line
         [string]$ap = "Option 1: Restore the objects that were deleted."
-        [string]$ap += "`r`n`tOption 2: Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"$($errorLine.Matches.Groups[2].Value)`"' to be able address deleted objects type"
+        [string]$ap += "`r`n`tOption 2: Run the SetupAssist.ps1 script with '-OtherWellKnownObjects' to be able address deleted objects type"
         Write-ActionPlan $ap
         return $true
     }

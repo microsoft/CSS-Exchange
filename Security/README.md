@@ -1,12 +1,21 @@
-# Security scripts
+Script|More Info|Download
+-|-|-
+BackendCookieMitigation.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#backendcookiemitigationps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
+CompareExchangeHashes.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#compareexchangehashesps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
+ExchangeMitigations.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchangemitigationsps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
+http-vuln-cve2021-26855.nse | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#http-vuln-cve2021-26855nse) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
+Test-ProxyLogon.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#test-proxylogonps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
-## Test-ProxyLogon.ps1
+# Security scripts
+## [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
 Formerly known as Test-Hafnium, this script automates all four of the commands found in the [Hafnium blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/). It also has a progress bar and some performance tweaks to make the CVE-2021-26855 test run much faster.
 
 Download the latest release here:
 
 [Download Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
+
+### Usage
 
 The most typical usage of this script is to check all Exchange servers and save the reports,
 by using the following syntax from Exchange Management Shell:
@@ -25,7 +34,28 @@ To display the results without saving them, pass -DisplayOnly:
 
 `.\Test-ProxyLogon.ps1 -DisplayOnly`
 
-## ExchangeMitigations.ps1
+### Frequently Asked Questions
+
+**The script says it found suspicious files, and it lists a bunch of zip files. What does this mean?**
+
+The script will flag any zip/7x/rar files that it finds in ProgramData. As noted in
+[this blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/), web
+shells have been observed using such files for exfiltration. An administrator should review the files to
+determine if they are valid. Determining if a zip file is a valid part of an installed
+product is outside the scope of this script, and whitelisting files by name would only encourage
+the use of those specific names by attackers.
+
+**I'm having trouble running the script on Exchange 2010.**
+
+If PowerShell 3 is present, the script can be run on Exchange 2010. It will not run on PowerShell 2. One can
+also enable PS Remoting and run the script remotely against Exchange 2010. However,
+the script has minimal functionality in these scenarios, as Exchange 2010 is only affected by one of the
+four announced exploits - CVE-2021-26857. Further, this exploit is only available if the Unified Messaging role
+is present. As a result, it is often easier to simply run the Get-EventLog command from the
+[blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/),
+rather than using Test-ProxyLogon.
+
+## [ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
 This script contains 4 mitigations to help address the following vulnerabilities:
 
 * CVE-2021-26855
@@ -77,7 +107,7 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
-## CompareExchangeHashes.ps1
+## [CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
 
 This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
 For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/exchangevulns).
@@ -87,7 +117,7 @@ For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/
 `.\CompareExchangeHashes.ps1`
 
 The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
-**This script needs to be run as administrator**.
+**This script needs to be run as administrator on all the exchange servers separately**.
 
 The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
 
@@ -104,7 +134,7 @@ Submitting files for analysis:
 * Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
 * Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide).
 
-## BackendCookieMitigation.ps1
+## [BackendCookieMitigation.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/BackendCookieMitigation.ps1)
 
 This mitigation will filter https requests that contain malicious X-AnonResource-Backend and malformed X-BEResource cookies which were found to be used in CVE-2021-26855.
 
@@ -142,7 +172,7 @@ To rollback - Note: This does not remove the IIS Rewrite module, only the rules.
 
 `PS C:\> BackendCookieMitigation.ps1 -WebSiteNames "Default Web Site" -RollbackMitigation -Verbose`
 
-## http-vuln-cve2021-26855.nse
+## [http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
 
 This file is for use with nmap. It detects whether the specified URL is vulnerable to the Exchange Server SSRF Vulnerability (CVE-2021-26855).
 For usage information, please read the top of the file.
