@@ -256,7 +256,7 @@ begin {
                 }
                 #endregion Functions
 
-                [PSCustomObject]@{
+                $results = [PSCustomObject]@{
                     ComputerName = $env:COMPUTERNAME
                     Cve26855     = Get-Cve26855
                     Cve26857     = @(Get-Cve26857)
@@ -264,7 +264,14 @@ begin {
                     Cve27065     = @(Get-Cve27065)
                     Suspicious   = @(Get-SuspiciousFile)
                     LogAgeDays   = Get-LogAge
+                    IssuesFound  = $false
                 }
+
+                if ($results.Cve26855.Hits.Count -or $results.Cve26857.Count -or $results.Cve26858.Count -or $results.Cve27065.Count -or $results.Suspicious.Count) {
+                    $results.IssuesFound = $true
+                }
+
+                $results
             }
             #endregion Remoting Scriptblock
             $parameters = @{
@@ -358,7 +365,7 @@ begin {
                     }
                 }
 
-                if (-not ($report.Cve26855.Hits.Count -or $report.Cve26857.Count -or $report.Cve26858.Count -or $report.Cve27065.Count -or $report.Suspicious.Count)) {
+                if (-not $report.IssuesFound) {
                     Write-Host "  Nothing suspicious detected" -ForegroundColor Green
                     Write-Host ""
                     continue
