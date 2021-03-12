@@ -35,7 +35,11 @@ Function Get-ExchangeInformation {
             $buildInformation.FriendlyName = "Exchange 2019 "
 
             #Exchange 2019 Information
-            if ($buildAndRevision -lt 397.3) {
+            if ($buildAndRevision -lt 330.5) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::RTM
+                $buildInformation.FriendlyName += "RTM"
+                $buildInformation.ReleaseDate = "10/22/2018"
+            } elseif ($buildAndRevision -lt 397.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
                 $buildInformation.FriendlyName += "CU1"
                 $buildInformation.ReleaseDate = "02/12/2019"
