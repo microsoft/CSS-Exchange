@@ -481,14 +481,20 @@ begin {
                     }
                     if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
-                        if (-not (Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles")) {
-                            Write-Host "  Creating SuspiciousFiles Collection Directory"
-                            New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
+
+                        #Deleting and recreating suspiciousFiles folder to prevent overwrite exceptions due to folders (folder name: myfolder.zip)
+                        if ( Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles" ) {
+                            Remove-Item -Path "$($LogFileOutPath)\SuspiciousFiles" -Recurse -Force
                         }
+                        Write-Host "  Creating SuspiciousFiles Collection Directory"
+                        New-Item "$($LogFileOutPath)\SuspiciousFiles" -ItemType Directory -Force | Out-Null
+
+                        $fileNumber = 0
                         foreach ($entry in $report.Suspicious) {
                             if (Test-Path -Path $entry.path) {
                                 Write-Host "  Copying $($entry.Path) to $($LogFileOutPath)\SuspiciousFiles" -ForegroundColor Green
-                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles"
+                                Copy-Item -Path $entry.Path -Destination "$($LogFileOutPath)\SuspiciousFiles\$($entry.Name)_$fileNumber"
+                                $fileNumber += 1
                             } else {
                                 Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist." -ForegroundColor Red
                             }
