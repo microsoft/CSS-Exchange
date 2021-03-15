@@ -8,7 +8,7 @@ Test-ProxyLogon.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree
 
 # Security scripts
 
-## Exchange On-premises Mitigation Tool (EOMT)
+## [Exchange On-premises Mitigation Tool (EOMT)](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
 This script contains mitigations to help address the following vulnerabilities.
 
 * CVE-2021-26855
