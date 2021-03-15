@@ -67,6 +67,8 @@ Download the latest release here:
 
 [Download Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
+### Usage
+
 The most typical usage of this script is to check all Exchange servers and save the reports,
 by using the following syntax from Exchange Management Shell:
 
@@ -83,6 +85,27 @@ To check the local server and copy the identified logs and files to the OutPath:
 To display the results without saving them, pass -DisplayOnly:
 
 `.\Test-ProxyLogon.ps1 -DisplayOnly`
+
+### Frequently Asked Questions
+
+**The script says it found suspicious files, and it lists a bunch of zip files. What does this mean?**
+
+The script will flag any zip/7x/rar files that it finds in ProgramData. As noted in
+[this blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/), web
+shells have been observed using such files for exfiltration. An administrator should review the files to
+determine if they are valid. Determining if a zip file is a valid part of an installed
+product is outside the scope of this script, and whitelisting files by name would only encourage
+the use of those specific names by attackers.
+
+**I'm having trouble running the script on Exchange 2010.**
+
+If PowerShell 3 is present, the script can be run on Exchange 2010. It will not run on PowerShell 2. One can
+also enable PS Remoting and run the script remotely against Exchange 2010. However,
+the script has minimal functionality in these scenarios, as Exchange 2010 is only affected by one of the
+four announced exploits - CVE-2021-26857. Further, this exploit is only available if the Unified Messaging role
+is present. As a result, it is often easier to simply run the Get-EventLog command from the
+[blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/),
+rather than using Test-ProxyLogon.
 
 ## [ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
 This script contains 4 mitigations to help address the following vulnerabilities:
@@ -145,13 +168,17 @@ For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/
 
 `.\CompareExchangeHashes.ps1`
 
-The script currently only validates files in exchange virtual directories only, it does not check any files in the IIS root.
+This script takes the following actions:
+* Checks file hashes in exchange vdirs against known good baseline of hashes.
+* Any file under IIS root which is edited after Dec 1st 2020 is marked as suspicious.
+
 **This script needs to be run as administrator on all the exchange servers separately**.
 
 The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
 
 The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
 If potential malicious files are found during comparision there is an error generated on the cmdline.
+* Note: If the result file contains huge number of rows, it is potentially due to missing baseline hashes, please find the exchange versions found on the machine and leave a comment on issue [313](https://github.com/microsoft/CSS-Exchange/issues/313)
 
 To read the output, open the result csv file in excel or in powershell:
 
