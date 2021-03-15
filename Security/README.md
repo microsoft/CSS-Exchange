@@ -13,7 +13,7 @@ This script contains mitigations to help address the following vulnerabilities.
 
 * CVE-2021-26855
 
-This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** EOMT automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has three operations it performs:
+This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has three operations it performs:
 
 * Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: This mitigates the known methods of this exploit.
 * Malware scan of the Exchange Server via the Microsoft Safety Scanner (https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
@@ -21,7 +21,7 @@ This is the most effective way to help quickly protect and mitigate your Exchang
 
 This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
 
-### Requirements to run EOMT
+### Requirements to run the Exchange On-premises Mitigation Tool
 
 * External Internet Connection from your Exchange server (required to download the safety scanner and the IIS URL Rewrite Module).
 * PowerShell script must be run as Administrator.
@@ -32,7 +32,7 @@ This a better approach for Exchange deployments with Internet access and for tho
 * Exchange 2013, 2016, or 2019
 * Windows Server 2008 R2, Server 2012, Server 2012 R2, Server 2016, Server 2019
 
-### Who should run EOMT
+### Who should run the Exchange On-premises Mitigation Tool
 
 Situation | Guidance
 -|-
@@ -42,9 +42,9 @@ If you have already patched your systems and are protected, but did NOT investig
 If you have already patched and investigated your systems for any indicators of compromise, etc…. | No action is required
 
 ### Important note regarding Microsoft Safety Scanner
- EOMT runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Mirosoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.
+ EOMT runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Microsoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.
 
-### EOMT Examples
+### Exchange On-premises Mitigation Tool Examples
 The default recommended way of using of EOMT.ps1. This will determine if your server is vulnerable, mitigate if vulnerable, and run MSERT in quick scan mode. If the server is not vulnerable only MSERT quick scan will run.
 
 `.\EOMT.ps1`
@@ -53,7 +53,7 @@ To run a Full MSERT Scan -  We only recommend this option only if the initial qu
 
 `.\EOMT.ps1 -RunFullScan -DoNotRunMitigation`
 
-To roll back EOMT mitigations
+To roll back Exchange On-premises Mitigation Tool mitigations
 
 `.\EOMT.ps1 -Rollbackmitigation`
 
