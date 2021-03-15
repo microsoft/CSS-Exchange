@@ -1,7 +1,6 @@
 Script|More Info|Download
 -|-|-
 EOMT | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchange-on-premises-mitigation-tool-eomt) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
-CompareExchangeHashes.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#compareexchangehashesps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
 ExchangeMitigations.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchangemitigationsps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
 http-vuln-cve2021-26855.nse | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#http-vuln-cve2021-26855nse) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
 Test-ProxyLogon.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#test-proxylogonps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
@@ -158,37 +157,6 @@ To apply multiple or specific mitigations (out of the 4)
 To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
-
-## [CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
-
-This script provides a mechanism for malicious file detection on Exchange servers running E13, E16 or E19 versions.
-For more information please go to [https://aka.ms/exchangevulns](https://aka.ms/exchangevulns).
-
-[Download CompareExchangeHashes.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CompareExchangeHashes.ps1)
-
-`.\CompareExchangeHashes.ps1`
-
-This script takes the following actions:
-* Checks file hashes in exchange vdirs against known good baseline of hashes.
-* Any file under IIS root which is edited after Dec 1st 2020 is marked as suspicious.
-
-**This script needs to be run as administrator on all the exchange servers separately**.
-
-The script determines the version of exchange installed on the server and then downloads the hashes for known exchange files from the [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest).
-
-The result generated is stored in a file locally with the following format: <ExchangeVersion>_result.csv
-If potential malicious files are found during comparision there is an error generated on the cmdline.
-* Note: If the result file contains huge number of rows, it is potentially due to missing baseline hashes, please find the exchange versions found on the machine and leave a comment on issue [313](https://github.com/microsoft/CSS-Exchange/issues/313)
-
-To read the output, open the result csv file in excel or in powershell:
-
-`$result = Import-Csv <Path to result file>`
-
-Note: If the server does not have internet connectivity, run the script which would output the exchange versions discovered on the server. The baselines can be downloaded from [published known good hashes of exchange files](https://github.com/microsoft/CSS-Exchange/releases/latest) and re-run the script.
-
-Submitting files for analysis:
-* Please submit the output file for analysis in the malware analysis portal [here](https://www.microsoft.com/en-us/wdsi/filesubmission). Please add the text "ExchangeMarchCVE" in "Additional Information" field on the portal submission form.
-* Instructions on how to use the portal can be found [here](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/submission-guide).
 
 ## [http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
 
