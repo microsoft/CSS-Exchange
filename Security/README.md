@@ -17,7 +17,7 @@ This is the most effective way to help quickly protect and mitigate your Exchang
 
 * Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: This mitigates the known methods of this exploit.
 * Malware scan of the Exchange Server via the Microsoft Safety Scanner (https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
-* Attempt to remeidate compromises detected by the Microsoft Safety Scanner.
+* Attempt to remediate compromises detected by the Microsoft Safety Scanner.
 
 This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
 
