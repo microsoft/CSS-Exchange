@@ -717,6 +717,11 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
     $summary | Out-File -FilePath $SummaryFile -Encoding ascii -Force
 }
 
+if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "Unable to launch EOMT.ps1: please re-run as administrator." -ForegroundColor Red
+    exit
+}
+
 # Main
 try {
     $Stage = "EOMTStart"
@@ -728,14 +733,6 @@ try {
     $Message = "Starting EOMT.ps1 on $env:computername"
     $RegMessage = "Starting EOMT.ps1"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-    #IsAdmin?
-    if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        $Message = "Unable to launch EOMT.ps1: please re-run as administrator."
-        $RegMessage = "Insufficient permissions"
-        Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-        throw
-    }
 
     #IsPS3 or later?
     if ($PSVersionTable.PSVersion.Major -lt 3) {
