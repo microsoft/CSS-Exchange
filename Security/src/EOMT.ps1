@@ -718,7 +718,7 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
 }
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Host "Unable to launch EOMT.ps1: please re-run as administrator." -ForegroundColor Red
+    Write-Error "Unable to launch EOMT.ps1: please re-run as administrator."
     exit
 }
 
