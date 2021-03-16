@@ -14,15 +14,15 @@ This script contains mitigations to help address the following vulnerabilities.
 
 This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has three operations it performs:
 
-* Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: This mitigates the known methods of this exploit.
-* Malware scan of the Exchange Server via the Microsoft Safety Scanner (https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
+* Mitigate against current known attacks using CVE-2021-26855 via a URL Rewrite configuration
+* Scan the Exchange Server using the [Microsoft Safety Scanner](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
 * Attempt to remediate compromises detected by the Microsoft Safety Scanner.
 
 This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
 
 ### Requirements to run the Exchange On-premises Mitigation Tool
 
-* External Internet Connection from your Exchange server (required to download the safety scanner and the IIS URL Rewrite Module).
+* External Internet Connection from your Exchange server (required to download the Microsoft Safety Scanner and the IIS URL Rewrite Module).
 * PowerShell script must be run as Administrator.
 
 ### System Requirements
@@ -41,10 +41,10 @@ If you have already patched your systems and are protected, but did NOT investig
 If you have already patched and investigated your systems for any indicators of compromise, etc…. | No action is required
 
 ### Important note regarding Microsoft Safety Scanner
- EOMT runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Microsoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.
+ The Exchange On-premises Mitigation Tool runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Microsoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.
 
 ### Exchange On-premises Mitigation Tool Examples
-The default recommended way of using of EOMT.ps1. This will determine if your server is vulnerable, mitigate if vulnerable, and run MSERT in quick scan mode. If the server is not vulnerable only MSERT quick scan will run.
+The default recommended way of using EOMT.ps1. This will determine if your server is vulnerable, mitigate if vulnerable, and run MSERT in quick scan mode. If the server is not vulnerable only MSERT quick scan will run.
 
 `.\EOMT.ps1`
 
@@ -52,11 +52,52 @@ To run a Full MSERT Scan -  We only recommend this option only if the initial qu
 
 `.\EOMT.ps1 -RunFullScan -DoNotRunMitigation`
 
-To roll back Exchange On-premises Mitigation Tool mitigations
+To roll back the Exchange On-premises Mitigation Tool mitigations
 
 `.\EOMT.ps1 -Rollbackmitigation`
 
 Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.
+
+### Exchange On-premises Mitigation Tool Q & A
+
+**Question**: What mode should I run EOMT.ps1 in by default?
+
+**Answer**: By default, EOMT.ps1 should be run without any parameters:
+
+This will run the default mode which does the following:
+1. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version.
+2. Downloads and installs the IIS URL rewrite tool **(only if vulnerable)**.
+3. Applies the URL rewrite mitigation **(only if vulnerable)**.
+4. Runs the Microsoft Safety Scanner in "Quick Scan" mode **(vulnerable or not)**.
+
+**Question**:  What if I run a full scan and it’s affecting the resources of my servers?
+
+**Answer**:  You can terminate the process of the scan by running the following command in an Administrative PowerShell session.
+
+`Stop-Process -Name msert`
+
+**Question**:  What is the real difference between this script (EOMT.PS1) and the previous script Microsoft released (ExchangeMitigations.Ps1).
+
+**Answer**:  The Exchange On-premises Mitigation Tool was released to help pull together multiple mitigation and response steps, whereas the previous script simply enabled mitigations. Some details on what each do:
+
+#### EOMT.PS1
+* Mitigation of CVE-2021-26855 via a URL Rewrite configuration.
+* Mitigation does not impact Exchange functionality.
+* Malware scan of the Exchange Server via the Microsoft Safety Scanner
+* Attempt to reverse any changes made by identified threats.
+#### ExchangeMitigations.ps1:
+* Does mitigations for all 4 CVE’s - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 & CVE-2021-26858.
+* Some of the mitigation methods impact Exchange functionality.
+* Does not do any scanning for existing compromise or exploitation.
+* Does not take response actions to existing active identified threats.
+
+**Question:**  What if I do not have an external internet connection from my Exchange server?
+
+**Answer:**  If you do not have an external internet connection, you can still use the legacy script (ExchangeMitigations.ps1) and other steps from the mitigation blog post:  [Microsoft Exchange Server Vulnerabilities Mitigations – March 2021](https://msrc-blog.microsoft.com/2021/03/05/microsoft-exchange-server-vulnerabilities-mitigations-march-2021/)
+
+**Question:** If I have already ran the mitigations previously, will the Exchange On-premises Mitigation Tool roll back any of the mitigations?
+
+**Answer:** No, please use the legacy script (ExchangeMitigations.ps1) to do rollback. The legacy script supports rollback for the mitigations the Exchange On-premises Mitigation Tool applied.
 
 ## [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
@@ -98,7 +139,7 @@ the use of those specific names by attackers.
 
 **I'm having trouble running the script on Exchange 2010.**
 
-If PowerShell 3 is present, the script can be run on Exchange 2010. It will not run on PowerShell 2. One can
+If PowerShell 3 is present, the script can be run on Exchange 2010. It will not run-on PowerShell 2. One can
 also enable PS Remoting and run the script remotely against Exchange 2010. However,
 the script has minimal functionality in these scenarios, as Exchange 2010 is only affected by one of the
 four announced exploits - CVE-2021-26857. Further, this exploit is only available if the Unified Messaging role
