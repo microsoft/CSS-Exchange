@@ -115,7 +115,7 @@ param(
 
 function GetMsiProductVersion {
     param (
-        [System.IO.FileInfo]$filename
+        [string]$filename
     )
 
     try {
@@ -123,132 +123,69 @@ function GetMsiProductVersion {
 
         $database = $windowsInstaller.GetType().InvokeMember(
             "OpenDatabase", "InvokeMethod", $Null,
-            $windowsInstaller, @($filename.FullName, 0)
+            $windowsInstaller, @($filename, 0)
         )
 
         $q = "SELECT Value FROM Property WHERE Property = 'ProductVersion'"
+
         $View = $database.GetType().InvokeMember(
             "OpenView", "InvokeMethod", $Null, $database, ($q)
         )
 
-        $View.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $View, $Null)
+        try {
+            $View.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $View, $Null) | Out-Null
 
-        $record = $View.GetType().InvokeMember(
-            "Fetch", "InvokeMethod", $Null, $View, $Null
-        )
+            $record = $View.GetType().InvokeMember(
+                "Fetch", "InvokeMethod", $Null, $View, $Null
+            )
 
-        $productVersion = $record.GetType().InvokeMember(
-            "StringData", "GetProperty", $Null, $record, 1
-        )
+            $productVersion = $record.GetType().InvokeMember(
+                "StringData", "GetProperty", $Null, $record, 1
+            )
 
-        $View.GetType().InvokeMember("Close", "InvokeMethod", $Null, $View, $Null)
-
-        return $productVersion
+            return $productVersion
+        } finally {
+            if ($View) {
+                $View.GetType().InvokeMember("Close", "InvokeMethod", $Null, $View, $Null) | Out-Null
+            }
+        }
     } catch {
         throw "Failed to get MSI file version the error was: {0}." -f $_
     }
 }
-function Get-InstalledSoftware {
-    <#
-	.SYNOPSIS
-		Retrieves a list of all software installed on a Windows computer.
-	.EXAMPLE
-		PS> Get-InstalledSoftware
-
-		This example retrieves all software installed on the local computer.
-	.PARAMETER ComputerName
-		If querying a remote computer, use the computer name here.
-
-	.PARAMETER Name
-		The software title you'd like to limit the query to.
-
-	.PARAMETER Guid
-		The software GUID you'e like to limit the query to
-	#>
-    [CmdletBinding()]
+function Get-InstalledSoftwareVersion {
     param (
-
-        [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string]$ComputerName = $env:COMPUTERNAME,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]$Name,
-
-        [Parameter()]
-        [guid]$Guid
+        [string[]]$Name
     )
-    process {
-        try {
-            $scriptBlock = {
-                $args[0].GetEnumerator() | ForEach-Object { New-Variable -Name $_.Key -Value $_.Value }
 
-                $UninstallKeys = @(
-                    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
-                    "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-                )
-                New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS | Out-Null
-                $UninstallKeys += Get-ChildItem HKU: | Where-Object { $_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$' } | ForEach-Object {
-                    "HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall"
-                }
-                if (-not $UninstallKeys) {
-                    Write-Warning -Message 'No software registry keys found'
-                } else {
-                    foreach ($UninstallKey in $UninstallKeys) {
-                        $friendlyNames = @{
-                            'DisplayName'    = 'Name'
-                            'DisplayVersion' = 'Version'
-                        }
-                        Write-Verbose -Message "Checking uninstall key [$($UninstallKey)]"
-                        if ($Name) {
-                            $WhereBlock = { $_.GetValue('DisplayName') -like "$Name*" }
-                        } elseif ($GUID) {
-                            $WhereBlock = { $_.PsChildName -eq $Guid.Guid }
-                        } else {
-                            $WhereBlock = { $_.GetValue('DisplayName') }
-                        }
-                        $SwKeys = Get-ChildItem -Path $UninstallKey -ErrorAction SilentlyContinue | Where-Object $WhereBlock
-                        if (-not $SwKeys) {
-                            Write-Verbose -Message "No software keys in uninstall key $UninstallKey"
-                        } else {
-                            foreach ($SwKey in $SwKeys) {
-                                $output = @{ }
-                                foreach ($ValName in $SwKey.GetValueNames()) {
-                                    if ($ValName -ne 'Version') {
-                                        $output.InstallLocation = ''
-                                        if ($ValName -eq 'InstallLocation' -and
-                                            ($SwKey.GetValue($ValName)) -and
-                                            (@('C:', 'C:\Windows', 'C:\Windows\System32', 'C:\Windows\SysWOW64') -notcontains $SwKey.GetValue($ValName).TrimEnd('\'))) {
-                                            $output.InstallLocation = $SwKey.GetValue($ValName).TrimEnd('\')
-                                        }
-                                        [string]$ValData = $SwKey.GetValue($ValName)
-                                        if ($friendlyNames[$ValName]) {
-                                            $output[$friendlyNames[$ValName]] = $ValData.Trim() ## Some registry values have trailing spaces.
-                                        } else {
-                                            $output[$ValName] = $ValData.Trim() ## Some registry values trailing spaces
-                                        }
-                                    }
-                                }
-                                $output.GUID = ''
-                                if ($SwKey.PSChildName -match '\b[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12}\b') {
-                                    $output.GUID = $SwKey.PSChildName
-                                }
-                                New-Object -TypeName PSObject -Prop $output
-                            }
-                        }
+    try {
+        $UninstallKeys = @(
+            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+            "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+        )
+
+        New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS | Out-Null
+
+        $UninstallKeys += Get-ChildItem HKU: | Where-Object { $_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$' } | ForEach-Object {
+            "HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+        }
+
+        foreach ($UninstallKey in $UninstallKeys) {
+            $SwKeys = Get-ChildItem -Path $UninstallKey -ErrorAction SilentlyContinue
+            foreach ($n in $Name) {
+                $SwKeys = $SwKeys | Where-Object { $_.GetValue('DisplayName') -like "$n" }
+            }
+            if ($SwKeys) {
+                foreach ($SwKey in $SwKeys) {
+                    if ($SwKey.GetValueNames().Contains("DisplayVersion")) {
+                        return $SwKey.GetValue("DisplayVersion")
                     }
                 }
             }
-
-            if ($ComputerName -eq $env:COMPUTERNAME) {
-                & $scriptBlock $PSBoundParameters
-            } else {
-                Invoke-Command -ComputerName $ComputerName -ScriptBlock $scriptBlock -ArgumentList $PSBoundParameters
-            }
-        } catch {
-            Write-Error -Message "Error: $($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
         }
+    } catch {
+        Write-Error -Message "Error: $($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
     }
 }
 Function BackendCookieMitigation {
@@ -278,7 +215,7 @@ Function BackendCookieMitigation {
         Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
 
         #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
-        $RewriteModule = Get-InstalledSoftware -Name *IIS* | Where-Object { $_.Name -like "*URL*" -and $_.Name -like "*2*" }
+        $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
         $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
 
         $RewriteModuleInstallLog = ($PSScriptRoot + '\' + 'RewriteModuleInstallLog.log')
@@ -387,8 +324,8 @@ Function UnifiedMessagingMitigation {
     )
 
     # UM doesn't apply to Exchange Server 2019
-    $exchangeVersion = (Get-ExchangeServer).AdminDisplayVersion
-    if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
+    $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
+    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
         return
     }
 
@@ -452,8 +389,8 @@ Function ECPAppPoolMitigation {
         Get-WebAppPoolState -Name $AppPoolName
     }
     if ($RollbackMitigation) {
-        $exchangeVersion = (Get-ExchangeServer).AdminDisplayVersion
-        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
+        $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
+        if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
             if (-not((Get-WebAppPoolState -Name "MSExchangeOABAppPool").value -eq "Stopped")) {
                 StartAndCheckHM
             }
@@ -504,8 +441,9 @@ Function OABAppPoolMitigation {
         Get-WebAppPoolState -Name $AppPoolName
     }
     if ($RollbackMitigation) {
-        $exchangeVersion = (Get-ExchangeServer).AdminDisplayVersion
-        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
+
+        $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
+        if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
             if (-not((Get-WebAppPoolState -Name "MSExchangeECPAppPool").value -eq "Stopped")) {
                 StartAndCheckHM
             }
@@ -562,8 +500,8 @@ Function StopAndCheckHM {
         Set-Service MSExchangeHM -StartupType Disabled
     }
 
-    $exchangeVersion = (Get-ExchangeServer).AdminDisplayVersion
-    if (-not ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 0)) {
+    $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
+    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
 
         $MSExchangeHMR = Get-Service MSExchangeHMRecovery
         if ($MSExchangeHMR.Status -ne "Stopped") {
@@ -585,7 +523,7 @@ Function StopAndCheckHM {
     }
 
     Get-Service MSExchangeHM
-    if (-not ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 0)) {
+    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
         Get-Service MSExchangeHMRecovery
     }
 }
@@ -599,8 +537,8 @@ Function StartAndCheckHM {
         Start-Service MSExchangeHM
     }
 
-    $exchangeVersion = (Get-ExchangeServer).AdminDisplayVersion
-    if (-not ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 0)) {
+    $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
+    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
 
         $MSExchangeHMR = Get-Service MSExchangeHMRecovery
         If (((gwmi -Class win32_service | Where-Object { $_.name -eq "MSExchangeHMRecovery" }).StartMode -ne "Auto" )) {
@@ -623,7 +561,7 @@ Function StartAndCheckHM {
 
     Get-Service MSExchangeHM
 
-    if (-not ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 0)) {
+    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
         Get-Service MSExchangeHMRecovery
     }
 }
