@@ -537,13 +537,15 @@ function Run-MSERT {
             $Message += "We highly recommend re-running this script with -RunFullScan. "
         }
         $Message += "For additional guidance, see `"$SummaryFile`"."
+        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete: THREATS DETECTED"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+    } else {
+        $Message = "Microsoft Safety Scanner is complete on $env:computername No known threats detected."
+        Write-Host $Message
+        $RegMessage = "Microsoft Safety Scanner is complete"
+        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     }
-
-    $Message = "Microsoft Safety Scanner is complete on $env:computername No known threats detected."
-    $RegMessage = "Microsoft Safety Scanner is complete"
-    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 }
 
 function Get-ServerVulnStatus {
@@ -655,7 +657,7 @@ function Write-Summary {
         $header = @"
 Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
 Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855 and clear malicious files.
-For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns. This attempt was successful.
+For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.
 Please review locations and files as soon as possible and take the recommended action.
 "@
     } else {
