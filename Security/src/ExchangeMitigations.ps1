@@ -297,7 +297,6 @@ Function BackendCookieMitigation {
     $filter2 = "{0}/rule[@name='{1}']" -f $root, $name2
 
     if (!$RollbackMitigation) {
-        Get-ServerVulnStatus
         Write-Verbose "[INFO] Starting mitigation process on $env:computername" -Verbose
 
         #Check if IIS URL Rewrite Module 2 is installed
