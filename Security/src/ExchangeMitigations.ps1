@@ -60,6 +60,9 @@
     .PARAMETER operationTimeOutDuration
         operationTimeOutDuration is the max duration (in seconds) we wait for each mitigation/rollback before timing it out and throwing.
 
+    .PARAMETER AutoDownloadURLRewrite
+        If set will automatically download/install the IIS URL Rewrite Module.
+
      .PARAMETER Verbose
         The Verbose switch can be used to view the changes that occurs during script execution.
 
@@ -67,6 +70,11 @@
 		PS C:\> ExchangeMitigations.ps1 -FullPathToMSI "FullPathToMSI" -WebSiteNames "Default Web Site" -ApplyAllMitigations -Verbose
 
 		To apply all mitigations and install the IIS URL Rewrite Module.
+
+    .EXAMPLE
+		PS C:\> ExchangeMitigations.ps1 -AutoDownloadURLRewrite -WebSiteNames "Default Web Site" -ApplyAllMitigations -Verbose
+
+		To apply all mitigations, download, and install the IIS URL Rewrite Module.
 
 	.EXAMPLE
 		PS C:\> ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyAllMitigation -Verbose
@@ -110,7 +118,8 @@ param(
     [switch]$RollbackOABAppPoolMitigation,
     [int]$operationTimeOutDuration = 120,
     [ValidateNotNullOrEmpty()][string[]]$WebSiteNames = $(throw "WebSiteNames is mandatory, please provide valid value."),
-    [System.IO.FileInfo]$FullPathToMSI
+    [System.IO.FileInfo]$FullPathToMSI,
+    [switch]$AutoDownloadURLRewrite
 )
 
 function GetMsiProductVersion {
@@ -188,6 +197,85 @@ function Get-InstalledSoftwareVersion {
         Write-Error -Message "Error: $($_.Exception.Message) - Line Number: $($_.InvocationInfo.ScriptLineNumber)"
     }
 }
+function GetURLRewriteLink {
+    $DownloadLinks = @{
+        "v2.1" = @{
+            "x86" = @{
+                "de-DE" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_en-US.msi"
+                "es-ES" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-TW.msi"
+            }
+
+            "x64" = @{
+                "de-DE" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+                "es-ES" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-TW.msi"
+            }
+        }
+        "v2.0" = @{
+            "x86" = @{
+                "de-DE" = "https://download.microsoft.com/download/0/5/0/05045383-D280-4DC6-AE8C-81764118B0F9/rewrite_x86_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/6/9/C/69C1195A-123E-4BE8-8EDF-371CDCA4EC6C/rewrite_2.0_rtw_x86.msi"
+                "es-ES" = "https://download.microsoft.com/download/1/D/9/1D9464B8-9F3B-4A86-97F2-AEC2AB48F481/rewrite_x86_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/1/2/9/129A2686-9654-4B2A-82ED-FC7BCE2BCE93/rewrite_x86_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/2/4/A/24AE553F-CA8F-43B3-ACF8-DAC526FC84F2/rewrite_x86_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/A/6/9/A69D23A5-7CE3-4F80-B5AE-CF6478A5DE19/rewrite_x86_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/2/6/F/26FCA84A-48BC-4AEE-BD6A-B28ED595832E/rewrite_x86_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/B/1/F/B1FDE19F-B4F9-4EBF-9E50-5C9CDF0302D2/rewrite_x86_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/4/9/C/49CD28DB-4AA6-4A51-9437-AA001221F606/rewrite_x86_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/1/9/4/1947187A-8D73-4C3E-B62C-DC6C7E1B353C/rewrite_x86_zh-TW.msi"
+            }
+            "x64" = @{
+                "de-DE" = "https://download.microsoft.com/download/3/1/C/31CE0BF6-31D7-415D-A70A-46A430DE731F/rewrite_x64_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/6/7/D/67D80164-7DD0-48AF-86E3-DE7A182D6815/rewrite_2.0_rtw_x64.msi"
+                "es-ES" = "https://download.microsoft.com/download/9/5/5/955337F6-5A11-417E-A95A-E45EE8C7E7AC/rewrite_x64_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/3/D/3/3D359CD6-147B-42E9-BD5B-407D3A1F0B97/rewrite_x64_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/6/8/B/68B8EFA8-9404-45A3-A51B-53D940D5E742/rewrite_x64_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/3/7/5/375C965C-9D98-438A-8F11-7F417D071DC9/rewrite_x64_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/2/A/7/2A746C73-467A-4BC6-B5CF-C4E88BB40406/rewrite_x64_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/7/4/E/74E569F7-44B9-4D3F-BCA7-87C5FE36BD62/rewrite_x64_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/4/E/7/4E7ECE9A-DF55-4F90-A354-B497072BDE0A/rewrite_x64_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/8/2/C/82CE350D-2068-4DAC-99D5-AEB2241DB545/rewrite_x64_zh-TW.msi"
+            }
+        }
+    }
+
+    $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
+
+    if ($IISVersion.VersionString -like "* 10.*") {
+        $Version = "v2.1"
+    } else {
+        $Version = "v2.0"
+    }
+
+    if ([Environment]::Is64BitOperatingSystem) {
+        $Architecture = "x64"
+    } else {
+        $Architecture = "x86"
+    }
+
+    if ((Get-Culture).Name -in @("de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "ja-JP", "ko-KR", "ru-RU", "zn-CN", "zn-TW")) {
+        $Language = (Get-Culture).Name
+    } else {
+        $Language = "en-US"
+    }
+
+    return $DownloadLinks[$Version][$Architecture][$Language]
+}
 Function BackendCookieMitigation {
     [CmdLetBinding()]
     param(
@@ -209,10 +297,11 @@ Function BackendCookieMitigation {
     $filter2 = "{0}/rule[@name='{1}']" -f $root, $name2
 
     if (!$RollbackMitigation) {
-        Write-Verbose "[INFO] Starting mitigation process on $env:computername"
+        Get-ServerVulnStatus
+        Write-Verbose "[INFO] Starting mitigation process on $env:computername" -Verbose
 
         #Check if IIS URL Rewrite Module 2 is installed
-        Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername"
+        Write-Verbose "[INFO] Checking for IIS URL Rewrite Module 2 on $env:computername" -Verbose
 
         #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
         $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
@@ -233,6 +322,27 @@ Function BackendCookieMitigation {
 
             Write-Verbose "[INFO] IIS URL Rewrite Module 2 already installed on $env:computername" -Verbose
         } else {
+
+            #IfAutoDownloadURLRewrite
+            if ($AutoDownloadURLRewrite) {
+                Write-Verbose -Message "ExchangeMitigations.ps1 will now attempt to download and install the IIS URL Rewrite Module on $env:computername" -Verbose
+                try {
+                    # Force TLS1.2 to make sure we can download from HTTPS
+                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                    $ProgressPreference = "SilentlyContinue"
+                    $DownloadDir = Join-Path $env:TEMP "IISUrlRewrite"
+                    $DownloadLink = GetURLRewriteLink
+                    $FullPathToMSI = Join-Path $DownloadDir "\$($DownloadLink.Split("/")[-1])"
+                    if (!(Test-Path $DownloadDir)) {
+                        New-Item -ItemType Directory $DownloadDir | Out-Null
+                    }
+                    Write-Verbose -Message "Downloading IIS URLRewrite MSI here: $FullPathToMSI" -Verbose
+                    $response = Invoke-WebRequest $DownloadLink -UseBasicParsing
+                    [IO.File]::WriteAllBytes($FullPathToMSI, $response.Content)
+                } catch {
+                    throw $_
+                }
+            }
 
             if ($FullPathToMSI) {
 
@@ -575,7 +685,6 @@ if (!$currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Adminis
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     throw "PowerShell does not meet the minimum requirements, system must have PowerShell 3 or later"
 }
-
 
 Import-Module WebAdministration
 if ($ApplyAllMitigations -or $ApplyBackendCookieMitigation) {

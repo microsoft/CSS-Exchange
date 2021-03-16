@@ -4,6 +4,7 @@
             CVE-2021-26855
 
         For more information on each mitigation please visit https://aka.ms/exchangevulns
+        Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
 
 	.DESCRIPTION
        This script has three operations it performs:
@@ -46,6 +47,7 @@
         https://aka.ms/exchangevulns
         https://www.iis.net/downloads/microsoft/url-rewrite
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download
+        https://aka.ms/privacy
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Invalid rule result')]
 [Cmdletbinding()]
