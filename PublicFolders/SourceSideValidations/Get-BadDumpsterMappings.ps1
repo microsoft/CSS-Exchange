@@ -62,7 +62,7 @@ function Test-DumpsterValid {
 
         if ($null -eq $dumpster -or
             (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or
-            $dumpster.DumpsterEntryId -ne $_.EntryId) {
+            $dumpster.DumpsterEntryId -ne $Folder.EntryId) {
 
             $valid = $false
         }
