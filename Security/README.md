@@ -58,7 +58,7 @@ To roll back the Exchange On-premises Mitigation Tool mitigations
 
 Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.
 
-### Exchange On-premises Mitigation Tool
+### Exchange On-premises Mitigation Tool Q & A
 
 **Question**: What mode should I run EOMT.ps1 in by default?
 
@@ -80,12 +80,12 @@ This will run the default mode which does the following:
 
 **Answer**:  The Exchange On-premises Mitigation Tool was released to help pull together multiple mitigation and response steps, whereas the previous script simply enabled mitigations. Some details on what each do:
 
-### EOMT.PS1
+#### EOMT.PS1
 * Mitigation of CVE-2021-26855 via a URL Rewrite configuration.
 * Mitigation does not impact Exchange functionality.
 * Malware scan of the Exchange Server via the Microsoft Safety Scanner
 * Attempt to reverse any changes made by identified threats.
-### ExchangeMitigations.ps1:
+#### ExchangeMitigations.ps1:
 * Does mitigations for all 4 CVE’s - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 & CVE-2021-26858.
 * Some of the mitigation methods impact Exchange functionality.
 * Does not do any scanning for existing compromise or exploitation.
