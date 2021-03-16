@@ -657,7 +657,7 @@ function Write-Summary {
         $header = @"
 Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
 Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855 and clear malicious files.
-For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns. This attempt was successful.
+For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.
 Please review locations and files as soon as possible and take the recommended action.
 "@
     } else {
