@@ -537,12 +537,12 @@ function Run-MSERT {
             $Message += "We highly recommend re-running this script with -RunFullScan. "
         }
         $Message += "For additional guidance, see `"$SummaryFile`"."
-        write-host $Message
+        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete: THREATS DETECTED"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     } else {
         $Message = "Microsoft Safety Scanner is complete on $env:computername No known threats detected."
-        write-host $Message
+        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     }
