@@ -20,6 +20,8 @@ This is the most effective way to help quickly protect and mitigate your Exchang
 
 This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
 
+Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
+
 ### Requirements to run the Exchange On-premises Mitigation Tool
 
 * External Internet Connection from your Exchange server (required to download the Microsoft Safety Scanner and the IIS URL Rewrite Module).
