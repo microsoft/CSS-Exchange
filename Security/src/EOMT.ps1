@@ -451,7 +451,8 @@ function Run-MSERT {
         }
         break
     }
-    if (((Get-Volume -DriveLetter C).SizeRemaining) -ge 314572800 ) {
+
+    if ((get-item $env:TEMP).PSDrive.Free -ge 314572800) {
         if ([System.Environment]::Is64BitOperatingSystem) {
             $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
         } else {
