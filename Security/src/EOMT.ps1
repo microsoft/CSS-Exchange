@@ -744,10 +744,7 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 
 #supported Exchange check
 if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
-    Write-Error "$env:computername is not running Exchange, exiting the Exchange On-premises Mitigation Tool."
-    exit
-} elseif ((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Setup -ErrorAction 0).MsiInstallPath) {
-    Write-Error "$env:computername is running an unsupported version of Exchange. The Exchange On-premises Mitigation Tool only supports Exchange 2013, 2016, and 2019."
+    Write-Error "A supported version of Exchange was not found on $env:computername. The Exchange On-premises Mitigation Tool supports Exchange 2013, 2016, and 2019."
     exit
 }
 
