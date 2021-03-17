@@ -452,33 +452,41 @@ function Run-MSERT {
         break
     }
 
-    if ([System.Environment]::Is64BitOperatingSystem) {
-        $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
-    } else {
-        $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212733"
-    }
 
-    $Message = "Starting MSERTProcess on $env:computername"
-    $RegMessage = "Starting MSERTProcess"
-    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+    if ((Get-Item $env:TEMP).PSDrive.Free -ge 314572800) {
+        if ([System.Environment]::Is64BitOperatingSystem) {
+            $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
+        } else {
+            $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212733"
+        }
 
-    try {
-        $msertExe = Join-Path $EOMTDir "\msert.exe"
-        $response = Invoke-WebRequest $MSERTUrl -UseBasicParsing
-        [IO.File]::WriteAllBytes($msertExe, $response.Content)
-
-        $Message = "MSERT download complete on $env:computername"
-        $RegMessage = "MSERT download complete"
+        $Message = "Starting MSERTProcess on $env:computername"
+        $RegMessage = "Starting MSERTProcess"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-    } catch {
-        $Message = "MSERT download failed on $env:computername"
-        $RegMessage = "MSERT download failed"
+
+        try {
+            $msertExe = Join-Path $EOMTDir "\msert.exe"
+            $response = Invoke-WebRequest $MSERTUrl -UseBasicParsing
+            [IO.File]::WriteAllBytes($msertExe, $response.Content)
+
+            $Message = "MSERT download complete on $env:computername"
+            $RegMessage = "MSERT download complete"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+        } catch {
+            $Message = "MSERT download failed on $env:computername"
+            $RegMessage = "MSERT download failed"
+            Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+            throw
+        }
+    } else {
+        $drive = (Get-Item $env:TEMP).PSDrive.Root
+        $Message = "MSERT download failed on $env:computername, due to lack of space on $drive"
+        $RegMessage = "MSERT did not download. Ensure there is at least 300MB of free disk space on $drive"
         Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
         throw
     }
 
     #Start MSERT
-
     function RunMsert {
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
         param(
@@ -554,23 +562,18 @@ function Run-MSERT {
             $Message += "We highly recommend re-running this script with -RunFullScan. "
         }
         $Message += "For additional guidance, see `"$SummaryFile`"."
-        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete: THREATS DETECTED"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     } else {
         $Message = "Microsoft Safety Scanner is complete on $env:computername No known threats detected."
-        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     }
 }
 
 function Get-ServerVulnStatus {
-    param(
-        $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
-    )
 
-    $Version = $Version.OwaVersion
+    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
@@ -661,7 +664,7 @@ function Set-Registry {
             return
         }
     }
-
+    Set-ItemProperty -Path $RegKey -Name "Timestamp" -Value (Get-Date).ToString("yyyy-MM-dd HH:mm:ss") -Type $RegType -Force
     Set-ItemProperty -Path $RegKey -Name $RegValue -Value $RegData -Type $RegType -Force
 }
 
@@ -708,14 +711,14 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
                 <rule name="X-AnonResource-Backend Abort - inbound">
                     <match url=".*" />
                     <conditions>
-                        <add input="{{HTTP_COOKIE}}" pattern="(.*)X-AnonResource-Backend(.*)" />
+                        <add input="{HTTP_COOKIE}" pattern="(.*)X-AnonResource-Backend(.*)" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
                 <rule name="X-BEResource Abort - inbound" stopProcessing="true">
                     <match url=".*" />
                     <conditions>
-                        <add input="{{HTTP_COOKIE}}" pattern="(.*)X-BEResource=(.+)/(.+)~(.+)" />
+                        <add input="{HTTP_COOKIE}" pattern="(.*)X-BEResource=(.+)/(.+)~(.+)" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
@@ -738,6 +741,12 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Error "Unable to launch EOMT.ps1: please re-run as administrator."
+    exit
+}
+
+#supported Exchange check
+if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
+    Write-Error "A supported version of Exchange was not found on $env:computername. The Exchange On-premises Mitigation Tool supports Exchange 2013, 2016, and 2019."
     exit
 }
 
@@ -800,7 +809,7 @@ try {
     }
 
     $Message = "EOMT.ps1 complete on $env:computername, please review EOMT logs at $EOMTLogFile and the summary file at $SummaryFile"
-    $RegMessage = "EOMT.ps1 failed to complete"
+    $RegMessage = "EOMT.ps1 completed successfully"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     Write-Summary -Pass #Pass
 } catch {
