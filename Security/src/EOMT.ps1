@@ -436,34 +436,39 @@ function Run-MSERT {
         }
         break
     }
+    if (((Get-Volume -DriveLetter C).SizeRemaining) -ge 314572800 ) {
+        if ([System.Environment]::Is64BitOperatingSystem) {
+            $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
+        } else {
+            $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212733"
+        }
 
-    if ([System.Environment]::Is64BitOperatingSystem) {
-        $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
-    } else {
-        $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212733"
-    }
-
-    $Message = "Starting MSERTProcess on $env:computername"
-    $RegMessage = "Starting MSERTProcess"
-    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-    try {
-        $msertExe = Join-Path $EOMTDir "\msert.exe"
-        $response = Invoke-WebRequest $MSERTUrl -UseBasicParsing
-        [IO.File]::WriteAllBytes($msertExe, $response.Content)
-
-        $Message = "MSERT download complete on $env:computername"
-        $RegMessage = "MSERT download complete"
+        $Message = "Starting MSERTProcess on $env:computername"
+        $RegMessage = "Starting MSERTProcess"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-    } catch {
-        $Message = "MSERT download failed on $env:computername"
-        $RegMessage = "MSERT download failed"
+
+        try {
+            $msertExe = Join-Path $EOMTDir "\msert.exe"
+            $response = Invoke-WebRequest $MSERTUrl -UseBasicParsing
+            [IO.File]::WriteAllBytes($msertExe, $response.Content)
+
+            $Message = "MSERT download complete on $env:computername"
+            $RegMessage = "MSERT download complete"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+        } catch {
+            $Message = "MSERT download failed on $env:computername"
+            $RegMessage = "MSERT download failed"
+            Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+            throw
+        }
+    } else {
+        $Message = "MSERT download failed on $env:computername, due to lack of space."
+        $RegMessage = "MSERT did not download. Ensure there is at least 300MB of free disk space on C:\."
         Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
         throw
     }
 
     #Start MSERT
-
     function RunMsert {
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
         param(
@@ -551,11 +556,8 @@ function Run-MSERT {
 }
 
 function Get-ServerVulnStatus {
-    param(
-        $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
-    )
 
-    $Version = $Version.OwaVersion
+    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
@@ -646,7 +648,7 @@ function Set-Registry {
             return
         }
     }
-
+    Set-ItemProperty -Path $RegKey -Name "Timestamp" -Value (Get-Date).ToString("yyyy-MM-dd HH:mm:ss") -Type $RegType -Force
     Set-ItemProperty -Path $RegKey -Name $RegValue -Value $RegData -Type $RegType -Force
 }
 
@@ -726,6 +728,15 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
     exit
 }
 
+#supported Exchange check
+if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
+    Write-Error "$env:computername is not running Exchange, exiting the Exchange On-premises Mitigation Tool."
+    exit
+} elseif ((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath -ne 15) {
+    Write-Error "$env:computername is running an unsupported version of Exchange. The Exchange On-premises Mitigation Tool only supports Exchange 2013, 2016, and 2019."
+    exit
+}
+
 # Main
 try {
     $Stage = "EOMTStart"
@@ -785,7 +796,7 @@ try {
     }
 
     $Message = "EOMT.ps1 complete on $env:computername, please review EOMT logs at $EOMTLogFile and the summary file at $SummaryFile"
-    $RegMessage = "EOMT.ps1 failed to complete"
+    $RegMessage = "EOMT.ps1 completed successfully"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     Write-Summary -Pass #Pass
 } catch {
