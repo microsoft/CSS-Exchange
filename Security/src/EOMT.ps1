@@ -709,14 +709,14 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
                 <rule name="X-AnonResource-Backend Abort - inbound">
                     <match url=".*" />
                     <conditions>
-                        <add input="{{HTTP_COOKIE}}" pattern="(.*)X-AnonResource-Backend(.*)" />
+                        <add input="{HTTP_COOKIE}" pattern="(.*)X-AnonResource-Backend(.*)" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
                 <rule name="X-BEResource Abort - inbound" stopProcessing="true">
                     <match url=".*" />
                     <conditions>
-                        <add input="{{HTTP_COOKIE}}" pattern="(.*)X-BEResource=(.+)/(.+)~(.+)" />
+                        <add input="{HTTP_COOKIE}" pattern="(.*)X-BEResource=(.+)/(.+)~(.+)" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
