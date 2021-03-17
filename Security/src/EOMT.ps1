@@ -452,7 +452,8 @@ function Run-MSERT {
         break
     }
 
-    if ((get-item $env:TEMP).PSDrive.Free -ge 314572800) {
+
+    if ((Get-Item $env:TEMP).PSDrive.Free -ge 314572800) {
         if ([System.Environment]::Is64BitOperatingSystem) {
             $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"
         } else {
@@ -478,8 +479,9 @@ function Run-MSERT {
             throw
         }
     } else {
-        $Message = "MSERT download failed on $env:computername, due to lack of space."
-        $RegMessage = "MSERT did not download. Ensure there is at least 300MB of free disk space on C:\."
+        $drive = (Get-Item $env:TEMP).PSDrive.Root
+        $Message = "MSERT download failed on $env:computername, due to lack of space on $drive"
+        $RegMessage = "MSERT did not download. Ensure there is at least 300MB of free disk space on $drive"
         Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
         throw
     }
