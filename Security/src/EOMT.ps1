@@ -560,12 +560,10 @@ function Run-MSERT {
             $Message += "We highly recommend re-running this script with -RunFullScan. "
         }
         $Message += "For additional guidance, see `"$SummaryFile`"."
-        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete: THREATS DETECTED"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     } else {
         $Message = "Microsoft Safety Scanner is complete on $env:computername No known threats detected."
-        Write-Host $Message
         $RegMessage = "Microsoft Safety Scanner is complete"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     }
@@ -748,7 +746,7 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
     Write-Error "$env:computername is not running Exchange, exiting the Exchange On-premises Mitigation Tool."
     exit
-} elseif ((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath -ne 15) {
+} elseif ((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Setup -ErrorAction 0).MsiInstallPath) {
     Write-Error "$env:computername is running an unsupported version of Exchange. The Exchange On-premises Mitigation Tool only supports Exchange 2013, 2016, and 2019."
     exit
 }
