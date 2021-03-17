@@ -155,6 +155,19 @@ function Run-Mitigate {
         }
     }
 
+    function Test-IIS10 {
+        $iisRegPath = "hklm:\SOFTWARE\Microsoft\InetStp"
+
+        if(Test-Path $iisRegPath) {
+            $properties = Get-ItemProperty $iisRegPath
+            if($properties.MajorVersion -eq 10) {
+                return $true
+            }
+        }
+
+        return $false
+    }
+
     function GetURLRewriteLink {
         $DownloadLinks = @{
             "v2.1" = @{
@@ -212,9 +225,7 @@ function Run-Mitigate {
             }
         }
 
-        $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
-
-        if ($IISVersion.VersionString -like "* 10.*") {
+        if (Test-IIS10) {
             $Version = "v2.1"
         } else {
             $Version = "v2.0"
@@ -284,23 +295,26 @@ function Run-Mitigate {
 
         #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
         $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
-        $IISVersion = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\InetStp\ | Select-Object versionstring
 
         #Install module
         if ($RewriteModule) {
 
             #Throwing an exception if incorrect rewrite module version is installed
-            if ($IISVersion.VersionString -like "* 10.*" -and ($RewriteModule -eq "7.2.2")) {
-                $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
-                $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
-                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                throw
+            if(Test-IIS10) {
+                if ($RewriteModule -eq "7.2.2") {
+                    $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
+                    $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
+                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                    throw
+                }
             }
-            if ($IISVersion.VersionString -notlike "* 10.*" -and ($RewriteModule -eq "7.2.1993")) {
-                $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
-                $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
-                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                throw
+            else {
+                if ($RewriteModule -eq "7.2.1993") {
+                    $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
+                    $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
+                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                    throw
+                }
             }
 
             $Message = "IIS URL Rewrite Module is already installed on $env:computername"
@@ -317,18 +331,21 @@ function Run-Mitigate {
             $MSIProductVersion = GetMsiProductVersion -filename $DownloadPath
 
             #If IIS 10 assert URL rewrite 2.1 else URL rewrite 2.0
-            if ($IISVersion.VersionString -like "* 10.*" -and $MSIProductVersion -eq "7.2.2") {
-                $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
-                $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
-                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                throw
+            if(Test-IIS10) {
+                if ($MSIProductVersion -eq "7.2.2") {
+                    $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
+                    $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
+                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                    throw
+                }
             }
-
-            if ($IISVersion.VersionString -notlike "* 10.*" -and $MSIProductVersion -eq "7.2.1993") {
-                $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
-                $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
-                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                throw
+            else {
+                if ($MSIProductVersion -eq "7.2.1993") {
+                    $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
+                    $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
+                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                    throw
+                }
             }
 
             $Message = "Installing the IIS URL Rewrite Module on $env:computername"
