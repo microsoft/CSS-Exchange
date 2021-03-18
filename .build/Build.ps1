@@ -29,8 +29,8 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
     Where-Object { -not $_.Name.Contains(".Tests.ps1") -and
-        -not $_.Name.Contains(".NotPublished.ps1") }
-Sort-Object Name |
+        -not $_.Name.Contains(".NotPublished.ps1") } |
+    Sort-Object Name |
     ForEach-Object { $_.FullName }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
