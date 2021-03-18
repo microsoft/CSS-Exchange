@@ -109,7 +109,7 @@ begin {
                         "HttpStatus"
                     )
 
-                    $files = (Get-ChildItem -Recurse -Path $HttpProxyPath -Filter '*.log').FullName
+                    $files = [System.Array](Get-ChildItem -Recurse -Path $HttpProxyPath -Filter '*.log').FullName
 
                     $allResults = @{
                         Hits     = [System.Collections.ArrayList]@()
@@ -170,7 +170,28 @@ begin {
                         return
                     }
 
-                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path
+                    $allResults = @{
+                        downloadPaths = [System.Collections.ArrayList]@()
+                        filePaths     = [System.Collections.ArrayList]@()
+                    }
+
+                    $files = [System.Array](Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path)
+
+                    for ( $i = 0; $i -lt $files.Count; $i++) {
+                        $maliciousPathFound = $false
+                        $loginstance = Select-String -Path $files[$i] -Pattern "Download failed and temporary file"
+                        foreach ($logLine in $loginstance) {
+                            $path = ([String]$logLine | Select-String -Pattern 'Download failed and temporary file (.*?) needs to be removed').Matches.Groups[1].value
+                            if ($null -ne $path -and (-not ($path.StartsWith("'$exchangePath" + "ClientAccess\OAB", "CurrentCultureIgnoreCase")))) {
+                                [Void]$allResults.downloadPaths.Add( [String]$path )
+                                $maliciousPathFound = $true
+                            }
+                        }
+                        if ($maliciousPathFound) {
+                            $allResults.FilePaths.Add([String]$files[$i])
+                        }
+                    }
+                    return $allResults
                 }
 
                 function Get-Cve27065 {
@@ -178,12 +199,35 @@ begin {
                     param ()
 
                     $exchangePath = Get-ExchangeInstallPath
-                    if ($null -eq $exchangePath) {
-                        Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-27065 test."
-                        return
-                    }
 
-                    Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory" -List | Select-Object -ExpandProperty Path
+                    $outProps = @(
+                        "DateTime", "RequestId", "ClientIPAddress", "UrlHost",
+                        "UrlStem", "RoutingHint", "UserAgent", "AnchorMailbox",
+                        "HttpStatus"
+                    )
+
+                    $files = [System.Array](Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -Filter '*.log').FullName
+                    $allResults = @{
+                        resetVDirHits           = [System.Collections.ArrayList]@()
+                        resetVDirFiles          = [System.Collections.ArrayList]@()
+                        setVDirMaliciousUrlLogs = [System.Collections.ArrayList]@()
+                    }
+                    For ( $i = 0; $i -lt $files.Count; ++$i ) {
+
+                        if ((Get-ChildItem $files[$i] -ErrorAction SilentlyContinue | Select-String -Pattern "ServerInfo~").Count -gt 0) {
+
+                            $hits = @(Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
+                                    Select-Object -Property $outProps)
+                            if ($hits.Count -gt 0) {
+                                $hits | ForEach-Object {
+                                    [Void]$allResults.resetVDirHits.Add( $_ )
+                                }
+                                [Void]$allResults.resetVDirFiles.Add( $files[$i] )
+                            }
+                        }
+                    }
+                    $allResults.setVDirMaliciousUrlLogs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory.+?(?=Url).+<\w+.*>(.*?)<\/\w+>.+?(?=VirtualDirectory)" -List | Select-Object -ExpandProperty Path
+                    return $allResults
                 }
 
                 function Get-SuspiciousFile {
@@ -260,14 +304,15 @@ begin {
                     ComputerName = $env:COMPUTERNAME
                     Cve26855     = Get-Cve26855
                     Cve26857     = @(Get-Cve26857)
-                    Cve26858     = @(Get-Cve26858)
-                    Cve27065     = @(Get-Cve27065)
-                    Suspicious   = @(Get-SuspiciousFile)
+                    Cve26858     = Get-Cve26858
+                    Cve27065     = Get-Cve27065
                     LogAgeDays   = Get-LogAge
                     IssuesFound  = $false
+                    Suspicious   = $null
                 }
 
-                if ($results.Cve26855.Hits.Count -or $results.Cve26857.Count -or $results.Cve26858.Count -or $results.Cve27065.Count -or $results.Suspicious.Count) {
+                if ($results.Cve26855.Hits.Count -or $results.Cve26857.Count -or $results.Cve26858.downloadPaths.Count -or $results.Cve27065.resetVDirHits.Count -or $results.Cve27065.setVDirMaliciousUrlLogs.Count) {
+                    $results.Suspicious = @(Get-SuspiciousFile)
                     $results.IssuesFound = $true
                 }
 
@@ -416,36 +461,40 @@ begin {
                     }
                     Write-Host ""
                 }
-                if ($report.Cve26858.Count -gt 0) {
+                if ($report.Cve26858.downloadPaths.Count -gt 0) {
                     Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Download failed and temporary file' entries:"
-                    foreach ($entry in $report.Cve26858) {
-                        Write-Host "   $entry"
-                        if ($CollectFiles -and $isLocalMachine) {
-                            Write-Host " Copying Files:"
-                            if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26858")) {
-                                Write-Host " Creating CVE26858 Collection Directory`n`r"
-                                New-Item "$($LogFileOutPath)\CVE26858" -ItemType Directory -Force | Out-Null
-                            }
+                    Write-Host "  Webshells possibly downloaded in file system. Explore below locations:" -ForegroundColor Red
+                    if (-not $DisplayOnly) {
+                        $newFileDownloadPaths = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858-DownloadPaths.log"
+                        $newFileForFilePaths = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
+                        $report.Cve26858.downloadPaths | Set-Content -Path $newFileDownloadPaths
+                        $report.Cve26858.filePaths | Set-Content -Path $newFileForFilePaths
+                        Write-Host "  Report exported to: $newFileForFilePaths"
+                        Write-Host "  Report exported to: $newFileDownloadPaths"
+                    } else {
+                        $report.Cve26858.downloadPaths | Out-Host
+                    }
+                    if ($CollectFiles -and $isLocalMachine) {
+                        Write-Host " Copying Files:"
+                        if (-not (Test-Path -Path "$($LogFileOutPath)\CVE26858")) {
+                            Write-Host " Creating CVE26858 Collection Directory"
+                            New-Item "$($LogFileOutPath)\CVE26858" -ItemType Directory -Force | Out-Null
+                        }
+                        foreach ($entry in $report.Cve26858.filePaths) {
                             if (Test-Path -Path $entry) {
                                 Write-Host "  Copying $($entry) to $($LogFileOutPath)\CVE26858" -ForegroundColor Green
                                 Copy-Item -Path $entry -Destination "$($LogFileOutPath)\CVE26858"
                             } else {
-                                Write-Host "  Warning: Unable to copy file $($entry.Path). File does not exist.`n`r " -ForegroundColor Red
+                                Write-Host "  Warning: Unable to copy file $($entry). File does not exist." -ForegroundColor Red
                             }
                         }
                     }
-                    if (-not $DisplayOnly) {
-                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
-                        $report.Cve26858 | Set-Content -Path $newFile
-                        Write-Host "  Report exported to: $newFile"
-                    }
                     Write-Host ""
                 }
-                if ($report.Cve27065.Count -gt 0) {
+                if ($report.Cve27065.setVDirMaliciousUrlLogs.Count -gt 0) {
                     Write-Host "  [CVE-2021-27065] Suspicious activity found in ECP logs!" -ForegroundColor Red
-                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries:"
-                    foreach ($entry in $report.Cve27065) {
+                    Write-Host "  Please review the following files for 'Set-*VirtualDirectory' entries (potentially malicious urls used):"
+                    foreach ($entry in $report.Cve27065.setVDirMaliciousUrlLogs) {
                         Write-Host "   $entry"
                         if ($CollectFiles -and $isLocalMachine) {
                             Write-Host " Copying Files:"
@@ -463,8 +512,35 @@ begin {
                     }
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065.log"
-                        $report.Cve27065 | Set-Content -Path $newFile
+                        $report.Cve27065.setVDirMaliciousUrlLogs | Set-Content -Path $newFile
                         Write-Host "  Report exported to: $newFile"
+                    }
+                    Write-Host ""
+                }
+                if ($report.Cve27065.resetVDirHits.Count -gt 0) {
+                    Write-Host "  [CVE-2021-27065] Webshell possibly downloaded in file system" -ForegroundColor Red
+                    Write-Host "  Please scan your file system for any malicious webshells. Reset-VirtualDirectory entries:"
+                    if (-not $DisplayOnly) {
+                        $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065-ResetVDir.csv"
+                        $report.Cve27065.resetVDirHits | Export-Csv -Path $newFile
+                        Write-Host "  Report exported to: $newFile"
+                    } else {
+                        $report.Cve27065.resetVDirHits | Format-Table DateTime, AnchorMailbox -AutoSize | Out-Host
+                    }
+                    if ($CollectFiles -and $isLocalMachine) {
+                        Write-Host " Copying Files:"
+                        if (-not (Test-Path -Path "$($LogFileOutPath)\Cve27065")) {
+                            Write-Host " Creating Cve27065 Collection Directory"
+                            New-Item "$($LogFileOutPath)\Cve27065" -ItemType Directory -Force | Out-Null
+                        }
+                        foreach ($entry in $report.Cve27065.resetVDirFiles) {
+                            if (Test-Path -Path $entry) {
+                                Write-Host "  Copying $($entry) to $($LogFileOutPath)\Cve27065" -ForegroundColor Green
+                                Copy-Item -Path $entry -Destination "$($LogFileOutPath)\Cve27065"
+                            } else {
+                                Write-Host "  Warning: Unable to copy file $($entry). File does not exist." -ForegroundColor Red
+                            }
+                        }
                     }
                     Write-Host ""
                 }
