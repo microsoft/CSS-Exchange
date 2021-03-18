@@ -587,7 +587,7 @@ function Get-ServerVulnStatus {
         $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -ge [version]$Version) {
+    if ([version]$LatestCU -gt [version]$Version) {
 
         $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
         | Where-Object displayname -Like "*KB5000871*" `
