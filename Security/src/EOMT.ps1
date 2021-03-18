@@ -795,7 +795,8 @@ try {
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             Run-Mitigate
 
-            $Message = "Please use Microsoft Update to install the latest Security Update For Exchange Server (KB5000871)"
+            $Message = "EOMT has mitigated against known attacks. For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
+            $RegMessage = "Mitigation Applied"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
