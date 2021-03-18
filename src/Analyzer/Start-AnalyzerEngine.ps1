@@ -60,7 +60,7 @@ Function Start-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($exchangeInformation.BuildInformation.SupportedBuild -eq $false) {
-        $daysOld = ($date - ([System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ReleaseDate))).Days
+        $daysOld = ($date - ([System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ReleaseDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo))).Days
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Error" -Details ("Out of date Cumulative Update. Please upgrade to one of the two most recently released Cumulative Updates. Currently running on a build that is {0} days old." -f $daysOld) `
             -DisplayGroupingKey $keyExchangeInformation `

@@ -1,6 +1,6 @@
 Function Write-HealthCheckerVersion {
 
-    if (([DateTime]::Parse($scriptBuildDate)).AddDays(10) -lt [DateTime]::Now) {
+    if (([DateTime]::Parse($scriptBuildDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo)).AddDays(10) -lt [DateTime]::Now) {
         $currentVersion = Test-ScriptVersion -ApiUri "api.github.com" -RepoOwner "dpaulson45" `
             -RepoName "HealthChecker" `
             -CurrentVersion $scriptVersion `
