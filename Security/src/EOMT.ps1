@@ -67,7 +67,7 @@ $detectionFollowUpURL = 'https://go.microsoft.com/fwlink/?linkid=2157359'
 $SummaryFile = "$env:SystemDrive\EOMTSummary.txt"
 $exchange2016CU20Downloadlink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
 $exchange2013CU23Downloadlink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
-$exchange2013CU23SecurityUpdateDownloadlink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
+$exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -603,25 +603,18 @@ function Get-ServerVulnStatus {
     return $false
 }
 
-function Get-PatchMessage {
+function Write-Summary {
     $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
     $Message = "Exchange On-premises Mitigation Tool has mitigated against known attacks. For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
 
     if ($Version -like "15.2.*") {
         return $Message
-    }
-    elseif ($Version -like "15.1.*") {
-        $Message += "`nIf you don't see this security udpate, please upgrade to Exchange 2016 Cumulative Update 20 via: "
-        $Message += $exchange2016CU20Downloadlink
-
+    } elseif ($Version -like "15.1.*") {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2016 Cumulative Update 20 via: $exchange2016CU20Downloadlink"
         return $Message
-    }
-    elseif ($Version -like "15.0.*") {
-        $Message += "`nIf you don't see this security udpate, please upgrade to Exchange 2013 Cumulative Update 23 via: "
-        $Message += $exchange2013CU23Downloadlink
-        $Message += "`nYou will need to download the latest security update from link "
-        $Message += $exchange2013CU23SecurityUpdateDownloadlink
-
+    } elseif ($Version -like "15.0.*") {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2013 Cumulative Update 23 via: $exchange2013CU23Downloadlink"
+        $Message += "`nAfter applying the cumulative update, you will also need to install the latest security update: $exchange2013CU23SecurityUpdateDownloadLink"
         return $Message
     }
 
@@ -823,10 +816,9 @@ try {
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             Run-Mitigate
 
-            $Message = Get-PatchMessage
-            if ($null -ne $Message)
-            {
-                $RegMessage = "Mitigation Applied"
+            $Message = Write-Summary
+            if ($Message) {
+                $RegMessage = "Prompt to apply updates"
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             }
         } else {
