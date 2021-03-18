@@ -18,7 +18,7 @@ Function Get-ExchangeServerCertificates {
             [array]$certObject = @()
             foreach ($cert in $exchangeServerCertificates) {
                 try {
-                    $certificateLifetime = ([DateTime]($cert.NotAfter) - (Get-Date)).Days
+                    $certificateLifetime = ([System.Convert]::ToDateTime($cert.NotAfter, [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days
                     $sanCertificateInfo = $false
 
                     $currentErrors = $Error.Count
