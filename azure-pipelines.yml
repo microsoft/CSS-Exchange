@@ -27,6 +27,8 @@ steps:
 - pwsh: |
     $tag = "v$((Get-Date).ToString(`"yy.MM.dd.HHmm`"))"
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
+    (Get-Content .\dist\ScriptVersions.txt) -replace '^(\S+.ps1)', ('[$1](https://github.com/microsoft/CSS-Exchange/releases/download/' + $tag + '/$1)') | Out-File dist\ScriptVersions.txt
+    Get-Content dist\ScriptVersions.txt
 
 - task: EsrpCodeSigning@1
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
