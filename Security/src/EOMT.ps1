@@ -695,7 +695,7 @@ function Write-Summary {
         [switch]$Pass
     )
 
-    $Message = Get-ExchangeUpdateInfo
+    $UpdateInfo = Get-ExchangeUpdateInfo
 
     if ($Pass) {
         $header = @"
@@ -715,8 +715,6 @@ Please review locations and files as soon as possible and take the recommended a
 
     $summary = @"
 $header
-
-$Message
 
 Microsoft saved several files to your system to "$EOMTDir". The only files that should be present in this directory are:
     a - msert.exe
@@ -754,6 +752,8 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
 
 2 - Review the results of the Microsoft Safety Scanner
         Microsoft Safety Scanner log can be found at "$msertLogPath" and "$msertLogArchivePath" If any threats were detected, please review the guidance here: $detectionFollowUpURL
+
+$UpdateInfo
 
 "@
 
