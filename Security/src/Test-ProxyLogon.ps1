@@ -1,4 +1,4 @@
-# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 #
 # Examples
 #
@@ -169,29 +169,28 @@ begin {
                         Write-Host "  Exchange 2013 or later not found. Skipping CVE-2021-26858 test."
                         return
                     }
-                    
+
                     $allResults = @{
                         downloadPaths = [System.Collections.ArrayList]@()
-                        filePaths = [System.Collections.ArrayList]@()
+                        filePaths     = [System.Collections.ArrayList]@()
                     }
 
                     $files = [System.Array](Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" | Select-String "Download failed and temporary file" -List | Select-Object -ExpandProperty Path)
 
-                    for( $i=0; $i -lt $files.Count; $i++)
-                    {
+                    for ( $i = 0; $i -lt $files.Count; $i++) {
                         $maliciousPathFound = $false
                         $loginstance = Select-String -Path $files[$i] -Pattern "Download failed and temporary file"
                         foreach ($logLine in $loginstance) {
                             $path = ([String]$logLine | Select-String -Pattern 'Download failed and temporary file (.*?) needs to be removed').Matches.Groups[1].value
-                            if($path -ne $null -and (-not ($path.StartsWith("'$exchangePath" + "ClientAccess\OAB","CurrentCultureIgnoreCase")))){
+                            if ($null -ne $path -and (-not ($path.StartsWith("'$exchangePath" + "ClientAccess\OAB", "CurrentCultureIgnoreCase")))) {
                                 [Void]$allResults.downloadPaths.Add( [String]$path )
                                 $maliciousPathFound = $true
                             }
                         }
-                        if($maliciousPathFound){
+                        if ($maliciousPathFound) {
                             $allResults.FilePaths.Add([String]$files[$i])
                         }
-                    }                  
+                    }
                     return $allResults
                 }
 
@@ -207,29 +206,29 @@ begin {
                         "HttpStatus"
                     )
 
-                    $files =[System.Array](Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -Filter '*.log').FullName                  
+                    $files = [System.Array](Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -Filter '*.log').FullName
                     $allResults = @{
-                        resetVDirHits = [System.Collections.ArrayList]@()
-                        resetVDirFiles = [System.Collections.ArrayList]@()
+                        resetVDirHits           = [System.Collections.ArrayList]@()
+                        resetVDirFiles          = [System.Collections.ArrayList]@()
                         setVDirMaliciousUrlLogs = [System.Collections.ArrayList]@()
                     }
                     For ( $i = 0; $i -lt $files.Count; ++$i ) {
 
                         if ((Get-ChildItem $files[$i] -ErrorAction SilentlyContinue | Select-String -Pattern "ServerInfo~").Count -gt 0) {
-			                
+
                             $FoundMaliciousResetVDir = $false
-                            Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200} |
-                            Select-Object -Property $outProps |
-                            ForEach-Object {
-                                [Void]$allResults.resetVDirHits.Add( $_ )
-                                $FoundMaliciousResetVDir = $true
+                            Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
+                                Select-Object -Property $outProps |
+                                ForEach-Object {
+                                    [Void]$allResults.resetVDirHits.Add( $_ )
+                                    $FoundMaliciousResetVDir = $true
+                                }
+                            if ($FoundMaliciousResetVDir) {
+                                [Void]$allResults.resetVDirFiles.Add( $files[$i] )
                             }
-			                if($FoundMaliciousResetVDir){
-                                [Void]$allResults.resetVDirFiles.Add( $files[$i] )                       
-                            }     
                         }
                     }
-					$allResults.setVDirMaliciousUrlLogs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory.+?(?=Url).+<\w+.*>(.*?)<\/\w+>.+?(?=VirtualDirectory)" -List | Select-Object -ExpandProperty Path
+                    $allResults.setVDirMaliciousUrlLogs = Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Select-String "Set-.+VirtualDirectory.+?(?=Url).+<\w+.*>(.*?)<\/\w+>.+?(?=VirtualDirectory)" -List | Select-Object -ExpandProperty Path
                     return $allResults
                 }
 
@@ -314,7 +313,7 @@ begin {
                     Suspicious   = $null
                 }
 
-                if($results.Cve26855.Hits.Count -or $results.Cve26857.Count -or $results.Cve26858.downloadPaths.Count -or $results.Cve27065.resetVDirHits.Count -or $results.Cve27065.setVDirMaliciousUrlLogs.Count){
+                if ($results.Cve26855.Hits.Count -or $results.Cve26857.Count -or $results.Cve26858.downloadPaths.Count -or $results.Cve27065.resetVDirHits.Count -or $results.Cve27065.setVDirMaliciousUrlLogs.Count) {
                     $results.Suspicious = @(Get-SuspiciousFile)
                     $results.IssuesFound = $true
                 }
