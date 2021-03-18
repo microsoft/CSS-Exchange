@@ -1,3 +1,4 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters are being used')]
 [CmdletBinding(DefaultParameterSetName = "CopyFromCu")]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "CopyFromCu")]
@@ -44,7 +45,7 @@ Function Get-InstallerPackages {
                 try {
                     $revisionGuid = Get-GuidProductCodeFromString -GuidString ($item.GetValue("PackageCode"))
                 } catch {
-
+                    "Failed to get the Revision Guid $($item.FullName)" | Receive-Output
                 }
             } else {
                 "Failed to find $productRegKey in order to get the revisionGuid value" | Receive-Output
@@ -168,7 +169,6 @@ Function Get-FileInformation {
         $fileItem = Get-Item $File
         $shellFolder = $shellApplication.NameSpace($fileItem.Directory.FullName)
         $subject = $shellFolder.GetDetailsOf($shellFolder.ParseName($fileItem.Name), 22)
-
     } catch {
         $Error[0].Exception | Receive-Output
         $Error[0].ScriptStackTrace | Receive-Output

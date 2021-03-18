@@ -6,10 +6,10 @@ param(
 
 
 $msiFromCU = Get-ChildItem $CuRoot -Recurse |
-    Where-Object {$_.Name.ToLower().EndsWith(".msi")}
+    Where-Object { $_.Name.ToLower().EndsWith(".msi") }
 
 
-foreach($msi in $msiFromCU) {
+foreach ($msi in $msiFromCU) {
 
     $copyTo = $msi.Directory.FullName.Replace($CuRoot, $CopyToRoot)
 
