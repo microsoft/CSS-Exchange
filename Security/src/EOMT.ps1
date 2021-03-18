@@ -790,11 +790,13 @@ try {
         #Normal run
         $IsVulnerable = Get-ServerVulnStatus
         if ($IsVulnerable) {
-            $Message = "$env:computername is vulnerable: needs to apply mitigation"
-            $Message + "`n" + "Please use Microsoft Update to install the latest Security Update For Exchange Server (KB5000871)"
+            $Message = "$env:computername is vulnerable: applying mitigation"
             $RegMessage = "Server is vulnerable"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             Run-Mitigate
+
+            $Message = "Please use Microsoft Update to install the latest Security Update For Exchange Server (KB5000871)"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
             $RegMessage = "Server is not vulnerable"
