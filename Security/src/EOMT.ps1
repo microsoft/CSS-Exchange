@@ -65,9 +65,6 @@ $msertLogPath = "$env:SystemRoot\debug\msert.log"
 $msertLogArchivePath = "$env:SystemRoot\debug\msert.old.log"
 $detectionFollowUpURL = 'https://go.microsoft.com/fwlink/?linkid=2157359'
 $SummaryFile = "$env:SystemDrive\EOMTSummary.txt"
-$exchange2016CU20DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
-$exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
-$exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -603,9 +600,13 @@ function Get-ServerVulnStatus {
     return $false
 }
 
-function Write-Summary {
+function Get-ExchangeUpdateInfo {
+    $exchange2016CU20DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
+    $exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
+    $exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
+
     $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
-    $Message = "Exchange On-premises Mitigation Tool has mitigated against known attacks. For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
+    $Message = "For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
 
     if ($Version -like "15.2.*") {
         return $Message
@@ -694,6 +695,8 @@ function Write-Summary {
         [switch]$Pass
     )
 
+    $Message = Get-ExchangeUpdateInfo
+
     if ($Pass) {
         $header = @"
 Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
@@ -712,6 +715,8 @@ Please review locations and files as soon as possible and take the recommended a
 
     $summary = @"
 $header
+
+$Message
 
 Microsoft saved several files to your system to "$EOMTDir". The only files that should be present in this directory are:
     a - msert.exe
@@ -816,7 +821,7 @@ try {
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             Run-Mitigate
 
-            $Message = Write-Summary
+            $Message = Get-ExchangeUpdateInfo
             if ($Message) {
                 $RegMessage = "Prompt to apply updates"
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
