@@ -216,12 +216,12 @@ begin {
 
                         if ((Get-ChildItem $files[$i] -ErrorAction SilentlyContinue | Select-String -Pattern "ServerInfo~").Count -gt 0) {
 
-                            Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
-                                Select-Object -Property $outProps |
-                                ForEach-Object {
+                            $hits = @(Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
+                                    Select-Object -Property $outProps)
+                            if ($hits.Count -gt 0) {
+                                $hits | ForEach-Object {
                                     [Void]$allResults.resetVDirHits.Add( $_ )
                                 }
-                            if ($allResults.resetVDirHits.Count -gt 0) {
                                 [Void]$allResults.resetVDirFiles.Add( $files[$i] )
                             }
                         }
