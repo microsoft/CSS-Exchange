@@ -328,6 +328,23 @@ Function Test-ValidHomeMDB {
     }
 }
 
+Function Test-CriticalServices {
+    $critical = @("MpsSvc")
+    $services = Get-Service
+
+    foreach ($name in $critical) {
+        $service = $services | Where-Object { $_.Name -eq $name }
+
+        if ($null -ne $service) {
+
+            if ($service.Status.ToString() -ne "Running" -or
+                $service.StartType.ToString() -eq "Disabled") {
+                Write-Warning "Critical Service '$name' Status: $($service.Status) StartType: $($service.StartType). Must be running and not disabled."
+            }
+        }
+    }
+}
+
 function Get-ExchangeAdSetupObjects {
     $rootDSE = [ADSI]("LDAP://RootDSE")
 
@@ -518,6 +535,7 @@ Function MainUse {
         Write-Host "No reboot pending."
     }
 
+    Test-CriticalServices
     Test-ValidHomeMDB
     Test-MissingDirectories
     Test-ExchangeAdSetupObjects
