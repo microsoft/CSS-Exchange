@@ -190,7 +190,7 @@ function Test-ExchangeAdSetupObjects {
         Write-Host "Exchange $ExchangeVersion $CU Ready."
 
         if ($exchLatest[$ExchangeVersion].CU -ne $CU) {
-            Write-Warning "Not ready for the latest Exchange $ExchangeVersion CU. /PrepareAD is required to be ready for this version"
+            Write-Warning "Not ready for the latest Exchange $ExchangeVersion $($exchLatest[$ExchangeVersion].CU). /PrepareAD is required to be ready for this version"
             Write-PrepareADInfo -SchemaUpdateRequired ($exchLatest[$ExchangeVersion].UpperRange -ne $UpperRange)
         }
     }
