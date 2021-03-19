@@ -67,6 +67,74 @@ function Test-PendingReboot {
     return $false
 }
 
+Function Write-PrepareADInfo {
+    param(
+        [bool]$SchemaUpdateRequired
+    )
+
+    $netDom = netdom query fsmo
+
+    if ($null -eq $netDom) {
+        Write-Error "Failed to query FSMO role"
+        return
+    }
+
+    $schemaMaster = ($netDom | Select-String "Schema master (.+)").Matches.Groups[1].Value.Trim()
+    $smSite = nltest /server:$schemaMaster /dsgetsite
+
+    if ($smSite[-1] -eq "The command completed successfully") {
+        $smSite = $smSite[0]
+    } else {
+        Write-Error "Failed to get the correct site for the Schema Master"
+    }
+
+    $localSite = nltest /dsgetsite
+
+    if ($localSite[-1] -eq "The command completed successfully") {
+        $localSite = $localSite[0]
+    } else {
+        Write-Error "Failed to get the server's local site."
+    }
+
+    $serverFQDN = ([System.Net.Dns]::GetHostByName(($env:computerName))).HostName
+    $serverDomain = $serverFQDN.Substring($serverFQDN.IndexOf(".") + 1)
+    $smDomain = $schemaMaster.Substring($schemaMaster.IndexOf(".") + 1)
+
+    if ($SchemaUpdateRequired -and
+        $Script:NotSchemaAdmin) {
+        Write-Warning "Schema Update is required and you must be in the Schema Admins group"
+    }
+
+    if ($Script:NotEnterpriseAdmin) {
+        Write-Warning "/PrepareAd is required and you must be in the Enterprise Admins group"
+    }
+
+    Write-Host "Schema Master:         $schemaMaster"
+    Write-Host "Schema Master Domain:  $smDomain"
+    Write-Host "Schema Master AD Site: $smSite"
+    Write-Host "-----------------------------------"
+    Write-Host "Local Server:          $serverFQDN"
+    Write-Host "Local Server Domain:   $serverDomain"
+    Write-Host "Local Server AD Site:  $localSite"
+
+    #If we are in the correct domain and correct site we can run /prepareAD.
+    if (($serverDomain -eq $smDomain) -and
+        ($smSite -eq $localSite)) {
+        Write-Host "We are able to run /PrepareAD from this computer"
+    } else {
+
+        if ($smSite -ne $localSite) {
+            Write-Warning "We are not in the same site as the Schema Master. Must be in AD Site: $smSite"
+        }
+
+        if ($smDomain -ne $serverDomain) {
+            Write-Warning "We are not in the same domain as the Schema Master. Must be in domain: $smDomain"
+        }
+    }
+}
+
+#https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
+#https://docs.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help
 function Test-ExchangeAdSetupObjects {
 
     $AdSetup = Get-ExchangeAdSetupObjects
@@ -74,84 +142,139 @@ function Test-ExchangeAdSetupObjects {
     $orgValue = $AdSetup["Org"].VersionValue
     $MESOValue = $AdSetup["MESO"].VersionValue
 
-    $exch2016Ready = "Exchange 2016 {0} Ready."
-    $exch2019Ready = "Exchange 2019 {0} Ready."
+    $exchLatest = @{}
+    $exchLatest.Add("2016", [PSCustomObject]@{
+            CU         = "CU19"
+            UpperRange = 15333
+        })
+    $exchLatest.Add("2019", [PSCustomObject]@{
+            CU         = "CU8"
+            UpperRange = 17002
+        })
+    $exchLatest.Add("2013", [PSCustomObject]@{
+            CU         = "CU23"
+            UpperRange = 15312
+        })
 
     function Write-Mismatch {
         param(
-            [string]$exchVersion,
-            [bool]$displayMismatch = $true
+            [string]$ExchVersion,
+            [bool]$DisplayMismatch = $true,
+            [int]$UpperRange
         )
 
-        if ($displayMismatch) {
-            Write-Warning("Exchange {0} AD Level Failed. Mismatch detected." -f $exchVersion)
+        if ($DisplayMismatch) {
+            Write-Warning("Exchange {0} AD Level Failed. Mismatch detected." -f $ExchVersion)
         }
 
         foreach ($key in $AdSetup.Keys) {
             Write-Warning("DN Value: '{0}' - Version: {1}" -f [string]($AdSetup[$key].DN), [string]($AdSetup[$key].VersionValue))
         }
-        Write-Warning("More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-{0}" -f $exchVersion)
+
+        if ($ExchVersion -eq "2013") {
+            Write-Warning ("More Info: https://docs.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help")
+        } else {
+            Write-Warning("More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-{0}" -f $ExchVersion)
+        }
+
+        Write-PrepareADInfo -SchemaUpdateRequired (($exchLatest[$ExchVersion].UpperRange -ne $UpperRange))
+    }
+
+    Function Write-ReadyFor {
+        param(
+            [string]$ExchangeVersion,
+            [string]$CU,
+            [int]$UpperRange
+        )
+
+        Write-Host "Exchange $ExchangeVersion $CU Ready."
+
+        if ($exchLatest[$ExchangeVersion].CU -ne $CU) {
+            Write-Warning "Not ready for the latest Exchange $ExchangeVersion CU. /PrepareAD is required to be ready for this version"
+            Write-PrepareADInfo -SchemaUpdateRequired ($exchLatest[$ExchangeVersion].UpperRange -ne $UpperRange)
+        }
     }
 
     #Schema doesn't change often and and quickly tell the highest ExchangeVersion
-    if ($schemaValue -lt 15332) {
+    if ($schemaValue -lt 15137) {
         Write-Warning("Unable to determine AD Exchange Level readiness.")
-        Write-Mismatch -exchVersion "Unknown" -displayMismatch $false
+        Write-Mismatch -ExchVersion "Unknown" -DisplayMismatch $false
         return
     }
+
+    #Exchange 2013 CU23 only
+    if ($schemaValue -le 15312) {
+
+        if ($MESOValue -eq 13237 -and
+            $orgValue -eq 16133) {
+            Write-Host "Exchange 2013 CU23 Ready."
+            return
+        }
+        Write-Mismatch -ExchVersion "2013" -UpperRange $schemaValue
+    }
+
     #Exchange 2016 CU10+
     elseif ($schemaValue -eq 15332) {
 
         if ($MESOValue -eq 13236) {
 
             if ($orgValue -eq 16213) {
-                Write-Host($exch2016Ready -f "CU10")
+                $CU = "CU10"
             } elseif ($orgValue -eq 16214) {
-                Write-Host($exch2016Ready -f "CU11")
+                $CU = "CU11"
             } elseif ($orgValue -eq 16215) {
-                Write-Host($exch2016Ready -f "CU12")
+                $CU = "CU12"
             } else {
-                Write-Mismatch -exchVersion "2016"
+                Write-Mismatch -ExchVersion "2016" -UpperRange $schemaValue
+                return
             }
         } elseif ($MESOValue -eq 13237 -and
             $orgValue -eq 16217) {
-            Write-Host($exch2016Ready -f "CU17")
+            $CU = "CU17"
         } elseif ($MESOValue -eq 13238 -and
             $orgValue -eq 16218) {
-            Write-Host($exch2016Ready -f "CU18")
+            $CU = "CU18"
         } else {
-            Write-Mismatch -exchVersion "2016"
+            Write-Mismatch -ExchVersion "2016" -UpperRange $schemaValue
+            return
         }
+        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
     } elseif ($schemaValue -eq 15333) {
         if ($MESOValue -eq 13239 -and
             $orgValue -eq 16219) {
-            Write-Host($exch2016Ready -f "CU19")
+            $CU = "CU19"
         } else {
-            Write-Mismatch -exchVersion "2016"
+            Write-Mismatch -ExchVersion "2016" -UpperRange $schemaValue
+            return
         }
+        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
     }
     #Exchange 2019 CU2+
     elseif ($schemaValue -eq 17001) {
 
         if ($MESOValue -eq 13237 -and
             $orgValue -eq 16754) {
-            Write-Host($exch2019Ready -f "CU6")
+            $CU = "CU6"
         } elseif ($MESOValue -eq 13238 -and
             $orgValue -eq 16755) {
-            Write-Host($exch2019Ready -f "CU7")
+            $CU = "CU7"
         } else {
-            Write-Mismatch -exchVersion "2019"
+            Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
+            return
         }
+        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
     } elseif ($schemaValue -eq 17002) {
 
         if ($MESOValue -eq 13239 -and
             $orgValue -eq 16756) {
-            Write-Host($exch2019Ready -f "CU8")
+            $CU = "CU8"
         } else {
-            Write-Mismatch -exchVersion "2019"
+            Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
+            return
         }
+        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
     } else {
-        Write-Mismatch -exchVersion "2019"
+        Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
     }
 }
 
@@ -199,7 +322,6 @@ Function Test-ValidHomeMDB {
     }
 }
 
-#https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
 function Get-ExchangeAdSetupObjects {
     $rootDSE = [ADSI]("LDAP://RootDSE")
 
@@ -215,7 +337,7 @@ function Get-ExchangeAdSetupObjects {
         )
         $versionObject = [PSCustomObject]@{
             DN           = $SearchResults.Properties["DistinguishedName"]
-            VersionValue = $SearchResults.Properties[$VersionValueName]
+            VersionValue = ($SearchResults.Properties[$VersionValueName]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
         }
 
         return $versionObject
@@ -252,14 +374,14 @@ Function Test-MissingDirectories {
 
     if ($null -ne $installPath -and
         (Test-Path $installPath)) {
-            $paths = @("$installPath`UnifiedMessaging\Grammars","$installPath`UnifiedMessaging\Prompts")
+        $paths = @("$installPath`UnifiedMessaging\Grammars", "$installPath`UnifiedMessaging\Prompts")
 
-            foreach($path in $paths) {
+        foreach ($path in $paths) {
 
-                if (!(Test-Path $path)) {
-                    Write-Warning "Failed to find path: '$path'. Create this or setup will fail"
-                }
+            if (!(Test-Path $path)) {
+                Write-Warning "Failed to find path: '$path'. Create this or setup will fail"
             }
+        }
     }
 }
 
@@ -337,6 +459,7 @@ Function MainUse {
         $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
     } else {
         Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
+        $Script:NotSchemaAdmin = $true
     }
 
     [array]$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
@@ -345,6 +468,7 @@ Function MainUse {
         $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
     } else {
         Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
+        $Script:NotEnterpriseAdmin = $true
     }
 
     [array]$g = GetGroupMatches $whoamiOutput "Organization Management"
@@ -388,9 +512,9 @@ Function MainUse {
         Write-Host "No reboot pending."
     }
 
-    Test-ExchangeAdSetupObjects
     Test-ValidHomeMDB
     Test-MissingDirectories
+    Test-ExchangeAdSetupObjects
 }
 
 Function Main {
