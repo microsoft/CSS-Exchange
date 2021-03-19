@@ -644,7 +644,8 @@ function Set-LogActivity {
         $Stage,
         $RegMessage,
         $Message,
-        [switch] $Error
+        [switch] $Error,
+        $ForegroundColor
     )
 
     if ($Error) {
@@ -655,7 +656,11 @@ function Set-LogActivity {
         $Level = "Info"
     }
     If ($Level -eq "Info") {
-        Write-Verbose -Message $Message -Verbose
+        If ($ForegroundColor) {
+            Write-Host $Message -ForegroundColor $ForegroundColor
+        } else {
+            Write-Verbose -Message $Message -Verbose
+        }
     } else {
         Write-Error -Message $Message
     }
@@ -824,7 +829,7 @@ try {
             $Message = Get-ExchangeUpdateInfo
             if ($Message) {
                 $RegMessage = "Prompt to apply updates"
-                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -ForegroundColor Red
             }
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
