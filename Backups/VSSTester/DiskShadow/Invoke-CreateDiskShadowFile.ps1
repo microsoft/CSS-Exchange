@@ -1,4 +1,4 @@
-function Invoke-CreateDiskShadowFile {
+﻿function Invoke-CreateDiskShadowFile {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Required to get drives on old systems')]
     param()
 
@@ -88,7 +88,7 @@ function Invoke-CreateDiskShadowFile {
     #	add the volumes for the included database
     #	-----------------------------------------
     #gets a list of mount points on local server
-    $mpvolumes = get-wmiobject -query "select name, deviceid from win32_volume where drivetype=3 AND driveletter=NULL"
+    $mpvolumes = Get-WmiObject -Query "select name, deviceid from win32_volume where drivetype=3 AND driveletter=NULL"
     $deviceIDs = @()
 
     #if selected database is a mailbox database, get mailbox paths
