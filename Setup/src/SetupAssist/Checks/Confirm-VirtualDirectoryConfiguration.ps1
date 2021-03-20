@@ -125,20 +125,20 @@ function Confirm-VirtualDirectoryConfiguration {
                 }
             }
         }
+    }
 
-        end {
-            if ($fixesPerformed) {
-                $newAppHostConfig = "$PSScriptRoot\applicationHost.config"
-                $appHostConfig.Save($newAppHostConfig)
-                Write-Warning "Virtual directory configuration problems were found and fixed. An updated applicationHost.config"
-                Write-Warning "file was created here: $PSScriptRoot\applicationHost.config. You can rename the one at"
-                Write-Warning $appHostConfigPath
-                Write-Warning "and put the updated file in place to correct these issues."
-            }
+    end {
+        if ($fixesPerformed) {
+            $newAppHostConfig = "$PSScriptRoot\applicationHost.config"
+            $appHostConfig.Save($newAppHostConfig)
+            Write-Warning "Virtual directory configuration problems were found and fixed. An updated applicationHost.config"
+            Write-Warning "file was created here: $PSScriptRoot\applicationHost.config. You can rename the one at"
+            Write-Warning $appHostConfigPath
+            Write-Warning "and put the updated file in place to correct these issues."
+        }
 
-            if ($problemsFound) {
-                Write-Warning "Some virtual directory configuration problems which must be fixed manually were found."
-            }
+        if ($problemsFound) {
+            Write-Warning "Some virtual directory configuration problems which must be fixed manually were found."
         }
     }
 }
