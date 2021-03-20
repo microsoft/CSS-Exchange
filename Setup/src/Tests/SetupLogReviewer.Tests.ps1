@@ -97,7 +97,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local points to an invalid DN or a deleted object*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjectsContainer `"CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local`"' to be able address deleted objects type" }
+                -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjects' to be able address deleted objects type" }
         }
 
         It "INSUFF_ACCESS_RIGHTS CN=Microsoft Exchange System Objects" {
