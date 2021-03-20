@@ -12,6 +12,7 @@ param(
 )
 
 . .\Utils\ConvertFrom-Ldif.ps1
+. .\Checks\Confirm-VirtualDirectoryConfiguration.ps1
 
 function IsAdministrator {
     $ident = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -539,6 +540,7 @@ Function MainUse {
     Test-ValidHomeMDB
     Test-MissingDirectories
     Test-ExchangeAdSetupObjects
+    Confirm-VirtualDirectoryConfiguration
 }
 
 Function Main {
