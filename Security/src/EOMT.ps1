@@ -637,7 +637,7 @@ function Write-Log {
     "$FormattedDate $($Level): $Message" | Out-File -FilePath $Path -Append
 }
 
-function Write-ColorOutput {
+function Write-ColorWarning {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Invalid rule result')]
     param
     (
@@ -645,10 +645,10 @@ function Write-ColorOutput {
         [object]$Message
     )
 
-    $defaultColor = $host.UI.RawUI.ForegroundColor
-    $host.UI.RawUI.ForegroundColor = $ForegroundColor
-    Write-Output $Message
-    $host.UI.RawUI.ForegroundColor = $defaultColor
+    $defaultColor = $host.PrivateData.WarningForegroundColor
+    $host.PrivateData.WarningForegroundColor = $ForegroundColor
+    Write-Warning $Message
+    $host.PrivateData.WarningForegroundColor = $defaultColor
 }
 
 function Set-LogActivity {
@@ -671,7 +671,7 @@ function Set-LogActivity {
     }
     If ($Level -eq "Info") {
         If ($ForegroundColor) {
-            Write-ColorOutput -MessageData $Message -ForegroundColor $ForegroundColor
+            Write-ColorWarning -Message $Message -ForegroundColor $ForegroundColor
         } else {
             Write-Verbose -Message $Message -Verbose
         }
