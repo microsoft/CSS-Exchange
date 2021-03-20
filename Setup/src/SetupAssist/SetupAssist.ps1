@@ -286,8 +286,8 @@ function Test-ExchangeAdSetupObjects {
 }
 
 Function Test-ValidHomeMDB {
-    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l distinguishedName, homeMDB -f validHomeMdb.txt | Out-Null
-    $ldifeObject = @(Get-Content .\validHomeMdb.txt | ConvertFrom-Ldif)
+    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l "distinguishedName,homeMDB" -f "$PSScriptRoot\validHomeMdb.txt" | Out-Null
+    $ldifeObject = @(Get-Content "$PSScriptRoot\validHomeMdb.txt" | ConvertFrom-Ldif)
 
     if ($ldifeObject.Count -gt 0) {
 
