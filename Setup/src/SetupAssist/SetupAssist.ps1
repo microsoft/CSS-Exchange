@@ -331,7 +331,7 @@ Function Test-ValidHomeMDB {
 
 Function Test-CriticalServices {
     $critical = @("MpsSvc")
-    $services = Get-Service
+    $services = Get-Service -ErrorAction SilentlyContinue
 
     foreach ($name in $critical) {
         $service = $services | Where-Object { $_.Name -eq $name }
