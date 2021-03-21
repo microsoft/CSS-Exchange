@@ -575,7 +575,7 @@ function Get-ServerVulnStatus {
 
     $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
     $FutureCUs = @{
-        E19CU9  = "15.2.858.5"
+        E19CU9  = "15.2.858.2"
         E16CU20 = "15.1.2242.4"
     }
 
