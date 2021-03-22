@@ -587,7 +587,7 @@ function Get-ServerVulnStatus {
         $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -ge [version]$Version) {
+    if ([version]$LatestCU -gt [version]$Version) {
 
         $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
         | Where-Object displayname -Like "*KB5000871*" `
@@ -598,6 +598,28 @@ function Get-ServerVulnStatus {
         }
     }
     return $false
+}
+
+function Get-ExchangeUpdateInfo {
+    $exchange2016CU20DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
+    $exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
+    $exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
+
+    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
+    $Message = "For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
+
+    if ($Version -like "15.2.*") {
+        return $Message
+    } elseif ($Version -like "15.1.*") {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2016 Cumulative Update 20 via: $exchange2016CU20DownloadLink"
+        return $Message
+    } elseif ($Version -like "15.0.*") {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2013 Cumulative Update 23 via: $exchange2013CU23DownloadLink"
+        $Message += "`nAfter applying the cumulative update, you will also need to install the latest security update: $exchange2013CU23SecurityUpdateDownloadLink"
+        return $Message
+    }
+
+    return  $null
 }
 
 function Write-Log {
@@ -673,6 +695,8 @@ function Write-Summary {
         [switch]$Pass
     )
 
+    $UpdateInfo = Get-ExchangeUpdateInfo
+
     if ($Pass) {
         $header = @"
 Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
@@ -728,6 +752,8 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
 
 2 - Review the results of the Microsoft Safety Scanner
         Microsoft Safety Scanner log can be found at "$msertLogPath" and "$msertLogArchivePath" If any threats were detected, please review the guidance here: $detectionFollowUpURL
+
+$UpdateInfo
 
 "@
 
@@ -794,6 +820,12 @@ try {
             $RegMessage = "Server is vulnerable"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             Run-Mitigate
+
+            $Message = Get-ExchangeUpdateInfo
+            if ($Message) {
+                $RegMessage = "Prompt to apply updates"
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+            }
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
             $RegMessage = "Server is not vulnerable"
