@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param (
     [Parameter()]
     [bool]
@@ -20,7 +20,7 @@ Set-ADServerSettings -ViewEntireForest $true
 
 $progressParams = @{
     Activity = "Validating public folders"
-    Id = 1
+    Id       = 1
 }
 
 Write-Progress @progressParams -Status "Step 1 of 7"
@@ -39,7 +39,7 @@ Write-Progress @progressParams -Status "Step 3 of 7"
 
 $hashtableProgress = @{
     Activity = "Populating hashtables"
-    Id = 2
+    Id       = 2
     ParentId = 1
 }
 Write-Progress @hashtableProgress

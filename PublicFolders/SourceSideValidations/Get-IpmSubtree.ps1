@@ -1,4 +1,4 @@
-function Get-IpmSubtree {
+﻿function Get-IpmSubtree {
     [CmdletBinding()]
     param (
         [Parameter()]
@@ -15,7 +15,7 @@ function Get-IpmSubtree {
         $sw.Start()
         $progressParams = @{
             Activity = "Retrieving IPM_SUBTREE folders"
-            Id = 2
+            Id       = 2
             ParentId = 1
         }
     }

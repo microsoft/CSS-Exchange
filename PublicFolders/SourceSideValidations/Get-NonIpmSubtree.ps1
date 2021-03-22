@@ -1,4 +1,4 @@
-function Get-NonIpmSubtree {
+﻿function Get-NonIpmSubtree {
     [CmdletBinding()]
     param (
         [Parameter()]
@@ -15,7 +15,7 @@ function Get-NonIpmSubtree {
         $sw.Start()
         $progressParams = @{
             Activity = "Retrieving NON_IPM_SUBTREE folders"
-            Id = 2
+            Id       = 2
             ParentId = 1
         }
     }

@@ -1,4 +1,4 @@
-function Get-BadDumpsterMappings {
+﻿function Get-BadDumpsterMappings {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
     param (
@@ -15,7 +15,7 @@ function Get-BadDumpsterMappings {
         $sw.Start()
         $progressParams = @{
             Activity = "Checking dumpster mappings"
-            Id = 2
+            Id       = 2
             ParentId = 1
         }
     }

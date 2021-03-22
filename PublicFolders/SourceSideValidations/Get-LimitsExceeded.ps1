@@ -1,4 +1,4 @@
-function Get-LimitsExceeded {
+﻿function Get-LimitsExceeded {
     <#
     .SYNOPSIS
         Flags folders that exceed the child count limit, depth limit,
@@ -23,7 +23,7 @@ function Get-LimitsExceeded {
         $sw.Start()
         $progressParams = @{
             Activity = "Checking limits"
-            Id = 2
+            Id       = 2
             ParentId = 1
         }
     }

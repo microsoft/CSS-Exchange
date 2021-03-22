@@ -1,4 +1,4 @@
-function Get-ItemCount {
+﻿function Get-ItemCount {
     <#
     .SYNOPSIS
         Populates the ItemCount property on our PSCustomObjects.
@@ -17,7 +17,7 @@ function Get-ItemCount {
         $sw.Start()
         $progressParams = @{
             Activity = "Getting public folder statistics"
-            Id = 2
+            Id       = 2
             ParentId = 1
         }
     }
