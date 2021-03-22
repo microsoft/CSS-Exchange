@@ -11,12 +11,21 @@ function Get-BadDumpsterMappings {
         $startTime = Get-Date
         $progressCount = 0
         $badDumpsterMappings = @()
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+        $progressParams = @{
+            Activity = "Checking dumpster mappings"
+            Id = 2
+            ParentId = 1
+        }
     }
 
     process {
         $FolderData.IpmSubtree | ForEach-Object {
-            if (++$progressCount % 100 -eq 0) {
-                Write-Progress -Activity "Checking dumpster mappings" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
+            $progressCount++
+            if ($sw.ElapsedMilliseconds -gt 1000) {
+                $sw.Restart()
+                Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
             if (-not (Test-DumpsterValid $_ $FolderData)) {
@@ -24,7 +33,7 @@ function Get-BadDumpsterMappings {
             }
         }
 
-        Write-Progress -Activity "Checking EFORMS dumpster mappings"
+        Write-Progress @progressParams -Status "Checking EFORMS dumpster mappings"
 
         $FolderData.NonIpmSubtree | Where-Object { $_.Identity -like "\NON_IPM_SUBTREE\EFORMS REGISTRY\*" } | ForEach-Object {
             if (-not (Test-DumpsterValid $_ $FolderData)) {
@@ -34,7 +43,7 @@ function Get-BadDumpsterMappings {
     }
 
     end {
-        Write-Progress -Activity "None" -Completed
+        Write-Progress @progressParams -Completed
         Write-Host "Get-BadDumpsterMappings duration" ((Get-Date) - $startTime)
         return $badDumpsterMappings
     }

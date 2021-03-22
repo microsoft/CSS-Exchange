@@ -11,20 +11,29 @@ function Get-IpmSubtree {
         $progressCount = 0
         $errors = 0
         $ipmSubtree = @()
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+        $progressParams = @{
+            Activity = "Retrieving IPM_SUBTREE folders"
+            Id = 2
+            ParentId = 1
+        }
     }
 
     process {
         if (-not $startFresh -and (Test-Path $PSScriptRoot\IpmSubtree.csv)) {
-            Write-Progress -Activity "Reading IPM_SUBTREE from file"
+            Write-Progress @progressParams
             $ipmSubtree = Import-Csv $PSScriptRoot\IpmSubtree.csv
         } else {
             $ipmSubtree = Get-PublicFolder -Recurse -ResultSize Unlimited |
                 Select-Object Identity, EntryId, ParentFolder, DumpsterEntryId, FolderPath, FolderSize, HasSubfolders, ContentMailboxName |
                 ForEach-Object {
+                    $progressCount++
                     $currentFolder = $_.Identity.ToString()
                     try {
-                        if (++$progressCount % 100 -eq 0) {
-                            Write-Progress -Activity "Retrieving IPM_SUBTREE folders" -Status $progressCount
+                        if ($sw.ElapsedMilliseconds -gt 1000) {
+                            $sw.Restart()
+                            Write-Progress @progressParams -Status $progressCount
                         }
 
                         [PSCustomObject]@{
@@ -50,12 +59,14 @@ function Get-IpmSubtree {
     end {
         if ($errors -lt 1) {
             if ($progressCount -gt 0) {
-                Write-Progress -Activity "Saving IPM_SUBTREE to a file"
+                Write-Progress @progressParams -Status "Saving"
                 $ipmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
             }
         } else {
             $ipmSubtree = @()
         }
+
+        Write-Progress @progressParams -Completed
 
         Write-Host "Get-IpmSubtree duration $((Get-Date) - $startTime) folder count $($ipmSubtree.Count)"
 

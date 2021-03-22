@@ -19,12 +19,21 @@ function Get-LimitsExceeded {
             FolderPathDepth = @()
             ItemCount       = @()
         }
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+        $progressParams = @{
+            Activity = "Checking limits"
+            Id = 2
+            ParentId = 1
+        }
     }
 
     process {
         $FolderData.IpmSubtree | ForEach-Object {
-            if (++$progressCount % 100 -eq 0) {
-                Write-Progress -Activity "Checking limits" -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
+            $progressCount++
+            if ($sw.ElapsedMilliseconds -gt 1000) {
+                $sw.Restart()
+                Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
             if ($FolderData.ParentEntryIdCounts[$_.EntryId] -gt 10000) {
@@ -42,7 +51,7 @@ function Get-LimitsExceeded {
     }
 
     end {
-        Write-Progress -Activity "None" -Completed
+        Write-Progress @progressParams -Completed
         Write-Host "Get-LimitsExceeded duration" ((Get-Date) - $startTime)
         return $limitsExceeded
     }

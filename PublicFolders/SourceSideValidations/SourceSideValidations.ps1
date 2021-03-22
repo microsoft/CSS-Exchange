@@ -18,15 +18,31 @@ $startTime = Get-Date
 
 Set-ADServerSettings -ViewEntireForest $true
 
+$progressParams = @{
+    Activity = "Validating public folders"
+    Id = 1
+}
+
+Write-Progress @progressParams -Status "Step 1 of 7"
+
 $ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
 
 if ($ipmSubtree.Count -lt 1) {
     return
 }
 
+Write-Progress @progressParams -Status "Step 2 of 7"
+
 $nonIpmSubtree = Get-NonIpmSubtree -startFresh $StartFresh
 
-Write-Progress -Activity "Populating hashtables"
+Write-Progress @progressParams -Status "Step 3 of 7"
+
+$hashtableProgress = @{
+    Activity = "Populating hashtables"
+    Id = 2
+    ParentId = 1
+}
+Write-Progress @hashtableProgress
 
 $folderData = [PSCustomObject]@{
     IpmSubtree              = $ipmSubtree
@@ -62,13 +78,23 @@ if ($script:anyDatabaseDown) {
     return
 }
 
+Write-Progress @hashtableProgress -Completed
+
+Write-Progress @progressParams -Status "Step 4 of 7"
+
 Get-ItemCount -FolderData $FolderData
 
 # Now we're ready to do the checks
 
+Write-Progress @progressParams -Status "Step 5 of 7"
+
 $badDumpsters = @(Get-BadDumpsterMappings -FolderData $folderData)
 
+Write-Progress @progressParams -Status "Step 6 of 7"
+
 $limitsExceeded = Get-LimitsExceeded -FolderData $folderData
+
+Write-Progress @progressParams -Status "Step 7 of 7"
 
 $badPermissions = @(Get-BadPermission -FolderData $folderData)
 
