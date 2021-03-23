@@ -1,4 +1,4 @@
-Function Test-OtherKnownIssues {
+Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(
@@ -43,6 +43,18 @@ Function Test-OtherKnownIssues {
             return $true
         }
 
+        $certificateOutdated = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("\[ERROR\] The certificate is expired.")
+
+        if ($null -ne $certificateOutdated) {
+            $outdatedCertificateInfo = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("Installing certificate signed by '(.*)' for site '(.*)'.  Certificate is valid from (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w) until (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w)")
+
+            if ($null -ne $outdatedCertificateInfo.Matches.Groups[4].Value) {
+                $SetupLogReviewer.WriteActionPlan("Certificate: $($outdatedCertificateInfo.Matches.Groups[2].Value) expired on: $($outdatedCertificateInfo.Matches.Groups[4].Value). `r`n`tPlease replace it, reboot the server and run setup again.")
+            } else {
+                $SetupLogReviewer.WriteActionPlan("Certificate: $($outdatedCertificateInfo.Matches.Groups[2].Value) has expired. `r`n`tPlease replace it, reboot the server and run setup again.")
+            }
+            return $true
+        }
         return $false
     }
 }
