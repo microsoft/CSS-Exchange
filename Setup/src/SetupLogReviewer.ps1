@@ -404,6 +404,23 @@ Function Test-KnownLdifErrors {
     return $false
 }
 
+Function Test-ExpiredCertificateInUse {
+    $certificateOutdated = Select-String "\[ERROR\] The certificate is expired." $SetupLog | Select-Object -Last 1
+    $outdatedCertificateInfo = Select-String "Installing certificate signed by '(.*)' for site '(.*)'.  Certificate is valid from (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w) until (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w)" $SetupLog | Select-Object -Last 1
+
+    if ($null -ne $certificateOutdated) {
+        if ($null -ne $outdatedCertificateInfo.Matches.Groups[4].Value) {
+            Write-ActionPlan("Certificate: {0} expired on: {1}. `r`n`tPlease replace it, reboot the server and run setup again." -f $outdatedCertificateInfo.Matches.Groups[2].Value,
+                $outdatedCertificateInfo.Matches.Groups[4].Value)
+        } else {
+            Write-ActionPlan("Certificate: {0} has expired. `r`n`tPlease replace it, reboot the server and run setup again." -f $outdatedCertificateInfo.Matches.Groups[2].Value)
+        }
+        return $true
+    }
+
+    return $false
+}
+
 Function Main {
     try {
 
@@ -431,7 +448,8 @@ Function Main {
         $Script:SetupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
         $runDate = [DateTime]::Parse(
             $SetupBuildNumber.Line.Substring(1,
-                $SetupBuildNumber.Line.IndexOf("]") - 1)
+                $SetupBuildNumber.Line.IndexOf("]") - 1),
+            [System.Globalization.DateTimeFormatInfo]::InvariantInfo
         )
 
         $color = "Gray"
@@ -497,6 +515,10 @@ Function Main {
         }
 
         if (Test-KnownLdifErrors) {
+            return
+        }
+
+        if (Test-ExpiredCertificateInUse) {
             return
         }
 
