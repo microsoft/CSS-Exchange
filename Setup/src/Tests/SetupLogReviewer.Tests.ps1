@@ -104,7 +104,7 @@ Describe "Testing SetupLogReviewer" {
             & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_AccessDenied.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Used domain controller Solo-DC1.Solo.local to read object CN=Microsoft Exchange System Objects,DC=Solo,DC=local*" }
-            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+            Assert-MockCalled -Exactly 3 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Active directory response: 00000005: SecErr: DSID-03152857, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*We failed to have the correct permissions to write ACE to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' as the current user SOLO\Han*" }
