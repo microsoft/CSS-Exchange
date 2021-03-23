@@ -418,7 +418,7 @@ function Run-MSERT {
     )
     $Stage = "MSERTProcess"
     if ($DoNotRunMSERT) {
-        $Message = "Skipping mitigation -DoNotRunMSERT set on $env:computername"
+        $Message = "Skipping MSERT scan -DoNotRunMSERT set on $env:computername"
         $RegMessage = "Skipping mitigation -DoNotRunMSERT"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         return
@@ -587,7 +587,8 @@ function Run-MSERT {
 
 function Get-ExchangeVersion (){
     $setup = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\)
-    [version]::new($setup.MsiProductMajor,$setup.MsiProductMinor,$setup.MsiBuildMajor,$setup.MsiBuildMinor)
+    $version = New-Object -Type System.Version -ArgumentList ($setup.MsiProductMajor,$setup.MsiProductMinor,$setup.MsiBuildMajor,$setup.MsiBuildMinor)
+    $version
 }
 
 function Get-ServerVulnStatus {
