@@ -571,23 +571,27 @@ function Run-MSERT {
     }
 }
 
-function Get-ServerVulnStatus {
+function GetExchangeVersion (){
+    $setup = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\)
+    [version]::new($setup.MsiProductMajor,$setup.MsiProductMinor,$setup.MsiBuildMajor,$setup.MsiBuildMinor)
+}
 
-    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
+function Get-ServerVulnStatus {
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
     }
 
-    if ($version -like "15.2.*") {
+    $Version = GetExchangeVersion
+    if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
         $LatestCU = $FutureCUs.E19CU9
-    } elseif ($version -like "15.1.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $LatestCU = $FutureCUs.E16CU20
     } else {
         $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -gt [version]$Version) {
+    if ([version]$LatestCU -gt $Version) {
 
         $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
         | Where-Object displayname -Like "*KB5000871*" `
@@ -601,19 +605,21 @@ function Get-ServerVulnStatus {
 }
 
 function Get-ExchangeUpdateInfo {
+    $exchange2019CU9DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102900"
     $exchange2016CU20DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
     $exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
     $exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
 
-    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
+    $Version = GetExchangeVersion
     $Message = "For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
 
-    if ($Version -like "15.2.*") {
+    if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2019 Cumulative Update 9 via: $exchange2019CU9DownloadLink"
         return $Message
-    } elseif ($Version -like "15.1.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $Message += "`nIf you don't see this security update, please upgrade to Exchange 2016 Cumulative Update 20 via: $exchange2016CU20DownloadLink"
         return $Message
-    } elseif ($Version -like "15.0.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 0) {
         $Message += "`nIf you don't see this security update, please upgrade to Exchange 2013 Cumulative Update 23 via: $exchange2013CU23DownloadLink"
         $Message += "`nAfter applying the cumulative update, you will also need to install the latest security update: $exchange2013CU23SecurityUpdateDownloadLink"
         return $Message
@@ -644,10 +650,13 @@ function Set-LogActivity {
         $Stage,
         $RegMessage,
         $Message,
-        [switch] $Error
+        [switch]$Warning,
+        [switch]$Error
     )
-
-    if ($Error) {
+    if ($Warning) {
+        $FullRegMessage = "1 $RegMessage"
+        $Level = "Warning"
+    } elseif ($Error) {
         $FullRegMessage = "0 $RegMessage"
         $Level = "Error"
     } else {
@@ -656,6 +665,8 @@ function Set-LogActivity {
     }
     If ($Level -eq "Info") {
         Write-Verbose -Message $Message -Verbose
+    } elseif($Level -eq "Warning"){
+        Write-host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
     } else {
         Write-Error -Message $Message
     }
@@ -824,7 +835,7 @@ try {
             $Message = Get-ExchangeUpdateInfo
             if ($Message) {
                 $RegMessage = "Prompt to apply updates"
-                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Warning
             }
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
