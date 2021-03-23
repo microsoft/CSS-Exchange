@@ -109,5 +109,11 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*We failed to have the correct permissions to write ACE to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' as the current user SOLO\Han*" }
         }
+
+        It "Certificate has expired" {
+            & $sr -SetupLog "$here\KnownIssues\ExchangeSetup_Certificate_Expired.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "Certificate: CN=mail.Solo.dom, OU=IT, O=John Doe, L=Pester, C=DE expired on: 3/20/2020 12:00:00 PM.*" }
+        }
     }
 }
