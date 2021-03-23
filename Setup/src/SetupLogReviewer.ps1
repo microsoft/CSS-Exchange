@@ -99,6 +99,14 @@ Function Main {
             return
         }
 
+        #Last Error Information
+        $lastErrorInfo = $setupLogReviewer.FirstErrorWithContextToLine(-1,30,200)
+
+        if ($null -ne $lastErrorInfo) {
+            Write-Output "Failed to determine known cause, but here is your error context that we are seeing"
+            $setupLogReviewer.WriteErrorContext($lastErrorInfo)
+        }
+
         Write-Output "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server." `
             "If that doesn't find the cause, please notify $($setupLogReviewer.FeedbackEmail) to help us improve the scripts."
     } catch {

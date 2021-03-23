@@ -143,7 +143,7 @@ Function New-SetupLogReviewer {
                 [int]$After = 200
             )
 
-            $allErrors = Select-String "\[ERROR\]" $SetupLog -Context $Before, $After
+            $allErrors = Select-String "\[ERROR\]" $this.SetupLog -Context $Before, $After
             $errorContext = New-Object 'System.Collections.Generic.List[string]'
 
             foreach ($currentError in $allErrors) {
@@ -157,10 +157,20 @@ Function New-SetupLogReviewer {
                         }
 
                         $errorContext.Add($currentError.Line)
-                        $linesWant = $ToLine - $currentError.LineNumber
+
+                        if ($ToLine -ne -1) {
+                            $linesWant = $ToLine - $currentError.LineNumber
+                        } else {
+                            $linesWant = $After
+                        }
+
                         $i = 0
                         while ($i -lt $linesWant) {
-                            $errorContext.Add($currentError.Context.PostContext[$i])
+                            $line = $currentError.Context.PostContext[$i]
+
+                            if (![string]::IsNullOrEmpty($line)) {
+                                $errorContext.Add($line)
+                            }
                             $i++
                         }
                         return $errorContext
