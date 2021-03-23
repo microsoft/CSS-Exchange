@@ -22,7 +22,8 @@ Function New-SetupLogReviewer {
         $setupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
         $runDate = [DateTime]::Parse(
             $SetupBuildNumber.Line.Substring(1,
-                $SetupBuildNumber.Line.IndexOf("]") - 1)
+                $SetupBuildNumber.Line.IndexOf("]") - 1),
+                [System.Globalization.DateTimeFormatInfo]::InvariantInfo
         )
         $setupBuildNumber = $setupBuildNumber.Matches.Groups[1].Value
         $currentLogOnUser = Select-String "Logged on user: (.+)." $SetupLog | Select-Object -Last 1
