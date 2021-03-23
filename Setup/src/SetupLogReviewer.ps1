@@ -411,7 +411,7 @@ Function Test-ExpiredCertificateInUse {
     if ($null -ne $certificateOutdated) {
         if ($null -ne $outdatedCertificateInfo.Matches.Groups[4].Value) {
             Write-ActionPlan("Certificate: {0} expired on: {1}. `r`n`tPlease replace it, reboot the server and run setup again." -f $outdatedCertificateInfo.Matches.Groups[2].Value,
-            $outdatedCertificateInfo.Matches.Groups[4].Value)
+                $outdatedCertificateInfo.Matches.Groups[4].Value)
         } else {
             Write-ActionPlan("Certificate: {0} has expired. `r`n`tPlease replace it, reboot the server and run setup again." -f $outdatedCertificateInfo.Matches.Groups[2].Value)
         }
