@@ -585,7 +585,7 @@ function Run-MSERT {
     }
 }
 
-function GetExchangeVersion (){
+function Get-ExchangeVersion (){
     $setup = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\)
     [version]::new($setup.MsiProductMajor,$setup.MsiProductMinor,$setup.MsiBuildMajor,$setup.MsiBuildMinor)
 }
@@ -596,7 +596,7 @@ function Get-ServerVulnStatus {
         E16CU20 = "15.1.2242.4"
     }
 
-    $Version = GetExchangeVersion
+    $Version = Get-ExchangeVersion
     if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
         $LatestCU = $FutureCUs.E19CU9
     } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
@@ -624,7 +624,7 @@ function Get-ExchangeUpdateInfo {
     $exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
     $exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
 
-    $Version = GetExchangeVersion
+    $Version = Get-ExchangeVersion
     $Message = "For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
 
     if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
@@ -664,12 +664,12 @@ function Set-LogActivity {
         $Stage,
         $RegMessage,
         $Message,
-        [switch]$Warning,
+        [switch]$Notice,
         [switch]$Error
     )
-    if ($Warning) {
+    if ($Notice) {
         $FullRegMessage = "1 $RegMessage"
-        $Level = "Warning"
+        $Level = "Notice"
     } elseif ($Error) {
         $FullRegMessage = "0 $RegMessage"
         $Level = "Error"
@@ -679,7 +679,7 @@ function Set-LogActivity {
     }
     If ($Level -eq "Info") {
         Write-Verbose -Message $Message -Verbose
-    } elseif($Level -eq "Warning"){
+    } elseif($Level -eq "Notice"){
         Write-host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
     } else {
         Write-Error -Message $Message
@@ -847,7 +847,7 @@ try {
             $Message = Get-ExchangeUpdateInfo
             if ($Message) {
                 $RegMessage = "Prompt to apply updates"
-                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Warning
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
             }
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
