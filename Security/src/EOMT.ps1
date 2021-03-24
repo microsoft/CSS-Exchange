@@ -585,9 +585,9 @@ function Run-MSERT {
     }
 }
 
-function Get-ExchangeVersion (){
+function Get-ExchangeVersion () {
     $setup = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\)
-    $version = New-Object -Type System.Version -ArgumentList ($setup.MsiProductMajor,$setup.MsiProductMinor,$setup.MsiBuildMajor,$setup.MsiBuildMinor)
+    $version = New-Object -Type System.Version -ArgumentList ($setup.MsiProductMajor, $setup.MsiProductMinor, $setup.MsiBuildMajor, $setup.MsiBuildMinor)
     $version
 }
 
@@ -680,8 +680,8 @@ function Set-LogActivity {
     }
     If ($Level -eq "Info") {
         Write-Verbose -Message $Message -Verbose
-    } elseif($Level -eq "Notice"){
-        Write-host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
+    } elseif ($Level -eq "Notice") {
+        Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
     } else {
         Write-Error -Message $Message
     }
