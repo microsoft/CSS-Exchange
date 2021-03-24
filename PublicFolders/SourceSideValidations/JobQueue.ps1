@@ -46,6 +46,10 @@ function Wait-QueuedJob {
             if ($justFinished.Count -gt 0) {
                 foreach ($job in $justFinished) {
                     $result = Receive-Job $job
+                    $lastProgress = $job.ChildJobs.Progress | Select-Object -Last 1
+                    if ($lastProgress) {
+                        Write-Progress -Activity $lastProgress.Activity -ParentId 1 -Id ($job.Id + 1) -Completed
+                    }
                     Write-Host $job.Name "job finished."
                     Remove-Job $job -Force
                     $jobResults += $result
@@ -58,10 +62,8 @@ function Wait-QueuedJob {
                 if ($jobsRunning.Count -gt $i) {
                     $lastProgress = $jobsRunning[$i].ChildJobs.Progress | Select-Object -Last 1
                     if ($lastProgress) {
-                        Write-Progress -Activity $lastProgress.Activity -Status $lastProgress.StatusDescription -PercentComplete $lastProgress.PercentComplete -Id $i
+                        Write-Progress -Activity $lastProgress.Activity -Status $lastProgress.StatusDescription -PercentComplete $lastProgress.PercentComplete -ParentId 1 -Id ($jobsRunning[$i].Id + 1)
                     }
-                } else {
-                    Write-Progress -Activity "None" -Id $i -Completed
                 }
             }
 
