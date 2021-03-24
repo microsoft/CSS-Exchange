@@ -13,16 +13,19 @@
             Attempt to reverse any changes made by identified threats.
 
 	.PARAMETER RunFullScan
-        If true will determine if the server is vulnerable and run MSERT in full scan mode.
+        If set, will determine if the server is vulnerable and run MSERT in full scan mode.
 
     .PARAMETER RollbackMitigation
-        If true will only reverse the mitigations if present.
+        If set, will only reverse the mitigations if present.
 
     .PARAMETER DoNotRunMSERT
-        If true will not run MSERT.
+        If set, will not run MSERT.
 
     .PARAMETER DoNotRunMitigation
-        If true will not apply mitigations.
+        If set, will not apply mitigations.
+
+    .PARAMETER DoNotRemediate
+        If set, MSERT will not remediate detected threats.
 
 	.EXAMPLE
 		PS C:\> EOMT.ps1
@@ -49,13 +52,15 @@
         https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download
         https://aka.ms/privacy
 #>
+
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Invalid rule result')]
 [Cmdletbinding()]
 param (
     [switch]$RunFullScan,
     [switch]$RollbackMitigation,
     [switch]$DoNotRunMSERT,
-    [switch]$DoNotRunMitigation
+    [switch]$DoNotRunMitigation,
+    [switch]$DoNotRemediate
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -408,11 +413,12 @@ function Run-Mitigate {
 function Run-MSERT {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Invalid rule result')]
     param(
-        [switch] $RunFullScan
+        [switch]$RunFullScan,
+        [switch]$DoNotRemediate
     )
     $Stage = "MSERTProcess"
     if ($DoNotRunMSERT) {
-        $Message = "Skipping mitigation -DoNotRunMSERT set on $env:computername"
+        $Message = "Skipping MSERT scan -DoNotRunMSERT set on $env:computername"
         $RegMessage = "Skipping mitigation -DoNotRunMSERT"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         return
@@ -490,7 +496,8 @@ function Run-MSERT {
     function RunMsert {
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
         param(
-            [switch]$FullScan
+            [switch]$FullScan,
+            [switch]$DoNotRemediate
         )
 
         $msertLogPath = "$env:SystemRoot\debug\msert.log"
@@ -504,6 +511,10 @@ function Run-MSERT {
         $msertArguments = "/Q"
         if ($FullScan) {
             $msertArguments = "/F /Q"
+        }
+
+        if ($DoNotRemediate) {
+            $msertArguments += " /N"
         }
 
         Start-Process $msertExe -ArgumentList $msertArguments -Wait
@@ -525,6 +536,7 @@ function Run-MSERT {
         return $detected
     }
 
+    $ScanMode = ""
     if ($RunFullScan) {
         Write-Warning -Message "Running a full scan can take hours or days to complete."
         Write-Warning -Message "Would you like to continue with the Full MSERT Scan?"
@@ -539,20 +551,22 @@ function Run-MSERT {
             }
         }
 
-        $Message = "Running Microsoft Safety Scanner - Mode: Full Scan on $env:computername"
-        $RegMessage = "Running Microsoft Safety Scanner Full Scan"
-        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-        $msertDetected = RunMsert -FullScan
+        $ScanMode = "Full Scan"
     } else {
         Write-Verbose -Message "Quick scan will take several minutes to complete, please wait.." -Verbose
 
-        $Message = "Running Microsoft Safety Scanner - Mode: Quick Scan on $env:computername"
-        $RegMessage = "Running Microsoft Safety Scanner Quick Scan"
-        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-        $msertDetected = RunMsert
+        $ScanMode = "Quick Scan"
     }
+
+    if ($DoNotRemediate) {
+        $ScanMode += " (No Remediation)"
+    }
+
+    $Message = "Running Microsoft Safety Scanner - Mode: $ScanMode on $env:computername"
+    $RegMessage = "Running Microsoft Safety Scanner $ScanMode"
+    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+
+    $msertDetected = RunMsert -FullScan:$RunFullScan -DoNotRemediate:$DoNotRemediate
 
     if ($msertDetected) {
         Write-Warning -Message "THREATS DETECTED on $env:computername!"
@@ -571,23 +585,28 @@ function Run-MSERT {
     }
 }
 
-function Get-ServerVulnStatus {
+function Get-ExchangeVersion () {
+    $setup = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\)
+    $version = New-Object -Type System.Version -ArgumentList ($setup.MsiProductMajor, $setup.MsiProductMinor, $setup.MsiBuildMajor, $setup.MsiBuildMinor)
+    $version
+}
 
-    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
+function Get-ServerVulnStatus {
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
     }
 
-    if ($version -like "15.2.*") {
+    $Version = Get-ExchangeVersion
+    if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
         $LatestCU = $FutureCUs.E19CU9
-    } elseif ($version -like "15.1.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $LatestCU = $FutureCUs.E16CU20
     } else {
         $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -gt [version]$Version) {
+    if ([version]$LatestCU -gt $Version) {
 
         $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
         | Where-Object displayname -Like "*KB5000871*" `
@@ -601,19 +620,21 @@ function Get-ServerVulnStatus {
 }
 
 function Get-ExchangeUpdateInfo {
+    $exchange2019CU9DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102900"
     $exchange2016CU20DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102896"
     $exchange2013CU23DownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=58392"
     $exchange2013CU23SecurityUpdateDownloadLink = "https://www.microsoft.com/en-us/download/details.aspx?id=102775"
 
-    $Version = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\').OwaVersion
+    $Version = Get-ExchangeVersion
     $Message = "For long-term protection, please use Microsoft Update to install the latest Security Update for Exchange Server (KB5000871)."
 
-    if ($Version -like "15.2.*") {
+    if ($Version.Major -eq 15 -and $Version.Minor -eq 2) {
+        $Message += "`nIf you don't see this security update, please upgrade to Exchange 2019 Cumulative Update 9 via: $exchange2019CU9DownloadLink"
         return $Message
-    } elseif ($Version -like "15.1.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $Message += "`nIf you don't see this security update, please upgrade to Exchange 2016 Cumulative Update 20 via: $exchange2016CU20DownloadLink"
         return $Message
-    } elseif ($Version -like "15.0.*") {
+    } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 0) {
         $Message += "`nIf you don't see this security update, please upgrade to Exchange 2013 Cumulative Update 23 via: $exchange2013CU23DownloadLink"
         $Message += "`nAfter applying the cumulative update, you will also need to install the latest security update: $exchange2013CU23SecurityUpdateDownloadLink"
         return $Message
@@ -644,10 +665,13 @@ function Set-LogActivity {
         $Stage,
         $RegMessage,
         $Message,
-        [switch] $Error
+        [switch]$Notice,
+        [switch]$Error
     )
-
-    if ($Error) {
+    if ($Notice) {
+        $FullRegMessage = "1 $RegMessage"
+        $Level = "Notice"
+    } elseif ($Error) {
         $FullRegMessage = "0 $RegMessage"
         $Level = "Error"
     } else {
@@ -656,6 +680,8 @@ function Set-LogActivity {
     }
     If ($Level -eq "Info") {
         Write-Verbose -Message $Message -Verbose
+    } elseif ($Level -eq "Notice") {
+        Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
     } else {
         Write-Error -Message $Message
     }
@@ -692,29 +718,27 @@ function Set-Registry {
 
 function Write-Summary {
     param(
-        [switch]$Pass
+        [switch]$Pass,
+        [switch]$NoRemediation
     )
 
     $UpdateInfo = Get-ExchangeUpdateInfo
 
-    if ($Pass) {
-        $header = @"
-Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
-Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855 and clear malicious files.
-For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.
-Please review locations and files as soon as possible and take the recommended action.
-"@
-    } else {
-        $header = @"
-Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
-Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855 and clear malicious files.
-For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns. This attempt was unsuccessful.
-Please review locations and files as soon as possible and take the recommended action.
-"@
+    $RemediationText = ""
+    if (!$NoRemediation) {
+        $RemediationText = " and clear malicious files"
+    }
+
+    $FailureText = ""
+    if (!$Pass) {
+        $FailureText = " This attempt was unsuccessful."
     }
 
     $summary = @"
-$header
+Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
+Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855$RemediationText.
+For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.$FailureText
+Please review locations and files as soon as possible and take the recommended action.
 
 Microsoft saved several files to your system to "$EOMTDir". The only files that should be present in this directory are:
     a - msert.exe
@@ -824,7 +848,7 @@ try {
             $Message = Get-ExchangeUpdateInfo
             if ($Message) {
                 $RegMessage = "Prompt to apply updates"
-                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
             }
         } else {
             $Message = "$env:computername is not vulnerable: mitigation not needed"
@@ -835,18 +859,18 @@ try {
 
     #Execute Msert
     if ($RunFullScan) {
-        Run-MSERT -RunFullScan
+        Run-MSERT -RunFullScan -DoNotRemediate:$DoNotRemediate
     } elseif (!$RollbackMitigation) {
-        Run-MSERT
+        Run-MSERT -DoNotRemediate:$DoNotRemediate
     }
 
     $Message = "EOMT.ps1 complete on $env:computername, please review EOMT logs at $EOMTLogFile and the summary file at $SummaryFile"
     $RegMessage = "EOMT.ps1 completed successfully"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-    Write-Summary -Pass #Pass
+    Write-Summary -Pass -NoRemediation:$DoNotRemediate #Pass
 } catch {
     $Message = "EOMT.ps1 failed to complete on $env:computername, please review EOMT logs at $EOMTLogFile and the summary file at $SummaryFile - $_"
     $RegMessage = "EOMT.ps1 failed to complete"
     Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-    Write-Summary #Fail
+    Write-Summary -NoRemediation:$DoNotRemediate #Fail
 }
