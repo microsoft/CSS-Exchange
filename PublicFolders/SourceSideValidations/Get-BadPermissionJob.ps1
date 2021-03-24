@@ -21,14 +21,21 @@ function Get-BadPermissionJob {
         $startTime = Get-Date
         $progressCount = 0
         $badPermissions = @()
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+        $progressParams = @{
+            Activity = "Checking permissions in mailbox $Mailbox"
+        }
     }
 
     process {
         $Folders | ForEach-Object {
-            if (++$progressCount % 10 -eq 0) {
+            $progressCount++
+            if ($sw.ElapsedMilliseconds -gt 1000) {
+                $sw.Restart()
                 $elapsed = ((Get-Date) - $startTime)
                 $estimatedRemaining = [TimeSpan]::FromTicks($Folders.Count / $progressCount * $elapsed.Ticks - $elapsed.Ticks).ToString("hh\:mm\:ss")
-                Write-Progress -Activity "Checking permissions in mailbox $Mailbox. Estimated time remaining: $estimatedRemaining" -Status "$progressCount / $($Folders.Count)" -PercentComplete ($progressCount * 100 / $Folders.Count)
+                Write-Progress @progressParams -Status "$progressCount / $($Folders.Count) Estimated time remaining: $estimatedRemaining" -PercentComplete ($progressCount * 100 / $Folders.Count)
             }
 
             $identity = $_.Identity.ToString()
@@ -51,6 +58,7 @@ function Get-BadPermissionJob {
     }
 
     end {
+        Write-Progress @progressParams -Completed
         $duration = ((Get-Date) - $startTime)
         return [PSCustomObject]@{
             Count          = $progressCount
