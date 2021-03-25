@@ -58,7 +58,7 @@ Function Test-KnownOrganizationPreparationErrors {
                     return
                 }
             }
-            $displayContext.Add("Failed to find permissions error")
+            $displayContext.Add($SetupLogReviewer.GetWriteObject("Failed to find permissions error"))
         }
 
         $invalidWKObjectTargetException = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("The well-known object entry with the GUID `"(.+)`", which is on the `"(.+)`" container object's otherWellKnownObjects attribute, refers to a group `"(.+)`" of the wrong group type. Either delete the well-known object entry, or promote the target object to `"(.+)`".")
