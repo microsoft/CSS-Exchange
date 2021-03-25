@@ -65,7 +65,7 @@ Function Test-KnownIssuesByErrors {
 
         if ($null -ne $certificateOutdated) {
             $diagnosticContext.Add("Found Error regarding certificate is expired.")
-            $outdatedCertificateInfo = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("Installing certificate signed by '(.*)' for site '(.*)'.  Certificate is valid from (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w) until (\d{1,2}\/\d{1,2}\/\d{4} \d{2}:\d{2}:\d{2} \w\w)")
+            $outdatedCertificateInfo = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("Installing certificate signed by '(.*)' for site '(.*)'.  Certificate is valid from (\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}:\d{2} \w\w) until (\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{2}:\d{2} \w\w)")
             $actionPlan.Add("Certificate: $($outdatedCertificateInfo.Matches.Groups[2].Value) has expired.")
 
             if ($null -ne $outdatedCertificateInfo.Matches.Groups[4].Value) {
