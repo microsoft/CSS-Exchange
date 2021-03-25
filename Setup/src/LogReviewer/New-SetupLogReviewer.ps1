@@ -225,7 +225,7 @@ Function New-SetupLogReviewer {
             $logReviewer | Add-Member -MemberType ScriptMethod -Name "GetWriteObject" -Value {
                 param(
                     [string]$WriteLine,
-                    [string]$ForegroundColor
+                    [string]$ForegroundColor = "Gray"
                 )
                 return [PSCustomObject]@{
                     Line            = $WriteLine
