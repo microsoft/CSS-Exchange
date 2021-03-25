@@ -1,4 +1,4 @@
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess = $True)]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "CopyMissingDllsFromIso")]
     [ValidateNotNullOrEmpty()]
