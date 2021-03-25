@@ -23,7 +23,7 @@ Function New-SetupLogReviewer {
         $runDate = [DateTime]::Parse(
             $SetupBuildNumber.Line.Substring(1,
                 $SetupBuildNumber.Line.IndexOf("]") - 1),
-                [System.Globalization.DateTimeFormatInfo]::InvariantInfo
+            [System.Globalization.DateTimeFormatInfo]::InvariantInfo
         )
         $setupBuildNumber = $setupBuildNumber.Matches.Groups[1].Value
         $currentLogOnUser = Select-String "Logged on user: (.+)." $SetupLog | Select-Object -Last 1
@@ -114,6 +114,16 @@ Function New-SetupLogReviewer {
             }
         }
 
+        $logReviewer | Add-Member -MemberType ScriptMethod -Name "WriteInfoObject" -Value {
+            param(
+                [PSCustomObject[]]$WriteInfo
+            )
+
+            foreach ($line in $WriteInfo) {
+                $this.ReceiveOutput($line.Line, $line.ForegroundColor)
+            }
+        }
+
         $logReviewer | Add-Member -MemberType ScriptMethod -Name "WriteErrorContext" -Value {
             param(
                 [string[]]$WriteInfo
@@ -179,7 +189,51 @@ Function New-SetupLogReviewer {
                 }
             }
 
+            $logReviewer | Add-Member -MemberType ScriptMethod -Name "WriteTestObject" -Value {
+                param(
+                    [object]$TestResultObject
+                )
+
+                foreach ($line in $TestResultObject.DiagnosticContext) {
+                    Write-Verbose $line
+                }
+
+                if ($TestResultObject.DisplayContext.Count -gt 0) {
+                    $this.WriteInfoObject($TestResultObject.DisplayContext)
+                }
+
+                if (![string]::IsNullOrEmpty($TestResultObject.WriteWarning)) {
+                    Write-Warning $TestResultObject.WriteWarning
+                }
+
+                if ($TestResultObject.FoundKnownIssue) {
+
+                    if ($TestResultObject.WriteErrorContext.Count -gt 0) {
+                        $this.WriteErrorContext($TestResultObject.WriteErrorContext)
+                    }
+
+                    if ($TestResultObject.ActionPlan.Count -gt 0) {
+                        $this.WriteActionPlan($TestResultObject.ActionPlan)
+                    }
+
+                    return $true
+                }
+
+                return $false
+            }
+
+            $logReviewer | Add-Member -MemberType ScriptMethod -Name "GetWriteObject" -Value {
+                param(
+                    [string]$WriteLine,
+                    [string]$ForegroundColor
+                )
+                return [PSCustomObject]@{
+                    Line            = $WriteLine
+                    ForegroundColor = $ForegroundColor
+                }
+            }
             $localInstall = $logReviewer.SelectStringLastRunOfExchangeSetup("The locally installed version is (.+)\.")
+
             if ($null -ne $localInstall) {
                 $logReviewer.LocalBuildNumber = $localInstall.Matches.Groups[1].Value
             }

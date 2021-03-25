@@ -53,7 +53,8 @@ Function Main {
             return
         }
 
-        if (Test-PrerequisiteCheck -SetupLogReviewer $setupLogReviewer) {
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-PrerequisiteCheck -SetupLogReviewer $setupLogReviewer))) {
 
             Write-Output "`r`nAdditional Context:"
             Write-Output ("User Logged On: $($setupLogReviewer.User)")
@@ -88,20 +89,23 @@ Function Main {
             return
         }
 
-        if (Test-KnownLdifErrors -SetupLogReviewer $setupLogReviewer) {
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-KnownLdifErrors -SetupLogReviewer $setupLogReviewer))) {
             return
         }
 
-        if (Test-KnownOrganizationPreparationErrors -SetupLogReviewer $setupLogReviewer) {
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-KnownOrganizationPreparationErrors -SetupLogReviewer $setupLogReviewer))) {
             return
         }
 
-        if (Test-KnownIssuesByErrors -SetupLogReviewer $setupLogReviewer) {
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-KnownIssuesByErrors -SetupLogReviewer $setupLogReviewer))) {
             return
         }
 
         #Last Error Information
-        $lastErrorInfo = $setupLogReviewer.FirstErrorWithContextToLine(-1,30,200)
+        $lastErrorInfo = $setupLogReviewer.FirstErrorWithContextToLine(-1, 30, 200)
 
         if ($null -ne $lastErrorInfo) {
             Write-Output "Failed to determine known cause, but here is your error context that we are seeing"
