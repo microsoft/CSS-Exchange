@@ -54,6 +54,10 @@ To run a Full MSERT Scan -  We only recommend this option only if the initial qu
 
 `.\EOMT.ps1 -RunFullScan -DoNotRunMitigation`
 
+To run the Exchange On-premises Mitigation Tool with MSERT in detect only mode - MSERT will not remediate detected threats.
+
+`.\EOMT.ps1 -DoNotRemediate`
+
 To roll back the Exchange On-premises Mitigation Tool mitigations
 
 `.\EOMT.ps1 -Rollbackmitigation`
