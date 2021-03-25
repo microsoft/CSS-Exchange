@@ -215,7 +215,20 @@ Function MainIsoCopy {
         if ($null -eq $fileFound) {
             "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Receive-Output
         } elseif ($fileFound.Count -gt 1) {
-            Write-Host "Found more than 1 MSI file that matched our revision number." | Receive-Output
+            "Found more than 1 MSI file that matched our revision number." | Receive-Output
+            $hashes = $fileFound |
+                ForEach-Object { Get-FileHash $_.FilePath } |
+                Group-Object Hash
+            if ($hashes.Count -eq 1) {
+                "All files have the same hash value. $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Receive-Output
+                $fileFound = $fileFound[0]
+                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Receive-Output
+                Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
+                $fixedFiles++
+            } else {
+                "Not all found files had the same hash" | Receive-Output
+                $fileFound | ForEach-Object { "$($fileFound.FilePath) - $($fileFound.RevisionNumber)" | Receive-Output }
+            }
         } else {
             "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Receive-Output
             Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
