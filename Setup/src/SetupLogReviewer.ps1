@@ -6,7 +6,9 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding(DefaultParameterSetName = "Main")]
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = "Main")]
+    [Parameter(Mandatory = $true,
+        ParameterSetName = "Main",
+        Position = 0)]
     [System.IO.FileInfo]$SetupLog,
     [Parameter(ParameterSetName = "Main")]
     [switch]$DelegatedSetup,
