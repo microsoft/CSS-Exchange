@@ -6,13 +6,13 @@
         For more information on each mitigation please visit https://aka.ms/exchangevulns
         Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
 
-	.DESCRIPTION
+    .DESCRIPTION
        This script has three operations it performs:
             Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: this mitigates current known attacks.
             Malware scan of the Exchange Server via the Microsoft Safety Scanner
             Attempt to reverse any changes made by identified threats.
 
-	.PARAMETER RunFullScan
+    .PARAMETER RunFullScan
         If set, will determine if the server is vulnerable and run MSERT in full scan mode.
 
     .PARAMETER RollbackMitigation
@@ -27,7 +27,7 @@
     .PARAMETER DoNotRemediate
         If set, MSERT will not remediate detected threats.
 
-	.EXAMPLE
+    .EXAMPLE
 		PS C:\> EOMT.ps1
 
 		This will run the default mode which does the following:
@@ -36,12 +36,12 @@
             3. Applies the URL rewrite mitigation (only if vulnerable).
             4. Runs the Microsoft Safety Scanner in "Quick Scan" mode.
 
-	.EXAMPLE
+    .EXAMPLE
 		PS C:\> EOMT.ps1 -RollbackMitigation
 
         This will only rollback the URL rewrite mitigation.
 
-	.EXAMPLE
+    .EXAMPLE
         PS C:\> EOMT.ps1 -RunFullScan -DoNotRunMitigation
 
         This will only run the Microsoft Safety Scanner in "Full Scan" mode. We only recommend this option only if the initial quick scan discovered threats. The full scan may take hours or days to complete.
