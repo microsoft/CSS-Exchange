@@ -20,6 +20,10 @@ steps:
   displayName: "Build Script"
 
 - pwsh: |
+    cd .\.build
+    .\Pester.ps1
+
+- pwsh: |
     Get-Content dist\ScriptVersions.txt
   displayName: "Display Script Versions file"
 
