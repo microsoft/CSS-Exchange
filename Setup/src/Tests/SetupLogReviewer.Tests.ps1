@@ -1,10 +1,9 @@
 BeforeAll {
-$parent = Split-Path -Parent $PSScriptRoot
-$sut = "SetupLogReviewer.ps1"
-. "$parent\$sut" -PesterLoad
+    $parent = Split-Path -Parent $PSScriptRoot
+    $sut = "SetupLogReviewer.ps1"
+    . "$parent\$sut" -PesterLoad
 
-$sr = "$parent\$sut"
-
+    $Script:sr = "$parent\$sut"
 }
 
 Describe "Testing SetupLogReviewer" {
@@ -17,12 +16,12 @@ Describe "Testing SetupLogReviewer" {
 
         It "Additional Context" {
             $results = & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
-            $results.Contains("User Logged On: CHILD\Kylo") | Should -be true
-            $results.Contains("Setup Running on: Solo-E16A.Child.Solo.net") | Should -be true
-            $results.Contains("Setup Running in Domain: Child") | Should -be true
-            $results.Contains("Setup Running in AD Site Name: Default-First-Site-Name") | Should -be true
-            $results.Contains("Schema Master: Solo-DC1.Solo.net") | Should -be true
-            $results.Contains("Schema Master in Domain: Solo") | Should -be true
+            $results.Contains("User Logged On: CHILD\Kylo") | Should -Be true
+            $results.Contains("Setup Running on: Solo-E16A.Child.Solo.net") | Should -Be true
+            $results.Contains("Setup Running in Domain: Child") | Should -Be true
+            $results.Contains("Setup Running in AD Site Name: Default-First-Site-Name") | Should -Be true
+            $results.Contains("Schema Master: Solo-DC1.Solo.net") | Should -Be true
+            $results.Contains("Schema Master in Domain: Solo") | Should -Be true
         }
         It "Prepare AD Failed" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
