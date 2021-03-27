@@ -1,29 +1,31 @@
-[CmdletBinding()]
-param()
-
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
-$parent = $here.Replace("\Tests", "")
+BeforeAll {
+$parent = Split-Path -Parent $PSScriptRoot
+$sut = "SetupLogReviewer.ps1"
 . "$parent\$sut" -PesterLoad
 
 $sr = "$parent\$sut"
 
+}
+
 Describe "Testing SetupLogReviewer" {
 
     Context "Prerequisite Checks" {
-        Mock Write-Host {}
-        Mock Write-Warning {}
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
         It "Additional Context" {
-            $results = & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
-            $results.Contains("User Logged On: CHILD\Kylo") | Should be true
-            $results.Contains("Setup Running on: Solo-E16A.Child.Solo.net") | Should be true
-            $results.Contains("Setup Running in Domain: Child") | Should be true
-            $results.Contains("Setup Running in AD Site Name: Default-First-Site-Name") | Should be true
-            $results.Contains("Schema Master: Solo-DC1.Solo.net") | Should be true
-            $results.Contains("Schema Master in Domain: Solo") | Should be true
+            $results = & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
+            $results.Contains("User Logged On: CHILD\Kylo") | Should -be true
+            $results.Contains("Setup Running on: Solo-E16A.Child.Solo.net") | Should -be true
+            $results.Contains("Setup Running in Domain: Child") | Should -be true
+            $results.Contains("Setup Running in AD Site Name: Default-First-Site-Name") | Should -be true
+            $results.Contains("Schema Master: Solo-DC1.Solo.net") | Should -be true
+            $results.Contains("Schema Master in Domain: Solo") | Should -be true
         }
         It "Prepare AD Failed" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
                 -ParameterFilter { $Object -eq "Unable to run setup in current domain." -and $ForegroundColor -eq "Red" }
@@ -33,43 +35,46 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "No ORG Man" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_ADUpdated_NoOrgMan.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_ADUpdated_NoOrgMan.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
                 -ParameterFilter { $Object -eq "User SOLO\Kylo isn't apart of Organization Management group." -and $ForegroundColor -eq "Red" }
         }
 
         It "First Server Run - No ORG Man" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_FirstRun_NoOrgMan.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_FirstRun_NoOrgMan.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
                 -ParameterFilter { $Object -eq "Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet." }
         }
 
         It "Schema Admins group" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_NoPerm.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_NoPerm.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Kylo isn't apart of the Schema Admins group." -and $ForegroundColor -eq "Red" }
         }
 
         It "Reboot Pending" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_Reboot_Pending.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Reboot_Pending.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Computer is pending reboot based off the Windows Component is the registry" -and $ForegroundColor -eq "Red" }
         }
 
         It "Enterprise Admins Group" {
-            & $sr -SetupLog "$here\PrerequisiteCheck\ExchangeSetup_SchemaAdmin_PrepareSchema.log"
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_SchemaAdmin_PrepareSchema.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Kylo isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
         }
     }
 
     Context "Known Issues" {
-        Mock Write-Host {}
-        Mock Write-Warning {}
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
         It "MESG was deleted" {
-            & $sr -SetupLog "$here\KnownIssues\ExchangeSetupmsExchangeSecurityGroupsContainerDeleted.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetupmsExchangeSecurityGroupsContainerDeleted.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*'OU=Microsoft Exchange Security Groups' was deleted from the root of the domain. We need to have it created again at the root of the domain to continue." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -77,7 +82,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Failed to import schema" {
-            & $sr -SetupLog "$here\KnownIssues\ExchangeSetup-PrepareSchema-8245.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup-PrepareSchema-8245.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Failed to import schema setting from file 'C:\Windows\Temp\ExchangeSetup\Setup\Data\PostExchange2003_schema80.ldf'*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -85,7 +90,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Wrong Group Type" {
-            & $sr -SetupLog "$here\KnownIssues\ExchangeSetupWrongGroupType.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetupWrongGroupType.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $object -like "*Change the CN=Exchange Servers,OU=Test,DC=Solo,DC=local object to Universal, SecurityEnabled*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -93,7 +98,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Invalid Well Known Objects Exception" {
-            & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_InvalidWKObjectException.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\OrganizationPreparation\ExchangeSetup_InvalidWKObjectException.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local points to an invalid DN or a deleted object*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -101,7 +106,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "INSUFF_ACCESS_RIGHTS CN=Microsoft Exchange System Objects" {
-            & $sr -SetupLog "$here\KnownIssues\OrganizationPreparation\ExchangeSetup_AccessDenied.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\OrganizationPreparation\ExchangeSetup_AccessDenied.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Used domain controller Solo-DC1.Solo.local to read object CN=Microsoft Exchange System Objects,DC=Solo,DC=local*" }
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
@@ -111,7 +116,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Certificate has expired" {
-            & $sr -SetupLog "$here\KnownIssues\ExchangeSetup_Certificate_Expired.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Certificate_Expired.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Certificate: CN=mail.Solo.dom, OU=IT, O=John Doe, L=Pester, C=DE has expired." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
