@@ -33,19 +33,19 @@ Function Test-KnownIssuesByErrors {
                 return
             }
 
-            $errorContext = @()
+            $contextOfError = @()
 
             foreach ($line in $isHybridObjectFoundOnPremises.Context.PreContext) {
-                $errorContext += $line
+                $contextOfError += $line
             }
 
             foreach ($line in $isHybridObjectFoundOnPremises.Context.PostContext) {
-                $errorContext += $line
+                $contextOfError += $line
             }
 
-            $writeErrorContext.AddRange($errorContext)
+            $writeErrorContext.AddRange($contextOfError)
             $diagnosticContext.Add("Searching for TargetApplicationUri")
-            $targetApplicationUri = $errorContext | Select-String `
+            $targetApplicationUri = $contextOfError | Select-String `
                 "Searching for (.+) as the TargetApplicationUri"
 
             if ($null -eq $targetApplicationUri -or
