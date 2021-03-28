@@ -40,15 +40,15 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Warning `
                 -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.*" -and $ForegroundColor -eq "Yellow"}
+                -ParameterFilter { $Object -like "Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Computer is pending reboot based off the Windows Component is the registry" -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *"}
+                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "Unable to run setup in current domain." -and $ForegroundColor -eq "Red"}
+                -ParameterFilter { $Object -eq "Unable to run setup in current domain." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "Unable to run setup in the current AD Site" -and $ForegroundColor -eq "Red"}
+                -ParameterFilter { $Object -eq "Unable to run setup in the current AD Site" -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 
@@ -82,9 +82,9 @@ Describe "Testing SetupLogReviewer" {
                 -Scope It `
                 -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *"}
+                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "Computer is pending reboot based off the Session Manager is the registry" -and $ForegroundColor -eq "Red"}
+                -ParameterFilter { $Object -eq "Computer is pending reboot based off the Session Manager is the registry" -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 

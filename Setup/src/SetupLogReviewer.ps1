@@ -103,8 +103,8 @@ Function Main {
 
                 if ($schemaSiteName -ne [string]::Empty -and
                     $schemaSiteName -ne $siteName) {
-                        $setupLogReviewer.ReceiveOutput("Unable to run setup in the current AD Site", "Red")
-                    }
+                    $setupLogReviewer.ReceiveOutput("Unable to run setup in the current AD Site", "Red")
+                }
             }
             return
         }

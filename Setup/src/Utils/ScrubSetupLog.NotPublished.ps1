@@ -15,7 +15,7 @@ Function Get-EvaluatedSettingOrRule {
     return Select-String ("Evaluated \[{0}:{1}\].+\[Value:" -f $SettingOrRule, $SettingName) $SetupLog | Select-Object -Last 1
 }
 
-Function New-SettingOrRuleToCollect {
+Function Add-SettingOrRuleToCollect {
     param(
         [string]$Name,
         [string]$SettingOrRule = "Setting"
@@ -27,10 +27,10 @@ Function New-SettingOrRuleToCollect {
 }
 
 $settingOrRulesToCollect = @{
-    PendingRebootWindowsComponents = (New-SettingOrRuleToCollect -Name "PendingRebootWindowsComponents" -SettingOrRule "Rule")
-    SchemaAdmin                    = (New-SettingOrRuleToCollect -Name "SchemaAdmin")
-    EnterpriseAdmin                = (New-SettingOrRuleToCollect -Name "EnterpriseAdmin")
-    ExOrgAdmin                     = (New-SettingOrRuleToCollect -Name "ExOrgAdmin")
+    PendingRebootWindowsComponents = (Add-SettingOrRuleToCollect -Name "PendingRebootWindowsComponents" -SettingOrRule "Rule")
+    SchemaAdmin                    = (Add-SettingOrRuleToCollect -Name "SchemaAdmin")
+    EnterpriseAdmin                = (Add-SettingOrRuleToCollect -Name "EnterpriseAdmin")
+    ExOrgAdmin                     = (Add-SettingOrRuleToCollect -Name "ExOrgAdmin")
 }
 
 $selectStringToCollectRequired = @{
@@ -215,7 +215,7 @@ if ($null -ne $schemaMasterSls) {
     $i = 1
     $schemaMaster = [string]::Empty
 
-    while($i -le $schemaMasterSplit.Count) {
+    while ($i -le $schemaMasterSplit.Count) {
 
         if ($i -eq $schemaMasterSplit.Count) {
             $schemaMaster = "SchemaMaster$SchemaMaster"
@@ -231,11 +231,11 @@ if ($null -ne $schemaMasterSls) {
 #Other possible DCs
 $possibleDomainControllersSls = $logContent | Select-String "Previous operation run on domain controller '(.+)'\."
 
-if($null -ne $possibleDomainControllersSls) {
+if ($null -ne $possibleDomainControllersSls) {
 
     $serversList = @()
 
-    foreach($sls in $possibleDomainControllersSls) {
+    foreach ($sls in $possibleDomainControllersSls) {
 
         if (!$serversList.Contains($sls.Matches.Groups[1].Value)) {
             $serversList += $sls.Matches.Groups[1].Value
@@ -267,5 +267,5 @@ if($null -ne $possibleDomainControllersSls) {
 }
 
 Write-Output $Script:scrubbedValues
-$outFile = $SetupLog.FullName.Replace($SetupLog.Extension, ".Scrubbed.$($SetupLog.Extension)")
+$outFile = $SetupLog.FullName.Replace($SetupLog.Extension, ".Scrubbed$($SetupLog.Extension)")
 $logContent | Out-File -FilePath $outFile
