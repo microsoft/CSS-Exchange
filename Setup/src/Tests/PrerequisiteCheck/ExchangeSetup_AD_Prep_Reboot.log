@@ -19,9 +19,9 @@
 [03/06/2021 15:15:03.0954] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
 [03/06/2021 15:15:07.0772] [0] Setup is choosing the domain controller to use
 [03/06/2021 15:15:08.0018] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Skywalker.Child.Solo.local
-[03/06/2021 15:15:10.0667] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller SchemaMaster.Child.Solo.local
+[03/06/2021 15:15:10.0667] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller SchemaMaster.Solo.local
 [03/06/2021 15:15:10.0921] [0] The schema master domain controller is available
-[03/06/2021 15:15:11.0112] [0] [ERROR] Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain root and site SiteA, and wait for replication to complete.  See the Exchange setup log for more information on this error.
+[03/06/2021 15:15:11.0112] [0] [ERROR] Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain Solo and site SiteA, and wait for replication to complete.  See the Exchange setup log for more information on this error.
 [03/06/2021 15:15:11.0113] [0] Setup will use the domain controller ''.
 [03/06/2021 15:15:11.0113] [0] Setup will use the global catalog ''.
 [03/06/2021 15:15:11.0137] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
