@@ -34,6 +34,12 @@ Function Test-PrerequisiteCheck {
             $displayContext.Add($SetupLogReviewer.GetWriteObject("Computer is pending reboot based off the Windows Component is the registry", "Red"))
             return
         }
+        $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
+
+        if (($SetupLogReviewer.TestEvaluatedSettingOrRule("RebootPending", "Rule")) -eq "True") {
+            $displayContext.Add($SetupLogReviewer.GetWriteObject("Computer is pending reboot based off the Session Manager is the registry", "Red"))
+            return
+        }
 
         if ($returnNow) { return }
 

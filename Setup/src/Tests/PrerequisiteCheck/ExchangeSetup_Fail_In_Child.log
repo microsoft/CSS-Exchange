@@ -135,7 +135,7 @@
 [12/21/2020 13:55:13.0398] [1] Started [Setting:WindowsPath] [Parent:RootAnalysisMember] [ValueType:String]
 [12/21/2020 13:55:13.0398] [1] Evaluated [Setting:WindowsPath] [HasException:False] [Value:"C:\Windows"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:00]
 [12/21/2020 13:55:13.0398] [1] Finished [Setting:WindowsPath] [Duration:00:00:00]
-[12/21/2020 13:55:13.0398] [1] Evaluated [Rule:RebootPending] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:24] [Duration:00:00:00.0625071]
+[12/21/2020 13:55:13.0398] [1] Evaluated [Rule:RebootPending] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:24] [Duration:00:00:00.0625071]
 [12/21/2020 13:55:13.0398] [1] Finished [Rule:RebootPending] [Duration:00:00:00.0625071]
 [12/21/2020 13:55:13.0398] [1] Started [Rule:RsatAddsToolsInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
 [12/21/2020 13:55:13.0398] [1] Started [Setting:IsRsatAddsToolsInstalled] [Parent:RootAnalysisMember] [ValueType:Boolean]

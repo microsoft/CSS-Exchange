@@ -83,6 +83,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Output `
                 -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *"}
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Computer is pending reboot based off the Session Manager is the registry" -and $ForegroundColor -eq "Red"}
             Test-GeneralAdditionalContext
         }
 
