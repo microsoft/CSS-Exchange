@@ -16,9 +16,18 @@ Function Test-PrerequisiteCheck {
         $writeErrorContext = New-Object 'System.Collections.Generic.List[string]'
         $writeWarning = [string]::Empty
         $breadCrumb = 0
+        $returnNow = $false
     }
 
     process {
+        $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
+        $adValidationError = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("\[ERROR\] Setup encountered a problem while validating the state of Active Directory: (.*) See the Exchange setup log for more information on this error.")
+
+        if ($adValidationError) {
+            $writeWarning = "Setup failed to validate AD environment level. This is the internal exception that occurred:"
+            $displayContext.Add($SetupLogReviewer.GetWriteObject($adValidationError.Matches.Groups[1].Value, "Yellow"))
+            $returnNow = $true
+        }
         $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
 
         if (($SetupLogReviewer.TestEvaluatedSettingOrRule("PendingRebootWindowsComponents", "Rule")) -eq "True") {
@@ -26,14 +35,7 @@ Function Test-PrerequisiteCheck {
             return
         }
 
-        $adValidationError = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("\[ERROR\] Setup encountered a problem while validating the state of Active Directory: (.*) See the Exchange setup log for more information on this error.")
-        $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
-
-        if ($adValidationError) {
-            $writeWarning = "Setup failed to validate AD environment level. This is the internal exception that occurred:"
-            $displayContext.Add($SetupLogReviewer.GetWriteObject($adValidationError.Matches.Groups[1].Value, "Yellow"))
-            return
-        }
+        if ($returnNow) { return }
 
         $schemaUpdateRequired = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("Schema Update Required Status : '(\w+)'.")
         $orgConfigUpdateRequired = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("Organization Configuration Update Required Status : '(\w+)'.")
@@ -80,6 +82,7 @@ Function Test-PrerequisiteCheck {
                 $displayContext.Add($SetupLogReviewer.GetWriteObject("Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet.", "Yellow"))
             }
         }
+
         $diagnosticContext.Add("PrerequisiteCheck - no known issue")
         $foundKnownIssue = $false
     }

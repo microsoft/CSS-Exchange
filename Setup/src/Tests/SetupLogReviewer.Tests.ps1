@@ -35,6 +35,17 @@ Describe "Testing SetupLogReviewer" {
             }
         }
 
+        It "Prepare AD with Reboot As Well" {
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_AD_Prep_Reboot.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Warning `
+                -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.*" -and $ForegroundColor -eq "Yellow"}
+            Assert-MockCalled -Exactly -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Computer is pending reboot based off the Windows Component is the registry" -and $ForegroundColor -eq "Red" }
+            Test-GeneralAdditionalContext
+        }
+
         It "Additional Context" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Output `

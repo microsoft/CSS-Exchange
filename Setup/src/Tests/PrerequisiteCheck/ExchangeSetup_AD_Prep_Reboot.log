@@ -1,0 +1,575 @@
+[03/06/2021 15:14:57.0546] [0] **********************************************
+[03/06/2021 15:14:57.0552] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/06/2021 15:14:57.0552] [0] **********************************************
+[03/06/2021 15:14:57.0555] [0] Local time zone: (UTC-05:00) Eastern Time (US & Canada).
+[03/06/2021 15:14:57.0555] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/06/2021 15:14:57.0557] [0] Setup version: 15.1.2106.2.
+[03/06/2021 15:14:57.0558] [0] Logged on user: SOLO\Han.
+[03/06/2021 15:14:57.0573] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/06/2021 15:14:57.0573] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/06/2021 15:14:57.0573] [0] Command Line Parameter Name='sourcedir', Value='E:\'.
+[03/06/2021 15:14:57.0706] [0] RuntimeAssembly was started with the following command: '/Mode:Upgrade /IAcceptExchangeServerLicenseTerms /sourcedir:E:"'.
+[03/06/2021 15:14:57.0708] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/06/2021 15:14:57.0708] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/06/2021 15:14:57.0713] [0] Copying Files...
+[03/06/2021 15:14:57.0716] [0] Starting copy from E:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/06/2021 15:15:03.0944] [0] Finished copy from E:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/06/2021 15:15:03.0945] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[03/06/2021 15:15:03.0954] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/06/2021 15:15:07.0772] [0] Setup is choosing the domain controller to use
+[03/06/2021 15:15:08.0018] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Skywalker.Child.Solo.local
+[03/06/2021 15:15:10.0667] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller SchemaMaster.Child.Solo.local
+[03/06/2021 15:15:10.0921] [0] The schema master domain controller is available
+[03/06/2021 15:15:11.0112] [0] [ERROR] Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain root and site SiteA, and wait for replication to complete.  See the Exchange setup log for more information on this error.
+[03/06/2021 15:15:11.0113] [0] Setup will use the domain controller ''.
+[03/06/2021 15:15:11.0113] [0] Setup will use the global catalog ''.
+[03/06/2021 15:15:11.0137] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/06/2021 15:15:11.0150] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/06/2021 15:15:11.0176] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/06/2021 15:15:11.0332] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/06/2021 15:15:11.0336] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/06/2021 15:15:11.0338] [0] The following datacenter roles are unpacked: 
+[03/06/2021 15:15:11.0341] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/06/2021 15:15:11.0345] [0] The local server has some Exchange files installed.
+[03/06/2021 15:15:11.0353] [0] Server Name=ExSvr1
+[03/06/2021 15:15:11.0363] [0] Setup will use the path 'E:\' for installing Exchange.
+[03/06/2021 15:15:11.0364] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/06/2021 15:15:11.0365] [0] 'BridgeheadRole' is installed on the server object.
+[03/06/2021 15:15:11.0365] [0] 'ClientAccessRole' is installed on the server object.
+[03/06/2021 15:15:11.0365] [0] 'MailboxRole' is installed on the server object.
+[03/06/2021 15:15:11.0365] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/06/2021 15:15:11.0365] [0] 'CafeRole' is installed on the server object.
+[03/06/2021 15:15:11.0365] [0] 'FrontendTransportRole' is installed on the server object.
+[03/06/2021 15:15:11.0367] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/06/2021 15:15:13.0728] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/06/2021 15:15:13.0729] [0] Active Directory Initialization status : 'False'.
+[03/06/2021 15:15:13.0729] [0] Schema Update Required Status : 'False'.
+[03/06/2021 15:15:13.0729] [0] Organization Configuration Update Required Status : 'True'.
+[03/06/2021 15:15:13.0730] [0] Domain Configuration Update Required Status : 'True'.
+[03/06/2021 15:15:13.0731] [0] The locally installed version is 15.1.1979.3.
+[03/06/2021 15:15:13.0731] [0] Exchange Installation Directory : 'D:\EXCHSRVR'.
+[03/06/2021 15:15:13.0788] [0] Setup is determining what organization-level operations to perform.
+[03/06/2021 15:15:13.0789] [0] Setup has detected a missing value. Setup is adding the value PrepareOrganization.
+[03/06/2021 15:15:13.0789] [0] Setup has detected a missing value. Setup is adding the value PrepareDomain.
+[03/06/2021 15:15:13.0789] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/06/2021 15:15:13.0801] [0] RootDataHandler has 1 DataHandlers
+[03/06/2021 15:15:13.0801] [0]      Languages
+[03/06/2021 15:15:13.0801] [0]      Management tools
+[03/06/2021 15:15:13.0801] [0]      Mailbox role: Transport service
+[03/06/2021 15:15:13.0802] [0]      Mailbox role: Client Access service
+[03/06/2021 15:15:13.0802] [0]      Mailbox role: Unified Messaging service
+[03/06/2021 15:15:13.0802] [0]      Mailbox role: Mailbox service
+[03/06/2021 15:15:13.0802] [0]      Mailbox role: Front End Transport service
+[03/06/2021 15:15:13.0802] [0]      Mailbox role: Client Access Front End service
+[03/06/2021 15:15:13.0807] [0] Validating options for the 7 requested roles
+[03/06/2021 15:15:13.0807] [0] UpgradeModeDataHandler has 18 handlers and 18 work units
+[03/06/2021 15:15:13.0828] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/06/2021 15:15:13.0843] [0] Setup is determining what organization-level operations to perform.
+[03/06/2021 15:15:13.0843] [0] Setup has detected a missing value. Setup is adding the value PrepareOrganization.
+[03/06/2021 15:15:13.0843] [0] Setup has detected a missing value. Setup is adding the value PrepareDomain.
+[03/06/2021 15:15:13.0843] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/06/2021 15:15:13.0976] [0] **************
+[03/06/2021 15:15:18.0669] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Skywalker.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.0020016]
+[03/06/2021 15:15:18.0052] [1] Evaluated [Rule:PendingRebootWindowsComponents] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:65] [Duration:00:00:00.0080064]
+[12/19/2020 06:31:52.0838] [1] Evaluated [Setting:SiteName] [HasException:False] [Value:"Default-First-Site-Name"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:00.0009992]
+[03/06/2021 15:15:24.0221] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0221] [1] User specified parameters:  -ProcessId:'732'
+[03/06/2021 15:15:24.0221] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0230] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0230] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0230] [1] User specified parameters:  -ProcessId:'19196'
+[03/06/2021 15:15:24.0230] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0242] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0243] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0243] [1] User specified parameters:  -ProcessId:'20808'
+[03/06/2021 15:15:24.0243] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0252] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0252] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0252] [1] User specified parameters:  -ProcessId:'1164'
+[03/06/2021 15:15:24.0252] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0261] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0262] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0262] [1] User specified parameters:  -ProcessId:'15244'
+[03/06/2021 15:15:24.0262] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0271] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0272] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0272] [1] User specified parameters:  -ProcessId:'20240'
+[03/06/2021 15:15:24.0272] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0297] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0298] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0298] [1] User specified parameters:  -ProcessId:'2456'
+[03/06/2021 15:15:24.0298] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0308] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0309] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0309] [1] User specified parameters:  -ProcessId:'0'
+[03/06/2021 15:15:24.0309] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0314] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0315] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0315] [1] User specified parameters:  -ProcessId:'2832'
+[03/06/2021 15:15:24.0315] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0326] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0327] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0327] [1] User specified parameters:  -ProcessId:'4592'
+[03/06/2021 15:15:24.0327] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0338] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0338] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0339] [1] User specified parameters:  -ProcessId:'584'
+[03/06/2021 15:15:24.0339] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0349] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0349] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0350] [1] User specified parameters:  -ProcessId:'868'
+[03/06/2021 15:15:24.0350] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0360] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0360] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0361] [1] User specified parameters:  -ProcessId:'2604'
+[03/06/2021 15:15:24.0361] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0373] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0374] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0374] [1] User specified parameters:  -ProcessId:'4344'
+[03/06/2021 15:15:24.0374] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0387] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0388] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0388] [1] User specified parameters:  -ProcessId:'2420'
+[03/06/2021 15:15:24.0388] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0403] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0404] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0404] [1] User specified parameters:  -ProcessId:'4556'
+[03/06/2021 15:15:24.0404] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0413] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0414] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0414] [1] User specified parameters:  -ProcessId:'20664'
+[03/06/2021 15:15:24.0414] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0425] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0426] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0426] [1] User specified parameters:  -ProcessId:'4228'
+[03/06/2021 15:15:24.0426] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0438] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0439] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0439] [1] User specified parameters:  -ProcessId:'4456'
+[03/06/2021 15:15:24.0439] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0452] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0453] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0453] [1] User specified parameters:  -ProcessId:'5256'
+[03/06/2021 15:15:24.0453] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0463] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0464] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0464] [1] User specified parameters:  -ProcessId:'2480'
+[03/06/2021 15:15:24.0464] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0474] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0474] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0474] [1] User specified parameters:  -ProcessId:'3840'
+[03/06/2021 15:15:24.0474] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0483] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0484] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0484] [1] User specified parameters:  -ProcessId:'2572'
+[03/06/2021 15:15:24.0484] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0495] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0496] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0496] [1] User specified parameters:  -ProcessId:'16392'
+[03/06/2021 15:15:24.0496] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0504] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0505] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0505] [1] User specified parameters:  -ProcessId:'2620'
+[03/06/2021 15:15:24.0505] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0521] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0522] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0522] [1] User specified parameters:  -ProcessId:'2532'
+[03/06/2021 15:15:24.0522] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0530] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0531] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0531] [1] User specified parameters:  -ProcessId:'19404'
+[03/06/2021 15:15:24.0531] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0544] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0546] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0546] [1] User specified parameters:  -ProcessId:'19612'
+[03/06/2021 15:15:24.0546] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0556] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0556] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0556] [1] User specified parameters:  -ProcessId:'20164'
+[03/06/2021 15:15:24.0556] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0564] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0564] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0564] [1] User specified parameters:  -ProcessId:'19644'
+[03/06/2021 15:15:24.0564] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0575] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0576] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0576] [1] User specified parameters:  -ProcessId:'20912'
+[03/06/2021 15:15:24.0576] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0586] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0586] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0586] [1] User specified parameters:  -ProcessId:'492'
+[03/06/2021 15:15:24.0586] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0620] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0620] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0621] [1] User specified parameters:  -ProcessId:'860'
+[03/06/2021 15:15:24.0621] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0630] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0631] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0631] [1] User specified parameters:  -ProcessId:'20228'
+[03/06/2021 15:15:24.0631] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0649] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0650] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0650] [1] User specified parameters:  -ProcessId:'19740'
+[03/06/2021 15:15:24.0650] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0664] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0664] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0664] [1] User specified parameters:  -ProcessId:'444'
+[03/06/2021 15:15:24.0664] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0673] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0674] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0674] [1] User specified parameters:  -ProcessId:'2520'
+[03/06/2021 15:15:24.0674] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0683] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0684] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0684] [1] User specified parameters:  -ProcessId:'3936'
+[03/06/2021 15:15:24.0684] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0705] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0706] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0706] [1] User specified parameters:  -ProcessId:'2656'
+[03/06/2021 15:15:24.0707] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0718] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0719] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0719] [1] User specified parameters:  -ProcessId:'12820'
+[03/06/2021 15:15:24.0719] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0728] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0728] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0728] [1] User specified parameters:  -ProcessId:'13204'
+[03/06/2021 15:15:24.0728] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0737] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0738] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0738] [1] User specified parameters:  -ProcessId:'2136'
+[03/06/2021 15:15:24.0738] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0754] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0756] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0756] [1] User specified parameters:  -ProcessId:'8'
+[03/06/2021 15:15:24.0756] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0778] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0779] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0779] [1] User specified parameters:  -ProcessId:'116'
+[03/06/2021 15:15:24.0779] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0793] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0793] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0794] [1] User specified parameters:  -ProcessId:'616'
+[03/06/2021 15:15:24.0794] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0804] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0805] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0805] [1] User specified parameters:  -ProcessId:'632'
+[03/06/2021 15:15:24.0805] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0816] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0816] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0816] [1] User specified parameters:  -ProcessId:'856'
+[03/06/2021 15:15:24.0816] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0828] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0828] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0828] [1] User specified parameters:  -ProcessId:'968'
+[03/06/2021 15:15:24.0828] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0841] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0842] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0842] [1] User specified parameters:  -ProcessId:'1076'
+[03/06/2021 15:15:24.0842] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0854] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0855] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0855] [1] User specified parameters:  -ProcessId:'1280'
+[03/06/2021 15:15:24.0855] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0877] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0878] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0878] [1] User specified parameters:  -ProcessId:'1288'
+[03/06/2021 15:15:24.0878] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0888] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0889] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0889] [1] User specified parameters:  -ProcessId:'1444'
+[03/06/2021 15:15:24.0889] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0897] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0897] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0898] [1] User specified parameters:  -ProcessId:'2380'
+[03/06/2021 15:15:24.0898] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0906] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0907] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0907] [1] User specified parameters:  -ProcessId:'2404'
+[03/06/2021 15:15:24.0907] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0916] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0917] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0917] [1] User specified parameters:  -ProcessId:'2436'
+[03/06/2021 15:15:24.0917] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0927] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0927] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0927] [1] User specified parameters:  -ProcessId:'2472'
+[03/06/2021 15:15:24.0927] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0938] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0938] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0938] [1] User specified parameters:  -ProcessId:'2564'
+[03/06/2021 15:15:24.0938] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0948] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0949] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0949] [1] User specified parameters:  -ProcessId:'4508'
+[03/06/2021 15:15:24.0949] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0957] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0957] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0958] [1] User specified parameters:  -ProcessId:'11016'
+[03/06/2021 15:15:24.0958] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0967] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0968] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0968] [1] User specified parameters:  -ProcessId:'19760'
+[03/06/2021 15:15:24.0968] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0978] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0979] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0979] [1] User specified parameters:  -ProcessId:'4'
+[03/06/2021 15:15:24.0979] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0989] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:24.0990] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0990] [1] User specified parameters:  -ProcessId:'20312'
+[03/06/2021 15:15:24.0990] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:24.0999] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0000] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0000] [1] User specified parameters:  -ProcessId:'20404'
+[03/06/2021 15:15:25.0000] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0009] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0010] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0010] [1] User specified parameters:  -ProcessId:'19004'
+[03/06/2021 15:15:25.0010] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0018] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0018] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0018] [1] User specified parameters:  -ProcessId:'19808'
+[03/06/2021 15:15:25.0018] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0027] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0028] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0028] [1] User specified parameters:  -ProcessId:'2704'
+[03/06/2021 15:15:25.0028] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0036] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0036] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0036] [1] User specified parameters:  -ProcessId:'14760'
+[03/06/2021 15:15:25.0036] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0044] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0045] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0045] [1] User specified parameters:  -ProcessId:'19156'
+[03/06/2021 15:15:25.0045] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0054] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0054] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0055] [1] User specified parameters:  -ProcessId:'5708'
+[03/06/2021 15:15:25.0055] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0065] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0066] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0066] [1] User specified parameters:  -ProcessId:'3348'
+[03/06/2021 15:15:25.0066] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0076] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0077] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0077] [1] User specified parameters:  -ProcessId:'4348'
+[03/06/2021 15:15:25.0077] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0089] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0089] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0090] [1] User specified parameters:  -ProcessId:'4360'
+[03/06/2021 15:15:25.0090] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0100] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0101] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0101] [1] User specified parameters:  -ProcessId:'2464'
+[03/06/2021 15:15:25.0101] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0111] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0112] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0112] [1] User specified parameters:  -ProcessId:'724'
+[03/06/2021 15:15:25.0112] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0121] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0122] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0122] [1] User specified parameters:  -ProcessId:'808'
+[03/06/2021 15:15:25.0122] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0129] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0132] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0132] [1] User specified parameters:  -ProcessId:'16116'
+[03/06/2021 15:15:25.0132] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0139] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0140] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0140] [1] User specified parameters:  -ProcessId:'6628'
+[03/06/2021 15:15:25.0140] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0148] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0149] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0149] [1] User specified parameters:  -ProcessId:'516'
+[03/06/2021 15:15:25.0149] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0159] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0160] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0160] [1] User specified parameters:  -ProcessId:'2912'
+[03/06/2021 15:15:25.0160] [1] Beginning processing Get-ProcessModule
+[03/06/2021 15:15:25.0177] [1] Ending processing Get-ProcessModule
+[03/06/2021 15:15:25.0182] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (powershell)"] [ParentValue:"<NULL>"] [Thread:69] [Duration:00:00:06.7414209]
+[03/06/2021 15:15:25.0183] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (svchost)"] [ParentValue:"<NULL>"] [Thread:68] [Duration:00:00:00]
+[03/06/2021 15:15:25.0183] [1] Finished [Setting:OpenProcesses] [Duration:00:00:06.7424217]
+[03/06/2021 15:15:25.0186] [1] Started [Setting:IgnoreFileInUse] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[03/06/2021 15:15:25.0187] [1] Evaluated [Setting:IgnoreFileInUse] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:68] [Duration:00:00:00.0010001]
+[03/06/2021 15:15:25.0187] [1] Finished [Setting:IgnoreFileInUse] [Duration:00:00:00.0010001]
+[03/06/2021 15:15:25.0192] [1] Evaluated [Setting:OpenProcessesOnUninstall] [HasException:False] [Value:"System.Diagnostics.Process (powershell)"] [ParentValue:"System.Diagnostics.Process (powershell)"] [Thread:67] [Duration:00:00:06.7454257]
+[03/06/2021 15:15:25.0192] [1] Evaluated [Setting:OpenProcessesOnUninstall] [HasException:False] [Value:"<NULL>"] [ParentValue:"System.Diagnostics.Process (svchost)"] [Thread:67] [Duration:00:00:00]
+[03/06/2021 15:15:25.0192] [1] Evaluated [Setting:OpenProcessesOnUpgrade] [HasException:False] [Value:"System.Diagnostics.Process (powershell)"] [ParentValue:"System.Diagnostics.Process (powershell)"] [Thread:68] [Duration:00:00:06.7464265]
+[03/06/2021 15:15:25.0192] [1] Finished [Setting:OpenProcessesOnUninstall] [Duration:00:00:06.7454257]
+[03/06/2021 15:15:25.0192] [1] Evaluated [Setting:OpenProcessesOnUpgrade] [HasException:False] [Value:"<NULL>"] [ParentValue:"System.Diagnostics.Process (svchost)"] [Thread:8] [Duration:00:00:00]
+[03/06/2021 15:15:25.0192] [1] Finished [Setting:OpenProcessesOnUpgrade] [Duration:00:00:06.7464265]
+[03/06/2021 15:15:25.0193] [1] Evaluated [Rule:ProcessNeedsToBeClosedOnUpgrade] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:01.5032105]
+[03/06/2021 15:15:25.0193] [1] Finished [Rule:ProcessNeedsToBeClosedOnUpgrade] [Duration:00:00:01.5032105]
+[03/06/2021 15:15:25.0205] [1] Active Directory session settings for 'Get-UMService' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0206] [1] User specified parameters:  -Identity:'ExSvr1'
+[03/06/2021 15:15:25.0206] [1] Beginning processing Get-UMService
+[03/06/2021 15:15:25.0212] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/06/2021 15:15:25.0330] [1] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:25.0332] [1] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:25.0332] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/06/2021 15:15:25.0364] [1] Ending processing Get-UMService
+[03/06/2021 15:15:25.0366] [1] Evaluated [Setting:CmdletGetUMServerResult] [HasException:False] [Value:"ExSvr1"] [ParentValue:"<NULL>"] [Thread:107] [Duration:00:00:06.8415006]
+[03/06/2021 15:15:25.0366] [1] Finished [Setting:CmdletGetUMServerResult] [Duration:00:00:06.8425014]
+[03/06/2021 15:15:25.0368] [1] Finished [Setting:LanguageInUMServer] [Duration:00:00:06.8425014]
+[03/06/2021 15:15:25.0368] [1] Finished [Rule:AdditionalUMLangPackExists] [Duration:00:00:06.7083932]
+[03/06/2021 15:15:25.0389] [1] Active Directory session settings for 'Get-OrganizationConfig' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0390] [1] User specified parameters: 
+[03/06/2021 15:15:25.0390] [1] Beginning processing Get-OrganizationConfig
+[03/06/2021 15:15:25.0392] [1] Searching objects of type "ADOrganizationConfig" with filter "$null", scope "SubTree" under the root "$null".
+[03/06/2021 15:15:25.0400] [1] Request filter in Get Task: (&(|(objectCategory=msExchOrganizationContainer)(objectCategory=msExchConfigurationUnitContainer))(|(&(msExchVersion<=3377699720527872)(!(msExchVersion=3377699720527872)))(!(msExchVersion=*)))).
+[03/06/2021 15:15:25.0413] [1] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:25.0413] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/06/2021 15:15:25.0693] [1] Ending processing Get-OrganizationConfig
+[03/06/2021 15:15:25.0696] [1] Evaluated [Rule:WarnMapiHttpNotEnabled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:15] [Duration:00:00:07.1457464]
+[03/06/2021 15:15:25.0696] [1] Finished [Rule:WarnMapiHttpNotEnabled] [Duration:00:00:07.1457464]
+[03/06/2021 15:15:25.0696] [1] Started [Rule:VC2013RedistDependencyRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/06/2021 15:15:25.0697] [1] Started [Setting:VCRedist2013Installed] [Parent:RootAnalysisMember] [ValueType:Boolean]
+[03/06/2021 15:15:25.0698] [1] Started [Setting:FileVersionMsvcr120] [Parent:RootAnalysisMember] [ValueType:Version]
+[03/06/2021 15:15:25.0719] [1] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0720] [1] User specified parameters:  -Identity:'ExSvr1'
+[03/06/2021 15:15:25.0720] [1] Beginning processing get-ExchangeServer
+[03/06/2021 15:15:25.0722] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/06/2021 15:15:25.0760] [1] Evaluated [Setting:FileVersionMsvcr120] [HasException:False] [Value:"12.0.40664.0"] [ParentValue:"<NULL>"] [Thread:15] [Duration:00:00:00.0620487]
+[03/06/2021 15:15:25.0760] [1] Finished [Setting:FileVersionMsvcr120] [Duration:00:00:00.0620487]
+[03/06/2021 15:15:25.0760] [1] Evaluated [Setting:VCRedist2013Installed] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:15] [Duration:00:00:00.0630507]
+[03/06/2021 15:15:25.0760] [1] Finished [Setting:VCRedist2013Installed] [Duration:00:00:00.0630507]
+[03/06/2021 15:15:25.0760] [1] Evaluated [Rule:VC2013RedistDependencyRequirement] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:15] [Duration:00:00:00.0640511]
+[03/06/2021 15:15:25.0760] [1] Finished [Rule:VC2013RedistDependencyRequirement] [Duration:00:00:00.0640511]
+[03/06/2021 15:15:25.0770] [1] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:25.0770] [1] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:25.0770] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/06/2021 15:15:25.0797] [1] Ending processing get-ExchangeServer
+[03/06/2021 15:15:25.0798] [1] Evaluated [Setting:CmdletGetExchangeServerResult] [HasException:False] [Value:"ExSvr1"] [ParentValue:"<NULL>"] [Thread:79] [Duration:00:00:07.3959499]
+[03/06/2021 15:15:25.0799] [1] Finished [Setting:CmdletGetExchangeServerResult] [Duration:00:00:07.3989523]
+[03/06/2021 15:15:25.0805] [1] Evaluated [Setting:PowerShellExecutionPolicy] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:80] [Duration:00:00:07.4089604]
+[03/06/2021 15:15:25.0805] [1] Finished [Setting:PowerShellExecutionPolicy] [Duration:00:00:07.4089604]
+[03/06/2021 15:15:25.0805] [1] Evaluated [Rule:PowerShellExecutionPolicyCheckSet] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:80] [Duration:00:00:07.4099612]
+[03/06/2021 15:15:25.0805] [1] Finished [Rule:PowerShellExecutionPolicyCheckSet] [Duration:00:00:07.4099612]
+[03/06/2021 15:15:25.0808] [1] Finished [Analysis:Prereq] [Duration:00:00:07.8343019]
+[03/06/2021 15:15:25.0813] [1] Failed [Rule:UnifiedMessagingRoleNotInstalled] [Message:The Mailbox server role isn't installed on this computer.]
+[03/06/2021 15:15:25.0813] [1] Failed [Rule:BridgeheadRoleNotInstalled] [Message:The Mailbox server role isn't installed on this computer.]
+[03/06/2021 15:15:25.0815] [1] Failed [Rule:ProcessNeedsToBeClosedOnUpgrade] [Message:Setup can't continue with the upgrade because the powershell (19404) has open files. Close the process, and then restart Setup.]
+[03/06/2021 15:15:25.0815] [1] Failed [Rule:PendingRebootWindowsComponents] [Message:There is a pending reboot from a previous installation of a Windows Server role or feature. Please restart the computer and then run Setup again.]
+[03/06/2021 15:15:25.0815] [1] Failed [Rule:GlobalUpdateRequired] [Message:Global updates need to be made to Active Directory, and this user account isn't a member of the 'Enterprise Admins' group.]
+[03/06/2021 15:15:25.0815] [1] Failed [Rule:LocalDomainPrep] [Message:The local domain needs to be updated. You must be a member of the 'Domain Admins' group and 'Organization Management' role group, or 'Enterprise Admins' group to continue.]
+[03/06/2021 15:15:25.0816] [1] Failed [Rule:GlobalServerInstall] [Message:You must be a member of the 'Organization Management' role group or a member of the 'Enterprise Admins' group to continue.]
+[03/06/2021 15:15:25.0816] [1] Failed [Rule:DelegatedBridgeheadFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install or upgrade the first Mailbox server role in the topology.]
+[03/06/2021 15:15:25.0816] [1] Failed [Rule:DelegatedCafeFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install the first Client Access server role in the topology.]
+[03/06/2021 15:15:25.0816] [1] Failed [Rule:DelegatedFrontendTransportFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install the first Client Access server role in the topology.]
+[03/06/2021 15:15:25.0816] [1] Failed [Rule:DelegatedMailboxFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install or upgrade the first Mailbox server role in the topology.]
+[03/06/2021 15:15:25.0817] [1] Failed [Rule:DelegatedClientAccessFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install or upgrade the first Client Access server role in the topology.]
+[03/06/2021 15:15:25.0817] [1] Failed [Rule:DelegatedUnifiedMessagingFirstInstall] [Message:You must use an account that's a member of the Organization Management role group to install the first Mailbox server role in the topology.]
+[03/06/2021 15:15:25.0817] [1] Failed [Rule:AdInitErrorRule] [Message:Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain root and site NY4, and wait for replication to complete.  See the Exchange setup log for more information on this error.]
+[03/06/2021 15:15:25.0817] [1] Failed [Rule:ForestLevelNotWin2003Native] [Message:The forest functional level of the current Active Directory forest is not Windows Server 2003 native or later. To install Exchange Server 2016, the forest functional level must be at least Windows Server 2003 native.]
+[03/06/2021 15:15:25.0818] [1] Failed [Rule:CannotAccessAD] [Message:Either Active Directory doesn't exist, or it can't be contacted.]
+[03/06/2021 15:15:25.0819] [1] [REQUIRED] The Mailbox server role isn't installed on this computer.
+[03/06/2021 15:15:25.0820] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.UnifiedMessagingRoleNotInstalled.aspx
+[03/06/2021 15:15:25.0826] [1] [REQUIRED] The Mailbox server role isn't installed on this computer.
+[03/06/2021 15:15:25.0826] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.BridgeheadRoleNotInstalled.aspx
+[03/06/2021 15:15:25.0826] [1] [REQUIRED] Setup can't continue with the upgrade because the powershell (19404) has open files. Close the process, and then restart Setup.
+[03/06/2021 15:15:25.0826] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.ProcessNeedsToBeClosedOnUpgrade.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] There is a pending reboot from a previous installation of a Windows Server role or feature. Please restart the computer and then run Setup again.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.PendingRebootWindowsComponents.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] Global updates need to be made to Active Directory, and this user account isn't a member of the 'Enterprise Admins' group.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.GlobalUpdateRequired.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] The local domain needs to be updated. You must be a member of the 'Domain Admins' group and 'Organization Management' role group, or 'Enterprise Admins' group to continue.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.LocalDomainPrep.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must be a member of the 'Organization Management' role group or a member of the 'Enterprise Admins' group to continue.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.GlobalServerInstall.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install or upgrade the first Mailbox server role in the topology.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedBridgeheadFirstInstall.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install the first Client Access server role in the topology.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedCafeFirstInstall.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install the first Client Access server role in the topology.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedFrontendTransportFirstInstall.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install or upgrade the first Mailbox server role in the topology.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedMailboxFirstInstall.aspx
+[03/06/2021 15:15:25.0827] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install or upgrade the first Client Access server role in the topology.
+[03/06/2021 15:15:25.0827] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedClientAccessFirstInstall.aspx
+[03/06/2021 15:15:25.0828] [1] [REQUIRED] You must use an account that's a member of the Organization Management role group to install the first Mailbox server role in the topology.
+[03/06/2021 15:15:25.0828] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DelegatedUnifiedMessagingFirstInstall.aspx
+[03/06/2021 15:15:25.0828] [1] [RECOMENDED] Setup will prepare the organization for Exchange Server 2016 by using 'Setup /PrepareAD'. No Exchange Server 2013 roles have been detected in this topology. After this operation, you will not be able to install any Exchange Server 2013 roles.
+[03/06/2021 15:15:25.0843] [1] [RECOMENDED] Setup will prepare the organization for Exchange Server 2016 by using 'Setup /PrepareAD'. No Exchange Server 2010 roles have been detected in this topology. After this operation, you will not be able to install any Exchange Server 2010 roles.
+[03/06/2021 15:15:25.0848] [1] [REQUIRED] Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain root and site NY4, and wait for replication to complete.  See the Exchange setup log for more information on this error.
+[03/06/2021 15:15:25.0848] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.AdInitErrorRule.aspx
+[03/06/2021 15:15:25.0849] [1] [REQUIRED] The forest functional level of the current Active Directory forest is not Windows Server 2003 native or later. To install Exchange Server 2016, the forest functional level must be at least Windows Server 2003 native.
+[03/06/2021 15:15:25.0849] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.ForestLevelNotWin2003Native.aspx
+[03/06/2021 15:15:25.0849] [1] [REQUIRED] Either Active Directory doesn't exist, or it can't be contacted.
+[03/06/2021 15:15:25.0849] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.CannotAccessAD.aspx
+[03/06/2021 15:15:25.0969] [1] Ending processing test-SetupPrerequisites
+[03/06/2021 15:15:25.0972] [0] CurrentResult console.ProcessRunInternal:136: 1
+[03/06/2021 15:15:25.0972] [0] Exchange Server installation failed during prereq check. Trying to restore the server state back to active.
+[03/06/2021 15:15:25.0972] [0] RestoreServer Script Path: C:\Windows\Temp\ExchangeSetup\RestoreServerOnPrereqFailure.ps1
+[03/06/2021 15:15:26.0009] [0] Beginning processing Write-ExchangeSetupLog
+[03/06/2021 15:15:26.0011] [0] Trying to restore server state.
+[03/06/2021 15:15:26.0012] [0] Ending processing Write-ExchangeSetupLog
+[03/06/2021 15:15:26.0014] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:26.0014] [0] User specified parameters:  -ErrorAction:'SilentlyContinue' -Identity:'ExSvr1'
+[03/06/2021 15:15:26.0014] [0] Beginning processing get-ExchangeServer
+[03/06/2021 15:15:26.0015] [0] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/06/2021 15:15:26.0068] [0] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:26.0068] [0] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
+[03/06/2021 15:15:26.0068] [0] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/06/2021 15:15:26.0099] [0] Ending processing get-ExchangeServer
+[03/06/2021 15:15:26.0109] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:26.0109] [0] User specified parameters:  -Component:'Monitoring' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/06/2021 15:15:26.0109] [0] Beginning processing Set-ServerComponentState
+[03/06/2021 15:15:26.0678] [0] Calling ADSession.GetSharedConfigDC()
+Hostname of DC: DC1.Skywalker.Child.Solo.local
+Created a session to a DC with affinity: DC1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:26.0806] [0] Machine:ExSvr1 and Process:ExSetup is executing the request
+Parameters - LocalOnly:[False], RemoteOnly:[False], Target:[ExSvr1.Skywalker.Child.Solo.local], Component:[Monitoring], Requester:[Functional], State:[Active], DomainController:[DC1.Skywalker.Child.Solo.local]
+Before:[1:ServerWideOffline:Functional:1:637506403604340164,1:RecoveryActionsEnabled:Functional:1:637506403603559561,1:Monitoring:Functional:1:637506403601668136,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886]
+After:[1:ServerWideOffline:Functional:1:637506403604340164,1:RecoveryActionsEnabled:Functional:1:637506403603559561,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886,1:Monitoring:Functional:1:637506405267578991]
+Save Completed for Server Object ExSvr1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:27.0057] [0] Ending processing Set-ServerComponentState
+[03/06/2021 15:15:27.0058] [0] Beginning processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0058] [0] Restoring server state. Monitoring has been set to Active.
+[03/06/2021 15:15:27.0058] [0] Ending processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0059] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:27.0059] [0] User specified parameters:  -Component:'RecoveryActionsEnabled' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/06/2021 15:15:27.0059] [0] Beginning processing Set-ServerComponentState
+[03/06/2021 15:15:27.0088] [0] Calling ADSession.GetSharedConfigDC()
+Hostname of DC: DC1.Skywalker.Child.Solo.local
+Created a session to a DC with affinity: DC1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:27.0143] [0] Machine:ExSvr1 and Process:ExSetup is executing the request
+Parameters - LocalOnly:[False], RemoteOnly:[False], Target:[ExSvr1.Skywalker.Child.Solo.local], Component:[RecoveryActionsEnabled], Requester:[Functional], State:[Active], DomainController:[DC1.Skywalker.Child.Solo.local]
+Before:[1:Monitoring:Functional:1:637506405267578991,1:ServerWideOffline:Functional:1:637506403604340164,1:RecoveryActionsEnabled:Functional:1:637506403603559561,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886]
+After:[1:Monitoring:Functional:1:637506405267578991,1:ServerWideOffline:Functional:1:637506403604340164,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886,1:RecoveryActionsEnabled:Functional:1:637506405271171859]
+Save Completed for Server Object ExSvr1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:27.0145] [0] Ending processing Set-ServerComponentState
+[03/06/2021 15:15:27.0146] [0] Beginning processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0146] [0] Restoring server state.  RecoveryActionsEnabled has been set to Active.
+[03/06/2021 15:15:27.0146] [0] Ending processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0146] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:27.0147] [0] User specified parameters:  -Component:'ServerWideOffline' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/06/2021 15:15:27.0147] [0] Beginning processing Set-ServerComponentState
+[03/06/2021 15:15:27.0175] [0] Calling ADSession.GetSharedConfigDC()
+Hostname of DC: DC1.Skywalker.Child.Solo.local
+Created a session to a DC with affinity: DC1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:27.0223] [0] Machine:ExSvr1 and Process:ExSetup is executing the request
+Parameters - LocalOnly:[False], RemoteOnly:[False], Target:[ExSvr1.Skywalker.Child.Solo.local], Component:[ServerWideOffline], Requester:[Functional], State:[Active], DomainController:[DC1.Skywalker.Child.Solo.local]
+Before:[1:RecoveryActionsEnabled:Functional:1:637506405271171859,1:Monitoring:Functional:1:637506405267578991,1:ServerWideOffline:Functional:1:637506403604340164,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886]
+After:[1:RecoveryActionsEnabled:Functional:1:637506405271171859,1:Monitoring:Functional:1:637506405267578991,1:UMCallRouter:Maintenance:3:637506380685715318,1:ServerWideOffline:Maintenance:0:637506380859160479,1:HubTransport:Maintenance:3:637506380133773886,1:ServerWideOffline:Functional:1:637506405272002527]
+Save Completed for Server Object ExSvr1.Skywalker.Child.Solo.local
+
+[03/06/2021 15:15:27.0225] [0] Ending processing Set-ServerComponentState
+[03/06/2021 15:15:27.0228] [0] Beginning processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0228] [0] Restoring server state.  Server state has been set to Active.
+[03/06/2021 15:15:27.0231] [0] Ending processing Write-ExchangeSetupLog
+[03/06/2021 15:15:27.0241] [0] CurrentResult launcherbase.maincore:90: 1
+[03/06/2021 15:15:27.0241] [0] CurrentResult console.startmain:52: 1
+[03/06/2021 15:15:27.0243] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/06/2021 15:15:27.0243] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/06/2021 15:15:27.0247] [0] CurrentResult main.run:235: 1
+[03/06/2021 15:15:27.0248] [0] CurrentResult setupbase.maincore:396: 1
+[03/06/2021 15:15:27.0248] [0] End of Setup
+[03/06/2021 15:15:27.0248] [0] **********************************************
