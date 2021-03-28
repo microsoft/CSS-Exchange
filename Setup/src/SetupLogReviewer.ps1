@@ -41,6 +41,7 @@ Function Main {
 
         if ($runDate -lt ([datetime]::Now.AddDays(-14))) { $color = "Yellow" }
         $setupLogReviewer.ReceiveOutput("Setup.exe Run Date: $runDate", $color)
+        $setupLogReviewer.ReceiveOutput("Setup.exe Build Number: $($setupLogReviewer.SetupBuildNumber)")
 
         if ($null -ne $setupLogReviewer.LocalBuildNumber) {
             Write-Output "Current Exchange Build: $($setupLogReviewer.LocalBuildNumber)"
