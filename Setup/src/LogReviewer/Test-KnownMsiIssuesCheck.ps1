@@ -20,7 +20,7 @@ Function Test-KnownMsiIssuesCheck {
     }
     process {
         $diagnosticContext.Add("KnownMsiIssuesCheck $($breadCrumb; $breadCrumb++)")
-        $contextOfError = $SetupLogReviewer.FirstErrorWithContextToLine(-1)
+        $contextOfError = $SetupLogReviewer.FirstErrorWithContextToLine(-1, 2)
 
         if ($null -eq $contextOfError) {
             $diagnosticContext.Add("KnownMsiIssuesCheck - no known issue")
@@ -36,9 +36,18 @@ Function Test-KnownMsiIssuesCheck {
         }
 
         $installingProductError = $contextOfError | Select-String -Pattern "\[ERROR\] Installing product .+ failed\. The installation source for this product is not available"
+        $diagnosticContext.Add("KnownMsiIssuesCheck $($breadCrumb; $breadCrumb++)")
 
         if ($null -ne $installingProductError) {
             $diagnosticContext.Add("Found MSI Issue - installing product")
+            $errorFound = $true
+        }
+
+        $installFatalError = $contextOfError | Select-String -Pattern "\[ERROR\] Installing product .+\.msi failed\. Fatal error during installation\. Error code is 1603\."
+        $diagnosticContext.Add("KnownMsiIssuesCheck $($breadCrumb; $breadCrumb++)")
+
+        if ($null -ne $installFatalError) {
+            $diagnosticContext.Add("Found MSI Issue - Fatal Error")
             $errorFound = $true
         }
 
