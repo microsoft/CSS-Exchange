@@ -16,13 +16,14 @@ Function Test-KnownMsiIssuesCheck {
         $writeErrorContext = New-Object 'System.Collections.Generic.List[string]'
         $writeWarning = [string]::Empty
         $breadCrumb = 0
+        $errorFound = $false
     }
     process {
         $diagnosticContext.Add("KnownMsiIssuesCheck $($breadCrumb; $breadCrumb++)")
         $contextOfError = $SetupLogReviewer.FirstErrorWithContextToLine(-1)
 
         if ($null -eq $contextOfError) {
-            $displayContext.Add("KnownMsiIssuesCheck - no known issue")
+            $diagnosticContext.Add("KnownMsiIssuesCheck - no known issue")
             $foundKnownIssue = $false
             return
         }
@@ -31,6 +32,17 @@ Function Test-KnownMsiIssuesCheck {
 
         if ($null -ne $productError) {
             $diagnosticContext.Add("Found MSI issue")
+            $errorFound = $true
+        }
+
+        $installingProductError = $contextOfError | Select-String -Pattern "\[ERROR\] Installing product .+ failed\. The installation source for this product is not available"
+
+        if ($null -ne $installingProductError) {
+            $diagnosticContext.Add("Found MSI Issue - installing product")
+            $errorFound = $true
+        }
+
+        if ($errorFound) {
             $contextOfError |
                 Select-Object -First 10 |
                 ForEach-Object { $writeErrorContext.Add($_) }

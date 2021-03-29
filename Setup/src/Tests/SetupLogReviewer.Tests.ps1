@@ -244,5 +244,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.995.29" }
         }
+
+        It "MSI Issue 2" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_2.log"
+            Assert-MockCalled -Exactly 4 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.1367.3" }
+        }
     }
 }
