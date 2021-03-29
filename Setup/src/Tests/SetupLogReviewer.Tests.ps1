@@ -198,5 +198,17 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tPlease replace it, reboot the server and run setup again." }
         }
+
+        It "Services Disabled" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Service_Disabled.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*System.ComponentModel.Win32Exception: The service cannot be started, either because it is disabled or because it has no enabled devices associated with it*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tRequired Exchange Services are failing to start because it appears to be disabled or dependent services are disabled. Enable them and try again" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tNOTE: Might need to do this often while setup is running" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tExample Command: Get-Service MSExchange* | Set-Service -StartupType Automatic" }
+        }
     }
 }

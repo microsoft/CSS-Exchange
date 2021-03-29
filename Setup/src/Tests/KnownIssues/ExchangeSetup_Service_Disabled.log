@@ -1,0 +1,141 @@
+[03/11/2021 15:43:05.0713] [0] **********************************************
+[03/11/2021 15:43:05.0718] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/11/2021 15:43:05.0718] [0] **********************************************
+[03/11/2021 15:43:05.0720] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/11/2021 15:43:05.0720] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/11/2021 15:43:05.0721] [0] Setup version: 15.1.2106.2.
+[03/11/2021 15:43:05.0722] [0] Logged on user: SOLO\Han.
+[03/11/2021 15:43:05.0741] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/11/2021 15:43:05.0741] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/11/2021 15:43:05.0741] [0] Command Line Parameter Name='sourcedir', Value='f:\'.
+[03/11/2021 15:43:06.0031] [0] RuntimeAssembly was started with the following command: '/m:upgrade /iacceptexchangeserverlicenseterms /sourcedir:f:"'.
+[03/11/2021 15:43:06.0037] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/11/2021 15:43:06.0037] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/11/2021 15:43:06.0045] [0] Copying Files...
+[03/11/2021 15:43:06.0049] [0] Starting copy from f:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/11/2021 15:43:14.0941] [0] Finished copy from f:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/11/2021 15:43:14.0944] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[03/11/2021 15:43:14.0949] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/11/2021 15:43:16.0616] [0] Setup is choosing the domain controller to use
+[03/11/2021 15:43:22.0736] [0] Setup is choosing a local domain controller...
+[03/11/2021 15:43:24.0235] [0] Setup has chosen the local domain controller DC1.Solo.local for initial queries
+[03/11/2021 15:43:24.0426] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC1.Solo.local
+[03/11/2021 15:43:24.0426] [0] Setup is choosing a global catalog...
+[03/11/2021 15:43:24.0661] [0] Setup has chosen the global catalog server DC1.Solo.local.
+[03/11/2021 15:43:24.0900] [0] Setup will use the domain controller 'DC1.Solo.local'.
+[03/11/2021 15:43:24.0901] [0] Setup will use the global catalog 'DC1.Solo.local'.
+[03/11/2021 15:43:24.0908] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 15:43:24.0918] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 15:43:24.0936] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/11/2021 15:43:25.0080] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 15:43:25.0126] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/11/2021 15:43:25.0128] [0] The following datacenter roles are unpacked: 
+[03/11/2021 15:43:25.0131] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/11/2021 15:43:25.0134] [0] The local server has some Exchange files installed.
+[03/11/2021 15:43:25.0144] [0] Server Name=ExSvr1
+[03/11/2021 15:43:25.0155] [0] Setup will use the path 'f:\' for installing Exchange.
+[03/11/2021 15:43:25.0156] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 15:43:25.0156] [0] 'BridgeheadRole' is installed on the server object.
+[03/11/2021 15:43:25.0156] [0] 'ClientAccessRole' is installed on the server object.
+[03/11/2021 15:43:25.0156] [0] 'MailboxRole' is installed on the server object.
+[03/11/2021 15:43:25.0156] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/11/2021 15:43:25.0156] [0] 'CafeRole' is installed on the server object.
+[03/11/2021 15:43:25.0156] [0] 'FrontendTransportRole' is installed on the server object.
+[03/11/2021 15:43:25.0158] [0] The backup copy of the install path is 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/11/2021 15:43:25.0158] [0] The backup copy of the previously installed version is '15.1.2106.2'.
+[03/11/2021 15:43:25.0159] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/11/2021 15:43:31.0883] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/11/2021 15:43:31.0883] [0] Active Directory Initialization status : 'True'.
+[03/11/2021 15:43:31.0883] [0] Schema Update Required Status : 'False'.
+[03/11/2021 15:43:31.0884] [0] Organization Configuration Update Required Status : 'False'.
+[03/11/2021 15:43:31.0884] [0] Domain Configuration Update Required Status : 'False'.
+[03/11/2021 15:43:31.0884] [0] The locally installed version is 15.1.2106.2.
+[03/11/2021 15:43:31.0885] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/11/2021 15:43:32.0011] [0] Setup is determining what organization-level operations to perform.
+[03/11/2021 15:43:32.0012] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/11/2021 15:43:32.0012] [0] The installed MSI is current for this version of Setup.
+[03/11/2021 15:43:32.0020] [0] RootDataHandler has 1 DataHandlers
+[03/11/2021 15:43:32.0020] [0]      Languages
+[03/11/2021 15:43:32.0020] [0]      Management tools
+[03/11/2021 15:43:32.0021] [0]      Mailbox role: Transport service
+[03/11/2021 15:43:32.0021] [0]      Mailbox role: Client Access service
+[03/11/2021 15:43:32.0021] [0]      Mailbox role: Unified Messaging service
+[03/11/2021 15:43:32.0021] [0]      Mailbox role: Mailbox service
+[03/11/2021 15:43:32.0021] [0]      Mailbox role: Front End Transport service
+[03/11/2021 15:43:32.0022] [0]      Mailbox role: Client Access Front End service
+[03/11/2021 15:43:32.0029] [0] Validating options for the 7 requested roles
+[03/11/2021 15:43:32.0029] [0] UpgradeModeDataHandler has 11 handlers and 11 work units
+[03/11/2021 15:43:32.0052] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/11/2021 15:43:32.0211] [0] **************
+[03/11/2021 15:43:37.0553] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00]
+[03/11/2021 16:01:24.0261] [2] [WARNING] The performance counter definition file is invalid.
+[03/11/2021 16:01:24.0261] [2] [WARNING] The performance counter definition file is invalid.
+[03/11/2021 16:01:24.0265] [2] Ending processing new-perfcounters
+[03/11/2021 16:01:24.0267] [1] The following 1 error(s) occurred during task execution:
+[03/11/2021 16:01:24.0267] [1] 0.  ErrorRecord: The performance counter definition file is invalid.
+[03/11/2021 16:01:24.0267] [1] The previous errors were generated by a non-critical task and will be ignored.
+[03/11/2021 16:01:24.0268] [1] Setup will continue processing component tasks...
+[03/11/2021 16:01:24.0268] [1] Processing component 'Enable RPC-EPMAP firewall exception' (Configuring the server.).
+[03/11/2021 16:01:24.0268] [1] Executing (non-critical): 
+					if ([Environment]::OSVersion.Version.Major -ge 6)
+					{
+						Add-FirewallException -FirewallRule (New-Object Microsoft.Exchange.Security.WindowsFirewall.RpcEndPointMapperFirewallRule)
+					}
+				
+[03/11/2021 16:01:24.0280] [2] Active Directory session settings for 'add-firewallexception' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/11/2021 16:01:24.0280] [2] User specified parameters:  -FirewallRule:'Microsoft.Exchange.Security.WindowsFirewall.RpcEndPointMapperFirewallRule'
+[03/11/2021 16:01:24.0281] [2] Beginning processing Add-FirewallException
+[03/11/2021 16:01:24.0304] [2] Ending processing Add-FirewallException
+[03/11/2021 16:01:24.0306] [1] Processing component 'Enable Remote IIS Admin RPC firewall exception' (Configuring the server.).
+[03/11/2021 16:01:24.0307] [1] Executing (non-critical): 
+          if ([Environment]::OSVersion.Version.Major -ge 6)
+          {
+          Add-FirewallException -FirewallRule (New-Object Microsoft.Exchange.Security.WindowsFirewall.RemoteIISAdminFirewallRule)
+          }
+        
+[03/11/2021 16:01:24.0310] [2] Active Directory session settings for 'add-firewallexception' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/11/2021 16:01:24.0311] [2] User specified parameters:  -FirewallRule:'Microsoft.Exchange.Security.WindowsFirewall.RemoteIISAdminFirewallRule'
+[03/11/2021 16:01:24.0311] [2] Beginning processing Add-FirewallException
+[03/11/2021 16:01:24.0336] [2] Ending processing Add-FirewallException
+[03/11/2021 16:01:24.0339] [1] Processing component 'Bridgehead Role Setter' (Configuring the Mailbox role: Transport service.).
+[03/11/2021 16:01:24.0339] [1] Executing: 
+        if (get-service MSExchangeServiceHost* | where {$_.name -eq "MSExchangeServiceHost"})
+        {
+            restart-service MSExchangeServiceHost
+        }
+        
+[03/11/2021 16:01:24.0354] [1] The following 1 error(s) occurred during task execution:
+[03/11/2021 16:01:24.0354] [1] 0.  ErrorRecord: Service 'Microsoft Exchange Service Host (MSExchangeServiceHost)' cannot be started due to the following error: Cannot start service MSExchangeServiceHost on computer '.'.
+[03/11/2021 16:01:24.0361] [1] 0.  ErrorRecord: Microsoft.PowerShell.Commands.ServiceCommandException: Service 'Microsoft Exchange Service Host (MSExchangeServiceHost)' cannot be started due to the following error: Cannot start service MSExchangeServiceHost on computer '.'. ---> System.InvalidOperationException: Cannot start service MSExchangeServiceHost on computer '.'. ---> System.ComponentModel.Win32Exception: The service cannot be started, either because it is disabled or because it has no enabled devices associated with it
+   --- End of inner exception stack trace ---
+   at System.ServiceProcess.ServiceController.Start(String[] args)
+   at Microsoft.PowerShell.Commands.ServiceOperationBaseCommand.DoStartService(ServiceController serviceController)
+   --- End of inner exception stack trace ---
+[03/11/2021 16:01:24.0362] [1] [ERROR] The following error was generated when "$error.Clear(); 
+        if (get-service MSExchangeServiceHost* | where {$_.name -eq "MSExchangeServiceHost"})
+        {
+            restart-service MSExchangeServiceHost
+        }
+        " was run: "Microsoft.PowerShell.Commands.ServiceCommandException: Service 'Microsoft Exchange Service Host (MSExchangeServiceHost)' cannot be started due to the following error: Cannot start service MSExchangeServiceHost on computer '.'. ---> System.InvalidOperationException: Cannot start service MSExchangeServiceHost on computer '.'. ---> System.ComponentModel.Win32Exception: The service cannot be started, either because it is disabled or because it has no enabled devices associated with it
+   --- End of inner exception stack trace ---
+   at System.ServiceProcess.ServiceController.Start(String[] args)
+   at Microsoft.PowerShell.Commands.ServiceOperationBaseCommand.DoStartService(ServiceController serviceController)
+   --- End of inner exception stack trace ---".
+[03/11/2021 16:01:24.0362] [1] [ERROR] Service 'Microsoft Exchange Service Host (MSExchangeServiceHost)' cannot be started due to the following error: Cannot start service MSExchangeServiceHost on computer '.'.
+[03/11/2021 16:01:24.0362] [1] [ERROR] Cannot start service MSExchangeServiceHost on computer '.'.
+[03/11/2021 16:01:24.0362] [1] [ERROR] The service cannot be started, either because it is disabled or because it has no enabled devices associated with it
+[03/11/2021 16:01:24.0363] [1] [ERROR-REFERENCE] Id=BridgeheadRoleSetterComponent___115c1108e99e4560bd2c03c0fec99908 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/11/2021 16:01:24.0363] [1] Setup is stopping now because of one or more critical errors.
+[03/11/2021 16:01:24.0363] [1] Finished executing component tasks.
+[03/11/2021 16:01:24.0384] [1] Ending processing Install-BridgeheadRole
+[03/11/2021 16:01:24.0390] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/11/2021 16:01:24.0398] [0] CurrentResult launcherbase.maincore:90: 1
+[03/11/2021 16:01:24.0398] [0] CurrentResult console.startmain:52: 1
+[03/11/2021 16:01:24.0398] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/11/2021 16:01:24.0398] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/11/2021 16:01:24.0400] [0] CurrentResult main.run:235: 1
+[03/11/2021 16:01:24.0400] [0] CurrentResult setupbase.maincore:396: 1
+[03/11/2021 16:01:24.0400] [0] End of Setup
+[03/11/2021 16:01:24.0400] [0] **********************************************
+

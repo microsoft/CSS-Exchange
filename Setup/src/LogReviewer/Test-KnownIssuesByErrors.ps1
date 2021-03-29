@@ -75,6 +75,32 @@ Function Test-KnownIssuesByErrors {
             $actionPlan.Add("Please replace it, reboot the server and run setup again.")
             return
         }
+        $diagnosticContext.Add("KnownIssuesByErrors $($breadCrumb; $breadCrumb++)")
+        $errorReference = $SetupLogReviewer.SelectStringLastRunOfExchangeSetup("\[ERROR-REFERENCE\] Id=(.+) Component=")
+
+        if ($null -eq $errorReference) {
+            $foundKnownIssue = $false
+            $diagnosticContext.Add("KnownIssuesByErrors - no known issue - No Error Reference")
+            return
+        }
+        $diagnosticContext.Add("KnownIssuesByErrors $($breadCrumb; $breadCrumb++)")
+        $contextOfError = $SetupLogReviewer.FirstErrorWithContextToLine($errorReference.LineNumber)
+
+        if ($null -ne $contextOfError) {
+            $diagnosticContext.Add("Found context around error reference")
+            $serviceNotStarted = $contextOfError | Select-String "System.ComponentModel.Win32Exception: The service cannot be started, either because it is disabled or because it has no enabled devices associated with it"
+
+            if ($null -ne $serviceNotStarted) {
+                $diagnosticContext.Add("Found Service isn't starting")
+                $contextOfError | ForEach-Object { $writeErrorContext.Add($_) }
+                $actionPlan.Add("Required Exchange Services are failing to start because it appears to be disabled or dependent services are disabled. Enable them and try again")
+                #TODO: Improve Action plan
+                $actionPlan.Add("NOTE: Might need to do this often while setup is running")
+                $actionPlan.Add("Example Command: Get-Service MSExchange* | Set-Service -StartupType Automatic")
+                return
+            }
+        }
+
         $foundKnownIssue = $false
         $diagnosticContext.Add("KnownIssuesByErrors - no known issue")
         return
