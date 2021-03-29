@@ -86,9 +86,14 @@ Function Test-PrerequisiteCheck {
             $diagnosticContext.Add("PrerequisiteCheck - Didn't find ExOrgAdmin")
 
             if ($null -ne $sid) {
-                $displayContext.Add($SetupLogReviewer.GetWriteObject("User $($SetupLogReviewer.User) isn't apart of Organization Management group.", "Red"))
-                $displayContext.Add($SetupLogReviewer.GetWriteObject("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)"))
-                return
+
+                if (($SetupLogReviewer.TestEvaluatedSettingOrRule("DelegatedMailboxFirstInstall", "Rule")) -eq "True") {
+                    $displayContext.Add($SetupLogReviewer.GetWriteObject("User $($SetupLogReviewer.User) isn't apart of Organization Management group.", "Red"))
+                    $displayContext.Add($SetupLogReviewer.GetWriteObject("Looking to be in this group SID: $($sid.Matches.Groups[1].Value)"))
+                    return
+                } else {
+                    $diagnosticContext.Add("PrerequisiteCheck - appears to be a delegated setup")
+                }
             } else {
                 $diagnosticContext.Add("PrerequisiteCheck - didn't find SID of ExOrgAdmin")
                 $displayContext.Add($SetupLogReviewer.GetWriteObject("Didn't find the user to be in ExOrgAdmin, but didn't find the SID for the group either. Suspect /PrepareAD hasn't been run yet.", "Yellow"))
