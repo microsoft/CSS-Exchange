@@ -123,7 +123,7 @@ Function ScrubValuesAndReplace {
     $content = $Script:logContent
     $newContent = New-Object 'System.Collections.Generic.List[string]'
     foreach ($line in $content) {
-        $newContent.Add($line.Replace($Match, $Replace))
+        $newContent.Add($line.Replace($Match, $Replace, [System.StringComparison]::InvariantCultureIgnoreCase))
     }
 
     $script:scrubbedValues.Add($Match)
@@ -142,7 +142,12 @@ ScrubValuesAndReplace -Match $loggedOnUser -Replace "SOLO\Han"
 
 $domainControllerSls = $logContent | Select-String "The MSExchangeADTopology has a persisted domain controller: (.+)"
 
-if ($null -eq $domainControllerSls) { throw "Missing Domain Controller" }
+if ($null -eq $domainControllerSls) {
+
+    $domainControllerSls = $logContent | Select-String "PrepareAD has been run, and has replicated to this domain controller; so setup will use (.+)"
+
+    if ($null -eq $domainControllerSls) { throw "Missing Domain Controller" }
+}
 
 $domainControllerTemp = $domainControllerSls.Matches.Groups[1].Value
 $domainControllerSplit = $domainControllerTemp.Split(".")
