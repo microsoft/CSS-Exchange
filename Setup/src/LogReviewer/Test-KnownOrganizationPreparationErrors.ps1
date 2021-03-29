@@ -43,12 +43,14 @@ Function Test-KnownOrganizationPreparationErrors {
 
             $diagnosticContext.Add("KnownOrganizationPreparationErrors - found DomainGlobalConfig___27a706ffe123425f9ee60cb02b930e81")
             $errorContext = $SetupLogReviewer.FirstErrorWithContextToLine($errorReference.LineNumber, 1)
-            $permissionsError = $errorContext | Select-String "SecErr: DSID-03152857, problem 4003 \(INSUFF_ACCESS_RIGHTS\)"
+            $permissionsError = $errorContext | Select-String "SecErr: DSID-.+ problem 4003 \(INSUFF_ACCESS_RIGHTS\)"
 
             if ($null -ne $permissionsError) {
+                $diagnosticContext.Add("KnownOrganizationPreparationErrors - Found INSUFF_ACCESS_RIGHTS")
                 $objectDN = $errorContext[0] | Select-String "Used domain controller (.+) to read object (.+)."
 
                 if ($null -ne $objectDN) {
+                    $diagnosticContext.Add("KnownOrganizationPreparationErrors - used domain controller and to read object")
                     $errorContext | Select-Object -First 10 |
                         ForEach-Object { $writeErrorContext.Add($_) }
                     $actionPlan.Add("We failed to have the correct permissions to write ACE to '$($objectDN.Matches.Groups[2].Value)' as the current user $($SetupLogReviewer.User)")
