@@ -146,6 +146,10 @@ if ($null -eq $domainControllerSls) {
 
     $domainControllerSls = $logContent | Select-String "PrepareAD has been run, and has replicated to this domain controller; so setup will use (.+)"
 
+    if ($null -eq $domainControllerSls) {
+        $domainControllerSls = $logContent | Select-String "Setup has chosen the local domain controller (.+) for initial queries"
+    }
+
     if ($null -eq $domainControllerSls) { throw "Missing Domain Controller" }
 }
 
