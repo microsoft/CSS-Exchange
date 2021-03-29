@@ -51,6 +51,19 @@ Function Test-KnownMsiIssuesCheck {
             $errorFound = $true
         }
 
+        $installingNewProduct = $contextOfError | Select-String -Pattern "Installing a new product\. Package: .+\.msi\. Property values"
+        $diagnosticContext.Add("KnownMsiIssuesCheck $($breadCrumb; $breadCrumb++)")
+
+        if ($null -ne $installingNewProduct) {
+            $diagnosticContext.Add("Found trying to install product")
+            $objectReferenceNotSet = $contextOfError | Select-String -Pattern "\[ERROR\] Object reference not set to an instance of an object\."
+
+            if ($null -ne $objectReferenceNotSet) {
+                $diagnosticContext.Add("Found MSI Issue - Object Reference Not Set")
+                $errorFound = $true
+            }
+        }
+
         if ($errorFound) {
             $contextOfError |
                 Select-Object -First 10 |

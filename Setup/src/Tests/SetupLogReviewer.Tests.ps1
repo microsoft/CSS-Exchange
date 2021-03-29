@@ -260,5 +260,15 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.1130.7" }
         }
+
+        It "MSI Issue 4" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_4.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Installing a new product. Package: N:\en\ServerLanguagePack.msi. Property values*" }
+            Assert-MockCalled -Exactly 4 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Object reference not set to an instance of an object." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.1.1913.5" }
+        }
     }
 }
