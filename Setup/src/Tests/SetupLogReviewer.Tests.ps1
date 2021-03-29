@@ -43,6 +43,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -like "Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Computer is pending reboot based off the Windows Component is the registry" -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Additional PowerShell Sessions are open. Close them before running setup again." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Output `
                 -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `

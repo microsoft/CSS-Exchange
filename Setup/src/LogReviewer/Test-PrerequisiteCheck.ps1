@@ -32,13 +32,19 @@ Function Test-PrerequisiteCheck {
 
         if (($SetupLogReviewer.TestEvaluatedSettingOrRule("PendingRebootWindowsComponents", "Rule")) -eq "True") {
             $displayContext.Add($SetupLogReviewer.GetWriteObject("Computer is pending reboot based off the Windows Component is the registry", "Red"))
-            return
+            $returnNow = $true
         }
         $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
 
         if (($SetupLogReviewer.TestEvaluatedSettingOrRule("RebootPending", "Rule")) -eq "True") {
             $displayContext.Add($SetupLogReviewer.GetWriteObject("Computer is pending reboot based off the Session Manager is the registry", "Red"))
-            return
+            $returnNow = $true
+        }
+        $diagnosticContext.Add("PrerequisiteCheck $($breadCrumb; $breadCrumb++)")
+
+        if (($SetupLogReviewer.TestEvaluatedSettingOrRule("ProcessNeedsToBeClosedOnUpgrade", "Rule")) -eq "True") {
+            $displayContext.Add($SetupLogReviewer.GetWriteObject("Additional PowerShell Sessions are open. Close them before running setup again.", "Red"))
+            $returnNow = $true
         }
 
         if ($returnNow) { return }
