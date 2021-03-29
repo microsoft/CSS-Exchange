@@ -21,6 +21,7 @@ param(
 . $PSScriptRoot\LogReviewer\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\LogReviewer\Test-KnownIssuesByErrors.ps1
 . $PSScriptRoot\LogReviewer\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\LogReviewer\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\LogReviewer\Test-PrerequisiteCheck.ps1
 
 Function Main {
@@ -122,6 +123,11 @@ Function Main {
 
         if ($setupLogReviewer.WriteTestObject(
                 (Test-KnownIssuesByErrors -SetupLogReviewer $setupLogReviewer))) {
+            return
+        }
+
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-KnownMsiIssuesCheck -SetupLogReviewer $setupLogReviewer))) {
             return
         }
 

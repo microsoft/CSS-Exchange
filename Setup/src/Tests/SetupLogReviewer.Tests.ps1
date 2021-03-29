@@ -236,5 +236,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`t- Exit and wait for AD Replication" }
         }
+
+        It "MSI Issue 1" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_1.log"
+            Assert-MockCalled -Exactly 4 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.995.29" }
+        }
     }
 }
