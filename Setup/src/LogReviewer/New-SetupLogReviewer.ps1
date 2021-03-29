@@ -200,12 +200,12 @@ Function New-SetupLogReviewer {
                     Write-Verbose $line
                 }
 
-                if ($TestResultObject.DisplayContext.Count -gt 0) {
-                    $this.WriteInfoObject($TestResultObject.DisplayContext)
-                }
-
                 if (![string]::IsNullOrEmpty($TestResultObject.WriteWarning)) {
                     Write-Warning $TestResultObject.WriteWarning
+                }
+
+                if ($TestResultObject.DisplayContext.Count -gt 0) {
+                    $this.WriteInfoObject($TestResultObject.DisplayContext)
                 }
 
                 if ($TestResultObject.FoundKnownIssue) {
