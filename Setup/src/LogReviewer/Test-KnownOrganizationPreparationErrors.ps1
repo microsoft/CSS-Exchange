@@ -96,7 +96,20 @@ Function Test-KnownOrganizationPreparationErrors {
 
         if ($null -ne $exceptionADOperationFailedAlreadyExist) {
             $writeErrorContext.Add($exceptionADOperationFailedAlreadyExist.Line)
-            $actionPlan.Add("Validate permissions are inherited to object `"$($exceptionADOperationFailedAlreadyExist.Matches.Groups[2])`" and that there aren't any denies that shouldn't be there")
+
+            if ($exceptionADOperationFailedAlreadyExist.Matches.Groups[2].Value.StartsWith("CN=Folder Hierarchies,CN=Exchange Administrative Group")) {
+                $actionPlan.Add("Public Folder Object needs to be created")
+                $actionPlan.Add("- Open ADSIEDIT and go to this location'$($exceptionADOperationFailedAlreadyExist.Matches.Groups[2].Value)'")
+                $actionPlan.Add("- Right Click select New - Object")
+                $actionPlan.Add("- Select mxExchPFTree")
+                $actionPlan.Add("- Enter any value for the cn (Common Name) value, such as PF")
+                $actionPlan.Add("- Right-click the newly created msExchPFTree object and select Properties")
+                $actionPlan.Add("- On the Attribute Editor tab, click msExchPFTreeType, and then click Edit.")
+                $actionPlan.Add("- In the Value box type 1, and then click OK two times.")
+                $actionPlan.Add("- Exit and wait for AD Replication")
+            } else {
+                $actionPlan.Add("Validate permissions are inherited to object `"$($exceptionADOperationFailedAlreadyExist.Matches.Groups[2])`" and that there aren't any denies that shouldn't be there")
+            }
             return
         }
 
