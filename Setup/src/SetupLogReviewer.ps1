@@ -6,7 +6,9 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding(DefaultParameterSetName = "Main")]
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = "Main")]
+    [Parameter(Mandatory = $true,
+        ParameterSetName = "Main",
+        Position = 0)]
     [System.IO.FileInfo]$SetupLog,
     [Parameter(ParameterSetName = "Main")]
     [switch]$DelegatedSetup,
@@ -19,6 +21,7 @@ param(
 . $PSScriptRoot\LogReviewer\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\LogReviewer\Test-KnownIssuesByErrors.ps1
 . $PSScriptRoot\LogReviewer\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\LogReviewer\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\LogReviewer\Test-PrerequisiteCheck.ps1
 
 Function Main {
@@ -39,6 +42,7 @@ Function Main {
 
         if ($runDate -lt ([datetime]::Now.AddDays(-14))) { $color = "Yellow" }
         $setupLogReviewer.ReceiveOutput("Setup.exe Run Date: $runDate", $color)
+        $setupLogReviewer.ReceiveOutput("Setup.exe Build Number: $($setupLogReviewer.SetupBuildNumber)")
 
         if ($null -ne $setupLogReviewer.LocalBuildNumber) {
             Write-Output "Current Exchange Build: $($setupLogReviewer.LocalBuildNumber)"
@@ -53,8 +57,9 @@ Function Main {
             return
         }
 
+        $prerequisiteCheck = Test-PrerequisiteCheck -SetupLogReviewer $setupLogReviewer
         if ($setupLogReviewer.WriteTestObject(
-                (Test-PrerequisiteCheck -SetupLogReviewer $setupLogReviewer))) {
+                $prerequisiteCheck)) {
 
             Write-Output "`r`nAdditional Context:"
             Write-Output ("User Logged On: $($setupLogReviewer.User)")
@@ -71,7 +76,8 @@ Function Main {
             $siteName = $setupLogReviewer.GetEvaluatedSettingOrRule("SiteName", "Setting", ".")
 
             if ($null -ne $siteName) {
-                Write-Output "Setup Running in AD Site Name: $($siteName.Matches.Groups[1].Value)"
+                $siteName = $siteName.Matches.Groups[1].Value
+                Write-Output "Setup Running in AD Site Name: $siteName"
             }
 
             $schemaMaster = $setupLogReviewer.SelectStringLastRunOfExchangeSetup("Setup will attempt to use the Schema Master domain controller (.+)")
@@ -81,9 +87,25 @@ Function Main {
                 Write-Output "Schema Master: $($schemaMaster.Matches.Groups[1].Value)"
                 $smDomain = $schemaMaster.Matches.Groups[1].Value.Split(".")[1]
                 Write-Output "Schema Master in Domain: $smDomain"
+                $schemaSiteName = [string]::Empty
+
+                if ($null -ne $prerequisiteCheck.WriteWarning) {
+
+                    $siteNameSls = $prerequisiteCheck.DisplayContext.Line | Select-String "on a computer in the domain (\w+) and site (.+)\, and wait for replication to complete"
+
+                    if ($null -ne $siteNameSls) {
+                        $schemaSiteName = $siteNameSls.Matches.Groups[2].Value
+                        Write-Output "Schema Master in AD Site Name: $schemaSiteName"
+                    }
+                }
 
                 if ($smDomain -ne $setupDomain) {
                     $setupLogReviewer.ReceiveOutput("Unable to run setup in current domain.", "Red")
+                }
+
+                if ($schemaSiteName -ne [string]::Empty -and
+                    $schemaSiteName -ne $siteName) {
+                    $setupLogReviewer.ReceiveOutput("Unable to run setup in the current AD Site", "Red")
                 }
             }
             return
@@ -101,6 +123,11 @@ Function Main {
 
         if ($setupLogReviewer.WriteTestObject(
                 (Test-KnownIssuesByErrors -SetupLogReviewer $setupLogReviewer))) {
+            return
+        }
+
+        if ($setupLogReviewer.WriteTestObject(
+                (Test-KnownMsiIssuesCheck -SetupLogReviewer $setupLogReviewer))) {
             return
         }
 

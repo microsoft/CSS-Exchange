@@ -1,0 +1,81 @@
+[03/05/2021 21:14:18.0704] [0] **********************************************
+[03/05/2021 21:14:18.0736] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/05/2021 21:14:18.0736] [0] **********************************************
+[03/05/2021 21:14:18.0736] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/05/2021 21:14:18.0736] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/05/2021 21:14:18.0736] [0] Setup version: 15.0.1497.2.
+[03/05/2021 21:14:18.0751] [0] Logged on user: SOLO\Han.
+[03/05/2021 21:14:18.0892] [0] Command Line Parameter Name='sourcedir', Value='C:\ExchangeCU23'.
+[03/05/2021 21:14:18.0892] [0] Command Line Parameter Name='mode', Value='Install'.
+[03/05/2021 21:14:18.0908] [0] RuntimeAssembly was started with the following command: '/sourcedir:C:\ExchangeCU23 /mode:Install'.
+[03/05/2021 21:14:19.0564] [0] Finished loading screen CheckForUpdatesPage.
+[03/05/2021 21:14:22.0423] [0] Starting file's copying...
+[03/05/2021 21:14:22.0439] [0] Setup copy files from 'C:\ExchangeCU23\Setup\ServerRoles\Common' to 'C:\Windows\Temp\ExchangeSetup'
+[03/05/2021 21:14:22.0455] [0] Disk space required: 1860028597 bytes.
+[03/05/2021 21:14:22.0455] [0] Disk space available: 11984519168 bytes.
+[03/05/2021 21:14:22.0626] [0] Finished loading screen CopyFilesPage.
+[03/05/2021 21:14:30.0097] [0] File's copying finished.
+[03/05/2021 21:14:30.0300] [0] Finished loading screen InitializingSetupPage.
+[03/05/2021 21:14:33.0284] [0] Setup is choosing the domain controller to use
+[03/05/2021 21:14:39.0629] [0] Setup is choosing a local domain controller...
+[03/05/2021 21:14:41.0535] [0] Setup has chosen the local domain controller DC1.Solo.local for initial queries
+[03/05/2021 21:14:42.0117] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC1.Solo.local
+[03/05/2021 21:14:42.0117] [0] Setup is choosing a global catalog...
+[03/05/2021 21:14:42.0149] [0] Setup has chosen the global catalog server DC1.Solo.local.
+[03/05/2021 21:14:42.0164] [0] Setup will use the domain controller 'DC1.Solo.local'.
+[03/05/2021 21:14:42.0164] [0] Setup will use the global catalog 'DC1.Solo.local'.
+[03/05/2021 21:14:42.0164] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/05/2021 21:14:42.0164] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/05/2021 21:14:42.0211] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/05/2021 21:14:42.0508] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/05/2021 21:14:42.0602] [0] The following roles have been unpacked: 
+[03/05/2021 21:14:42.0617] [0] The following datacenter roles are unpacked: 
+[03/05/2021 21:14:42.0617] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/05/2021 21:14:42.0617] [0] The local server does not have any Exchange files installed.
+[03/05/2021 21:14:42.0649] [0] Server Name=ExSvr1
+[03/05/2021 21:14:42.0680] [0] Setup will use the path 'C:\ExchangeCU23' for installing Exchange.
+[03/05/2021 21:14:42.0680] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/05/2021 21:14:42.0680] [0] 'BridgeheadRole' is installed on the server object.
+[03/05/2021 21:14:42.0680] [0] 'ClientAccessRole' is installed on the server object.
+[03/05/2021 21:14:42.0680] [0] 'MailboxRole' is installed on the server object.
+[03/05/2021 21:14:42.0680] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/05/2021 21:14:42.0680] [0] 'CafeRole' is installed on the server object.
+[03/05/2021 21:14:42.0680] [0] 'FrontendTransportRole' is installed on the server object.
+[03/05/2021 21:14:42.0695] [0] The backup copy of the install path is 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[03/05/2021 21:14:42.0695] [0] The backup copy of the previously installed version is '15.0.1130.7'.
+[03/05/2021 21:14:42.0695] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/05/2021 21:14:44.0149] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/05/2021 21:14:44.0149] [0] Active Directory Initialization status : 'True'.
+[03/05/2021 21:14:44.0149] [0] Schema Update Required Status : 'False'.
+[03/05/2021 21:14:44.0149] [0] Organization Configuration Update Required Status : 'False'.
+[03/05/2021 21:14:44.0149] [0] Domain Configuration Update Required Status : 'False'.
+[03/05/2021 21:14:44.0211] [0] Setup is determining what organization-level operations to perform.
+[03/05/2021 21:14:44.0211] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/05/2021 21:14:44.0211] [0] MSI was not present; Installing to saved location D:\Program Files\Microsoft\Exchange Server\V15
+[03/05/2021 21:14:44.0242] [0] RootDataHandler has 1 DataHandlers
+[03/05/2021 21:14:44.0258] [0] Validating options for the 6 requested roles
+[03/05/2021 21:14:44.0258] [0] UpgradeModeDataHandler has 15 handlers and 15 work units
+[03/05/2021 21:14:44.0430] [0] CurrentResult launcherbase.maincore:90: 0
+[03/05/2021 21:14:44.0649] [0] Finished loading screen WelcomePage.
+[03/05/2021 21:14:47.0137] [0] Finished loading screen EULAPage.
+[03/05/2021 21:14:49.0640] [0] **************
+[03/05/2021 21:14:57.0190] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00]
+[03/05/2021 21:15:13.0999] [0] **************
+[03/05/2021 21:15:13.0999] [0] Setup will run the task 'install-msipackage'
+[03/05/2021 21:15:13.0999] [1] Setup launched task 'install-msipackage -logfile 'C:\ExchangeSetupLogs\ExchangeSetup.msilog' -targetdirectory 'D:\Program Files\Microsoft\Exchange Server\V15' -features 'Bridgehead','FrontendTransport','ClientAccess','UnifiedMessaging','Mailbox','AdminTools','Cafe' -packagepath 'C:\ExchangeCU23\exchangeserver.msi' -updatesdir $null -PropertyValues 'DISABLEERRORREPORTING=1 PRODUCTLANGUAGELCID=1033 DEFAULTLANGUAGENAME=ENU DEFAULTLANGUAGELCID=1033 INSTALLCOMMENT="Installed language for this product: English (United States)"''  
+[03/05/2021 21:15:14.0015] [1] Active Directory session settings for 'Install-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/05/2021 21:15:14.0015] [1] User specified parameters:  -UpdatesDir:$null -PackagePath:'C:\ExchangeCU23\exchangeserver.msi' -TargetDirectory:'D:\Program Files\Microsoft\Exchange Server\V15' -PropertyValues:'DISABLEERRORREPORTING=1 PRODUCTLANGUAGELCID=1033 DEFAULTLANGUAGENAME=ENU DEFAULTLANGUAGELCID=1033 INSTALLCOMMENT="Installed language for this product: English (United States)"' -Features:'Bridgehead','FrontendTransport','ClientAccess','UnifiedMessaging','Mailbox','AdminTools','Cafe' -LogFile:'C:\ExchangeSetupLogs\ExchangeSetup.msilog'
+[03/05/2021 21:15:14.0015] [1] Beginning processing install-msipackage
+[03/05/2021 21:15:14.0140] [1] ProductCode is '4934d1ea-be46-48b1-8847-f1af20e892c1'.
+[03/05/2021 21:15:14.0156] [1] PackagePath was set to 'C:\ExchangeCU23\exchangeserver.msi'; changing to full path 'C:\ExchangeCU23\exchangeserver.msi'.
+[03/05/2021 21:15:14.0218] [1] ProductCode is '4934d1ea-be46-48b1-8847-f1af20e892c1'.
+[03/05/2021 21:15:14.0234] [1] Installing MSI package 'C:\ExchangeCU23\exchangeserver.msi'.
+[03/05/2021 21:15:14.0234] [1] No updates directory was specified for the msi installation.
+[03/05/2021 21:15:14.0234] [1] Installing a new product. Package: C:\ExchangeCU23\exchangeserver.msi. Property values: DISABLEERRORREPORTING=1 PRODUCTLANGUAGELCID=1033 DEFAULTLANGUAGENAME=ENU DEFAULTLANGUAGELCID=1033 INSTALLCOMMENT="Installed language for this product: English (United States)" REBOOT=ReallySuppress TARGETDIR="D:\Program Files\Microsoft\Exchange Server\V15" ADDLOCAL=Bridgehead,FrontendTransport,ClientAccess,UnifiedMessaging,Mailbox,AdminTools,Cafe,AdminToolsNonGateway
+[03/05/2021 21:17:49.0003] [1] [ERROR] Installing product C:\ExchangeCU23\exchangeserver.msi failed. Fatal error during installation. Error code is 1603.
+[03/05/2021 21:17:49.0003] [1] [ERROR] Fatal error during installation
+[03/05/2021 21:17:49.0003] [1] [ERROR] Installing product C:\ExchangeCU23\exchangeserver.msi failed. Fatal error during installation. Error code is 1603.
+[03/05/2021 21:17:49.0003] [1] [ERROR] Fatal error during installation
+[03/05/2021 21:17:49.0035] [1] [ERROR] Installing product C:\ExchangeCU23\exchangeserver.msi failed. Fatal error during installation. Error code is 1603.
+[03/05/2021 21:17:49.0035] [1] [ERROR] Fatal error during installation
+[03/05/2021 21:17:49.0066] [1] Ending processing install-msipackage

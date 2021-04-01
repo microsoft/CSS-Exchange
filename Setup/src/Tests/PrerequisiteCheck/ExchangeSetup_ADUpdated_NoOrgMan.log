@@ -1730,7 +1730,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 [12/19/2020 06:32:04.0716] [1] Finished [Setting:OpenProcessesOnUninstall] [Duration:00:00:13.1518144]
 [12/19/2020 06:32:04.0717] [1] Evaluated [Setting:OpenProcessesOnUpgrade] [HasException:False] [Value:"System.Diagnostics.Process (mscorsvw)"] [ParentValue:"System.Diagnostics.Process (mscorsvw)"] [Thread:76] [Duration:00:00:13.1558122]
 [12/19/2020 06:32:04.0717] [1] Finished [Setting:OpenProcessesOnUpgrade] [Duration:00:00:13.1558122]
-[12/19/2020 06:32:04.0717] [1] Evaluated [Rule:ProcessNeedsToBeClosedOnUpgrade] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:11.7678358]
+[12/19/2020 06:32:04.0717] [1] Evaluated [Rule:ProcessNeedsToBeClosedOnUpgrade] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:11.7678358]
 [12/19/2020 06:32:04.0717] [1] Finished [Rule:ProcessNeedsToBeClosedOnUpgrade] [Duration:00:00:11.7678358]
 [12/19/2020 06:32:04.0749] [1] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:32:04.0750] [1] User specified parameters:  -Identity:'SOLO-E19A'

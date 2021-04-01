@@ -1,0 +1,141 @@
+[03/08/2021 16:57:13.0392] [0] **********************************************
+[03/08/2021 16:57:13.0392] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/08/2021 16:57:13.0392] [0] **********************************************
+[03/08/2021 16:57:13.0407] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/08/2021 16:57:13.0407] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/08/2021 16:57:13.0407] [0] Setup version: 15.0.1497.2.
+[03/08/2021 16:57:13.0407] [0] Logged on user: SOLO\Han.
+[03/08/2021 16:57:13.0423] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/08/2021 16:57:13.0423] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/08/2021 16:57:13.0423] [0] Command Line Parameter Name='sourcedir', Value='D:\cu23'.
+[03/08/2021 16:57:13.0704] [0] RuntimeAssembly was started with the following command: '/IAcceptExchangeServerLicenseTerms /Mode:upgrade /sourcedir:D:\cu23'.
+[03/08/2021 16:57:13.0704] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/08/2021 16:57:13.0704] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/08/2021 16:57:13.0704] [0] Copying Files...
+[03/08/2021 16:57:13.0704] [0] Starting copy from D:\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/08/2021 16:57:14.0782] [0] Finished copy from D:\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/08/2021 16:57:14.0782] [0] File copy complete. Setup will now collect additional information needed for installation.
+[03/08/2021 16:57:14.0782] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/08/2021 16:57:15.0501] [0] Setup is choosing the domain controller to use
+[03/08/2021 16:57:15.0611] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Child.Solo.local
+[03/08/2021 16:57:15.0954] [0] The MSExchangeADTopology-persisted domain controller DC1.Child.Solo.local is not in the local domain; setup will pick another domain controller.
+[03/08/2021 16:57:15.0954] [0] Setup is choosing a local domain controller...
+[03/08/2021 16:57:16.0095] [0] Setup has chosen the local domain controller DC2.Child.Solo.local for initial queries
+[03/08/2021 16:57:16.0142] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Child.Solo.local
+[03/08/2021 16:57:16.0142] [0] Setup is choosing a global catalog...
+[03/08/2021 16:57:16.0189] [0] Setup has chosen the global catalog server DC2.Child.Solo.local.
+[03/08/2021 16:57:16.0204] [0] Setup will use the domain controller 'DC2.Child.Solo.local'.
+[03/08/2021 16:57:16.0204] [0] Setup will use the global catalog 'DC2.Child.Solo.local'.
+[03/08/2021 16:57:16.0204] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/08/2021 16:57:16.0220] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/08/2021 16:57:16.0236] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/08/2021 16:57:16.0298] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/08/2021 16:57:16.0329] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/08/2021 16:57:16.0329] [0] The following datacenter roles are unpacked: 
+[03/08/2021 16:57:16.0329] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/08/2021 16:57:16.0329] [0] The local server has some Exchange files installed.
+[03/08/2021 16:57:16.0345] [0] Server Name=ExSvr1
+[03/08/2021 16:57:16.0345] [0] Setup will use the path 'D:\cu23' for installing Exchange.
+[03/08/2021 16:57:16.0345] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/08/2021 16:57:16.0345] [0] 'BridgeheadRole' is installed on the server object.
+[03/08/2021 16:57:16.0345] [0] 'ClientAccessRole' is installed on the server object.
+[03/08/2021 16:57:16.0345] [0] 'MailboxRole' is installed on the server object.
+[03/08/2021 16:57:16.0345] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/08/2021 16:57:16.0345] [0] 'CafeRole' is installed on the server object.
+[03/08/2021 16:57:16.0345] [0] 'FrontendTransportRole' is installed on the server object.
+[03/08/2021 16:57:16.0361] [0] The backup copy of the install path is 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[03/08/2021 16:57:16.0361] [0] The backup copy of the previously installed version is '15.0.1367.3'.
+[03/08/2021 16:57:16.0361] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/08/2021 16:57:17.0470] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/08/2021 16:57:17.0470] [0] Active Directory Initialization status : 'True'.
+[03/08/2021 16:57:17.0470] [0] Schema Update Required Status : 'False'.
+[03/08/2021 16:57:17.0470] [0] Organization Configuration Update Required Status : 'False'.
+[03/08/2021 16:57:17.0486] [0] Domain Configuration Update Required Status : 'False'.
+[03/08/2021 16:57:17.0486] [0] The locally installed version is 15.0.1497.2.
+[03/08/2021 16:57:17.0486] [0] Exchange Installation Directory : 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[03/08/2021 16:57:17.0814] [0] Setup is determining what organization-level operations to perform.
+[03/08/2021 16:57:17.0814] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/08/2021 16:57:17.0814] [0] The installed MSI is current for this version of Setup.
+[03/08/2021 16:57:17.0814] [0] RootDataHandler has 1 DataHandlers
+[03/08/2021 16:57:17.0814] [0]      Mailbox role: Transport service
+[03/08/2021 16:57:17.0814] [0]      Client Access role: Front End Transport service
+[03/08/2021 16:57:17.0814] [0]      Mailbox role: Client Access service
+[03/08/2021 16:57:17.0814] [0]      Mailbox role: Unified Messaging service
+[03/08/2021 16:57:17.0814] [0]      Mailbox role: Mailbox service
+[03/08/2021 16:57:17.0814] [0]      Management tools
+[03/08/2021 16:57:17.0829] [0]      Client Access role: Client Access Front End service
+[03/08/2021 16:57:17.0829] [0] Validating options for the 7 requested roles
+[03/08/2021 16:57:17.0829] [0] UpgradeModeDataHandler has 9 handlers and 9 work units
+[03/08/2021 16:57:17.0845] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/08/2021 16:57:17.0907] [0] **************
+[03/08/2021 16:57:21.0454] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:18] [Duration:00:00:00]
+[03/08/2021 17:06:30.0066] [2] Active Directory session settings for 'Install-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/08/2021 17:06:30.0066] [2] User specified parameters:  -PackagePath:'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.sv-SE.msi' -PropertyValues:'ARPSYSTEMCOMPONENT=1 ALLUSERS=1' -LogFile:'C:\ExchangeSetupLogs\InstallSpeech-sv-SE.msilog'
+[03/08/2021 17:06:30.0066] [2] Beginning processing Install-MsiPackage
+[03/08/2021 17:06:30.0081] [2] ProductCode is '12c43d71-15a1-4f83-9d4d-e3134ae6ffd6'.
+[03/08/2021 17:06:30.0081] [2] PackagePath was set to 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.sv-SE.msi'; changing to full path 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.sv-SE.msi'.
+[03/08/2021 17:06:30.0097] [2] ProductCode is '12c43d71-15a1-4f83-9d4d-e3134ae6ffd6'.
+[03/08/2021 17:06:30.0097] [2] Installing MSI package 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.sv-SE.msi'.
+[03/08/2021 17:06:30.0097] [2] No updates directory was specified for the msi installation.
+[03/08/2021 17:06:30.0097] [2] Installing a new product. Package: D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.sv-SE.msi. Property values: ARPSYSTEMCOMPONENT=1 ALLUSERS=1 REBOOT=ReallySuppress
+[03/08/2021 17:06:31.0019] [2] Ending processing Install-MsiPackage
+[03/08/2021 17:06:31.0019] [1] Executing: 
+          Install-MsiPackage `
+            -PackagePath ([System.IO.Path]::Combine($RoleLanguagePacksPath, "Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi")) `
+            -PropertyValues ("ARPSYSTEMCOMPONENT=1 ALLUSERS=1") `
+            -LogFile ([System.IO.Path]::Combine($RoleSetupLoggingPath, "InstallSpeech-zh-CN.msilog"))
+        
+[03/08/2021 17:06:31.0019] [2] Active Directory session settings for 'Install-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/08/2021 17:06:31.0019] [2] User specified parameters:  -PackagePath:'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi' -PropertyValues:'ARPSYSTEMCOMPONENT=1 ALLUSERS=1' -LogFile:'C:\ExchangeSetupLogs\InstallSpeech-zh-CN.msilog'
+[03/08/2021 17:06:31.0019] [2] Beginning processing Install-MsiPackage
+[03/08/2021 17:06:31.0035] [2] ProductCode is 'bad2a75a-1708-47ba-a498-20890d2c78a7'.
+[03/08/2021 17:06:31.0050] [2] PackagePath was set to 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi'; changing to full path 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi'.
+[03/08/2021 17:06:31.0066] [2] ProductCode is 'bad2a75a-1708-47ba-a498-20890d2c78a7'.
+[03/08/2021 17:06:31.0066] [2] Installing MSI package 'D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi'.
+[03/08/2021 17:06:31.0066] [2] No updates directory was specified for the msi installation.
+[03/08/2021 17:06:31.0066] [2] Configuring an existing product. Product code: {BAD2A75A-1708-47BA-A498-20890D2C78A7}. Property values: ARPSYSTEMCOMPONENT=1 ALLUSERS=1 REBOOT=ReallySuppress
+[03/08/2021 17:14:48.0333] [2] [ERROR] Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/08/2021 17:14:48.0333] [2] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/08/2021 17:14:48.0333] [2] [ERROR] Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/08/2021 17:14:48.0333] [2] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/08/2021 17:14:48.0333] [2] [ERROR] Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/08/2021 17:14:48.0333] [2] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/08/2021 17:14:48.0349] [2] Ending processing Install-MsiPackage
+[03/08/2021 17:14:48.0349] [1] The following 1 error(s) occurred during task execution:
+[03/08/2021 17:14:48.0349] [1] 0.  ErrorRecord: Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/08/2021 17:14:48.0349] [1] 0.  ErrorRecord: Microsoft.Exchange.Configuration.Tasks.TaskException: Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612. ---> System.ComponentModel.Win32Exception: The installation source for this product is not available. Verify that the source exists and that you can access it
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target)
+   at Microsoft.Exchange.Management.Deployment.InstallMsi.InstallPackageFile(String packagePath)
+   at Microsoft.Exchange.Management.Deployment.InstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/08/2021 17:14:48.0349] [1] [ERROR] The following error was generated when "$error.Clear(); 
+          Install-MsiPackage `
+            -PackagePath ([System.IO.Path]::Combine($RoleLanguagePacksPath, "Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi")) `
+            -PropertyValues ("ARPSYSTEMCOMPONENT=1 ALLUSERS=1") `
+            -LogFile ([System.IO.Path]::Combine($RoleSetupLoggingPath, "InstallSpeech-zh-CN.msilog"))
+        " was run: "Microsoft.Exchange.Configuration.Tasks.TaskException: Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612. ---> System.ComponentModel.Win32Exception: The installation source for this product is not available. Verify that the source exists and that you can access it
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target)
+   at Microsoft.Exchange.Management.Deployment.InstallMsi.InstallPackageFile(String packagePath)
+   at Microsoft.Exchange.Management.Deployment.InstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/08/2021 17:14:48.0349] [1] [ERROR] Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/08/2021 17:14:48.0349] [1] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/08/2021 17:14:48.0349] [1] [ERROR-REFERENCE] Id=SpeechComponent___c2c075b985784599a14e8fa90dbc0804 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/08/2021 17:14:48.0349] [1] Setup is stopping now because of one or more critical errors.
+[03/08/2021 17:14:48.0349] [1] Finished executing component tasks.
+[03/08/2021 17:14:48.0365] [1] Ending processing Install-MailboxRole
+[03/08/2021 17:14:48.0365] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/08/2021 17:14:48.0365] [0] CurrentResult launcherbase.maincore:90: 1
+[03/08/2021 17:14:48.0365] [0] CurrentResult console.startmain:52: 1
+[03/08/2021 17:14:48.0365] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/08/2021 17:14:48.0365] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/08/2021 17:14:48.0365] [0] CurrentResult main.run:235: 1
+[03/08/2021 17:14:48.0365] [0] CurrentResult setupbase.maincore:396: 1
+[03/08/2021 17:14:48.0365] [0] End of Setup
+[03/08/2021 17:14:48.0365] [0] **********************************************

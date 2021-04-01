@@ -11,6 +11,7 @@ Function New-SetupLogReviewer {
         $exchangeBuildNumber = $null
         $localInstall = $null
         $feedbackEmail = "ExToolsFeedback@microsoft.com"
+        $previousAttemptDetected = $false
     }
     process {
         $validSetupLog = Select-String "Starting Microsoft Exchange Server \d\d\d\d Setup" $SetupLog | Select-Object -Last 1
@@ -30,13 +31,14 @@ Function New-SetupLogReviewer {
     }
     end {
         $logReviewer = [PSCustomObject]@{
-            SetupLog         = $SetupLog
-            LastSetupRunLine = $validSetupLog.LineNumber
-            User             = $currentLogOnUser.Matches.Groups[1].Value
-            SetupRunDate     = $runDate
-            LocalBuildNumber = $exchangeBuildNumber
-            SetupBuildNumber = $setupBuildNumber
-            FeedbackEmail    = $feedbackEmail
+            SetupLog                = $SetupLog
+            LastSetupRunLine        = $validSetupLog.LineNumber
+            User                    = $currentLogOnUser.Matches.Groups[1].Value
+            SetupRunDate            = $runDate
+            LocalBuildNumber        = $exchangeBuildNumber
+            SetupBuildNumber        = $setupBuildNumber
+            FeedbackEmail           = $feedbackEmail
+            PreviousAttemptDetected = $previousAttemptDetected
         }
 
         $logReviewer | Add-Member -MemberType ScriptMethod -Name "GetEvaluatedSettingOrRule" -Value {
@@ -198,12 +200,12 @@ Function New-SetupLogReviewer {
                     Write-Verbose $line
                 }
 
-                if ($TestResultObject.DisplayContext.Count -gt 0) {
-                    $this.WriteInfoObject($TestResultObject.DisplayContext)
-                }
-
                 if (![string]::IsNullOrEmpty($TestResultObject.WriteWarning)) {
                     Write-Warning $TestResultObject.WriteWarning
+                }
+
+                if ($TestResultObject.DisplayContext.Count -gt 0) {
+                    $this.WriteInfoObject($TestResultObject.DisplayContext)
                 }
 
                 if ($TestResultObject.FoundKnownIssue) {
@@ -236,6 +238,13 @@ Function New-SetupLogReviewer {
 
             if ($null -ne $localInstall) {
                 $logReviewer.LocalBuildNumber = $localInstall.Matches.Groups[1].Value
+            }
+
+            $backupLocalInstall = $logReviewer.SelectStringLastRunOfExchangeSetup("The backup copy of the previously installed version is '(.+)'\.")
+
+            if ($null -ne $backupLocalInstall) {
+                $logReviewer.LocalBuildNumber = $backupLocalInstall.Matches.Groups[1].Value
+                $logReviewer.PreviousAttemptDetected = $true
             }
 
             return $logReviewer
