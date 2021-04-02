@@ -77,6 +77,10 @@ $scriptFiles | ForEach-Object {
         $line = $scriptContent[$i].Trim()
         $m = $line | Select-String "\. \.\\(.*).ps1"
 
+        if ($null -eq $m) {
+            $m = $line | Select-String "\. \`$PSScriptRoot\\(.*).ps1"
+        }
+
         if ($m.Matches.Count -gt 0) {
             $parentPath = [IO.Path]::GetDirectoryName($_)
             $dotloadedScriptPath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[1].Value + ".ps1")
