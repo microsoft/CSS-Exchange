@@ -95,6 +95,19 @@ Function Main {
         "CreationTime",
         "MailboxNumber"
     )
+    $folderId = [string]::Empty
+
+    if (-not([string]::IsNullOrEmpty($FolderName))) {
+        $storeQueryHandler.ResetQueryInstances()
+        $storeQueryHandler.SetSelect("FolderId")
+        $storeQueryHandler.SetFrom("Folder")
+        $storeQueryHandler.SetWhere("MailboxNumber = $($basicUserQueryContext.MailboxNumber) And DisplayName = '$FolderName'")
+        $folder = $storeQueryHandler.InvokeGetStoreQuery()
+
+        if (-not([string]::IsNullOrEmpty($folder.FolderId))) {
+            $folderId = $folder.folderId
+        }
+    }
 
     $passParams = @{
         BasicUserQueryContext = $basicUserQueryContext
@@ -107,8 +120,8 @@ Function Main {
         $passParams["MessageSubject"] = $MessageSubject
         $passParams["MatchSubjectSubstring"] = $MatchSubjectSubstring
 
-        if (-not([string]::IsNullOrEmpty($FolderId))) {
-            $passParams["FolderId"] = $FolderId
+        if (-not([string]::IsNullOrEmpty($folderId))) {
+            $passParams["FolderId"] = $folderId
         }
     }
 
