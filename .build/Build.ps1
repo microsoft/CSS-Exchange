@@ -75,7 +75,7 @@ $scriptFiles | ForEach-Object {
     # Expand dot-sourced files
     for ($i = 0; $i -lt $scriptContent.Count; $i++) {
         $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\. \.\\(.*).ps1"
+        $m = $line | Select-String "\. (?:\.|\`$PSScriptRoot)\\(.*).ps1"
 
         if ($m.Matches.Count -gt 0) {
             $parentPath = [IO.Path]::GetDirectoryName($_)

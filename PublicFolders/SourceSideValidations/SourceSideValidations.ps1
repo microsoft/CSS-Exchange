@@ -5,14 +5,14 @@ param (
     $StartFresh = $true
 )
 
-. .\Get-IpmSubtree.ps1
-. .\Get-NonIpmSubtree.ps1
-. .\Get-ItemCount.ps1
-. .\Get-LimitsExceeded.ps1
-. .\Get-BadDumpsterMappings.ps1
-. .\Get-BadPermission.ps1
-. .\Get-BadPermissionJob.ps1
-. .\JobQueue.ps1
+. $PSScriptRoot\Get-IpmSubtree.ps1
+. $PSScriptRoot\Get-NonIpmSubtree.ps1
+. $PSScriptRoot\Get-ItemCount.ps1
+. $PSScriptRoot\Get-LimitsExceeded.ps1
+. $PSScriptRoot\Get-BadDumpsterMappings.ps1
+. $PSScriptRoot\Get-BadPermission.ps1
+. $PSScriptRoot\Get-BadPermissionJob.ps1
+. $PSScriptRoot\JobQueue.ps1
 
 $startTime = Get-Date
 
