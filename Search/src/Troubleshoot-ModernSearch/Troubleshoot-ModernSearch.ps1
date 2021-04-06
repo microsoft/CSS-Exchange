@@ -117,7 +117,7 @@ Function Main {
         $DocumentId -ne 0) {
         $passParams["DocumentId"] = $DocumentId
     } else {
-        $passParams["MessageSubject"] = $MessageSubject
+        $passParams["MessageSubject"] = $ItemSubject
         $passParams["MatchSubjectSubstring"] = $MatchSubjectSubstring
 
         if (-not([string]::IsNullOrEmpty($folderId))) {
