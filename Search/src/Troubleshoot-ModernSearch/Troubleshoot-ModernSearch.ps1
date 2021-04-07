@@ -24,12 +24,17 @@ param(
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
     [switch]
-    $MatchSubjectSubstring
+    $MatchSubjectSubstring,
+
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $QueryString
 )
 
 . $PSScriptRoot\Get-BasicUserQueryContext.ps1
 . $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
 . $PSScriptRoot\Get-MessageIndexState.ps1
+. $PSScriptRoot\Get-QueryItemResult.ps1
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
 . $PSScriptRoot\Get-UserInformation.ps1
 
@@ -133,6 +138,19 @@ Function Main {
             Write-Output "Found Item $($i + 1): "
             Write-Output $messages[$i]
             Write-Output ""
+        }
+
+        if (-not([string]::IsNullOrEmpty($QueryString))) {
+            $queryItemResults = Get-QueryItemResult -BasicUserQueryContext $basicUserQueryContext -DocumentId ($messages.MessageDocumentId) -QueryString $QueryString -QueryScope "SearchAllIndexedProps"
+
+            foreach ($item in $queryItemResults) {
+                Write-DisplayObjectInformation -DisplayObject $item -PropertyToDisplay @(
+                    "DocumentID",
+                    "BigFunnelMatchFilter",
+                    "BigFunnelMatchPOI"
+                )
+                Write-Output ""
+            }
         }
     }
 }

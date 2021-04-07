@@ -114,7 +114,12 @@ Function AddToWhere {
 
 Function InvokeGetStoreQuery {
 
-    $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
+    if (-not([string]::IsNullOrEmpty($this.WherePartQuery))) {
+        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
+    } else {
+        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery)"
+    }
+
     $myParams = @{
         Server    = $this.Server
         ProcessId = $this.ProcessId
