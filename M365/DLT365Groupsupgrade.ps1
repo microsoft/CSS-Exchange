@@ -4,7 +4,7 @@ $ts= get-date -Format yyyyMMdd_HHmmss
 $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgradeChecks_$ts"
 mkdir $ExportPath -Force |out-null
 Add-Content -Path $ExportPath\DlToO365GroupUpgradeCheckslogging.csv  -Value '"Function","Description","Status"'
-$Global:Conditionsfailed = 0
+$Script:Conditionsfailed = 0
 Function log
 {
 param(
@@ -80,7 +80,7 @@ $MemberJoinRestriction=$Distgroup.MemberJoinRestriction.ToLower().ToString()
 $MemberDepartRestriction=$Distgroup.MemberDepartRestriction.ToLower().ToString()
 if ($MemberDepartRestriction -eq "closed" -or $MemberJoinRestriction -eq "closed")
     {
-        $Global:Conditionsfailed++
+        $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!" -ForegroundColor Red
         "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!`n"|out-file $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
@@ -95,7 +95,7 @@ param(
 $IsDirSynced=$Distgroup.IsDirSynced
 if ($IsDirSynced -eq $true)
     {
-        $Global:Conditionsfailed++
+        $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because it's synchronized from on-premises!" -ForegroundColor Red
         "Distribution Group can't be upgraded because it's synchronized from on-premises!"|out-file $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
@@ -114,7 +114,7 @@ $eap = Get-EmailAddressPolicy -ErrorAction stop
  $matchingEap = @( $eap | where-object{$_.RecipientFilter -eq "RecipientTypeDetails -eq 'GroupMailbox'" -and $_.EnabledPrimarySMTPAddressTemplate.ToString().Split("@")[1] -ne $Distgroup.PrimarySmtpAddress.ToString().Split("@")[1]})
  if ($matchingEap.Count -ge 1)
     {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization" -ForegroundColor Red
     Write-Host "Group Email Address Policy found:" -BackgroundColor Yellow -ForegroundColor Black
     $matchingEap |Format-Table name,recipientfilter,Guid,enabledemailaddresstemplates
@@ -168,7 +168,7 @@ foreach($parentdg in $alldgs)
 }
 if($ParentDGroups.Count -ge 1)
 {
-$Global:Conditionsfailed++
+$script:Conditionsfailed++
  Write-Host "Distribution Group can't be upgraded because it is a child group of another parent group" -ForegroundColor Red
  Write-Host "Parent Groups found:" -BackgroundColor Yellow -ForegroundColor Black
  $ParentDGroups|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -208,7 +208,7 @@ $matchingMbr = @( $members | Where-Object {$_.RecipientTypeDetails -ne "UserMail
 
 if($matchingMbr.Count -ge 1)
 {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because DL contains member RecipientTypeDetails other than UserMailbox, SharedMailbox, TeamMailbox, MailUser" -ForegroundColor Red
     Write-Host "Non-supported members found:" -BackgroundColor Yellow -ForegroundColor Black
     $matchingMbr|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -225,7 +225,7 @@ if($matchingMbr.Count -ge 1)
         )
 $owners=$Distgroup.ManagedBy
 if ($owners.Count -gt 100 -or $owners.Count -eq 0) {
-$Global:Conditionsfailed++
+$script:Conditionsfailed++
 Write-Host "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" -ForegroundColor Red
 "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners"|out-file $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 }
@@ -249,7 +249,7 @@ foreach($alldg in $alldgs)
 }
 if ($SenderRestrictionCount -ge 1)
     {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL" -ForegroundColor Red
     Write-Host "Distribution group(s) with sender restriction:" -BackgroundColor Yellow -ForegroundColor Black
     $ConditionDGSender|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -266,7 +266,7 @@ Function Debuggrouprecipienttype
         )
 if($Distgroup.RecipientTypeDetails -like "MailUniversalSecurityGroup" -or $Distgroup.RecipientTypeDetails -like "DynamicDistributionGroup" -or $Distgroup.RecipientTypeDetails -like "roomlist" )
 {
-$Global:Conditionsfailed++
+$script:Conditionsfailed++
 Write-Host "Distribution Group can't be upgraded because it was converted to RoomList or is found to be a security group or Dynamic distribution group" -ForegroundColor Red
 Write-Host "Distribution Group RecipientTypeDetails is: " $Distgroup.RecipientTypeDetails
 "Distribution Group can't be upgraded because it was converted to RoomList or is found to be a security group or Dynamic distribution group"|out-file $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
@@ -302,7 +302,7 @@ foreach($sharedMBX in $sharedMBXs)
 }
 if ($counter -ge 1)
 {
-$Global:Conditionsfailed++
+$script:Conditionsfailed++
 Write-Host "Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox" -ForegroundColor Red
 Write-Host "Shared Mailbox(es):" -BackgroundColor Yellow -ForegroundColor Black
 $Conditionfwdmbx|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -335,7 +335,7 @@ catch {
 
 if($dupAlias.Count -ge 2)
 {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because duplicate objects having same Alias found" -ForegroundColor Red
     Write-Host "Duplicate account(s):" -BackgroundColor Yellow -ForegroundColor Black
     $dupalias|where-object {$_.guid -notlike $Distgroup.guid}|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -345,7 +345,7 @@ if($dupAlias.Count -ge 2)
 }
 elseif ($dupAddress.Count -ge 2)
 {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because duplicate objects having same PrimarySmtpAddress found" -ForegroundColor Red
     Write-Host "Duplicate account(s):" -BackgroundColor Yellow -ForegroundColor Black
     $dupAddress|where-object {$_.guid -notlike $Distgroup.guid}|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -355,7 +355,7 @@ elseif ($dupAddress.Count -ge 2)
 }
 elseif ($dupDisplayName.Count -ge 2)
 {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because duplicate objects having same DisplayName found" -ForegroundColor Red
     Write-Host "Duplicate account(s):" -BackgroundColor Yellow -ForegroundColor Black
     $dupDisplayName|where-object {$_.guid -notlike $Distgroup.guid}|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
@@ -365,7 +365,7 @@ elseif ($dupDisplayName.Count -ge 2)
 }
 elseif ($dupName.Count -ge 2)
 {
-    $Global:Conditionsfailed++
+    $script:Conditionsfailed++
     Write-Host "Distribution Group can't be upgraded because duplicate objects having same Name found" -ForegroundColor Red
     Write-Host "Duplicate account(s):" -BackgroundColor Yellow -ForegroundColor Black
     $dupName|where-object {$_.guid -notlike $Distgroup.guid}|Format-Table -AutoSize DisplayName,Alias,GUID,RecipientTypeDetails,PrimarySmtpAddress
