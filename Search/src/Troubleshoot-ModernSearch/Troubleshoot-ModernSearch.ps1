@@ -33,6 +33,7 @@ param(
 
 . $PSScriptRoot\Get-BasicUserQueryContext.ps1
 . $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
+. $PSScriptRoot\Get-FolderInformation.ps1
 . $PSScriptRoot\Get-MessageIndexState.ps1
 . $PSScriptRoot\Get-QueryItemResult.ps1
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
@@ -100,18 +101,9 @@ Function Main {
         "CreationTime",
         "MailboxNumber"
     )
-    $folderId = [string]::Empty
 
     if (-not([string]::IsNullOrEmpty($FolderName))) {
-        $storeQueryHandler.ResetQueryInstances()
-        $storeQueryHandler.SetSelect("FolderId")
-        $storeQueryHandler.SetFrom("Folder")
-        $storeQueryHandler.SetWhere("MailboxNumber = $($basicUserQueryContext.MailboxNumber) And DisplayName = '$FolderName'")
-        $folder = $storeQueryHandler.InvokeGetStoreQuery()
-
-        if (-not([string]::IsNullOrEmpty($folder.FolderId))) {
-            $folderId = $folder.folderId
-        }
+        $folderInformation = Get-FolderInformation -BasicUserQueryContext $basicUserQueryContext -DisplayName $FolderName
     }
 
     $passParams = @{
@@ -125,8 +117,8 @@ Function Main {
         $passParams["MessageSubject"] = $ItemSubject
         $passParams["MatchSubjectSubstring"] = $MatchSubjectSubstring
 
-        if (-not([string]::IsNullOrEmpty($folderId))) {
-            $passParams["FolderId"] = $folderId
+        if ($null -ne $folderInformation) {
+            $passParams["FolderInformation"] = $folderInformation
         }
     }
 
