@@ -386,7 +386,12 @@ Function Get-ExchangeInformation {
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
             try {
-                $exchangeInformation.ExchangeServicesNotRunning = Test-ServiceHealth -Server $Script:Server -ErrorAction Stop | ForEach-Object { $_.ServicesNotRunning }
+                $testServiceHealthResults = Test-ServiceHealth -Server $Script:Server -ErrorAction Stop
+                foreach ($notRunningService in $testServiceHealthResults.ServicesNotRunning) {
+                    if ($exchangeInformation.ExchangeServicesNotRunning -notcontains $notRunningService) {
+                        $exchangeInformation.ExchangeServicesNotRunning += $notRunningService
+                    }
+                }
             } catch {
                 Write-VerboseOutput ("Failed to run Test-ServiceHealth")
                 Invoke-CatchActions
