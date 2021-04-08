@@ -90,6 +90,7 @@ Function Debugdirsync {
 }
 #Check if Distribution Group can't be upgraded because EmailAddressPolicyViolated
 Function Debugmatchingeap {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
