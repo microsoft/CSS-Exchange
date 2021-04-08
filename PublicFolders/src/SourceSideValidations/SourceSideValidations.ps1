@@ -1,8 +1,16 @@
-﻿[CmdletBinding()]
+﻿[CmdletBinding(DefaultParameterSetName = "Default")]
 param (
-    [Parameter()]
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
     [bool]
-    $StartFresh = $true
+    $StartFresh = $true,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "RemoveInvalidPermissions")]
+    [Switch]
+    $RemoveInvalidPermissions,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "RemoveInvalidPermissions")]
+    [string]
+    $CsvFile
 )
 
 . $PSScriptRoot\Get-IpmSubtree.ps1
@@ -13,6 +21,12 @@ param (
 . $PSScriptRoot\Get-BadPermission.ps1
 . $PSScriptRoot\Get-BadPermissionJob.ps1
 . $PSScriptRoot\JobQueue.ps1
+. $PSScriptRoot\Remove-InvalidPermission.ps1
+
+if ($RemoveInvalidPermissions) {
+    Remove-InvalidPermission -CsvFile $CsvFile
+    return
+}
 
 $startTime = Get-Date
 
@@ -152,8 +166,8 @@ if ($badPermissions.Count -gt 0) {
     Write-Host
     Write-Host $badPermissions.Count "invalid permissions were found. These are listed in the following CSV file:"
     Write-Host $badPermissionsFile -ForegroundColor Green
-    Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions script as follows:"
-    Write-Host ".\RemoveInvalidPermissions.ps1 $badPermissionsFile"
+    Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions switch as follows:"
+    Write-Host ".\SourceSideValidations.ps1 -RemoveInvalidPermissions -CsvFile $badPermissionsFile"
 }
 
 $folderCountMigrationLimit = 250000
