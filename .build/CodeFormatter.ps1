@@ -23,8 +23,12 @@ foreach ($file in $scriptFiles) {
         if ($scriptFormatter.StringContent -cne $scriptFormatter.FormattedScript) {
             Write-Host ("Failed to follow the same format defined in the repro")
             if ($Save) {
-                Set-Content -Path $file -Value $scriptFormatter.FormattedScript -Encoding utf8BOM
-                Write-Host "Saved $file with formatting corrections."
+                if ($PSVersionTable.PSVersion.Major -lt 7) {
+                    Write-Warning "Cannot save formatting changes. Please run this command from PowerShell 7 or later."
+                } else {
+                    Set-Content -Path $file -Value $scriptFormatter.FormattedScript -Encoding utf8BOM
+                    Write-Host "Saved $file with formatting corrections."
+                }
             } else {
                 git diff ($($scriptFormatter.StringContent) | git hash-object -w --stdin) ($($scriptFormatter.FormattedScript) | git hash-object -w --stdin)
             }
