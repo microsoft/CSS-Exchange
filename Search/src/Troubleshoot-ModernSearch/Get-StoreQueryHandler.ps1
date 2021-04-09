@@ -124,10 +124,7 @@ Function InvokeGetStoreQuery {
         Server    = $this.Server
         ProcessId = $this.ProcessId
         Query     = $query
-    }
-
-    if ($this.IsUnlimited) {
-        $myParams["Unlimited"] = $true
+        Unlimited = $this.IsUnlimited
     }
 
     $this.WriteVerbose("Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'")
