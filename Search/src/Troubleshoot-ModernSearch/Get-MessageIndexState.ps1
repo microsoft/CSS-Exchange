@@ -37,6 +37,7 @@ Function Get-MessageIndexState {
         $storeQueryHandler.SetSelect(@(
                 "FolderId",
                 "MessageDocumentId",
+                "p0E1D001F"
                 "MessageClass",
                 "BigFunnelPOI",
                 "BigFunnelPOIIsUpToDate",
@@ -114,6 +115,7 @@ Function Get-MessageIndexState {
                 [PSCustomObject]@{
                     FolderId                               = $messages[$i].FolderId
                     DisplayName                            = $displayName
+                    MessageSubject                         = $messages[$i].p0E1D001F
                     BigFunnelIndexingStart                 = $messages[$i].($extPropMapping.BigFunnelIndexingStart)
                     IndexingAttemptCount                   = $messages[$i].($extPropMapping.IndexingAttemptCount)
                     IndexingBatchRetryAttemptCount         = $messages[$i].($extPropMapping.IndexingBatchRetryAttemptCount)
