@@ -45,6 +45,46 @@ param(
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
 . $PSScriptRoot\Get-UserInformation.ps1
 
+$Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
+
+Function Write-LogInformation {
+    param(
+        [Parameter(Position = 1, ValueFromPipeline = $true)]
+        [object]$Object,
+        [bool]$VerboseEnabled = $VerbosePreference
+    )
+
+    process {
+
+        if ($VerboseEnabled) {
+            Write-Verbose $Object -Verbose
+        }
+
+        $Object | Out-File -FilePath $Script:ScriptLogging -Append
+    }
+}
+
+Function Receive-Output {
+    param(
+        [Parameter(Position = 1, ValueFromPipeline = $true)]
+        [object]$Object,
+        [switch]$Diagnostic
+    )
+
+    process {
+
+        if (($Diagnostic -and
+                $VerbosePreference) -or
+            -not ($Diagnostic)) {
+            Write-Output $Object
+        } else {
+            Write-Verbose $Object
+        }
+
+        Write-LogInformation $Object -VerboseEnabled $false
+    }
+}
+
 try {
 
     $configuredVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction Stop).ConfiguredVersion
@@ -77,21 +117,21 @@ Function Write-DisplayObjectInformation {
         }
 
         foreach ($property in $PropertyToDisplay) {
-            Write-Output ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
+            Receive-Output ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
         }
     }
 }
 
 Function Main {
-    Write-Output "Getting user mailbox information for $UserEmail"
+    Receive-Output "Getting user mailbox information for $UserEmail"
     $userInformation = Get-UserInformation -UserEmail $UserEmail -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
-    Write-Output "Mailbox GUID = $($userInformation.MailboxGuid)"
-    Write-Output "Mailbox Database: $($userInformation.Database)"
-    Write-Output "Active Server: $($userInformation.PrimaryServer)"
-    Write-Output "Exchange Server Version: $($userInformation.ExchangeServer.AdminDisplayVersion)"
+    Receive-Output "Mailbox GUID = $($userInformation.MailboxGuid)"
+    Receive-Output "Mailbox Database: $($userInformation.Database)"
+    Receive-Output "Active Server: $($userInformation.PrimaryServer)"
+    Receive-Output "Exchange Server Version: $($userInformation.ExchangeServer.AdminDisplayVersion)"
 
-    $storeQueryHandler = Get-StoreQueryHandler -UserInformation $userInformation
+    $storeQueryHandler = Get-StoreQueryHandler -UserInformation $userInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
     $basicUserQueryContext = Get-BasicUserQueryContext -StoreQueryHandler $storeQueryHandler
 
     Write-DisplayObjectInformation -DisplayObject $basicUserQueryContext -PropertyToDisplay @(
@@ -133,9 +173,9 @@ Function Main {
     if ($messages.Count -gt 0) {
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
-            Write-Output "Found Item $($i + 1): "
-            Write-Output $messages[$i]
-            Write-Output ""
+            Receive-Output "Found Item $($i + 1): "
+            Receive-Output $messages[$i]
+            Receive-Output ""
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
@@ -147,16 +187,20 @@ Function Main {
                     "BigFunnelMatchFilter",
                     "BigFunnelMatchPOI"
                 )
-                Write-Output ""
+                Receive-Output ""
             }
         }
     }
 }
 
 try {
+    Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
+    Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Main
+    Receive-Output "Finished Script At: $([DateTime]::Now)" -Diagnostic
+    Write-Output "File Written at: $Script:ScriptLogging"
 } catch {
-    Write-Output "$($Error[0].Exception)"
-    Write-Output "$($Error[0].ScriptStackTrace)"
+    Receive-Output "$($Error[0].Exception)"
+    Receive-Output "$($Error[0].ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
