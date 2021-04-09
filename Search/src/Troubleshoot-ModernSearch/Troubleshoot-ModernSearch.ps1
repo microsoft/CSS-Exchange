@@ -28,7 +28,13 @@ param(
 
     [ValidateNotNullOrEmpty()]
     [string]
-    $QueryString
+    $QueryString,
+
+    [bool]
+    $IsArchive,
+
+    [bool]
+    $IsPublicFolder
 )
 
 . $PSScriptRoot\Get-BasicUserQueryContext.ps1
@@ -78,7 +84,7 @@ Function Write-DisplayObjectInformation {
 
 Function Main {
     Write-Output "Getting user mailbox information for $UserEmail"
-    $userInformation = Get-UserInformation -UserEmail $UserEmail
+    $userInformation = Get-UserInformation -UserEmail $UserEmail -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
     Write-Output "Mailbox GUID = $($userInformation.MailboxGuid)"
     Write-Output "Mailbox Database: $($userInformation.Database)"

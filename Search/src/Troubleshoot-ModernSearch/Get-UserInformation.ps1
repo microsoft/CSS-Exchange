@@ -1,7 +1,14 @@
 Function Get-UserInformation {
     [CmdletBinding()]
     param(
-        [string]$UserEmail
+        [string]
+        $UserEmail,
+
+        [bool]
+        $IsArchive,
+
+        [bool]
+        $IsPublicFolder
     )
 
     begin {
@@ -13,7 +20,7 @@ Function Get-UserInformation {
 
         try {
             $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
-            $mailboxInfo = Get-Mailbox -Identity $UserEmail -ErrorAction Stop
+            $mailboxInfo = Get-Mailbox -Identity $UserEmail -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
             $mbxGuid = $mailboxInfo.ExchangeGuid.Guid
             $databaseName = $mailboxInfo.Database.ToString()
 
