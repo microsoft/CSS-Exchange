@@ -434,7 +434,8 @@ Function UnifiedMessagingMitigation {
 
     # UM doesn't apply to Exchange Server 2019
     $exchangeVersion = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup\')
-    if ($exchangeVersion.OwaVersion -notlike "15.0.*") {
+    if ($exchangeVersion.OwaVersion -notmatch "15\.[01]") {
+        Write-Verbose "[INFO] Skipping UM Mitigation for Exchange 2019"
         return
     }
 
