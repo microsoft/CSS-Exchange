@@ -82,6 +82,7 @@ Function Get-MessageIndexState {
             }
         }
 
+        $storeQueryHandler.IsUnlimited = $true
         [array]$messages = $storeQueryHandler.InvokeGetStoreQuery()
 
         if ([string]::IsNullOrEmpty($messages.MessageDocumentId) -or
