@@ -227,6 +227,15 @@ Function Main {
                 Receive-Output ""
             }
         }
+    } else {
+
+        if ($null -ne $DocumentId -and
+            $DocumentId -ne 0) {
+            Receive-Output "Failed to find message with Document ID: $DocumentId"
+        } else {
+            Receive-Output "Failed to find message with subject '$ItemSubject'"
+            Receive-Output "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
+        }
     }
 }
 
