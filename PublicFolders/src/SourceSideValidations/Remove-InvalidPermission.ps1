@@ -6,23 +6,47 @@ function Remove-InvalidPermission {
         $CsvFile
     )
 
-    $badPermissions = Import-Csv $csvFile
-    $byEntryId = $badPermissions | Group-Object EntryId
-    $progressCount = 0
-    $badPermissions | Select-Object -Unique EntryId | ForEach-Object {
-        $progressCount++
-        Write-Progress -Activity "Removing invalid permissions" -Status "$progressCount / $($byEntryId.Count)" -PercentComplete ($progressCount * 100 / $byEntryId.Count) -CurrentOperation $_.Identity
-        $folder = $_
-        Get-PublicFolderClientPermission -Identity $folder.EntryId | ForEach-Object {
-            if (
-                ($_.User.DisplayName -ne "Default") -and
-                ($_.User.DisplayName -ne "Anonymous") -and
-                ($null -eq $_.User.ADRecipient) -and
-                ($_.User.UserType -eq "Unknown")
-            ) {
-                Write-Host "Removing $($_.User.DisplayName) from folder $($_.Identity.ToString())"
-                $_ | Remove-PublicFolderClientPermission
+    begin {
+
+        $progressParams = @{
+            Activity = "Removing invalid permissions"
+        }
+
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+    }
+
+    process {
+
+        $badPermissions = Import-Csv $csvFile
+        $progressCount = 0
+        $entryIdsProcessed = New-Object 'System.Collections.Generic.HashSet[string]'
+        foreach ($permission in $badPermissions) {
+            $progressCount++
+            if ($sw.ElapsedMilliseconds -gt 1000) {
+                $sw.Restart()
+                Write-Progress @progressParams -Status "$progressCount / $($badPermissions.Count)" -PercentComplete ($progressCount * 100 / $badPermissions.Count) -CurrentOperation $permission.Identity
+            }
+
+            if (-not $entryIdsProcessed.Contains($permission.EntryId)) {
+                $entryIdsProcessed.Add($permission.EntryId) | Out-Null
+                $permsOnFolder = Get-PublicFolderClientPermission -Identity $permission.EntryId
+                $permsOnFolder | ForEach-Object {
+                    if (
+                        ($_.User.DisplayName -ne "Default") -and
+                        ($_.User.DisplayName -ne "Anonymous") -and
+                        ($null -eq $_.User.ADRecipient) -and
+                        ($_.User.UserType -eq "Unknown")
+                    ) {
+                        if ($PSCmdlet.ShouldProcess("$($permission.Identity)", "Remove $($_.User.DisplayName)")) {
+                            Write-Host "Removing $($_.User.DisplayName) from folder $($permission.Identity)"
+                            $_ | Remove-PublicFolderClientPermission -Confirm:$false
+                        }
+                    }
+                }
             }
         }
     }
+
+    end {}
 }
