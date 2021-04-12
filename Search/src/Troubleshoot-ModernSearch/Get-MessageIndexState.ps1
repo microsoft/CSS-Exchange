@@ -117,6 +117,7 @@ Function Get-MessageIndexState {
                     FolderId                               = $messages[$i].FolderId
                     DisplayName                            = $displayName
                     MessageSubject                         = $messages[$i].p0E1D001F
+                    IndexStatus                            = (Get-IndexStateOfMessage -Message $messages[$i] -BigFunnelPropNameMapping $extPropMapping)
                     BigFunnelIndexingStart                 = $messages[$i].($extPropMapping.BigFunnelIndexingStart)
                     IndexingAttemptCount                   = $messages[$i].($extPropMapping.IndexingAttemptCount)
                     IndexingBatchRetryAttemptCount         = $messages[$i].($extPropMapping.IndexingBatchRetryAttemptCount)
