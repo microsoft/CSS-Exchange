@@ -5,6 +5,23 @@ Function Get-BigFunnelPropertyNameMapping {
         [int]$MailboxNumber
     )
 
+    begin {
+        $bigFunnelPropNameMapping = New-Object PSCustomObject
+        $propMatchings = [PSCustomObject]@{
+            BigFunnelCorrelationId         = "p{0:x}0048"
+            BigFunnelIndexingStart         = "p{0:x}0040"
+            IndexingAttemptCount           = "p{0:x}0003"
+            IndexingBatchRetryAttemptCount = "p{0:x}0003"
+            IndexingErrorCode              = "p{0:x}0003"
+            IndexingErrorMessage           = "p{0:x}001F"
+            ErrorProperties                = "p{0:x}101F"
+            ErrorTags                      = "p{0:x}101F"
+            IsPartiallyIndexed             = "p{0:x}000B"
+            IsPermanentFailure             = "p{0:x}000B"
+            LastIndexingAttemptTime        = "p{0:x}0040"
+            DetectedLanguage               = "p{0:x}0003"
+        }
+    }
     process {
         $StoreQueryHandler.ResetQueryInstances()
         $StoreQueryHandler.SetSelect(@(
@@ -23,24 +40,13 @@ Function Get-BigFunnelPropertyNameMapping {
         $StoreQueryHandler.IsUnlimited = $true
         $result = $StoreQueryHandler.InvokeGetStoreQuery()
 
-        $propsTable = @{}
         for ($i = 0; $i -lt $result.Count; $i++) {
-            $propsTable.Add($result.PropName[$i], $result.PropNumber[$i])
+            $bigFunnelPropNameMapping | Add-Member -MemberType NoteProperty -Name ($result.PropName[$i]) -Value (
+                $propMatchings."$($result.PropName[$i])" -f $result.PropNumber[$i]
+            )
         }
     }
     end {
-        return [PSCustomObject]@{
-            BigFunnelCorrelationId  = "p{0:x}0048" -f $propsTable.BigFunnelCorrelationId
-            BigFunnelIndexingStart  = "p{0:x}0040" -f $propsTable.BigFunnelIndexingStart
-            IndexingAttemptCount    = "p{0:x}0003" -f $propsTable.IndexingBatchRetryAttemptCount
-            IndexingErrorCode       = "p{0:x}0003" -f $propsTable.IndexingErrorCode
-            IndexingErrorMessage    = "p{0:x}001F" -f $propsTable.IndexingErrorMessage
-            ErrorProperties         = "p{0:x}101F" -f $propsTable.ErrorProperties
-            ErrorTags               = "p{0:x}101F" -f $propsTable.ErrorTags
-            IsPartiallyIndexed      = "p{0:x}000B" -f $propsTable.IsPartiallyIndexed
-            IsPermanentFailure      = "p{0:x}000B" -f $propsTable.IsPermanentFailure
-            LastIndexingAttemptTime = "p{0:x}0040" -f $propsTable.LastIndexingAttemptTime
-            DetectedLanguage        = "p{0:x}0003" -f $propsTable.DetectedLanguage
-        }
+        return $bigFunnelPropNameMapping
     }
 }

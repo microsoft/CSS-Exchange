@@ -1,7 +1,7 @@
 Function Get-StoreQueryHandler {
     [CmdletBinding()]
     param(
-        [object]$UserInformation,
+        [object]$MailboxInformation,
         [scriptblock]$VerboseDiagnosticsCaller
     )
     begin {
@@ -15,9 +15,9 @@ Function Get-StoreQueryHandler {
             $VerboseCaller = $VerboseDiagnosticsCaller
         }
 
-        $ProcessId = $UserInformation.DBWorkerID
-        $Server = $UserInformation.PrimaryServer
-        $MailboxGuid = $UserInformation.MailboxGuid
+        $ProcessId = $MailboxInformation.DBWorkerID
+        $Server = $MailboxInformation.PrimaryServer
+        $MailboxGuid = $MailboxInformation.MailboxGuid
     }
     end {
         $obj = [PSCustomObject]@{
@@ -114,15 +114,17 @@ Function AddToWhere {
 
 Function InvokeGetStoreQuery {
 
-    $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
+    if (-not([string]::IsNullOrEmpty($this.WherePartQuery))) {
+        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
+    } else {
+        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery)"
+    }
+
     $myParams = @{
         Server    = $this.Server
         ProcessId = $this.ProcessId
         Query     = $query
-    }
-
-    if ($this.IsUnlimited) {
-        $myParams["Unlimited"] = $true
+        Unlimited = $this.IsUnlimited
     }
 
     $this.WriteVerbose("Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'")

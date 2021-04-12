@@ -1,4 +1,4 @@
-Function Get-BasicUserQueryContext {
+Function Get-BasicMailboxQueryContext {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler

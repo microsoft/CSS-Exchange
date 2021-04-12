@@ -3,7 +3,7 @@ Function Get-MessageIndexState {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [object]$BasicUserQueryContext,
+        [object]$BasicMailboxQueryContext,
 
         [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]
         [ValidateNotNullOrEmpty()]
@@ -11,7 +11,7 @@ Function Get-MessageIndexState {
 
         [Parameter(Mandatory = $false, ParameterSetName = "SubjectAndFolder")]
         [ValidateNotNullOrEmpty()]
-        [string]$FolderId,
+        [object[]]$FolderInformation,
 
         [Parameter(Mandatory = $false, ParameterSetName = "SubjectAndFolder")]
         [ValidateNotNullOrEmpty()]
@@ -23,10 +23,11 @@ Function Get-MessageIndexState {
 
     begin {
         $messageList = New-Object 'System.Collections.Generic.List[object]'
+        $cacheFolderNames = @{}
     }
     process {
-        $storeQueryHandler = $BasicUserQueryContext.StoreQueryHandler
-        $extPropMapping = $BasicUserQueryContext.ExtPropMapping
+        $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
+        $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler.ResetQueryInstances()
 
         $addSelect = @($extPropMapping | Get-Member |
@@ -36,6 +37,7 @@ Function Get-MessageIndexState {
         $storeQueryHandler.SetSelect(@(
                 "FolderId",
                 "MessageDocumentId",
+                "p0E1D001F"
                 "MessageClass",
                 "BigFunnelPOI",
                 "BigFunnelPOIIsUpToDate",
@@ -52,7 +54,7 @@ Function Get-MessageIndexState {
         $storeQueryHandler.AddToSelect($addSelect)
 
         $storeQueryHandler.SetFrom("Message")
-        $storeQueryHandler.SetWhere("MailboxNumber = $($BasicUserQueryContext.MailboxNumber)")
+        $storeQueryHandler.SetWhere("MailboxNumber = $($BasicMailboxQueryContext.MailboxNumber)")
 
         if ($null -ne $DocumentId -and
             $DocumentId -ne 0) {
@@ -65,11 +67,22 @@ Function Get-MessageIndexState {
                 $storeQueryHandler.AddToWhere(" and Subject = `"$MessageSubject`"")
             }
 
-            if (-not [string]::IsNullOrEmpty($FolderId)) {
-                $storeQueryHandler.AddToWhere(" and FolderId = '$FolderId'")
+            if ($null -ne $FolderInformation -and
+                $FolderInformation.Count -ne 0) {
+
+                if ($FolderInformation.Count -eq 1) {
+                    $storeQueryHandler.AddToWhere(" and FolderId = '$FolderId'")
+                } else {
+                    $folderFilter = ($FolderInformation.FolderId |
+                            ForEach-Object {
+                                "FolderId='$_'"
+                            }) -join " or "
+                    $storeQueryHandler.AddToWhere(" and ($folderFilter)")
+                }
             }
         }
 
+        $storeQueryHandler.IsUnlimited = $true
         [array]$messages = $storeQueryHandler.InvokeGetStoreQuery()
 
         if ([string]::IsNullOrEmpty($messages.MessageDocumentId) -or
@@ -79,9 +92,32 @@ Function Get-MessageIndexState {
         }
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
+            $folderId = $messages[$i].FolderId
+
+            $displayName = "NULL"
+
+            if ($null -ne $FolderInformation -and
+                $FolderInformation.Count -ne 0) {
+                $messageFolderInfo = $FolderInformation |
+                    Where-Object { $_.FolderId -eq $FolderId }
+
+                $displayName = $messageFolderInfo.DisplayName
+            } elseif (-not([string]::IsNullOrEmpty($folderId))) {
+
+                if (-not($cacheFolderNames.ContainsKey($folderId))) {
+                    $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $folderId
+                    $cacheFolderNames.Add($folderId, $folderInformation.DisplayName)
+                }
+
+                $displayName = $cacheFolderNames[$folderId]
+            }
+
             $messageList.Add(
                 [PSCustomObject]@{
                     FolderId                               = $messages[$i].FolderId
+                    DisplayName                            = $displayName
+                    MessageSubject                         = $messages[$i].p0E1D001F
+                    IndexStatus                            = (Get-IndexStateOfMessage -Message $messages[$i] -BigFunnelPropNameMapping $extPropMapping)
                     BigFunnelIndexingStart                 = $messages[$i].($extPropMapping.BigFunnelIndexingStart)
                     IndexingAttemptCount                   = $messages[$i].($extPropMapping.IndexingAttemptCount)
                     IndexingBatchRetryAttemptCount         = $messages[$i].($extPropMapping.IndexingBatchRetryAttemptCount)
