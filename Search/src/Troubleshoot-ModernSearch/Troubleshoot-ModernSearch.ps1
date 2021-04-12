@@ -30,10 +30,10 @@ param(
     [string]
     $QueryString,
 
-    [bool]
+    [switch]
     $IsArchive,
 
-    [bool]
+    [switch]
     $IsPublicFolder
 )
 
