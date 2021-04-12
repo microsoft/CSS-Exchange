@@ -17,14 +17,14 @@ param(
     [string]
     $FolderName,
 
-    [Parameter(Mandatory = $true, ParameterSetName = "DocumentId")]
-    [int]
-    $DocumentId,
-
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false, ParameterSetName = "SubjectAndFolder")]
     [ValidateNotNullOrEmpty()]
     [switch]
     $MatchSubjectSubstring,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "DocumentId")]
+    [int]
+    $DocumentId,
 
     [ValidateNotNullOrEmpty()]
     [string]
