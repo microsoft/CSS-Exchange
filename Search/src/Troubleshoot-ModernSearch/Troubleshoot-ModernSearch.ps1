@@ -50,14 +50,14 @@ $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime
 Function Write-LogInformation {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object]$Object,
+        [object[]]$Object,
         [bool]$VerboseEnabled = $VerbosePreference
     )
 
     process {
 
         if ($VerboseEnabled) {
-            Write-Verbose $Object -Verbose
+            $Object | Write-Verbose -Verbose
         }
 
         $Object | Out-File -FilePath $Script:ScriptLogging -Append
@@ -67,7 +67,7 @@ Function Write-LogInformation {
 Function Receive-Output {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object]$Object,
+        [object[]]$Object,
         [switch]$Diagnostic
     )
 
@@ -76,9 +76,9 @@ Function Receive-Output {
         if (($Diagnostic -and
                 $VerbosePreference) -or
             -not ($Diagnostic)) {
-            Write-Output $Object
+            $Object | Write-Output
         } else {
-            Write-Verbose $Object
+            $Object | Write-Verbose
         }
 
         Write-LogInformation $Object -VerboseEnabled $false
@@ -123,13 +123,43 @@ Function Write-DisplayObjectInformation {
 }
 
 Function Main {
+    Receive-Output ""
     Receive-Output "Getting user mailbox information for $UserEmail"
+    @("UserEmail: '$UserEmail'",
+        "ItemSubject: '$ItemSubject'",
+        "FolderName: '$FolderName'",
+        "DocumentId: '$DocumentId'",
+        "MatchSubjectSubstring: '$MatchSubjectSubstring'",
+        "QueryString: '$QueryString'",
+        "IsArchive: '$IsArchive'",
+        "IsPublicFolder: '$IsPublicFolder'") | Receive-Output -Diagnostic
+    Receive-Output "" -Diagnostic
+
     $userInformation = Get-UserInformation -UserEmail $UserEmail -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
+    Receive-Output ""
+    Receive-Output "----------------------------------------"
+    Receive-Output "Basic User Information:"
     Receive-Output "Mailbox GUID = $($userInformation.MailboxGuid)"
     Receive-Output "Mailbox Database: $($userInformation.Database)"
     Receive-Output "Active Server: $($userInformation.PrimaryServer)"
     Receive-Output "Exchange Server Version: $($userInformation.ExchangeServer.AdminDisplayVersion)"
+    Receive-Output "----------------------------------------"
+    Receive-Output ""
+    Receive-Output "Big Funnel Count Information Based Off Get-MailboxStatistics"
+    Write-DisplayObjectInformation -DisplayObject $userInformation.MailboxStatistics -PropertyToDisplay @(
+        "BigFunnelMessageCount",
+        "BigFunnelIndexedCount",
+        "BigFunnelPartiallyIndexedCount",
+        "BigFunnelNotIndexedCount",
+        "BigFunnelCorruptedCount",
+        "BigFunnelStaleCount",
+        "BigFunnelShouldNotBeIndexedCount"
+    )
+    Receive-Output "----------------------------------------"
+    Receive-Output ""
+    Receive-Output ($userInformation.MailboxStatistics | Format-List) -Diagnostic
+    Receive-Output "" -Diagnostic
 
     $storeQueryHandler = Get-StoreQueryHandler -UserInformation $userInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
     $basicUserQueryContext = Get-BasicUserQueryContext -StoreQueryHandler $storeQueryHandler
@@ -147,6 +177,7 @@ Function Main {
         "CreationTime",
         "MailboxNumber"
     )
+    Receive-Output "----------------------------------------"
 
     if (-not([string]::IsNullOrEmpty($FolderName))) {
         $folderInformation = Get-FolderInformation -BasicUserQueryContext $basicUserQueryContext -DisplayName $FolderName
@@ -172,10 +203,13 @@ Function Main {
 
     if ($messages.Count -gt 0) {
 
+        Receive-Output "Found $($messages.Count) different messages"
+        Receive-Output "Messages Index State:"
+
         for ($i = 0; $i -lt $messages.Count; $i++) {
+            Receive-Output ""
             Receive-Output "Found Item $($i + 1): "
             Receive-Output $messages[$i]
-            Receive-Output ""
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
