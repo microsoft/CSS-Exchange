@@ -21,11 +21,17 @@ Function Get-MailboxInformation {
         try {
             $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
             $mailboxInfo = Get-Mailbox -Identity $Identity -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
-            $mbxGuid = $mailboxInfo.ExchangeGuid.Guid
-            $databaseName = $mailboxInfo.Database.ToString()
+
+            if ($IsArchive) {
+                $mbxGuid = $mailboxInfo.ArchiveGuid.ToString()
+                $databaseName = $mailboxInfo.ArchiveDatabase.ToString()
+            } else {
+                $mbxGuid = $mailboxInfo.ExchangeGuid.ToString()
+                $databaseName = $mailboxInfo.Database.ToString()
+            }
 
             $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
-            $mailboxStats = Get-MailboxStatistics -Identity $Identity
+            $mailboxStats = Get-MailboxStatistics -Identity $Identity -Archive:$IsArchive
 
             $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
             $dbCopyStatus = Get-MailboxDatabaseCopyStatus $databaseName\* |
