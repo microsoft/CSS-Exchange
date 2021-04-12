@@ -167,6 +167,12 @@ Function Main {
     Receive-Output ""
     Receive-Output ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
     Receive-Output "" -Diagnostic
+    Receive-Output ($mailboxInformation.DatabaseStatus | Format-List) -Diagnostic
+    Receive-Output "" -Diagnostic
+    Receive-Output ($mailboxInformation.DatabaseCopyStatus | Format-List) -Diagnostic
+    Receive-Output "" -Diagnostic
+    Receive-Output ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
+    Receive-Output "" -Diagnostic
 
     $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
