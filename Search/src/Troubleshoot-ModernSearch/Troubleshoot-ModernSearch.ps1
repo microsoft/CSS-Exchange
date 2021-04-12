@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UserEmail,
+    $MailboxIdentity,
 
     [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]
     [ValidateNotNullOrEmpty()]
@@ -37,13 +37,13 @@ param(
     $IsPublicFolder
 )
 
-. $PSScriptRoot\Get-BasicUserQueryContext.ps1
+. $PSScriptRoot\Get-BasicMailboxQueryContext.ps1
 . $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
 . $PSScriptRoot\Get-FolderInformation.ps1
+. $PSScriptRoot\Get-MailboxInformation.ps1
 . $PSScriptRoot\Get-MessageIndexState.ps1
 . $PSScriptRoot\Get-QueryItemResult.ps1
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
-. $PSScriptRoot\Get-UserInformation.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -124,8 +124,8 @@ Function Write-DisplayObjectInformation {
 
 Function Main {
     Receive-Output ""
-    Receive-Output "Getting user mailbox information for $UserEmail"
-    @("UserEmail: '$UserEmail'",
+    Receive-Output "Getting user mailbox information for $MailboxIdentity"
+    @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
         "FolderName: '$FolderName'",
         "DocumentId: '$DocumentId'",
@@ -135,19 +135,19 @@ Function Main {
         "IsPublicFolder: '$IsPublicFolder'") | Receive-Output -Diagnostic
     Receive-Output "" -Diagnostic
 
-    $userInformation = Get-UserInformation -UserEmail $UserEmail -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
+    $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
     Receive-Output ""
     Receive-Output "----------------------------------------"
-    Receive-Output "Basic User Information:"
-    Receive-Output "Mailbox GUID = $($userInformation.MailboxGuid)"
-    Receive-Output "Mailbox Database: $($userInformation.Database)"
-    Receive-Output "Active Server: $($userInformation.PrimaryServer)"
-    Receive-Output "Exchange Server Version: $($userInformation.ExchangeServer.AdminDisplayVersion)"
+    Receive-Output "Basic Mailbox Information:"
+    Receive-Output "Mailbox GUID = $($mailboxInformation.MailboxGuid)"
+    Receive-Output "Mailbox Database: $($mailboxInformation.Database)"
+    Receive-Output "Active Server: $($mailboxInformation.PrimaryServer)"
+    Receive-Output "Exchange Server Version: $($mailboxInformation.ExchangeServer.AdminDisplayVersion)"
     Receive-Output "----------------------------------------"
     Receive-Output ""
     Receive-Output "Big Funnel Count Information Based Off Get-MailboxStatistics"
-    Write-DisplayObjectInformation -DisplayObject $userInformation.MailboxStatistics -PropertyToDisplay @(
+    Write-DisplayObjectInformation -DisplayObject $mailboxInformation.MailboxStatistics -PropertyToDisplay @(
         "BigFunnelMessageCount",
         "BigFunnelIndexedCount",
         "BigFunnelPartiallyIndexedCount",
@@ -158,13 +158,13 @@ Function Main {
     )
     Receive-Output "----------------------------------------"
     Receive-Output ""
-    Receive-Output ($userInformation.MailboxStatistics | Format-List) -Diagnostic
+    Receive-Output ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
     Receive-Output "" -Diagnostic
 
-    $storeQueryHandler = Get-StoreQueryHandler -UserInformation $userInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
-    $basicUserQueryContext = Get-BasicUserQueryContext -StoreQueryHandler $storeQueryHandler
+    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
+    $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
-    Write-DisplayObjectInformation -DisplayObject $basicUserQueryContext -PropertyToDisplay @(
+    Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(
         "BigFunnelIsEnabled",
         "FastIsEnabled",
         "BigFunnelMailboxCreationVersion",
@@ -180,11 +180,11 @@ Function Main {
     Receive-Output "----------------------------------------"
 
     if (-not([string]::IsNullOrEmpty($FolderName))) {
-        $folderInformation = Get-FolderInformation -BasicUserQueryContext $basicUserQueryContext -DisplayName $FolderName
+        $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName
     }
 
     $passParams = @{
-        BasicUserQueryContext = $basicUserQueryContext
+        BasicMailboxQueryContext = $basicMailboxQueryContext
     }
 
     if ($null -ne $DocumentId -and
@@ -213,7 +213,10 @@ Function Main {
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
-            $queryItemResults = Get-QueryItemResult -BasicUserQueryContext $basicUserQueryContext -DocumentId ($messages.MessageDocumentId) -QueryString $QueryString -QueryScope "SearchAllIndexedProps"
+            $queryItemResults = Get-QueryItemResult -BasicMailboxQueryContext $basicMailboxQueryContext `
+                -DocumentId ($messages.MessageDocumentId) `
+                -QueryString $QueryString `
+                -QueryScope "SearchAllIndexedProps"
 
             foreach ($item in $queryItemResults) {
                 Write-DisplayObjectInformation -DisplayObject $item -PropertyToDisplay @(

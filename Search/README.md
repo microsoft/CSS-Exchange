@@ -7,5 +7,5 @@ This script is still in development. However, this should be able to quickly det
 ## Example
 
 ```
-.\Troubleshoot-ModernSearch.ps1 -UserEmail han@solo.com -ItemSubject "Test Message"
+.\Troubleshoot-ModernSearch.ps1 -MailboxIdentity han@solo.com -ItemSubject "Test Message"
 ```

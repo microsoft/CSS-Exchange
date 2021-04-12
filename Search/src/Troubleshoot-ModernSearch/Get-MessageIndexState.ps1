@@ -3,7 +3,7 @@ Function Get-MessageIndexState {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [object]$BasicUserQueryContext,
+        [object]$BasicMailboxQueryContext,
 
         [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]
         [ValidateNotNullOrEmpty()]
@@ -26,8 +26,8 @@ Function Get-MessageIndexState {
         $cacheFolderNames = @{}
     }
     process {
-        $storeQueryHandler = $BasicUserQueryContext.StoreQueryHandler
-        $extPropMapping = $BasicUserQueryContext.ExtPropMapping
+        $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
+        $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler.ResetQueryInstances()
 
         $addSelect = @($extPropMapping | Get-Member |
@@ -54,7 +54,7 @@ Function Get-MessageIndexState {
         $storeQueryHandler.AddToSelect($addSelect)
 
         $storeQueryHandler.SetFrom("Message")
-        $storeQueryHandler.SetWhere("MailboxNumber = $($BasicUserQueryContext.MailboxNumber)")
+        $storeQueryHandler.SetWhere("MailboxNumber = $($BasicMailboxQueryContext.MailboxNumber)")
 
         if ($null -ne $DocumentId -and
             $DocumentId -ne 0) {
@@ -104,7 +104,7 @@ Function Get-MessageIndexState {
             } elseif (-not([string]::IsNullOrEmpty($folderId))) {
 
                 if (-not($cacheFolderNames.ContainsKey($folderId))) {
-                    $folderInformation = Get-FolderInformation -BasicUserQueryContext $BasicUserQueryContext -FolderId $folderId
+                    $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $folderId
                     $cacheFolderNames.Add($folderId, $folderInformation.DisplayName)
                 }
 

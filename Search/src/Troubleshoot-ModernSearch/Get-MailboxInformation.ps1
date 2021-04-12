@@ -1,8 +1,8 @@
-Function Get-UserInformation {
+Function Get-MailboxInformation {
     [CmdletBinding()]
     param(
         [string]
-        $UserEmail,
+        $Identity,
 
         [bool]
         $IsArchive,
@@ -19,39 +19,39 @@ Function Get-UserInformation {
     process {
 
         try {
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
-            $mailboxInfo = Get-Mailbox -Identity $UserEmail -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
+            $mailboxInfo = Get-Mailbox -Identity $Identity -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
             $mbxGuid = $mailboxInfo.ExchangeGuid.Guid
             $databaseName = $mailboxInfo.Database.ToString()
 
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
-            $mailboxStats = Get-MailboxStatistics -Identity $UserEmail
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
+            $mailboxStats = Get-MailboxStatistics -Identity $Identity
 
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
             $dbCopyStatus = Get-MailboxDatabaseCopyStatus $databaseName\* |
                 Where-Object {
                     $_.Status -like "*Mounted*"
                 }
             $primaryServer = $dbCopyStatus.Name.Substring($dbCopyStatus.Name.IndexOf("\") + 1)
 
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
             $primaryServerInfo = Get-ExchangeServer -Identity $primaryServer
 
             if ($primaryServerInfo.AdminDisplayVersion.ToString() -notlike "Version 15.2*") {
                 throw "User isn't on an Exchange 2019 server"
             }
 
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
             $dbStatus = Get-MailboxDatabase -Identity $databaseName -Status
 
-            $diagnosticContext.Add("Get-UserInformation $($breadCrumb; $breadCrumb++)")
+            $diagnosticContext.Add("Get-MailboxInformation $($breadCrumb; $breadCrumb++)")
         } catch {
-            throw "Failed to find '$UserEmail' information. InnerException: $($Error[0].Exception)"
+            throw "Failed to find '$Identity' information. InnerException: $($Error[0].Exception)"
         }
     }
     end {
         return [PSCustomObject]@{
-            UserEmail          = $UserEmail
+            Identity           = $Identity
             MailboxGuid        = $mbxGuid
             PrimaryServer      = $primaryServer
             DBWorkerID         = $dbStatus.WorkerProcessId

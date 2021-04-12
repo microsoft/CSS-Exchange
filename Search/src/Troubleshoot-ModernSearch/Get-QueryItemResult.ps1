@@ -3,7 +3,7 @@ Function Get-QueryItemResult {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [object]$BasicUserQueryContext,
+        [object]$BasicMailboxQueryContext,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -26,8 +26,8 @@ Function Get-QueryItemResult {
     }
     process {
 
-        $storeQueryHandler = $BasicUserQueryContext.StoreQueryHandler
-        $mailboxNumber = $BasicUserQueryContext.MailboxNumber
+        $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
+        $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
 
         foreach ($docId in $DocumentId) {
 

@@ -3,7 +3,7 @@ Function Get-FolderInformation {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [object]$BasicUserQueryContext,
+        [object]$BasicMailboxQueryContext,
 
         [Parameter(Mandatory = $true, ParameterSetName = "DisplayName")]
         [ValidateNotNullOrEmpty()]
@@ -15,10 +15,10 @@ Function Get-FolderInformation {
     )
     begin {
         $folderList = New-Object 'System.Collections.Generic.List[object]'
-        $mailboxNumber = $BasicUserQueryContext.MailboxNumber
+        $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
     }
     process {
-        $storeQueryHandler = $BasicUserQueryContext.StoreQueryHandler
+        $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
         $storeQueryHandler.ResetQueryInstances()
 
         if (-not([string]::IsNullOrEmpty($DisplayName))) {

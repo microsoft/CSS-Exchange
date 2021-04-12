@@ -1,7 +1,7 @@
 Function Get-StoreQueryHandler {
     [CmdletBinding()]
     param(
-        [object]$UserInformation,
+        [object]$MailboxInformation,
         [scriptblock]$VerboseDiagnosticsCaller
     )
     begin {
@@ -15,9 +15,9 @@ Function Get-StoreQueryHandler {
             $VerboseCaller = $VerboseDiagnosticsCaller
         }
 
-        $ProcessId = $UserInformation.DBWorkerID
-        $Server = $UserInformation.PrimaryServer
-        $MailboxGuid = $UserInformation.MailboxGuid
+        $ProcessId = $MailboxInformation.DBWorkerID
+        $Server = $MailboxInformation.PrimaryServer
+        $MailboxGuid = $MailboxInformation.MailboxGuid
     }
     end {
         $obj = [PSCustomObject]@{
