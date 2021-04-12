@@ -1,5 +1,5 @@
 function Remove-InvalidPermission {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter()]
         [string]
@@ -21,7 +21,7 @@ function Remove-InvalidPermission {
                 ($_.User.UserType -eq "Unknown")
             ) {
                 Write-Host "Removing $($_.User.DisplayName) from folder $($_.Identity.ToString())"
-                $_ | Remove-PublicFolderClientPermission -Confirm:$false
+                $_ | Remove-PublicFolderClientPermission
             }
         }
     }

@@ -26,12 +26,12 @@
             $nonIpmSubtree = Import-Csv $PSScriptRoot\NonIpmSubtree.csv
         } else {
             $nonIpmSubtree = Get-PublicFolder \non_ipm_subtree -Recurse -ResultSize Unlimited |
-                Select-Object Identity, EntryId, DumpsterEntryId |
+                Select-Object Identity, EntryId, DumpsterEntryId, MailEnabled |
                 ForEach-Object {
                     $progressCount++
                     $currentFolder = $_.Identity.ToString()
                     try {
-                        # Updating progress too often has a perf impact, so we only update every 100 folders.
+                        # Updating progress too often has a perf impact, so we only update every second.
                         if ($sw.ElapsedMilliseconds -gt 1000) {
                             $sw.Restart()
                             Write-Progress @progressParams -Status $progressCount
@@ -41,6 +41,7 @@
                             Identity        = $_.Identity.ToString()
                             EntryId         = $_.EntryId.ToString()
                             DumpsterEntryId = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
+                            MailEnabled     = $_.MailEnabled
                         }
                     } catch {
                         $errors++
