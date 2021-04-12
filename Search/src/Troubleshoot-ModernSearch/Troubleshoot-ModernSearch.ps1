@@ -26,6 +26,10 @@ param(
     [int]
     $DocumentId,
 
+    [Parameter(Mandatory = $true, ParameterSetName = "MailboxIndexStatistics")]
+    [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
+    [string]$Category,
+
     [ValidateNotNullOrEmpty()]
     [string]
     $QueryString,
@@ -40,6 +44,8 @@ param(
 . $PSScriptRoot\Get-BasicMailboxQueryContext.ps1
 . $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
 . $PSScriptRoot\Get-FolderInformation.ps1
+. $PSScriptRoot\Get-IndexStateOfMessage.ps1
+. $PSScriptRoot\Get-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Get-MailboxInformation.ps1
 . $PSScriptRoot\Get-MessageIndexState.ps1
 . $PSScriptRoot\Get-QueryItemResult.ps1
@@ -130,6 +136,7 @@ Function Main {
         "FolderName: '$FolderName'",
         "DocumentId: '$DocumentId'",
         "MatchSubjectSubstring: '$MatchSubjectSubstring'",
+        "Category: '$Category'",
         "QueryString: '$QueryString'",
         "IsArchive: '$IsArchive'",
         "IsPublicFolder: '$IsPublicFolder'") | Receive-Output -Diagnostic
@@ -178,6 +185,46 @@ Function Main {
         "MailboxNumber"
     )
     Receive-Output "----------------------------------------"
+
+    if (-not([string]::IsNullOrEmpty($Category))) {
+
+        $mailboxStats = $mailboxInformation.MailboxStatistics
+
+        $totalIndexableItems = ($mailboxStats.AssociatedItemCount + $mailboxStats.ItemCount) - $mailboxStats.BigFunnelShouldNotBeIndexedCount
+
+        [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -Category $Category
+
+        if ($messages.Count -gt 0) {
+            Receive-Output ""
+            Receive-Output "All Indexable Items Count: $totalIndexableItems"
+            Receive-Output ""
+            $groupedStatus = $messages | Group-Object MessageStatus
+
+            foreach ($statusGrouping in $groupedStatus) {
+
+                Receive-Output "---------------------"
+                Receive-Output "Message Index Status: $($statusGrouping.Name)"
+                Receive-Output "---------------------"
+                $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
+                foreach ($result in $groupedResults) {
+                    $obj = [PSCustomObject]@{
+                        TotalItems         = $result.Count
+                        ErrorMessage       = $result.Values[0]
+                        IsPermanentFailure = $result.Values[1]
+                    }
+
+                    Write-DisplayObjectInformation -DisplayObject $obj -PropertyToDisplay @(
+                        "TotalItems",
+                        "ErrorMessage",
+                        "IsPermanentFailure")
+                    Receive-Output ""
+                }
+            }
+        } else {
+            Receive-Output "Failed to find any results when doing a search on the category $Category"
+        }
+        return
+    }
 
     if (-not([string]::IsNullOrEmpty($FolderName))) {
         $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName

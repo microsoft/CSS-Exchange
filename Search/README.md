@@ -13,6 +13,7 @@ ItemSubject | Provide the message's subject name. Must be exact if `-MatchSubjec
 MatchSubjectSubstring | Enable to perform a `like` search in the mailbox with the value that is passed with `-ItemSubject`.
 FolderName | If you want to scope the search to a folder for better and faster results, include the name of the folder that the message is in.
 DocumentId | If you already know the document ID number for the mailbox, provide this. This can not be use with `-ItemSubject` parameter.
+Category | Provides a breakdown of the messages in the mailbox for that index category state. Possible options are: `All`, `Indexed`, `PartiallyIndexed`, `NotIndexed`, `Corrupted`, `Stale`, and `ShouldNotBeIndexed`. **NOTE:** Depending the item count, this can take a long while to complete.
 QueryString | Include a string that you are using to try to find this item, we will run an instant query against it to see if we can find it.
 IsArchive | Enable if you want to look at the archive mailbox.
 IsPublicFolder | Enable if you want to look at a public folder mailbox.
@@ -41,4 +42,16 @@ This is an example of how to run the script against a Public Folder Mailbox
 
 ```
 .\Troubleshoot-ModernSearch.ps1 -MailboxIdentity PFMailbox2 -ItemSubject "My Item Test" -IsPublicFolder
+```
+
+This is an example of how to run the script to get all the index state categories
+
+```
+.\Troubleshoot-ModernSearch.ps1 -MailboxIdentity "Zelda02" -Category "All"
+```
+
+This is an example of how to run the script to get all the non indexed items
+
+```
+.\Troubleshoot-ModernSearch.ps1 -MailboxIdentity "Zelda02" -Category "NotIndexed"
 ```
