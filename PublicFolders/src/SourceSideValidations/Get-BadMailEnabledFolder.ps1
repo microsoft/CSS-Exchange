@@ -27,7 +27,7 @@
 
         $mailEnabledFoldersWithNoADObject = @()
         $mailPublicFoldersLinked = New-Object 'System.Collections.Generic.Dictionary[string, object]'
-        $progressParams.Activity = "Checking for missing AD objects"
+        $progressParams.CurrentOperation = "Checking for missing AD objects"
         $startTimeForThisCheck = Get-Date
         for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
             $progressCount++
@@ -49,7 +49,7 @@
         }
 
         $progressCount = 0
-        $progressParams.Activity = "Getting all MailPublicFolder objects"
+        $progressParams.CurrentOperation = "Getting all MailPublicFolder objects"
         $allMailPublicFolders = @(Get-MailPublicFolder -ResultSize Unlimited | ForEach-Object {
                 $progressCount++
                 if ($sw.ElapsedMilliseconds -gt 1000) {
@@ -60,7 +60,7 @@
 
 
         $progressCount = 0
-        $progressParams.Activity = "Checking for orphaned MailPublicFolders"
+        $progressParams.CurrentOperation = "Checking for orphaned MailPublicFolders"
         $orphanedMailPublicFolders = @($allMailPublicFolders | ForEach-Object {
                 $progressCount++
                 if ($sw.ElapsedMilliseconds -gt 1000) {
@@ -74,7 +74,7 @@
             })
 
 
-        $progressParams.Activity = "Building EntryId HashSets"
+        $progressParams.CurrentOperation = "Building EntryId HashSets"
         Write-Progress @progressParams
         $byEntryId = New-Object 'System.Collections.Generic.Dictionary[string, object]'
         $FolderData.IpmSubtree | ForEach-Object { $byEntryId.Add($_.EntryId.ToString(), $_) }
@@ -86,7 +86,7 @@
         $orphanedMPFsThatPointToAMailEnabledFolder = @()
         $orphanedMPFsThatPointToNothing = @()
         $emailAddressMergeCommands = @()
-        $progressParams.Activity = "Checking for orphans that point to a valid folder"
+        $progressParams.CurrentOperation = "Checking for orphans that point to a valid folder"
         for ($i = 0; $i -lt $orphanedMailPublicFolders.Count; $i++) {
             if ($sw.ElapsedMilliseconds -gt 1000) {
                 $sw.Restart()
