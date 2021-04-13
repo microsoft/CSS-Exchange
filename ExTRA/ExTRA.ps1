@@ -135,16 +135,15 @@ try {
 }
 
 if (Test-Path $outputPath) {
-    Write-Host "The trace can be created, started, and stopped from the command line. Note that"
-    Write-Host "the `"logman create`" commands should be run from CMD, not PowerShell."
+    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
     Write-Host
     Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
     Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p {79bb49e6-2a2c-46e4-9167-fa122525d540} -o c:\tracing\trace.etl -ow -f bin -max 1024" -ForegroundColor Green
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 1024" -ForegroundColor Green
     Write-Host
     Write-Host "To create a data collector which is circular and stops at 2 GB:"
     Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p {79bb49e6-2a2c-46e4-9167-fa122525d540} -o c:\tracing\trace.etl -ow -f bincirc -max 2048" -ForegroundColor Green
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048" -ForegroundColor Green
     Write-Host
     Write-Host "To start the trace:"
     Write-Host
