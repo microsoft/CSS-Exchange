@@ -28,8 +28,7 @@ function Remove-InvalidPermission {
                 Write-Progress @progressParams -Status "$progressCount / $($badPermissions.Count)" -PercentComplete ($progressCount * 100 / $badPermissions.Count) -CurrentOperation $permission.Identity
             }
 
-            if (-not $entryIdsProcessed.Contains($permission.EntryId)) {
-                $entryIdsProcessed.Add($permission.EntryId) | Out-Null
+            if ($entryIdsProcessed.Add($permission.EntryId)) {
                 $permsOnFolder = Get-PublicFolderClientPermission -Identity $permission.EntryId
                 $permsOnFolder | ForEach-Object {
                     if (
