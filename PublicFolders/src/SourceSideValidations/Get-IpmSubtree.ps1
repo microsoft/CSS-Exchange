@@ -1,13 +1,14 @@
 ﻿function Get-IpmSubtree {
     [CmdletBinding()]
     param (
-        [Parameter()]
-        [bool]
-        $startFresh = $true
+        [Parameter(Position = 0)]
+        [string]
+        $Server
     )
 
     begin {
-        $startTime = Get-Date
+        $WarningPreference = "SilentlyContinue"
+        Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
         $progressCount = 0
         $errors = 0
         $ipmSubtree = @()
@@ -15,8 +16,6 @@
         $sw.Start()
         $progressParams = @{
             Activity = "Retrieving IPM_SUBTREE folders"
-            Id       = 2
-            ParentId = 1
         }
     }
 
@@ -26,7 +25,7 @@
             $ipmSubtree = Import-Csv $PSScriptRoot\IpmSubtree.csv
         } else {
             $ipmSubtree = Get-PublicFolder -Recurse -ResultSize Unlimited |
-                Select-Object Identity, EntryId, ParentFolder, DumpsterEntryId, FolderPath, FolderSize, HasSubfolders, ContentMailboxName |
+                Select-Object Identity, EntryId, ParentFolder, DumpsterEntryId, FolderPath, FolderSize, HasSubfolders, ContentMailboxName, MailEnabled, MailRecipientGuid |
                 ForEach-Object {
                     $progressCount++
                     $currentFolder = $_.Identity.ToString()
@@ -37,15 +36,17 @@
                         }
 
                         [PSCustomObject]@{
-                            Identity        = $_.Identity.ToString()
-                            EntryId         = $_.EntryId.ToString()
-                            ParentEntryId   = $_.ParentFolder.ToString()
-                            DumpsterEntryId = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
-                            FolderPathDepth = $_.FolderPath.Depth
-                            FolderSize      = $_.FolderSize
-                            HasSubfolders   = $_.HasSubfolders
-                            ContentMailbox  = $_.ContentMailboxName
-                            ItemCount       = 0
+                            Identity          = $_.Identity.ToString()
+                            EntryId           = $_.EntryId.ToString()
+                            ParentEntryId     = $_.ParentFolder.ToString()
+                            DumpsterEntryId   = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
+                            FolderPathDepth   = $_.FolderPath.Depth
+                            FolderSize        = $_.FolderSize
+                            HasSubfolders     = $_.HasSubfolders
+                            ContentMailbox    = $_.ContentMailboxName
+                            MailEnabled       = $_.MailEnabled
+                            MailRecipientGuid = $_.MailRecipientGuid
+                            ItemCount         = 0
                         }
                     } catch {
                         $errors++
@@ -57,19 +58,10 @@
     }
 
     end {
-        if ($errors -lt 1) {
-            if ($progressCount -gt 0) {
-                Write-Progress @progressParams -Status "Saving"
-                $ipmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
-            }
-        } else {
-            $ipmSubtree = @()
-        }
-
         Write-Progress @progressParams -Completed
 
-        Write-Host "Get-IpmSubtree duration $((Get-Date) - $startTime) folder count $($ipmSubtree.Count)"
-
-        return $ipmSubtree
+        return [PSCustomObject]@{
+            IpmSubtree = $ipmSubtree
+        }
     }
 }
