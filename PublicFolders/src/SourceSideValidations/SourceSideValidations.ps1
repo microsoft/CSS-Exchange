@@ -91,7 +91,7 @@ $badPermissions = @(Get-BadPermission -FolderData $folderData)
 
 if ($badMailEnabled.FoldersToMailDisable.Count -gt 0) {
     $foldersToMailDisableFile = Join-Path $PSScriptRoot "FoldersToMailDisable.txt"
-    Set-Content -Path $foldersToMailDisableFile -Value $badMamilEnabled.FoldersToMailDisable
+    Set-Content -Path $foldersToMailDisableFile -Value $badMailEnabled.FoldersToMailDisable
 
     Write-Host
     Write-Host $badMailEnabled.FoldersToMailDisable.Count "folders should be mail-disabled, either because the MailRecipientGuid"
