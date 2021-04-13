@@ -28,11 +28,14 @@
         $mailEnabledFoldersWithNoADObject = @()
         $mailPublicFoldersLinked = New-Object 'System.Collections.Generic.Dictionary[string, object]'
         $progressParams.Activity = "Checking for missing AD objects"
+        $startTimeForThisCheck = Get-Date
         for ($i = 0; $i -lt $ipmSubtreeMailEnabled.Count; $i++) {
             $progressCount++
             if ($sw.ElapsedMilliseconds -gt 1000) {
                 $sw.Restart()
-                Write-Progress @progressParams -PercentComplete ($i * 100 / $ipmSubtreeMailEnabled.Count) -Status ("$i of $($ipmSubtreeMailEnabled.Count)")
+                $elapsed = ((Get-Date) - $startTimeForThisCheck)
+                $estimatedRemaining = [TimeSpan]::FromTicks($ipmSubtreeMailEnabled.Count / $progressCount * $elapsed.Ticks - $elapsed.Ticks).ToString("hh\:mm\:ss")
+                Write-Progress @progressParams -PercentComplete ($i * 100 / $ipmSubtreeMailEnabled.Count) -Status ("$i of $($ipmSubtreeMailEnabled.Count) Estimated time remaining: $estimatedRemaining")
             }
             $result = $ipmSubtreeMailEnabled[$i] | Get-MailPublicFolder -ErrorAction SilentlyContinue
             if ($null -eq $result) {
