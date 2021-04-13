@@ -1492,6 +1492,7 @@ Function Start-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.10" -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17142", "CVE-2020-17143"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1395.12", "1473.6", "1497.12" -CVENames "CVE-2021-26855", "CVE-2021-26857", "CVE-2021-26858", "CVE-2021-27065"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.12" -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.15" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -1549,8 +1550,8 @@ Function Start-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2106.13", "2176.9" -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
         }
 
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU20) {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU20) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.12", "2242.8" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
@@ -1591,8 +1592,8 @@ Function Start-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "721.13", "792.10" -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
         }
 
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU9) {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.13", "858.10" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
         }
     } else {
         Write-VerboseOutput("Unknown Version of Exchange")
