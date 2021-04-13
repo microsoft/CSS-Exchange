@@ -13,9 +13,7 @@ param (
     $CsvFile
 )
 
-. $PSScriptRoot\Get-IpmSubtree.ps1
-. $PSScriptRoot\Get-NonIpmSubtree.ps1
-. $PSScriptRoot\Get-ItemCount.ps1
+. $PSScriptRoot\Get-FolderData.ps1
 . $PSScriptRoot\Get-LimitsExceeded.ps1
 . $PSScriptRoot\Get-BadDumpsterMappings.ps1
 . $PSScriptRoot\Get-BadPermission.ps1
@@ -38,40 +36,14 @@ $progressParams = @{
     Id       = 1
 }
 
-Write-Progress @progressParams -Status "Step 1 of 8"
+Write-Progress @progressParams -Status "Step 1 of 5"
 
-$ipmSubtree = Get-IpmSubtree -startFresh $StartFresh
+$folderData = Get-FolderData -StartFresh $StartFresh
 
-if ($ipmSubtree.Count -lt 1) {
+if ($folderData.IpmSubtree.Count -lt 1) {
     return
 }
 
-Write-Progress @progressParams -Status "Step 2 of 8"
-
-$nonIpmSubtree = Get-NonIpmSubtree -startFresh $StartFresh
-
-Write-Progress @progressParams -Status "Step 3 of 8"
-
-$hashtableProgress = @{
-    Activity = "Populating hashtables"
-    Id       = 2
-    ParentId = 1
-}
-Write-Progress @hashtableProgress
-
-$folderData = [PSCustomObject]@{
-    IpmSubtree              = $ipmSubtree
-    IpmSubtreeByMailbox     = $ipmSubtree | Group-Object ContentMailbox
-    ParentEntryIdCounts     = @{}
-    EntryIdDictionary       = @{}
-    NonIpmSubtree           = $nonIpmSubtree
-    NonIpmEntryIdDictionary = @{}
-    MailboxToServerMap      = @{}
-}
-
-$ipmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
-$ipmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
-$nonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
 $script:anyDatabaseDown = $false
 Get-Mailbox -PublicFolder | ForEach-Object {
     try {
@@ -93,27 +65,21 @@ if ($script:anyDatabaseDown) {
     return
 }
 
-Write-Progress @hashtableProgress -Completed
-
-Write-Progress @progressParams -Status "Step 4 of 8"
-
-Get-ItemCount -FolderData $FolderData
-
 # Now we're ready to do the checks
 
-Write-Progress @progressParams -Status "Step 5 of 8"
+Write-Progress @progressParams -Status "Step 2 of 5"
 
 $badDumpsters = @(Get-BadDumpsterMappings -FolderData $folderData)
 
-Write-Progress @progressParams -Status "Step 6 of 8"
+Write-Progress @progressParams -Status "Step 3 of 5"
 
 $limitsExceeded = Get-LimitsExceeded -FolderData $folderData
 
-Write-Progress @progressParams -Status "Step 7 of 8"
+Write-Progress @progressParams -Status "Step 4 of 5"
 
 $badMailEnabled = Get-BadMailEnabledFolder -FolderData $folderData
 
-Write-Progress @progressParams -Status "Step 8 of 8"
+Write-Progress @progressParams -Status "Step 5 of 5"
 
 $badPermissions = @(Get-BadPermission -FolderData $folderData)
 

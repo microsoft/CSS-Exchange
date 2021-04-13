@@ -1,13 +1,14 @@
 ﻿function Get-IpmSubtree {
     [CmdletBinding()]
     param (
-        [Parameter()]
-        [bool]
-        $startFresh = $true
+        [Parameter(Position = 0)]
+        [string]
+        $Server
     )
 
     begin {
-        $startTime = Get-Date
+        $WarningPreference = "SilentlyContinue"
+        Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
         $progressCount = 0
         $errors = 0
         $ipmSubtree = @()
@@ -15,8 +16,6 @@
         $sw.Start()
         $progressParams = @{
             Activity = "Retrieving IPM_SUBTREE folders"
-            Id       = 2
-            ParentId = 1
         }
     }
 
@@ -59,19 +58,10 @@
     }
 
     end {
-        if ($errors -lt 1) {
-            if ($progressCount -gt 0) {
-                Write-Progress @progressParams -Status "Saving"
-                $ipmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
-            }
-        } else {
-            $ipmSubtree = @()
-        }
-
         Write-Progress @progressParams -Completed
 
-        Write-Host "Get-IpmSubtree duration $((Get-Date) - $startTime) folder count $($ipmSubtree.Count)"
-
-        return $ipmSubtree
+        return [PSCustomObject]@{
+            IpmSubtree = $ipmSubtree
+        }
     }
 }
