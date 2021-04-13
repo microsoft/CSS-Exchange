@@ -22,7 +22,7 @@ try {
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config
-                public string ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
+                public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
                 public Hashtable ApplicationPools = new Hashtable();
                 public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
                 public ExchangeServerMaintenance ServerMaintenance;

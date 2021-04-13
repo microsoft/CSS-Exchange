@@ -105,7 +105,11 @@ Function Start-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($exchangeInformation.BuildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "DAG Name" -Details ([System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)) `
+        $dagName = [System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)
+        if ([System.String]::IsNullOrWhiteSpace($dagName)) {
+            $dagName = "Standalone Server"
+        }
+        $analyzedResults = Add-AnalyzedResultInformation -Name "DAG Name" -Details $dagName `
             -DisplayGroupingKey $keyExchangeInformation `
             -AnalyzedInformation $analyzedResults
     }
@@ -170,10 +174,17 @@ Function Start-AnalyzerEngine {
     Write-VerboseOutput("Working on results from Test-ServiceHealth")
     $servicesNotRunning = $exchangeInformation.ExchangeServicesNotRunning
     if ($null -ne $servicesNotRunning) {
-
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Services Not Running" -Details $servicesNotRunning `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Services Not Running" `
             -DisplayGroupingKey $keyExchangeInformation `
             -AnalyzedInformation $analyzedResults
+
+        foreach ($stoppedService in $servicesNotRunning) {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $stoppedService `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2  `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
     }
 
     ##############################
