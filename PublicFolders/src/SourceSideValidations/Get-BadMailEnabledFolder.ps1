@@ -156,6 +156,7 @@
         }
 
         Write-Host "Get-BadMailEnabledFolder duration" ((Get-Date) - $startTime)
+        Write-Progress @progressParams -Completed
     }
 }
 
