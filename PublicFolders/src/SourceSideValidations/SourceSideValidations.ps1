@@ -8,9 +8,9 @@ param (
     [Switch]
     $RemoveInvalidPermissions,
 
-    [Parameter(Mandatory = $true, ParameterSetName = "RemoveInvalidPermissions")]
+    [Parameter(ParameterSetName = "RemoveInvalidPermissions")]
     [string]
-    $CsvFile
+    $CsvFile = (Join-Path $PSScriptRoot "InvalidPermissions.csv")
 )
 
 . $PSScriptRoot\Get-FolderData.ps1
@@ -23,7 +23,11 @@ param (
 . $PSScriptRoot\Get-BadMailEnabledFolder.ps1
 
 if ($RemoveInvalidPermissions) {
-    Remove-InvalidPermission -CsvFile $CsvFile
+    if (-not (Test-Path $CsvFile)) {
+        Write-Error "File not found: $CsvFile"
+    } else {
+        Remove-InvalidPermission -CsvFile $CsvFile
+    }
     return
 }
 
@@ -87,7 +91,7 @@ $badPermissions = @(Get-BadPermission -FolderData $folderData)
 
 if ($badMailEnabled.FoldersToMailDisable.Count -gt 0) {
     $foldersToMailDisableFile = Join-Path $PSScriptRoot "FoldersToMailDisable.txt"
-    Set-Content -Path $foldersToMailDisableFile -Value $badMamilEnabled.FoldersToMailDisable
+    Set-Content -Path $foldersToMailDisableFile -Value $badMailEnabled.FoldersToMailDisable
 
     Write-Host
     Write-Host $badMailEnabled.FoldersToMailDisable.Count "folders should be mail-disabled, either because the MailRecipientGuid"
@@ -209,7 +213,7 @@ if ($badPermissions.Count -gt 0) {
     Write-Host $badPermissions.Count "invalid permissions were found. These are listed in the following CSV file:"
     Write-Host $badPermissionsFile -ForegroundColor Green
     Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions switch as follows:"
-    Write-Host ".\SourceSideValidations.ps1 -RemoveInvalidPermissions -CsvFile $badPermissionsFile"
+    Write-Host ".\SourceSideValidations.ps1 -RemoveInvalidPermissions" -ForegroundColor Green
 }
 
 $folderCountMigrationLimit = 250000
