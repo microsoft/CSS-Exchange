@@ -37,7 +37,7 @@
                 $estimatedRemaining = [TimeSpan]::FromTicks($ipmSubtreeMailEnabled.Count / $progressCount * $elapsed.Ticks - $elapsed.Ticks).ToString("hh\:mm\:ss")
                 Write-Progress @progressParams -PercentComplete ($i * 100 / $ipmSubtreeMailEnabled.Count) -Status ("$i of $($ipmSubtreeMailEnabled.Count) Estimated time remaining: $estimatedRemaining")
             }
-            $result = Get-MailPublicFolder $ipmSubtreeMailEnabled[$i].EntryId
+            $result = Get-MailPublicFolder $ipmSubtreeMailEnabled[$i].Identity -ErrorAction SilentlyContinue
             if ($null -eq $result) {
                 $mailEnabledFoldersWithNoADObject += $ipmSubtreeMailEnabled[$i]
             } else {
