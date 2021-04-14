@@ -225,6 +225,8 @@ Function Invoke-RemoteMain {
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             $info = ($copyInfo -f ($Script:localExInstall + "Logging\Search"), ($Script:RootCopyToDirectory + "\Search"))
             $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
+            $info = ($copyInfo -f ($Script:localExInstall + "Logging\Monitoring\Search"), ($Script:RootCopyToDirectory + "\Search_Monitoring"))
+            $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
 
             if ($Script:localServerObject.Version -ge 19) {
                 $info = ($copyInfo -f ($Script:localExInstall + "Logging\BigFunnelMetricsCollectionAssistant"), ($Script:RootCopyToDirectory + "\BigFunnelMetricsCollectionAssistant"))
