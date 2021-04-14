@@ -93,5 +93,6 @@ steps:
       dist\*.nse
       dist\*.zip
       dist\*.txt
+      dist\*.csv
     addChangeLog: true
     isDraft: true
