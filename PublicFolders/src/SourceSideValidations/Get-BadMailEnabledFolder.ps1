@@ -20,9 +20,9 @@
     }
 
     process {
-        $nonIpmSubtreeMailEnabled = @($folderData.NonIpmSubtree | Where-Object { $_.MailEnabled })
-        $ipmSubtreeMailEnabled = @($folderData.IpmSubtree | Where-Object { $_.MailEnabled })
-        $mailDisabledWithProxyGuid = @($folderData.IpmSubtree | Where-Object { -not $_.MailEnabled -and $null -ne $_.MailRecipientGuid -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
+        $nonIpmSubtreeMailEnabled = @($FolderData.NonIpmSubtree | Where-Object { $_.MailEnabled -eq $true })
+        $ipmSubtreeMailEnabled = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -eq $true })
+        $mailDisabledWithProxyGuid = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -ne $true -and $null -ne $_.MailRecipientGuid -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
 
 
         $mailEnabledFoldersWithNoADObject = @()
@@ -37,7 +37,7 @@
                 $estimatedRemaining = [TimeSpan]::FromTicks($ipmSubtreeMailEnabled.Count / $progressCount * $elapsed.Ticks - $elapsed.Ticks).ToString("hh\:mm\:ss")
                 Write-Progress @progressParams -PercentComplete ($i * 100 / $ipmSubtreeMailEnabled.Count) -Status ("$i of $($ipmSubtreeMailEnabled.Count) Estimated time remaining: $estimatedRemaining")
             }
-            $result = Get-MailPublicFolder $ipmSubtreeMailEnabled[$i].EntryId -ErrorAction SilentlyContinue
+            $result = Get-MailPublicFolder $ipmSubtreeMailEnabled[$i].EntryId
             if ($null -eq $result) {
                 $mailEnabledFoldersWithNoADObject += $ipmSubtreeMailEnabled[$i]
             } else {
@@ -99,7 +99,7 @@
                 $partialEntryId = $thisMPF.ExternalEmailAddress.ToString().Substring(5).Replace("-", "")
                 $partialEntryId += "0000"
                 if ($byPartialEntryId.TryGetValue($partialEntryId, [ref]$pf)) {
-                    if ($pf.MailEnabled) {
+                    if ($pf.MailEnabled -eq $true) {
 
                         $command = GetCommandToMergeEmailAddresses $pf $thisMPF
                         if ($null -ne $command) {
@@ -116,7 +116,7 @@
             }
 
             if ($null -ne $thisMPF.EntryId -and $byEntryId.TryGetValue($thisMPF.EntryId.ToString(), [ref]$pf)) {
-                if ($pf.MailEnabled) {
+                if ($pf.MailEnabled -eq $true) {
 
                     $command = GetCommandToMergeEmailAddresses $pf $thisMPF
                     if ($null -ne $command) {
