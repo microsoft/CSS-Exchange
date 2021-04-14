@@ -60,11 +60,7 @@ $scriptFiles = $scriptFiles | Where-Object {
 
 $disclaimer = [IO.File]::ReadAllLines("$repoRoot\.build\disclaimer.txt")
 
-$versionFile = "$distFolder\ScriptVersions.txt"
-New-Item -Path $versionFile -ItemType File | Out-Null
-"# Script Versions" | Out-File $versionFile -Append
-"Script | Version" | Out-File $versionFile -Append
-"-------|--------" | Out-File $versionFile -Append
+$scriptVersions = @()
 
 $scriptFiles | ForEach-Object {
     $scriptContent = New-Object 'System.Collections.Generic.List[string]'
@@ -139,10 +135,27 @@ $scriptFiles | ForEach-Object {
     $scriptContent.Insert(0, "")
     $scriptContent.InsertRange(0, $disclaimer)
 
-    "$([IO.Path]::GetFileName($_)) | v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
+    $scriptVersions += [PSCustomObject]@{
+        File    = [IO.Path]::GetFileName($_)
+        Version = $commitTime.ToString("yy.MM.dd.HHmm")
+    }
 
     Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
+
+# Generate version text for release description
+
+$versionFile = "$distFolder\ScriptVersions.txt"
+New-Item -Path $versionFile -ItemType File | Out-Null
+"Script | Version" | Out-File $versionFile -Append
+"-------|--------" | Out-File $versionFile -Append
+foreach ($script in $scriptVersions) {
+    "$($script.File) | $($script.Version)" | Out-File $versionFile -Append
+}
+
+# Generate version CSV for script version checks
+
+$scriptVersions | Export-Csv -Path "$distFolder\ScriptVersions.csv" -NoTypeInformation
 
 $csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\src\Baselines" -Filter *.csv
 
