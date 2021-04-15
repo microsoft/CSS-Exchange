@@ -22,11 +22,17 @@ if (Test-Path $distFolder) {
 New-Item -Path $distFolder -ItemType Directory | Out-Null
 
 <#
+    Never release scripts in these folders
+#>
+
+$excludedFolders = @(".build", "dist", "Shared")
+
+<#
     File names must be unique across the repo since we release in a flat structure.
 #>
 
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
-    Where-Object { $_.Name -ne ".build" } |
+    Where-Object { -not $excludedFolders.Contains($_.Name) } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
     Where-Object { -not $_.Name.Contains(".Tests.ps1") -and
         -not $_.Name.Contains(".NotPublished.ps1") } |

@@ -25,18 +25,13 @@ param (
 . $PSScriptRoot\JobQueue.ps1
 . $PSScriptRoot\Remove-InvalidPermission.ps1
 . $PSScriptRoot\Get-BadMailEnabledFolder.ps1
+. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
 
-$BuildVersion = ""
 if (-not $SkipVersionCheck) {
-    try {
-        $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
-        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
-        $latestVersion = ($versionData | Where-Object { $_.File -eq "SourceSideValidations.ps1" }).Version
-        if ($latestVersion -ne $BuildVersion) {
-            Write-Warning "Version $BuildVersion of this script is outdated. Please download the latest, version $latestVersion, from https://aka.ms/SSV2."
-        }
-    } catch {
-        "Version check failed" | Out-Null # Work around empty catch block rule
+    if (Test-ScriptVersion -AutoUpdate) {
+        # Update was downloaded, so stop here.
+        Write-Host "Script was updated. Please rerun the command."
+        return
     }
 }
 
@@ -51,7 +46,14 @@ if ($RemoveInvalidPermissions) {
 
 $startTime = Get-Date
 
+$startingErrorCount = $Error.Count
+
 Set-ADServerSettings -ViewEntireForest $true
+
+if ($Error.Count -gt $startingErrorCount) {
+    # If we already have errors, we're not running from the right shell.
+    return
+}
 
 $progressParams = @{
     Activity = "Validating public folders"
