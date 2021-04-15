@@ -1210,6 +1210,34 @@ Function Start-AnalyzerEngine {
                 -AnalyzedInformation $analyzedResults
         }
 
+        $certStatusWriteType = [string]::Empty
+
+        if ($null -ne $certificate.Status) {
+            Switch ($certificate.Status) {
+                ("Unknown") { $certStatusWriteType = "Yellow" }
+                ("Valid") { $certStatusWriteType = "Grey" }
+                ("Revoked") { $certStatusWriteType = "Red" }
+                ("DateInvalid") { $certStatusWriteType = "Red" }
+                ("Untrusted") { $certStatusWriteType = "Yellow" }
+                ("Invalid") { $certStatusWriteType = "Red" }
+                ("RevocationCheckFailure") { $certStatusWriteType = "Yellow" }
+                ("PendingRequest") { $certStatusWriteType = "Yellow" }
+                default { $certStatusWriteType = "Yellow" }
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Certificate status" -Details $certificate.Status `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $certStatusWriteType `
+                -AnalyzedInformation $analyzedResults
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Certificate status" -Details "Unknown" `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
+
         if ($certificate.PublicKeySize -lt 2048) {
             $additionalDisplayValue = "It's recommended to use a key size of at least 2048 bit."
 
