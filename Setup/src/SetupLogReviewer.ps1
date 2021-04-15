@@ -131,6 +131,15 @@ Function Main {
             return
         }
 
+        $successFullInstall = $setupLogReviewer.SelectStringLastRunOfExchangeSetup("The Exchange Server setup operation completed successfully\.")
+
+        if ($null -ne $successFullInstall) {
+            Write-Output "The most recent setup attempt completed successfully based off this line:"
+            Write-Output $successFullInstall.Line
+            Write-Output "`r`nNo Action is required."
+            return
+        }
+
         #Last Error Information
         $lastErrorInfo = $setupLogReviewer.FirstErrorWithContextToLine(-1, 30, 200)
 
