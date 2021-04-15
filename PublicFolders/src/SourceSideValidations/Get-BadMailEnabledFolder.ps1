@@ -22,7 +22,7 @@
     process {
         $nonIpmSubtreeMailEnabled = @($FolderData.NonIpmSubtree | Where-Object { $_.MailEnabled -eq $true })
         $ipmSubtreeMailEnabled = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -eq $true })
-        $mailDisabledWithProxyGuid = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -ne $true -and $null -ne $_.MailRecipientGuid -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
+        $mailDisabledWithProxyGuid = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -ne $true -and -not [string]::IsNullOrEmpty($_.MailRecipientGuid) -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
 
 
         $mailEnabledFoldersWithNoADObject = @()
@@ -54,8 +54,10 @@
                 $progressCount++
                 if ($sw.ElapsedMilliseconds -gt 1000) {
                     $sw.Restart()
-                    Write-Progress @progressParams -Status "$i"
+                    Write-Progress @progressParams -Status "$progressCount"
                 }
+
+                $_
             })
 
 
@@ -65,11 +67,11 @@
                 $progressCount++
                 if ($sw.ElapsedMilliseconds -gt 1000) {
                     $sw.Restart()
-                    Write-Progress @progressParams -PercentComplete ($progressCount * 100 / $allMailPublicFolders.Count) -Status ("$i of $($allMailPublicFolders.Count)")
+                    Write-Progress @progressParams -PercentComplete ($progressCount * 100 / $allMailPublicFolders.Count) -Status ("$progressCount of $($allMailPublicFolders.Count)")
                 }
 
                 if (!($mailPublicFoldersLinked.ContainsKey($_.Guid.ToString()))) {
-                    $orphanedMailPublicFolders += $_
+                    $_
                 }
             })
 
