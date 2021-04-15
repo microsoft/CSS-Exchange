@@ -10,7 +10,11 @@ param (
 
     [Parameter(ParameterSetName = "RemoveInvalidPermissions")]
     [string]
-    $CsvFile = (Join-Path $PSScriptRoot "InvalidPermissions.csv")
+    $CsvFile = (Join-Path $PSScriptRoot "InvalidPermissions.csv"),
+
+    [Parameter()]
+    [switch]
+    $SkipVersionCheck
 )
 
 . $PSScriptRoot\Get-FolderData.ps1
@@ -21,6 +25,20 @@ param (
 . $PSScriptRoot\JobQueue.ps1
 . $PSScriptRoot\Remove-InvalidPermission.ps1
 . $PSScriptRoot\Get-BadMailEnabledFolder.ps1
+
+$BuildVersion = ""
+if (-not $SkipVersionCheck) {
+    try {
+        $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
+        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
+        $latestVersion = ($versionData | Where-Object { $_.File -eq "SourceSideValidations.ps1" }).Version
+        if ($latestVersion -ne $BuildVersion) {
+            Write-Warning "Version $BuildVersion of this script is outdated. Please download the latest, version $latestVersion, from https://aka.ms/SSV2."
+        }
+    } catch {
+        "Version check failed" | Out-Null # Work around empty catch block rule
+    }
+}
 
 if ($RemoveInvalidPermissions) {
     if (-not (Test-Path $CsvFile)) {
