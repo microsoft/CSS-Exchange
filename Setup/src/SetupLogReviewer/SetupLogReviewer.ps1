@@ -16,13 +16,13 @@ param(
     [switch]$PesterLoad
 )
 
-. $PSScriptRoot\LogReviewer\Get-DelegatedInstallerHasProperRights.ps1
-. $PSScriptRoot\LogReviewer\New-SetupLogReviewer.ps1
-. $PSScriptRoot\LogReviewer\Test-KnownOrganizationPreparationErrors.ps1
-. $PSScriptRoot\LogReviewer\Test-KnownIssuesByErrors.ps1
-. $PSScriptRoot\LogReviewer\Test-KnownLdifErrors.ps1
-. $PSScriptRoot\LogReviewer\Test-KnownMsiIssuesCheck.ps1
-. $PSScriptRoot\LogReviewer\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
+. $PSScriptRoot\Checks\Test-KnownIssuesByErrors.ps1
+. $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
+. $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\Common\New-SetupLogReviewer.ps1
+. $PSScriptRoot\Delegated\Get-DelegatedInstallerHasProperRights.ps1
 
 Function Main {
     try {
