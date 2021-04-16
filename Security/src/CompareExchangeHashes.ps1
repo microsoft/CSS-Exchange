@@ -547,9 +547,9 @@ function LoadFromGitHub($url, $filename, $installed_versions) {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
         # this file is only used for network connectivity test
-        Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/baseline_15.0.1044.25.checksum.txt" | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/microsoft/CSS-Exchange/releases/download/v21.04.15.1409/baseline_15.0.1044.25.checksum.txt" | Out-Null
     } catch {
-        Write-Error "Cannot reach out to https://github.com/microsoft/CSS-Exchange/releases/latest, please download baseline files for $installed_versions from https://github.com/microsoft/CSS-Exchange/releases/latest manually to $(GetCurrDir), then rerun this script from $(GetCurrDir)."
+        Write-Error "Cannot reach out to https://github.com/microsoft/CSS-Exchange/releases/, please download baseline files for $installed_versions from https://github.com/microsoft/CSS-Exchange/releases/v21.04.15.1409 manually to $(GetCurrDir), then rerun this script from $(GetCurrDir)."
     }
 
     try {
@@ -638,7 +638,7 @@ function LoadBaseline($installed_versions) {
 
         if (-not (Test-Path $zip_file)) {
             Write-Host "Can't find local baseline for $version"
-            $zip_file_url = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$zip_file_name"
+            $zip_file_url = "https://github.com/microsoft/CSS-Exchange/releases/download/v21.04.15.1409/$zip_file_name"
             LoadFromGitHub -url $zip_file_url -filename $zip_file -installed_versions $installed_versions
         }
 
