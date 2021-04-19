@@ -597,7 +597,7 @@ function Get-ServerPatchStatus {
 
     $PatchStatus = @{
         KB5000871 = $false
-        LatestCU = $false
+        LatestCU  = $false
     }
 
     $Version = Get-ExchangeVersion
@@ -616,11 +616,12 @@ function Get-ServerPatchStatus {
         | Select-Object displayname `
         | Select-String -Pattern $KBregex).Matches.Value
 
-    if($Version -ge [version]$LatestCU) { #They have the March CU, which contains this KB
+    if ($Version -ge [version]$LatestCU) {
+        #They have the March CU, which contains this KB
         $PatchStatus["LatestCU"] = $true
         $PatchStatus["KB5000871"] = $true
-    }
-    elseif ($Version -lt [version]$LatestCU) { #They don't have March CU
+    } elseif ($Version -lt [version]$LatestCU) {
+        #They don't have March CU
         if ($LatestInstalledExchangeSU -ge 5000871) {
             $PatchStatus["KB5000871"] = $true
         }
@@ -817,16 +818,13 @@ try {
         New-Item -ItemType Directory $EOMTDir | Out-Null
     }
 
-    try
-    {
+    try {
         $Message = "Checking if EOMT is up to date with $versionsUrl"
         Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
         $latestEOMTVersion = $null
         $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
-        $latestEOMTVersion = ($versionsData | Where-Object -Property File -eq "EOMT.ps1").Version
-    }
-    catch
-    {
+        $latestEOMTVersion = ($versionsData | Where-Object -Property File -EQ "EOMT.ps1").Version
+    } catch {
         $Message = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Please download latest EOMT from $EOMTDownloadUrl and re-run EOMT, unless you just did so. Exception: $($_.Exception)"
         $RegMessage = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Continuing with execution"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
@@ -835,26 +833,19 @@ try {
     $DisableAutoupdateIfneeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter";
 
     $Stage = "AutoupdateEOMT"
-    if ($latestEOMTVersion -and $BuildVersion -ne $latestEOMTVersion)
-    {
-        if ($DoNotAutoUpdateEOMT)
-        {
+    if ($latestEOMTVersion -and $BuildVersion -ne $latestEOMTVersion) {
+        if ($DoNotAutoUpdateEOMT) {
             $Message = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion. We strongly recommend downloading latest EOMT from $EOMTDownloadUrl and re-running EOMT. DoNotAutoUpdateEOMT is set, so continuing with execution"
             $RegMessage = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion.  DoNotAutoUpdateEOMT is set, so continuing with execution"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
-        }
-        else
-        {
+        } else {
             $Stage = "DownloadLatestEOMT"
             $eomtLatestFilepath = Join-Path $EOMTDir "EOMT_$latestEOMTVersion.ps1"
-            try
-            {
+            try {
                 $Message = "Downloading latest EOMT from $EOMTDownloadUrl"
                 Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
                 Invoke-WebRequest $EOMTDownloadUrl -OutFile $eomtLatestFilepath
-            }
-            catch
-            {
+            } catch {
                 $Message = "Cannot download latest EOMT.  Please download latest EOMT yourself from $EOMTDownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
                 $RegMessage = "Cannot download latest EOMT from $EOMTDownloadUrl. Stopping execution."
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
@@ -863,26 +854,20 @@ try {
 
             $Stage = "RunLatestEOMT"
             $sig = Get-AuthenticodeSignature -FilePath $eomtLatestFilepath
-            if (($sig.Status -eq 'Valid') -and ($sig.SignerCertificate.Subject -eq $MicrosoftSigningSubject) -and ($sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2010 -or $sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2011))
-            {
+            if (($sig.Status -eq 'Valid') -and ($sig.SignerCertificate.Subject -eq $MicrosoftSigningSubject) -and ($sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2010 -or $sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2011)) {
                 $Message = "Running latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath"
                 Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
 
-                try
-                {
+                try {
                     & $eomtLatestFilepath @PSBoundParameters
                     Exit
-                }
-                catch
-                {
+                } catch {
                     $Message = "Run failed for latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath, please re-run $eomtLatestFilepath manually. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
                     $RegMessage = "Run failed for latest EOMT version $latestEOMTVersion"
                     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
                     throw
                 }
-            }
-            else
-            {
+            } else {
                 $Message = "File downloaded to $eomtLatestFilepath does not seem to be signed as expected, stopping execution. Please download it yourself from $EOMTDownloadUrl, copy to necessary machine(s), inspect signature yourself, and re-run. $DisableAutoupdateIfNeeded. `nSignatureStatus: $($sig.Status)`nSignerCertSubject: $($sig.SignerCertificate.Subject)`nSignerCertIssuer: $($sig.SignerCertificate.Issuer)"
                 $RegMessage = "File downloaded to $eomtLatestFilepath does not seem to be signed as expected, stopping execution"
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
@@ -916,7 +901,7 @@ try {
     if (!$DoNotRunMitigation -and !$RollbackMitigation) {
         #Normal run
         $PatchStatus = Get-ServerPatchStatus
-        if ($PatchStatus["KB5000871"] -eq $false){
+        if ($PatchStatus["KB5000871"] -eq $false) {
             $IsVulnerable = $True
         } else {
             $IsVulnerable = $False
