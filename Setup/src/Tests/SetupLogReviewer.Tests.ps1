@@ -1,5 +1,6 @@
 BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
+    $parent = [IO.Path]::Combine($parent, "SetupLogReviewer")
     $sut = "SetupLogReviewer.ps1"
     . "$parent\$sut" -PesterLoad
 
@@ -269,6 +270,24 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -like "*Object reference not set to an instance of an object." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.1.1913.5" }
+        }
+    }
+
+    Context "Good Test Case" {
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+            Mock Write-Output {}
+        }
+
+        It "Good Run Of Setup" {
+            & $sr -SetupLog "$PSScriptRoot\ExchangeSetup_Good.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
+                -ParameterFilter { $InputObject -eq "The most recent setup attempt completed successfully based off this line:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
+                -ParameterFilter { $InputObject -eq "[04/02/2021 22:15:23.0126] [0] The Exchange Server setup operation completed successfully." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
+                -ParameterFilter { $InputObject -eq "`r`nNo Action is required." }
         }
     }
 }

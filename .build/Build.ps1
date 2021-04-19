@@ -163,15 +163,6 @@ foreach ($script in $scriptVersions) {
 
 $scriptVersions | Export-Csv -Path "$distFolder\ScriptVersions.csv" -NoTypeInformation
 
-$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\src\Baselines" -Filter *.csv
-
-$csvHashFiles | ForEach-Object {
-    $zipFilePath = "$distFolder\$($_.BaseName).zip"
-    Compress-Archive -Path $_.FullName -DestinationPath $zipFilePath
-    $hash = Get-Item $zipFilePath | Get-FileHash
-    $hash.Hash | Out-File "$distFolder\$($_.BaseName).checksum.txt"
-}
-
 $otherFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.nse -Recurse } |

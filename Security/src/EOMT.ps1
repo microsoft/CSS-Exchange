@@ -1,51 +1,40 @@
-﻿<#
+<#
     .SYNOPSIS
         This script contains mitigations to help address the following vulnerabilities.
             CVE-2021-26855
-
         For more information on each mitigation please visit https://aka.ms/exchangevulns
         Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
-
     .DESCRIPTION
        This script has three operations it performs:
             Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: this mitigates current known attacks.
             Malware scan of the Exchange Server via the Microsoft Safety Scanner
             Attempt to reverse any changes made by identified threats.
-
     .PARAMETER RunFullScan
         If set, will determine if the server is vulnerable and run MSERT in full scan mode.
-
     .PARAMETER RollbackMitigation
         If set, will only reverse the mitigations if present.
-
     .PARAMETER DoNotRunMSERT
         If set, will not run MSERT.
-
     .PARAMETER DoNotRunMitigation
         If set, will not apply mitigations.
-
     .PARAMETER DoNotRemediate
         If set, MSERT will not remediate detected threats.
-
+    .PARAMETER DoNotAutoUpdateEOMT
+        If set, will not attempt to download and run latest EOMT version from github.
     .EXAMPLE
 		PS C:\> EOMT.ps1
-
 		This will run the default mode which does the following:
-            1. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version
-            2. Downloads and installs the IIS URL rewrite tool.
-            3. Applies the URL rewrite mitigation (only if vulnerable).
-            4. Runs the Microsoft Safety Scanner in "Quick Scan" mode.
-
+            1. Checks if an updated version of EOMT is available, downloads and runs latest version if so
+            2. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version
+            3. Downloads and installs the IIS URL rewrite tool.
+            4. Applies the URL rewrite mitigation (only if vulnerable).
+            5. Runs the Microsoft Safety Scanner in "Quick Scan" mode.
     .EXAMPLE
 		PS C:\> EOMT.ps1 -RollbackMitigation
-
         This will only rollback the URL rewrite mitigation.
-
     .EXAMPLE
         PS C:\> EOMT.ps1 -RunFullScan -DoNotRunMitigation
-
         This will only run the Microsoft Safety Scanner in "Full Scan" mode. We only recommend this option only if the initial quick scan discovered threats. The full scan may take hours or days to complete.
-
     .Link
         https://aka.ms/exchangevulns
         https://www.iis.net/downloads/microsoft/url-rewrite
@@ -60,7 +49,8 @@ param (
     [switch]$RollbackMitigation,
     [switch]$DoNotRunMSERT,
     [switch]$DoNotRunMitigation,
-    [switch]$DoNotRemediate
+    [switch]$DoNotRemediate,
+    [switch]$DoNotAutoUpdateEOMT
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -70,6 +60,14 @@ $msertLogPath = "$env:SystemRoot\debug\msert.log"
 $msertLogArchivePath = "$env:SystemRoot\debug\msert.old.log"
 $detectionFollowUpURL = 'https://go.microsoft.com/fwlink/?linkid=2157359'
 $SummaryFile = "$env:SystemDrive\EOMTSummary.txt"
+$EOMTDownloadUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1'
+$versionsUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv'
+$MicrosoftSigningSubject = 'CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+$MicrosoftSigningIssuer2011 = 'CN=Microsoft Code Signing PCA 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+$MicrosoftSigningIssuer2010 = 'CN=Microsoft Code Signing PCA 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+
+#autopopulated by CSS-Exchange build
+$BuildVersion = ""
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -591,10 +589,15 @@ function Get-ExchangeVersion () {
     $version
 }
 
-function Get-ServerVulnStatus {
+function Get-ServerPatchStatus {
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
+    }
+
+    $PatchStatus = @{
+        KB5000871 = $false
+        LatestCU  = $false
     }
 
     $Version = Get-ExchangeVersion
@@ -603,20 +606,27 @@ function Get-ServerVulnStatus {
     } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $LatestCU = $FutureCUs.E16CU20
     } else {
-        $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
+        $LatestCU = "15.1.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -gt $Version) {
+    $KBregex = "[0-9]{7}"
 
-        $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
-        | Where-Object displayname -Like "*KB5000871*" `
-        | Select-Object displayname -ErrorAction SilentlyContinue
+    [long]$LatestInstalledExchangeSU = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
+        | Where-Object displayname -Like "Security Update for Exchange Server*" `
+        | Select-Object displayname `
+        | Select-String -Pattern $KBregex).Matches.Value
 
-        if (!$SecurityHotfix) {
-            return $true
+    if ($Version -ge [version]$LatestCU) {
+        #They have the March CU, which contains this KB
+        $PatchStatus["LatestCU"] = $true
+        $PatchStatus["KB5000871"] = $true
+    } elseif ($Version -lt [version]$LatestCU) {
+        #They don't have March CU
+        if ($LatestInstalledExchangeSU -ge 5000871) {
+            $PatchStatus["KB5000871"] = $true
         }
     }
-    return $false
+    return $PatchStatus
 }
 
 function Get-ExchangeUpdateInfo {
@@ -739,7 +749,6 @@ Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
 Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855$RemediationText.
 For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.$FailureText
 Please review locations and files as soon as possible and take the recommended action.
-
 Microsoft saved several files to your system to "$EOMTDir". The only files that should be present in this directory are:
     a - msert.exe
     b - EOMT.log
@@ -750,7 +759,6 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
         rewrite_x64_[de-DE,es-ES,fr-FR,it-IT,ja-JP,ko-KR,ru-RU,zh-CN,zh-TW].msi
         rewrite_2.0_rtw_x86.msi
         rewrite_2.0_rtw_x64.msi
-
 1 - Confirm the IIS URL Rewrite Module is installed. This module is required for the mitigation of CVE-2021-26855, the module and the configuration (present or not) will not impact this system negatively.
     a - If installed, Confirm the following entry exists in the "$env:SystemDrive\inetpub\wwwroot\web.config". If this configuration is not present, your server is not mitigated. This may have occurred if the module was not successfully installed with a supported version for your system.
     <system.webServer>
@@ -773,12 +781,9 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
             </rules>
         </rewrite>
     </system.webServer>
-
 2 - Review the results of the Microsoft Safety Scanner
         Microsoft Safety Scanner log can be found at "$msertLogPath" and "$msertLogArchivePath" If any threats were detected, please review the guidance here: $detectionFollowUpURL
-
 $UpdateInfo
-
 "@
 
     if (Test-Path $SummaryFile) {
@@ -794,6 +799,11 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
     exit
 }
 
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    Write-Error "Unsupported version of PowerShell on $env:computername - The Exchange On-premises Mitigation Tool supports PowerShell 3 and later"
+    exit
+}
+
 #supported Exchange check
 if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
     Write-Error "A supported version of Exchange was not found on $env:computername. The Exchange On-premises Mitigation Tool supports Exchange 2013, 2016, and 2019."
@@ -802,23 +812,75 @@ if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Ex
 
 # Main
 try {
-    $Stage = "EOMTStart"
+    $Stage = "CheckEOMTVersion"
 
     if (!(Test-Path $EOMTDir)) {
         New-Item -ItemType Directory $EOMTDir | Out-Null
     }
 
-    $Message = "Starting EOMT.ps1 on $env:computername"
-    $RegMessage = "Starting EOMT.ps1"
-    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-    #IsPS3 or later?
-    if ($PSVersionTable.PSVersion.Major -lt 3) {
-        $Message = "Unsupported Powershell on $env:computername"
-        $RegMessage = "Unsupported Powershell"
-        Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-        throw
+    try {
+        $Message = "Checking if EOMT is up to date with $versionsUrl"
+        Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+        $latestEOMTVersion = $null
+        $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
+        $latestEOMTVersion = ($versionsData | Where-Object -Property File -EQ "EOMT.ps1").Version
+    } catch {
+        $Message = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Please download latest EOMT from $EOMTDownloadUrl and re-run EOMT, unless you just did so. Exception: $($_.Exception)"
+        $RegMessage = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Continuing with execution"
+        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
+
+    $DisableAutoupdateIfneeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter";
+
+    $Stage = "AutoupdateEOMT"
+    if ($latestEOMTVersion -and $BuildVersion -ne $latestEOMTVersion) {
+        if ($DoNotAutoUpdateEOMT) {
+            $Message = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion. We strongly recommend downloading latest EOMT from $EOMTDownloadUrl and re-running EOMT. DoNotAutoUpdateEOMT is set, so continuing with execution"
+            $RegMessage = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion.  DoNotAutoUpdateEOMT is set, so continuing with execution"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
+        } else {
+            $Stage = "DownloadLatestEOMT"
+            $eomtLatestFilepath = Join-Path $EOMTDir "EOMT_$latestEOMTVersion.ps1"
+            try {
+                $Message = "Downloading latest EOMT from $EOMTDownloadUrl"
+                Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+                Invoke-WebRequest $EOMTDownloadUrl -OutFile $eomtLatestFilepath
+            } catch {
+                $Message = "Cannot download latest EOMT.  Please download latest EOMT yourself from $EOMTDownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                $RegMessage = "Cannot download latest EOMT from $EOMTDownloadUrl. Stopping execution."
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                throw
+            }
+
+            $Stage = "RunLatestEOMT"
+            $sig = Get-AuthenticodeSignature -FilePath $eomtLatestFilepath
+            if (($sig.Status -eq 'Valid') -and ($sig.SignerCertificate.Subject -eq $MicrosoftSigningSubject) -and ($sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2010 -or $sig.SignerCertificate.Issuer -eq $MicrosoftSigningIssuer2011)) {
+                $Message = "Running latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath"
+                Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+
+                try {
+                    & $eomtLatestFilepath @PSBoundParameters
+                    Exit
+                } catch {
+                    $Message = "Run failed for latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath, please re-run $eomtLatestFilepath manually. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                    $RegMessage = "Run failed for latest EOMT version $latestEOMTVersion"
+                    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                    throw
+                }
+            } else {
+                $Message = "File downloaded to $eomtLatestFilepath does not seem to be signed as expected, stopping execution. Please download it yourself from $EOMTDownloadUrl, copy to necessary machine(s), inspect signature yourself, and re-run. $DisableAutoupdateIfNeeded. `nSignatureStatus: $($sig.Status)`nSignerCertSubject: $($sig.SignerCertificate.Subject)`nSignerCertIssuer: $($sig.SignerCertificate.Issuer)"
+                $RegMessage = "File downloaded to $eomtLatestFilepath does not seem to be signed as expected, stopping execution"
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                throw
+            }
+        }
+    }
+
+    $Stage = "EOMTStart"
+
+    $Message = "Starting EOMT.ps1 version $BuildVersion on $env:computername"
+    $RegMessage = "Starting EOMT.ps1 version $BuildVersion"
+    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
     $Message = "EOMT precheck complete on $env:computername"
     $RegMessage = "EOMT precheck complete"
@@ -838,7 +900,12 @@ try {
 
     if (!$DoNotRunMitigation -and !$RollbackMitigation) {
         #Normal run
-        $IsVulnerable = Get-ServerVulnStatus
+        $PatchStatus = Get-ServerPatchStatus
+        if ($PatchStatus["KB5000871"] -eq $false) {
+            $IsVulnerable = $True
+        } else {
+            $IsVulnerable = $False
+        }
         if ($IsVulnerable) {
             $Message = "$env:computername is vulnerable: applying mitigation"
             $RegMessage = "Server is vulnerable"
