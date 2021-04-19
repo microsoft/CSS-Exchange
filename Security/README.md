@@ -12,8 +12,9 @@ This script contains mitigations to help address the following vulnerabilities.
 
 * CVE-2021-26855
 
-This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has three operations it performs:
+This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has four operations it performs:
 
+* ***+NEW*** Check for the latest version of EOMT and download it.
 * Mitigate against current known attacks using CVE-2021-26855 via a URL Rewrite configuration
 * Scan the Exchange Server using the [Microsoft Safety Scanner](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
 * Attempt to remediate compromises detected by the Microsoft Safety Scanner.
@@ -63,6 +64,10 @@ To roll back the Exchange On-premises Mitigation Tool mitigations
 `.\EOMT.ps1 -Rollbackmitigation`
 
 Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.
+
+***+NEW*** EOMT will now autoupdate by downloading the latest version from GitHub. To prevent EOMT from fetching updates to EOMT.ps1 from the internet.
+
+`.\EOMT.ps1 -DoNotAutoUpdateEOMT`
 
 ### Exchange On-premises Mitigation Tool Q & A
 
