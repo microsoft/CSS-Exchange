@@ -823,7 +823,7 @@ try {
         Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
         $latestEOMTVersion = $null
         $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
-        $latestEOMTVersion = ($versionsData | ? { $_.File -eq "EOMT.ps1" }).Version
+        $latestEOMTVersion = ($versionsData | Where-Object -Property File -eq "EOMT.ps1").Version
     }
     catch
     {
