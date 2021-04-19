@@ -4,9 +4,9 @@ Function Test-MissingMsiFiles {
     $packagesMissing = @($packageFiles | Where-Object { (Test-Path $_) -eq $false })
 
     if ($packagesMissing.Count -eq 0) {
-        Write-Host "No installer packages missing."
+        "No installer packages missing." | Receive-Output
     } else {
-        Write-Warning "$($packagesMissing.Count) installer packages are missing. Please use this script to repair the installer folder:"
-        Write-Warning "https://gallery.technet.microsoft.com/office/Restore-the-Missing-d11de3a1"
+        "$($packagesMissing.Count) installer packages are missing. Please use this script to repair the installer folder:" | Receive-Output -IsWarning
+        "https://gallery.technet.microsoft.com/office/Restore-the-Missing-d11de3a1" | Receive-Output -IsWarning
     }
 }

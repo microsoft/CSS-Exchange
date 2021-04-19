@@ -6,7 +6,7 @@ Function Write-PrepareADInfo {
     $netDom = netdom query fsmo
 
     if ($null -eq $netDom) {
-        Write-Error "Failed to query FSMO role"
+        "Failed to query FSMO role" | Receive-Output -IsError
         return
     }
 
@@ -16,7 +16,7 @@ Function Write-PrepareADInfo {
     if ($smSite[-1] -eq "The command completed successfully") {
         $smSite = $smSite[0]
     } else {
-        Write-Error "Failed to get the correct site for the Schema Master"
+        "Failed to get the correct site for the Schema Master" | Receive-Output -IsError
     }
 
     $localSite = nltest /dsgetsite
@@ -24,7 +24,7 @@ Function Write-PrepareADInfo {
     if ($localSite[-1] -eq "The command completed successfully") {
         $localSite = $localSite[0]
     } else {
-        Write-Error "Failed to get the server's local site."
+        "Failed to get the server's local site." | Receive-Output -IsError
     }
 
     $serverFQDN = ([System.Net.Dns]::GetHostByName(($env:computerName))).HostName
@@ -33,33 +33,33 @@ Function Write-PrepareADInfo {
 
     if ($SchemaUpdateRequired -and
         $Script:NotSchemaAdmin) {
-        Write-Warning "Schema Update is required and you must be in the Schema Admins group"
+        "Schema Update is required and you must be in the Schema Admins group" | Receive-Output -IsWarning
     }
 
     if ($Script:NotEnterpriseAdmin) {
-        Write-Warning "/PrepareAd is required and you must be in the Enterprise Admins group"
+        "/PrepareAd is required and you must be in the Enterprise Admins group" | Receive-Output -IsWarning
     }
 
-    Write-Host "Schema Master:         $schemaMaster"
-    Write-Host "Schema Master Domain:  $smDomain"
-    Write-Host "Schema Master AD Site: $smSite"
-    Write-Host "-----------------------------------"
-    Write-Host "Local Server:          $serverFQDN"
-    Write-Host "Local Server Domain:   $serverDomain"
-    Write-Host "Local Server AD Site:  $localSite"
+    "Schema Master:         $schemaMaster" | Receive-Output
+    "Schema Master Domain:  $smDomain" | Receive-Output
+    "Schema Master AD Site: $smSite" | Receive-Output
+    "-----------------------------------" | Receive-Output
+    "Local Server:          $serverFQDN" | Receive-Output
+    "Local Server Domain:   $serverDomain" | Receive-Output
+    "Local Server AD Site:  $localSite" | Receive-Output
 
     #If we are in the correct domain and correct site we can run /prepareAD.
     if (($serverDomain -eq $smDomain) -and
         ($smSite -eq $localSite)) {
-        Write-Host "We are able to run /PrepareAD from this computer"
+        "We are able to run /PrepareAD from this computer" | Receive-Output
     } else {
 
         if ($smSite -ne $localSite) {
-            Write-Warning "We are not in the same site as the Schema Master. Must be in AD Site: $smSite"
+            "We are not in the same site as the Schema Master. Must be in AD Site: $smSite" | Receive-Output -IsWarning
         }
 
         if ($smDomain -ne $serverDomain) {
-            Write-Warning "We are not in the same domain as the Schema Master. Must be in domain: $smDomain"
+            "We are not in the same domain as the Schema Master. Must be in domain: $smDomain" | Receive-Output -IsWarning
         }
     }
 }
@@ -95,17 +95,17 @@ function Test-ExchangeAdSetupObjects {
         )
 
         if ($DisplayMismatch) {
-            Write-Warning("Exchange {0} AD Level Failed. Mismatch detected." -f $ExchVersion)
+            "Exchange $ExchVersion AD Level Failed. Mismatch detected." | Receive-Output -IsWarning
         }
 
         foreach ($key in $AdSetup.Keys) {
-            Write-Warning("DN Value: '{0}' - Version: {1}" -f [string]($AdSetup[$key].DN), [string]($AdSetup[$key].VersionValue))
+            "DN Value: '$([string]($AdSetup[$key].DN))' - Version: $([string]($AdSetup[$key].VersionValue))" | Receive-Output -IsWarning
         }
 
         if ($ExchVersion -eq "2013") {
-            Write-Warning ("More Info: https://docs.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help")
+            "More Info: https://docs.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help" | Receive-Output -IsWarning
         } else {
-            Write-Warning("More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-{0}" -f $ExchVersion)
+            "More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchVersion" | Receive-Output -IsWarning
         }
 
         Write-PrepareADInfo -SchemaUpdateRequired (($exchLatest[$ExchVersion].UpperRange -ne $UpperRange))
@@ -118,17 +118,17 @@ function Test-ExchangeAdSetupObjects {
             [int]$UpperRange
         )
 
-        Write-Host "Exchange $ExchangeVersion $CU Ready."
+        "Exchange $ExchangeVersion $CU Ready." | Receive-Output
 
         if ($exchLatest[$ExchangeVersion].CU -ne $CU) {
-            Write-Warning "Not ready for the latest Exchange $ExchangeVersion $($exchLatest[$ExchangeVersion].CU). /PrepareAD is required to be ready for this version"
+            "Not ready for the latest Exchange $ExchangeVersion $($exchLatest[$ExchangeVersion].CU). /PrepareAD is required to be ready for this version" | Receive-Output -IsWarning
             Write-PrepareADInfo -SchemaUpdateRequired ($exchLatest[$ExchangeVersion].UpperRange -ne $UpperRange)
         }
     }
 
     #Schema doesn't change often and and quickly tell the highest ExchangeVersion
     if ($schemaValue -lt 15137) {
-        Write-Warning("Unable to determine AD Exchange Level readiness.")
+        "Unable to determine AD Exchange Level readiness." | Receive-Output -IsWarning
         Write-Mismatch -ExchVersion "Unknown" -DisplayMismatch $false
         return
     }
@@ -138,7 +138,7 @@ function Test-ExchangeAdSetupObjects {
 
         if ($MESOValue -eq 13237 -and
             $orgValue -eq 16133) {
-            Write-Host "Exchange 2013 CU23 Ready."
+            "Exchange 2013 CU23 Ready." | Receive-Output
             return
         }
         Write-Mismatch -ExchVersion "2013" -UpperRange $schemaValue
