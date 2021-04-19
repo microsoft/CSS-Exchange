@@ -19,6 +19,7 @@ param(
 . .\Checks\Test-UserGroupMemberOf.ps1
 . .\Checks\Test-ValidHomeMdb.ps1
 . .\Utils\ConvertFrom-Ldif.ps1
+. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\SetupAssist_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -119,6 +120,13 @@ Function Main {
 try {
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
+    Receive-Output "Test Latest Script Version" -Diagnostic
+
+    if (Test-ScriptVersion -AutoUpdate) {
+        Receive-Output "Script was updated. Please rerun the command."
+        return
+    }
+
     Main
     Receive-Output "Finished Script At: $([DateTime]::Now)" -Diagnostic
     Write-Output "File Written at: $Script:ScriptLogging"
