@@ -1,6 +1,6 @@
-# [SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
+## SetupLogReviewer.ps1
 
-Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
+Download the latest release: [SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
 
 This script is meant to be run against the Exchange Setup Logs located at `C:\ExchangeSetupLogs\ExchangeSetup.log`. You can run this on the server, or on a personal computer.
 

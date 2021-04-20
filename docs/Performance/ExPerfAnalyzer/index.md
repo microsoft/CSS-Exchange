@@ -1,3 +1,7 @@
+## ExPerfAnalyzer.ps1
+
+Download the latest release: [ExPerfAnalyzer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfAnalyzer.ps1)
+
 ## Running the script
     .\ExPerfAnalyzer.ps1 .\EXSERVER01_FULL_000001.BLG
 
@@ -28,6 +32,3 @@ This script was inspired by [Performance Analysis of Logs (PAL)](https://github.
 - **Do you accept pull requests? Can I contribute to the script?**
 
     Of course!
-
-## Contributing
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

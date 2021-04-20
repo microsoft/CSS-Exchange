@@ -1,4 +1,7 @@
-## [Exchange On-premises Mitigation Tool (EOMT)](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
+## Exchange On-premises Mitigation Tool (EOMT)
+
+Download the latest release: [EOMT.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
+
 This script contains mitigations to help address the following vulnerabilities.
 
 * CVE-2021-26855

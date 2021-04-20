@@ -1,6 +1,6 @@
-# [FixInstallerCache.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)
+## FixInstallerCache.ps1
 
-Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)
+Download the latest release: [FixInstallerCache.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)
 
 This script is used to copy over the missing MSI files from the installer cache.
 
