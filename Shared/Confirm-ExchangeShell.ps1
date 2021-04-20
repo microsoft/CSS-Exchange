@@ -1,12 +1,9 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Confirm-ExchangeShell/Confirm-ExchangeShell.ps1
-#v21.02.05.1407
 Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,
         [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
     )
-    #Function Version #v21.02.05.1407
 
     Function Invoke-CatchActionErrorLoop {
         param(

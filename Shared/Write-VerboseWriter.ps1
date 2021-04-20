@@ -1,5 +1,3 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-VerboseWriters/Write-VerboseWriter.ps1
-#v21.01.22.2212
 Function Write-VerboseWriter {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString
