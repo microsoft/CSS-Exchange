@@ -20,10 +20,10 @@ Function Test-OtherWellKnownObjects {
     $exchangeContainer = $ldifObjects[0]
     $badValues = @($exchangeContainer.otherWellKnownObjects | Where-Object { $_ -like "*CN=Deleted Objects*" })
     if ($badValues.Length -gt 0) {
-        Write-Host
-        Write-Warning "otherWellKnownObjects contains the following deleted objects:"
-        Write-Host
-        $badValues | ForEach-Object { Write-Host $_ }
+        "" | Receive-Output
+        "otherWellKnownObjects contains the following deleted objects:" | Receive-Output -IsWarning
+        "" | Receive-Output
+        $badValues | ForEach-Object { $_ | Receive-Output }
 
         $outputLines = New-Object 'System.Collections.Generic.List[string]'
         $outputLines.Add("dn: " + $exchangeContainer.dn[0])
@@ -36,12 +36,12 @@ Function Test-OtherWellKnownObjects {
         $outputLines.Add("")
         $outputLines | Out-File -FilePath "ExchangeContainerImport.txt"
 
-        Write-Host("`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:")
-        Write-Host("`r`n`tldifde -i -f ExchangeContainerImport.txt")
-        Write-Host("`r`nThen, run Setup.exe /PrepareAD to recreate the deleted groups.")
-        Write-Host
+        "`r`nVerify the results in ExchangeContainerImport.txt. Then run the following command:" | Receive-Output
+        "`r`n`tldifde -i -f ExchangeContainerImport.txt" | Receive-Output
+        "`r`nThen, run Setup.exe /PrepareAD to recreate the deleted groups." | Receive-Output
+        "" | Receive-Output
     } else {
-        Write-Host "No bad values found in otherWellKnownObjects."
+        "No bad values found in otherWellKnownObjects." | Receive-Output
     }
 
     return

@@ -7,42 +7,42 @@ Function Test-UserGroupMemberOf {
     [array]$g = GetGroupMatches $whoamiOutput "Domain Admins"
 
     if ($g.Count -gt 0) {
-        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+        $g | ForEach-Object { "User is a member of $($_.GroupName)   $($_.SID)" | Receive-Output }
     } else {
-        Write-Warning "User is not a member of Domain Admins."
+        "User is not a member of Domain Admins." | Receive-Output -IsWarning
     }
 
     [array]$g = GetGroupMatches $whoamiOutput "Schema Admins"
 
     if ($g.Count -gt 0) {
-        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+        $g | ForEach-Object { "User is a member of $($_.GroupName)   $($_.SID)" | Receive-Output }
     } else {
-        Write-Warning "User is not a member of Schema Admins. - Only required if doing a Schema Update"
+        "User is not a member of Schema Admins. - Only required if doing a Schema Update" | Receive-Output -IsWarning
         $Script:NotSchemaAdmin = $true
     }
 
     [array]$g = GetGroupMatches $whoamiOutput "Enterprise Admins"
 
     if ($g.Count -gt 0) {
-        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+        $g | ForEach-Object { "User is a member of $($_.GroupName)   $($_.SID)" | Receive-Output }
     } else {
-        Write-Warning "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain"
+        "User is not a member of Enterprise Admins. - Only required if doing a Schema Update or PrepareAD or PrepareDomain" | Receive-Output -IsWarning
         $Script:NotEnterpriseAdmin = $true
     }
 
     [array]$g = GetGroupMatches $whoamiOutput "Organization Management"
 
     if ($g.Count -gt 0) {
-        $g | ForEach-Object { Write-Host "User is a member of $($_.GroupName)   $($_.SID)" }
+        $g | ForEach-Object { "User is a member of $($_.GroupName)   $($_.SID)" | Receive-Output }
     } else {
-        Write-Warning "User is not a member of Organization Management."
+        "User is not a member of Organization Management." | Receive-Output -IsWarning
     }
 
     $p = Get-ExecutionPolicy
     if ($p -ne "Unrestricted" -and $p -ne "Bypass") {
-        Write-Warning "ExecutionPolicy is $p"
+        "ExecutionPolicy is $p" | Receive-Output -IsWarning
     } else {
-        Write-Host "ExecutionPolicy is $p"
+        "ExecutionPolicy is $p" | Receive-Output
     }
 }
 
