@@ -1,1 +1,4 @@
-theme: jekyll-theme-primer
+remote_theme: pmarsceill/just-the-docs
+title: CSS-Exchange
+description: Exchange Server support scripts from Microsoft CSS
+permalink: /:title/

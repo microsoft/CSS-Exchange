@@ -1,3 +1,8 @@
+---
+title: ValidateMailEnabledPublicFolders.ps1
+parent: PublicFolders
+---
+
 ## ValidateMailEnabledPublicFolders.ps1
 
 Download the latest release: [ValidateMailEnabledPublicFolders.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ValidateMailEnabledPublicFolders.ps1)

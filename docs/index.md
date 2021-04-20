@@ -1,3 +1,8 @@
+---
+title: Home
+nav_order: 1
+---
+
 The project contains several scripts for supporting and troubleshooting Exchange Server. For details, find the script in the table below.
 
 Script|Docs|Download
