@@ -1,3 +1,8 @@
+---
+title: ExchangeMitigations.ps1
+parent: Security
+---
+
 ## ExchangeMitigations.ps1
 
 Download the latest release: [ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)

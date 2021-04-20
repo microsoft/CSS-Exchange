@@ -1,3 +1,8 @@
+---
+title: http-vuln-cve2021-26855
+parent: Security
+---
+
 ## http-vuln-cve2021-26855.nse
 
 Download the latest release: [http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)

@@ -1,3 +1,9 @@
+---
+title: SetupAssist.ps1
+parent: Setup
+has_children: true
+---
+
 ## SetupAssist.ps1
 
 Download the latest release: [SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)

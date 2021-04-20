@@ -1,3 +1,8 @@
+---
+title: Test-ProxyLogon.ps1
+parent: Security
+---
+
 ## Test-ProxyLogon.ps1
 
 Download the latest release: [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
