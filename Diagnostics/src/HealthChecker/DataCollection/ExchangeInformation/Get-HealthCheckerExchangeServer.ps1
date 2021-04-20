@@ -19,7 +19,7 @@ Function Get-HealthCheckerExchangeServer {
             $HealthExSvrObj.ExchangeInformation.NETFramework.OnRecommendedVersion = $true
         }
     }
-    $HealthExSvrObj.HealthCheckerVersion = $scriptVersion
+    $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Script:Server)
     return $HealthExSvrObj
 }

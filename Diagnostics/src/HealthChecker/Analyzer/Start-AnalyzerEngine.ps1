@@ -24,7 +24,7 @@ Function Start-AnalyzerEngine {
     $hardwareInformation = $HealthServerObject.HardwareInformation
 
     if (!$Script:DisplayedScriptVersionAlready) {
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $Script:scriptVersion `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $BuildVersion `
             -DisplayGroupingKey $keyBeginningInfo `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults

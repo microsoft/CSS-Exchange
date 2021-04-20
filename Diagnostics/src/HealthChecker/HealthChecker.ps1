@@ -109,7 +109,7 @@ param(
     [Parameter(Mandatory = $false)][switch]$SaveDebugLog
 )
 
-$scriptVersion = "1.0.0"
+$BuildVersion = ""
 $scriptBuildDate = "Today"
 
 $VirtualizationWarning = @"
