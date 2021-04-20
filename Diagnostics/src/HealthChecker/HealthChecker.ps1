@@ -181,17 +181,17 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\ServerInformation\Get-ServerRole.ps1
 . .\DataCollection\ServerInformation\Get-VisualCRedistributableVersion.ps1
 . .\Analyzer\Add-AnalyzedResultInformation.ps1
-. .\Analyzer\New-DisplayResultsGroupingKey.ps1
-. .\Analyzer\Start-AnalyzerEngine.ps1
+. .\Analyzer\Get-DisplayResultsGroupingKey.ps1
+. .\Analyzer\Invoke-AnalyzerEngine.ps1
 . .\Helpers\Get-CounterSamples.ps1
 . .\Helpers\Get-ErrorsThatOccurred.ps1
 . .\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
 . .\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
 . .\Helpers\Import-MyData.ps1
 . .\Helpers\Invoke-CatchActions.ps1
-. .\Helpers\Set-ScriptLogFileLocation.ps1
+. .\Helpers\Invoke-ScriptLogFileLocation.ps1
 . .\Helpers\Test-RequiresServerFqdn.ps1
-. .\Features\New-HtmlServerReport.ps1
+. .\Features\Get-HtmlServerReport.ps1
 . .\Features\Get-CasLoadBalancingReport.ps1
 . .\Features\Get-ExchangeDcCoreRatio.ps1
 . .\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
@@ -214,11 +214,11 @@ Function Main {
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
     if ($BuildHtmlServersReport) {
-        Set-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
-        New-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
+        Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
         Start-Sleep 2;
         return
     }
@@ -229,7 +229,7 @@ Function Main {
     }
 
     if ($LoadBalancingReport) {
-        Set-ScriptLogFileLocation -FileName "LoadBalancingReport"
+        Invoke-ScriptLogFileLocation -FileName "LoadBalancingReport"
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -250,30 +250,30 @@ Function Main {
     }
 
     if ($MailboxReport) {
-        Set-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true
+        Invoke-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true
         Get-MailboxDatabaseAndMailboxStatistics
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
     }
 
     if ($AnalyzeDataOnly) {
-        Set-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
 
         $analyzedResults = @()
         foreach ($serverData in $importData) {
-            $analyzedServerResults = Start-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+            $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
             Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
             $analyzedResults += $analyzedServerResults
         }
 
-        New-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+        Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
         return
     }
 
-    Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    Invoke-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
@@ -295,7 +295,7 @@ Function Main {
 
     Test-RequiresServerFqdn
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
-    $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
+    $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     $currentErrors = $Error.Count
 

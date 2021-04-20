@@ -1,22 +1,22 @@
-Function Start-AnalyzerEngine {
+Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )
-    Write-VerboseOutput("Calling: Start-AnalyzerEngine")
+    Write-VerboseOutput("Calling: Invoke-AnalyzerEngine")
 
     $analyzedResults = New-Object HealthChecker.AnalyzedInformation
     $analyzedResults.HealthCheckerExchangeServer = $HealthServerObject
 
     #Display Grouping Keys
     $order = 0
-    $keyBeginningInfo = New-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
-    $keyExchangeInformation = New-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
-    $keyOSInformation = New-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
-    $keyHardwareInformation = New-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
-    $keyNICSettings = New-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
-    $keyFrequentConfigIssues = New-DisplayResultsGroupingKey -Name "Frequent Configuration Issues" -DisplayOrder ($order++)
-    $keySecuritySettings = New-DisplayResultsGroupingKey -Name "Security Settings" -DisplayOrder ($order++)
-    $keyWebApps = New-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
+    $keyBeginningInfo = Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
+    $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
+    $keyOSInformation = Get-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
+    $keyHardwareInformation = Get-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
+    $keyNICSettings = Get-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
+    $keyFrequentConfigIssues = Get-DisplayResultsGroupingKey -Name "Frequent Configuration Issues" -DisplayOrder ($order++)
+    $keySecuritySettings = Get-DisplayResultsGroupingKey -Name "Security Settings" -DisplayOrder ($order++)
+    $keyWebApps = Get-DisplayResultsGroupingKey -Name "Exchange Web App Pools" -DisplayOrder ($order++)
 
     #Set short cut variables
     $exchangeInformation = $HealthServerObject.ExchangeInformation

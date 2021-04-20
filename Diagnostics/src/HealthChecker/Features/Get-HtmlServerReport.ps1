@@ -1,8 +1,8 @@
-Function New-HtmlServerReport {
+Function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )
-    Write-VerboseOutput("Calling: New-HtmlServerReport")
+    Write-VerboseOutput("Calling: Get-HtmlServerReport")
 
     $htmlHeader = "<html>
         <style>
