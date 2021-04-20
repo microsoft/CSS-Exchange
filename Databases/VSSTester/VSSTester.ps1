@@ -17,9 +17,9 @@
 param(
 )
 
-. .\extern\Confirm-ExchangeShell.ps1
-. .\extern\Write-HostWriter.ps1
-. .\extern\Write-VerboseWriter.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
+. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
 . .\DiskShadow\Invoke-CreateDiskShadowFile.ps1
 . .\DiskShadow\Invoke-DiskShadow.ps1
 . .\DiskShadow\Invoke-RemoveExposedDrives.ps1
