@@ -1,6 +1,6 @@
-# [SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
+## SetupAssist.ps1
 
-Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
+Download the latest release: [SetupAssist.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)
 
 This script is meant to be run on the system where you are running setup from. It currently checks and displays the following when just running it:
 

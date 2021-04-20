@@ -1,8 +1,8 @@
-# Validating Hybrid Modern Authentication setup for Outlook for iOS and Android
+## Validating Hybrid Modern Authentication setup for Outlook for iOS and Android
+
+Download the latest release: [Test-HMAEAS.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-HMAEAS.ps1)
 
 This script allows you to check and see if your on-premises Exchange environment is configured correctly to use Hybrid Modern Authentication (HMA) with Outlook for iOS and Android. For this to work correctly, you will need to enable HMA and follow HMA Outlook for iOS and Android guidance to configure this feature properly.
-
-Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-HMAEAS.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-HMAEAS.ps1)
 
 To run the script, at minimum you will need a valid SMTP Address for a user that is located on-premises.
 
