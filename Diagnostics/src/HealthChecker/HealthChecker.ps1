@@ -106,6 +106,7 @@ param(
     [switch]$DCCoreRatio,
     [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
     [switch]$AnalyzeDataOnly,
+    [Parameter(Mandatory = $false)][switch]$SkipVersionCheck,
     [Parameter(Mandatory = $false)][switch]$SaveDebugLog
 )
 
@@ -138,6 +139,7 @@ if ($PSBoundParameters["Verbose"]) {
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
+. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
 . .\Helpers\Class.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\extern\Confirm-Administrator.ps1
@@ -272,6 +274,25 @@ Function Main {
     }
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    $currentErrors = $Error.Count
+
+    if ((-not $SkipVersionCheck) -and
+        (Test-ScriptVersion -AutoUpdate)) {
+        Write-Yellow "Script was updated. Please rerun the command."
+        return
+    } else {
+        $Script:DisplayedScriptVersionAlready = $true
+        Write-Green "Exchange Health Checker version $BuildVersion"
+    }
+
+    if ($currentErrors -ne $Error.Count) {
+        $index = 0
+        while ($index -lt ($Error.Count - $currentErrors)) {
+            Invoke-CatchActions $Error[$index]
+            $index++
+        }
+    }
+
     Test-RequiresServerFqdn
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
