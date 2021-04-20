@@ -9,7 +9,7 @@ param(
     [string[]]$MachineName
 )
 
-. $PSScriptRoot\Get-FileInformation.ps1
+. $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
 
 #TODO: Change to Write-Output and get rid of Write-Host with ForegroundColors
@@ -138,7 +138,6 @@ Function MainMachineCopy {
 }
 
 Function Main {
-    $Script:scriptLogging = ".\InstallerCacheLogger.log"
 
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
         MainIsoCopy
@@ -149,4 +148,11 @@ Function Main {
     }
 }
 
-Main
+try {
+    $Script:scriptLogging = ".\InstallerCacheLogger.log"
+    Main
+} catch {
+    Receive-Output "$($_.Exception)"
+    Receive-Output "$($_.ScriptStackTrace)"
+    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:scriptLogging)'")
+}
