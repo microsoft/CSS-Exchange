@@ -9,7 +9,7 @@ Download the latest release: [FixInstallerCache.ps1](https://github.com/microsof
 
 This script is used to copy over the missing MSI files from the installer cache.
 
-Parameter | Description
-----------|------------
-[string]CurrentCuRootDirectory | The root location of the current CU that you are on.
-[string[]]MachineName | The name of the machine that we are waiting to try to copy the MSI files over from, if any are there.
+Parameter | Type | Description
+-|-|-
+CurrentCuRootDirectory | string | The root location of the current CU that you are on.
+MachineName | string array | One or more machine names from which to copy the required MSI files.

@@ -1,15 +1,16 @@
-# ExTRA
+---
+title: ExTRA.ps1
+parent: Diagnostics
+---
+
+## ExTRA.ps1
+
+Download the latest release: [ExTRA.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExTRA.ps1)
 
 The goal of this script is to replace the ExTRA UI that was included with older versions of Exchange.
 The script can be run on any machine where a modern browser (Edge/Chrome/Firefox) is set as the default
 browser. It does not need to be run on an Exchange server. It will _not_ work if Internet Explorer
 is the default browser.
-
-## Download
-
-Get the latest release here:
-
-https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExTRA.ps1
 
 ## Usage
 
