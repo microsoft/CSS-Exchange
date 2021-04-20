@@ -8,7 +8,7 @@ Function Test-MissingDirectory {
         foreach ($path in $paths) {
 
             if (!(Test-Path $path)) {
-                Write-Warning "Failed to find path: '$path'. Create this or setup will fail"
+                "Failed to find path: '$path'. Create this or setup will fail" | Receive-Output -IsWarning
             }
         }
     }

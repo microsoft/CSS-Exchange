@@ -12,7 +12,7 @@ Function Test-ValidHomeMDB {
             if (![string]::IsNullOrEmpty($dbName)) {
 
                 if (!([ADSI]::Exists("LDAP://$dbName"))) {
-                    Write-Warning "Mailbox DN: $($result.dn) has an invalid homeMDB value."
+                    "Mailbox DN: $($result.dn) has an invalid homeMDB value." | Receive-Output -IsWarning
                     $runActions = $true
                 }
             } else {
@@ -22,20 +22,20 @@ Function Test-ValidHomeMDB {
 
         if ($emptyHomeMDB.Count -ge 1) {
             $runActions = $true
-            Write-Warning "The following mailbox(es) have empty homeMDB values that will cause issues with setup"
+            "The following mailbox(es) have empty homeMDB values that will cause issues with setup" | Receive-Output -IsWarning
             foreach ($dn in $emptyHomeMDB) {
-                Write-Host "`t$dn"
+                "`t$dn" | Receive-Output
             }
         }
 
         if ($runActions) {
-            Write-Host ""
-            Write-Warning "Follow the below steps to address empty/invalid homeMDB"
-            Write-Host "`tRun the below command in EMS against each of the above mailboxes. If EMS is down, launch PowerShell and run `"Add-PSSnapin *Exchange*`""
-            Write-Host "`t`tSet-Mailbox 'DN' -Database 'DB_Name'"
-            Write-Host ""
+            "" | Receive-Output
+            "Follow the below steps to address empty/invalid homeMDB" | Receive-Output -IsWarning
+            "`tRun the below command in EMS against each of the above mailboxes. If EMS is down, launch PowerShell and run `"Add-PSSnapin *Exchange*`"" | Receive-Output
+            "`t`tSet-Mailbox 'DN' -Database 'DB_Name'" | Receive-Output
+            "" | Receive-Output
         } else {
-            Write-Host "All Critical Mailboxes have valid HomeMDB values"
+            "All Critical Mailboxes have valid HomeMDB values" | Receive-Output
         }
     } else {
         throw "Unexpected LDIF data."
