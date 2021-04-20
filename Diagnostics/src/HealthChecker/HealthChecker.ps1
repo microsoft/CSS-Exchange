@@ -110,7 +110,6 @@ param(
 )
 
 $BuildVersion = ""
-$scriptBuildDate = "Today"
 
 $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
@@ -140,7 +139,6 @@ if ($PSBoundParameters["Verbose"]) {
 }
 
 . .\Helpers\Class.ps1
-. .\Writers\Write-HealthCheckerVersion.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\extern\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -191,7 +189,6 @@ if ($PSBoundParameters["Verbose"]) {
 . .\Helpers\Invoke-CatchActions.ps1
 . .\Helpers\Set-ScriptLogFileLocation.ps1
 . .\Helpers\Test-RequiresServerFqdn.ps1
-. .\Helpers\Test-ScriptVersion.ps1
 . .\Features\New-HtmlServerReport.ps1
 . .\Features\Get-CasLoadBalancingReport.ps1
 . .\Features\Get-ExchangeDcCoreRatio.ps1
@@ -231,7 +228,6 @@ Function Main {
 
     if ($LoadBalancingReport) {
         Set-ScriptLogFileLocation -FileName "LoadBalancingReport"
-        Write-HealthCheckerVersion
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -277,7 +273,6 @@ Function Main {
 
     Set-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
     Test-RequiresServerFqdn
-    Write-HealthCheckerVersion
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Start-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
@@ -308,12 +303,6 @@ Function Main {
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
     }
-}
-
-if ($scriptBuildDate -eq "Today") {
-    Write-Error ("Script isn't built. Do not run source code directly.`r`nIf developer, follow build process.")
-    Write-Host("`r`n`r`nDownload Built Script: https://aka.ms/ExHCDownload")
-    exit
 }
 
 try {
