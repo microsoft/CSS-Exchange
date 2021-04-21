@@ -1,21 +1,14 @@
 <#
 .NOTES
 	Name: HealthChecker.ps1
-	Original Author: Marc Nivens
-    Author: David Paulson
-    Contributor: Jason Shinbaum, Michael Schatte, Lukas Sassl
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
     Major Release History:
+        4/20/2021  - Initial Public Release on CSS-Exchange
         11/10/2020 - Initial Public Release of version 3.
-        1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
+        1/18/2017 - Initial Public Release of version 2.
         3/30/2015 - Initial Public Release.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .SYNOPSIS
 	Checks the target Exchange server for various configuration recommendations from the Exchange product group.
 .DESCRIPTION
