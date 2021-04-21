@@ -13,7 +13,7 @@ Function Copy-LogsBasedOnTime {
 
     New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
 
-    Function No-FilesInLocation {
+    Function NoFilesInLocation {
         param(
             [Parameter(Mandatory = $true)][string]$CopyFromLocation,
             [Parameter(Mandatory = $true)][string]$CopyToLocation
@@ -31,7 +31,7 @@ Function Copy-LogsBasedOnTime {
     $skipCopy = $false
     if (!(Test-Path $LogPath)) {
         #if the directory isn't there, we need to handle it
-        No-FilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
+        NoFilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
         Write-ScriptDebug("Function Exit: Copy-LogsBasedOnTime")
         return
     }
@@ -66,7 +66,7 @@ Function Copy-LogsBasedOnTime {
                 $files = Get-ChildItem $newLogPath | Sort-Object LastWriteTime -Descending | Where-Object { $_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*" }
 
                 if ($null -eq $files) {
-                    No-FilesInLocation -CopyFromLocation $newLogPath -CopyToLocation $newCopyToThisLocation
+                    NoFilesInLocation -CopyFromLocation $newLogPath -CopyToLocation $newCopyToThisLocation
                 } else {
                     Write-ScriptDebug("Found {0} number of files at the location {1}" -f $files.Count, $newLogPath)
                     $filesFullPath = @()
@@ -85,7 +85,7 @@ Function Copy-LogsBasedOnTime {
         #If we are still null, we want to let them know
         if ($null -eq $files) {
             $skipCopy = $true
-            No-FilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
+            NoFilesInLocation -CopyFromLocation $LogPath -CopyToLocation $CopyToThisLocation
         }
     }
     Write-ScriptDebug("Found {0} number of files at the location {1}" -f $Files.Count, $LogPath)
