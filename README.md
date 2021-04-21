@@ -1,4 +1,4 @@
-# CSS Exchange Scripts
+# Exchange Server Support Scripts
 
 [![Build Status](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_apis/build/status/microsoft.CSS-Exchange?branchName=main)](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_build/latest?definitionId=7&branchName=main)
 
@@ -6,8 +6,11 @@
 
 This repository is the home of several scripts that are developed and maintained by Support Engineers
 for Microsoft Exchange Server. The scripts are intended for identifying and resolving
-a wide range of issues that impact on-premise or hybrid deployments and migrations. For more information,
-see the documentation for individual scripts.
+a wide range of issues that impact on-premise or hybrid deployments and migrations.
+
+For more information, see the documentation for individual scripts:
+
+[https://microsoft.github.io/CSS-Exchange](https://microsoft.github.io/CSS-Exchange)
 
 ## Contributing
 
