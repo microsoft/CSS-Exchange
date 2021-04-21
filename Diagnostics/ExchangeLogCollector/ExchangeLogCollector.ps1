@@ -1,17 +1,3 @@
-<#
-.NOTES
-    Name: ExchangeLogCollector.ps1
-    Author: David Paulson
-    Requires: Powershell on an Exchange 2010+ Server with Administrator rights
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-.SYNOPSIS
-    Collects the requested logs off the Exchange server based off the switches that are used.
-#>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'All Parameters are used in other functions of the script')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
 [CmdletBinding()]
@@ -85,8 +71,8 @@ $Script:VerboseEnabled = $false
 
 if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 
-. $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\extern\Enter-YesNoLoopAction.ps1
 . .\extern\Import-ScriptConfigFile.ps1
 . .\extern\Start-JobManager.ps1
@@ -115,14 +101,14 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
     . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
     . .\RemoteScriptBlock\extern\New-Folder.ps1
-    . $PSScriptRoot\..\..\..\Shared\New-LoggerObject.ps1
+    . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
     . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
-    . $PSScriptRoot\..\..\..\Shared\Write-HostWriter.ps1
+    . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnHostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnVerboseWriter.ps1
     . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
-    . $PSScriptRoot\..\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-    . $PSScriptRoot\..\..\..\Shared\Write-VerboseWriter.ps1
+    . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+    . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
