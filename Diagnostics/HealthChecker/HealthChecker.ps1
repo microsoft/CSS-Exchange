@@ -1,21 +1,14 @@
 <#
 .NOTES
 	Name: HealthChecker.ps1
-	Original Author: Marc Nivens
-    Author: David Paulson
-    Contributor: Jason Shinbaum, Michael Schatte, Lukas Sassl
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
     Major Release History:
+        4/20/2021  - Initial Public Release on CSS-Exchange
         11/10/2020 - Initial Public Release of version 3.
-        1/18/2017 - Initial Public Release of version 2. - rewritten by David Paulson.
+        1/18/2017 - Initial Public Release of version 2.
         3/30/2015 - Initial Public Release.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-	BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 .SYNOPSIS
 	Checks the target Exchange server for various configuration recommendations from the Exchange product group.
 .DESCRIPTION
@@ -139,25 +132,25 @@ if ($PSBoundParameters["Verbose"]) {
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
-. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . .\Helpers\Class.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\Writers\Write-Verbose.ps1
-. .\extern\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
-. .\extern\New-LoggerObject.ps1
-. $PSScriptRoot\..\..\..\Shared\Write-HostWriter.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
 . .\extern\Write-ScriptMethodHostWriters.ps1
-. .\extern\Write-ScriptMethodVerboseWriter.ps1
-. $PSScriptRoot\..\..\..\Shared\Write-VerboseWriter.ps1
+. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
 . .\Writers\Write-Functions.ps1
 . .\DataCollection\extern\Get-AllNicInformation.ps1
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
 . .\DataCollection\extern\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
 . .\DataCollection\extern\Get-ProcessorInformation.ps1
 . .\DataCollection\extern\Get-ServerOperatingSystemVersion.ps1
 . .\DataCollection\extern\Get-ServerRebootPending.ps1

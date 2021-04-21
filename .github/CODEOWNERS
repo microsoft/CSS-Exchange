@@ -1,8 +1,12 @@
 # Default owners
-*   @bill-long @dpaulson45
+*   @bill-long @dpaulson45 @lusassl-msft
 
 # Everything in Security is owned by those folks
 /Security/src/   @ethanb-msft @dbacon247
 
 # Except this one which is owned by Exchange
 /Security/src/Test-ProxyLogon.ps1   @bill-long @dpaulson45
+
+# Rob Whaley owns these
+/Hybrid/        @tweekerz
+/Retention/     @tweekerz
