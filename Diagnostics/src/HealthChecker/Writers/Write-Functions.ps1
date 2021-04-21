@@ -24,8 +24,8 @@ function Write-Grey($message) {
 }
 
 function Write-VerboseOutput($message) {
+    #Write-Verbose has an override to handle the Write-DebugLog
     Write-Verbose $message
-    Write-DebugLog $message
     if ($Script:VerboseEnabled) {
         $message | Out-File ($OutputFullPath) -Append
     }

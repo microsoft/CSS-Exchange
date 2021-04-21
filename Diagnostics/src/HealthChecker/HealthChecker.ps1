@@ -139,9 +139,12 @@ if ($PSBoundParameters["Verbose"]) {
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
+. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 . $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
 . .\Helpers\Class.ps1
 . .\Writers\Write-ResultsToScreen.ps1
+. .\Writers\Write-Verbose.ps1
 . .\extern\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\extern\New-LoggerObject.ps1
@@ -154,7 +157,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
 . .\DataCollection\extern\Get-ExchangeBuildVersionInformation.ps1
-. .\DataCollection\extern\Get-NETFrameworkVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 . .\DataCollection\extern\Get-ProcessorInformation.ps1
 . .\DataCollection\extern\Get-ServerOperatingSystemVersion.ps1
 . .\DataCollection\extern\Get-ServerRebootPending.ps1
