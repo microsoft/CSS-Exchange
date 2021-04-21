@@ -85,8 +85,8 @@ $Script:VerboseEnabled = $false
 
 if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
 
-. .\extern\Confirm-Administrator.ps1
-. .\extern\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\extern\Enter-YesNoLoopAction.ps1
 . .\extern\Import-ScriptConfigFile.ps1
 . .\extern\Start-JobManager.ps1
@@ -115,14 +115,14 @@ Function Invoke-RemoteFunctions {
     . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
     . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
     . .\RemoteScriptBlock\extern\New-Folder.ps1
-    . .\RemoteScriptBlock\extern\New-LoggerObject.ps1
+    . $PSScriptRoot\..\..\..\Shared\New-LoggerObject.ps1
     . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
-    . .\RemoteScriptBlock\extern\Write-HostWriter.ps1
+    . $PSScriptRoot\..\..\..\Shared\Write-HostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnHostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnVerboseWriter.ps1
     . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-ScriptMethodVerboseWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-VerboseWriter.ps1
+    . $PSScriptRoot\..\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+    . $PSScriptRoot\..\..\..\Shared\Write-VerboseWriter.ps1
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
