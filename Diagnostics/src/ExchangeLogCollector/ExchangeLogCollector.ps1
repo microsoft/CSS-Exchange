@@ -79,7 +79,7 @@ Param (
     [bool]$SkipEndCopyOver
 )
 
-$scriptVersion = "1.0.0"
+$BuildVersion = ""
 
 $Script:VerboseEnabled = $false
 
@@ -209,7 +209,7 @@ Function Main {
             available before doing a copy action.
         -Please run this script at your own risk.
 
-"@ -f $scriptVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
+"@ -f $BuildVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
 
     Clear-Host
     Write-ScriptHost -WriteString $display -ShowServer $false
