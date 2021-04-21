@@ -6,3 +6,7 @@
 
 # Except this one which is owned by Exchange
 /Security/src/Test-ProxyLogon.ps1   @bill-long @dpaulson45
+
+# Rob Whaley owns these
+/Hybrid/        @tweekerz
+/Retention/     @tweekerz
