@@ -12,6 +12,7 @@ Script|Docs|Download
 CopyMissingDlls.ps1 | [Docs](Setup/CopyMissingDlls) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CopyMissingDlls.ps1)
 DLT365Groupsupgrade.ps1 | [Docs](M365/DLT365Groupsupgrade) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1)
 EOMT.ps1 | [Docs](Security/EOMT) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
+ExchangeLogCollector.ps1 | [Docs](Diagnostics/ExchangeLogCollector) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeLogCollector.ps1)
 ExchangeMitigations.ps1 | [Docs](Security/ExchangeMitigations) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
 ExPerfAnalyzer.ps1 | [Docs](Performance/ExPerfAnalyzer) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfAnalyzer.ps1)
 FixInstallerCache | [Docs](Setup/FixInstallerCache) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)

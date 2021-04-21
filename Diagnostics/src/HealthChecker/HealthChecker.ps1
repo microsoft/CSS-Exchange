@@ -145,12 +145,12 @@ if ($PSBoundParameters["Verbose"]) {
 . .\Helpers\Class.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\Writers\Write-Verbose.ps1
-. .\extern\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
-. .\extern\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\..\Shared\New-LoggerObject.ps1
 . $PSScriptRoot\..\..\..\Shared\Write-HostWriter.ps1
 . .\extern\Write-ScriptMethodHostWriters.ps1
-. .\extern\Write-ScriptMethodVerboseWriter.ps1
+. $PSScriptRoot\..\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
 . $PSScriptRoot\..\..\..\Shared\Write-VerboseWriter.ps1
 . .\Writers\Write-Functions.ps1
 . .\DataCollection\extern\Get-AllNicInformation.ps1
