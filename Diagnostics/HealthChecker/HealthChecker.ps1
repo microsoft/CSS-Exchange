@@ -139,25 +139,25 @@ if ($PSBoundParameters["Verbose"]) {
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
-. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . .\Helpers\Class.ps1
 . .\Writers\Write-ResultsToScreen.ps1
 . .\Writers\Write-Verbose.ps1
-. $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
-. $PSScriptRoot\..\..\..\Shared\New-LoggerObject.ps1
-. $PSScriptRoot\..\..\..\Shared\Write-HostWriter.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
 . .\extern\Write-ScriptMethodHostWriters.ps1
-. $PSScriptRoot\..\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-. $PSScriptRoot\..\..\..\Shared\Write-VerboseWriter.ps1
+. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
 . .\Writers\Write-Functions.ps1
 . .\DataCollection\extern\Get-AllNicInformation.ps1
 . .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
 . .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
 . .\DataCollection\extern\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
 . .\DataCollection\extern\Get-ProcessorInformation.ps1
 . .\DataCollection\extern\Get-ServerOperatingSystemVersion.ps1
 . .\DataCollection\extern\Get-ServerRebootPending.ps1
