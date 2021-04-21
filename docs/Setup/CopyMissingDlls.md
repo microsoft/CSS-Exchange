@@ -9,6 +9,6 @@ Download the latest release: [CopyMissingDlls.ps1](https://github.com/microsoft/
 
 This script is used to copy over missing dlls that might have occurred during a CU install. This script has a mapping of the location of where the .dll should be on the server and where it should be on the ISO and will attempt to copy it over if the file is detected to be missing on the install location.
 
-Parameter | Description
-----------|------------
-[string]IsoRoot | The Root location of the ISO. Example: `D:`
+Parameter | Type | Description
+-|-|-
+IsoRoot | string | The Root location of the ISO. Example: `D:`

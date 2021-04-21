@@ -24,6 +24,6 @@ This script is meant to be run on the system where you are running setup from. I
 
 Additional Parameters are used for when they are called out from the `SetupLogReviewer.ps1`
 
-Parameter | Description
-----------|------------
-[string]OtherWellKnownObjects | Tests for deleted objects in the otherWellKnownObjects attribute
+Parameter | Type | Description
+-|-|-
+OtherWellKnownObjects | switch | Tests for deleted objects in the otherWellKnownObjects attribute
