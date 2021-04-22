@@ -68,7 +68,7 @@ Function Get-OperatingSystemInformation {
         -ScriptBlockDescription "Getting Current Time Zone" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion
+    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
         -MachineName $Script:Server `
