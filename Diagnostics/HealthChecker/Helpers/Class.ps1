@@ -241,14 +241,6 @@ try {
                 VCRedist2013 = 201367256
             }
 
-            public class SoftwareInformation
-            {
-                public string DisplayName;
-                public string DisplayVersion;
-                public string InstallDate;
-                public int VersionIdentifier;
-            }
-
             public class OSNetFrameworkInformation
             {
                 public NetMajorVersion NetMajorVersion; //NetMajorVersion value
