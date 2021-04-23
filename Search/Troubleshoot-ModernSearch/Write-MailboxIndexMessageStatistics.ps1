@@ -24,7 +24,9 @@ Function Write-MailboxIndexMessageStatistics {
 
         foreach ($categoryType in $Category) {
 
+            $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
+            Receive-Output "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages" -Diagnostic
 
             if ($messages.Count -gt 0) {
 
