@@ -30,14 +30,18 @@ function Test-ScriptVersion {
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
             if ($AutoUpdate -and $BuildVersion -ne "") {
-                Remove-Item $tempFullName -Force -Confirm:$false -ErrorAction SilentlyContinue
+                if (Test-Path $tempFullName) {
+                    Remove-Item $tempFullName -Force -Confirm:$false -ErrorAction Stop
+                }
                 Write-Host "AutoUpdate: Downloading update."
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
                 Invoke-WebRequest "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
                 $sig = Get-AuthenticodeSignature $tempFullName
                 if ($sig.Status -eq "Valid") {
                     Write-Host "AutoUpdate: File signed by" $sig.SignerCertificate.Subject
-                    Remove-Item $oldFullName -Force -Confirm:$false -ErrorAction SilentlyContinue
+                    if (Test-Path $oldFullName) {
+                        Remove-Item $oldFullName -Force -Confirm:$false -ErrorAction Stop
+                    }
                     Move-Item $scriptFullName $oldFullName
                     Move-Item $tempFullName $scriptFullName
                     Write-Host "AutoUpdate: Succeeded."
