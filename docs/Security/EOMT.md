@@ -32,6 +32,7 @@ Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner
 * IIS 7.5 and later
 * Exchange 2013, 2016, or 2019
 * Windows Server 2008 R2, Server 2012, Server 2012 R2, Server 2016, Server 2019
+* ***+New*** If Operating System is older than Windows Server 2016, must have [KB2999226](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c) for IIS Rewrite Module 2.1 to work.
 
 ### Who should run the Exchange On-premises Mitigation Tool
 
