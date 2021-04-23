@@ -213,16 +213,35 @@ Function Main {
                 Receive-Output "---------------------"
                 $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
                 foreach ($result in $groupedResults) {
+
+                    $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
+                    $lastIndexingAttemptTime = [DateTime]::MinValue
+
+                    foreach ($groupEntry in $groupedResults.Group) {
+
+                        if ($groupEntry.LastIndexingAttemptTime -gt $lastIndexingAttemptTime) {
+                            $lastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
+                        }
+
+                        if ($groupEntry.LastIndexingAttemptTime -lt $earliestLastIndexingAttemptTime) {
+                            $earliestLastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
+                        }
+                    }
+
                     $obj = [PSCustomObject]@{
-                        TotalItems         = $result.Count
-                        ErrorMessage       = $result.Values[0]
-                        IsPermanentFailure = $result.Values[1]
+                        TotalItems                      = $result.Count
+                        ErrorMessage                    = $result.Values[0]
+                        IsPermanentFailure              = $result.Values[1]
+                        EarliestLastIndexingAttemptTime = $earliestLastIndexingAttemptTime
+                        LastIndexingAttemptTime         = $lastIndexingAttemptTime
                     }
 
                     Write-DisplayObjectInformation -DisplayObject $obj -PropertyToDisplay @(
                         "TotalItems",
                         "ErrorMessage",
-                        "IsPermanentFailure")
+                        "IsPermanentFailure",
+                        "EarliestLastIndexingAttemptTime",
+                        "LastIndexingAttemptTime")
                     Receive-Output ""
                 }
             }
