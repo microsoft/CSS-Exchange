@@ -257,6 +257,40 @@ Function Main {
             Receive-Output "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
         }
     }
+
+    $mailboxStats = $mailboxInformation.MailboxStatistics
+    $categories = New-Object 'System.Collections.Generic.List[string]'
+
+    if ($mailboxStats.BigFunnelNotIndexedCount -ge 250) {
+        $categories.Add("NotIndexed")
+    }
+
+    if ($mailboxStats.BigFunnelCorruptedCount -ge 100) {
+        $categories.Add("Corrupted")
+    }
+
+    if ($mailboxStats.BigFunnelPartiallyIndexedCount -ge 1000) {
+        $categories.Add("PartiallyIndexed")
+    }
+
+    if ($mailboxStats.BigFunnelStaleCount -ge 100) {
+        $categories.Add("Stale")
+    }
+
+    if ($mailboxStats.BigFunnelShouldNotBeIndexedCount -ge 5000) {
+        $categories.Add("ShouldNotBeIndexed")
+    }
+
+    if ($categories.Count -gt 0) {
+        Receive-Output ""
+        Receive-Output "----------------------------------------"
+        Receive-Output "Collecting Message Stats on the following Categories:"
+        Receive-Output ""
+        $categories | Receive-Output
+        Receive-Output ""
+        Receive-Output "This may take some time to collect."
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
+    }
 }
 
 try {
