@@ -21,8 +21,10 @@ param(
 . $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
 . $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
-. $PSScriptRoot\Common\New-SetupLogReviewer.ps1
 . $PSScriptRoot\Delegated\Get-DelegatedInstallerHasProperRights.ps1
+
+#Shared Local
+. $PSScriptRoot\..\Shared\New-SetupLogReviewer.ps1
 
 Function Main {
     try {
