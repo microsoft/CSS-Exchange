@@ -50,6 +50,7 @@ param(
 . $PSScriptRoot\Get-MessageIndexState.ps1
 . $PSScriptRoot\Get-QueryItemResult.ps1
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Write-MailboxIndexMessageStatistics.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -194,60 +195,7 @@ Function Main {
 
     if (-not([string]::IsNullOrEmpty($Category))) {
 
-        $mailboxStats = $mailboxInformation.MailboxStatistics
-
-        $totalIndexableItems = ($mailboxStats.AssociatedItemCount + $mailboxStats.ItemCount) - $mailboxStats.BigFunnelShouldNotBeIndexedCount
-
-        [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -Category $Category
-
-        if ($messages.Count -gt 0) {
-            Receive-Output ""
-            Receive-Output "All Indexable Items Count: $totalIndexableItems"
-            Receive-Output ""
-            $groupedStatus = $messages | Group-Object MessageStatus
-
-            foreach ($statusGrouping in $groupedStatus) {
-
-                Receive-Output "---------------------"
-                Receive-Output "Message Index Status: $($statusGrouping.Name)"
-                Receive-Output "---------------------"
-                $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
-                foreach ($result in $groupedResults) {
-
-                    $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
-                    $lastIndexingAttemptTime = [DateTime]::MinValue
-
-                    foreach ($groupEntry in $groupedResults.Group) {
-
-                        if ($groupEntry.LastIndexingAttemptTime -gt $lastIndexingAttemptTime) {
-                            $lastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
-                        }
-
-                        if ($groupEntry.LastIndexingAttemptTime -lt $earliestLastIndexingAttemptTime) {
-                            $earliestLastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
-                        }
-                    }
-
-                    $obj = [PSCustomObject]@{
-                        TotalItems                      = $result.Count
-                        ErrorMessage                    = $result.Values[0]
-                        IsPermanentFailure              = $result.Values[1]
-                        EarliestLastIndexingAttemptTime = $earliestLastIndexingAttemptTime
-                        LastIndexingAttemptTime         = $lastIndexingAttemptTime
-                    }
-
-                    Write-DisplayObjectInformation -DisplayObject $obj -PropertyToDisplay @(
-                        "TotalItems",
-                        "ErrorMessage",
-                        "IsPermanentFailure",
-                        "EarliestLastIndexingAttemptTime",
-                        "LastIndexingAttemptTime")
-                    Receive-Output ""
-                }
-            }
-        } else {
-            Receive-Output "Failed to find any results when doing a search on the category $Category"
-        }
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category
         return
     }
 
