@@ -16,12 +16,24 @@ param(
 . .\Checks\Test-MissingMsiFiles.ps1
 . .\Checks\Test-OtherWellKnownObjects.ps1
 . .\Checks\Test-PendingReboot.ps1
+. $PSScriptRoot\Checks\Test-PrerequisiteInstalled.ps1
 . .\Checks\Test-UserGroupMemberOf.ps1
 . .\Checks\Test-ValidHomeMdb.ps1
 . .\Utils\ConvertFrom-Ldif.ps1
+
+#Local Shared
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
-. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+
+#REPO Shared
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
+
+#REPO Shared Dependencies
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\SetupAssist_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -87,6 +99,7 @@ Function MainUse {
 
     Test-UserGroupMemberOf
     Test-MissingMsiFiles
+    Test-PrerequisiteInstalled
 
     $powershellProcesses = @(Get-Process -IncludeUserName powershell)
 

@@ -159,7 +159,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-TimeZoneInformationRegistrySettings.ps1
 . .\DataCollection\extern\Get-WmiObjectHandler.ps1
 . .\DataCollection\extern\Invoke-RegistryGetValue.ps1
-. .\DataCollection\extern\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeAppPoolsInformation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeInformation.ps1
@@ -175,7 +175,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\ServerInformation\Get-OperatingSystemInformation.ps1
 . .\DataCollection\ServerInformation\Get-PageFileInformation.ps1
 . .\DataCollection\ServerInformation\Get-ServerRole.ps1
-. .\DataCollection\ServerInformation\Get-VisualCRedistributableVersion.ps1
+. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
 . .\Analyzer\Add-AnalyzedResultInformation.ps1
 . .\Analyzer\Get-DisplayResultsGroupingKey.ps1
 . .\Analyzer\Invoke-AnalyzerEngine.ps1
