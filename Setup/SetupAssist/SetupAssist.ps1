@@ -21,7 +21,7 @@ param(
 . .\Utils\ConvertFrom-Ldif.ps1
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
-. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\SetupAssist_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
