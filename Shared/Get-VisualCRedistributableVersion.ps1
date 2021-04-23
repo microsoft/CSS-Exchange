@@ -1,8 +1,7 @@
 Function Get-VisualCRedistributableVersion {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$ComputerName,
+        [string]$ComputerName = $env:COMPUTERNAME,
         [scriptblock]$CatchActionFunction
     )
     begin {
