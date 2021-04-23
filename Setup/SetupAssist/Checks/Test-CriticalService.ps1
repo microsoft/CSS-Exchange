@@ -1,5 +1,28 @@
 Function Test-CriticalService {
-    $critical = @("MpsSvc")
+    $critical = @(
+        "MpsSvc",
+        "FMS",
+        "HostControllerService",
+        "MSExchangeADTopology",
+        "MSExchangeAntispamUpdate",
+        "MSExchangeDagMgmt",
+        "MSExchangeDelivery",
+        "MSExchangeDiagnostics",
+        "MSExchangeEdgeSync",
+        "MSExchangeFastSearch",
+        "MSExchangeFrontEndTransport",
+        "MSExchangeHM",
+        "MSExchangeIS",
+        "MSExchangeMailboxAssistants",
+        "MSExchangeMailboxReplication",
+        "MSExchangeRepl",
+        "MSExchangeRPC",
+        "MSExchangeServiceHost",
+        "MSExchangeSubmission",
+        "MSExchangeThrottling",
+        "MSExchangeTransport",
+        "MSExchangeTransportLogSearch")
+
     $services = Get-Service -ErrorAction SilentlyContinue
 
     foreach ($name in $critical) {

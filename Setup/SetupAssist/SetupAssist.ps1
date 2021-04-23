@@ -24,6 +24,7 @@ param(
 #Local Shared
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
+. $PSScriptRoot\..\Shared\New-SetupLogReviewer.ps1
 
 #REPO Shared
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
@@ -121,6 +122,50 @@ Function MainUse {
     Test-MissingDirectory
     Test-ExchangeAdSetupObjects
     Confirm-VirtualDirectoryConfiguration
+
+    $exSetupLog = "$($env:HOMEDRIVE)\ExchangeSetupLogs\ExchangeSetup.log"
+
+    if ((Test-Path $exSetupLog)) {
+
+        try {
+            $setupLogReviewer = New-SetupLogReviewer -SetupLog $exSetupLog
+            $successFullInstall = $setupLogReviewer.SelectStringLastRunOfExchangeSetup("The Exchange Server setup operation completed successfully\.")
+            "Setup Last Run: $($setupLogReviewer.SetupRunDate)" | Receive-Output
+            "Setup Build: $($setupLogReviewer.SetupBuildNumber)" | Receive-Output
+
+            if ($null -ne $successFullInstall) {
+                "Last Setup Run Appears Successful" | Receive-Output
+            } else {
+                "Last Setup Run Appears to have Failed" | Receive-Output -IsWarning
+                "" | Receive-Output
+                "Try to run SetupLogReviewer.ps1 again the script to determine a possible action plan: https://microsoft.github.io/CSS-Exchange/Setup/SetupLogReviewer/" | Receive-Output
+                "If not a known issue, please include the following to support:" | Receive-Output
+                "`t - $exSetupLog" | Receive-Output
+
+                $logs = @(
+                    "$($env:HOMEDRIVE)\ExchangeSetupLogs\PatchVerboseLogging.log",
+                    "$($env:HOMEDRIVE)\ExchangeSetupLogs\ServiceControl.log",
+                    "$($env:HOMEDRIVE)\ExchangeSetupLogs\UpdateCas.log",
+                    "$($env:HOMEDRIVE)\ExchangeSetupLogs\UpdateConfigFile.log"
+                )
+
+                foreach ($log in $logs) {
+
+                    if ((Test-Path $log)) {
+                        "`t - $log" | Receive-Output
+                    }
+                }
+
+                "`t - $Script:ScriptLogging" | Receive-Output
+            }
+        } catch {
+            "Failed to determine state of the Setup Log" | Receive-Output
+            "$($_.Exception)" | Receive-Output
+            "$($_.ScriptStackTrace)" | Receive-Output
+        }
+    } else {
+        "Failed to find Exchange Setup Log" | Receive-Output
+    }
 }
 
 Function Main {
