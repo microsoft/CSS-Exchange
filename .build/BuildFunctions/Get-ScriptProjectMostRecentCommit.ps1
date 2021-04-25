@@ -7,6 +7,7 @@
 #>
 function Get-ScriptProjectMostRecentCommit {
     [CmdletBinding()]
+    [OutputType([DateTime])]
     param (
         [Parameter()]
         [string]

@@ -3,6 +3,8 @@ param (
 
 )
 
+#Requires -Version 7
+
 . $PSScriptRoot\BuildFunctions\Get-ScriptProjectMostRecentCommit.ps1
 . $PSScriptRoot\BuildFunctions\Get-ExpandedScriptContent.ps1
 
