@@ -55,6 +55,6 @@ function Get-ExpandedScriptContent {
             }
         }
 
-        Write-Output -NoEnumerate $scriptContent
+        Write-Output -NoEnumerate -InputObject $scriptContent
     }
 }

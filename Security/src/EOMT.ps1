@@ -568,10 +568,10 @@ function Get-ServerPatchStatus {
 
     $KBregex = "[0-9]{7}"
 
-    [long]$LatestInstalledExchangeSU = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
-        | Where-Object displayname -Like "Security Update for Exchange Server*" `
-        | Select-Object displayname `
-        | Select-String -Pattern $KBregex).Matches.Value
+    [long]$LatestInstalledExchangeSU = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* |
+            Where-Object displayname -Like "Security Update for Exchange Server*" |
+            Select-Object displayname |
+            Select-String -Pattern $KBregex).Matches.Value
 
     if ($Version -ge [version]$LatestCU) {
         #They have the March CU, which contains this KB
