@@ -3,6 +3,9 @@ param (
 
 )
 
+. $PSScriptRoot\BuildFunctions\Get-ScriptProjectMostRecentCommit.ps1
+. $PSScriptRoot\BuildFunctions\Get-ExpandedScriptContent.ps1
+
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 <#
@@ -59,94 +62,47 @@ $scriptFiles = $scriptFiles | Where-Object {
     $m.Count -lt 1
 }
 
-<#
-    Copy the remaining files to dist, expand dot-sourced files,
-    add disclaimer and version.
-#>
-
-$disclaimer = [IO.File]::ReadAllLines("$repoRoot\.build\disclaimer.txt")
+# Build the files
 
 $scriptVersions = @()
 
+$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\disclaimer.txt")
+
 $scriptFiles | ForEach-Object {
-    $scriptContent = New-Object 'System.Collections.Generic.List[string]'
-    $scriptContent.AddRange([IO.File]::ReadAllLines($_))
+    $scriptName = [IO.Path]::GetFileName($_)
 
-    $commitTime = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $_))
+    # Expand the embedded files
+    $expandedScript = Get-ExpandedScriptContent $_
 
-    # Expand dot-sourced files
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\. (?:\.|\`$PSScriptRoot)\\(.*).ps1"
-
-        if ($m.Matches.Count -gt 0) {
-            $parentPath = [IO.Path]::GetDirectoryName($_)
-            $dotloadedScriptPath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[1].Value + ".ps1")
-            $dotloadedScriptContent = [IO.File]::ReadAllLines($dotloadedScriptPath)
-            $scriptContent.RemoveAt($i)
-            $scriptContent.InsertRange($i, $dotloadedScriptContent)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $dotloadedScriptPath))
-
-            if ($commitTimeTest -gt $commitTime) {
-                $commitTime = $commitTimeTest
-                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
-            }
-        }
-    }
-
-    # Expand Get-Content calls for local files that are marked -AsByteStream -Raw
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\`$(.+) = Get-Content `"?(\`$PSScriptRoot|\.)\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
-        if ($m.Matches.Count -gt 0) {
-            $parentPath = [IO.Path]::GetDirectoryName($_)
-            $filePath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[3].Value)
-            $fileAsBase64 = [Convert]::ToBase64String(([IO.File]::ReadAllBytes($filePath)), "InsertLineBreaks")
-            $scriptContent.RemoveAt($i)
-            [string[]]$linesToInsert = @()
-            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value)Base64 = @'"
-            $linesToInsert += $fileAsBase64
-            $linesToInsert += "'@"
-            $linesToInsert += ""
-            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value) = [Convert]::FromBase64String(`$$($m.Matches[0].Groups[1].Value)Base64)"
-            $scriptContent.InsertRange($i, $linesToInsert)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $filePath))
-
-            if ($commitTimeTest -gt $commitTime) {
-                $commitTime = $commitTimeTest
-                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
-            }
-        }
-    }
-
+    # Add the version information
+    $commitTime = Get-ScriptProjectMostRecentCommit $_
     $buildVersionString = $commitTime.ToString("yy.MM.dd.HHmm")
     Write-Host ("Setting version for script '$_' to $buildVersionString")
 
     # Set version variable if present
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i]
+    for ($i = 0; $i -lt $expandedScript.Count; $i++) {
+        $line = $expandedScript[$i]
         if ($line.Contains("`$BuildVersion = `"`"")) {
             $newLine = $line.Replace("`$BuildVersion = `"`"", "`$BuildVersion = `"$buildVersionString`"")
             Write-Host $newLine
-            $scriptContent.RemoveAt($i)
-            $scriptContent.Insert($i, $newLine)
+            $expandedScript.RemoveAt($i)
+            $expandedScript.Insert($i, $newLine)
         }
     }
 
     # Stamp version in comments
-    $scriptContent.Insert(0, "")
-    $scriptContent.Insert(0, "# Version $buildVersionString")
+    $expandedScript.Insert(0, "")
+    $expandedScript.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
-    $scriptContent.Insert(0, "")
-    $scriptContent.InsertRange(0, $disclaimer)
+    $expandedScript.Insert(0, "")
+    $expandedScript.InsertRange(0, $disclaimer)
 
+    Set-Content -Path (Join-Path $distFolder $scriptName) -Value $expandedScript
     $scriptVersions += [PSCustomObject]@{
-        File    = [IO.Path]::GetFileName($_)
-        Version = $commitTime.ToString("yy.MM.dd.HHmm")
+        File    = $scriptName
+        Version = $buildVersionString
     }
-
-    Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
 }
 
 # Generate version text for release description
