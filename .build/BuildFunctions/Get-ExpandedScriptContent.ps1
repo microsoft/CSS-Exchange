@@ -38,6 +38,8 @@ function Get-ExpandedScriptContent {
                     $dotSourcedFileContent = Get-ExpandedScriptContent $dotSourcedFile $ScriptsAlreadyEmbedded
                     $scriptContent.InsertRange($i, $dotSourcedFileContent)
                 }
+
+                $i-- # Make sure we re-evaluate the line at this index after deleting what was here before
             } else {
                 $embeddedFile = $line | Get-EmbeddedFileInfo
                 if ($null -ne $embeddedFile) {
