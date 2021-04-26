@@ -1,4 +1,4 @@
-#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
+﻿#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(
@@ -50,6 +50,7 @@ param(
 . $PSScriptRoot\Get-MessageIndexState.ps1
 . $PSScriptRoot\Get-QueryItemResult.ps1
 . $PSScriptRoot\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Write-MailboxIndexMessageStatistics.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -194,41 +195,7 @@ Function Main {
 
     if (-not([string]::IsNullOrEmpty($Category))) {
 
-        $mailboxStats = $mailboxInformation.MailboxStatistics
-
-        $totalIndexableItems = ($mailboxStats.AssociatedItemCount + $mailboxStats.ItemCount) - $mailboxStats.BigFunnelShouldNotBeIndexedCount
-
-        [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -Category $Category
-
-        if ($messages.Count -gt 0) {
-            Receive-Output ""
-            Receive-Output "All Indexable Items Count: $totalIndexableItems"
-            Receive-Output ""
-            $groupedStatus = $messages | Group-Object MessageStatus
-
-            foreach ($statusGrouping in $groupedStatus) {
-
-                Receive-Output "---------------------"
-                Receive-Output "Message Index Status: $($statusGrouping.Name)"
-                Receive-Output "---------------------"
-                $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
-                foreach ($result in $groupedResults) {
-                    $obj = [PSCustomObject]@{
-                        TotalItems         = $result.Count
-                        ErrorMessage       = $result.Values[0]
-                        IsPermanentFailure = $result.Values[1]
-                    }
-
-                    Write-DisplayObjectInformation -DisplayObject $obj -PropertyToDisplay @(
-                        "TotalItems",
-                        "ErrorMessage",
-                        "IsPermanentFailure")
-                    Receive-Output ""
-                }
-            }
-        } else {
-            Receive-Output "Failed to find any results when doing a search on the category $Category"
-        }
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category
         return
     }
 
@@ -289,6 +256,40 @@ Function Main {
             Receive-Output "Failed to find message with subject '$ItemSubject'"
             Receive-Output "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
         }
+    }
+
+    $mailboxStats = $mailboxInformation.MailboxStatistics
+    $categories = New-Object 'System.Collections.Generic.List[string]'
+
+    if ($mailboxStats.BigFunnelNotIndexedCount -ge 250) {
+        $categories.Add("NotIndexed")
+    }
+
+    if ($mailboxStats.BigFunnelCorruptedCount -ge 100) {
+        $categories.Add("Corrupted")
+    }
+
+    if ($mailboxStats.BigFunnelPartiallyIndexedCount -ge 1000) {
+        $categories.Add("PartiallyIndexed")
+    }
+
+    if ($mailboxStats.BigFunnelStaleCount -ge 100) {
+        $categories.Add("Stale")
+    }
+
+    if ($mailboxStats.BigFunnelShouldNotBeIndexedCount -ge 5000) {
+        $categories.Add("ShouldNotBeIndexed")
+    }
+
+    if ($categories.Count -gt 0) {
+        Receive-Output ""
+        Receive-Output "----------------------------------------"
+        Receive-Output "Collecting Message Stats on the following Categories:"
+        Receive-Output ""
+        $categories | Receive-Output
+        Receive-Output ""
+        Receive-Output "This may take some time to collect."
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
     }
 }
 

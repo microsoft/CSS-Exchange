@@ -1,4 +1,4 @@
-Function Get-TransportLoggingInformationPerServer {
+﻿Function Get-TransportLoggingInformationPerServer {
     param(
         [string]$Server,
         [int]$Version,

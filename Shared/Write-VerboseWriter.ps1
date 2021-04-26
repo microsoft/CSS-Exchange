@@ -1,4 +1,4 @@
-Function Write-VerboseWriter {
+﻿Function Write-VerboseWriter {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString
     )

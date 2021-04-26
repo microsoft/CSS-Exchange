@@ -1,4 +1,4 @@
-try {
+﻿try {
     #Enums and custom data types
     Add-Type -TypeDefinition @"
     using System;

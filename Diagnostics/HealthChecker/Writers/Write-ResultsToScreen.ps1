@@ -1,4 +1,4 @@
-Function Write-ResultsToScreen {
+﻿Function Write-ResultsToScreen {
     param(
         [Hashtable]$ResultsToWrite
     )

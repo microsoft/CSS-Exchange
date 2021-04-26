@@ -1,4 +1,4 @@
-Function Write-DataOnlyOnceOnMasterServer {
+﻿Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
     Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnMasterServer")

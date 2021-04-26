@@ -1,4 +1,4 @@
-Function Test-KnownIssuesByErrors {
+﻿Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

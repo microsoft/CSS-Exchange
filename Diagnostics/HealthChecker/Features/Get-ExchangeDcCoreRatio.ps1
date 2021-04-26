@@ -1,4 +1,4 @@
-Function Get-ComputerCoresObject {
+﻿Function Get-ComputerCoresObject {
     param(
         [Parameter(Mandatory = $true)][string]$Machine_Name
     )

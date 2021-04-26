@@ -1,6 +1,7 @@
-Function Test-ValidHomeMDB {
-    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l "distinguishedName,homeMDB" -f "$PSScriptRoot\validHomeMdb.txt" | Out-Null
-    $ldifeObject = @(Get-Content "$PSScriptRoot\validHomeMdb.txt" | ConvertFrom-Ldif)
+﻿Function Test-ValidHomeMDB {
+    $filePath = "$PSScriptRoot\validHomeMdb.txt"
+    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l "distinguishedName,homeMDB" -f $filePath | Out-Null
+    $ldifeObject = @(Get-Content $filePath | ConvertFrom-Ldif)
 
     if ($ldifeObject.Count -gt 0) {
 
@@ -35,6 +36,7 @@ Function Test-ValidHomeMDB {
             "`t`tSet-Mailbox 'DN' -Database 'DB_Name'" | Receive-Output
             "" | Receive-Output
         } else {
+            Remove-Item $filePath -Force
             "All Critical Mailboxes have valid HomeMDB values" | Receive-Output
         }
     } else {

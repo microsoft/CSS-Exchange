@@ -1,4 +1,4 @@
-Function Copy-FullLogFullPathRecurse {
+﻿Function Copy-FullLogFullPathRecurse {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation

@@ -1,4 +1,4 @@
-Function Write-ScriptHost {
+﻿Function Write-ScriptHost {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString,
         [Parameter(Mandatory = $false)][bool]$ShowServer = $true,

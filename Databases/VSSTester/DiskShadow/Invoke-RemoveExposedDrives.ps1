@@ -1,4 +1,4 @@
-function Invoke-RemoveExposedDrives {
+﻿function Invoke-RemoveExposedDrives {
 
     function Out-removeDHSFile {
         param ([string]$fileline)

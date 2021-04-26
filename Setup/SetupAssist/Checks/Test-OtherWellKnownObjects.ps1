@@ -1,16 +1,17 @@
-Function Test-OtherWellKnownObjects {
+﻿Function Test-OtherWellKnownObjects {
     [CmdletBinding()]
     param ()
 
     $rootDSE = [ADSI]("LDAP://RootDSE")
     $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
+    $filePath = "$PSScriptRoot\ExchangeContainerOriginal.txt"
 
-    ldifde -d $exchangeContainerPath -p Base -l otherWellKnownObjects -f $PSScriptRoot\ExchangeContainerOriginal.txt
+    ldifde -d $exchangeContainerPath -p Base -l otherWellKnownObjects -f $filePath
 
-    $ldifObjects = @(Get-Content $PSScriptRoot\ExchangeContainerOriginal.txt | ConvertFrom-Ldif)
+    $ldifObjects = @(Get-Content $filePath | ConvertFrom-Ldif)
 
     if ($ldifObjects.Length -lt 1) {
-        throw "Failed to export ExchangeContainerOriginal.txt file"
+        throw "Failed to export $([IO.Path]::GetFileName($filePath)) file"
     }
 
     if ($ldifObjects.Length -gt 1) {
@@ -42,6 +43,7 @@ Function Test-OtherWellKnownObjects {
         "" | Receive-Output
     } else {
         "No bad values found in otherWellKnownObjects." | Receive-Output
+        Remove-Item $filePath -Force
     }
 
     return

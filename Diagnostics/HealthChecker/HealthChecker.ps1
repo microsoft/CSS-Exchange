@@ -1,4 +1,4 @@
-<#
+﻿<#
 .NOTES
 	Name: HealthChecker.ps1
 	Requires: Exchange Management Shell and administrator rights on the target Exchange

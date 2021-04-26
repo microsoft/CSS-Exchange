@@ -1,4 +1,4 @@
-Function Get-NETFrameworkVersion {
+﻿Function Get-NETFrameworkVersion {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,

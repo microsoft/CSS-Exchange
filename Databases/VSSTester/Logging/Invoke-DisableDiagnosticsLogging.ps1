@@ -1,4 +1,4 @@
-function Invoke-DisableDiagnosticsLogging {
+﻿function Invoke-DisableDiagnosticsLogging {
 
     Write-Host " "  $nl
     Get-Date

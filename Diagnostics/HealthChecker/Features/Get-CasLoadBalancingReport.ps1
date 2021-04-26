@@ -1,4 +1,4 @@
-Function Get-CASLoadBalancingReport {
+﻿Function Get-CASLoadBalancingReport {
 
     Write-VerboseOutput("Calling: Get-CASLoadBalancingReport")
     #Connection and requests per server and client type values

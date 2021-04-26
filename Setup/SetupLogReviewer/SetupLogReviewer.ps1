@@ -1,4 +1,4 @@
-# This script reviews the ExchangeSetup.log and determines if it is a known issue and reports an
+﻿# This script reviews the ExchangeSetup.log and determines if it is a known issue and reports an
 # action to take to resolve the issue.
 #
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue
@@ -21,8 +21,10 @@ param(
 . $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
 . $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
-. $PSScriptRoot\Common\New-SetupLogReviewer.ps1
 . $PSScriptRoot\Delegated\Get-DelegatedInstallerHasProperRights.ps1
+
+#Shared Local
+. $PSScriptRoot\..\Shared\New-SetupLogReviewer.ps1
 
 Function Main {
     try {

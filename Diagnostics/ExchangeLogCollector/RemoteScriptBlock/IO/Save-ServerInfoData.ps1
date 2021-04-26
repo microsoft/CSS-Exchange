@@ -1,4 +1,4 @@
-Function Save-ServerInfoData {
+﻿Function Save-ServerInfoData {
     Write-ScriptDebug("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
     New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true

@@ -1,4 +1,4 @@
-Function Get-LogmanStatus {
+﻿Function Get-LogmanStatus {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

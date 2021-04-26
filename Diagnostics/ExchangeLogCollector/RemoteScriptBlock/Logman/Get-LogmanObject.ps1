@@ -1,4 +1,4 @@
-Function Get-LogmanObject {
+﻿Function Get-LogmanObject {
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,
         [Parameter(Mandatory = $true)][string]$ServerName

@@ -1,4 +1,4 @@
-Function Get-ServerRole {
+﻿Function Get-ServerRole {
     param(
         [Parameter(Mandatory = $true)][object]$ExchangeServerObj
     )

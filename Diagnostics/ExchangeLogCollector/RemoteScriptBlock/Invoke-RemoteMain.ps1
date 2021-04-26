@@ -1,4 +1,4 @@
-Function Invoke-RemoteMain {
+﻿Function Invoke-RemoteMain {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Required to be used in the current format')]
     [CmdletBinding()]
     param()

@@ -1,4 +1,4 @@
-Function Get-StringDataForNotEnoughFreeSpaceFile {
+﻿Function Get-StringDataForNotEnoughFreeSpaceFile {
     param(
         [Parameter(Mandatory = $true)][hashtable]$hasher
     )

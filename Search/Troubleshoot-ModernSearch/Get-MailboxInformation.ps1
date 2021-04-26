@@ -1,4 +1,4 @@
-Function Get-MailboxInformation {
+﻿Function Get-MailboxInformation {
     [CmdletBinding()]
     param(
         [string]

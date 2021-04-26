@@ -1,4 +1,4 @@
-Function Invoke-ScriptLogFileLocation {
+﻿Function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
         [Parameter(Mandatory = $false)][bool]$IncludeServerName = $false

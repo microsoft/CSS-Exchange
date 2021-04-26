@@ -1,4 +1,4 @@
-Function Get-QueryItemResult {
+﻿Function Get-QueryItemResult {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

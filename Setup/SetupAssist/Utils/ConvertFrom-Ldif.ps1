@@ -1,4 +1,4 @@
-function ConvertFrom-Ldif {
+﻿function ConvertFrom-Ldif {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

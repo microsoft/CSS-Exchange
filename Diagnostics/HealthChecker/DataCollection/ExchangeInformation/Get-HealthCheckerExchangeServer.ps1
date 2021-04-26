@@ -1,4 +1,4 @@
-Function Get-HealthCheckerExchangeServer {
+﻿Function Get-HealthCheckerExchangeServer {
 
     Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
 

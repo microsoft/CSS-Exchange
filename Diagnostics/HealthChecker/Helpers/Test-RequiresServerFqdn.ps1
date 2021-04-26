@@ -1,4 +1,4 @@
-Function Test-RequiresServerFqdn {
+﻿Function Test-RequiresServerFqdn {
 
     Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
     $tempServerName = ($Script:Server).Split(".")

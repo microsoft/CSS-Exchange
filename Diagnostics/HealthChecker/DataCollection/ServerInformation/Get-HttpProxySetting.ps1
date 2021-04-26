@@ -1,4 +1,4 @@
-Function Get-HttpProxySetting {
+﻿Function Get-HttpProxySetting {
 
     $httpProxy32 = [String]::Empty
     $httpProxy64 = [String]::Empty

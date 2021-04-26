@@ -1,4 +1,4 @@
-Function Test-RemoteExecutionOfServers {
+﻿Function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList
     )

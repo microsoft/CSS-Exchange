@@ -1,4 +1,4 @@
-# ValidateMailEnabledPublicFolders.ps1
+﻿# ValidateMailEnabledPublicFolders.ps1
 #
 # Note: If running on Exchange 2010, the ExFolders tool must be in the V14\bin folder
 # in order to run one of the checks. ExFolders can be downloaded here:

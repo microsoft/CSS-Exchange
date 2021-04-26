@@ -1,4 +1,4 @@
-Function Get-ItemsSize {
+﻿Function Get-ItemsSize {
     param(
         [Parameter(Mandatory = $true)][array]$FilePaths
     )

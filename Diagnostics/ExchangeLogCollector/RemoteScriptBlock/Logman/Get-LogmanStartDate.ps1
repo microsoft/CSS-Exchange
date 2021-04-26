@@ -1,4 +1,4 @@
-Function Get-LogmanStartDate {
+﻿Function Get-LogmanStartDate {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

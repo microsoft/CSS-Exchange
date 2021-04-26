@@ -1,4 +1,4 @@
-Function Test-FreeSpace {
+﻿Function Test-FreeSpace {
     param(
         [Parameter(Mandatory = $false)][array]$FilePaths
     )

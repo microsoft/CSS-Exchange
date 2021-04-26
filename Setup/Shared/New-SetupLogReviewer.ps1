@@ -1,4 +1,4 @@
-
+﻿
 Function New-SetupLogReviewer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'New is the best option')]
     [CmdletBinding()]

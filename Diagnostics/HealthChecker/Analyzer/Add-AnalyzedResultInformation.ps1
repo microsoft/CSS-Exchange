@@ -1,4 +1,4 @@
-Function Add-AnalyzedResultInformation {
+﻿Function Add-AnalyzedResultInformation {
     param(
         [object]$Details,
         [string]$Name,

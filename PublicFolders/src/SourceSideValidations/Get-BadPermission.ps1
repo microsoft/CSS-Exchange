@@ -1,4 +1,4 @@
-function Get-BadPermission {
+﻿function Get-BadPermission {
     [CmdletBinding()]
     param (
         [Parameter()]

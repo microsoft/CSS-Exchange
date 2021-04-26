@@ -1,4 +1,4 @@
-#################################################################################
+﻿#################################################################################
 # Purpose:
 # This script will allow you to test VSS functionality on Exchange server using DiskShadow.
 # The script will automatically detect active and passive database copies running on the server.

@@ -1,4 +1,4 @@
-Function Get-MailboxDatabaseAndMailboxStatistics {
+﻿Function Get-MailboxDatabaseAndMailboxStatistics {
 
     Write-VerboseOutput("Calling: Get-MailboxDatabaseAndMailboxStatistics")
     $AllDBs = Get-MailboxDatabaseCopyStatus -server $Script:Server -ErrorAction SilentlyContinue

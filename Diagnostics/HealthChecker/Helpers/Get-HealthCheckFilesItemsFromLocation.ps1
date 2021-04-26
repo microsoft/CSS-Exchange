@@ -1,4 +1,4 @@
-Function Get-HealthCheckFilesItemsFromLocation {
+﻿Function Get-HealthCheckFilesItemsFromLocation {
     $items = Get-ChildItem $XMLDirectoryPath | Where-Object { $_.Name -like "HealthCheck-*-*.xml" }
 
     if ($null -eq $items) {

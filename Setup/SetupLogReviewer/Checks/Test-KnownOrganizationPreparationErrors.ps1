@@ -1,4 +1,4 @@
-Function Test-KnownOrganizationPreparationErrors {
+﻿Function Test-KnownOrganizationPreparationErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

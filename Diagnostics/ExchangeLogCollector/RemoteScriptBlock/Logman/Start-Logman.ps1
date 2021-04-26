@@ -1,4 +1,4 @@
-Function Start-Logman {
+﻿Function Start-Logman {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I like Start Logman')]
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,

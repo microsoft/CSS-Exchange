@@ -1,4 +1,4 @@
-Function Get-IISLogDirectory {
+﻿Function Get-IISLogDirectory {
     Write-ScriptDebug("Function Enter: Get-IISLogDirectory")
 
     Function Get-IISDirectoryFromGetWebSite {

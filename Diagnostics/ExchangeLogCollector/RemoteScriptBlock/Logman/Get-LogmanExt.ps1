@@ -1,4 +1,4 @@
-Function Get-LogmanExt {
+﻿Function Get-LogmanExt {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )
