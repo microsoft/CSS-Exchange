@@ -1,4 +1,4 @@
-Function Get-LogmanRootPath {
+﻿Function Get-LogmanRootPath {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

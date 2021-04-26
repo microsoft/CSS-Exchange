@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Returns the dot-sourced script path from this line of PowerShell
     script, if any.

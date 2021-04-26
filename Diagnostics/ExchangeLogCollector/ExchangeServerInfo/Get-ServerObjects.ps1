@@ -1,4 +1,4 @@
-Function Get-ServerObjects {
+﻿Function Get-ServerObjects {
     param(
         [Parameter(Mandatory = $true)][Array]$ValidServers
     )

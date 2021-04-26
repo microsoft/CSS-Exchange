@@ -1,4 +1,4 @@
-Function Get-DisplayResultsGroupingKey {
+﻿Function Get-DisplayResultsGroupingKey {
     param(
         [string]$Name,
         [bool]$DisplayGroupName = $true,

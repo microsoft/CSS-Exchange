@@ -1,4 +1,4 @@
-Function Get-IndexStateOfMessage {
+﻿Function Get-IndexStateOfMessage {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(

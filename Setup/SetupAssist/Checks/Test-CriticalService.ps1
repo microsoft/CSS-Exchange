@@ -1,4 +1,4 @@
-Function Test-CriticalService {
+﻿Function Test-CriticalService {
     $critical = @(
         "MpsSvc",
         "FMS",

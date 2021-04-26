@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-HostWriters/Write-InvokeCommandReturnHostWriter.ps1
 #v21.01.22.2212
 Function Write-InvokeCommandReturnHostWriter {
     param(

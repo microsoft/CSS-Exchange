@@ -1,4 +1,4 @@
-Function Invoke-ZipFolder {
+﻿Function Invoke-ZipFolder {
     param(
         [string]$Folder,
         [bool]$ZipItAll,

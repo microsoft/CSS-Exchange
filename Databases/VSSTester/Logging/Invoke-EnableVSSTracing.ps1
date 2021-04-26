@@ -1,4 +1,4 @@
-function Invoke-EnableVSSTracing {
+﻿function Invoke-EnableVSSTracing {
     " "
     Get-Date
     Write-Host "Enabling VSS Tracing..." -ForegroundColor Green $nl

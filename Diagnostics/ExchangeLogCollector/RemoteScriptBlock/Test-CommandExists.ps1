@@ -1,4 +1,4 @@
-Function Test-CommandExists {
+﻿Function Test-CommandExists {
     param(
         [string]$command
     )

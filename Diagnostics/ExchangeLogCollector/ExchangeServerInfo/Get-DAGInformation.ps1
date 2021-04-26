@@ -1,4 +1,4 @@
-Function Get-DAGInformation {
+﻿Function Get-DAGInformation {
     param(
         [Parameter(Mandatory = $true)][string]$DAGName
     )

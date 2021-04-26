@@ -1,4 +1,4 @@
-Function Get-ExchangeServerMaintenanceState {
+﻿Function Get-ExchangeServerMaintenanceState {
     param(
         [Parameter(Mandatory = $false)][array]$ComponentsToSkip
     )

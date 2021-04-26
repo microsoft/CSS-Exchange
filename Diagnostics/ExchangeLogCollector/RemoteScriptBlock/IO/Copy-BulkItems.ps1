@@ -1,4 +1,4 @@
-Function Copy-BulkItems {
+﻿Function Copy-BulkItems {
     param(
         [string]$CopyToLocation,
         [Array]$ItemsToCopyLocation

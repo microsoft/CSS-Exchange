@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param (
 
 )
@@ -100,7 +100,7 @@ $scriptFiles | ForEach-Object {
     $expandedScript.Insert(0, "")
     $expandedScript.InsertRange(0, $disclaimer)
 
-    Set-Content -Path (Join-Path $distFolder $scriptName) -Value $expandedScript
+    Set-Content -Path (Join-Path $distFolder $scriptName) -Value $expandedScript -Encoding utf8BOM
     $scriptVersions += [PSCustomObject]@{
         File    = $scriptName
         Version = $buildVersionString

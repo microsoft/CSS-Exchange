@@ -1,4 +1,4 @@
-Function Test-DiskSpace {
+﻿Function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
         [Parameter(Mandatory = $true)][string]$Path,

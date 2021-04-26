@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ServerType/Get-ServerType.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ServerType/Get-ServerType.ps1
 #v21.01.22.2234
 Function Get-ServerType {
     [CmdletBinding()]

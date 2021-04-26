@@ -1,4 +1,4 @@
-Function Get-ExchangeBasicServerObject {
+﻿Function Get-ExchangeBasicServerObject {
     param(
         [Parameter(Mandatory = $true)][string]$ServerName,
         [Parameter(Mandatory = $false)][bool]$AddGetServerProperty = $false

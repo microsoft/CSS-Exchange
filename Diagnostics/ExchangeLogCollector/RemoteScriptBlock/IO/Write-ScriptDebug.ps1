@@ -1,4 +1,4 @@
-Function Write-ScriptDebug {
+﻿Function Write-ScriptDebug {
     param(
         [Parameter(Mandatory = $true)]$WriteString
     )

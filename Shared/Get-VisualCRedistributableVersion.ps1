@@ -1,4 +1,4 @@
-Function Get-VisualCRedistributableVersion {
+﻿Function Get-VisualCRedistributableVersion {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,

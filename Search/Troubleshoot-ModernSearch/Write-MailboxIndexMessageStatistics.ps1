@@ -1,4 +1,4 @@
-Function Write-MailboxIndexMessageStatistics {
+﻿Function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

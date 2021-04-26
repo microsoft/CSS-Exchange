@@ -1,4 +1,4 @@
-<#
+﻿<#
     .SYNOPSIS
         This script contains mitigations to help address the following vulnerabilities.
             CVE-2021-26855

@@ -1,4 +1,4 @@
-Function Get-ExchangeInformation {
+﻿Function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )

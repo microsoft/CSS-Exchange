@@ -1,4 +1,4 @@
-Function Get-ExchangeApplicationConfigurationFileValidation {
+﻿Function Get-ExchangeApplicationConfigurationFileValidation {
     param(
         [string[]]$ConfigFileLocation
     )

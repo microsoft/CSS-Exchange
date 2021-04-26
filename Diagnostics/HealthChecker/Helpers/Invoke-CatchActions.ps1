@@ -1,4 +1,4 @@
-Function Invoke-CatchActions {
+﻿Function Invoke-CatchActions {
     param(
         [object]$CopyThisError = $Error[0]
     )

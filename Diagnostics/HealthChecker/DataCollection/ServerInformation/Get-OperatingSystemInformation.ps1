@@ -1,4 +1,4 @@
-Function Get-OperatingSystemInformation {
+﻿Function Get-OperatingSystemInformation {
 
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
 

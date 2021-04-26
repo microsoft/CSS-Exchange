@@ -1,4 +1,4 @@
-$tagFileBytes = Get-Content "$PSScriptRoot\tags2016.txt" -AsByteStream -Raw
+﻿$tagFileBytes = Get-Content "$PSScriptRoot\tags2016.txt" -AsByteStream -Raw
 
 $htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
 

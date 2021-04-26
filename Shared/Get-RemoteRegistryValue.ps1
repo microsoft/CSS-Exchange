@@ -1,4 +1,4 @@
-Function Get-RemoteRegistryValue {
+﻿Function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",

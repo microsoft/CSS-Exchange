@@ -1,4 +1,4 @@
-Function Invoke-AnalyzerEngine {
+﻿Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )

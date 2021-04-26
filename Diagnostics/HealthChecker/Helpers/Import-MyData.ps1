@@ -1,4 +1,4 @@
-Function Import-MyData {
+﻿Function Import-MyData {
     param(
         [Parameter(Mandatory = $true)][array]$FilePaths
     )

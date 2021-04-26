@@ -1,4 +1,4 @@
-Function Write-PrepareADInfo {
+﻿Function Write-PrepareADInfo {
     param(
         [bool]$SchemaUpdateRequired
     )

@@ -1,4 +1,4 @@
-#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
+﻿#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(

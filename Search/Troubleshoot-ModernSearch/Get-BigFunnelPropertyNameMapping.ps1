@@ -1,4 +1,4 @@
-Function Get-BigFunnelPropertyNameMapping {
+﻿Function Get-BigFunnelPropertyNameMapping {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler,

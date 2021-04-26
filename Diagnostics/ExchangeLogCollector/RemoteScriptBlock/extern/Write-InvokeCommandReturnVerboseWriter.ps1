@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Write-VerboseWriters/Write-InvokeCommandReturnVerboseWriter.ps1
 #v21.01.22.2212
 Function Write-InvokeCommandReturnVerboseWriter {
     param(

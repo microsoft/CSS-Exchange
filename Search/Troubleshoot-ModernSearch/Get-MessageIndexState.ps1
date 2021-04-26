@@ -1,4 +1,4 @@
-Function Get-MessageIndexState {
+﻿Function Get-MessageIndexState {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -1,4 +1,4 @@
-Function Write-Verbose {
+﻿Function Write-Verbose {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Verbose from Shared functions')]
     [CmdletBinding()]
     param(

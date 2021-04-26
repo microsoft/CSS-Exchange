@@ -1,4 +1,4 @@
-Function Test-UserGroupMemberOf {
+﻿Function Test-UserGroupMemberOf {
 
     $whoamiOutput = whoami /all
 

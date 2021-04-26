@@ -1,4 +1,4 @@
-function Get-VSSWritersAfter {
+﻿function Get-VSSWritersAfter {
     " "
     Get-Date
     Write-Host "Checking VSS Writer Status: (after backup)" -ForegroundColor Green $nl

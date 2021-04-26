@@ -1,4 +1,4 @@
-Function Get-ExSetupDetails {
+﻿Function Get-ExSetupDetails {
 
     Write-VerboseOutput("Calling: Get-ExSetupDetails")
     $exSetupDetails = [string]::Empty

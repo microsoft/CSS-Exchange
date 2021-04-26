@@ -1,4 +1,4 @@
-Function Copy-LogsBasedOnTime {
+﻿Function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $false)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation

@@ -1,4 +1,4 @@
-
+﻿
 function Write-Red($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Red

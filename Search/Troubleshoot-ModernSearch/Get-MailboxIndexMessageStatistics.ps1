@@ -1,4 +1,4 @@
-Function Get-MailboxIndexMessageStatistics {
+﻿Function Get-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

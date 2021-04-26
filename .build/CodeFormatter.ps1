@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Switch]
     $Save
@@ -10,6 +10,10 @@ if ($null -eq (Get-Module -Name PSScriptAnalyzer)) {
     Install-Module -Name PSScriptAnalyzer -Force
 }
 
+if ($null -eq (Get-Module -Name EncodingAnalyzer)) {
+    Install-Module -Name EncodingAnalyzer -Force
+}
+
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
@@ -17,6 +21,23 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
 $filesFailed = $false
 
 foreach ($file in $scriptFiles) {
+
+    $encoding = Get-Encoding $file
+    if (-not $encoding.BOM) {
+        Write-Warning "File has no BOM: $file"
+        if ($Save) {
+            try {
+                $content = Get-Content $file
+                Set-Content -Path $file -Value $content -Encoding utf8BOM -Force
+                Write-Warning "Saved $file with BOM."
+            } catch {
+                $filesFailed = $true
+                throw
+            }
+        } else {
+            $filesFailed = $true
+        }
+    }
 
     $before = Get-Content $file -Raw
     $after = Invoke-Formatter -ScriptDefinition (Get-Content $file -Raw) -Settings $repoRoot\PSScriptAnalyzerSettings.psd1

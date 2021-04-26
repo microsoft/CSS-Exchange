@@ -1,4 +1,4 @@
-function Get-DBtoBackup {
+﻿function Get-DBtoBackup {
     $maxDbIndexRange = $script:databases.length - 1
     $matchCondition = "^([0-9]|[1-9][0-9])$"
     Write-Debug "matchCondition: $matchCondition"

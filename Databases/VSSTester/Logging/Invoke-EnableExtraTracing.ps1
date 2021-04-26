@@ -1,4 +1,4 @@
-function Invoke-EnableExTRATracing {
+﻿function Invoke-EnableExTRATracing {
 
     Function Invoke-ExtraTracingCreate {
         param(

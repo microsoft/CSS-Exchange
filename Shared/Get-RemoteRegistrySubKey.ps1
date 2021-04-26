@@ -1,4 +1,4 @@
-Function Get-RemoteRegistrySubKey {
+﻿Function Get-RemoteRegistrySubKey {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",

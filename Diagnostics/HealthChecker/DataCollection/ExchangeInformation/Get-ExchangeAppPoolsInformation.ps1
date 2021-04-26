@@ -1,4 +1,4 @@
-Function Get-ExchangeAppPoolsInformation {
+﻿Function Get-ExchangeAppPoolsInformation {
 
     Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
 

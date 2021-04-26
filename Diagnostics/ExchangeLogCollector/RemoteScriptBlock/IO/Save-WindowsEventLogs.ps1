@@ -1,4 +1,4 @@
-Function Save-WindowsEventLogs {
+﻿Function Save-WindowsEventLogs {
 
     Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"

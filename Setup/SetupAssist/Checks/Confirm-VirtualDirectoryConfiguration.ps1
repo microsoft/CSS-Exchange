@@ -1,4 +1,4 @@
-function Confirm-VirtualDirectoryConfiguration {
+﻿function Confirm-VirtualDirectoryConfiguration {
     [CmdletBinding()]
     param ()
 

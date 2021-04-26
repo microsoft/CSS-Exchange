@@ -1,4 +1,4 @@
-Function Get-ArgumentList {
+﻿Function Get-ArgumentList {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'TODO: Change this')]
     param(
         [Parameter(Mandatory = $true)][array]$Servers

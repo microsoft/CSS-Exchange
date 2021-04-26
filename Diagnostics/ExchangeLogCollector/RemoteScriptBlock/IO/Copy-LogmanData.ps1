@@ -1,4 +1,4 @@
-Function Copy-LogmanData {
+﻿Function Copy-LogmanData {
     param(
         [Parameter(Mandatory = $true)]$ObjLogman
     )
