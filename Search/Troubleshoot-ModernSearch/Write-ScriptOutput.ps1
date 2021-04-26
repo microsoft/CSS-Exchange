@@ -1,4 +1,5 @@
-﻿Function Write-ScriptOutput {
+﻿. $PSScriptRoot\Write-LogInformation.ps1
+Function Write-ScriptOutput {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         [object[]]$Object,

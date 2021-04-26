@@ -1,4 +1,5 @@
-﻿Function Write-DisplayObjectInformation {
+﻿. $PSScriptRoot\Write-ScriptOutput.ps1
+Function Write-DisplayObjectInformation {
     [CmdletBinding()]
     param(
         [object]$DisplayObject,
