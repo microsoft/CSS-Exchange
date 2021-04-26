@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Start-JobManager/Start-JobManager.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Start-JobManager/Start-JobManager.ps1
 #v21.01.22.2234
 Function Start-JobManager {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer Start here')]

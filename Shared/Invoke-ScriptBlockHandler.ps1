@@ -1,4 +1,4 @@
-Function Invoke-ScriptBlockHandler {
+﻿Function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

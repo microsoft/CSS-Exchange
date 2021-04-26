@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Compress-Folder/Compress-Folder.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Compress-Folder/Compress-Folder.ps1
 #v21.01.22.2234
 Function Compress-Folder {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Because it returns different types that needs to be addressed')]

@@ -1,4 +1,4 @@
-<#
+﻿<#
     Determines if the script has an update available. Use the optional
     -AutoUpdate switch to make it update itself. Returns $true if an
     update was downloaded, $false otherwise. The result will always

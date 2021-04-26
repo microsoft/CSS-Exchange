@@ -1,4 +1,4 @@
-Function Test-KnownMsiIssuesCheck {
+﻿Function Test-KnownMsiIssuesCheck {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

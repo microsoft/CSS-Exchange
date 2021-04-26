@@ -1,4 +1,4 @@
-Function Test-KnownLdifErrors {
+﻿Function Test-KnownLdifErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

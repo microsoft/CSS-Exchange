@@ -1,4 +1,4 @@
-Function Get-HardwareInformation {
+﻿Function Get-HardwareInformation {
 
     Write-VerboseOutput("Calling: Get-HardwareInformation")
 

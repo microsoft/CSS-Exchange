@@ -1,4 +1,4 @@
-Function Save-DataInfoToFile {
+﻿Function Save-DataInfoToFile {
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,
         [Parameter(Mandatory = $true)][string]$SaveToLocation,

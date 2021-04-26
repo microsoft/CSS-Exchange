@@ -1,4 +1,4 @@
-Function Get-CounterSamples {
+﻿Function Get-CounterSamples {
     param(
         [Parameter(Mandatory = $true)][array]$MachineNames,
         [Parameter(Mandatory = $true)][array]$Counters

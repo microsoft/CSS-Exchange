@@ -1,4 +1,4 @@
-function Get-FolderData {
+﻿function Get-FolderData {
     [CmdletBinding()]
     param (
         [Parameter()]

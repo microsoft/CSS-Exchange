@@ -1,4 +1,4 @@
-Function Get-LmCompatibilityLevelInformation {
+﻿Function Get-LmCompatibilityLevelInformation {
 
     Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
 

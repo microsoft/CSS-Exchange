@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
 #v21.01.22.2234
 Function Get-ExchangeInstallDirectory {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Different types returned')]

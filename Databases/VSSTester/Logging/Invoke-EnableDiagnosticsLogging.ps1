@@ -1,4 +1,4 @@
-function Invoke-EnableDiagnosticsLogging {
+﻿function Invoke-EnableDiagnosticsLogging {
     " "
     Get-Date
     Write-Host "Enabling Diagnostics Logging..." -ForegroundColor green $nl

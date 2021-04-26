@@ -1,4 +1,4 @@
-Function Get-OnlyRecentUniqueServersXMLs {
+﻿Function Get-OnlyRecentUniqueServersXMLs {
     param(
         [Parameter(Mandatory = $true)][array]$FileItems
     )

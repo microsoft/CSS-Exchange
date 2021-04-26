@@ -1,4 +1,4 @@
-Function Get-FileInformation {
+﻿Function Get-FileInformation {
     [CmdletBinding()]
     param(
         [IO.FileInfo]$File,

@@ -1,4 +1,4 @@
-function Invoke-DisableExTRATracing {
+﻿function Invoke-DisableExTRATracing {
     " "
     Get-Date
     Write-Host "Disabling ExTRA Tracing..." -ForegroundColor Green $nl

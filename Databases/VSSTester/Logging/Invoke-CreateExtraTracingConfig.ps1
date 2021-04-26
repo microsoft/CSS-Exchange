@@ -1,4 +1,4 @@
-function Invoke-CreateExTRATracingConfig {
+﻿function Invoke-CreateExTRATracingConfig {
 
     function Out-ExTRAConfigFile {
         param ([string]$fileline)

@@ -1,4 +1,4 @@
-Function Get-StoreQueryHandler {
+﻿Function Get-StoreQueryHandler {
     [CmdletBinding()]
     param(
         [object]$MailboxInformation,

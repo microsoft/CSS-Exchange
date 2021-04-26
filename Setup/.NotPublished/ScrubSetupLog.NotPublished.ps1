@@ -1,4 +1,4 @@
-#This script is to take the last part of the setup log and take out all the content that we need to run Pester Testing
+﻿#This script is to take the last part of the setup log and take out all the content that we need to run Pester Testing
 #It will then change typical values that we see/need to lab values so it can be in the project.
 #Error Context might not be scrubbed properly
 [CmdletBinding()]

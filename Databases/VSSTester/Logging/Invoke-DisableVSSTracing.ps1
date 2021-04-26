@@ -1,4 +1,4 @@
-function Invoke-DisableVSSTracing {
+﻿function Invoke-DisableVSSTracing {
     " "
     Get-Date
     Write-Host "Disabling VSS Tracing..." -ForegroundColor Green $nl

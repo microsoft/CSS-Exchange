@@ -1,4 +1,4 @@
-function Get-Databases {
+﻿function Get-Databases {
     Get-Date
     Write-Host "Getting databases on server: $serverName" -ForegroundColor Green $nl
     Write-Host "--------------------------------------------------------------------------------------------------------------"

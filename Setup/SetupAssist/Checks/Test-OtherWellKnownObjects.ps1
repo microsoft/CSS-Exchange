@@ -1,4 +1,4 @@
-Function Test-OtherWellKnownObjects {
+﻿Function Test-OtherWellKnownObjects {
     [CmdletBinding()]
     param ()
 

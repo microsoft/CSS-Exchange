@@ -1,4 +1,4 @@
-Function Test-PrerequisiteCheck {
+﻿Function Test-PrerequisiteCheck {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

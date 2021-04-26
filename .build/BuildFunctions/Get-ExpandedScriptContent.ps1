@@ -1,4 +1,4 @@
-. $PSScriptRoot\Get-DotSourcedScriptName.ps1
+﻿. $PSScriptRoot\Get-DotSourcedScriptName.ps1
 . $PSScriptRoot\Get-EmbeddedFileInfo.ps1
 
 <#

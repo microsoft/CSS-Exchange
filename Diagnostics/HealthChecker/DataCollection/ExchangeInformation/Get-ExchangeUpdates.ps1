@@ -1,4 +1,4 @@
-Function Get-ExchangeUpdates {
+﻿Function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
     )

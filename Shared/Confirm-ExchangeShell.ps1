@@ -1,4 +1,4 @@
-Function Confirm-ExchangeShell {
+﻿Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,

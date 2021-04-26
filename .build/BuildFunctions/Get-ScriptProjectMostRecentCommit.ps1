@@ -1,4 +1,4 @@
-. $PSScriptRoot\Get-EmbeddedFileList.ps1
+﻿. $PSScriptRoot\Get-EmbeddedFileList.ps1
 
 <#
 .SYNOPSIS

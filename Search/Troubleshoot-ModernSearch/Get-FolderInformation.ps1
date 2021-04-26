@@ -1,4 +1,4 @@
-Function Get-FolderInformation {
+﻿Function Get-FolderInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -1,4 +1,4 @@
-Function Get-HtmlServerReport {
+﻿Function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )

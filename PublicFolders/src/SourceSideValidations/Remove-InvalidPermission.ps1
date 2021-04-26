@@ -1,4 +1,4 @@
-function Remove-InvalidPermission {
+﻿function Remove-InvalidPermission {
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter()]

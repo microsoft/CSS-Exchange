@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Returns the embedded data file info from this line of PowerShell
     script, including the file path and variable name it is assigned to.

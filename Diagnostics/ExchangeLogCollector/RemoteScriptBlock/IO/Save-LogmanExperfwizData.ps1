@@ -1,4 +1,4 @@
-Function  Save-LogmanExperfwizData {
+﻿Function  Save-LogmanExperfwizData {
 
     $PassedInfo.ExperfwizLogmanName |
         ForEach-Object {

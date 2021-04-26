@@ -1,4 +1,4 @@
-Function Test-PrerequisiteInstalled {
+﻿Function Test-PrerequisiteInstalled {
     [CmdletBinding()]
     param()
     begin {

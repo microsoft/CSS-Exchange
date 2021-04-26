@@ -1,4 +1,4 @@
-$jobsQueued = New-Object 'System.Collections.Generic.Queue[object]'
+﻿$jobsQueued = New-Object 'System.Collections.Generic.Queue[object]'
 
 function Add-JobQueueJob {
     [CmdletBinding()]

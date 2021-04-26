@@ -1,4 +1,4 @@
-Function Test-NoSwitchesProvided {
+﻿Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or

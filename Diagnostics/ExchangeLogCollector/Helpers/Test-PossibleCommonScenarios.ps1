@@ -1,4 +1,4 @@
-Function Test-PossibleCommonScenarios {
+﻿Function Test-PossibleCommonScenarios {
 
     #all possible logs
     if ($AllPossibleLogs) {

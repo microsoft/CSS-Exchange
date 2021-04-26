@@ -1,4 +1,4 @@
-Function Get-ExchangeServerCertificates {
+﻿Function Get-ExchangeServerCertificates {
 
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
 

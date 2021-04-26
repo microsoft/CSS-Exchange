@@ -1,4 +1,4 @@
-Function Get-PageFileInformation {
+﻿Function Get-PageFileInformation {
 
     Write-VerboseOutput("Calling: Get-PageFileInformation")
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation

@@ -1,4 +1,4 @@
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Enter-YesNoLoopAction/Enter-YesNoLoopAction.ps1
+﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Enter-YesNoLoopAction/Enter-YesNoLoopAction.ps1
 #v21.01.22.2234
 Function Enter-YesNoLoopAction {
     [CmdletBinding()]

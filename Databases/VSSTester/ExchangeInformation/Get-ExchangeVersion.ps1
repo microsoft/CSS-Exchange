@@ -1,4 +1,4 @@
-function Get-ExchangeVersion {
+﻿function Get-ExchangeVersion {
     Get-Date
     Write-Host "Verifying Exchange version..." -ForegroundColor Green $nl
     Write-Host "--------------------------------------------------------------------------------------------------------------"

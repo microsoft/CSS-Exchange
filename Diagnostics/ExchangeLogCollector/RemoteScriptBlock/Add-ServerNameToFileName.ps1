@@ -1,4 +1,4 @@
-Function Add-ServerNameToFileName {
+﻿Function Add-ServerNameToFileName {
     param(
         [Parameter(Mandatory = $true)][string]$FilePath
     )

@@ -1,4 +1,4 @@
-function Get-VSSWritersBefore {
+﻿function Get-VSSWritersBefore {
     " "
     Get-Date
     Write-Host "Checking VSS Writer Status: (All Writers must be in a Stable state before running this script)" -ForegroundColor Green $nl
