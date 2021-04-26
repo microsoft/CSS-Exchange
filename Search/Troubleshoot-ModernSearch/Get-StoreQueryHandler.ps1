@@ -8,6 +8,103 @@
         $Server = [string]::Empty
         $ProcessId = $null
         $VerboseCaller = ${Function:DefaultVerboseCaller}
+
+        Function DefaultVerboseCaller {
+            [CmdletBinding()]
+            param(
+                [string]$Message
+            )
+
+            Write-Verbose $Message
+        }
+
+        Function WriteVerbose {
+            param(
+                [object]$Message
+            )
+
+            $this.VerboseCaller($Message)
+        }
+
+        Function ResetQueryInstances {
+            $this.IsUnlimited = $false
+            $this.SelectPartQuery = [string]::Empty
+            $this.FromPartQuery = [string]::Empty
+            $this.WherePartQuery = [string]::Empty
+        }
+
+        Function SetSelect {
+            param(
+                [string[]]$Value
+            )
+
+            [string]$temp = $Value |
+                ForEach-Object { "$_," }
+            $this.SelectPartQuery = $temp.TrimEnd(",")
+        }
+
+        Function AddToSelect {
+            param(
+                [string[]]$Value
+            )
+
+            [string]$temp = $Value |
+                ForEach-Object { "$_," }
+            $this.SelectPartQuery = "$($this.SelectPartQuery), $($temp.TrimEnd(","))"
+        }
+
+        Function SetFrom {
+            param(
+                [string]$Value
+            )
+
+            $this.FromPartQuery = $Value
+        }
+
+        Function SetWhere {
+            param(
+                [string]$Value
+            )
+
+            $this.WherePartQuery = $Value
+        }
+
+        Function AddToWhere {
+            param(
+                [string]$Value
+            )
+
+            $this.WherePartQuery = "$($this.WherePartQuery)$Value"
+        }
+
+        Function InvokeGetStoreQuery {
+
+            if (-not([string]::IsNullOrEmpty($this.WherePartQuery))) {
+                $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
+            } else {
+                $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery)"
+            }
+
+            $myParams = @{
+                Server    = $this.Server
+                ProcessId = $this.ProcessId
+                Query     = $query
+                Unlimited = $this.IsUnlimited
+            }
+
+            $this.WriteVerbose("Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'")
+            $result = @(Get-StoreQuery @myParams)
+
+            if ($result.DiagnosticQueryException.Count -gt 0) {
+                $this.WriteVerbose("Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)")
+                Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
+            } elseif ($result.DiagnosticQueryTranslatorException.Count -gt 0) {
+                $this.WriteVerbose("Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)")
+                Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
+            }
+
+            return $result
+        }
     }
     process {
 
@@ -42,101 +139,4 @@
 
         return $obj
     }
-}
-
-Function DefaultVerboseCaller {
-    [CmdletBinding()]
-    param(
-        [string]$Message
-    )
-
-    Write-Verbose $Message
-}
-
-Function WriteVerbose {
-    param(
-        [object]$Message
-    )
-
-    $this.VerboseCaller($Message)
-}
-
-Function ResetQueryInstances {
-    $this.IsUnlimited = $false
-    $this.SelectPartQuery = [string]::Empty
-    $this.FromPartQuery = [string]::Empty
-    $this.WherePartQuery = [string]::Empty
-}
-
-Function SetSelect {
-    param(
-        [string[]]$Value
-    )
-
-    [string]$temp = $Value |
-        ForEach-Object { "$_," }
-    $this.SelectPartQuery = $temp.TrimEnd(",")
-}
-
-Function AddToSelect {
-    param(
-        [string[]]$Value
-    )
-
-    [string]$temp = $Value |
-        ForEach-Object { "$_," }
-    $this.SelectPartQuery = "$($this.SelectPartQuery), $($temp.TrimEnd(","))"
-}
-
-Function SetFrom {
-    param(
-        [string]$Value
-    )
-
-    $this.FromPartQuery = $Value
-}
-
-Function SetWhere {
-    param(
-        [string]$Value
-    )
-
-    $this.WherePartQuery = $Value
-}
-
-Function AddToWhere {
-    param(
-        [string]$Value
-    )
-
-    $this.WherePartQuery = "$($this.WherePartQuery)$Value"
-}
-
-Function InvokeGetStoreQuery {
-
-    if (-not([string]::IsNullOrEmpty($this.WherePartQuery))) {
-        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery) WHERE $($this.WherePartQuery)"
-    } else {
-        $query = "SELECT $($this.SelectPartQuery) FROM $($this.FromPartQuery)"
-    }
-
-    $myParams = @{
-        Server    = $this.Server
-        ProcessId = $this.ProcessId
-        Query     = $query
-        Unlimited = $this.IsUnlimited
-    }
-
-    $this.WriteVerbose("Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'")
-    $result = @(Get-StoreQuery @myParams)
-
-    if ($result.DiagnosticQueryException.Count -gt 0) {
-        $this.WriteVerbose("Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)")
-        Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
-    } elseif ($result.DiagnosticQueryTranslatorException.Count -gt 0) {
-        $this.WriteVerbose("Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)")
-        Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
-    }
-
-    return $result
 }
