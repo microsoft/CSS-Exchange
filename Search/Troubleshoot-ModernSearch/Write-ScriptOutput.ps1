@@ -1,4 +1,4 @@
-﻿Function Receive-Output {
+﻿Function Write-ScriptOutput {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         [object[]]$Object,

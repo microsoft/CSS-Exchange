@@ -19,24 +19,24 @@ Function Write-MailboxIndexMessageStatistics {
     process {
         $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
 
-        Receive-Output ""
-        Receive-Output "All Indexable Items Count: $totalIndexableItems"
-        Receive-Output ""
+        Write-ScriptOutput ""
+        Write-ScriptOutput "All Indexable Items Count: $totalIndexableItems"
+        Write-ScriptOutput ""
 
         foreach ($categoryType in $Category) {
 
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
-            Receive-Output "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages" -Diagnostic
+            Write-ScriptOutput "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages" -Diagnostic
 
             if ($messages.Count -gt 0) {
 
                 $groupedStatus = $messages | Group-Object MessageStatus
 
                 foreach ($statusGrouping in $groupedStatus) {
-                    Receive-Output "---------------------"
-                    Receive-Output "Message Index Status: $($statusGrouping.Name)"
-                    Receive-Output "---------------------"
+                    Write-ScriptOutput "---------------------"
+                    Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
+                    Write-ScriptOutput "---------------------"
                     $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
                     foreach ($result in $groupedResults) {
 
@@ -68,11 +68,11 @@ Function Write-MailboxIndexMessageStatistics {
                             "IsPermanentFailure",
                             "EarliestLastIndexingAttemptTime",
                             "LastIndexingAttemptTime")
-                        Receive-Output ""
+                        Write-ScriptOutput ""
                     }
                 }
             } else {
-                Receive-Output "Failed to find any results when doing a search on the category $categoryType"
+                Write-ScriptOutput "Failed to find any results when doing a search on the category $categoryType"
             }
         }
     }

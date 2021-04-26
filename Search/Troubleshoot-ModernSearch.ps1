@@ -70,8 +70,8 @@ try {
 }
 
 Function Main {
-    Receive-Output ""
-    Receive-Output "Getting user mailbox information for $MailboxIdentity"
+    Write-ScriptOutput ""
+    Write-ScriptOutput "Getting user mailbox information for $MailboxIdentity"
     @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
         "FolderName: '$FolderName'",
@@ -80,21 +80,21 @@ Function Main {
         "Category: '$Category'",
         "QueryString: '$QueryString'",
         "IsArchive: '$IsArchive'",
-        "IsPublicFolder: '$IsPublicFolder'") | Receive-Output -Diagnostic
-    Receive-Output "" -Diagnostic
+        "IsPublicFolder: '$IsPublicFolder'") | Write-ScriptOutput -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
-    Receive-Output ""
-    Receive-Output "----------------------------------------"
-    Receive-Output "Basic Mailbox Information:"
-    Receive-Output "Mailbox GUID = $($mailboxInformation.MailboxGuid)"
-    Receive-Output "Mailbox Database: $($mailboxInformation.Database)"
-    Receive-Output "Active Server: $($mailboxInformation.PrimaryServer)"
-    Receive-Output "Exchange Server Version: $($mailboxInformation.ExchangeServer.AdminDisplayVersion)"
-    Receive-Output "----------------------------------------"
-    Receive-Output ""
-    Receive-Output "Big Funnel Count Information Based Off Get-MailboxStatistics"
+    Write-ScriptOutput ""
+    Write-ScriptOutput "----------------------------------------"
+    Write-ScriptOutput "Basic Mailbox Information:"
+    Write-ScriptOutput "Mailbox GUID = $($mailboxInformation.MailboxGuid)"
+    Write-ScriptOutput "Mailbox Database: $($mailboxInformation.Database)"
+    Write-ScriptOutput "Active Server: $($mailboxInformation.PrimaryServer)"
+    Write-ScriptOutput "Exchange Server Version: $($mailboxInformation.ExchangeServer.AdminDisplayVersion)"
+    Write-ScriptOutput "----------------------------------------"
+    Write-ScriptOutput ""
+    Write-ScriptOutput "Big Funnel Count Information Based Off Get-MailboxStatistics"
     Write-DisplayObjectInformation -DisplayObject $mailboxInformation.MailboxStatistics -PropertyToDisplay @(
         "BigFunnelMessageCount",
         "BigFunnelIndexedCount",
@@ -104,16 +104,16 @@ Function Main {
         "BigFunnelStaleCount",
         "BigFunnelShouldNotBeIndexedCount"
     )
-    Receive-Output "----------------------------------------"
-    Receive-Output ""
-    Receive-Output ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.DatabaseStatus | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.DatabaseCopyStatus | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
+    Write-ScriptOutput "----------------------------------------"
+    Write-ScriptOutput ""
+    Write-ScriptOutput ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
+    Write-ScriptOutput ($mailboxInformation.DatabaseStatus | Format-List) -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
+    Write-ScriptOutput ($mailboxInformation.DatabaseCopyStatus | Format-List) -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
+    Write-ScriptOutput ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
 
     $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
@@ -131,7 +131,7 @@ Function Main {
         "CreationTime",
         "MailboxNumber"
     )
-    Receive-Output "----------------------------------------"
+    Write-ScriptOutput "----------------------------------------"
 
     if (-not([string]::IsNullOrEmpty($Category))) {
 
@@ -163,13 +163,13 @@ Function Main {
 
     if ($messages.Count -gt 0) {
 
-        Receive-Output "Found $($messages.Count) different messages"
-        Receive-Output "Messages Index State:"
+        Write-ScriptOutput "Found $($messages.Count) different messages"
+        Write-ScriptOutput "Messages Index State:"
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
-            Receive-Output ""
-            Receive-Output "Found Item $($i + 1): "
-            Receive-Output $messages[$i]
+            Write-ScriptOutput ""
+            Write-ScriptOutput "Found Item $($i + 1): "
+            Write-ScriptOutput $messages[$i]
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
@@ -184,17 +184,17 @@ Function Main {
                     "BigFunnelMatchFilter",
                     "BigFunnelMatchPOI"
                 )
-                Receive-Output ""
+                Write-ScriptOutput ""
             }
         }
     } else {
 
         if ($null -ne $DocumentId -and
             $DocumentId -ne 0) {
-            Receive-Output "Failed to find message with Document ID: $DocumentId"
+            Write-ScriptOutput "Failed to find message with Document ID: $DocumentId"
         } else {
-            Receive-Output "Failed to find message with subject '$ItemSubject'"
-            Receive-Output "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
+            Write-ScriptOutput "Failed to find message with subject '$ItemSubject'"
+            Write-ScriptOutput "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
         }
     }
 
@@ -222,25 +222,25 @@ Function Main {
     }
 
     if ($categories.Count -gt 0) {
-        Receive-Output ""
-        Receive-Output "----------------------------------------"
-        Receive-Output "Collecting Message Stats on the following Categories:"
-        Receive-Output ""
-        $categories | Receive-Output
-        Receive-Output ""
-        Receive-Output "This may take some time to collect."
+        Write-ScriptOutput ""
+        Write-ScriptOutput "----------------------------------------"
+        Write-ScriptOutput "Collecting Message Stats on the following Categories:"
+        Write-ScriptOutput ""
+        $categories | Write-ScriptOutput
+        Write-ScriptOutput ""
+        Write-ScriptOutput "This may take some time to collect."
         Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
     }
 }
 
 try {
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
-    Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Main
-    Receive-Output "Finished Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Finished Script At: $([DateTime]::Now)" -Diagnostic
     Write-Output "File Written at: $Script:ScriptLogging"
 } catch {
-    Receive-Output "$($Error[0].Exception)"
-    Receive-Output "$($Error[0].ScriptStackTrace)"
+    Write-ScriptOutput "$($Error[0].Exception)"
+    Write-ScriptOutput "$($Error[0].ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }

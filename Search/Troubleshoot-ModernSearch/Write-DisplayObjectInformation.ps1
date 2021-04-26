@@ -15,7 +15,7 @@
         }
 
         foreach ($property in $PropertyToDisplay) {
-            Receive-Output ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
+            Write-ScriptOutput ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
         }
     }
 }
