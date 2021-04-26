@@ -41,16 +41,13 @@ param(
     $IsPublicFolder
 )
 
-. $PSScriptRoot\Get-BasicMailboxQueryContext.ps1
-. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
-. $PSScriptRoot\Get-FolderInformation.ps1
-. $PSScriptRoot\Get-IndexStateOfMessage.ps1
-. $PSScriptRoot\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Get-MailboxInformation.ps1
-. $PSScriptRoot\Get-MessageIndexState.ps1
-. $PSScriptRoot\Get-QueryItemResult.ps1
-. $PSScriptRoot\Get-StoreQueryHandler.ps1
-. $PSScriptRoot\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-FolderInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MailboxInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MessageIndexState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-QueryItemResult.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-MailboxIndexMessageStatistics.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 

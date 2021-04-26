@@ -1,4 +1,5 @@
-﻿Function Get-MailboxInformation {
+﻿#Dependencies are based off EMS cmdlets.
+Function Get-MailboxInformation {
     [CmdletBinding()]
     param(
         [string]

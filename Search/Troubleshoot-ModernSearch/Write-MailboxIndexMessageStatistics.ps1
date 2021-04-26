@@ -1,4 +1,5 @@
-﻿Function Write-MailboxIndexMessageStatistics {
+﻿. $PSScriptRoot\Get-MailboxIndexMessageStatistics.ps1
+Function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
