@@ -47,47 +47,12 @@ param(
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-QueryItemResult.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-DisplayObjectInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-ScriptOutput.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
-
-Function Write-LogInformation {
-    param(
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object[]]$Object,
-        [bool]$VerboseEnabled = $VerbosePreference
-    )
-
-    process {
-
-        if ($VerboseEnabled) {
-            $Object | Write-Verbose -Verbose
-        }
-
-        $Object | Out-File -FilePath $Script:ScriptLogging -Append
-    }
-}
-
-Function Receive-Output {
-    param(
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object[]]$Object,
-        [switch]$Diagnostic
-    )
-
-    process {
-
-        if (($Diagnostic -and
-                $VerbosePreference) -or
-            -not ($Diagnostic)) {
-            $Object | Write-Output
-        } else {
-            $Object | Write-Verbose
-        }
-
-        Write-LogInformation $Object -VerboseEnabled $false
-    }
-}
 
 try {
 
@@ -102,28 +67,6 @@ try {
 } catch {
 
     throw "Failed to load ManagedStoreDiagnosticFunctions.ps1 Inner Exception: $($Error[0].Exception) Stack Trace: $($Error[0].ScriptStackTrace)"
-}
-
-Function Write-DisplayObjectInformation {
-    [CmdletBinding()]
-    param(
-        [object]$DisplayObject,
-        [string[]]$PropertyToDisplay
-    )
-    process {
-        $width = 0
-
-        foreach ($property in $PropertyToDisplay) {
-
-            if ($property.Length -gt $width) {
-                $width = $property.Length + 1
-            }
-        }
-
-        foreach ($property in $PropertyToDisplay) {
-            Receive-Output ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
-        }
-    }
 }
 
 Function Main {
