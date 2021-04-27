@@ -47,10 +47,13 @@ param(
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-QueryItemResult.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-CheckSearchProcessState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write-DisplayObjectInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write-ScriptOutput.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write-Warning.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -114,6 +117,8 @@ Function Main {
     Write-ScriptOutput "" -Diagnostic
     Write-ScriptOutput ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
     Write-ScriptOutput "" -Diagnostic
+
+    Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
 
     $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler

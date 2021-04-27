@@ -1,6 +1,7 @@
 ﻿Function Get-SearchProcessState {
     [CmdletBinding()]
     param(
+        [string]$ComputerName = $env:COMPUTERNAME
     )
     begin {
 
@@ -24,30 +25,40 @@
         $searchProcessState.Add($interactionNodeName, (Get-DefaultSettings))
         $searchProcessState.Add("hostcontrollerservice", (Get-DefaultSettings))
         $searchProcessState.Add("microsoft.exchange.search.service", (Get-DefaultSettings))
+
+        $serverSearchProcessState = [PSCustomObject]@{
+            ServerName             = $ComputerName
+            ServicesCheckPass      = $true
+            ProcessesCheckPass     = $true
+            ProcessResults         = $searchProcessState
+            LatestProcessStartTime = [DateTime]::MinValue
+            ProcessesNotStarted    = (New-Object 'System.Collections.Generic.List[string]')
+        }
     }
     process {
 
-        $searchServices = Get-Service |
+        $searchServices = Get-Service -ComputerName $ComputerName |
             Where-Object {
                 $_.Name -eq "HostControllerService" -or
                 $_.Name -eq "MSExchangeFastSearch"
             }
 
-        #throw warning/error if services aren't started or running.
         $searchServices |
             ForEach-Object {
 
                 if ($_.StartType -ne "Automatic") {
                     Write-Warning "Service: '$($_.Name)' doesn't have the start up type set to Automatic. Currently: '$($_.StartType)'. This can cause problems."
+                    $serverSearchProcessState.ServicesCheckPass = $false
                 }
 
                 if ($_.Status -ne "Running") {
                     Write-Error "Service: '$($_.Name)' is currently not running. Currently: '$($_.Status)'. This will cause problems."
+                    $serverSearchProcessState.ServicesCheckPass = $false
                 }
             }
         #This is to get the command line information and know which node runner is which
-        $nodeRunner = Get-WmiObject Win32_Process -Filter "name = 'noderunner.exe'"
-        $searchProcesses = Get-Process |
+        $nodeRunner = Get-WmiObject Win32_Process -Filter "name = 'noderunner.exe'" -ComputerName $ComputerName
+        $searchProcesses = Get-Process -ComputerName $ComputerName |
             Where-Object {
                 $_.Name -eq "noderunner" -or
                 $_.Name -eq "hostcontrollerservice" -or
@@ -82,12 +93,28 @@
                 }
             }
 
+            if ($process.StartTime -gt $serverSearchProcessState.LatestProcessStartTime) {
+                $serverSearchProcessState.LatestProcessStartTime = $process.StartTime
+            }
+
+            if ($process.StartTime -gt ([DateTime]::Now.AddHours(-1))) {
+                $serverSearchProcessState.ProcessesCheckPass = $false
+            }
+
             $searchProcessState[$processName].PID = $process.Id
             $searchProcessState[$processName].StartTime = $process.StartTime
             $searchProcessState[$processName].ThirdPartyModules = $thirdPartyModule
         }
+
+        foreach ($key in $serverSearchProcessState.ProcessResults.Keys) {
+
+            if ($serverSearchProcessState.ProcessResults[$key].StartTime -eq [DateTime]::MinValue) {
+                $serverSearchProcessState.ProcessesNotStarted.Add($key)
+                $serverSearchProcessState.ProcessesCheckPass = $false
+            }
+        }
     }
     end {
-        return $searchProcessState
+        return $serverSearchProcessState
     }
 }
