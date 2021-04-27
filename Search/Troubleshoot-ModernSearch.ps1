@@ -47,6 +47,10 @@ param(
     $IsPublicFolder
 )
 
+#Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
+#Going to add in this hard fix for the time being to avoid issues.
+$Script:VerbosePreference= "SilentlyContinue"
+
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
@@ -63,6 +67,7 @@ param(
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-ScriptOutput.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Verbose.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
@@ -109,7 +114,7 @@ Function Main {
     Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
     Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
 
-    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
+    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
     Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(

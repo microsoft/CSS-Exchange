@@ -12,8 +12,6 @@ Function Write-ScriptOutput {
                 $VerbosePreference) -or
             -not ($Diagnostic)) {
             $Object | Write-Output
-        } else {
-            $Object | Write-Verbose
         }
 
         Write-LogInformation $Object -VerboseEnabled $false

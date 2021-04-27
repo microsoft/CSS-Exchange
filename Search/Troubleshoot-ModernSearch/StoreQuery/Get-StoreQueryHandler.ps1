@@ -1,30 +1,11 @@
 ﻿Function Get-StoreQueryHandler {
     [CmdletBinding()]
     param(
-        [object]$MailboxInformation,
-        [scriptblock]$VerboseDiagnosticsCaller
+        [object]$MailboxInformation
     )
     begin {
         $Server = [string]::Empty
         $ProcessId = $null
-        $VerboseCaller = ${Function:DefaultVerboseCaller}
-
-        Function DefaultVerboseCaller {
-            [CmdletBinding()]
-            param(
-                [string]$Message
-            )
-
-            Write-Verbose $Message
-        }
-
-        Function WriteVerbose {
-            param(
-                [object]$Message
-            )
-
-            $this.VerboseCaller($Message)
-        }
 
         Function ResetQueryInstances {
             $this.IsUnlimited = $false
@@ -92,14 +73,14 @@
                 Unlimited = $this.IsUnlimited
             }
 
-            $this.WriteVerbose("Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'")
+            Write-Verbose "Running 'Get-StoreQuery -Server $($this.Server) -ProcessId $($this.ProcessId) -Unlimited:$($this.IsUnlimited) -Query `"$query`"'"
             $result = @(Get-StoreQuery @myParams)
 
             if ($result.DiagnosticQueryException.Count -gt 0) {
-                $this.WriteVerbose("Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)")
+                Write-Verbose "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
                 Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
             } elseif ($result.DiagnosticQueryTranslatorException.Count -gt 0) {
-                $this.WriteVerbose("Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)")
+                Write-Verbose "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
                 Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
             }
 
@@ -107,10 +88,6 @@
         }
     }
     process {
-
-        if ($null -ne $VerboseDiagnosticsCaller) {
-            $VerboseCaller = $VerboseDiagnosticsCaller
-        }
 
         $ProcessId = $MailboxInformation.DBWorkerID
         $Server = $MailboxInformation.PrimaryServer
@@ -127,8 +104,6 @@
             MailboxGuid     = $MailboxGuid
         }
 
-        $obj | Add-Member -MemberType ScriptMethod -Name "VerboseCaller" -Value $VerboseCaller
-        $obj | Add-Member -MemberType ScriptMethod -Name "WriteVerbose" -Value ${Function:WriteVerbose}
         $obj | Add-Member -MemberType ScriptMethod -Name "ResetQueryInstances" -Value ${Function:ResetQueryInstances}
         $obj | Add-Member -MemberType ScriptMethod -Name "SetSelect" -Value ${Function:SetSelect}
         $obj | Add-Member -MemberType ScriptMethod -Name "AddToSelect" -Value ${Function:AddToSelect}
