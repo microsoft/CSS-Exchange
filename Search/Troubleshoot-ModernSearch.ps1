@@ -1,8 +1,10 @@
 ﻿#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = "SubjectAndFolder")]
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DocumentId")]
+    [Parameter(Mandatory = $true, ParameterSetName = "MailboxIndexStatistics")]
     [ValidateNotNullOrEmpty()]
     [string]
     $MailboxIdentity,
@@ -30,6 +32,10 @@ param(
     [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
     [string]$Category,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateNotNullOrEmpty()]
+    [string[]]$Server,
+
     [ValidateNotNullOrEmpty()]
     [string]
     $QueryString,
@@ -41,9 +47,11 @@ param(
     $IsPublicFolder
 )
 
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-ActiveDatabasesOnServer.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-BasicMailboxQueryContext.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-MailboxInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MailboxStatisticsOnDatabase.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-QueryItemResult.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Get-StoreQueryHandler.ps1
@@ -73,18 +81,45 @@ try {
 }
 
 Function Main {
-    Write-ScriptOutput ""
-    Write-ScriptOutput "Getting user mailbox information for $MailboxIdentity"
     @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
         "FolderName: '$FolderName'",
         "DocumentId: '$DocumentId'",
         "MatchSubjectSubstring: '$MatchSubjectSubstring'",
         "Category: '$Category'",
+        "Server: '$Server'",
         "QueryString: '$QueryString'",
         "IsArchive: '$IsArchive'",
         "IsPublicFolder: '$IsPublicFolder'") | Write-ScriptOutput -Diagnostic
     Write-ScriptOutput "" -Diagnostic
+
+    if ($null -ne $Server -and
+        $Server.Count -ge 1) {
+        $activeDatabase = Get-ActiveDatabasesOnServer -Server $Server
+
+        #Check to see the services health on those servers
+        $activeDatabase | Group-Object Server |
+            ForEach-Object { Write-CheckSearchProcessState -ActiveServer $_.Name }
+
+        Write-ScriptOutput "Getting the mailbox statistics of all these databases"
+        $activeDatabase | Format-Table |
+            Out-String |
+            ForEach-Object { Write-ScriptOutput $_ }
+        Write-ScriptOutput "This may take some time..."
+
+        $mailboxStats = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabase.DBName
+        $problemMailboxes = $mailboxStats |
+            Where-Object { $_.BigFunnelNotIndexedCount -ne 0 } |
+            Select-Object DisplayName, ServerName, ItemCount, BigFunnelMessageCount, BigFunnelIndexedCount, BigFunnelNotIndexedCount |
+            Sort-Object BigFunnelNotIndexedCount -Descending
+
+        $problemMailboxes | Format-Table |
+            Out-String |
+            ForEach-Object { Write-ScriptOutput $_ }
+        return
+    }
+
+    Write-ScriptOutput "Getting user mailbox information for $MailboxIdentity"
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
