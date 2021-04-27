@@ -44,15 +44,6 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Sort-Object Name |
     ForEach-Object { $_.FullName }
 
-$nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
-if ($nonUnique.Count -gt 0) {
-    $nonUnique | ForEach-Object {
-        Write-Error "Ambiguous filename: $($_.Name)"
-    }
-
-    return
-}
-
 <#
     Remove from the list any files that are dot-sourced by other files.
 #>
@@ -62,6 +53,15 @@ $scriptFiles = $scriptFiles | Where-Object {
     $pattern = "\. .*\\$scriptName"
     $m = $scriptFiles | Get-Item | Select-String -Pattern $pattern
     $m.Count -lt 1
+}
+
+$nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
+if ($nonUnique.Count -gt 0) {
+    $nonUnique | ForEach-Object {
+        Write-Error "Ambiguous filename: $($_.Name)"
+    }
+
+    return
 }
 
 # Build the files
