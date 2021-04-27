@@ -47,21 +47,23 @@ param(
     $IsPublicFolder
 )
 
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-ActiveDatabasesOnServer.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-BasicMailboxQueryContext.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-FolderInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MailboxInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MailboxStatisticsOnDatabase.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-MessageIndexState.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-QueryItemResult.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Get-StoreQueryHandler.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-CheckSearchProcessState.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-DisplayObjectInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-Error.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-LogInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-ScriptOutput.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write-Warning.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-ActiveDatabasesOnServer.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxStatisticsOnDatabase.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryHandler.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DisplayObjectInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-ScriptOutput.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 

@@ -1,4 +1,4 @@
-﻿. $PSScriptRoot\Get-MailboxIndexMessageStatistics.ps1
+﻿. $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
 Function Write-MailboxIndexMessageStatistics {
