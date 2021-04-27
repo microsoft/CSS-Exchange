@@ -399,30 +399,45 @@
             -AnalyzedInformation $analyzedResults
     }
 
-    $displayWriteType2012 = "Yellow"
-    $displayWriteType2013 = "Yellow"
-    $displayValue2012 = "Unknown"
-    $displayValue2013 = "Unknown"
-
     if ($null -ne $osInformation.VcRedistributable) {
         Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
         Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
-        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
-        $displayValue2012 = "Redistributable is outdated"
-        $displayValue2013 = "Redistributable is outdated"
 
         foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable) {
             Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
 
-            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
-                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                $displayWriteType2012 = "Green"
-            } elseif ($vc2013Required -and
-                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
-                $displayWriteType2013 = "Green"
-                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2012*") {
+                $vcRedist2012Detected = $true
+                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
+                    $displayWriteType2012 = "Green"
+                    $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                } else {
+                    $displayWriteType2012 = "Yellow"
+                    $displayValue2012 = "Redistributable is outdated"
+                }
+            }
+
+            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
+                $vcRedist2013Detected = $true
+                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
+                    $displayWriteType2013 = "Green"
+                    $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                } else {
+                    $displayWriteType2013 = "Yellow"
+                    $displayValue2013 = "Redistributable is outdated"
+                }
             }
         }
+    }
+
+    if (!($vcRedist2012Detected)) {
+        $displayWriteType2012 = "Yellow"
+        $displayValue2012 = "Unknown"
+    }
+
+    if (!($vcRedist2013Detected)) {
+        $displayWriteType2013 = "Yellow"
+        $displayValue2013 = "Unknown"
     }
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
@@ -430,19 +445,32 @@
         -DisplayWriteType $displayWriteType2012 `
         -AnalyzedInformation $analyzedResults
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $displayWriteType2013 `
-        -AnalyzedInformation $analyzedResults
-
-    if ($null -ne $osInformation.VcRedistributable -and
-        ($displayWriteType2012 -eq "Yellow" -or
-            $displayWriteType2013 -eq "Yellow")) {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
             -DisplayGroupingKey $keyOSInformation `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Yellow" `
+            -DisplayWriteType $displayWriteType2013 `
             -AnalyzedInformation $analyzedResults
+    }
+
+    $vcRedistOutdatedDetails = "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention."
+
+    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+        if ($displayWriteType2012 -eq "Yellow" -or
+            $displayWriteType2013 -eq "Yellow") {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $vcRedistOutdatedDetails `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
+    } else {
+        if ($displayWriteType2012 -eq "Yellow") {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $vcRedistOutdatedDetails `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
+        }
     }
 
     $displayValue = "False"
