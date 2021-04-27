@@ -47,9 +47,7 @@ param(
     $IsPublicFolder
 )
 
-. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-ActiveDatabasesOnServer.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
@@ -57,11 +55,13 @@ param(
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryHandler.ps1
 
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-ScriptOutput.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
@@ -97,27 +97,8 @@ Function Main {
 
     if ($null -ne $Server -and
         $Server.Count -ge 1) {
-        $activeDatabase = Get-ActiveDatabasesOnServer -Server $Server
 
-        #Check to see the services health on those servers
-        $activeDatabase | Group-Object Server |
-            ForEach-Object { Write-CheckSearchProcessState -ActiveServer $_.Name }
-
-        Write-ScriptOutput "Getting the mailbox statistics of all these databases"
-        $activeDatabase | Format-Table |
-            Out-String |
-            ForEach-Object { Write-ScriptOutput $_ }
-        Write-ScriptOutput "This may take some time..."
-
-        $mailboxStats = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabase.DBName
-        $problemMailboxes = $mailboxStats |
-            Where-Object { $_.BigFunnelNotIndexedCount -ne 0 } |
-            Select-Object DisplayName, ServerName, ItemCount, BigFunnelMessageCount, BigFunnelIndexedCount, BigFunnelNotIndexedCount |
-            Sort-Object BigFunnelNotIndexedCount -Descending
-
-        $problemMailboxes | Format-Table |
-            Out-String |
-            ForEach-Object { Write-ScriptOutput $_ }
+        Write-MailboxStatisticsOnServer -Server $Server
         return
     }
 
@@ -125,36 +106,7 @@ Function Main {
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
-    Write-ScriptOutput ""
-    Write-ScriptOutput "----------------------------------------"
-    Write-ScriptOutput "Basic Mailbox Information:"
-    Write-ScriptOutput "Mailbox GUID = $($mailboxInformation.MailboxGuid)"
-    Write-ScriptOutput "Mailbox Database: $($mailboxInformation.Database)"
-    Write-ScriptOutput "Active Server: $($mailboxInformation.PrimaryServer)"
-    Write-ScriptOutput "Exchange Server Version: $($mailboxInformation.ExchangeServer.AdminDisplayVersion)"
-    Write-ScriptOutput "----------------------------------------"
-    Write-ScriptOutput ""
-    Write-ScriptOutput "Big Funnel Count Information Based Off Get-MailboxStatistics"
-    Write-DisplayObjectInformation -DisplayObject $mailboxInformation.MailboxStatistics -PropertyToDisplay @(
-        "BigFunnelMessageCount",
-        "BigFunnelIndexedCount",
-        "BigFunnelPartiallyIndexedCount",
-        "BigFunnelNotIndexedCount",
-        "BigFunnelCorruptedCount",
-        "BigFunnelStaleCount",
-        "BigFunnelShouldNotBeIndexedCount"
-    )
-    Write-ScriptOutput "----------------------------------------"
-    Write-ScriptOutput ""
-    Write-ScriptOutput ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
-    Write-ScriptOutput "" -Diagnostic
-    Write-ScriptOutput ($mailboxInformation.DatabaseStatus | Format-List) -Diagnostic
-    Write-ScriptOutput "" -Diagnostic
-    Write-ScriptOutput ($mailboxInformation.DatabaseCopyStatus | Format-List) -Diagnostic
-    Write-ScriptOutput "" -Diagnostic
-    Write-ScriptOutput ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
-    Write-ScriptOutput "" -Diagnostic
-
+    Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
     Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
 
     $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
