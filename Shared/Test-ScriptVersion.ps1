@@ -26,7 +26,7 @@ function Test-ScriptVersion {
     try {
         $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
+        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
             if ($AutoUpdate -and $BuildVersion -ne "") {
@@ -35,7 +35,7 @@ function Test-ScriptVersion {
                 }
                 Write-Host "AutoUpdate: Downloading update."
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                Invoke-WebRequest "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
+                Invoke-WebRequest "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName -UseBasicParsing
                 $sig = Get-AuthenticodeSignature $tempFullName
                 if ($sig.Status -eq "Valid") {
                     Write-Host "AutoUpdate: File signed by" $sig.SignerCertificate.Subject
