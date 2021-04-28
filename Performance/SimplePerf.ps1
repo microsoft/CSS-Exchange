@@ -105,7 +105,7 @@ begin {
             }
         }
 
-        $counters = (Get-Counter -ListSet * | Sort-Object CounterSetName).CounterSetName
+        $counters = (Get-Counter -ListSet * | Sort-Object CounterSetName)
 
         $defaultIncludeList = @(
             "^.NET CLR .+",
@@ -132,13 +132,13 @@ begin {
             "^VM Processor"
         )
 
-        $countersFiltered = $defaultIncludeList | ForEach-Object { $regexString = $_; $counters | Where-Object { $_ -match $regexString } } | Select-Object -Unique
-
         if ($IncludeThread) {
-            $countersFiltered += "Thread"
+            $defaultIncludeList += "^Thread"
         }
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_ + "\*") }
+        $countersFiltered = $defaultIncludeList | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -match $regexString } }
+
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_.CounterSetName + $(if ($_.CounterSetType -eq "MultiInstance") { "(*)" } else { "" }) + "\*") }
 
         $counterFile = (Join-Path $env:TEMP "counters.txt")
 
