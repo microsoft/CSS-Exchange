@@ -1,8 +1,10 @@
 ﻿#Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = "SubjectAndFolder")]
 param(
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DocumentId")]
+    [Parameter(Mandatory = $true, ParameterSetName = "MailboxIndexStatistics")]
     [ValidateNotNullOrEmpty()]
     [string]
     $MailboxIdentity,
@@ -30,6 +32,10 @@ param(
     [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
     [string]$Category,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateNotNullOrEmpty()]
+    [string[]]$Server,
+
     [ValidateNotNullOrEmpty()]
     [string]
     $QueryString,
@@ -41,56 +47,30 @@ param(
     $IsPublicFolder
 )
 
-. $PSScriptRoot\Get-BasicMailboxQueryContext.ps1
-. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
-. $PSScriptRoot\Get-FolderInformation.ps1
-. $PSScriptRoot\Get-IndexStateOfMessage.ps1
-. $PSScriptRoot\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Get-MailboxInformation.ps1
-. $PSScriptRoot\Get-MessageIndexState.ps1
-. $PSScriptRoot\Get-QueryItemResult.ps1
-. $PSScriptRoot\Get-StoreQueryHandler.ps1
-. $PSScriptRoot\Write-MailboxIndexMessageStatistics.ps1
+#Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
+#Going to add in this hard fix for the time being to avoid issues.
+$Script:VerbosePreference= "SilentlyContinue"
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryHandler.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DisplayObjectInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-ScriptOutput.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Verbose.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
-
-Function Write-LogInformation {
-    param(
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object[]]$Object,
-        [bool]$VerboseEnabled = $VerbosePreference
-    )
-
-    process {
-
-        if ($VerboseEnabled) {
-            $Object | Write-Verbose -Verbose
-        }
-
-        $Object | Out-File -FilePath $Script:ScriptLogging -Append
-    }
-}
-
-Function Receive-Output {
-    param(
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
-        [object[]]$Object,
-        [switch]$Diagnostic
-    )
-
-    process {
-
-        if (($Diagnostic -and
-                $VerbosePreference) -or
-            -not ($Diagnostic)) {
-            $Object | Write-Output
-        } else {
-            $Object | Write-Verbose
-        }
-
-        Write-LogInformation $Object -VerboseEnabled $false
-    }
-}
 
 try {
 
@@ -107,75 +87,34 @@ try {
     throw "Failed to load ManagedStoreDiagnosticFunctions.ps1 Inner Exception: $($Error[0].Exception) Stack Trace: $($Error[0].ScriptStackTrace)"
 }
 
-Function Write-DisplayObjectInformation {
-    [CmdletBinding()]
-    param(
-        [object]$DisplayObject,
-        [string[]]$PropertyToDisplay
-    )
-    process {
-        $width = 0
-
-        foreach ($property in $PropertyToDisplay) {
-
-            if ($property.Length -gt $width) {
-                $width = $property.Length + 1
-            }
-        }
-
-        foreach ($property in $PropertyToDisplay) {
-            Receive-Output ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
-        }
-    }
-}
-
 Function Main {
-    Receive-Output ""
-    Receive-Output "Getting user mailbox information for $MailboxIdentity"
     @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
         "FolderName: '$FolderName'",
         "DocumentId: '$DocumentId'",
         "MatchSubjectSubstring: '$MatchSubjectSubstring'",
         "Category: '$Category'",
+        "Server: '$Server'",
         "QueryString: '$QueryString'",
         "IsArchive: '$IsArchive'",
-        "IsPublicFolder: '$IsPublicFolder'") | Receive-Output -Diagnostic
-    Receive-Output "" -Diagnostic
+        "IsPublicFolder: '$IsPublicFolder'") | Write-ScriptOutput -Diagnostic
+    Write-ScriptOutput "" -Diagnostic
+
+    if ($null -ne $Server -and
+        $Server.Count -ge 1) {
+
+        Write-MailboxStatisticsOnServer -Server $Server
+        return
+    }
+
+    Write-ScriptOutput "Getting user mailbox information for $MailboxIdentity"
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
-    Receive-Output ""
-    Receive-Output "----------------------------------------"
-    Receive-Output "Basic Mailbox Information:"
-    Receive-Output "Mailbox GUID = $($mailboxInformation.MailboxGuid)"
-    Receive-Output "Mailbox Database: $($mailboxInformation.Database)"
-    Receive-Output "Active Server: $($mailboxInformation.PrimaryServer)"
-    Receive-Output "Exchange Server Version: $($mailboxInformation.ExchangeServer.AdminDisplayVersion)"
-    Receive-Output "----------------------------------------"
-    Receive-Output ""
-    Receive-Output "Big Funnel Count Information Based Off Get-MailboxStatistics"
-    Write-DisplayObjectInformation -DisplayObject $mailboxInformation.MailboxStatistics -PropertyToDisplay @(
-        "BigFunnelMessageCount",
-        "BigFunnelIndexedCount",
-        "BigFunnelPartiallyIndexedCount",
-        "BigFunnelNotIndexedCount",
-        "BigFunnelCorruptedCount",
-        "BigFunnelStaleCount",
-        "BigFunnelShouldNotBeIndexedCount"
-    )
-    Receive-Output "----------------------------------------"
-    Receive-Output ""
-    Receive-Output ($mailboxInformation.MailboxStatistics | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.DatabaseStatus | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.DatabaseCopyStatus | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
-    Receive-Output ($mailboxInformation.MailboxInfo | Format-List) -Diagnostic
-    Receive-Output "" -Diagnostic
+    Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
+    Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
 
-    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation -VerboseDiagnosticsCaller ${Function:Write-LogInformation}
+    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
     Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(
@@ -191,7 +130,7 @@ Function Main {
         "CreationTime",
         "MailboxNumber"
     )
-    Receive-Output "----------------------------------------"
+    Write-ScriptOutput "----------------------------------------"
 
     if (-not([string]::IsNullOrEmpty($Category))) {
 
@@ -223,13 +162,13 @@ Function Main {
 
     if ($messages.Count -gt 0) {
 
-        Receive-Output "Found $($messages.Count) different messages"
-        Receive-Output "Messages Index State:"
+        Write-ScriptOutput "Found $($messages.Count) different messages"
+        Write-ScriptOutput "Messages Index State:"
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
-            Receive-Output ""
-            Receive-Output "Found Item $($i + 1): "
-            Receive-Output $messages[$i]
+            Write-ScriptOutput ""
+            Write-ScriptOutput "Found Item $($i + 1): "
+            Write-ScriptOutput $messages[$i]
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
@@ -244,17 +183,17 @@ Function Main {
                     "BigFunnelMatchFilter",
                     "BigFunnelMatchPOI"
                 )
-                Receive-Output ""
+                Write-ScriptOutput ""
             }
         }
     } else {
 
         if ($null -ne $DocumentId -and
             $DocumentId -ne 0) {
-            Receive-Output "Failed to find message with Document ID: $DocumentId"
+            Write-ScriptOutput "Failed to find message with Document ID: $DocumentId"
         } else {
-            Receive-Output "Failed to find message with subject '$ItemSubject'"
-            Receive-Output "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
+            Write-ScriptOutput "Failed to find message with subject '$ItemSubject'"
+            Write-ScriptOutput "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
         }
     }
 
@@ -282,25 +221,25 @@ Function Main {
     }
 
     if ($categories.Count -gt 0) {
-        Receive-Output ""
-        Receive-Output "----------------------------------------"
-        Receive-Output "Collecting Message Stats on the following Categories:"
-        Receive-Output ""
-        $categories | Receive-Output
-        Receive-Output ""
-        Receive-Output "This may take some time to collect."
+        Write-ScriptOutput ""
+        Write-ScriptOutput "----------------------------------------"
+        Write-ScriptOutput "Collecting Message Stats on the following Categories:"
+        Write-ScriptOutput ""
+        $categories | Write-ScriptOutput
+        Write-ScriptOutput ""
+        Write-ScriptOutput "This may take some time to collect."
         Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
     }
 }
 
 try {
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
-    Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Main
-    Receive-Output "Finished Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Finished Script At: $([DateTime]::Now)" -Diagnostic
     Write-Output "File Written at: $Script:ScriptLogging"
 } catch {
-    Receive-Output "$($Error[0].Exception)"
-    Receive-Output "$($Error[0].ScriptStackTrace)"
+    Write-ScriptOutput "$($Error[0].Exception)"
+    Write-ScriptOutput "$($Error[0].ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
