@@ -7,12 +7,6 @@ assignees: ''
 
 ---
 
-<!--
-
-If this is a MISSING BASELINE issue, please comment in #313 rather than opening a new issue.
-
--->
-
 **Is your request related to a problem? Please describe.**
 A clear and concise description of what the problem is and the results it had on the environment.
 
