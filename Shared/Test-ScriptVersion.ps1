@@ -13,6 +13,62 @@ function Test-ScriptVersion {
         $AutoUpdate
     )
 
+    function Confirm-Signature {
+        [CmdletBinding()]
+        [OutputType([bool])]
+        param (
+            [Parameter(Mandatory = $true)]
+            [string]
+            $File
+        )
+
+        $IsValid = $false
+        $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+        $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+
+        try {
+            $sig = Get-AuthenticodeSignature -FilePath $File
+
+            if ($sig.Status -ne 'Valid') {
+                Write-Warning "Signature is not trusted by machine as Valid, status: $($sig.Status)."
+                throw
+            }
+
+            $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
+            $chain.ChainPolicy.VerificationFlags = "IgnoreNotTimeValid"
+
+            if (-not $chain.Build($sig.SignerCertificate)) {
+                Write-Warning "Signer certificate doesn't chain correctly."
+                throw
+            }
+
+            if ($chain.ChainElements.Count -le 1) {
+                Write-Warning "Certificate Chain shorter than expected."
+                throw
+            }
+
+            $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1]
+
+            if ($rootCert.Certificate.Subject -ne $rootCert.Certificate.Issuer) {
+                Write-Warning "Top-level certifcate in chain is not a root certificate."
+                throw
+            }
+
+            if ($rootCert.Certificate.Subject -ne $MicrosoftSigningRoot2010 -and $rootCert.Certificate.Subject -ne $MicrosoftSigningRoot2011) {
+                Write-Warning "Unexpected root cert. Expected $MicrosoftSigningRoot2010 or $MicrosoftSigningRoot2011, but found $($rootCert.Certificate.Subject)."
+                throw
+            }
+
+            Write-Host "File signed by $($sig.SignerCertificate.Subject)"
+
+            $IsValid = $true
+        } catch {
+            $IsValid = $false
+        }
+
+        $IsValid
+    }
+
     $scriptName = $script:MyInvocation.MyCommand.Name
     $scriptPath = [IO.Path]::GetDirectoryName($script:MyInvocation.MyCommand.Path)
     $scriptFullName = (Join-Path $scriptPath $scriptName)
@@ -26,7 +82,7 @@ function Test-ScriptVersion {
     try {
         $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
+        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
             if ($AutoUpdate -and $BuildVersion -ne "") {
@@ -35,10 +91,9 @@ function Test-ScriptVersion {
                 }
                 Write-Host "AutoUpdate: Downloading update."
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                Invoke-WebRequest "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
-                $sig = Get-AuthenticodeSignature $tempFullName
-                if ($sig.Status -eq "Valid") {
-                    Write-Host "AutoUpdate: File signed by" $sig.SignerCertificate.Subject
+                Invoke-WebRequest "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName -UseBasicParsing
+                if (Confirm-Signature -File $tempFullName) {
+                    Write-Host "AutoUpdate: Signature validated."
                     if (Test-Path $oldFullName) {
                         Remove-Item $oldFullName -Force -Confirm:$false -ErrorAction Stop
                     }
@@ -47,8 +102,8 @@ function Test-ScriptVersion {
                     Write-Host "AutoUpdate: Succeeded."
                     return $true
                 } else {
-                    Write-Warning "Signature could not be verified: $tempFullName."
-                    Write-Warning "Update was not applied."
+                    Write-Warning "AutoUpdate: Signature could not be verified: $tempFullName."
+                    Write-Warning "AutoUpdate: Update was not applied."
                 }
             } else {
                 Write-Warning "$scriptName $BuildVersion is outdated. Please download the latest, version $latestVersion."

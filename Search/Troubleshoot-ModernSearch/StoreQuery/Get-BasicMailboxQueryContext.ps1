@@ -1,4 +1,5 @@
-﻿Function Get-BasicMailboxQueryContext {
+﻿. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
+Function Get-BasicMailboxQueryContext {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler

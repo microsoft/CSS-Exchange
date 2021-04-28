@@ -1,4 +1,6 @@
-﻿Function Get-MessageIndexState {
+﻿. $PSScriptRoot\Get-FolderInformation.ps1
+. $PSScriptRoot\Get-IndexStateOfMessage.ps1
+Function Get-MessageIndexState {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

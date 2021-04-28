@@ -67,7 +67,7 @@ process {
                     'Accept'         = 'application/json'
                     'Content-Length' = '0'
                 }
-                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Method GET
+                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Method GET -UseBasicParsing
                 $jsonResponse = $webResponse.Content | ConvertFrom-Json
                 Write-Host
                 Write-Host "We sent an AutoDiscover Request to On-Premises for the Exchange ActiveSync Virtual Directory and below is the response" -ForegroundColor Green
@@ -151,7 +151,7 @@ process {
         process {
             try {
                 $RequestURI = "https://prod-autodetect.outlookmobile.com/detect?services=office365,outlook,google,icloud,yahoo&protocols=rest-cloud,rest-outlook,rest-office365,eas,imap,smtp"
-                $webResponse = Invoke-WebRequest -Uri $RequestURI -Headers @{'x-email' = $($SMTP) } -Method GET
+                $webResponse = Invoke-WebRequest -Uri $RequestURI -Headers @{'x-email' = $($SMTP) } -Method GET -UseBasicParsing
                 $jsonResponse = $webResponse.Content | ConvertFrom-Json
                 if (!$jsonResponse.services) {
                     Write-Host
@@ -201,7 +201,7 @@ process {
                     'Content-Length' = '0'
                 }
                 $requestURI = New-Object "System.Uri" -ArgumentList $easUrl
-                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Method OPTIONS
+                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Method OPTIONS -UseBasicParsing
                 $webResponse.RawContent
             } catch [System.Net.WebException] {
                 Write-Host
@@ -230,7 +230,7 @@ process {
                 #Actual payload: "<Settings xmlns=\"Settings:\">  <UserInformation>    <Get />  </UserInformation>   </Settings>"
                 #Converted to wbxml byte array
                 $bytes = [byte[]](0x03, 0x01, 0x6a, 0x00, 0x00, 0x12, 0x45, 0x5D, 0x07, 0x01, 0x01)
-                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Body $bytes -Method POST
+                $webResponse = Invoke-WebRequest -Uri $requestURI -Headers $headers -Body $bytes -Method POST -UseBasicParsing
                 $webResponse.RawContent
                 [System.Convert]::ToBase64String($webResponse.Content)
             } catch {

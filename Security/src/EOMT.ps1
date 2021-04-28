@@ -844,7 +844,7 @@ try {
         $Message = "Checking if EOMT is up to date with $versionsUrl"
         Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
         $latestEOMTVersion = $null
-        $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl).Content) | ConvertFrom-Csv
+        $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestEOMTVersion = ($versionsData | Where-Object -Property File -EQ "EOMT.ps1").Version
     } catch {
         $Message = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Please download latest EOMT from $EOMTDownloadUrl and re-run EOMT, unless you just did so. Exception: $($_.Exception)"
@@ -866,7 +866,7 @@ try {
             try {
                 $Message = "Downloading latest EOMT from $EOMTDownloadUrl"
                 Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
-                Invoke-WebRequest $EOMTDownloadUrl -OutFile $eomtLatestFilepath
+                Invoke-WebRequest $EOMTDownloadUrl -OutFile $eomtLatestFilepath -UseBasicParsing
             } catch {
                 $Message = "Cannot download latest EOMT.  Please download latest EOMT yourself from $EOMTDownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
                 $RegMessage = "Cannot download latest EOMT from $EOMTDownloadUrl. Stopping execution."
