@@ -417,9 +417,7 @@
                     $displayWriteType2012 = "Green"
                     $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
                 }
-            }
-
-            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
+            } elseif ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
                 $vcRedist2013Detected = $true
                 if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
                     $displayWriteType2013 = "Green"
