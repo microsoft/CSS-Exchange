@@ -13,8 +13,10 @@
                 ForEach-Object {
 
                     if ($_.DisplayName -notlike "SystemMailbox*" -and
-                        $_.DisplayName -notlike "*HealthMailbox-*") {
+                        $_.DisplayName -notlike "*HealthMailbox-*" -and
+                        $_.DisconnectReason -eq $null) {
                         $mailboxStatisticsList.Add([PSCustomObject]@{
+                                MailboxGuid                      = $_.MailboxGuid.ToString()
                                 DisplayName                      = $_.DisplayName
                                 DatabaseName                     = $_.DatabaseName
                                 ServerName                       = $_.ServerName
