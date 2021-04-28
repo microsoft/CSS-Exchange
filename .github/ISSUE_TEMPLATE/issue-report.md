@@ -7,17 +7,11 @@ assignees: ''
 
 ---
 
-<!--
-
-If this is a MISSING BASELINE issue, please comment in #313 rather than opening a new issue.
-
--->
-
 **Describe the issue**
-A clear and concise description of what the issue is, including what script you are seeing the error in.
+Provide the version of the script that has the issue.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+A clear and concise description of what the issue is, including the script name.
 
 **Script Output**
 If applicable, add the exception that you are seeing that wasn't handled.
