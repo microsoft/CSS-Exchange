@@ -50,6 +50,12 @@
     Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
 .PARAMETER DCCoreRatio
     Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.
+.PARAMETER AnalyzeDataOnly
+    Switch to analyze the existing HealthChecker XML files. The results are displayed on the screen and an HTML report is generated.
+.PARAMETER SkipVersionCheck
+    No version check is performed when this switch is used.
+.PARAMETER SaveDebugLog
+    The debug log is kept even if the script is executed successfully.
 .PARAMETER Verbose
 	This optional parameter enables verbose logging.
 .EXAMPLE
