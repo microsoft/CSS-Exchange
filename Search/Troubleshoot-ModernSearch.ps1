@@ -30,7 +30,7 @@ param(
 
     [Parameter(Mandatory = $true, ParameterSetName = "MailboxIndexStatistics")]
     [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
-    [string]$Category,
+    [string[]]$Category,
 
     [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
     [ValidateNotNullOrEmpty()]
@@ -132,7 +132,7 @@ Function Main {
     )
     Write-ScriptOutput "----------------------------------------"
 
-    if (-not([string]::IsNullOrEmpty($Category))) {
+    if ($Category.Count -ge 1) {
 
         Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category
         return
