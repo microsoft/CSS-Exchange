@@ -32,6 +32,9 @@ param(
     [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
     [string[]]$Category,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxIndexStatistics")]
+    [bool]$GroupMessages = $true,
+
     [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
     [ValidateNotNullOrEmpty()]
     [string[]]$Server,
@@ -134,7 +137,7 @@ Function Main {
 
     if ($Category.Count -ge 1) {
 
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category -GroupMessages $GroupMessages
         return
     }
 

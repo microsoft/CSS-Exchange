@@ -19,6 +19,7 @@ MatchSubjectSubstring | Enable to perform a `like` search in the mailbox with th
 FolderName | If you want to scope the search to a folder for better and faster results, include the name of the folder that the message is in.
 DocumentId | If you already know the document ID number for the mailbox, provide this. This can not be use with `-ItemSubject` parameter.
 Category | Provides a breakdown of the messages in the mailbox for that index category state. Possible options are: `All`, `Indexed`, `PartiallyIndexed`, `NotIndexed`, `Corrupted`, `Stale`, and `ShouldNotBeIndexed`. **NOTE:** Depending the item count, this can take a long while to complete.
+GroupMessages | To group the messages by Indexing Error Message and Permanent failure state or not. By Disabling this, you get more properties displayed of the message as well.
 Server | Provide a list of possible servers that you wish to get mailbox statistics for all the active databases on that server.
 QueryString | Include a string that you are using to try to find this item, we will run an instant query against it to see if we can find it.
 IsArchive | Enable if you want to look at the archive mailbox.

@@ -14,7 +14,9 @@ Function Write-MailboxIndexMessageStatistics {
 
         [Parameter(Mandatory = $true)]
         [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
-        [string[]]$Category
+        [string[]]$Category,
+
+        [bool]$GroupMessages
 
     )
 
@@ -32,6 +34,26 @@ Function Write-MailboxIndexMessageStatistics {
             Write-ScriptOutput "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages" -Diagnostic
 
             if ($messages.Count -gt 0) {
+
+                if (-not $GroupMessages) {
+
+                    foreach ($message in $messages) {
+                        Write-ScriptOutput "---------------------"
+                        Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
+                            "MessageId",
+                            "InternetMessageId",
+                            "Subject",
+                            "BigFunnelPOISize",
+                            "BigFunnelPOIIsUpToDate",
+                            "IndexingErrorCode",
+                            "IndexingErrorMessage",
+                            "LastIndexingAttemptTime",
+                            "IsPermanentFailure",
+                            "MessageStatus"
+                        )
+                    }
+                    continue
+                }
 
                 $groupedStatus = $messages | Group-Object MessageStatus
 
