@@ -64,7 +64,7 @@
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsCurrentAuthConfigCertificate" -Value $isAuthConfigInfo
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "LifetimeInDays" -Value $certificateLifetime
-                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $cert.Status
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value ($cert.Status).ToString()
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "CertificateObject" -Value $cert
 
                     $certObject += $certInformationObj
