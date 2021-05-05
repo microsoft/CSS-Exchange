@@ -6,7 +6,9 @@
 Function Write-MailboxStatisticsOnServer {
     [CmdletBinding()]
     param(
-        [string[]]$Server
+        [string[]]$Server,
+        [string]$SortByProperty,
+        [bool]$ExcludeFullyIndexedMailboxes
     )
     process {
         $activeDatabase = Get-ActiveDatabasesOnServer -Server $Server
@@ -23,11 +25,26 @@ Function Write-MailboxStatisticsOnServer {
 
         $mailboxStats = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabase.DBName
         $problemMailboxes = $mailboxStats |
-            Where-Object { $_.BigFunnelNotIndexedCount -ne 0 } |
-            Select-Object MailboxGuid, DisplayName, ServerName, ItemCount, BigFunnelMessageCount, BigFunnelIndexedCount, BigFunnelNotIndexedCount |
-            Sort-Object BigFunnelNotIndexedCount -Descending
+            Where-Object {
+                if ($ExcludeFullyIndexedMailboxes -and
+                    $_.FullyIndexPercentage -eq 100) {
+                } else {
+                    return $_
+                }
+            }
 
-        $problemMailboxes | Format-Table |
+        $problemMailboxes |
+            Sort-Object $SortByProperty -Descending |
+            Select-Object MailboxGuid, TotalMailboxItems, `
+            @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
+            @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
+            @{Name = "NotIndexedCount"; Expression = { $_.BigFunnelNotIndexedCount } },
+            @{Name = "PartIndexedCount"; Expression = { $_.BigFunnelPartiallyIndexedCount } } ,
+            @{Name = "CorruptedCount"; Expression = { $_.BigFunnelCorruptedCount } },
+            @{Name = "StaleCount"; Expression = { $_.BigFunnelStaleCount } },
+            @{Name = "ShouldNotIndexCount"; Expression = { $_.BigFunnelShouldNotBeIndexedCount } },
+            FullyIndexPercentage |
+            Format-Table |
             Out-String |
             ForEach-Object { Write-ScriptOutput $_ }
 

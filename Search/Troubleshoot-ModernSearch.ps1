@@ -39,6 +39,10 @@ param(
     [ValidateNotNullOrEmpty()]
     [string[]]$Server,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SortByProperty = "FullyIndexPercentage",
+
     [ValidateNotNullOrEmpty()]
     [string]
     $QueryString,
@@ -106,7 +110,7 @@ Function Main {
     if ($null -ne $Server -and
         $Server.Count -ge 1) {
 
-        Write-MailboxStatisticsOnServer -Server $Server
+        Write-MailboxStatisticsOnServer -Server $Server -SortByProperty $SortByProperty
         return
     }
 
