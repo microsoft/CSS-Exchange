@@ -10,6 +10,14 @@ Function Write-MailboxStatisticsOnServer {
         [string]$SortByProperty,
         [bool]$ExcludeFullyIndexedMailboxes
     )
+    begin {
+
+        $sortObjectDescending = $true
+
+        if ($SortByProperty -eq "FullyIndexPercentage") {
+            $sortObjectDescending = $false
+        }
+    }
     process {
         $activeDatabase = Get-ActiveDatabasesOnServer -Server $Server
 
@@ -32,7 +40,7 @@ Function Write-MailboxStatisticsOnServer {
                     return $_
                 }
             } |
-            Sort-Object $SortByProperty -Descending
+            Sort-Object $SortByProperty -Descending:$sortObjectDescending
 
         $problemMailboxes |
             Select-Object MailboxGuid, TotalMailboxItems, `
