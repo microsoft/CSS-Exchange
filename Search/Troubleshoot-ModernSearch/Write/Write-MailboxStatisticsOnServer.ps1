@@ -6,8 +6,28 @@
 Function Write-MailboxStatisticsOnServer {
     [CmdletBinding()]
     param(
-        [string[]]$Server
+        [string[]]$Server,
+        [string]$SortByProperty,
+        [bool]$ExcludeFullyIndexedMailboxes
     )
+    begin {
+
+        switch ($SortByProperty) {
+            "TotalSearchableItems" { $SortByProperty = "TotalBigFunnelSearchableItems" }
+            "IndexedCount" { $SortByProperty = "BigFunnelIndexedCount" }
+            "NotIndexedCount" { $SortByProperty = "BigFunnelNotIndexedCount" }
+            "PartIndexedCount" { $SortByProperty = "BigFunnelPartiallyIndexedCount" }
+            "CorruptedCount" { $SortByProperty = "BigFunnelCorruptedCount" }
+            "StaleCount" { $SortByProperty = "BigFunnelStaleCount" }
+            "ShouldNotIndexCount" { $SortByProperty = "BigFunnelShouldNotBeIndexedCount" }
+        }
+
+        $sortObjectDescending = $true
+
+        if ($SortByProperty -eq "FullyIndexPercentage") {
+            $sortObjectDescending = $false
+        }
+    }
     process {
         $activeDatabase = Get-ActiveDatabasesOnServer -Server $Server
 
@@ -23,11 +43,26 @@ Function Write-MailboxStatisticsOnServer {
 
         $mailboxStats = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabase.DBName
         $problemMailboxes = $mailboxStats |
-            Where-Object { $_.BigFunnelNotIndexedCount -ne 0 } |
-            Select-Object MailboxGuid, DisplayName, ServerName, ItemCount, BigFunnelMessageCount, BigFunnelIndexedCount, BigFunnelNotIndexedCount |
-            Sort-Object BigFunnelNotIndexedCount -Descending
+            Where-Object {
+                if ($ExcludeFullyIndexedMailboxes -and
+                    $_.FullyIndexPercentage -eq 100) {
+                } else {
+                    return $_
+                }
+            } |
+            Sort-Object $SortByProperty -Descending:$sortObjectDescending
 
-        $problemMailboxes | Format-Table |
+        $problemMailboxes |
+            Select-Object MailboxGuid, TotalMailboxItems, `
+            @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
+            @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
+            @{Name = "NotIndexedCount"; Expression = { $_.BigFunnelNotIndexedCount } },
+            @{Name = "PartIndexedCount"; Expression = { $_.BigFunnelPartiallyIndexedCount } } ,
+            @{Name = "CorruptedCount"; Expression = { $_.BigFunnelCorruptedCount } },
+            @{Name = "StaleCount"; Expression = { $_.BigFunnelStaleCount } },
+            @{Name = "ShouldNotIndexCount"; Expression = { $_.BigFunnelShouldNotBeIndexedCount } },
+            FullyIndexPercentage |
+            Format-Table |
             Out-String |
             ForEach-Object { Write-ScriptOutput $_ }
 
@@ -46,12 +81,14 @@ Function Write-MailboxStatisticsOnServer {
                     return
                 }
                 Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
+                $category = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
                 Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext (
                     Get-BasicMailboxQueryContext -StoreQueryHandler (
                         Get-StoreQueryHandler -MailboxInformation $mailboxInformation)) `
                     -MailboxStatistics $mailboxInformation.MailboxStatistics `
-                    -Category "NotIndexed"
+                    -Category $category `
+                    -GroupMessages $true
             }
     }
 }

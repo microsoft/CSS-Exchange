@@ -1,17 +1,20 @@
 ---
-name: Issue Report
+name: Health Checker Issue Report
 about: Create a report to help us improve
-title: "[Issue]"
-labels: Issue
+title: "[Issue] - Health Checker"
+labels: Issue, "Health Checker"
 assignees: ''
 
 ---
 
-**Describe the issue**
+**Provide Version Number**
 Provide the version of the script that has the issue.
 
+**Describe the issue**
+A clear and concise description of the issue.
+
 **Expected behavior**
-A clear and concise description of what the issue is, including the script name.
+A clear and concise description of what you expected to happen.
 
 **Script Output**
 If applicable, add the exception that wasn't handled.

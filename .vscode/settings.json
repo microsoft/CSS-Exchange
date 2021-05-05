@@ -17,5 +17,8 @@
     "powershell.codeFormatting.whitespaceInsideBrace": true,
     "powershell.codeFormatting.addWhitespaceAroundPipe": true,
     "files.trimTrailingWhitespace": true,
-    "files.encoding": "utf8bom"
+    "files.encoding": "utf8",
+    "[powershell]": {
+        "files.encoding": "utf8bom"
+    }
 }

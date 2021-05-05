@@ -39,6 +39,7 @@ Function Get-MailboxIndexMessageStatistics {
                 "MessageDocumentId",
                 "MessageClass",
                 "p0E1D001F",
+                "p1035001F",
                 "BigFunnelPOISize",
                 "BigFunnelPOIIsUpToDate",
                 "BigFunnelPoiNotNeededReason"))
@@ -106,6 +107,7 @@ Function Get-MailboxIndexMessageStatistics {
             $messageList.Add(
                 [PSCustomObject]@{
                     MessageId                   = $message.MessageId
+                    InternetMessageId           = $message.p1035001F
                     MessageDocumentId           = $message.MessageDocumentId
                     MessageClass                = $message.MessageClass
                     Subject                     = $message.p0E1D001F

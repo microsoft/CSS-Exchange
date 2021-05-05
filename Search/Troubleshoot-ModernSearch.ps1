@@ -30,11 +30,26 @@ param(
 
     [Parameter(Mandatory = $true, ParameterSetName = "MailboxIndexStatistics")]
     [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
-    [string]$Category,
+    [string[]]$Category,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxIndexStatistics")]
+    [bool]$GroupMessages = $true,
 
     [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
     [ValidateNotNullOrEmpty()]
     [string[]]$Server,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateSet("TotalMailboxItems", "TotalBigFunnelSearchableItems", "TotalSearchableItems",
+        "BigFunnelIndexedCount", "IndexedCount", "BigFunnelNotIndexedCount", "NotIndexedCount",
+        "BigFunnelPartiallyIndexedCount", "PartIndexedCount", "BigFunnelCorruptedCount", "CorruptedCount",
+        "BigFunnelStaleCount", "StaleCount", "BigFunnelShouldNotBeIndexedCount", "ShouldNotIndexCount", "FullyIndexPercentage")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SortByProperty = "FullyIndexPercentage",
+
+    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateNotNullOrEmpty()]
+    [bool]$ExcludeFullyIndexedMailboxes = $true,
 
     [ValidateNotNullOrEmpty()]
     [string]
@@ -49,11 +64,12 @@ param(
 
 #Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
 #Going to add in this hard fix for the time being to avoid issues.
-$Script:VerbosePreference= "SilentlyContinue"
+$Script:VerbosePreference = "SilentlyContinue"
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-CategoryOffStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
@@ -103,7 +119,7 @@ Function Main {
     if ($null -ne $Server -and
         $Server.Count -ge 1) {
 
-        Write-MailboxStatisticsOnServer -Server $Server
+        Write-MailboxStatisticsOnServer -Server $Server -SortByProperty $SortByProperty -ExcludeFullyIndexedMailboxes $ExcludeFullyIndexedMailboxes
         return
     }
 
@@ -132,9 +148,9 @@ Function Main {
     )
     Write-ScriptOutput "----------------------------------------"
 
-    if (-not([string]::IsNullOrEmpty($Category))) {
+    if ($Category.Count -ge 1) {
 
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category -GroupMessages $GroupMessages
         return
     }
 
@@ -197,28 +213,7 @@ Function Main {
         }
     }
 
-    $mailboxStats = $mailboxInformation.MailboxStatistics
-    $categories = New-Object 'System.Collections.Generic.List[string]'
-
-    if ($mailboxStats.BigFunnelNotIndexedCount -ge 250) {
-        $categories.Add("NotIndexed")
-    }
-
-    if ($mailboxStats.BigFunnelCorruptedCount -ge 100) {
-        $categories.Add("Corrupted")
-    }
-
-    if ($mailboxStats.BigFunnelPartiallyIndexedCount -ge 1000) {
-        $categories.Add("PartiallyIndexed")
-    }
-
-    if ($mailboxStats.BigFunnelStaleCount -ge 100) {
-        $categories.Add("Stale")
-    }
-
-    if ($mailboxStats.BigFunnelShouldNotBeIndexedCount -ge 5000) {
-        $categories.Add("ShouldNotBeIndexed")
-    }
+    $categories = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
     if ($categories.Count -gt 0) {
         Write-ScriptOutput ""
@@ -228,7 +223,7 @@ Function Main {
         $categories | Write-ScriptOutput
         Write-ScriptOutput ""
         Write-ScriptOutput "This may take some time to collect."
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $categories -GroupMessages $GroupMessages
     }
 }
 

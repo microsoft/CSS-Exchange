@@ -407,21 +407,31 @@
     if ($null -ne $osInformation.VcRedistributable) {
         Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
         Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
-        $vc2013Required = $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge
-        $displayValue2012 = "Redistributable is outdated"
-        $displayValue2013 = "Redistributable is outdated"
 
         foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable) {
             Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
 
-            if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
-                $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                $displayWriteType2012 = "Green"
-            } elseif ($vc2013Required -and
-                $detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
-                $displayWriteType2013 = "Green"
-                $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2012*") {
+                $vcRedist2012Detected = $true
+                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
+                    $displayWriteType2012 = "Green"
+                    $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                }
+            } elseif ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
+                $vcRedist2013Detected = $true
+                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
+                    $displayWriteType2013 = "Green"
+                    $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
+                }
             }
+        }
+
+        if (($vcRedist2012Detected -eq $true) -and ($displayWriteType2012 -ne "Green")) {
+            $displayValue2012 = "Redistributable is outdated"
+        }
+
+        if (($vcRedist2013Detected -eq $true) -and ($displayWriteType2013 -ne "Green")) {
+            $displayValue2013 = "Redistributable is outdated"
         }
     }
 
@@ -430,14 +440,18 @@
         -DisplayWriteType $displayWriteType2012 `
         -AnalyzedInformation $analyzedResults
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $displayWriteType2013 `
-        -AnalyzedInformation $analyzedResults
+    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType $displayWriteType2013 `
+            -AnalyzedInformation $analyzedResults
+    }
 
-    if ($null -ne $osInformation.VcRedistributable -and
-        ($displayWriteType2012 -eq "Yellow" -or
-            $displayWriteType2013 -eq "Yellow")) {
+    if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+            ($displayWriteType2012 -eq "Yellow" -or
+                $displayWriteType2013 -eq "Yellow")) -or
+        $displayWriteType2012 -eq "Yellow") {
+
         $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayCustomTabNumber 2 `
@@ -932,10 +946,14 @@
         $displayValue = "True"
         $testingValue = $true
 
-        if ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255) {
+        if ($osInformation.NetworkInformation.IPv6DisabledComponents -eq -1) {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry key currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://blog.rmilne.ca/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.DisabledComponents
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not correctly disabled via DisabledComponents registry value. It is currently set to '-1'. `r`n`t`tThis setting cause a system startup delay of 5 seconds. For details please refer to: `r`n`t`thttps://docs.microsoft.com/en-US/troubleshoot/windows-server/networking/configure-ipv6-in-windows#use-registry-key-to-configure-ipv6"
+        } elseif ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255) {
+            $displayWriteType = "Red"
+            $testingValue = $false
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry value currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://blog.rmilne.ca/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.IPv6DisabledComponents
         }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `

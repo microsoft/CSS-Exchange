@@ -20,8 +20,28 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
     $_.Name -ne "dist" } | ForEach-Object { Get-ChildItem -Path $_.FullName -Include "*.ps1", "*.psm1" -Recurse } | ForEach-Object { $_.FullName }
 $filesFailed = $false
 
-foreach ($file in $scriptFiles) {
+# MD files must NOT have a BOM
+Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
+    $encoding = Get-Encoding $_
+    if ($encoding.BOM) {
+        Write-Warning "MD file has BOM: $($_.FullName)"
+        if ($Save) {
+            try {
+                $content = Get-Content $_
+                Set-Content -Path $_.FullName -Value $content -Encoding utf8NoBOM -Force
+                Write-Warning "Saved $($_.FullName) without BOM."
+            } catch {
+                $filesFailed = $true
+                throw
+            }
+        } else {
+            $filesFailed = $true
+        }
+    }
+}
 
+foreach ($file in $scriptFiles) {
+    # PS1 files must have a BOM
     $encoding = Get-Encoding $file
     if (-not $encoding.BOM) {
         Write-Warning "File has no BOM: $file"

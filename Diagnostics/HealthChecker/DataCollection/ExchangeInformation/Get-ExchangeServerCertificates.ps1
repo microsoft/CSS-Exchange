@@ -55,6 +55,12 @@
                         $certFriendlyName = $cert.FriendlyName
                     }
 
+                    if ([String]::IsNullOrEmpty($cert.Status)) {
+                        $certStatus = "Unknown"
+                    } else {
+                        $certStatus = ($cert.Status).ToString()
+                    }
+
                     $certInformationObj = New-Object PSCustomObject
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $certFriendlyName
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
@@ -64,7 +70,7 @@
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsCurrentAuthConfigCertificate" -Value $isAuthConfigInfo
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "LifetimeInDays" -Value $certificateLifetime
-                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $cert.Status
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $certStatus
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "CertificateObject" -Value $cert
 
                     $certObject += $certInformationObj
