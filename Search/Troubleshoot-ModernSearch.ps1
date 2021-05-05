@@ -40,6 +40,10 @@ param(
     [string[]]$Server,
 
     [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [ValidateSet("TotalMailboxItems", "TotalBigFunnelSearchableItems", "TotalSearchableItems",
+        "BigFunnelIndexedCount", "IndexedCount", "BigFunnelNotIndexedCount", "NotIndexedCount",
+        "BigFunnelPartiallyIndexedCount", "PartIndexedCount", "BigFunnelCorruptedCount", "CorruptedCount",
+        "BigFunnelStaleCount", "StaleCount", "BigFunnelShouldNotBeIndexedCount", "ShouldNotIndexCount", "FullyIndexPercentage")]
     [ValidateNotNullOrEmpty()]
     [string]$SortByProperty = "FullyIndexPercentage",
 
@@ -60,7 +64,7 @@ param(
 
 #Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
 #Going to add in this hard fix for the time being to avoid issues.
-$Script:VerbosePreference= "SilentlyContinue"
+$Script:VerbosePreference = "SilentlyContinue"
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 

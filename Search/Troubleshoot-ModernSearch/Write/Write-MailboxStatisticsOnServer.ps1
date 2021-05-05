@@ -12,6 +12,16 @@ Function Write-MailboxStatisticsOnServer {
     )
     begin {
 
+        switch ($SortByProperty) {
+            "TotalSearchableItems" { $SortByProperty = "TotalBigFunnelSearchableItems" }
+            "IndexedCount" { $SortByProperty = "BigFunnelIndexedCount" }
+            "NotIndexedCount" { $SortByProperty = "BigFunnelNotIndexedCount" }
+            "PartIndexedCount" { $SortByProperty = "BigFunnelPartiallyIndexedCount" }
+            "CorruptedCount" { $SortByProperty = "BigFunnelCorruptedCount" }
+            "StaleCount" { $SortByProperty = "BigFunnelStaleCount" }
+            "ShouldNotIndexCount" { $SortByProperty = "BigFunnelShouldNotBeIndexedCount" }
+        }
+
         $sortObjectDescending = $true
 
         if ($SortByProperty -eq "FullyIndexPercentage") {
