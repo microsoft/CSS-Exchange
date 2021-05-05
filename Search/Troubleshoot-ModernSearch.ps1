@@ -61,6 +61,7 @@ $Script:VerbosePreference= "SilentlyContinue"
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-CategoryOffStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
@@ -204,28 +205,7 @@ Function Main {
         }
     }
 
-    $mailboxStats = $mailboxInformation.MailboxStatistics
-    $categories = New-Object 'System.Collections.Generic.List[string]'
-
-    if ($mailboxStats.BigFunnelNotIndexedCount -ge 250) {
-        $categories.Add("NotIndexed")
-    }
-
-    if ($mailboxStats.BigFunnelCorruptedCount -ge 100) {
-        $categories.Add("Corrupted")
-    }
-
-    if ($mailboxStats.BigFunnelPartiallyIndexedCount -ge 1000) {
-        $categories.Add("PartiallyIndexed")
-    }
-
-    if ($mailboxStats.BigFunnelStaleCount -ge 100) {
-        $categories.Add("Stale")
-    }
-
-    if ($mailboxStats.BigFunnelShouldNotBeIndexedCount -ge 5000) {
-        $categories.Add("ShouldNotBeIndexed")
-    }
+    $categories = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
     if ($categories.Count -gt 0) {
         Write-ScriptOutput ""
@@ -235,7 +215,7 @@ Function Main {
         $categories | Write-ScriptOutput
         Write-ScriptOutput ""
         Write-ScriptOutput "This may take some time to collect."
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxStats -Category $categories
+        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $categories -GroupMessages $GroupMessages
     }
 }
 
