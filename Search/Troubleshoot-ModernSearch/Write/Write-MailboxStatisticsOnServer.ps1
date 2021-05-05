@@ -31,10 +31,10 @@ Function Write-MailboxStatisticsOnServer {
                 } else {
                     return $_
                 }
-            }
+            } |
+            Sort-Object $SortByProperty -Descending
 
         $problemMailboxes |
-            Sort-Object $SortByProperty -Descending |
             Select-Object MailboxGuid, TotalMailboxItems, `
             @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
             @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
@@ -63,12 +63,14 @@ Function Write-MailboxStatisticsOnServer {
                     return
                 }
                 Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
+                $category = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
                 Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext (
                     Get-BasicMailboxQueryContext -StoreQueryHandler (
                         Get-StoreQueryHandler -MailboxInformation $mailboxInformation)) `
                     -MailboxStatistics $mailboxInformation.MailboxStatistics `
-                    -Category "NotIndexed"
+                    -Category $category `
+                    -GroupMessages $true
             }
     }
 }
