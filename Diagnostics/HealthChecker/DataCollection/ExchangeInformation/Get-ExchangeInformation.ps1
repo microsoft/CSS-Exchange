@@ -354,10 +354,20 @@
         }
 
         try {
-            $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig -ErrorAction Stop).MapiHttpEnabled
+            $organizationConfig = Get-OrganizationConfig -ErrorAction Stop
+            $exchangeInformation.GetOrganizationConfig = $organizationConfig
         } catch {
-            Write-Yellow "Failed to run Get-OrganizationConfig. Mapi HTTP Enabled results not accurate"
+            Write-Yellow "Failed to run Get-OrganizationConfig."
             Invoke-CatchActions
+        }
+
+        if ($null -ne $organizationConfig) {
+            $exchangeInformation.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled
+            if ($null -ne $organizationConfig.EnableDownloadDomains) {
+                $exchangeInformation.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
+            }
+        } else {
+            Write-VerboseOutput("MAPI HTTP Enabled and Download Domains Enabled results not accurate")
         }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {

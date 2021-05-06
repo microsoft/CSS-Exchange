@@ -1497,7 +1497,8 @@
 
     Function Test-DownloadDomainsConfiguration {
         param(
-            [Parameter(Mandatory = $true)][object]$OwaVDirObject
+            [Parameter(Mandatory = $true)][object]$OwaVDirObject,
+            [Parameter(Mandatory = $true)][bool]$DownloadDomainsEnabled
         )
         Write-VerboseOutput("Calling: Test-DownloadDomainConfiguration")
 
@@ -1513,15 +1514,7 @@
 
         $downloadDomainsStatus = 0
 
-        try {
-            $downloadDomainsEnabled = (Get-OrganizationConfig -ErrorAction Stop).EnableDownloadDomains
-        } catch {
-            Write-VerboseOutput("Failed to run Get-OrganizationConfig. Download Domains result may not accurate")
-            Invoke-CatchActions
-            return $downloadDomainsStatus
-        }
-
-        if ($downloadDomainsEnabled) {
+        if ($DownloadDomainsEnabled) {
             $downloadDomainsStatus += 2
 
             if (![String]::IsNullOrEmpty($OwaVDirObject.ExternalDownloadHostName)) {
@@ -1754,12 +1747,13 @@
     #Fix: Configure Download Domains feature
     #Workaround: N/A
 
-    if ((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
-            ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU18)) -or
-        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
-            ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU7))) {
+    if (((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU18)) -or
+            (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU7))) -and
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
 
-        $downloadDomainsConfig = Test-DownloadDomainsConfiguration -OwaVDirObject $exchangeInformation.GetOwaVirtualDirectory
+        $downloadDomainsConfig = Test-DownloadDomainsConfiguration -OwaVDirObject $exchangeInformation.GetOwaVirtualDirectory -DownloadDomainsEnabled $exchangeInformation.EnableDownloadDomains
 
         $downloadDomainsOrgDisplayValue = "True"
         $downloadDomainsOrgWriteType = "Green"
@@ -1857,6 +1851,8 @@
 
             $Script:AllVulnerabilitiesPassed = $false
         }
+    } else {
+        Write-VerboseOutput("Download Domains feature not available because we are on: {0} {1} or on Edge Transport Server" -f $exchangeInformation.BuildInformation.MajorVersion, $exchangeCU)
     }
 
     #Description: Check for CVE-2020-0796 SMBv3 vulnerability
