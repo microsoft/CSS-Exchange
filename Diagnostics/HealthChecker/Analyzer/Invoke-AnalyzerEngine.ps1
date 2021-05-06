@@ -1807,7 +1807,7 @@
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Red" `
                 -DisplayCustomTabNumber 2 `
-                -AddHtmlDetailRow $false `
+                -AddHtmlDetailRow $true `
                 -AnalyzedInformation $analyzedResults
         } else {
 
@@ -1823,7 +1823,7 @@
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayWriteType "Red" `
                     -DisplayCustomTabNumber 2 `
-                    -AddHtmlDetailRow $false `
+                    -AddHtmlDetailRow $true `
                     -AnalyzedInformation $analyzedResults
             }
 
@@ -1839,7 +1839,7 @@
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayWriteType "Red" `
                     -DisplayCustomTabNumber 2 `
-                    -AddHtmlDetailRow $false `
+                    -AddHtmlDetailRow $true `
                     -AnalyzedInformation $analyzedResults
             }
         }
@@ -1852,7 +1852,7 @@
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Red" `
                 -DisplayCustomTabNumber 2 `
-                -AddHtmlDetailRow $false `
+                -AddHtmlDetailRow $true `
                 -AnalyzedInformation $analyzedResults
 
             $Script:AllVulnerabilitiesPassed = $false
