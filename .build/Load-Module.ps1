@@ -30,7 +30,7 @@
     }
 
     if ($null -ne $moduleToLoad) {
-        Import-Module $module
+        Import-Module $moduleToLoad
         return $true
     }
 
