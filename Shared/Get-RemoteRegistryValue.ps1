@@ -1,4 +1,5 @@
-﻿Function Get-RemoteRegistryValue {
+﻿. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+Function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",
@@ -12,11 +13,12 @@
         $registryGetValue = $null
     }
     process {
-        $regSubKey = Get-RemoteRegistrySubKey -RegistryHive $RegistryHive `
-            -MachineName $MachineName `
-            -SubKey $SubKey
 
         try {
+
+            $regSubKey = Get-RemoteRegistrySubKey -RegistryHive $RegistryHive `
+                -MachineName $MachineName `
+                -SubKey $SubKey
 
             if ($null -ne $regSubKey) {
                 Write-Verbose "Attempting to get the value $GetValue"
