@@ -18,6 +18,14 @@
         $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
     }
 
+    if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
+            $buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) -or
+        ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+            ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
+                $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
+        $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
+    }
+
     if ($Script:ExchangeShellComputer.ToolsOnly) {
         $buildInformation.LocalBuildNumber = "{0}.{1}.{2}.{3}" -f $Script:ExchangeShellComputer.Major, $Script:ExchangeShellComputer.Minor, `
             $Script:ExchangeShellComputer.Build, `

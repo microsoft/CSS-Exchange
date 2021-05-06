@@ -20,6 +20,7 @@
                 public ExchangeBuildInformation BuildInformation = new ExchangeBuildInformation();   //Exchange build information
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
+                public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config
                 public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
