@@ -38,10 +38,36 @@
         }
     }
 
+    Function Test-VerboseOutput {
+        param(
+            [bool]$Without = $true,
+            [bool]$Local = $true
+        )
+
+        $withoutValue = "without"
+
+        if (-not ($Without)) {
+            $withoutValue = "with"
+        }
+
+        Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Calling: Invoke-ScriptBlockHandler" }
+        Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Exiting: Invoke-ScriptBlockHandler" }
+
+        if ($Local) {
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Script Block Locally $withoutValue argument list" }
+        } else {
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Invoke-Command $withoutValue argument list" }
+        }
+    }
+
     $myFQDN = [System.Net.Dns]::GetHostByName(($env:computerName)).HostName
 }
 
 Describe "Testing $scriptName" {
+
+    BeforeEach {
+        Mock Write-Verbose {}
+    }
 
     Context "Local Test Results" {
 
@@ -49,8 +75,11 @@ Describe "Testing $scriptName" {
             $myValue = [System.Environment]::ProcessorCount
             $result = Invoke-ScriptBlockHandler -ComputerName $env:COMPUTERNAME `
                 -ScriptBlock { [System.Environment]::ProcessorCount } `
-                -ScriptBlockDescription "Getting Processor Count" -Verbose
+                -ScriptBlockDescription "Getting Processor Count"
             $result | Should -Be $myValue
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Test-VerboseOutput
         }
 
         It "Bad Server Name" {
@@ -58,6 +87,9 @@ Describe "Testing $scriptName" {
                 -ScriptBlock { [System.Environment]::ProcessorCount } `
                 -ScriptBlockDescription "Getting Processor Count"
             $results | Should -Be $null
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Test-VerboseOutput -Local $false
         }
 
         It "Passing Argument List" {
@@ -68,6 +100,9 @@ Describe "Testing $scriptName" {
                 -ScriptBlockDescription "Getting Http Proxy Settings 32 bit" `
                 -ArgumentList $httpProxyPath32
             $results | Should -Be $testResults
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
+            Test-VerboseOutput -Without $false
         }
 
         It "Pending SCCM Reboot" {
@@ -75,13 +110,19 @@ Describe "Testing $scriptName" {
                 -ScriptBlock ${Function:Get-PendingSCCMReboot} `
                 -ScriptBlockDescription "Getting Pending SCCM Reboot Result"
             $results | Should -Be $false
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Pending SCCM Reboot Result" }
+            Test-VerboseOutput
         }
     }
 
-    Context "Remote Execution Test Results - Pester in Admin" {
+    Context "Remote Execution Test Results" {
         BeforeEach {
             $trueComputerName = $env:COMPUTERNAME
             $env:COMPUTERNAME = "Testing"
+
+            Mock Write-Verbose {}
+            Mock Invoke-Command {}
         }
         AfterEach {
             $env:COMPUTERNAME = $trueComputerName
@@ -92,7 +133,10 @@ Describe "Testing $scriptName" {
             $results = Invoke-ScriptBlockHandler -ComputerName $myFQDN `
                 -ScriptBlock { [System.Environment]::ProcessorCount } `
                 -ScriptBlockDescription "Getting Processor Count"
-            $results | Should -Be $myValue
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Assert-MockCalled -CommandName Invoke-Command -Exactly 1
+            Test-VerboseOutput -Local $false
         }
         It "Passing Argument List" {
             $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
@@ -101,7 +145,10 @@ Describe "Testing $scriptName" {
                 -ScriptBlock ${Function:Get-WinHttpSettings} `
                 -ScriptBlockDescription "Getting Http Proxy Settings 32 bit" `
                 -ArgumentList $httpProxyPath32
-            $results | Should -Be 103
+
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
+            Assert-MockCalled -CommandName Invoke-Command -Exactly 1
+            Test-VerboseOutput -Local $false -Without $false
         }
     }
 
