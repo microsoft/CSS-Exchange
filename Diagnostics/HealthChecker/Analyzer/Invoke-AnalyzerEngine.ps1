@@ -1499,6 +1499,57 @@
         }
     }
 
+    Function Test-DownloadDomainsConfiguration {
+        param(
+            [Parameter(Mandatory = $true)][object]$OwaVDirObject,
+            [Parameter(Mandatory = $true)][bool]$DownloadDomainsEnabled
+        )
+        Write-VerboseOutput("Calling: Test-DownloadDomainConfiguration")
+
+        <#
+        Unknown 0
+        Download Domains disabled 1
+        Download Domains enabled and configured as expected 2
+        Download Domains enabled and external download host name = internal/external owa url 4
+        Download Domains enabled but external download host name not set 8
+        Download Domains enabled and internal download host name = internal/external owa url 16
+        Download Domains enabled but internal download host name not set 32
+        #>
+
+        $downloadDomainsStatus = 0
+
+        if ($DownloadDomainsEnabled) {
+            $downloadDomainsStatus += 2
+
+            if (![String]::IsNullOrEmpty($OwaVDirObject.ExternalDownloadHostName)) {
+
+                if (($OwaVDirObject.ExternalDownloadHostName -eq $OwaVDirObject.ExternalUrl.Host) -or
+                    ($OwaVDirObject.ExternalDownloadHostName -eq $OwaVDirObject.InternalUrl.Host)) {
+                    $downloadDomainsStatus += 4
+                }
+            } else {
+                Write-VerboseOutput("'ExternalDownloadHostName' is not configured")
+                $downloadDomainsStatus += 8
+            }
+
+            if (![String]::IsNullOrEmpty($OwaVDirObject.InternalDownloadHostName)) {
+
+                if (($OwaVDirObject.InternalDownloadHostName -eq $OwaVDirObject.ExternalUrl.Host) -or
+                    ($OwaVDirObject.InternalDownloadHostName -eq $OwaVDirObject.InternalUrl.Host)) {
+                    $downloadDomainsStatus += 16
+                }
+            } else {
+                Write-VerboseOutput("'InternalDownloadHostName' is not configured")
+                $downloadDomainsStatus += 32
+            }
+
+            return $downloadDomainsStatus
+        } else {
+            $downloadDomainsStatus += 1
+            return $downloadDomainsStatus
+        }
+    }
+
     $Script:AllVulnerabilitiesPassed = $true
     $Script:Vulnerabilities = @()
     $Script:AnalyzedInformation = $analyzedResults
@@ -1585,6 +1636,7 @@
         }
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2106.2" -CVENames "CVE-2021-1730"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.7", "2106.3" -CVENames "CVE-2020-16969"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.8", "2106.4" -CVENames "CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2044.12", "2106.6" -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17141", "CVE-2020-17142", "CVE-2020-17143"
@@ -1627,6 +1679,7 @@
         }
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "721.2" -CVENames "CVE-2021-1730"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.7", "721.3" -CVENames "CVE-2020-16969"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.8", "721.4" -CVENames "CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "659.11", "721.6" -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17141", "CVE-2020-17142", "CVE-2020-17143"
@@ -1691,6 +1744,119 @@
         if ($null -ne $KBCveComb) {
             Show-March2021SUOutdatedCUWarning -KBCVEHT $KBCveComb
         }
+    }
+
+    #Description: Check for CVE-2021-1730 vulnerability
+    #Fix available for: Exchange 2016 CU18+, Exchange 2019 CU7+
+    #Fix: Configure Download Domains feature
+    #Workaround: N/A
+
+    if (((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU18)) -or
+            (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU7))) -and
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+
+        $downloadDomainsConfig = Test-DownloadDomainsConfiguration -OwaVDirObject $exchangeInformation.GetOwaVirtualDirectory -DownloadDomainsEnabled $exchangeInformation.EnableDownloadDomains
+
+        $downloadDomainsOrgDisplayValue = "True"
+        $downloadDomainsOrgWriteType = "Green"
+
+        if ($downloadDomainsConfig -band 1) {
+            $downloadDomainsOrgDisplayValue = "False"
+            $downloadDomainsOrgAdditionalDisplayValue = "Download Domains are not configured. You should configure them to be protected against CVE-2021-1730."
+            $downloadDomainsOrgWriteType = "Red"
+        }
+
+        $downloadDomainsExtDisplayValue = "True"
+        $downloadDomainsExtWriteType = "Green"
+
+        if ($downloadDomainsConfig -band 4) {
+            $downloadDomainsExtDisplayValue = "False"
+            $downloadDomainsExtAdditionalDisplayValue = "Value is set to the same internal or external url as OWA. Please use a different url to reach a protected state against CVE-2021-1730."
+            $downloadDomainsExtWriteType = "Red"
+        } elseif ($downloadDomainsConfig -band 8) {
+            $downloadDomainsExtDisplayValue = "False"
+            $downloadDomainsExtAdditionalDisplayValue = "Value not set. Please configure to reach a protected state against CVE-2021-1730."
+            $downloadDomainsExtWriteType = "Red"
+        }
+
+        $downloadDomainsIntDisplayValue = "True"
+        $downloadDomainsIntWriteType = "Green"
+
+        if ($downloadDomainsConfig -band 16) {
+            $downloadDomainsIntDisplayValue = "False"
+            $downloadDomainsIntAdditionalDisplayValue = "Value is set to the same internal or external url as OWA. Please use a different url to reach a protected state against CVE-2021-1730."
+            $downloadDomainsIntWriteType = "Red"
+        } elseif ($downloadDomainsConfig -band 32) {
+            $downloadDomainsIntDisplayValue = "False"
+            $downloadDomainsIntAdditionalDisplayValue = "Value not set. Please configure to reach a protected state against CVE-2021-1730."
+            $downloadDomainsIntWriteType = "Red"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Download Domains Enabled" -Details $downloadDomainsOrgDisplayValue `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType $downloadDomainsOrgWriteType `
+            -AddHtmlDetailRow $true `
+            -AnalyzedInformation $analyzedResults
+
+        if (![string]::IsNullOrEmpty($downloadDomainsOrgAdditionalDisplayValue)) {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $downloadDomainsOrgAdditionalDisplayValue `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Red" `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $true `
+                -AnalyzedInformation $analyzedResults
+        } else {
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "ExternalDownloadHostName configured correctly" -Details $downloadDomainsExtDisplayValue `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType $downloadDomainsExtWriteType `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $true `
+                -AnalyzedInformation $analyzedResults
+
+            if (![string]::IsNullOrEmpty($downloadDomainsExtAdditionalDisplayValue)) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $downloadDomainsExtAdditionalDisplayValue `
+                    -DisplayGroupingKey $keySecuritySettings `
+                    -DisplayWriteType "Red" `
+                    -DisplayCustomTabNumber 2 `
+                    -AddHtmlDetailRow $true `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "InternalDownloadHostName configured correctly" -Details $downloadDomainsIntDisplayValue `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType $downloadDomainsIntWriteType `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $true `
+                -AnalyzedInformation $analyzedResults
+
+            if (![string]::IsNullOrEmpty($downloadDomainsIntAdditionalDisplayValue)) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $downloadDomainsIntAdditionalDisplayValue `
+                    -DisplayGroupingKey $keySecuritySettings `
+                    -DisplayWriteType "Red" `
+                    -DisplayCustomTabNumber 2 `
+                    -AddHtmlDetailRow $true `
+                    -AnalyzedInformation $analyzedResults
+            }
+        }
+
+        if ($downloadDomainsOrgWriteType -eq "Red" -or
+            $downloadDomainsExtWriteType -eq "Red" -or
+            $downloadDomainsIntWriteType -eq "Red") {
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Configuration instructions: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-1730" `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Red" `
+                -DisplayCustomTabNumber 2 `
+                -AddHtmlDetailRow $true `
+                -AnalyzedInformation $analyzedResults
+
+            $Script:AllVulnerabilitiesPassed = $false
+        }
+    } else {
+        Write-VerboseOutput("Download Domains feature not available because we are on: {0} {1} or on Edge Transport Server" -f $exchangeInformation.BuildInformation.MajorVersion, $exchangeCU)
     }
 
     #Description: Check for CVE-2020-0796 SMBv3 vulnerability
@@ -1797,3 +1963,4 @@
     Write-Debug("End of Analyzer Engine")
     return $Script:AnalyzedInformation
 }
+

@@ -18,6 +18,14 @@
         $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
     }
 
+    if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
+            $buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) -or
+        ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+            ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
+                $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
+        $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
+    }
+
     if ($Script:ExchangeShellComputer.ToolsOnly) {
         $buildInformation.LocalBuildNumber = "{0}.{1}.{2}.{3}" -f $Script:ExchangeShellComputer.Major, $Script:ExchangeShellComputer.Minor, `
             $Script:ExchangeShellComputer.Build, `
@@ -346,10 +354,20 @@
         }
 
         try {
-            $exchangeInformation.MapiHttpEnabled = (Get-OrganizationConfig -ErrorAction Stop).MapiHttpEnabled
+            $organizationConfig = Get-OrganizationConfig -ErrorAction Stop
+            $exchangeInformation.GetOrganizationConfig = $organizationConfig
         } catch {
-            Write-Yellow "Failed to run Get-OrganizationConfig. Mapi HTTP Enabled results not accurate"
+            Write-Yellow "Failed to run Get-OrganizationConfig."
             Invoke-CatchActions
+        }
+
+        if ($null -ne $organizationConfig) {
+            $exchangeInformation.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled
+            if ($null -ne $organizationConfig.EnableDownloadDomains) {
+                $exchangeInformation.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
+            }
+        } else {
+            Write-VerboseOutput("MAPI HTTP Enabled and Download Domains Enabled results not accurate")
         }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
