@@ -37,6 +37,8 @@ Function Get-MailboxIndexMessageStatistics {
         $storeQueryHandler.SetSelect(@(
                 "MessageId",
                 "MessageDocumentId",
+                "Size",
+                "HasAttachments",
                 "MessageClass",
                 "p0E1D001F",
                 "p1035001F",
@@ -111,6 +113,8 @@ Function Get-MailboxIndexMessageStatistics {
                     MessageDocumentId           = $message.MessageDocumentId
                     MessageClass                = $message.MessageClass
                     Subject                     = $message.p0E1D001F
+                    Size                        = $message.Size
+                    HasAttachments              = $message.HasAttachments
                     BigFunnelPOISize            = $message.BigFunnelPOISize
                     BigFunnelPOIIsUpToDate      = $message.p3655000B
                     BigFunnelPoiNotNeededReason = $message.p365A0003

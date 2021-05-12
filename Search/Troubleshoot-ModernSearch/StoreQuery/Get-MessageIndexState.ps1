@@ -39,7 +39,9 @@ Function Get-MessageIndexState {
         $storeQueryHandler.SetSelect(@(
                 "FolderId",
                 "MessageDocumentId",
-                "p0E1D001F"
+                "p0E1D001F",
+                "HasAttachments",
+                "Size",
                 "MessageClass",
                 "BigFunnelPOI",
                 "BigFunnelPOIIsUpToDate",
@@ -133,6 +135,8 @@ Function Get-MessageIndexState {
                     DetectedLanguage                       = $messages[$i].($extPropMapping.DetectedLanguage)
                     BigFunnelCorrelationId                 = $messages[$i].($extPropMapping.BigFunnelCorrelationId)
                     MessageDocumentId                      = $messages[$i].MessageDocumentId
+                    HasAttachments                         = $messages[$i].HasAttachments
+                    Size                                   = $messages[$i].Size
                     MessageClass                           = $messages[$i].MessageClass
                     BigFunnelPOI                           = $messages[$i].BigFunnelPOI
                     BigFunnelPOISize                       = $messages[$i].BigFunnelPOISize
