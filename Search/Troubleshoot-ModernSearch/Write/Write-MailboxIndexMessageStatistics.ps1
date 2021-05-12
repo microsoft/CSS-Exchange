@@ -47,6 +47,8 @@ Function Write-MailboxIndexMessageStatistics {
                             "BigFunnelPOIIsUpToDate",
                             "IndexingErrorCode",
                             "IndexingErrorMessage",
+                            "ErrorTags",
+                            "ErrorProperties",
                             "LastIndexingAttemptTime",
                             "IsPermanentFailure",
                             "MessageStatus"

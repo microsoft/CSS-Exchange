@@ -124,6 +124,8 @@ Function Get-MailboxIndexMessageStatistics {
                     LastIndexingAttemptTime     = $message."$($extPropMapping.LastIndexingAttemptTime)"
                     IndexingAttemptCount        = $message."$($extPropMapping.IndexingAttemptCount)"
                     IsPermanentFailure          = $message."$($extPropMapping.IsPermanentFailure)"
+                    ErrorTags                   = $message."$($extPropMapping.ErrorTags)"
+                    ErrorProperties             = $message."$($extPropMapping.ErrorProperties)"
                     MessageStatus               = $messageStatus
                 })
         }
