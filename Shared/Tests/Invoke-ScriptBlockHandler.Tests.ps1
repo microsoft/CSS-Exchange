@@ -116,6 +116,7 @@ Describe "Testing $scriptName" {
             Test-VerboseOutput -Without $false
         }
 
+        <# TODO ADD This back
         It "Pending SCCM Reboot" {
             $results = Invoke-ScriptBlockHandler -ComputerName $env:COMPUTERNAME `
                 -ScriptBlock ${Function:Get-PendingSCCMReboot} `
@@ -125,6 +126,7 @@ Describe "Testing $scriptName" {
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Pending SCCM Reboot Result" }
             Test-VerboseOutput
         }
+    #>
     }
 
     Context "Remote Execution Test Results" {
