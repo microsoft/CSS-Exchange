@@ -44,7 +44,7 @@ param
 $CreateHourlyReport =
 {
     param($eventList, $Threshold)
-    $eventList = $eventList | Sort RecipientAddress, Received
+    $eventList = $eventList | Sort Received, RecipientAddress
     $eventList.foreach(
         {
             $event = $_
