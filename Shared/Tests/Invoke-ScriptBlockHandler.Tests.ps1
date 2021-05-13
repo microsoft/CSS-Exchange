@@ -23,18 +23,29 @@
 
     Function Get-PendingSCCMReboot {
 
-        try {
-            $sccmReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop
+        begin {
+            $returnValue = $false
+        }
 
-            if ($sccmReboot) {
-                if ($sccmReboot.RebootPending -or
-                    $sccmReboot.IsHardRebootPending) {
-                    return $true
+        process {
+            try {
+                $sccmReboot = Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop
+
+                if ($sccmReboot) {
+                    if ($sccmReboot.RebootPending -or
+                        $sccmReboot.IsHardRebootPending) {
+                        $returnValue = $true
+                        return
+                    }
                 }
+                return
+            } catch {
+                throw
             }
-            return $false
-        } catch {
-            throw
+        }
+
+        end {
+            return $returnValue
         }
     }
 
