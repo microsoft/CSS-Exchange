@@ -36,9 +36,9 @@ param
     [Parameter(Mandatory=$true)]
     [DateTime]$EndDate,
     [Parameter(Mandatory=$false)]
-    [int]$TimeoutAfter = 30,
+    [int]$Threshold = 3600,
     [Parameter(Mandatory=$false)]
-    [int]$Threshold = 3600
+    [int]$TimeoutAfter = 30
 )
 
 $CreateHourlyReport =
