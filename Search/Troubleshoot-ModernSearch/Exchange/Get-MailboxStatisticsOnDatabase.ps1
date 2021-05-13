@@ -14,6 +14,7 @@
 
                     if ($_.DisplayName -notlike "SystemMailbox*" -and
                         $_.DisplayName -notlike "*HealthMailbox-*" -and
+                        $_.MailboxTypeDetail.ToString() -ne "ArbitrationMailbox" -and
                         $_.DisconnectReason -eq $null) {
 
                         $totalMailboxItems = $_.ItemCount + $_.AssociatedItemCount + $_.DeletedItemCount
