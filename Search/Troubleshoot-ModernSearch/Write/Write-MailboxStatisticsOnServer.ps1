@@ -53,7 +53,7 @@ Function Write-MailboxStatisticsOnServer {
             Sort-Object $SortByProperty -Descending:$sortObjectDescending
 
         $problemMailboxes |
-            Select-Object MailboxGuid, TotalMailboxItems, `
+            Select-Object MailboxGuid, `
             @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
             @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
             @{Name = "NotIndexedCount"; Expression = { $_.BigFunnelNotIndexedCount } },
@@ -61,7 +61,8 @@ Function Write-MailboxStatisticsOnServer {
             @{Name = "CorruptedCount"; Expression = { $_.BigFunnelCorruptedCount } },
             @{Name = "StaleCount"; Expression = { $_.BigFunnelStaleCount } },
             @{Name = "ShouldNotIndexCount"; Expression = { $_.BigFunnelShouldNotBeIndexedCount } },
-            FullyIndexPercentage |
+            FullyIndexPercentage,
+            IndexPercentage |
             Format-Table |
             Out-String |
             ForEach-Object { Write-ScriptOutput $_ }
