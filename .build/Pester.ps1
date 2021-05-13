@@ -1,4 +1,4 @@
-. $PSScriptRoot\Load-Module.ps1
+﻿. $PSScriptRoot\Load-Module.ps1
 
 if (-not (Load-Module -Name Pester -MinimumVersion 5.2.0)) {
     throw "Pester module could not be loaded"
