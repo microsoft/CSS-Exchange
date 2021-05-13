@@ -57,7 +57,7 @@ $CreateHourlyReport =
             }
         }
     )
-    return $hourlyReport.Where({$_.MessageCount -ge $Threshold -and (Get-Mailbox $_.RecipientAddress -ErrorAction SilentlyContinue) -ne $null }) | Sort-Object MessageCount -Descending | Select-Object Date, MessageCount, RecipientAddress
+    return $hourlyReport.Where( { $_.MessageCount -ge $Threshold -and (Get-Mailbox $_.RecipientAddress -ErrorAction SilentlyContinue) -ne $null }) | Sort-Object MessageCount -Descending | Select-Object Date, MessageCount, RecipientAddress
 }
 
 $GetDeliveredMessageTraceEvents =
@@ -93,3 +93,4 @@ $props = [ordered]@{
 }
 $results = New-Object -TypeName PSObject -Property $props;
 return $results
+
