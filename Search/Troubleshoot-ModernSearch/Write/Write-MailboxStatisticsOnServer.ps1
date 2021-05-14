@@ -8,7 +8,8 @@ Function Write-MailboxStatisticsOnServer {
     param(
         [string[]]$Server,
         [string]$SortByProperty,
-        [bool]$ExcludeFullyIndexedMailboxes
+        [bool]$ExcludeFullyIndexedMailboxes,
+        [bool]$ExportData
     )
     begin {
 
@@ -66,6 +67,12 @@ Function Write-MailboxStatisticsOnServer {
             Format-Table |
             Out-String |
             ForEach-Object { Write-ScriptOutput $_ }
+
+        if ($ExportData) {
+            $filePath = "$PSScriptRoot\MailboxStatistics_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
+            Write-ScriptOutput "Exporting Full Mailbox Stats out to: $filePath"
+            $mailboxStats | Export-Csv -Path $filePath
+        }
 
         #Get the top 10 mailboxes and their Category information
         Write-ScriptOutput "Getting the top 10 mailboxes category information"
