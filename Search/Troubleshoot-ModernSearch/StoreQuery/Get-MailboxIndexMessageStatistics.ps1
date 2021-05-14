@@ -1,4 +1,4 @@
-﻿. $PSScriptRoot\Get-IndexStateOfMessage.ps1
+﻿. $PSScriptRoot\Get-MessageInformationObject.ps1
 Function Get-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
@@ -50,8 +50,6 @@ Function Get-MailboxIndexMessageStatistics {
         $storeQueryHandler.SetFrom("Message")
         $storeQueryHandler.SetWhere("MailboxNumber = $mailboxNumber AND FolderId != $conversationFolderId")
 
-        $messageStatus = "Unknown"
-
         switch ($Category) {
             "All" {
                 #Do Nothing
@@ -60,33 +58,27 @@ Function Get-MailboxIndexMessageStatistics {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) AND (BigFunnelPOIIsUpToDate = true)")
                 $storeQueryHandler.AddToWhere(" AND ($($extPropMapping.IsPartiallyIndexed) = null or $($extPropMapping.IsPartiallyIndexed) = false)")
-                $messageStatus = "Indexed"
             }
             "PartiallyIndexed" {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = true)")
                 $storeQueryHandler.AddToWhere(" AND $($extPropMapping.IsPartiallyIndexed) = true")
-                $messageStatus = "PartiallyIndexed"
             }
             "NotIndexed" {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)")
-                $messageStatus = "NotIndexed"
             }
             "Corrupted" {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0) and (BigFunnelPOIIsUpToDate = true)")
-                $messageStatus = "Corrupted"
             }
             "Stale" {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)")
-                $messageStatus = "Stale"
             }
             "ShouldNotBeIndexed" {
                 $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason > 0)")
-                $messageStatus = "ShouldNotBeIndexed"
             }
         }
 
@@ -100,34 +92,11 @@ Function Get-MailboxIndexMessageStatistics {
         }
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
-            $message = $messages[$i]
-
-            if ($Category -eq "All") {
-                $messageStatus = Get-IndexStateOfMessage -Message $message -BigFunnelPropNameMapping $extPropMapping
-            }
 
             $messageList.Add(
-                [PSCustomObject]@{
-                    MessageId                   = $message.MessageId
-                    InternetMessageId           = $message.p1035001F
-                    MessageDocumentId           = $message.MessageDocumentId
-                    MessageClass                = $message.MessageClass
-                    Subject                     = $message.p0E1D001F
-                    Size                        = $message.Size
-                    HasAttachments              = $message.HasAttachments
-                    BigFunnelPOISize            = $message.BigFunnelPOISize
-                    BigFunnelPOIIsUpToDate      = $message.p3655000B
-                    BigFunnelPoiNotNeededReason = $message.p365A0003
-                    IsPartiallyIndexed          = $message."$($extPropMapping.IsPartiallyIndexed)"
-                    IndexingErrorCode           = $message."$($extPropMapping.IndexingErrorCode)"
-                    IndexingErrorMessage        = $message."$($extPropMapping.IndexingErrorMessage)"
-                    LastIndexingAttemptTime     = $message."$($extPropMapping.LastIndexingAttemptTime)"
-                    IndexingAttemptCount        = $message."$($extPropMapping.IndexingAttemptCount)"
-                    IsPermanentFailure          = $message."$($extPropMapping.IsPermanentFailure)"
-                    ErrorTags                   = $message."$($extPropMapping.ErrorTags)"
-                    ErrorProperties             = $message."$($extPropMapping.ErrorProperties)"
-                    MessageStatus               = $messageStatus
-                })
+                (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
+                        -BigFunnelPropNameMapping $extPropMapping )
+            )
         }
     }
     end {

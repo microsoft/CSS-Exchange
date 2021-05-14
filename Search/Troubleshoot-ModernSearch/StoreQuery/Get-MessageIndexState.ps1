@@ -1,5 +1,5 @@
 ﻿. $PSScriptRoot\Get-FolderInformation.ps1
-. $PSScriptRoot\Get-IndexStateOfMessage.ps1
+. $PSScriptRoot\Get-MessageInformationObject.ps1
 Function Get-MessageIndexState {
     [CmdletBinding()]
     param(
@@ -117,40 +117,10 @@ Function Get-MessageIndexState {
             }
 
             $messageList.Add(
-                [PSCustomObject]@{
-                    FolderId                               = $messages[$i].FolderId
-                    DisplayName                            = $displayName
-                    MessageSubject                         = $messages[$i].p0E1D001F
-                    IndexStatus                            = (Get-IndexStateOfMessage -Message $messages[$i] -BigFunnelPropNameMapping $extPropMapping)
-                    BigFunnelIndexingStart                 = $messages[$i].($extPropMapping.BigFunnelIndexingStart)
-                    IndexingAttemptCount                   = $messages[$i].($extPropMapping.IndexingAttemptCount)
-                    IndexingBatchRetryAttemptCount         = $messages[$i].($extPropMapping.IndexingBatchRetryAttemptCount)
-                    IndexingErrorCode                      = $messages[$i].($extPropMapping.IndexingErrorCode)
-                    IndexingErrorMessage                   = $messages[$i].($extPropMapping.IndexingErrorMessage)
-                    ErrorProperties                        = $messages[$i].($extPropMapping.ErrorProperties)
-                    ErrorTags                              = $messages[$i].($extPropMapping.ErrorTags)
-                    IsPartiallyIndexed                     = $messages[$i].($extPropMapping.IsPartiallyIndexed)
-                    IsPermanentFailure                     = $messages[$i].($extPropMapping.IsPermanentFailure)
-                    LastIndexingAttemptTime                = $messages[$i].($extPropMapping.LastIndexingAttemptTime)
-                    DetectedLanguage                       = $messages[$i].($extPropMapping.DetectedLanguage)
-                    BigFunnelCorrelationId                 = $messages[$i].($extPropMapping.BigFunnelCorrelationId)
-                    MessageDocumentId                      = $messages[$i].MessageDocumentId
-                    HasAttachments                         = $messages[$i].HasAttachments
-                    Size                                   = $messages[$i].Size
-                    MessageClass                           = $messages[$i].MessageClass
-                    BigFunnelPOI                           = $messages[$i].BigFunnelPOI
-                    BigFunnelPOISize                       = $messages[$i].BigFunnelPOISize
-                    BigFunnelPartialPOI                    = $messages[$i].BigFunnelPartialPOI
-                    BigFunnelPOIIsUpToDate                 = $messages[$i].p3655000B
-                    BigFunnelPoiNotNeededReason            = $messages[$i].p365A0003
-                    BigFunnelPOIContentFlags               = $messages[$i].p36630003
-                    BigFunnelMessageUncompressedPOIVersion = $messages[$i].p36660003
-                    BigFunnelL1PropertyLengths1V1          = $messages[$i].p3D920014
-                    BigFunnelL1PropertyLengths1V1Rebuild   = $messages[$i].p3D8E0014
-                    BigFunnelL1PropertyLengths2V1          = $messages[$i].p3D8D0014
-                    DateCreated                            = $messages[$i].DateCreated
-                    DateReceived                           = $messages[$i].DateReceived
-                })
+                (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
+                        -BigFunnelPropNameMapping $extPropMapping `
+                        -DisplayName $displayName)
+            )
         }
     }
     end {
