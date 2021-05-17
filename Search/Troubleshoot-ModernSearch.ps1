@@ -59,12 +59,17 @@ param(
     $IsArchive,
 
     [switch]
-    $IsPublicFolder
+    $IsPublicFolder,
+
+    [bool]
+    $ExportData = $true
 )
 
 #Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
 #Going to add in this hard fix for the time being to avoid issues.
 $Script:VerbosePreference = "SilentlyContinue"
+
+$BuildVersion = ""
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 
@@ -110,16 +115,21 @@ Function Main {
         "DocumentId: '$DocumentId'",
         "MatchSubjectSubstring: '$MatchSubjectSubstring'",
         "Category: '$Category'",
+        "GroupMessages: '$GroupMessages'",
         "Server: '$Server'",
+        "SortByProperty: '$SortByProperty'",
+        "ExcludeFullyIndexedMailboxes: '$ExcludeFullyIndexedMailboxes'",
         "QueryString: '$QueryString'",
         "IsArchive: '$IsArchive'",
-        "IsPublicFolder: '$IsPublicFolder'") | Write-ScriptOutput -Diagnostic
+        "IsPublicFolder: '$IsPublicFolder'",
+        "ExportData: '$ExportData'"
+    ) | Write-ScriptOutput -Diagnostic
     Write-ScriptOutput "" -Diagnostic
 
     if ($null -ne $Server -and
         $Server.Count -ge 1) {
 
-        Write-MailboxStatisticsOnServer -Server $Server -SortByProperty $SortByProperty -ExcludeFullyIndexedMailboxes $ExcludeFullyIndexedMailboxes
+        Write-MailboxStatisticsOnServer -Server $Server -SortByProperty $SortByProperty -ExcludeFullyIndexedMailboxes $ExcludeFullyIndexedMailboxes -ExportData $ExportData
         return
     }
 
@@ -187,6 +197,12 @@ Function Main {
             Write-ScriptOutput $messages[$i]
         }
 
+        if ($ExportData) {
+            $filePath = "$PSScriptRoot\MessageResults_$ItemSubject_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
+            Write-ScriptOutput "Exporting Full Mailbox Stats out to: $filePath"
+            $messages | Export-Csv -Path $filePath
+        }
+
         if (-not([string]::IsNullOrEmpty($QueryString))) {
             $queryItemResults = Get-QueryItemResult -BasicMailboxQueryContext $basicMailboxQueryContext `
                 -DocumentId ($messages.MessageDocumentId) `
@@ -230,6 +246,7 @@ Function Main {
 try {
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Build Version: $BuildVersion" -Diagnostic
     Main
     Write-ScriptOutput "Finished Script At: $([DateTime]::Now)" -Diagnostic
     Write-Output "File Written at: $Script:ScriptLogging"

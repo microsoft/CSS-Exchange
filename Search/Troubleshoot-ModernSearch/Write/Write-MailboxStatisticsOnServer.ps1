@@ -8,7 +8,8 @@ Function Write-MailboxStatisticsOnServer {
     param(
         [string[]]$Server,
         [string]$SortByProperty,
-        [bool]$ExcludeFullyIndexedMailboxes
+        [bool]$ExcludeFullyIndexedMailboxes,
+        [bool]$ExportData
     )
     begin {
 
@@ -53,7 +54,7 @@ Function Write-MailboxStatisticsOnServer {
             Sort-Object $SortByProperty -Descending:$sortObjectDescending
 
         $problemMailboxes |
-            Select-Object MailboxGuid, TotalMailboxItems, `
+            Select-Object MailboxGuid, `
             @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
             @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
             @{Name = "NotIndexedCount"; Expression = { $_.BigFunnelNotIndexedCount } },
@@ -61,10 +62,17 @@ Function Write-MailboxStatisticsOnServer {
             @{Name = "CorruptedCount"; Expression = { $_.BigFunnelCorruptedCount } },
             @{Name = "StaleCount"; Expression = { $_.BigFunnelStaleCount } },
             @{Name = "ShouldNotIndexCount"; Expression = { $_.BigFunnelShouldNotBeIndexedCount } },
-            FullyIndexPercentage |
+            FullyIndexPercentage,
+            IndexPercentage |
             Format-Table |
             Out-String |
             ForEach-Object { Write-ScriptOutput $_ }
+
+        if ($ExportData) {
+            $filePath = "$PSScriptRoot\MailboxStatistics_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
+            Write-ScriptOutput "Exporting Full Mailbox Stats out to: $filePath"
+            $mailboxStats | Export-Csv -Path $filePath
+        }
 
         #Get the top 10 mailboxes and their Category information
         Write-ScriptOutput "Getting the top 10 mailboxes category information"

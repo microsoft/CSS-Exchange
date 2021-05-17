@@ -19,7 +19,7 @@
             IsPartiallyIndexed             = "p{0:x}000B"
             IsPermanentFailure             = "p{0:x}000B"
             LastIndexingAttemptTime        = "p{0:x}0040"
-            DetectedLanguage               = "p{0:x}0003"
+            DetectedLanguage               = "p{0:x}001F"
         }
     }
     process {
