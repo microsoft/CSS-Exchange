@@ -69,6 +69,8 @@ param(
 #Going to add in this hard fix for the time being to avoid issues.
 $Script:VerbosePreference = "SilentlyContinue"
 
+$BuildVersion = ""
+
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
@@ -244,6 +246,7 @@ Function Main {
 try {
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
+    Write-ScriptOutput "Build Version: $BuildVersion" -Diagnostic
     Main
     Write-ScriptOutput "Finished Script At: $([DateTime]::Now)" -Diagnostic
     Write-Output "File Written at: $Script:ScriptLogging"
