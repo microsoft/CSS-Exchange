@@ -1,4 +1,5 @@
-﻿. $PSScriptRoot\Get-MessageInformationObject.ps1
+﻿. $PSScriptRoot\Get-IndexingErrorMessage.ps1
+. $PSScriptRoot\Get-MessageInformationObject.ps1
 Function Get-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
@@ -93,10 +94,12 @@ Function Get-MailboxIndexMessageStatistics {
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
 
-            $messageList.Add(
-                (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
-                        -BigFunnelPropNameMapping $extPropMapping )
-            )
+            $messageInformationObject = Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
+                -BigFunnelPropNameMapping $extPropMapping
+
+            $messageInformationObject | Add-Member -MemberType NoteProperty -Name "CondensedErrorMessage" -Value (Get-IndexingErrorMessage -Message $messageInformationObject)
+
+            $messageList.Add($messageInformationObject)
         }
     }
     end {

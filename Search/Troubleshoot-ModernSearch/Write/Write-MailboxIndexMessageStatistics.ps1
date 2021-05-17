@@ -47,6 +47,7 @@ Function Write-MailboxIndexMessageStatistics {
                             "BigFunnelPOIIsUpToDate",
                             "IndexingErrorCode",
                             "IndexingErrorMessage",
+                            "CondensedErrorMessage",
                             "ErrorTags",
                             "ErrorProperties",
                             "LastIndexingAttemptTime",
@@ -63,7 +64,7 @@ Function Write-MailboxIndexMessageStatistics {
                     Write-ScriptOutput "---------------------"
                     Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
                     Write-ScriptOutput "---------------------"
-                    $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
+                    $groupedResults = $statusGrouping.Group | Group-Object CondensedErrorMessage, IsPermanentFailure
                     foreach ($result in $groupedResults) {
 
                         $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
