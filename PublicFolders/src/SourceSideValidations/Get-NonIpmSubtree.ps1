@@ -3,7 +3,11 @@
     param (
         [Parameter(Position = 0)]
         [string]
-        $Server
+        $Server,
+
+        [Parameter(Position = 1)]
+        [bool]
+        $SlowTraversal = $false
     )
 
     begin {
@@ -17,10 +21,32 @@
         $progressParams = @{
             Activity = "Retrieving NON_IPM_SUBTREE folders"
         }
+
+        # This must be defined in the function scope because this function is runs as a job
+        function Get-FoldersRecursive {
+            [CmdletBinding()]
+            param (
+                [Parameter(Position = 0)]
+                [object]
+                $Folder
+            )
+
+            $children = Get-PublicFolder $Folder.EntryId -GetChildren -ResultSize Unlimited
+            foreach ($child in $children) {
+                $child
+                Get-FoldersRecursive $child
+            }
+        }
     }
 
     process {
-        $nonIpmSubtree = Get-PublicFolder \non_ipm_subtree -Recurse -ResultSize Unlimited |
+        $getCommand = { Get-PublicFolder \non_ipm_subtree -Recurse -ResultSize Unlimited }
+
+        if ($SlowTraversal) {
+            $getCommand = { $top = Get-PublicFolder "\non_ipm_subtree"; $top; Get-FoldersRecursive $top }
+        }
+
+        $nonIpmSubtree = Invoke-Command $getCommand |
             Select-Object Identity, EntryId, DumpsterEntryId, MailEnabled |
             ForEach-Object {
                 $progressCount++

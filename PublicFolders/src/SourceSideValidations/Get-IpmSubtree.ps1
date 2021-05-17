@@ -3,7 +3,11 @@
     param (
         [Parameter(Position = 0)]
         [string]
-        $Server
+        $Server,
+
+        [Parameter(Position = 1)]
+        [bool]
+        $SlowTraversal = $false
     )
 
     begin {
@@ -17,44 +21,60 @@
         $progressParams = @{
             Activity = "Retrieving IPM_SUBTREE folders"
         }
+
+        # This must be defined in the function scope because this function is runs as a job
+        function Get-FoldersRecursive {
+            [CmdletBinding()]
+            param (
+                [Parameter(Position = 0)]
+                [object]
+                $Folder
+            )
+
+            $children = Get-PublicFolder $Folder.EntryId -GetChildren -ResultSize Unlimited
+            foreach ($child in $children) {
+                $child
+                Get-FoldersRecursive $child
+            }
+        }
     }
 
     process {
-        if (-not $startFresh -and (Test-Path $PSScriptRoot\IpmSubtree.csv)) {
-            Write-Progress @progressParams
-            $ipmSubtree = Import-Csv $PSScriptRoot\IpmSubtree.csv
-        } else {
-            $ipmSubtree = Get-PublicFolder -Recurse -ResultSize Unlimited |
-                Select-Object Identity, EntryId, ParentFolder, DumpsterEntryId, FolderPath, FolderSize, HasSubfolders, ContentMailboxName, MailEnabled, MailRecipientGuid |
-                ForEach-Object {
-                    $progressCount++
-                    $currentFolder = $_.Identity.ToString()
-                    try {
-                        if ($sw.ElapsedMilliseconds -gt 1000) {
-                            $sw.Restart()
-                            Write-Progress @progressParams -Status $progressCount
-                        }
+        $getCommand = { Get-PublicFolder -Recurse -ResultSize Unlimited }
 
-                        [PSCustomObject]@{
-                            Identity          = $_.Identity.ToString()
-                            EntryId           = $_.EntryId.ToString()
-                            ParentEntryId     = $_.ParentFolder.ToString()
-                            DumpsterEntryId   = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
-                            FolderPathDepth   = $_.FolderPath.Depth
-                            FolderSize        = $_.FolderSize
-                            HasSubfolders     = $_.HasSubfolders
-                            ContentMailbox    = $_.ContentMailboxName
-                            MailEnabled       = $_.MailEnabled
-                            MailRecipientGuid = $_.MailRecipientGuid
-                            ItemCount         = 0
-                        }
-                    } catch {
-                        $errors++
-                        Write-Error -Message $currentFolder -Exception $_.Exception
-                        break
-                    }
-                }
+        if ($SlowTraversal) {
+            $getCommand = { $top = Get-PublicFolder "\"; $top; Get-FoldersRecursive $top }
         }
+
+        $ipmSubtree = Invoke-Command $getCommand |
+            Select-Object Identity, EntryId, ParentFolder, DumpsterEntryId, FolderPath, FolderSize, HasSubfolders, ContentMailboxName, MailEnabled, MailRecipientGuid |
+            ForEach-Object {
+                $progressCount++
+                $currentFolder = $_.Identity.ToString()
+                try {
+                    if ($sw.ElapsedMilliseconds -gt 1000) {
+                        $sw.Restart()
+                        Write-Progress @progressParams -Status $progressCount
+                    }
+
+                    [PSCustomObject]@{
+                        Identity          = $_.Identity.ToString()
+                        EntryId           = $_.EntryId.ToString()
+                        ParentEntryId     = $_.ParentFolder.ToString()
+                        DumpsterEntryId   = if ($_.DumpsterEntryId) { $_.DumpsterEntryId.ToString() } else { $null }
+                        FolderPathDepth   = $_.FolderPath.Depth
+                        FolderSize        = $_.FolderSize
+                        HasSubfolders     = $_.HasSubfolders
+                        ContentMailbox    = $_.ContentMailboxName
+                        MailEnabled       = $_.MailEnabled
+                        MailRecipientGuid = $_.MailRecipientGuid
+                    }
+                } catch {
+                    $errors++
+                    Write-Error -Message $currentFolder -Exception $_.Exception
+                    break
+                }
+            }
     }
 
     end {
