@@ -40,6 +40,8 @@ Function Get-MessageIndexState {
                 "FolderId",
                 "MessageDocumentId",
                 "p0E1D001F",
+                "p1035001F",
+                "MessageId",
                 "HasAttachments",
                 "Size",
                 "MessageClass",
