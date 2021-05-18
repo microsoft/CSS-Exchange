@@ -1,0 +1,99 @@
+[03/11/2021 19:44:21.0777] [0] **********************************************
+[03/11/2021 19:44:21.0947] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/11/2021 19:44:21.0947] [0] **********************************************
+[03/11/2021 19:44:21.0950] [0] Local time zone: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna.
+[03/11/2021 19:44:21.0950] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/11/2021 19:44:21.0950] [0] Setup version: 15.1.2106.2.
+[03/11/2021 19:44:21.0975] [0] Logged on user: SOLO\Han.
+[03/11/2021 19:44:21.0994] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/11/2021 19:44:21.0994] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/11/2021 19:44:21.0994] [0] Command Line Parameter Name='sourcedir', Value='N:\'.
+[03/11/2021 19:44:22.0486] [0] RuntimeAssembly was started with the following command: '/Mode:Upgrade /IAcceptExchangeServerLicenseTerms /sourcedir:N:"'.
+[03/11/2021 19:44:22.0535] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/11/2021 19:44:22.0535] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/11/2021 19:44:22.0539] [0] Copying Files...
+[03/11/2021 19:44:22.0543] [0] Starting copy from N:\Setup\ServerRoles\Common to C:\windows\Temp\ExchangeSetup.
+[03/11/2021 19:44:26.0019] [0] Finished copy from N:\Setup\ServerRoles\Common to C:\windows\Temp\ExchangeSetup.
+[03/11/2021 19:44:26.0019] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[03/11/2021 19:44:26.0021] [0] Assembly dll file location is C:\windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/11/2021 19:44:27.0617] [0] Setup is choosing the domain controller to use
+[03/11/2021 19:44:27.0715] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Child.Solo.local
+[03/11/2021 19:44:28.0839] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Child.Solo.local
+[03/11/2021 19:44:28.0839] [0] Setup is choosing a global catalog...
+[03/11/2021 19:44:28.0861] [0] Setup has chosen the global catalog server DC2.Child.Solo.local.
+[03/11/2021 19:44:28.0892] [0] Setup will use the domain controller 'DC2.Child.Solo.local'.
+[03/11/2021 19:44:28.0892] [0] Setup will use the global catalog 'DC2.Child.Solo.local'.
+[03/11/2021 19:44:28.0895] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 19:44:28.0904] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 19:44:28.0920] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/11/2021 19:44:29.0006] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 19:44:29.0055] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/11/2021 19:44:29.0057] [0] The following datacenter roles are unpacked: 
+[03/11/2021 19:44:29.0059] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/11/2021 19:44:29.0062] [0] The local server has some Exchange files installed.
+[03/11/2021 19:44:29.0072] [0] Server Name=ExSvr1
+[03/11/2021 19:44:29.0081] [0] Setup will use the path 'N:\' for installing Exchange.
+[03/11/2021 19:44:29.0083] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 19:44:29.0083] [0] 'BridgeheadRole' is installed on the server object.
+[03/11/2021 19:44:29.0083] [0] 'ClientAccessRole' is installed on the server object.
+[03/11/2021 19:44:29.0083] [0] 'MailboxRole' is installed on the server object.
+[03/11/2021 19:44:29.0083] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/11/2021 19:44:29.0083] [0] 'CafeRole' is installed on the server object.
+[03/11/2021 19:44:29.0084] [0] 'FrontendTransportRole' is installed on the server object.
+[03/11/2021 19:44:29.0086] [0] The backup copy of the install path is 'D:\Program Files\Exchange\Exchange Server\V15'.
+[03/11/2021 19:44:29.0086] [0] The backup copy of the previously installed version is '15.1.1913.5'.
+[03/11/2021 19:44:29.0087] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/11/2021 19:44:33.0418] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/11/2021 19:44:33.0418] [0] Active Directory Initialization status : 'True'.
+[03/11/2021 19:44:33.0419] [0] Schema Update Required Status : 'False'.
+[03/11/2021 19:44:33.0419] [0] Organization Configuration Update Required Status : 'False'.
+[03/11/2021 19:44:33.0420] [0] Domain Configuration Update Required Status : 'False'.
+[03/11/2021 19:44:33.0420] [0] The locally installed version is 15.1.2106.2.
+[03/11/2021 19:44:33.0420] [0] Exchange Installation Directory : 'D:\Program Files\Exchange\Exchange Server\V15'.
+[03/11/2021 19:44:33.0547] [0] Setup is determining what organization-level operations to perform.
+[03/11/2021 19:44:33.0547] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/11/2021 19:44:33.0547] [0] The installed MSI is current for this version of Setup.
+[03/11/2021 19:44:33.0556] [0] RootDataHandler has 1 DataHandlers
+[03/11/2021 19:44:33.0556] [0]      Languages
+[03/11/2021 19:44:33.0556] [0]      Management tools
+[03/11/2021 19:44:33.0556] [0]      Mailbox role: Transport service
+[03/11/2021 19:44:33.0557] [0]      Mailbox role: Client Access service
+[03/11/2021 19:44:33.0557] [0]      Mailbox role: Unified Messaging service
+[03/11/2021 19:44:33.0557] [0]      Mailbox role: Mailbox service
+[03/11/2021 19:44:33.0557] [0]      Mailbox role: Front End Transport service
+[03/11/2021 19:44:33.0557] [0]      Mailbox role: Client Access Front End service
+[03/11/2021 19:44:33.0564] [0] Validating options for the 7 requested roles
+[03/11/2021 19:44:33.0565] [0] UpgradeModeDataHandler has 11 handlers and 11 work units
+[03/11/2021 19:44:33.0587] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/11/2021 19:44:33.0748] [0] **************
+[03/11/2021 19:44:37.0181] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00]
+[03/11/2021 19:44:47.0593] [1] ProductCode is '521e6064-b4b1-4cbc-0409-25ad697801fa'.
+[03/11/2021 19:44:47.0595] [1] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/11/2021 19:44:47.0595] [1] User specified parameters:  -LogFile:'C:\ExchangeSetupLogs\Uninstall.en.Server.20210311-204443.msilog' -ProductCode:'521e6064-b4b1-4cbc-0409-25ad697801fa'
+[03/11/2021 19:44:47.0595] [1] Beginning processing Uninstall-MsiPackage
+[03/11/2021 19:44:47.0596] [1] Ending processing Uninstall-MsiPackage
+[03/11/2021 19:44:47.0596] [1] Installing the server language pack for language 'en'.
+[03/11/2021 19:44:47.0597] [1] Active Directory session settings for 'Install-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/11/2021 19:44:47.0598] [1] User specified parameters:  -PackagePath:'N:\en\ServerLanguagePack.msi' -LogFile:'C:\ExchangeSetupLogs\Install.en.Server.20210311-204443.msilog' -Features:'AdminTools','Mailbox','ClientAccess','Gateway','Bridgehead','UnifiedMessaging','ServerLanguagePack' -PropertyValues:'LOGVERBOSE=1 TARGETDIR="D:\Program Files\Exchange\Exchange Server\V15"'
+[03/11/2021 19:44:47.0598] [1] Beginning processing Install-MsiPackage
+[03/11/2021 19:44:47.0610] [1] ProductCode is '521e6064-b4b1-4cbc-0409-25ad697801fa'.
+[03/11/2021 19:44:47.0612] [1] PackagePath was set to 'N:\en\ServerLanguagePack.msi'; changing to full path 'N:\en\ServerLanguagePack.msi'.
+[03/11/2021 19:44:47.0624] [1] ProductCode is '521e6064-b4b1-4cbc-0409-25ad697801fa'.
+[03/11/2021 19:44:47.0625] [1] Installing MSI package 'N:\en\ServerLanguagePack.msi'.
+[03/11/2021 19:44:47.0626] [1] No updates directory was specified for the msi installation.
+[03/11/2021 19:44:47.0626] [1] Installing a new product. Package: N:\en\ServerLanguagePack.msi. Property values: LOGVERBOSE=1 TARGETDIR="D:\Program Files\Exchange\Exchange Server\V15" REBOOT=ReallySuppress ADDLOCAL=AdminTools,Mailbox,ClientAccess,Gateway,Bridgehead,UnifiedMessaging,ServerLanguagePack
+[03/11/2021 19:46:47.0063] [1] [ERROR] Object reference not set to an instance of an object.
+[03/11/2021 19:46:47.0063] [1] [WARNING] An unexpected error has occurred and a Watson dump is being generated: Object reference not set to an instance of an object.
+[03/11/2021 19:46:47.0358] [1] [ERROR] Object reference not set to an instance of an object.
+[03/11/2021 19:46:47.0358] [1] [ERROR] Object reference not set to an instance of an object.
+[03/11/2021 19:46:47.0363] [1] Ending processing install-LanguageFiles
+[03/11/2021 19:46:47.0365] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/11/2021 19:46:47.0369] [0] CurrentResult launcherbase.maincore:90: 1
+[03/11/2021 19:46:47.0369] [0] CurrentResult console.startmain:52: 1
+[03/11/2021 19:46:47.0369] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/11/2021 19:46:47.0370] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/11/2021 19:46:47.0370] [0] CurrentResult main.run:235: 1
+[03/11/2021 19:46:47.0370] [0] CurrentResult setupbase.maincore:396: 1
+[03/11/2021 19:46:47.0371] [0] End of Setup
+[03/11/2021 19:46:47.0371] [0] **********************************************

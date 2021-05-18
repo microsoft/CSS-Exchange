@@ -2,50 +2,39 @@
     .SYNOPSIS
         This script contains mitigations to help address the following vulnerabilities.
             CVE-2021-26855
-
         For more information on each mitigation please visit https://aka.ms/exchangevulns
         Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
-
-	.DESCRIPTION
+    .DESCRIPTION
        This script has three operations it performs:
             Mitigation of CVE-2021-26855 via a URL Rewrite configuration. Note: this mitigates current known attacks.
             Malware scan of the Exchange Server via the Microsoft Safety Scanner
             Attempt to reverse any changes made by identified threats.
-
-	.PARAMETER RunFullScan
+    .PARAMETER RunFullScan
         If set, will determine if the server is vulnerable and run MSERT in full scan mode.
-
     .PARAMETER RollbackMitigation
         If set, will only reverse the mitigations if present.
-
     .PARAMETER DoNotRunMSERT
         If set, will not run MSERT.
-
     .PARAMETER DoNotRunMitigation
         If set, will not apply mitigations.
-
     .PARAMETER DoNotRemediate
         If set, MSERT will not remediate detected threats.
-
-	.EXAMPLE
+    .PARAMETER DoNotAutoUpdateEOMT
+        If set, will not attempt to download and run latest EOMT version from github.
+    .EXAMPLE
 		PS C:\> EOMT.ps1
-
 		This will run the default mode which does the following:
-            1. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version
-            2. Downloads and installs the IIS URL rewrite tool.
-            3. Applies the URL rewrite mitigation (only if vulnerable).
-            4. Runs the Microsoft Safety Scanner in "Quick Scan" mode.
-
-	.EXAMPLE
+            1. Checks if an updated version of EOMT is available, downloads and runs latest version if so
+            2. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version
+            3. Downloads and installs the IIS URL rewrite tool.
+            4. Applies the URL rewrite mitigation (only if vulnerable).
+            5. Runs the Microsoft Safety Scanner in "Quick Scan" mode.
+    .EXAMPLE
 		PS C:\> EOMT.ps1 -RollbackMitigation
-
         This will only rollback the URL rewrite mitigation.
-
-	.EXAMPLE
+    .EXAMPLE
         PS C:\> EOMT.ps1 -RunFullScan -DoNotRunMitigation
-
         This will only run the Microsoft Safety Scanner in "Full Scan" mode. We only recommend this option only if the initial quick scan discovered threats. The full scan may take hours or days to complete.
-
     .Link
         https://aka.ms/exchangevulns
         https://www.iis.net/downloads/microsoft/url-rewrite
@@ -60,7 +49,8 @@ param (
     [switch]$RollbackMitigation,
     [switch]$DoNotRunMSERT,
     [switch]$DoNotRunMitigation,
-    [switch]$DoNotRemediate
+    [switch]$DoNotRemediate,
+    [switch]$DoNotAutoUpdateEOMT
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -70,6 +60,13 @@ $msertLogPath = "$env:SystemRoot\debug\msert.log"
 $msertLogArchivePath = "$env:SystemRoot\debug\msert.old.log"
 $detectionFollowUpURL = 'https://go.microsoft.com/fwlink/?linkid=2157359'
 $SummaryFile = "$env:SystemDrive\EOMTSummary.txt"
+$EOMTDownloadUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1'
+$versionsUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv'
+$MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+$MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+
+#autopopulated by CSS-Exchange build
+$BuildVersion = ""
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -83,7 +80,7 @@ function Run-Mitigate {
 
     )
 
-    function GetMsiProductVersion {
+    function Get-MsiProductVersion {
         param (
             [string]$filename
         )
@@ -173,67 +170,32 @@ function Run-Mitigate {
         return $false
     }
 
-    function GetURLRewriteLink {
+    function Get-URLRewriteLink {
         $DownloadLinks = @{
-            "v2.1" = @{
-                "x86" = @{
-                    "de-DE" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_de-DE.msi"
-                    "en-US" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_en-US.msi"
-                    "es-ES" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_es-ES.msi"
-                    "fr-FR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_fr-FR.msi"
-                    "it-IT" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_it-IT.msi"
-                    "ja-JP" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ja-JP.msi"
-                    "ko-KR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ko-KR.msi"
-                    "ru-RU" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ru-RU.msi"
-                    "zh-CN" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-CN.msi"
-                    "zh-TW" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-TW.msi"
-                }
-
-                "x64" = @{
-                    "de-DE" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_de-DE.msi"
-                    "en-US" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
-                    "es-ES" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_es-ES.msi"
-                    "fr-FR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_fr-FR.msi"
-                    "it-IT" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_it-IT.msi"
-                    "ja-JP" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ja-JP.msi"
-                    "ko-KR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ko-KR.msi"
-                    "ru-RU" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ru-RU.msi"
-                    "zh-CN" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-CN.msi"
-                    "zh-TW" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-TW.msi"
-                }
+            "x86" = @{
+                "de-DE" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_en-US.msi"
+                "es-ES" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/D/8/1/D81E5DD6-1ABB-46B0-9B4B-21894E18B77F/rewrite_x86_zh-TW.msi"
             }
-            "v2.0" = @{
-                "x86" = @{
-                    "de-DE" = "https://download.microsoft.com/download/0/5/0/05045383-D280-4DC6-AE8C-81764118B0F9/rewrite_x86_de-DE.msi"
-                    "en-US" = "https://download.microsoft.com/download/6/9/C/69C1195A-123E-4BE8-8EDF-371CDCA4EC6C/rewrite_2.0_rtw_x86.msi"
-                    "es-ES" = "https://download.microsoft.com/download/1/D/9/1D9464B8-9F3B-4A86-97F2-AEC2AB48F481/rewrite_x86_es-ES.msi"
-                    "fr-FR" = "https://download.microsoft.com/download/1/2/9/129A2686-9654-4B2A-82ED-FC7BCE2BCE93/rewrite_x86_fr-FR.msi"
-                    "it-IT" = "https://download.microsoft.com/download/2/4/A/24AE553F-CA8F-43B3-ACF8-DAC526FC84F2/rewrite_x86_it-IT.msi"
-                    "ja-JP" = "https://download.microsoft.com/download/A/6/9/A69D23A5-7CE3-4F80-B5AE-CF6478A5DE19/rewrite_x86_ja-JP.msi"
-                    "ko-KR" = "https://download.microsoft.com/download/2/6/F/26FCA84A-48BC-4AEE-BD6A-B28ED595832E/rewrite_x86_ko-KR.msi"
-                    "ru-RU" = "https://download.microsoft.com/download/B/1/F/B1FDE19F-B4F9-4EBF-9E50-5C9CDF0302D2/rewrite_x86_ru-RU.msi"
-                    "zh-CN" = "https://download.microsoft.com/download/4/9/C/49CD28DB-4AA6-4A51-9437-AA001221F606/rewrite_x86_zh-CN.msi"
-                    "zh-TW" = "https://download.microsoft.com/download/1/9/4/1947187A-8D73-4C3E-B62C-DC6C7E1B353C/rewrite_x86_zh-TW.msi"
-                }
-                "x64" = @{
-                    "de-DE" = "https://download.microsoft.com/download/3/1/C/31CE0BF6-31D7-415D-A70A-46A430DE731F/rewrite_x64_de-DE.msi"
-                    "en-US" = "https://download.microsoft.com/download/6/7/D/67D80164-7DD0-48AF-86E3-DE7A182D6815/rewrite_2.0_rtw_x64.msi"
-                    "es-ES" = "https://download.microsoft.com/download/9/5/5/955337F6-5A11-417E-A95A-E45EE8C7E7AC/rewrite_x64_es-ES.msi"
-                    "fr-FR" = "https://download.microsoft.com/download/3/D/3/3D359CD6-147B-42E9-BD5B-407D3A1F0B97/rewrite_x64_fr-FR.msi"
-                    "it-IT" = "https://download.microsoft.com/download/6/8/B/68B8EFA8-9404-45A3-A51B-53D940D5E742/rewrite_x64_it-IT.msi"
-                    "ja-JP" = "https://download.microsoft.com/download/3/7/5/375C965C-9D98-438A-8F11-7F417D071DC9/rewrite_x64_ja-JP.msi"
-                    "ko-KR" = "https://download.microsoft.com/download/2/A/7/2A746C73-467A-4BC6-B5CF-C4E88BB40406/rewrite_x64_ko-KR.msi"
-                    "ru-RU" = "https://download.microsoft.com/download/7/4/E/74E569F7-44B9-4D3F-BCA7-87C5FE36BD62/rewrite_x64_ru-RU.msi"
-                    "zh-CN" = "https://download.microsoft.com/download/4/E/7/4E7ECE9A-DF55-4F90-A354-B497072BDE0A/rewrite_x64_zh-CN.msi"
-                    "zh-TW" = "https://download.microsoft.com/download/8/2/C/82CE350D-2068-4DAC-99D5-AEB2241DB545/rewrite_x64_zh-TW.msi"
-                }
+            "x64" = @{
+                "de-DE" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_de-DE.msi"
+                "en-US" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+                "es-ES" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_es-ES.msi"
+                "fr-FR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_fr-FR.msi"
+                "it-IT" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_it-IT.msi"
+                "ja-JP" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ja-JP.msi"
+                "ko-KR" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ko-KR.msi"
+                "ru-RU" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_ru-RU.msi"
+                "zh-CN" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-CN.msi"
+                "zh-TW" = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_zh-TW.msi"
             }
-        }
-
-        if (Test-IIS10) {
-            $Version = "v2.1"
-        } else {
-            $Version = "v2.0"
         }
 
         if ([Environment]::Is64BitOperatingSystem) {
@@ -248,7 +210,7 @@ function Run-Mitigate {
             $Language = "en-US"
         }
 
-        return $DownloadLinks[$Version][$Architecture][$Language]
+        return $DownloadLinks[$Architecture][$Language]
     }
 
     #Configure Rewrite Rule consts
@@ -298,57 +260,34 @@ function Run-Mitigate {
         $RegMessage = "Starting mitigation process"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
-        #If IIS 10 check for URL rewrite 2.1 else URL rewrite 2.0
         $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
 
-        #Install module
         if ($RewriteModule) {
-
-            #Throwing an exception if incorrect rewrite module version is installed
-            if (Test-IIS10) {
-                if ($RewriteModule -eq "7.2.2") {
-                    $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
-                    $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
-                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                    throw
-                }
-            } else {
-                if ($RewriteModule -eq "7.2.1993") {
-                    $Message = "Incorrect IIS URL Rewrite Module previously installed on $env:computername"
-                    $RegMessage = "Incorrect IIS URL Rewrite Module previously installed"
-                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                    throw
-                }
-            }
-
             $Message = "IIS URL Rewrite Module is already installed on $env:computername"
             $RegMessage = "IIS URL Rewrite Module already installed"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         } else {
-            $DownloadLink = GetURLRewriteLink
+            $DownloadLink = Get-URLRewriteLink
             $DownloadPath = Join-Path $EOMTDir "\$($DownloadLink.Split("/")[-1])"
             $RewriteModuleInstallLog = Join-Path $EOMTDir "\RewriteModuleInstall.log"
 
             $response = Invoke-WebRequest $DownloadLink -UseBasicParsing
             [IO.File]::WriteAllBytes($DownloadPath, $response.Content)
 
-            $MSIProductVersion = GetMsiProductVersion -filename $DownloadPath
+            $MSIProductVersion = Get-MsiProductVersion -filename $DownloadPath
 
-            #If IIS 10 assert URL rewrite 2.1 else URL rewrite 2.0
-            if (Test-IIS10) {
-                if ($MSIProductVersion -eq "7.2.2") {
-                    $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
-                    $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
-                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                    throw
-                }
-            } else {
-                if ($MSIProductVersion -eq "7.2.1993") {
-                    $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
-                    $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
-                    Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-                    throw
-                }
+            if ($MSIProductVersion -lt "7.2.1993") {
+                $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
+                $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
+                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                throw
+            }
+            #KB2999226 required for IIS Rewrite 2.1 on IIS ver under 10
+            if (!(Test-IIS10) -and !(Get-HotFix -Id "KB2999226" -ErrorAction SilentlyContinue)) {
+                $Message = "Did not detect the KB2999226 on $env:computername. Please review the pre-reqs for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
+                $RegMessage = "Did not detect KB299226"
+                Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
+                throw
             }
 
             $Message = "Installing the IIS URL Rewrite Module on $env:computername"
@@ -357,6 +296,15 @@ function Run-Mitigate {
 
             $arguments = "/i `"$DownloadPath`" /quiet /log `"$RewriteModuleInstallLog`""
             $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
+
+            if (!(Confirm-Signature -filepath $DownloadPath -Stage $stage)) {
+                $Message = "File present at $DownloadPath does not seem to be signed as expected, stopping execution."
+                $RegMessage = "File downloaded for UrlRewrite MSI does not seem to be signed as expected, stopping execution"
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                Write-Summary -NoRemediation:$DoNotRemediate
+                throw
+            }
+
             Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
             $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
@@ -474,7 +422,6 @@ function Run-MSERT {
             $msertExe = Join-Path $EOMTDir "\msert.exe"
             $response = Invoke-WebRequest $MSERTUrl -UseBasicParsing
             [IO.File]::WriteAllBytes($msertExe, $response.Content)
-
             $Message = "MSERT download complete on $env:computername"
             $RegMessage = "MSERT download complete"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
@@ -515,6 +462,14 @@ function Run-MSERT {
 
         if ($DoNotRemediate) {
             $msertArguments += " /N"
+        }
+
+        if (!(Confirm-Signature -filepath $msertExe -Stage $stage)) {
+            $Message = "File present at $msertExe does not seem to be signed as expected, stopping execution."
+            $RegMessage = "File downloaded for MSERT does not seem to be signed as expected, stopping execution"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+            Write-Summary -NoRemediation:$DoNotRemediate
+            throw
         }
 
         Start-Process $msertExe -ArgumentList $msertArguments -Wait
@@ -591,10 +546,15 @@ function Get-ExchangeVersion () {
     $version
 }
 
-function Get-ServerVulnStatus {
+function Get-ServerPatchStatus {
     $FutureCUs = @{
         E19CU9  = "15.2.858.5"
         E16CU20 = "15.1.2242.4"
+    }
+
+    $PatchStatus = @{
+        KB5000871 = $false
+        LatestCU  = $false
     }
 
     $Version = Get-ExchangeVersion
@@ -603,20 +563,27 @@ function Get-ServerVulnStatus {
     } elseif ($Version.Major -eq 15 -and $Version.Minor -eq 1) {
         $LatestCU = $FutureCUs.E16CU20
     } else {
-        $LatestCU = "15.2.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
+        $LatestCU = "15.1.000.0000" #version higher than 15.0 to trigger SecurityHotfix check for E15
     }
 
-    if ([version]$LatestCU -gt $Version) {
+    $KBregex = "[0-9]{7}"
 
-        $SecurityHotfix = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
-        | Where-Object displayname -Like "*KB5000871*" `
-        | Select-Object displayname -ErrorAction SilentlyContinue
+    [long]$LatestInstalledExchangeSU = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* |
+            Where-Object displayname -Like "Security Update for Exchange Server*" |
+            Select-Object displayname |
+            Select-String -Pattern $KBregex).Matches.Value
 
-        if (!$SecurityHotfix) {
-            return $true
+    if ($Version -ge [version]$LatestCU) {
+        #They have the March CU, which contains this KB
+        $PatchStatus["LatestCU"] = $true
+        $PatchStatus["KB5000871"] = $true
+    } elseif ($Version -lt [version]$LatestCU) {
+        #They don't have March CU
+        if ($LatestInstalledExchangeSU -ge 5000871) {
+            $PatchStatus["KB5000871"] = $true
         }
     }
-    return $false
+    return $PatchStatus
 }
 
 function Get-ExchangeUpdateInfo {
@@ -716,6 +683,71 @@ function Set-Registry {
     Set-ItemProperty -Path $RegKey -Name $RegValue -Value $RegData -Type $RegType -Force
 }
 
+function Confirm-Signature {
+    param(
+        [string]$Filepath,
+        [string]$Stage
+    )
+
+    $IsValid = $false
+    $failMsg = "Signature of $Filepath not as expected. "
+    try {
+        if (!(Test-Path $Filepath)) {
+            $IsValid = $false
+            $failMsg += "Filepath does not exist"
+            throw
+        }
+
+        $sig = Get-AuthenticodeSignature -FilePath $Filepath
+
+        if ($sig.Status -ne 'Valid') {
+            $IsValid = $false
+            $failMsg += "Signature is not trusted by machine as Valid, status: $($sig.Status)"
+            throw
+        }
+
+        $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
+        $chain.ChainPolicy.VerificationFlags = "IgnoreNotTimeValid"
+
+        $chainsCorrectly = $chain.Build($sig.SignerCertificate)
+
+        if (!$chainsCorrectly) {
+            $IsValid = $false
+            $failMsg += "Signer certificate doesn't chain correctly"
+            throw
+        }
+
+        if ($chain.ChainElements.Count -le 1) {
+            $IsValid = $false
+            $failMsg += "Certificate Chain shorter than expected"
+            throw
+        }
+
+        $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1]
+
+        if ($rootCert.Certificate.Subject -ne $rootCert.Certificate.Issuer) {
+            $IsValid = $false
+            $failMsg += "Top-level certifcate in chain is not a root certificate"
+            throw
+        }
+
+        if ($rootCert.Certificate.Subject -eq $MicrosoftSigningRoot2010 -or $rootCert.Certificate.Subject -eq $MicrosoftSigningRoot2011) {
+            $IsValid = $true
+            $Message = "$Filepath is signed by Microsoft as expected, trusted by machine as Valid, signed by: $($sig.SignerCertificate.Subject), Issued by: $($sig.SignerCertificate.Issuer), with Root certificate: $($rootCert.Certificate.Subject)"
+            $RegMessage = "$Filepath is signed by Microsoft as expected"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
+        } else {
+            $IsValid = $false
+            $failMsg += "Unexpected root cert. Expected $MicrosoftSigningRoot2010 or $MicrosoftSigningRoot2011, but found $($rootCert.Certificate.Subject)"
+            throw
+        }
+    } catch {
+        $IsValid = $false
+        Set-LogActivity -Stage $Stage -RegMessage $failMsg -Message $failMsg -Error
+    }
+
+    return $IsValid
+}
 function Write-Summary {
     param(
         [switch]$Pass,
@@ -739,7 +771,6 @@ Microsoft Safety Scanner and CVE-2021-26855 mitigation summary
 Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2021-26855$RemediationText.
 For more information on these vulnerabilities please visit https://aka.ms/Exchangevulns.$FailureText
 Please review locations and files as soon as possible and take the recommended action.
-
 Microsoft saved several files to your system to "$EOMTDir". The only files that should be present in this directory are:
     a - msert.exe
     b - EOMT.log
@@ -750,7 +781,6 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
         rewrite_x64_[de-DE,es-ES,fr-FR,it-IT,ja-JP,ko-KR,ru-RU,zh-CN,zh-TW].msi
         rewrite_2.0_rtw_x86.msi
         rewrite_2.0_rtw_x64.msi
-
 1 - Confirm the IIS URL Rewrite Module is installed. This module is required for the mitigation of CVE-2021-26855, the module and the configuration (present or not) will not impact this system negatively.
     a - If installed, Confirm the following entry exists in the "$env:SystemDrive\inetpub\wwwroot\web.config". If this configuration is not present, your server is not mitigated. This may have occurred if the module was not successfully installed with a supported version for your system.
     <system.webServer>
@@ -773,12 +803,9 @@ Microsoft saved several files to your system to "$EOMTDir". The only files that 
             </rules>
         </rewrite>
     </system.webServer>
-
 2 - Review the results of the Microsoft Safety Scanner
         Microsoft Safety Scanner log can be found at "$msertLogPath" and "$msertLogArchivePath" If any threats were detected, please review the guidance here: $detectionFollowUpURL
-
 $UpdateInfo
-
 "@
 
     if (Test-Path $SummaryFile) {
@@ -794,6 +821,11 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
     exit
 }
 
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    Write-Error "Unsupported version of PowerShell on $env:computername - The Exchange On-premises Mitigation Tool supports PowerShell 3 and later"
+    exit
+}
+
 #supported Exchange check
 if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction 0).MsiInstallPath)) {
     Write-Error "A supported version of Exchange was not found on $env:computername. The Exchange On-premises Mitigation Tool supports Exchange 2013, 2016, and 2019."
@@ -802,23 +834,75 @@ if (!((Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Ex
 
 # Main
 try {
-    $Stage = "EOMTStart"
+    $Stage = "CheckEOMTVersion"
 
     if (!(Test-Path $EOMTDir)) {
         New-Item -ItemType Directory $EOMTDir | Out-Null
     }
 
-    $Message = "Starting EOMT.ps1 on $env:computername"
-    $RegMessage = "Starting EOMT.ps1"
-    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-
-    #IsPS3 or later?
-    if ($PSVersionTable.PSVersion.Major -lt 3) {
-        $Message = "Unsupported Powershell on $env:computername"
-        $RegMessage = "Unsupported Powershell"
-        Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
-        throw
+    try {
+        $Message = "Checking if EOMT is up to date with $versionsUrl"
+        Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+        $latestEOMTVersion = $null
+        $versionsData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
+        $latestEOMTVersion = ($versionsData | Where-Object -Property File -EQ "EOMT.ps1").Version
+    } catch {
+        $Message = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Please download latest EOMT from $EOMTDownloadUrl and re-run EOMT, unless you just did so. Exception: $($_.Exception)"
+        $RegMessage = "Cannot check version info at $versionsUrl to confirm EOMT.ps1 is latest version. Version currently running is $BuildVersion. Continuing with execution"
+        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
+
+    $DisableAutoupdateIfneeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter";
+
+    $Stage = "AutoupdateEOMT"
+    if ($latestEOMTVersion -and ($BuildVersion -ne $latestEOMTVersion)) {
+        if ($DoNotAutoUpdateEOMT) {
+            $Message = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion. We strongly recommend downloading latest EOMT from $EOMTDownloadUrl and re-running EOMT. DoNotAutoUpdateEOMT is set, so continuing with execution"
+            $RegMessage = "EOMT.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTVersion.  DoNotAutoUpdateEOMT is set, so continuing with execution"
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
+        } else {
+            $Stage = "DownloadLatestEOMT"
+            $eomtLatestFilepath = Join-Path $EOMTDir "EOMT_$latestEOMTVersion.ps1"
+            try {
+                $Message = "Downloading latest EOMT from $EOMTDownloadUrl"
+                Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+                Invoke-WebRequest $EOMTDownloadUrl -OutFile $eomtLatestFilepath -UseBasicParsing
+            } catch {
+                $Message = "Cannot download latest EOMT.  Please download latest EOMT yourself from $EOMTDownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                $RegMessage = "Cannot download latest EOMT from $EOMTDownloadUrl. Stopping execution."
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                throw
+            }
+
+            $Stage = "RunLatestEOMT"
+            if (Confirm-Signature -Filepath $eomtLatestFilepath -Stage $Stage) {
+                $Message = "Running latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath"
+                Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
+
+                try {
+                    & $eomtLatestFilepath @PSBoundParameters
+                    Exit
+                } catch {
+                    $Message = "Run failed for latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath, please re-run $eomtLatestFilepath manually. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                    $RegMessage = "Run failed for latest EOMT version $latestEOMTVersion"
+                    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                    throw
+                }
+            } else {
+                $Message = "File downloaded to $eomtLatestFilepath does not seem to be signed as expected, stopping execution."
+                $RegMessage = "File downloaded for EOMT.ps1 does not seem to be signed as expected, stopping execution"
+                Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
+                Write-Summary -NoRemediation:$DoNotRemediate
+                throw
+            }
+        }
+    }
+
+    $Stage = "EOMTStart"
+
+    $Message = "Starting EOMT.ps1 version $BuildVersion on $env:computername"
+    $RegMessage = "Starting EOMT.ps1 version $BuildVersion"
+    Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
     $Message = "EOMT precheck complete on $env:computername"
     $RegMessage = "EOMT precheck complete"
@@ -838,7 +922,12 @@ try {
 
     if (!$DoNotRunMitigation -and !$RollbackMitigation) {
         #Normal run
-        $IsVulnerable = Get-ServerVulnStatus
+        $PatchStatus = Get-ServerPatchStatus
+        if ($PatchStatus["KB5000871"] -eq $false) {
+            $IsVulnerable = $True
+        } else {
+            $IsVulnerable = $False
+        }
         if ($IsVulnerable) {
             $Message = "$env:computername is vulnerable: applying mitigation"
             $RegMessage = "Server is vulnerable"

@@ -1,7 +1,12 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param (
 
 )
+
+#Requires -Version 7
+
+. $PSScriptRoot\BuildFunctions\Get-ScriptProjectMostRecentCommit.ps1
+. $PSScriptRoot\BuildFunctions\Get-ExpandedScriptContent.ps1
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
@@ -22,25 +27,22 @@ if (Test-Path $distFolder) {
 New-Item -Path $distFolder -ItemType Directory | Out-Null
 
 <#
+    Never release scripts in these folders
+#>
+
+$excludedFolders = @(".build", "dist", "Shared")
+
+<#
     File names must be unique across the repo since we release in a flat structure.
 #>
 
 $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
-    Where-Object { $_.Name -ne ".build" } |
+    Where-Object { -not $excludedFolders.Contains($_.Name) } |
     ForEach-Object { Get-ChildItem -Path $_.FullName *.ps1 -Recurse } |
     Where-Object { -not $_.Name.Contains(".Tests.ps1") -and
         -not $_.Name.Contains(".NotPublished.ps1") } |
     Sort-Object Name |
     ForEach-Object { $_.FullName }
-
-$nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
-if ($nonUnique.Count -gt 0) {
-    $nonUnique | ForEach-Object {
-        Write-Error "Ambiguous filename: $($_.Name)"
-    }
-
-    return
-}
 
 <#
     Remove from the list any files that are dot-sourced by other files.
@@ -53,105 +55,71 @@ $scriptFiles = $scriptFiles | Where-Object {
     $m.Count -lt 1
 }
 
-<#
-    Copy the remaining files to dist, expand dot-sourced files,
-    add disclaimer and version.
-#>
+$nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
+if ($nonUnique.Count -gt 0) {
+    $nonUnique | ForEach-Object {
+        Write-Error "Ambiguous filename: $($_.Name)"
+    }
 
-$disclaimer = [IO.File]::ReadAllLines("$repoRoot\.build\disclaimer.txt")
+    return
+}
 
-$versionFile = "$distFolder\ScriptVersions.txt"
-New-Item -Path $versionFile -ItemType File | Out-Null
-"# Script Versions" | Out-File $versionFile -Append
-"Script | Version" | Out-File $versionFile -Append
-"-------|--------" | Out-File $versionFile -Append
+# Build the files
+
+$scriptVersions = @()
+
+$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\disclaimer.txt")
 
 $scriptFiles | ForEach-Object {
-    $scriptContent = New-Object 'System.Collections.Generic.List[string]'
-    $scriptContent.AddRange([IO.File]::ReadAllLines($_))
+    $scriptName = [IO.Path]::GetFileName($_)
 
-    $commitTime = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $_))
+    # Expand the embedded files
+    $expandedScript = Get-ExpandedScriptContent $_
 
-    # Expand dot-sourced files
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\. \.\\(.*).ps1"
-
-        if ($m.Matches.Count -gt 0) {
-            $parentPath = [IO.Path]::GetDirectoryName($_)
-            $dotloadedScriptPath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[1].Value + ".ps1")
-            $dotloadedScriptContent = [IO.File]::ReadAllLines($dotloadedScriptPath)
-            $scriptContent.RemoveAt($i)
-            $scriptContent.InsertRange($i, $dotloadedScriptContent)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $dotloadedScriptPath))
-
-            if ($commitTimeTest -gt $commitTime) {
-                $commitTime = $commitTimeTest
-                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
-            }
-        }
-    }
-
-    # Expand Get-Content calls for local files that are marked -AsByteStream -Raw
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i].Trim()
-        $m = $line | Select-String "\`$(.+) = Get-Content `"?(\`$PSScriptRoot|\.)\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
-        if ($m.Matches.Count -gt 0) {
-            $parentPath = [IO.Path]::GetDirectoryName($_)
-            $filePath = [IO.Path]::Combine($parentPath, $m.Matches[0].Groups[3].Value)
-            $fileAsBase64 = [Convert]::ToBase64String(([IO.File]::ReadAllBytes($filePath)), "InsertLineBreaks")
-            $scriptContent.RemoveAt($i)
-            [string[]]$linesToInsert = @()
-            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value)Base64 = @'"
-            $linesToInsert += $fileAsBase64
-            $linesToInsert += "'@"
-            $linesToInsert += ""
-            $linesToInsert += "`$$($m.Matches[0].Groups[1].Value) = [Convert]::FromBase64String(`$$($m.Matches[0].Groups[1].Value)Base64)"
-            $scriptContent.InsertRange($i, $linesToInsert)
-            $commitTimeTest = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $filePath))
-
-            if ($commitTimeTest -gt $commitTime) {
-                $commitTime = $commitTimeTest
-                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
-            }
-        }
-    }
-
+    # Add the version information
+    $commitTime = Get-ScriptProjectMostRecentCommit $_
     $buildVersionString = $commitTime.ToString("yy.MM.dd.HHmm")
     Write-Host ("Setting version for script '$_' to $buildVersionString")
 
     # Set version variable if present
-    for ($i = 0; $i -lt $scriptContent.Count; $i++) {
-        $line = $scriptContent[$i]
+    for ($i = 0; $i -lt $expandedScript.Count; $i++) {
+        $line = $expandedScript[$i]
         if ($line.Contains("`$BuildVersion = `"`"")) {
             $newLine = $line.Replace("`$BuildVersion = `"`"", "`$BuildVersion = `"$buildVersionString`"")
             Write-Host $newLine
-            $scriptContent.RemoveAt($i)
-            $scriptContent.Insert($i, $newLine)
+            $expandedScript.RemoveAt($i)
+            $expandedScript.Insert($i, $newLine)
         }
     }
 
     # Stamp version in comments
-    $scriptContent.Insert(0, "")
-    $scriptContent.Insert(0, "# Version $buildVersionString")
+    $expandedScript.Insert(0, "")
+    $expandedScript.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
-    $scriptContent.Insert(0, "")
-    $scriptContent.InsertRange(0, $disclaimer)
+    $expandedScript.Insert(0, "")
+    $expandedScript.InsertRange(0, $disclaimer)
 
-    "$([IO.Path]::GetFileName($_)) | v$($commitTime.ToString("yy.MM.dd.HHmm"))" | Out-File $versionFile -Append
-
-    Set-Content -Path ([IO.Path]::Combine($distFolder, [IO.Path]::GetFileName($_))) -Value $scriptContent
+    Set-Content -Path (Join-Path $distFolder $scriptName) -Value $expandedScript -Encoding utf8BOM
+    $scriptVersions += [PSCustomObject]@{
+        File    = $scriptName
+        Version = $buildVersionString
+    }
 }
 
-$csvHashFiles = Get-ChildItem -Path "$repoRoot\Security\src\Baselines" -Filter *.csv
+# Generate version text for release description
 
-$csvHashFiles | ForEach-Object {
-    $zipFilePath = "$distFolder\$($_.BaseName).zip"
-    Compress-Archive -Path $_.FullName -DestinationPath $zipFilePath
-    $hash = Get-Item $zipFilePath | Get-FileHash
-    $hash.Hash | Out-File "$distFolder\$($_.BaseName).checksum.txt"
+$versionFile = "$distFolder\ScriptVersions.txt"
+New-Item -Path $versionFile -ItemType File | Out-Null
+"Script | Version" | Out-File $versionFile -Append
+"-------|--------" | Out-File $versionFile -Append
+foreach ($script in $scriptVersions) {
+    "$($script.File) | $($script.Version)" | Out-File $versionFile -Append
 }
+
+# Generate version CSV for script version checks
+
+$scriptVersions | Export-Csv -Path "$distFolder\ScriptVersions.csv" -NoTypeInformation
 
 $otherFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { $_.Name -ne ".build" } |

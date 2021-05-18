@@ -1,0 +1,150 @@
+[03/13/2021 05:01:28.0382] [0] **********************************************
+[03/13/2021 05:01:29.0411] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/13/2021 05:01:29.0411] [0] **********************************************
+[03/13/2021 05:01:29.0411] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/13/2021 05:01:29.0411] [0] Operating system version: Microsoft Windows NT 6.1.7601 Service Pack 1.
+[03/13/2021 05:01:29.0427] [0] Setup version: 15.0.1497.2.
+[03/13/2021 05:01:29.0427] [0] Logged on user: SOLO\Han.
+[03/13/2021 05:01:29.0567] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/13/2021 05:01:29.0567] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/13/2021 05:01:29.0567] [0] Command Line Parameter Name='sourcedir', Value='D:\Applications\Exchange_CU23\cu23'.
+[03/13/2021 05:01:29.0739] [0] RuntimeAssembly was started with the following command: '/iacceptexchangeserverlicenseterms /mode:upgrade /sourcedir:D:\Applications\Exchange_CU23\cu23'.
+[03/13/2021 05:01:29.0754] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/13/2021 05:01:29.0754] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/13/2021 05:01:29.0754] [0] Copying Files...
+[03/13/2021 05:01:29.0770] [0] Starting copy from D:\Applications\Exchange_CU23\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/13/2021 05:01:33.0576] [0] Finished copy from D:\Applications\Exchange_CU23\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/13/2021 05:01:33.0576] [0] File copy complete. Setup will now collect additional information needed for installation.
+[03/13/2021 05:01:33.0576] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/13/2021 05:01:34.0388] [0] Setup is choosing the domain controller to use
+[03/13/2021 05:01:34.0481] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Solo.local
+[03/13/2021 05:01:35.0433] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/13/2021 05:01:35.0433] [0] Setup is choosing a global catalog...
+[03/13/2021 05:01:35.0511] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/13/2021 05:01:35.0714] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/13/2021 05:01:35.0714] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/13/2021 05:01:35.0729] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/13/2021 05:01:35.0729] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/13/2021 05:01:35.0745] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/13/2021 05:01:35.0823] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/13/2021 05:01:35.0838] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/13/2021 05:01:35.0838] [0] The following datacenter roles are unpacked: 
+[03/13/2021 05:01:35.0838] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/13/2021 05:01:35.0838] [0] The local server has some Exchange files installed.
+[03/13/2021 05:01:35.0854] [0] Server Name=ExSvr1
+[03/13/2021 05:01:35.0854] [0] Setup will use the path 'D:\Applications\Exchange_CU23\cu23' for installing Exchange.
+[03/13/2021 05:01:35.0854] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/13/2021 05:01:35.0854] [0] 'BridgeheadRole' is installed on the server object.
+[03/13/2021 05:01:35.0854] [0] 'ClientAccessRole' is installed on the server object.
+[03/13/2021 05:01:35.0854] [0] 'MailboxRole' is installed on the server object.
+[03/13/2021 05:01:35.0854] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/13/2021 05:01:35.0854] [0] 'CafeRole' is installed on the server object.
+[03/13/2021 05:01:35.0854] [0] 'FrontendTransportRole' is installed on the server object.
+[03/13/2021 05:01:35.0870] [0] The backup copy of the install path is 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[03/13/2021 05:01:35.0870] [0] The backup copy of the previously installed version is '15.0.995.29'.
+[03/13/2021 05:01:35.0870] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/13/2021 05:01:37.0008] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/13/2021 05:01:37.0008] [0] Active Directory Initialization status : 'True'.
+[03/13/2021 05:01:37.0008] [0] Schema Update Required Status : 'False'.
+[03/13/2021 05:01:37.0008] [0] Organization Configuration Update Required Status : 'False'.
+[03/13/2021 05:01:37.0008] [0] Domain Configuration Update Required Status : 'False'.
+[03/13/2021 05:01:37.0008] [0] The locally installed version is 15.0.1497.2.
+[03/13/2021 05:01:37.0008] [0] Exchange Installation Directory : 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[03/13/2021 05:01:37.0102] [0] Setup is determining what organization-level operations to perform.
+[03/13/2021 05:01:37.0102] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/13/2021 05:01:37.0102] [0] The installed MSI is current for this version of Setup.
+[03/13/2021 05:01:37.0118] [0] RootDataHandler has 1 DataHandlers
+[03/13/2021 05:01:37.0118] [0]      Mailbox role: Transport service
+[03/13/2021 05:01:37.0118] [0]      Client Access role: Front End Transport service
+[03/13/2021 05:01:37.0118] [0]      Mailbox role: Client Access service
+[03/13/2021 05:01:37.0118] [0]      Mailbox role: Unified Messaging service
+[03/13/2021 05:01:37.0118] [0]      Mailbox role: Mailbox service
+[03/13/2021 05:01:37.0118] [0]      Management tools
+[03/13/2021 05:01:37.0118] [0]      Client Access role: Client Access Front End service
+[03/13/2021 05:01:37.0133] [0] Validating options for the 7 requested roles
+[03/13/2021 05:01:37.0133] [0] UpgradeModeDataHandler has 9 handlers and 9 work units
+[03/13/2021 05:01:37.0180] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/13/2021 05:01:37.0289] [0] **************
+[03/13/2021 05:01:47.0726] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00]
+[03/13/2021 05:10:27.0630] [2] No properties changed for the object "ExSvr1".
+[03/13/2021 05:10:27.0630] [2] [WARNING] The command completed successfully but no settings of 'ExSvr1' have been modified.
+[03/13/2021 05:10:27.0630] [2] Saving object "ExSvr1" of type "Server" and state "Unchanged".
+[03/13/2021 05:10:27.0646] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/13/2021 05:10:36.0507] [1] Executing: 
+          uninstall-MsiPackage -ProductCode $RoleProductCode -LogFile $RoleLogFilePath -PropertyValues ("ESE=1");
+
+          uninstall-MsiPackage -ProductCode $RoleTeleProductCode -LogFile $RoleLogFilePath;
+
+          if ( $RoleTransProductCode -ne [system.guid]::empty )
+          {
+            uninstall-MsiPackage -ProductCode $RoleTransProductCode -LogFile $RoleLogFilePath;
+          }
+
+          uninstall-MsiPackage -ProductCode $RoleTtsProductCode -LogFile $RoleLogFilePath;
+        
+[03/13/2021 05:10:36.0507] [2] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/13/2021 05:10:36.0507] [2] User specified parameters:  -ProductCode:'cef60964-21ae-47e0-93c6-611aa8941b7f' -LogFile:'C:\ExchangeSetupLogs\add-UMLanguagePack.en-US.msilog' -PropertyValues:'ESE=1'
+[03/13/2021 05:10:36.0507] [2] Beginning processing uninstall-MsiPackage
+[03/13/2021 05:10:36.0507] [2] Removing MSI package with code 'cef60964-21ae-47e0-93c6-611aa8941b7f'.
+[03/13/2021 05:10:52.0232] [2] Ending processing uninstall-MsiPackage
+[03/13/2021 05:10:52.0232] [2] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/13/2021 05:10:52.0232] [2] User specified parameters:  -ProductCode:'66d57636-bd4b-402f-9e7d-5e89c28c8136' -LogFile:'C:\ExchangeSetupLogs\add-UMLanguagePack.en-US.msilog'
+[03/13/2021 05:10:52.0232] [2] Beginning processing uninstall-MsiPackage
+[03/13/2021 05:10:52.0247] [2] Removing MSI package with code '66d57636-bd4b-402f-9e7d-5e89c28c8136'.
+[03/13/2021 05:34:54.0196] [2] Ending processing uninstall-MsiPackage
+[03/13/2021 05:34:54.0196] [2] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/13/2021 05:34:54.0196] [2] User specified parameters:  -ProductCode:'b07da010-66cf-40a7-908f-f6482219c57f' -LogFile:'C:\ExchangeSetupLogs\add-UMLanguagePack.en-US.msilog'
+[03/13/2021 05:34:54.0196] [2] Beginning processing uninstall-MsiPackage
+[03/13/2021 05:34:54.0196] [2] Removing MSI package with code 'b07da010-66cf-40a7-908f-f6482219c57f'.
+[03/13/2021 05:34:56.0785] [2] Ending processing uninstall-MsiPackage
+[03/13/2021 05:34:56.0785] [2] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/13/2021 05:34:56.0785] [2] User specified parameters:  -ProductCode:'8466eaed-7024-4aee-9d13-f3a55b98d114' -LogFile:'C:\ExchangeSetupLogs\add-UMLanguagePack.en-US.msilog'
+[03/13/2021 05:34:56.0785] [2] Beginning processing uninstall-MsiPackage
+[03/13/2021 05:34:56.0785] [2] Removing MSI package with code '8466eaed-7024-4aee-9d13-f3a55b98d114'.
+[03/13/2021 06:46:30.0977] [2] [ERROR] Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/13/2021 06:46:30.0977] [2] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/13/2021 06:46:30.0992] [2] [ERROR] Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/13/2021 06:46:30.0992] [2] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/13/2021 06:46:30.0992] [2] Ending processing uninstall-MsiPackage
+[03/13/2021 06:46:30.0992] [1] The following 1 error(s) occurred during task execution:
+[03/13/2021 06:46:30.0992] [1] 0.  ErrorRecord: Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/13/2021 06:46:30.0992] [1] 0.  ErrorRecord: Microsoft.Exchange.Configuration.Tasks.TaskException: Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612. ---> System.ComponentModel.Win32Exception: The installation source for this product is not available. Verify that the source exists and that you can access it
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.RemoveProductCode(Guid productCode)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/13/2021 06:46:30.0992] [1] [ERROR] The following error was generated when "$error.Clear(); 
+          uninstall-MsiPackage -ProductCode $RoleProductCode -LogFile $RoleLogFilePath -PropertyValues ("ESE=1");
+
+          uninstall-MsiPackage -ProductCode $RoleTeleProductCode -LogFile $RoleLogFilePath;
+
+          if ( $RoleTransProductCode -ne [system.guid]::empty )
+          {
+            uninstall-MsiPackage -ProductCode $RoleTransProductCode -LogFile $RoleLogFilePath;
+          }
+
+          uninstall-MsiPackage -ProductCode $RoleTtsProductCode -LogFile $RoleLogFilePath;
+        " was run: "Microsoft.Exchange.Configuration.Tasks.TaskException: Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612. ---> System.ComponentModel.Win32Exception: The installation source for this product is not available. Verify that the source exists and that you can access it
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.RemoveProductCode(Guid productCode)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/13/2021 06:46:30.0992] [1] [ERROR] Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612.
+[03/13/2021 06:46:31.0008] [1] [ERROR] The installation source for this product is not available. Verify that the source exists and that you can access it
+[03/13/2021 06:46:31.0008] [1] [ERROR-REFERENCE] Id=UmLanguagePackComponent___adacb802c5fd485bbad616cb75d89385 Component=EXCHANGE14:\Current\Release\Client Access\Unified Messaging
+[03/13/2021 06:46:31.0008] [1] Setup is stopping now because of one or more critical errors.
+[03/13/2021 06:46:31.0008] [1] Finished executing component tasks.
+[03/13/2021 06:46:31.0008] [1] Ending processing Install-UnifiedMessagingRole
+[03/13/2021 06:46:31.0024] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/13/2021 06:46:31.0024] [0] CurrentResult launcherbase.maincore:90: 1
+[03/13/2021 06:46:31.0024] [0] CurrentResult console.startmain:52: 1
+[03/13/2021 06:46:31.0024] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/13/2021 06:46:31.0024] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/13/2021 06:46:31.0024] [0] CurrentResult main.run:235: 1
+[03/13/2021 06:46:31.0024] [0] CurrentResult setupbase.maincore:396: 1
+[03/13/2021 06:46:31.0024] [0] End of Setup
+[03/13/2021 06:46:31.0024] [0] **********************************************

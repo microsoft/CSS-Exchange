@@ -20,6 +20,11 @@ steps:
   displayName: "Build Script"
 
 - pwsh: |
+    cd .\.build
+    .\Pester.ps1
+  displayName: "Running Invoke-Pester"
+
+- pwsh: |
     Get-Content dist\ScriptVersions.txt
   displayName: "Display Script Versions file"
 
@@ -28,6 +33,7 @@ steps:
     Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
     (Get-Content .\dist\ScriptVersions.txt) -replace '^(\S+.ps1)', ('[$1](https://github.com/microsoft/CSS-Exchange/releases/download/' + $tag + '/$1)') | Out-File dist\ScriptVersions.txt
     Get-Content dist\ScriptVersions.txt
+  displayName: "Setting Script Versions text file"
 
 - task: EsrpCodeSigning@1
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
@@ -72,7 +78,7 @@ steps:
     MaxRetryAttempts: '5'
 
 - task: GitHubRelease@0
-  displayName: 'Create GitHub Release'
+  displayName: 'Create GitHub Release - Draft'
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
   inputs:
     gitHubConnection: 'GitHub Release'
@@ -89,5 +95,23 @@ steps:
       dist\*.nse
       dist\*.zip
       dist\*.txt
+      dist\*.csv
     addChangeLog: true
     isDraft: true
+
+- task: GitHubRelease@0
+  displayName: 'Publish GitHub Release'
+  condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
+  inputs:
+    gitHubConnection: 'GitHub Release'
+    repositoryName: microsoft/CSS-Exchange
+    action: edit
+    tagSource: manual
+    tagPattern: 'v[0-9].[0-9].[0-9].[0-9]'
+    tag: $(ReleaseTagValue)
+    title: $(ReleaseTagValue)
+    releaseNotesSource: 'file'
+    releaseNotesFile: dist\ScriptVersions.txt
+    assetUploadMode: replace
+    addChangeLog: true
+    isDraft: false
