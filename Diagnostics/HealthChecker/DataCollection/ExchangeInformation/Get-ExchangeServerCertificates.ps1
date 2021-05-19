@@ -61,10 +61,20 @@
                         $certStatus = ($cert.Status).ToString()
                     }
 
+                    if ([String]::IsNullOrEmpty($cert.SignatureAlgorithm.FriendlyName)) {
+                        $certSignatureAlgorithm = "Unknown"
+                        $certSignatureHashAlgorithm = "Unknown"
+                    } else {
+                        $certSignatureAlgorithm = $cert.SignatureAlgorithm.FriendlyName
+                        $certSignatureHashAlgorithm = ($cert.SignatureAlgorithm.FriendlyName | Select-String "(\w{3}\d{1,3})").Matches[0].Value
+                    }
+
                     $certInformationObj = New-Object PSCustomObject
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $certFriendlyName
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -Value $cert.PublicKey.Key.KeySize
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "SignatureAlgorithm" -Value $certSignatureAlgorithm
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "SignatureHashAlgorithm" -Value $certSignatureHashAlgorithm
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "IsSanCertificate" -Value $sanCertificateInfo
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Namespaces" -Value $certDnsNameList
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Services" -Value $cert.Services

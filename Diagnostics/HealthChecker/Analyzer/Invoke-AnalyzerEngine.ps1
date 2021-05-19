@@ -1257,7 +1257,7 @@
         }
 
         if ($certificate.PublicKeySize -lt 2048) {
-            $additionalDisplayValue = "It's recommended to use a key size of at least 2048 bit."
+            $additionalDisplayValue = "It's recommended to use a key size of at least 2048 bit"
 
             $analyzedResults = Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
                 -DisplayGroupingKey $keySecuritySettings `
@@ -1274,6 +1274,33 @@
             $analyzedResults = Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if ($certificate.SignatureHashAlgorithm -eq "sha1") {
+            $additionalDisplayValue = "It's recommended to use the SHA-2 hash algorithm"
+            $shaDisplayWriteType = "Yellow"
+        } else {
+            $shaDisplayWriteType = "Grey"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Signature Algorithm" -Details $certificate.SignatureAlgorithm `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType $shaDisplayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResultsults = Add-AnalyzedResultInformation -Name "Signature Hash Algorithm" -Details $certificate.SignatureHashAlgorithm `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType $shaDisplayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($shaDisplayWriteType -eq "Yellow") {
+            $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $shaDisplayWriteType `
                 -AnalyzedInformation $analyzedResults
         }
 
