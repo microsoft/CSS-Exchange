@@ -42,26 +42,29 @@ Function Write-MailboxIndexMessageStatistics {
                         Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
                             "MessageId",
                             "InternetMessageId",
-                            "Subject",
+                            "MessageSubject",
                             "BigFunnelPOISize",
                             "BigFunnelPOIIsUpToDate",
                             "IndexingErrorCode",
                             "IndexingErrorMessage",
+                            "CondensedErrorMessage",
+                            "ErrorTags",
+                            "ErrorProperties",
                             "LastIndexingAttemptTime",
                             "IsPermanentFailure",
-                            "MessageStatus"
+                            "IndexStatus"
                         )
                     }
                     continue
                 }
 
-                $groupedStatus = $messages | Group-Object MessageStatus
+                $groupedStatus = $messages | Group-Object IndexStatus
 
                 foreach ($statusGrouping in $groupedStatus) {
                     Write-ScriptOutput "---------------------"
                     Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
                     Write-ScriptOutput "---------------------"
-                    $groupedResults = $statusGrouping.Group | Group-Object IndexingErrorMessage, IsPermanentFailure
+                    $groupedResults = $statusGrouping.Group | Group-Object CondensedErrorMessage, IsPermanentFailure
                     foreach ($result in $groupedResults) {
 
                         $earliestLastIndexingAttemptTime = [DateTime]::MaxValue

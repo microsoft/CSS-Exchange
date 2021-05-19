@@ -14,6 +14,7 @@
 
                     if ($_.DisplayName -notlike "SystemMailbox*" -and
                         $_.DisplayName -notlike "*HealthMailbox-*" -and
+                        $_.MailboxTypeDetail.ToString() -ne "ArbitrationMailbox" -and
                         $_.DisconnectReason -eq $null) {
 
                         $totalMailboxItems = $_.ItemCount + $_.AssociatedItemCount + $_.DeletedItemCount
@@ -21,9 +22,11 @@
                             $_.BigFunnelCorruptedCount + $_.BigFunnelStaleCount + $_.BigFunnelShouldNotBeIndexedCount
                         $totalBigFunnelSearchableItems = $totalBigFunnelItems - $_.BigFunnelShouldNotBeIndexedCount
                         $fullIndexPercentage = -1
+                        $notPartIndexPercentage = -1
 
                         if ($totalBigFunnelSearchableItems -ne 0) {
                             $fullIndexPercentage = [Math]::Round((($_.BigFunnelIndexedCount / $totalBigFunnelSearchableItems) * 100), 2)
+                            $notPartIndexPercentage = [Math]::Round((($_.BigFunnelIndexedCount / ($totalBigFunnelSearchableItems - $_.BigFunnelPartiallyIndexedCount)) * 100), 2)
                         }
 
                         $mailboxStatisticsList.Add([PSCustomObject]@{
@@ -46,6 +49,7 @@
                                 TotalBigFunnelItems              = $totalBigFunnelItems
                                 TotalBigFunnelSearchableItems    = $totalBigFunnelSearchableItems
                                 FullyIndexPercentage             = $fullIndexPercentage
+                                IndexPercentage                  = $notPartIndexPercentage
                             })
                     }
                 }

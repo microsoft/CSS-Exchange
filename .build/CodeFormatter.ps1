@@ -6,12 +6,14 @@ param(
 
 #Requires -Version 7
 
-if ($null -eq (Get-Module -Name PSScriptAnalyzer)) {
-    Install-Module -Name PSScriptAnalyzer -Force
+. $PSScriptRoot\Load-Module.ps1
+
+if (-not (Load-Module -Name PSScriptAnalyzer)) {
+    throw "PSScriptAnalyzer module could not be loaded"
 }
 
-if ($null -eq (Get-Module -Name EncodingAnalyzer)) {
-    Install-Module -Name EncodingAnalyzer -Force
+if (-not (Load-Module -Name EncodingAnalyzer)) {
+    throw "EncodingAnalyzer module could not be loaded"
 }
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
