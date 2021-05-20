@@ -6,9 +6,9 @@ Function Get-BasicMailboxQueryContext {
     )
 
     process {
-        $StoreQueryHandler.ResetQueryInstances()
-
-        $StoreQueryHandler.SetSelect(@(
+        $result = $StoreQueryHandler |
+            ResetQueryInstances |
+            SetSelect -Value @(
                 "BigFunnelIsEnabled",
                 "FastIsEnabled",
                 "BigFunnelMailboxCreationVersion",
@@ -19,11 +19,12 @@ Function Get-BasicMailboxQueryContext {
                 "BigFunnelPostingListTargetTableChunkSize",
                 "BigFunnelMaintainRefiners",
                 "CreationTime",
-                "MailboxNumber"))
+                "MailboxNumber") |
 
-        $StoreQueryHandler.SetFrom("Mailbox")
-        $StoreQueryHandler.SetWhere("MailboxGuid = '$($StoreQueryHandler.MailboxGuid)'")
-        $result = $StoreQueryHandler.InvokeGetStoreQuery()
+            SetFrom -Value "Mailbox" |
+            SetWhere -Value ("MailboxGuid = '$($_.MailboxGuid)'") |
+            InvokeGetStoreQuery
+
         $bigFunnelPropertyNameMapping = Get-BigFunnelPropertyNameMapping -StoreQueryHandler $StoreQueryHandler -MailboxNumber $result.MailboxNumber
     }
     end {
