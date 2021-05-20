@@ -12,13 +12,13 @@ param (
     [Switch]
     $Repair,
 
-    [Parameter(Mandatory = $true, ParameterSetName = "ShowPreviousResults")]
+    [Parameter(Mandatory = $true, ParameterSetName = "SummarizePreviousResults")]
     [Switch]
-    $ShowPreviousResults,
+    $SummarizePreviousResults,
 
     [Parameter(ParameterSetName = "Default")]
     [Parameter(ParameterSetName = "Repair")]
-    [Parameter(ParameterSetName = "ShowPreviousResults")]
+    [Parameter(ParameterSetName = "SummarizePreviousResults")]
     [string]
     $ResultsFile = (Join-Path $PSScriptRoot "ValidationResults.csv"),
 
@@ -43,13 +43,12 @@ if (-not $SkipVersionCheck) {
     }
 }
 
-if ($ShowPreviousResults) {
+if ($SummarizePreviousResults) {
     $results = Import-Csv $ResultsFile
-    $results | Format-Table TestName, ResultType, Severity, FolderIdentity, ResultData -AutoSize
     $results | Write-TestDumpsterMappingResult
     $results | Write-TestFolderLimitResult
     $results | Write-TestMailEnabledFolderResult
-    $results | Write-TestBadPermissionResult
+    $results | Write-TestPermissionResult
     return
 }
 
@@ -135,7 +134,7 @@ $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
 $badDumpsters | Write-TestDumpsterMappingResult
 $limitsExceeded | Write-TestFolderLimitResult
 $badMailEnabled | Write-TestMailEnabledFolderResult
-$badPermissions | Write-TestBadPermissionResult
+$badPermissions | Write-TestPermissionResult
 
 $folderCountMigrationLimit = 250000
 

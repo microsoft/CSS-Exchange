@@ -1,4 +1,4 @@
-﻿function Write-TestBadPermissionResult {
+﻿function Write-TestPermissionResult {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]
@@ -7,19 +7,19 @@
     )
 
     begin {
-        $badPermissions = 0
+        $badPermissionCount = 0
     }
 
     process {
         if ($TestResult.TestName -eq "Permission" -and $TestResult.ResultType -eq "BadPermission") {
-            $badPermissions++
+            $badPermissionCount++
         }
     }
 
     end {
-        if ($badPermissions.Count -gt 0) {
+        if ($badPermissionCount -gt 0) {
             Write-Host
-            Write-Host $badPermissions.Count "invalid permissions were found."
+            Write-Host $badPermissionCount "invalid permissions were found."
             Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions switch as follows:"
             Write-Host ".\SourceSideValidations.ps1 -Repair" -ForegroundColor Green
         }

@@ -32,19 +32,29 @@
         if ($mailEnabledSystemFolder -gt 0) {
             Write-Host
             Write-Host $mailEnabledSystemFolder "system folders are mail-enabled. These folders should be mail-disabled."
-        } elseif ($mailEnabledWithNoADObject -gt 0) {
+        }
+
+        if ($mailEnabledWithNoADObject -gt 0) {
             Write-Host
             Write-Host $mailEnabledWithNoADObject "folders are mail-enabled, but have no AD object. These folders should be mail-disabled."
-        } elseif ($mailDisabledWithProxyGuid -gt 0) {
+        }
+
+        if ($mailDisabledWithProxyGuid -gt 0) {
             Write-Host
             Write-Host $mailDisabledWithProxyGuid "folders are mail-disabled, but have proxy GUID values. These folders should be mail-enabled."
-        } elseif ($orphanedMPF -gt 0) {
+        }
+
+        if ($orphanedMPF -gt 0) {
             Write-Host
             Write-Host $orphanedMPF "mail public folders are orphaned. These directory objects should be deleted."
-        } elseif ($orphanedMPFDuplicate -gt 0) {
+        }
+
+        if ($orphanedMPFDuplicate -gt 0) {
             Write-Host
             Write-Host $orphanedMPFDuplicate "mail public folders point to public folders that point to a different directory object. These should be deleted. Their email addresses may be merged onto the linked object."
-        } elseif ($orphanedMPFDisconnected -gt 0) {
+        }
+
+        if ($orphanedMPFDisconnected -gt 0) {
             Write-Host
             Write-Host $orphanedMPFDisconnected "mail public folders point to public folders that are mail-disabled. These require manual intervention. Either the directory object should be deleted, or the folder should be mail-enabled, or both."
         }
