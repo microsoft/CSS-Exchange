@@ -47,7 +47,7 @@
                 "ParentFolderId",
                 "CreationTime",
                 "LastModificationTime") |
-            SetFrom "Folder" |
+            SetFrom -Value "Folder" |
             SetWhere -Value "MailboxNumber = $mailboxNumber and ($folderFilter)" |
             InvokeGetStoreQuery
 

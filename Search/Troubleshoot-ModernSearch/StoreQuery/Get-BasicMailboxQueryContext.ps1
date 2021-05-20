@@ -22,7 +22,7 @@ Function Get-BasicMailboxQueryContext {
                 "MailboxNumber") |
 
             SetFrom -Value "Mailbox" |
-            SetWhere -Value ("MailboxGuid = '$($_.MailboxGuid)'") |
+            SetWhere -Value ("MailboxGuid = '$($StoreQueryHandler.MailboxGuid)'") |
             InvokeGetStoreQuery
 
         $bigFunnelPropertyNameMapping = Get-BigFunnelPropertyNameMapping -StoreQueryHandler $StoreQueryHandler -MailboxNumber $result.MailboxNumber
