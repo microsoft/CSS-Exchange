@@ -76,12 +76,7 @@ Outputs to the screen
 #>
 
 Param (
-	[Parameter(
-		Position = 0,
-		Mandatory = $true,
-		ValueFromPipeline = $true,
-		ValueFromPipelineByPropertyName = $true)
-	]
+	[Parameter(Position = 0, Mandatory = $true, ValueFromPipelinepeline = $true, ValueFromPipelineByPropertyName = $true)]
 	$SearchResults,
 	[switch]$ResolveCaller,
 	[switch]$Agree
@@ -91,7 +86,7 @@ Param (
 Begin {
 
 	# Statement to ensure that you have looked at the disclaimer or that you have removed this line so you don't have too
-	if ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
+	If ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
 
 	# Make sure the array is null
 	[array]$ResultSet = $null
@@ -141,7 +136,7 @@ Process {
 			switch -regex ($parameter.value) {
 
 				# If we have a multi value array put in then we need to break it out and add quotes as needed
-				'[;]'	{
+				'[;]' {
 
 					# Reset the formatted value string
 					$FormattedValue = $null
@@ -166,60 +161,58 @@ Process {
 				'[ \t]' { $FullCommand = $FullCommand + " -" + $parameter.name + " `"" + $switch.current + "`"" }
 
 				# If we have a true or false format them with :$ in front ( -allow:$true )
-				'^True$|^False$'	{ $FullCommand = $FullCommand + " -" + $parameter.name + ":`$" + $switch.current }
+				'^True$|^False$' { $FullCommand = $FullCommand + " -" + $parameter.name + ":`$" + $switch.current }
 
 				# Otherwise just put the switch and the value
 				default { $FullCommand = $FullCommand + " -" + $parameter.name + " " + $switch.current }
-
 			}
 		}
-
-		# Pull out the Modified properties
-		$ModifiedProperties = $_.modifiedproperties
-
-		# Make sure our holding variable are nulled out
-		$Property = $null
-		$Oldvalue = $null
-		$NewValue = $null
-
-		# Push each property set into a seperate string
-		$ModifiedProperties | ForEach-Object {
-			[string]$Property = $Property + $_.name + ";"
-			[string]$OldValue = $OldValue + $_.oldvalue + ";"
-			[string]$NewValue = $NewValue + $_.newvalue + ";"
-		}
-
-		# Trim off the last ;
-		$Property = $Property.TrimEnd(";")
-		$Oldvalue = $Oldvalue.TrimEnd(";")
-		$NewValue = $NewValue.TrimEnd(";")
-
-		# Format our modified object
-		if ([string]::IsNullOrEmpty($_.objectModified)) { $ObjModified = "" }
-		else {
-			$ObjModified = ($_.objectmodified.split("/"))[-1]
-			$ObjModified = ($ObjModified.split("\"))[-1]
-		}
-
-		# Get just the name of the cmdlet that was run
-		[string]$cmdlet = $_.CmdletName
-
-		# Build the result object to return our values
-		$Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
-		$Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
-		$Result | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
-		$Result | Add-Member -MemberType NoteProperty -Value $_.rundate -Name RunDate
-		$Result | Add-Member -MemberType NoteProperty -Value $ObjModified -Name ObjectModified
-		$Result | Add-Member -MemberType NoteProperty -Value $Property -Name ModifiedProperties
-		$Result | Add-Member -MemberType NoteProperty -Value $Oldvalue -Name OldValue
-		$Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
-
-		# Add the object to the array to be returned
-		$ResultSet = $ResultSet + $Result
-
 	}
-}
 
+	# Pull out the Modified properties
+	$ModifiedProperties = $_.modifiedproperties
+
+	# Make sure our holding variable are nulled out
+	$Property = $null
+	$Oldvalue = $null
+	$NewValue = $null
+
+	# Push each property set into a seperate string
+	$ModifiedProperties | ForEach-Object {
+		[string]$Property = $Property + $_.name + ";"
+		[string]$OldValue = $OldValue + $_.oldvalue + ";"
+		[string]$NewValue = $NewValue + $_.newvalue + ";"
+	}
+
+	# Trim off the last ;
+	$Property = $Property.TrimEnd(";")
+	$Oldvalue = $Oldvalue.TrimEnd(";")
+	$NewValue = $NewValue.TrimEnd(";")
+
+	# Format our modified object
+	if ([string]::IsNullOrEmpty($_.objectModified)) {
+		$ObjModified = ""
+	} else {
+		$ObjModified = ($_.objectmodified.split("/"))[-1]
+		$ObjModified = ($ObjModified.split("\"))[-1]
+	}
+
+	# Get just the name of the cmdlet that was run
+	[string]$cmdlet = $_.CmdletName
+
+	# Build the result object to return our values
+	$Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
+	$Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
+	$ResultResult | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
+	$Result | Add-Member -MemberType NoteProperty -Value $_.rundate -Name RunDate
+	$Result | Add-Member -MemberType NoteProperty -Value $ObjModified -Name ObjectModified
+	$Result | Add-Member -MemberType NoteProperty -Value $Property -Name ModifiedProperties
+	$Result | Add-Member -MemberType NoteProperty -Value $Oldvalue -Name OldValue
+	$Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
+
+	# Add the object to the array to be returned
+	$ResultSet = $ResultSet + $Result
+}
 # Final steps
 End {
 	# Return the array set
