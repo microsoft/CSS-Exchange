@@ -64,7 +64,9 @@ Function Write-MailboxIndexMessageStatistics {
                     Write-ScriptOutput "---------------------"
                     Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
                     Write-ScriptOutput "---------------------"
-                    $groupedResults = $statusGrouping.Group | Group-Object CondensedErrorMessage, IsPermanentFailure
+                    $groupedResults = $statusGrouping.Group |
+                        Group-Object CondensedErrorMessage, IsPermanentFailure |
+                        Sort-Object Count -Descending
                     foreach ($result in $groupedResults) {
 
                         $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
