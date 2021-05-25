@@ -12,7 +12,6 @@ Function Get-MailboxIndexMessageStatistics {
         [string]$Category
     )
     begin {
-        $conversationFolderId = [string]::Empty
         $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
         $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
@@ -25,10 +24,6 @@ Function Get-MailboxIndexMessageStatistics {
             SetFrom -Value "Folder" |
             SetWhere -Value "MailboxNumber = $mailboxNumber AND DisplayName = 'Conversations'" |
             InvokeGetStoreQuery
-
-        if ($null -ne $conversationResults.FolderId) {
-            $conversationFolderId = $conversationResults.FolderId
-        }
 
         $storeQueryHandler = $storeQueryHandler | ResetQueryInstances
         $addSelect = @($extPropMapping | Get-Member |
@@ -49,7 +44,12 @@ Function Get-MailboxIndexMessageStatistics {
                 "BigFunnelPoiNotNeededReason") |
             AddToSelect -Value $addSelect |
             SetFrom -Value "Message" |
-            SetWhere -Value "MailboxNumber = $mailboxNumber AND FolderId != $conversationFolderId"
+            SetWhere -Value "MailboxNumber = $mailboxNumber"
+
+        if (-not ([string]::IsNullOrWhiteSpace($conversationResults.FolderId))) {
+            $storeQueryHandler = $storeQueryHandler |
+                AddToWhere -Value " AND FolderId != $($conversationResults.FolderId)"
+        }
 
         switch ($Category) {
             "All" {
