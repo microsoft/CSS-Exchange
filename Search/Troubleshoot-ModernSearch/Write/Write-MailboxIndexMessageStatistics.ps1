@@ -21,7 +21,7 @@ Function Write-MailboxIndexMessageStatistics {
     )
 
     process {
-        $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
+        $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount + $MailboxStatistics.DeletedItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
 
         Write-ScriptOutput ""
         Write-ScriptOutput "All Indexable Items Count: $totalIndexableItems"
