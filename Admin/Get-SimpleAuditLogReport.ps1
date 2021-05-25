@@ -56,145 +56,145 @@ Outputs to the screen
 #>
 
 Param (
-	[Parameter(Position = 0, Mandatory = $true, ValueFromPipelinepeline = $true, ValueFromPipelineByPropertyName = $true)]
-	$SearchResults,
-	[switch]$ResolveCaller,
-	[switch]$Agree
+    [Parameter(Position = 0, Mandatory = $true, ValueFromPipelinepeline = $true, ValueFromPipelineByPropertyName = $true)]
+    $SearchResults,
+    [switch]$ResolveCaller,
+    [switch]$Agree
 )
 
 # Setup to process incomming results
 Begin {
 
-	# Statement to ensure that you have looked at the disclaimer or that you have removed this line so you don't have too
-	If ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
+    # Statement to ensure that you have looked at the disclaimer or that you have removed this line so you don't have too
+    If ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
 
-	# Make sure the array is null
-	[array]$ResultSet = $null
+    # Make sure the array is null
+    [array]$ResultSet = $null
 
-	# Set the counter to 1
-	$i = 1
+    # Set the counter to 1
+    $i = 1
 
-	# If resolveCaller is called it can take much longer to run so notify the user of that
-	if ($ResolveCaller) { Write-Warning "ResolveCaller specified; Script will take significantly longer to run as it attemps to resolve the primary SMTP address of each calling user.  Progress updates will be provided every 25 entries." }
+    # If resolveCaller is called it can take much longer to run so notify the user of that
+    if ($ResolveCaller) { Write-Warning "ResolveCaller specified; Script will take significantly longer to run as it attemps to resolve the primary SMTP address of each calling user.  Progress updates will be provided every 25 entries." }
 }
 
 # Process thru what ever is comming into the script
 Process {
 
-	# Deal with each object in the input
-	$searchresults | ForEach-Object {
+    # Deal with each object in the input
+    $searchresults | ForEach-Object {
 
-		# Reset the result object
-		$Result = New-Object PSObject
+        # Reset the result object
+        $Result = New-Object PSObject
 
-		# Get the alias of the User that ran the command
-		$user = ($_.caller.split("/"))[-1]
+        # Get the alias of the User that ran the command
+        $user = ($_.caller.split("/"))[-1]
 
-		# If we used resolve caller then try to resolve the primary SMTP address of the calling user
-		if ($ResolveCaller) {
+        # If we used resolve caller then try to resolve the primary SMTP address of the calling user
+        if ($ResolveCaller) {
 
-			# attempt to resolve the recipient
-			[string]$Recipient = (get-recipient $user -ErrorAction silentlycontinue).primarysmtpaddress
+            # attempt to resolve the recipient
+            [string]$Recipient = (get-recipient $user -ErrorAction silentlycontinue).primarysmtpaddress
 
-			# if we get a result then put that in the output otherwise do nothing
-			If (!([string]::IsNullOrEmpty($Recipient))) { $user = $Recipient }
+            # if we get a result then put that in the output otherwise do nothing
+            If (!([string]::IsNullOrEmpty($Recipient))) { $user = $Recipient }
 
-			# Since this is going to take longer to run provide status every 25 entries
-			if ($i % 25 -eq 0) { Write-Host "Processed 25 Results" }
-			$i++
-		}
+            # Since this is going to take longer to run provide status every 25 entries
+            if ($i % 25 -eq 0) { Write-Host "Processed 25 Results" }
+            $i++
+        }
 
-		# Build the command that was run
-		$switches = $_.cmdletparameters
-		[string]$FullCommand = $_.cmdletname
+        # Build the command that was run
+        $switches = $_.cmdletparameters
+        [string]$FullCommand = $_.cmdletname
 
-		# Get all of the switchs and add them in "human" form to the output
-		foreach ($parameter in $switches) {
+        # Get all of the switchs and add them in "human" form to the output
+        foreach ($parameter in $switches) {
 
-			# Format our values depending on what they are so that they are as close
-			# a match as possible for what would have been entered
-			switch -regex ($parameter.value) {
+            # Format our values depending on what they are so that they are as close
+            # a match as possible for what would have been entered
+            switch -regex ($parameter.value) {
 
-				# If we have a multi value array put in then we need to break it out and add quotes as needed
-				'[;]' {
+                # If we have a multi value array put in then we need to break it out and add quotes as needed
+                '[;]' {
 
-					# Reset the formatted value string
-					$FormattedValue = $null
+                    # Reset the formatted value string
+                    $FormattedValue = $null
 
-					# Split it into an array
-					$valuearray = $switch.current.split(";")
+                    # Split it into an array
+                    $valuearray = $switch.current.split(";")
 
-					# For each entry in the array add quotes if needed and add it to the formatted value string
-					$valuearray | ForEach-Object {
-						if ($_ -match "[ \t]") { $FormattedValue = $FormattedValue + "`"" + $_ + "`";" }
-						else { $FormattedValue = $FormattedValue + $_ + ";" }
-					}
+                    # For each entry in the array add quotes if needed and add it to the formatted value string
+                    $valuearray | ForEach-Object {
+                        if ($_ -match "[ \t]") { $FormattedValue = $FormattedValue + "`"" + $_ + "`";" }
+                        else { $FormattedValue = $FormattedValue + $_ + ";" }
+                    }
 
-					# Clean up the trailing ;
-					$FormattedValue = $FormattedValue.trimend(";")
+                    # Clean up the trailing ;
+                    $FormattedValue = $FormattedValue.trimend(";")
 
-					# Add our switch + cleaned up value to the command string
-					$FullCommand = $FullCommand + " -" + $parameter.name + " " + $FormattedValue
-				}
+                    # Add our switch + cleaned up value to the command string
+                    $FullCommand = $FullCommand + " -" + $parameter.name + " " + $FormattedValue
+                }
 
-				# If we have a value with spaces add quotes
-				'[ \t]' { $FullCommand = $FullCommand + " -" + $parameter.name + " `"" + $switch.current + "`"" }
+                # If we have a value with spaces add quotes
+                '[ \t]' { $FullCommand = $FullCommand + " -" + $parameter.name + " `"" + $switch.current + "`"" }
 
-				# If we have a true or false format them with :$ in front ( -allow:$true )
-				'^True$|^False$' { $FullCommand = $FullCommand + " -" + $parameter.name + ":`$" + $switch.current }
+                # If we have a true or false format them with :$ in front ( -allow:$true )
+                '^True$|^False$' { $FullCommand = $FullCommand + " -" + $parameter.name + ":`$" + $switch.current }
 
-				# Otherwise just put the switch and the value
-				default { $FullCommand = $FullCommand + " -" + $parameter.name + " " + $switch.current }
-			}
-		}
-	}
+                # Otherwise just put the switch and the value
+                default { $FullCommand = $FullCommand + " -" + $parameter.name + " " + $switch.current }
+            }
+        }
+    }
 
-	# Pull out the Modified properties
-	$ModifiedProperties = $_.modifiedproperties
+    # Pull out the Modified properties
+    $ModifiedProperties = $_.modifiedproperties
 
-	# Make sure our holding variable are nulled out
-	$Property = $null
-	$Oldvalue = $null
-	$NewValue = $null
+    # Make sure our holding variable are nulled out
+    $Property = $null
+    $Oldvalue = $null
+    $NewValue = $null
 
-	# Push each property set into a seperate string
-	$ModifiedProperties | ForEach-Object {
-		[string]$Property = $Property + $_.name + ";"
-		[string]$OldValue = $OldValue + $_.oldvalue + ";"
-		[string]$NewValue = $NewValue + $_.newvalue + ";"
-	}
+    # Push each property set into a seperate string
+    $ModifiedProperties | ForEach-Object {
+        [string]$Property = $Property + $_.name + ";"
+        [string]$OldValue = $OldValue + $_.oldvalue + ";"
+        [string]$NewValue = $NewValue + $_.newvalue + ";"
+    }
 
-	# Trim off the last ;
-	$Property = $Property.TrimEnd(";")
-	$Oldvalue = $Oldvalue.TrimEnd(";")
-	$NewValue = $NewValue.TrimEnd(";")
+    # Trim off the last ;
+    $Property = $Property.TrimEnd(";")
+    $Oldvalue = $Oldvalue.TrimEnd(";")
+    $NewValue = $NewValue.TrimEnd(";")
 
-	# Format our modified object
-	if ([string]::IsNullOrEmpty($_.objectModified)) {
-		$ObjModified = ""
-	} else {
-		$ObjModified = ($_.objectmodified.split("/"))[-1]
-		$ObjModified = ($ObjModified.split("\"))[-1]
-	}
+    # Format our modified object
+    if ([string]::IsNullOrEmpty($_.objectModified)) {
+        $ObjModified = ""
+    } else {
+        $ObjModified = ($_.objectmodified.split("/"))[-1]
+        $ObjModified = ($ObjModified.split("\"))[-1]
+    }
 
-	# Get just the name of the cmdlet that was run
-	[string]$cmdlet = $_.CmdletName
+    # Get just the name of the cmdlet that was run
+    [string]$cmdlet = $_.CmdletName
 
-	# Build the result object to return our values
-	$Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
-	$Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
-	$ResultResult | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
-	$Result | Add-Member -MemberType NoteProperty -Value $_.rundate -Name RunDate
-	$Result | Add-Member -MemberType NoteProperty -Value $ObjModified -Name ObjectModified
-	$Result | Add-Member -MemberType NoteProperty -Value $Property -Name ModifiedProperties
-	$Result | Add-Member -MemberType NoteProperty -Value $Oldvalue -Name OldValue
-	$Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
+    # Build the result object to return our values
+    $Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
+    $Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
+    $ResultResult | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
+    $Result | Add-Member -MemberType NoteProperty -Value $_.rundate -Name RunDate
+    $Result | Add-Member -MemberType NoteProperty -Value $ObjModified -Name ObjectModified
+    $Result | Add-Member -MemberType NoteProperty -Value $Property -Name ModifiedProperties
+    $Result | Add-Member -MemberType NoteProperty -Value $Oldvalue -Name OldValue
+    $Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
 
-	# Add the object to the array to be returned
-	$ResultSet = $ResultSet + $Result
+    # Add the object to the array to be returned
+    $ResultSet = $ResultSet + $Result
 }
 # Final steps
 End {
-	# Return the array set
-	Return $ResultSet
+    # Return the array set
+    Return $ResultSet
 }
