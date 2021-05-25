@@ -183,7 +183,7 @@ Process {
     # Build the result object to return our values
     $Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
     $Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
-    $ResultResult | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
+    $Result | Add-Member -MemberType NoteProperty -Value $FullCommand -Name FullCommand
     $Result | Add-Member -MemberType NoteProperty -Value $_.rundate -Name RunDate
     $Result | Add-Member -MemberType NoteProperty -Value $ObjModified -Name ObjectModified
     $Result | Add-Member -MemberType NoteProperty -Value $Property -Name ModifiedProperties
