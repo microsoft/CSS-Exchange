@@ -108,7 +108,7 @@ Function InvokeGetStoreQuery {
         Unlimited = $Query.IsUnlimited
     }
 
-    Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:$($Query.IsUnlimited) -Query `"$queryString`"'"
+    Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:`$$($Query.IsUnlimited) -Query `"$queryString`"'"
     $result = @(Get-StoreQuery @myParams)
 
     if ($result.GetType().ToString() -ne "System.Object[]") {
