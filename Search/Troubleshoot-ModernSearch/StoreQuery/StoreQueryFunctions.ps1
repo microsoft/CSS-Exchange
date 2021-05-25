@@ -113,10 +113,8 @@ Function InvokeGetStoreQuery {
 
     if ($result.GetType().ToString() -ne "System.Object[]") {
         if ($null -ne ($result.DiagnosticQueryException)) {
-            Write-Verbose "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
             Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
         } elseif ($null -ne ($result.DiagnosticQueryTranslatorException)) {
-            Write-Verbose "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
             Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
         }
     }
