@@ -108,16 +108,17 @@ Function InvokeGetStoreQuery {
         Unlimited = $Query.IsUnlimited
     }
 
-    Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:$($Query.IsUnlimited) -Query `"$queryString`"'"
+    Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:`$$($Query.IsUnlimited) -Query `"$queryString`"'"
     $result = @(Get-StoreQuery @myParams)
 
-    if ($result.GetType().ToString() -ne "System.Object[]") {
+    if ($result.GetType().ToString() -ne "System.Object[]" -or
+        $result.Count -le 1) {
         if ($null -ne ($result.DiagnosticQueryException)) {
-            Write-Verbose "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
             Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
         } elseif ($null -ne ($result.DiagnosticQueryTranslatorException)) {
-            Write-Verbose "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
             Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
+        } elseif ($null -ne ($result.DiagnosticQueryParserException)) {
+            Write-Error "Get-StoreQuery DiagnosticQueryParserException : $($result.DiagnosticQueryParserException)"
         }
     }
 
