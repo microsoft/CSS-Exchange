@@ -16,7 +16,13 @@
             $Message.IndexingErrorMessage -eq "NULL") {
 
             if (-not ([string]::IsNullOrWhiteSpace($Message.ErrorTags))) {
-                $condensedErrorMessage = $Message.ErrorTags
+
+                if ($Message.ErrorTags.ToString() -eq "System.Object[]") {
+                    $Message.ErrorTags |
+                        ForEach-Object { $condensedErrorMessage += "$_ " }
+                } else {
+                    $condensedErrorMessage = $Message.ErrorTags
+                }
             } else {
                 $condensedErrorMessage = "--Unknown--"
             }
