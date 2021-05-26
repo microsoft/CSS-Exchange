@@ -93,7 +93,7 @@ Function Write-MailboxStatisticsOnServer {
 
                 Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext (
                     Get-BasicMailboxQueryContext -StoreQueryHandler (
-                        Get-StoreQueryHandler -MailboxInformation $mailboxInformation)) `
+                        Get-StoreQueryObject -MailboxInformation $mailboxInformation)) `
                     -MailboxStatistics $mailboxInformation.MailboxStatistics `
                     -Category $category `
                     -GroupMessages $true

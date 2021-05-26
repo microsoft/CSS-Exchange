@@ -17,6 +17,7 @@ ExchangeMitigations.ps1 | [Docs](Security/ExchangeMitigations) | [Download](http
 ExPerfAnalyzer.ps1 | [Docs](Performance/ExPerfAnalyzer) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfAnalyzer.ps1)
 FixInstallerCache | [Docs](Setup/FixInstallerCache) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)
 Get-MRMDetails.ps1 | [Docs](Retention/Get-MRMDetails) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-MRMDetails.ps1)
+Get-SimpleAdminAuditLogReport.ps1 | [Docs](Admin/Get-SimpleAdminAuditLogReport) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-SimpleAdminAuditLogReport.ps1)
 HealthChecker.ps1 | [Docs](Diagnostics/HealthChecker) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/HealthChecker.ps1)
 http-vuln-cve2021-26855.nse | [Docs](Security/http-vuln-cve2021-26855) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
 SetupAssist.ps1 | [Docs](Setup/SetupAssist) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)

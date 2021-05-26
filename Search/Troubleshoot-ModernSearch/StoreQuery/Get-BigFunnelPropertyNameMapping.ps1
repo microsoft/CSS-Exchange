@@ -23,22 +23,20 @@
         }
     }
     process {
-        $StoreQueryHandler.ResetQueryInstances()
-        $StoreQueryHandler.SetSelect(@(
-                "PropName",
-                "PropNumber"))
-
-        $StoreQueryHandler.SetFrom("ExtendedPropertyNameMapping")
-
-        $StoreQueryHandler.SetWhere("MailboxNumber = $MailboxNumber and PropGuid = '0B63E350-9CCC-11D0-BCDB-00805FCCCE04'")
-        $StoreQueryHandler.AddToWhere(" and (PropName = 'BigFunnelCorrelationId' or PropName = 'BigFunnelIndexingStart'")
-        $StoreQueryHandler.AddToWhere(" or PropName = 'IndexingAttemptCount' or PropName = 'IndexingBatchRetryAttemptCount'")
-        $StoreQueryHandler.AddToWhere(" or PropName = 'IndexingErrorCode' or PropName = 'IndexingErrorMessage' or")
-        $StoreQueryHandler.AddToWhere(" PropName = 'ErrorProperties' or PropName = 'ErrorTags' or PropName = 'IsPartiallyIndexed'")
-        $StoreQueryHandler.AddToWhere(" or PropName = 'IsPermanentFailure' or PropName = 'LastIndexingAttemptTime' or PropName = 'DetectedLanguage')")
-
         $StoreQueryHandler.IsUnlimited = $true
-        $result = $StoreQueryHandler.InvokeGetStoreQuery()
+        $result = $StoreQueryHandler |
+            ResetQueryInstances |
+            SetSelect -Value @(
+                "PropName",
+                "PropNumber") |
+            SetFrom -Value "ExtendedPropertyNameMapping" |
+            SetWhere -Value "MailboxNumber = $MailboxNumber and PropGuid = '0B63E350-9CCC-11D0-BCDB-00805FCCCE04'" |
+            AddToWhere -Value " and (PropName = 'BigFunnelCorrelationId' or PropName = 'BigFunnelIndexingStart'" |
+            AddToWhere -Value " or PropName = 'IndexingAttemptCount' or PropName = 'IndexingBatchRetryAttemptCount'" |
+            AddToWhere -Value " or PropName = 'IndexingErrorCode' or PropName = 'IndexingErrorMessage' or" |
+            AddToWhere -Value " PropName = 'ErrorProperties' or PropName = 'ErrorTags' or PropName = 'IsPartiallyIndexed'" |
+            AddToWhere -Value " or PropName = 'IsPermanentFailure' or PropName = 'LastIndexingAttemptTime' or PropName = 'DetectedLanguage')" |
+            InvokeGetStoreQuery
 
         for ($i = 0; $i -lt $result.Count; $i++) {
             $bigFunnelPropNameMapping | Add-Member -MemberType NoteProperty -Name ($result.PropName[$i]) -Value (

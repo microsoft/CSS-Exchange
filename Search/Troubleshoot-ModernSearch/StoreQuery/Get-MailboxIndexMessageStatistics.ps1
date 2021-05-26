@@ -12,30 +12,26 @@ Function Get-MailboxIndexMessageStatistics {
         [string]$Category
     )
     begin {
-        $conversationFolderId = [string]::Empty
         $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
         $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
         $messageList = New-Object 'System.Collections.Generic.List[object]'
     }
     process {
-        $storeQueryHandler.ResetQueryInstances()
-        $storeQueryHandler.SetSelect("FolderId")
-        $storeQueryHandler.SetFrom("Folder")
-        $storeQueryHandler.SetWhere("MailboxNumber = $mailboxNumber AND DisplayName = 'Conversations'")
+        $conversationResults = $storeQueryHandler |
+            ResetQueryInstances |
+            SetSelect -Value "FolderId" |
+            SetFrom -Value "Folder" |
+            SetWhere -Value "MailboxNumber = $mailboxNumber AND DisplayName = 'Conversations'" |
+            InvokeGetStoreQuery
 
-        $conversationResults = $storeQueryHandler.InvokeGetStoreQuery()
-
-        if ($null -ne $conversationResults.FolderId) {
-            $conversationFolderId = $conversationResults.FolderId
-        }
-
-        $storeQueryHandler.ResetQueryInstances()
+        $storeQueryHandler = $storeQueryHandler | ResetQueryInstances
         $addSelect = @($extPropMapping | Get-Member |
                 Where-Object { $_.MemberType -eq "NoteProperty" } |
                 ForEach-Object { return $extPropMapping.($_.Name) })
 
-        $storeQueryHandler.SetSelect(@(
+        $storeQueryHandler = $storeQueryHandler |
+            SetSelect -Value @(
                 "MessageId",
                 "MessageDocumentId",
                 "Size",
@@ -45,46 +41,55 @@ Function Get-MailboxIndexMessageStatistics {
                 "p1035001F",
                 "BigFunnelPOISize",
                 "BigFunnelPOIIsUpToDate",
-                "BigFunnelPoiNotNeededReason"))
+                "BigFunnelPoiNotNeededReason") |
+            AddToSelect -Value $addSelect |
+            SetFrom -Value "Message" |
+            SetWhere -Value "MailboxNumber = $mailboxNumber"
 
-        $storeQueryHandler.AddToSelect($addSelect)
-        $storeQueryHandler.SetFrom("Message")
-        $storeQueryHandler.SetWhere("MailboxNumber = $mailboxNumber AND FolderId != $conversationFolderId")
+        if (-not ([string]::IsNullOrWhiteSpace($conversationResults.FolderId))) {
+            $storeQueryHandler = $storeQueryHandler |
+                AddToWhere -Value " AND FolderId != $($conversationResults.FolderId)"
+        }
 
         switch ($Category) {
             "All" {
                 #Do Nothing
             }
             "Indexed" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) AND (BigFunnelPOIIsUpToDate = true)")
-                $storeQueryHandler.AddToWhere(" AND ($($extPropMapping.IsPartiallyIndexed) = null or $($extPropMapping.IsPartiallyIndexed) = false)")
+                $storeQueryHandler = $storeQueryHandler |
+                    AddToWhere -Value " AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOISize > 0) AND (BigFunnelPOIIsUpToDate = true)" |
+                    AddToWhere -Value " AND ($($extPropMapping.IsPartiallyIndexed) = null or $($extPropMapping.IsPartiallyIndexed) = false)"
             }
             "PartiallyIndexed" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = true)")
-                $storeQueryHandler.AddToWhere(" AND $($extPropMapping.IsPartiallyIndexed) = true")
+                $storeQueryHandler = $storeQueryHandler |
+                    AddToWhere -Value " AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = true)" |
+                    AddToWhere -Value " AND $($extPropMapping.IsPartiallyIndexed) = true"
             }
             "NotIndexed" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)")
+                $storeQueryHandler = $storeQueryHandler |
+                    AddToWhere -Value " AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)"
             }
             "Corrupted" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0) and (BigFunnelPOIIsUpToDate = true)")
+                $storeQueryHandler = $storeQueryHandler |
+                    AddToWhere -Value " AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOISize = NULL or BigFunnelPOISize <= 0) and (BigFunnelPOIIsUpToDate = true)"
             }
             "Stale" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)")
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)")
+                $storeQueryHandler = $storeQueryHandler |
+                    AddToWhere -Value " AND (BigFunnelPoiNotNeededReason = NULL or BigFunnelPoiNotNeededReason <= 0)" |
+                    AddToWhere -Value " AND (BigFunnelPOISize > 0) and (BigFunnelPOIIsUpToDate = NULL or BigFunnelPOIIsUpToDate = false)"
             }
             "ShouldNotBeIndexed" {
-                $storeQueryHandler.AddToWhere(" AND (BigFunnelPoiNotNeededReason > 0)")
+                $storeQueryHandler = $storeQueryHandler | AddToWhere -Value " AND (BigFunnelPoiNotNeededReason > 0)"
             }
         }
 
         $storeQueryHandler.IsUnlimited = $true
-        [array]$messages = $storeQueryHandler.InvokeGetStoreQuery()
+        [array]$messages = $storeQueryHandler | InvokeGetStoreQuery
 
         if ([string]::IsNullOrEmpty($messages.MessageDocumentId) -or
             $messages.Count -eq 0) {

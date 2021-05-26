@@ -78,7 +78,7 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryHandler.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\StoreQueryFunctions.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
@@ -140,7 +140,7 @@ Function Main {
     Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
     Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
 
-    $storeQueryHandler = Get-StoreQueryHandler -MailboxInformation $mailboxInformation
+    $storeQueryHandler = Get-StoreQueryObject -MailboxInformation $mailboxInformation
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
     Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(
