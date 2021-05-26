@@ -21,7 +21,7 @@ Function Write-MailboxIndexMessageStatistics {
     )
 
     process {
-        $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
+        $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount + $MailboxStatistics.DeletedItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
 
         Write-ScriptOutput ""
         Write-ScriptOutput "All Indexable Items Count: $totalIndexableItems"
@@ -64,7 +64,9 @@ Function Write-MailboxIndexMessageStatistics {
                     Write-ScriptOutput "---------------------"
                     Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
                     Write-ScriptOutput "---------------------"
-                    $groupedResults = $statusGrouping.Group | Group-Object CondensedErrorMessage, IsPermanentFailure
+                    $groupedResults = $statusGrouping.Group |
+                        Group-Object CondensedErrorMessage, IsPermanentFailure |
+                        Sort-Object Count -Descending
                     foreach ($result in $groupedResults) {
 
                         $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
