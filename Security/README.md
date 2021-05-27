@@ -173,17 +173,11 @@ For more information on each mitigation please visit https://aka.ms/exchangevuln
 
 For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.
 
-For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:
+URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:
 
 * x86 & x64 -https://www.iis.net/downloads/microsoft/url-rewrite
 
-For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download version 2.0 here:
-
-* x86 - https://www.microsoft.com/en-us/download/details.aspx?id=5747
-
-* x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435
-
-Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version.
+For systems running IIS 8.5 and lower KB2999226 must be installed. Please review the pre-reqs for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
 
 Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
