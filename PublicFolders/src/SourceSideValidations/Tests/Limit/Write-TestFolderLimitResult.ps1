@@ -10,6 +10,9 @@
         $childCount = 0
         $folderPathDepth = 0
         $itemCount = 0
+        $hierarchyCount = $null
+        $hierarchyAndDumpsterCount = $null
+        $folderCountMigrationLimit = 250000
     }
 
     process {
@@ -18,6 +21,8 @@
                 "ChildCount" { $childCount++ }
                 "FolderPathDepth" { $folderPathDepth++ }
                 "ItemCount" { $itemCount++ }
+                "HierarchyCount" { $hierarchyCount = $TestResult.ResultData }
+                "HierarchyAndDumpsterCount" { $hierarchyAndDumpsterCount = $TestResult.ResultData }
             }
         }
     }
@@ -39,6 +44,22 @@
             Write-Host
             Write-Host $itemCount "folders exceed the maximum of 1 million items."
             Write-Host "In each of these folders, items should be deleted to reduce the item count."
+        }
+
+        if ($null -ne $hierarchyCount) {
+            Write-Host
+            Write-Host "There are $hierarchyCount public folders in the hierarchy. This exceeds"
+            Write-Host "the supported migration limit of $folderCountMigrationLimit for Exchange Online. The number"
+            Write-Host "of public folders must be reduced prior to migrating to Exchange Online."
+        }
+
+        if ($null -ne $hierarchyAndDumpsterCount) {
+            Write-Host
+            Write-Host "There are $hierarchyAndDumpsterCount public folders in the hierarchy. Because each of these"
+            Write-Host "has a dumpster folder, the total number of folders to migrate will be twice as many."
+            Write-Host "This exceeds the supported migration limit of $folderCountMigrationLimit for Exchange Online."
+            Write-Host "New-MigrationBatch can be run with the -ExcludeDumpsters switch to skip the dumpster"
+            Write-Host "folders, or public folders may be deleted to reduce the number of folders."
         }
     }
 }

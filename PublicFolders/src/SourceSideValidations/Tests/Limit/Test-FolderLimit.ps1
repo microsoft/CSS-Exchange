@@ -32,6 +32,7 @@ function Test-FolderLimit {
             TestName = "Limit"
             Severity = "Error"
         }
+        $folderCountMigrationLimit = 250000
     }
 
     process {
@@ -62,6 +63,20 @@ function Test-FolderLimit {
                 $testResultParams.FolderEntryId = $_.EntryId.ToString()
                 New-TestResult @testResultParams
             }
+        }
+
+        if ($folderData.IpmSubtree.Count -gt $folderCountMigrationLimit) {
+            $testResultParams.ResultType = "HierarchyCount"
+            $testResultParams.FolderIdentity = ""
+            $testResultParams.FolderEntryId = ""
+            $testResultParams.ResultData = $folderData.IpmSubtree.Count
+            New-TestResult @testResultParams
+        } elseif ($folderData.IpmSubtree.Count * 2 -gt $folderCountMigrationLimit) {
+            $testResultParams.ResultType = "HierarchyAndDumpsterCount"
+            $testResultParams.FolderIdentity = ""
+            $testResultParams.FolderEntryId = ""
+            $testResultParams.ResultData = $folderData.IpmSubtree.Count
+            New-TestResult @testResultParams
         }
     }
 
