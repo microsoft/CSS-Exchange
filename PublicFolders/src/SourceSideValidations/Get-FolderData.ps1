@@ -27,6 +27,7 @@ function Get-FolderData {
             MailboxToServerMap      = @{}
             ItemCounts              = @()
             ItemCountDictionary     = @{}
+            Errors                  = New-Object System.Collections.ArrayList
         }
     }
 
@@ -75,7 +76,11 @@ function Get-FolderData {
 
             # If we're doing slow traversal, we have to get the stats after we have the hierarchy
             if ($SlowTraversal) {
-                $folderData.ItemCounts = (Get-ItemCount $serverName $folderData.IpmSubtree).ItemCounts
+                $itemCountResult = Get-ItemCount $serverName $folderData.IpmSubtree
+                $folderData.ItemCounts = $itemCountResult.ItemCounts
+                if ($itemCountResult.Errors.Count -gt 0) {
+                    $folderData.Errors.AddRange($itemCountResult.Errors)
+                }
             }
         }
 

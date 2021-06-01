@@ -1,7 +1,7 @@
 ﻿function Get-ItemCount {
     <#
     .SYNOPSIS
-        Populates the ItemCount property on our PSCustomObjects.
+        Gets the item count for each folder.
     #>
     [CmdletBinding()]
     param (
@@ -20,12 +20,16 @@
             Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
         }
 
+        $retryDelay = [TimeSpan]::FromMinutes(5)
         $progressCount = 0
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
         $progressParams = @{
             Activity = "Getting public folder statistics"
         }
+
+        $itemCounts = New-Object System.Collections.ArrayList
+        $errors = New-Object System.Collections.ArrayList
     }
 
     process {
@@ -48,8 +52,39 @@
                     Write-Progress @progressParams -Status $progressCount
                 }
 
-                $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount
-                $itemCounts.Add($stats)
+                $maxRetries = 5
+                for ($retryCount = 1; $retryCount -le $maxRetries; $retryCount++) {
+                    try {
+                        $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount
+                        $itemCounts.Add($stats)
+                        break
+                    } catch {
+                        # Only retry Kerberos errors
+                        if ($_.ToString().Contains("Kerberos")) {
+                            $sw.Restart()
+                            while ($sw.ElapsedMilliseconds -lt $retryDelay.TotalMilliseconds) {
+                                Write-Progress @progressParams -Status "Retry $retryCount of $maxRetries. Error: $($_.Message)"
+                                Start-Sleep -Seconds 5
+                                $remainingMilliseconds = $retryDelay.TotalMilliseconds - $sw.ElapsedMilliseconds
+                                if ($remainingMilliseconds -lt 0) { $remainingMilliseconds = 0 }
+                                Write-Progress @progressParams -Status "Retry $retryCount of $maxRetries. Will retry in $([TimeSpan]::FromMilliseconds($remainingMilliseconds))"
+                                Start-Sleep -Seconds 5
+                            }
+                        } else {
+                            $errorReport = @{
+                                TestName       = "Get-ItemCount"
+                                ResultType     = "CouldNotGetItemCount"
+                                Severity       = "Error"
+                                FolderIdentity = $folder.Identity
+                                FolderEntryId  = $folder.EntryId
+                                ResultData     = $_.ToString()
+                            }
+
+                            $error = New-TestResult @errorReport
+                            $errors.Add($error)
+                        }
+                    }
+                }
             }
         }
     }
@@ -59,6 +94,7 @@
 
         return [PSCustomObject]@{
             ItemCounts = $itemCounts
+            Errors     = $errors
         }
     }
 }

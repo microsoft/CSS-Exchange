@@ -109,10 +109,18 @@ if ($script:anyDatabaseDown) {
 
 # Now we're ready to do the checks
 
+if (Test-Path $ResultsFile) {
+    Remove-Item $ResultsFile
+}
+
+if ($folderData.Errors.Count -gt 0) {
+    $folderData.Errors | Export-Csv $ResultsFile -NoTypeInformation
+}
+
 Write-Progress @progressParams -Status "Step 2 of 5"
 
 $badDumpsters = Test-DumpsterMapping -FolderData $folderData
-$badDumpsters | Export-Csv $ResultsFile -NoTypeInformation
+$badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append
 
 Write-Progress @progressParams -Status "Step 3 of 5"
 
