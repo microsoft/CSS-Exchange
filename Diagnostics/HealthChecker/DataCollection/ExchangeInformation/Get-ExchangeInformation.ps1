@@ -372,6 +372,12 @@
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
+            try {
+                $exchangeInformation.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
+            } catch {
+                Write-Yellow "Failed to run Get-HybridConfiguration"
+                Invoke-CatchActions
+            }
         }
 
         $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
