@@ -7,7 +7,7 @@
     )
 
     begin {
-        $badDumpsters = [System.Collections.ArrayList]::new()
+        $badDumpsters = New-Object System.Collections.ArrayList
     }
 
     process {
