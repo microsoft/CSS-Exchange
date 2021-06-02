@@ -1,5 +1,6 @@
 ﻿. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
+. $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
 # List of base Folders
 [array]$BaseFolders = (Join-Path $env:SystemRoot '\Cluster'),
@@ -87,6 +88,9 @@ foreach ($Folder in $FolderList) {
         Write-Warning "Eicar.com already exists!"
     }
 }
+
+# Sleeping 5 minutes for AV to "find" the files
+Start-SleepWithProgress -sleeptime 300
 
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
