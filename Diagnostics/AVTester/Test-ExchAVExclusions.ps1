@@ -21,8 +21,8 @@
 (Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp'),
 (Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail'),
 (Join-Path $env:ExchangeInstallPath '\Working\OleConverter'),
-(Join-Path $env:SystemDrive '\inetpub\temp\IIS` Temporary` Compressed` Files'),
-(Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary` ASP.NET` Files'),
+(Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files'),
+(Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files'),
 (Join-Path $env:SystemRoot '\System32\Inetsrv')
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
@@ -111,7 +111,7 @@ foreach ($Folder in $FolderList) {
 
 # Report what we found
 if ($BadFolderList.count -gt 0) {
-    $OutputPath = Join-Path $env:APPDATA BadFolders.txt
+    $OutputPath = Join-Path $env:LOCALAPPDATA BadFolders.txt
     $BadFolderList | Out-File $OutputPath
 
     Write-SimpleLogfile -String "Possbile AV Scanning found" -name $LogFile
