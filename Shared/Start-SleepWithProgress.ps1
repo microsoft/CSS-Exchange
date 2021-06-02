@@ -1,13 +1,19 @@
 ﻿# Sleeps X seconds and displays a progress bar
 Function Start-SleepWithProgress {
-    Param([int]$sleeptime)
+    Param(
+        [Parameter(Mandatory = $true)]
+        [int]$SleepTime,
+
+        [string]$Message = "Sleeping"
+
+    )
 
     # Loop Number of seconds you want to sleep
-    For ($i = 0; $i -le $sleeptime; $i++) {
-        $timeleft = ($sleeptime - $i);
+    For ($i = 0; $i -le $SleepTime; $i++) {
+        $timeleft = ($SleepTime - $i);
 
         # Progress bar showing progress of the sleep
-        Write-Progress -Activity "Sleeping" -CurrentOperation "$Timeleft More Seconds" -PercentComplete (($i / $sleeptime) * 100) -Status " "
+        Write-Progress -Activity $Message -CurrentOperation "$Timeleft More Seconds" -PercentComplete (($i / $sleeptime) * 100) -Status " "
 
         # Sleep 1 second
         Start-Sleep 1
