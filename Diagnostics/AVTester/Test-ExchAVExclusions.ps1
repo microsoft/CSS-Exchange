@@ -29,7 +29,7 @@
 
 # Log file name
 $LogFile = "ExchAvExclusions.log"
-Write-SimpleLogfile -String "Starting Test" -Name $string
+Write-SimpleLogfile -String "Starting Test" -Name $LogFile
 
 # Create list object to hold all Folders we are going to test
 $FolderList = New-Object Collections.Generic.List[string]
@@ -71,6 +71,7 @@ foreach ($Folder in $FolderList) {
 
     If (!(Test-Path -Path $FilePath)) {
 
+        # Try writing the encoded string to a the file
         Try {
             [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
             [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
@@ -87,7 +88,7 @@ foreach ($Folder in $FolderList) {
     }
 }
 
-# Create a list of folders that are being scanned by AV
+# Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
 
 Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
