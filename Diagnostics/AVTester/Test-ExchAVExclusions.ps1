@@ -108,7 +108,7 @@ foreach ($Folder in $FolderList) {
     }
     # If the file doesn't exist add that to the bad folder list -- means the folder is being scanned
     else {
-        Write-SimpleLogfile -String ("[FAIL] Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
     }
 }
