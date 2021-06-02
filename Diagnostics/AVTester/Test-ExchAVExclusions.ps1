@@ -1,4 +1,38 @@
-﻿[CmdletBinding()]
+﻿<#
+.NOTES
+	Name: Test-ExchAVExclusions.ps1
+	Requires: Administrator rights
+    Major Release History:
+        06/02/2021 - Initial Release
+
+.SYNOPSIS
+On and Exchange server uses EICAR files to verify that all paths that should be excluded from AV scanning are excluded.
+
+.DESCRIPTION
+Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
+https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019
+
+If the file is removed then the path is not properly excluded from AV Scanning.
+IF the file is not removed then it should be properly excluded.
+
+Once the files are created it will wait 60 seconds for AV to see and remove the file.
+
+.PARAMETER Recurse
+Will test not just the root folders but all subfolders.
+Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
+
+.EXAMPLE
+.\Test-ExchAVExclusions.ps1
+
+Puts and removes an EICAR file in all test paths.
+
+.EXAMPLE
+.\Test-ExchAVExclusions.ps1 -Recurse
+
+Puts and Remove an EICAR file in all test paths + all subfolders.
+
+#>
+[CmdletBinding()]
 param (
     [Parameter()]
     [switch]
