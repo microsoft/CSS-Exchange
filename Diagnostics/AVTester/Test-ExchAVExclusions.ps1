@@ -69,6 +69,35 @@ param (
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
 
+<#
+## FILE NAME EXTENSION INFORMATION
+
+Extensions	Description	Servers
+.config	Application-related extensions	Mailbox servers
+Edge Transport servers
+
+.chk
+.edb
+.jfm
+.jrs
+.log
+.que	Database-related extensions	Mailbox servers
+Edge Transport servers
+
+.dsc
+.txt	Group Metrics-related extensions	Mailbox servers
+.cfg
+.grxml	Unified Messaging-related extensions	Exchange 2016 Mailbox servers
+.lzx	Offline address book-related extensions	Mailbox servers
+
+## Need to locate all Exchange database and log files on the server and check those paths as well
+
+## Verify transport database and + that location
+
+#>
+
+
+
 # Log file name
 $LogFile = "ExchAvExclusions.log"
 Write-SimpleLogfile -String "Starting Test" -Name $LogFile
