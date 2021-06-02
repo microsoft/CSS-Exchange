@@ -9,7 +9,6 @@ Function Write-SimpleLogfile {
         [Parameter(Mandatory = $true)]
         [string]$Name,
 
-        [Parameter(Mandatory = $true)]
         [switch]$OutHost
 
     )
