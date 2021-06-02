@@ -1,4 +1,11 @@
-﻿. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+﻿[CmdletBinding()]
+param (
+    [Parameter()]
+    [switch]
+    $Recurse
+)
+
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
 . $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
@@ -53,7 +60,7 @@ foreach ($path in $BaseFolders) {
             $FolderList.add($path)
 
             # Get the Folder and all subFolders and just return the fullname value as a string
-            Get-ChildItem $Folder -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.add($_) }
+            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.add($_) }
         }
         # Just add the root folder
         else { $FolderList.add($path) }
