@@ -119,8 +119,8 @@ if ($BadFolderList.count -gt 0) {
     $BadFolderList | Out-File $OutputPath
 
     Write-SimpleLogfile -String "Possbile AV Scanning found" -name $LogFile
-    Write-Warning "Found " + $BadFolderList.count + " folders that are possibly being scanned!"
-    Write-Warning "Review " + $OutputPath + " For the full list."
+    Write-Warning ("Found " + $BadFolderList.count + " folders that are possibly being scanned!")
+    Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
     Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
 }
