@@ -90,7 +90,7 @@ foreach ($Folder in $FolderList) {
 }
 
 # Sleeping 5 minutes for AV to "find" the files
-Start-SleepWithProgress -sleeptime 300 -message "Allowing time for AV to Scan"
+Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
 
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
