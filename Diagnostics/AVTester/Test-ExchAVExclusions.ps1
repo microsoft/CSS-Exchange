@@ -2,28 +2,28 @@
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
 
 # List of base Folders
-[array]$BaseFolders = ($env:SystemRoot + '\Cluster'),
-($env:ExchangeInstallPath + '\ClientAccess\OAB'),
-($env:ExchangeInstallPath + '\FIP-FS'),
-($env:ExchangeInstallPath + '\GroupMetrics'),
-($env:ExchangeInstallPath + '\Logging'),
-($env:ExchangeInstallPath + 'Mailbox'),
-($env:ExchangeInstallPath + '\TransportRoles\Data\Adam'),
-($env:ExchangeInstallPath + '\TransportRoles\Data\IpFilter'),
-($env:ExchangeInstallPath + '\TransportRoles\Data\Queue'),
-($env:ExchangeInstallPath + '\TransportRoles\Data\SenderReputation'),
-($env:ExchangeInstallPath + '\TransportRoles\Data\Temp'),
-($env:ExchangeInstallPath + '\TransportRoles\Logs'),
-($env:ExchangeInstallPath + '\TransportRoles\Pickup'),
-($env:ExchangeInstallPath + '\TransportRoles\Replay'),
-($env:ExchangeInstallPath + '\UnifiedMessaging\Grammars'),
-($env:ExchangeInstallPath + '\UnifiedMessaging\Prompts'),
-($env:ExchangeInstallPath + '\UnifiedMessaging\Temp'),
-($env:ExchangeInstallPath + '\UnifiedMessaging\Voicemail'),
-($env:ExchangeInstallPath + '\Working\OleConverter'),
-($env:SystemDrive + '\inetpub\temp\IIS` Temporary` Compressed` Files'),
-($env:SystemRoot + '\Microsoft.NET\Framework64\v4.0.30319\Temporary` ASP.NET` Files'),
-($env:SystemRoot + '\System32\Inetsrv')
+[array]$BaseFolders = (Join-Path $env:SystemRoot '\Cluster'),
+(Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB'),
+(Join-Path $env:ExchangeInstallPath '\FIP-FS'),
+(Join-Path $env:ExchangeInstallPath '\GroupMetrics'),
+(Join-Path $env:ExchangeInstallPath '\Logging'),
+(Join-Path $env:ExchangeInstallPath '\Mailbox'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup'),
+(Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay'),
+(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars'),
+(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts'),
+(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp'),
+(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail'),
+(Join-Path $env:ExchangeInstallPath '\Working\OleConverter'),
+(Join-Path $env:SystemDrive '\inetpub\temp\IIS` Temporary` Compressed` Files'),
+(Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary` ASP.NET` Files'),
+(Join-Path $env:SystemRoot '\System32\Inetsrv')
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
 
@@ -58,9 +58,6 @@ foreach ($path in $BaseFolders) {
         else { $FolderList.add($path) }
     } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
 }
-
-# Just take the base list
-else {}
 
 Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
 # Create the EICAR file in each path
