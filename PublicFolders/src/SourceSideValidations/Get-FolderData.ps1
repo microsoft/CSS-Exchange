@@ -78,15 +78,16 @@ function Get-FolderData {
             if ($SlowTraversal) {
                 $itemCountResult = Get-ItemCount $serverName $folderData.IpmSubtree
                 $folderData.ItemCounts = $itemCountResult.ItemCounts
-                if ($itemCountResult.Errors.Count -gt 0) {
-                    $folderData.Errors.AddRange($itemCountResult.Errors)
+                foreach ($errorParam in $itemCountResult.Errors) {
+                    $errorResult = New-TestResult @errorParam
+                    $folderData.Errors.AddRange($errorResult)
                 }
             }
-        }
 
-        $folderData.IpmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
-        $folderData.NonIpmSubtree | Export-Csv $PSScriptRoot\NonIpmSubtree.csv
-        $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
+            $folderData.IpmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
+            $folderData.NonIpmSubtree | Export-Csv $PSScriptRoot\NonIpmSubtree.csv
+            $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
+        }
 
         $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailbox
         $folderData.IpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }

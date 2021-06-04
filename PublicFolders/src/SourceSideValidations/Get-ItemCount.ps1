@@ -70,6 +70,9 @@
                                 Write-Progress @progressParams -Status "Retry $retryCount of $maxRetries. Will retry in $([TimeSpan]::FromMilliseconds($remainingMilliseconds))"
                                 Start-Sleep -Seconds 5
                             }
+
+                            Get-PSSession | Remove-PSSession
+                            Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) -AllowClobber | Out-Null
                         } else {
                             $errorReport = @{
                                 TestName       = "Get-ItemCount"
@@ -80,7 +83,6 @@
                                 ResultData     = $_.ToString()
                             }
 
-                            $error = New-TestResult @errorReport
                             $errors.Add($error)
                         }
                     }

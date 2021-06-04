@@ -63,6 +63,18 @@ function Test-FolderLimit {
                 $testResultParams.FolderEntryId = $_.EntryId.ToString()
                 New-TestResult @testResultParams
             }
+
+            # We have to do a string test against the False value here, because this might have been imported from CSV.
+            if ($FolderData.ItemCountDictionary[$_.EntryId] -eq 0 -and $_.HasSubfolders.ToString() -eq "False") {
+                $emptyFolderInformation = @{
+                    TestName       = "Limit"
+                    Severity       = "Information"
+                    ResultType     = "EmptyFolder"
+                    FolderIdentity = $_.Identity.ToString()
+                    FolderEntryId  = $_.EntryId.ToString()
+                }
+                New-TestResult @emptyFolderInformation
+            }
         }
 
         if ($folderData.IpmSubtree.Count -gt $folderCountMigrationLimit) {
