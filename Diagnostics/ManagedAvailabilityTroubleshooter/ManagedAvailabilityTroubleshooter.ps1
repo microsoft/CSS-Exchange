@@ -1,7 +1,7 @@
 ﻿# Managed Availability Troubleshooter
 # The goal of this script is to more easily investigate issues related of Managed Availability
-# Written by Jérôme Coiffin
-#  Provide your feedback to jcoiffin@microsoft.com
+
+#  Provide your feedback to ExToolsFeedback@microsoft.com
 
 [cmdletbinding()]
 Param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
