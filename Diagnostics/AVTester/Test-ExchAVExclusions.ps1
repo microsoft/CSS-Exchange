@@ -3,10 +3,10 @@
 	Name: Test-ExchAVExclusions.ps1
 	Requires: Administrator rights
     Major Release History:
-        06/02/2021 - Initial Release
+        06/16/2021 - Initial Release
 
 .SYNOPSIS
-On and Exchange server uses EICAR files to verify that all paths that should be excluded from AV scanning are excluded.
+Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -15,11 +15,18 @@ https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antiv
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
 
-Once the files are created it will wait 60 seconds for AV to see and remove the file.
+Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
 
 .PARAMETER Recurse
 Will test not just the root folders but all subfolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
+
+.OUTPUTS
+Log file:
+$env:LOCALAPPDATA\ExchAvExclusions.log
+
+List of Scanned Folders:
+$env:LOCALAPPDATA\BadFolders.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -43,8 +50,11 @@ param (
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
 . $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
+# Create the Array List
+$BaseFolders = [System.Collections.ArrayList]@()
+
 # List of base Folders
-[array]$BaseFolders = (Join-Path $env:SystemRoot '\Cluster'),
+$BaseFolders = (Join-Path $env:SystemRoot '\Cluster'),
 (Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB'),
 (Join-Path $env:ExchangeInstallPath '\FIP-FS'),
 (Join-Path $env:ExchangeInstallPath '\GroupMetrics'),
@@ -66,37 +76,21 @@ param (
 (Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files'),
 (Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files'),
 (Join-Path $env:SystemRoot '\System32\Inetsrv')
+
+# Add all database folder paths
+Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
+    $BaseFolders.Add($Entry.EdbFilePath)
+    $BaseFolders.Add($Entry.LogFolderPath)
+}
+
+# Get transport database path
+[xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+
+
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
-
-<#
-## FILE NAME EXTENSION INFORMATION
-
-Extensions	Description	Servers
-.config	Application-related extensions	Mailbox servers
-Edge Transport servers
-
-.chk
-.edb
-.jfm
-.jrs
-.log
-.que	Database-related extensions	Mailbox servers
-Edge Transport servers
-
-.dsc
-.txt	Group Metrics-related extensions	Mailbox servers
-.cfg
-.grxml	Unified Messaging-related extensions	Exchange 2016 Mailbox servers
-.lzx	Offline address book-related extensions	Mailbox servers
-
-## Need to locate all Exchange database and log files on the server and check those paths as well
-
-## Verify transport database and + that location
-
-#>
-
-
 
 # Log file name
 $LogFile = "ExchAvExclusions.log"
@@ -109,10 +103,10 @@ $FolderList = New-Object Collections.Generic.List[string]
 if (Confirm-Administrator) {}
 else { Write-Error "Please run as Administrator" }
 
-# Make sure each folder in our list resolves
+# Make sure each folders in our list resolve
 foreach ($path in $BaseFolders) {
     try {
-        # Resolve path only returns a bool so we have to manuall throw to catch
+        # Resolve path only returns a bool so we have to manually throw to catch
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
             throw "Failed to resolve"
         }
@@ -131,6 +125,7 @@ foreach ($path in $BaseFolders) {
 }
 
 Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
+
 # Create the EICAR file in each path
 foreach ($Folder in $FolderList) {
 
@@ -166,6 +161,7 @@ Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
 $BadFolderList = New-Object Collections.Generic.List[string]
 
 Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
+
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
