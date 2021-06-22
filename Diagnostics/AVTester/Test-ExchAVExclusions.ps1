@@ -89,31 +89,17 @@ $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv'))
 
 # Add all database folder paths
 Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $EDBPath = Split-Path $Entry.EdbFilePath -Parent
-    $LogPath = $Entry.LogFolderPath
-
-    # Test if the log path and edb path are the same
-    if ($EDBpath -eq $LogPath) {
-        $BaseFolders.Add($EDBPath)
-    } Else {
-        $BaseFolders.Add($EDBPath)
-        $BaseFolders.Add($LogPath)
-    }
+    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent))
+    $BaseFolders.Add($Entry.LogFolderPath)
 }
 
 # Get transport database path
 [xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
-$QueueDBPath = (($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
-$QueueLogPath = (($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
 
-# Check if the log and db path match and only add one if needed
-if ($QueueDBPath -eq $QueueLogPath) {
-    $BaseFolders.Add($QueueDBPath)
-} else {
-    $BaseFolders.Add($QueueDBPath)
-    $BaseFolders.Add($QueueLogPath)
-}
-
+# Remove any Duplicates
+$BaseFolders = $BaseFolders | Select-Object -Unique
 
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
