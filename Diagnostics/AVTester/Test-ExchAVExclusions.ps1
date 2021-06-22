@@ -43,50 +43,56 @@ Puts and Remove an EICAR file in all test paths + all subfolders.
 param (
     [Parameter()]
     [switch]
-    $Recurse
+    $Recurse,
+
+    [Parameter()]
+    [switch]
+    $OpenLog
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
 . $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
+if ($OpenLog){Notepad }
+
 # Create the Array List
-$BaseFolders = [System.Collections.ArrayList]@()
+$BaseFolders = New-Object Collections.Generic.List[string]
 
 # List of base Folders
-$BaseFolders = (Join-Path $env:SystemRoot '\Cluster'),
-(Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB'),
-(Join-Path $env:ExchangeInstallPath '\FIP-FS'),
-(Join-Path $env:ExchangeInstallPath '\GroupMetrics'),
-(Join-Path $env:ExchangeInstallPath '\Logging'),
-(Join-Path $env:ExchangeInstallPath '\Mailbox'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup'),
-(Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay'),
-(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars'),
-(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts'),
-(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp'),
-(Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail'),
-(Join-Path $env:ExchangeInstallPath '\Working\OleConverter'),
-(Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files'),
-(Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files'),
-(Join-Path $env:SystemRoot '\System32\Inetsrv')
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail'))
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter'))
+$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files'))
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files'))
+$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv'))
 
 # Add all database folder paths
 Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $BaseFolders.Add($Entry.EdbFilePath)
+    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent))
     $BaseFolders.Add($Entry.LogFolderPath)
 }
 
 # Get transport database path
 [xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
 
 
 #'$env:SystemRoot\Temp\OICE_<GUID>'
@@ -99,6 +105,7 @@ Write-SimpleLogfile -String "Starting Test" -Name $LogFile
 # Create list object to hold all Folders we are going to test
 $FolderList = New-Object Collections.Generic.List[string]
 
+
 # Confirm that we are an administrator
 if (Confirm-Administrator) {}
 else { Write-Error "Please run as Administrator" }
@@ -110,17 +117,17 @@ foreach ($path in $BaseFolders) {
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
             throw "Failed to resolve"
         }
-        # If -recurse then we need to find all subfolders and add them to the list to be tested
+        # If -recurse then we need to find all subfolders and Add them to the list to be tested
         if ($Recurse) {
 
             # Add the root folder
-            $FolderList.add($path)
+            $FolderList.Add($path)
 
             # Get the Folder and all subFolders and just return the fullname value as a string
-            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.add($_) }
+            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_) }
         }
-        # Just add the root folder
-        else { $FolderList.add($path) }
+        # Just Add the root folder
+        else { $FolderList.Add($path) }
     } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
 }
 
@@ -172,7 +179,7 @@ foreach ($Folder in $FolderList) {
         Write-SimpleLogfile -String ("Removing " + $FilePath) -name $LogFile
         Remove-Item $FilePath -Confirm:$false -Force
     }
-    # If the file doesn't exist add that to the bad folder list -- means the folder is being scanned
+    # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
     else {
         Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
