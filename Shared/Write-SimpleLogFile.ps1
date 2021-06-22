@@ -68,7 +68,6 @@ Function Write-SimpleLogfile {
     }
     Process {
 
-
         # Get the current date
         [string]$date = Get-Date -Format G
 
@@ -79,6 +78,7 @@ Function Write-SimpleLogfile {
         $logstring | Out-File -FilePath $LogFile -Append -Confirm:$false
         if ($OutHost) { Write-Host $logstring }
         else { Write-Verbose  $logstring }
+
     }
 }
 
