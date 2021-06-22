@@ -64,39 +64,39 @@ if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 $BaseFolders = New-Object Collections.Generic.List[string]
 
 # List of base Folders
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail'))
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter'))
-$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files'))
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files'))
-$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv'))
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter').tolower())
+$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
+$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 
 # Add all database folder paths
 Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent))
-    $BaseFolders.Add($Entry.LogFolderPath)
+    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
+    $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
 }
 
 # Get transport database path
 [xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
 
 # Remove any Duplicates
 $BaseFolders = $BaseFolders | Select-Object -Unique
