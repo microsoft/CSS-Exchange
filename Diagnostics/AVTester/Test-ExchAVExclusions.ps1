@@ -54,7 +54,11 @@ param (
 . $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
 . $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
-if ($OpenLog){Notepad }
+# Log file name
+$LogFile = "ExchAvExclusions.log"
+
+# Open log file if switched
+if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
 # Create the Array List
 $BaseFolders = New-Object Collections.Generic.List[string]
@@ -85,8 +89,16 @@ $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv'))
 
 # Add all database folder paths
 Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent))
-    $BaseFolders.Add($Entry.LogFolderPath)
+    $EDBPath = Split-Path $Entry.EdbFilePath -Parent
+    $LogPath = $Entry.LogFolderPath
+
+    # Test if the log path and edb path are the same
+    if ($EDBpath -eq $LogPath) {
+        $BaseFolders.Add($EDBPath)
+    } Else {
+        $BaseFolders.Add($EDBPath)
+        $BaseFolders.Add($LogPath)
+    }
 }
 
 # Get transport database path
@@ -98,8 +110,6 @@ $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object 
 #'$env:SystemRoot\Temp\OICE_<GUID>'
 #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
 
-# Log file name
-$LogFile = "ExchAvExclusions.log"
 Write-SimpleLogfile -String "Starting Test" -Name $LogFile
 
 # Create list object to hold all Folders we are going to test
@@ -157,7 +167,7 @@ foreach ($Folder in $FolderList) {
     }
 
     Else {
-        Write-Warning "Eicar.com already exists!"
+        Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }
 
@@ -197,3 +207,4 @@ if ($BadFolderList.count -gt 0) {
 } else {
     Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
 }
+
