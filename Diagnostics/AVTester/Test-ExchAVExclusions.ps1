@@ -103,8 +103,16 @@ Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
 
 # Get transport database path
 [xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+$QueueDBPath = (($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value)
+$QueueLogPath = (($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value)
+
+# Check if the log and db path match and only add one if needed
+if ($QueueDBPath -eq $QueueLogPath) {
+    $BaseFolders.Add($QueueDBPath)
+} else {
+    $BaseFolders.Add($QueueDBPath)
+    $BaseFolders.Add($QueueLogPath)
+}
 
 
 #'$env:SystemRoot\Temp\OICE_<GUID>'
