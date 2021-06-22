@@ -19,7 +19,7 @@ Function Write-SimpleLogfile {
         # Get our log file path
         $LogFile = Join-Path $env:LOCALAPPDATA $Name
 
-        if ($OpenLog){
+        if ($OpenLog) {
             Notepad.exe $LogFile
             Exit
         }
@@ -39,3 +39,4 @@ Function Write-SimpleLogfile {
         else { Write-Verbose  $logstring }
     }
 }
+
