@@ -1,4 +1,4 @@
-﻿<#
+<#
 .NOTES
 	Name: Write-SimpleLogFile.ps1
 	Requires: NA
@@ -78,7 +78,7 @@ Function Write-SimpleLogfile {
         $logstring | Out-File -FilePath $LogFile -Append -Confirm:$false
         if ($OutHost) { Write-Host $logstring }
         else { Write-Verbose  $logstring }
-
     }
 }
+
 
