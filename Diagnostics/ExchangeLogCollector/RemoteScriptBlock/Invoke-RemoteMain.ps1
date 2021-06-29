@@ -1,4 +1,7 @@
-﻿Function Invoke-RemoteMain {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-RemoteMain {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Required to be used in the current format')]
     [CmdletBinding()]
     param()

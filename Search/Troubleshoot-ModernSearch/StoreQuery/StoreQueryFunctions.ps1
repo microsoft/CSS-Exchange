@@ -1,4 +1,7 @@
-﻿Function ResetQueryInstances {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function ResetQueryInstances {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]

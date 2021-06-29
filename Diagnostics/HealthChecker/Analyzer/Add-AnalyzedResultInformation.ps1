@@ -1,4 +1,7 @@
-﻿Function Add-AnalyzedResultInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Add-AnalyzedResultInformation {
     param(
         [object]$Details,
         [string]$Name,

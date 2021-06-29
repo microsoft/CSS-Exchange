@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding()]
 param(
     [System.IO.FileInfo]$SetupLog
 )

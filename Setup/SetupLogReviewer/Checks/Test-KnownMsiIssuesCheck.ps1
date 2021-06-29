@@ -1,4 +1,7 @@
-﻿Function Test-KnownMsiIssuesCheck {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-KnownMsiIssuesCheck {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

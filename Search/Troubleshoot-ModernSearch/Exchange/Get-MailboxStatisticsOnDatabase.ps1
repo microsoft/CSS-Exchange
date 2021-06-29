@@ -1,4 +1,7 @@
-﻿Function Get-MailboxStatisticsOnDatabase {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-MailboxStatisticsOnDatabase {
     [CmdletBinding()]
     param(
         [string[]]$MailboxDatabase

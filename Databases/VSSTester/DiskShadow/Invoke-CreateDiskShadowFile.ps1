@@ -1,4 +1,7 @@
-﻿function Invoke-CreateDiskShadowFile {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-CreateDiskShadowFile {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Required to get drives on old systems')]
     param()
 

@@ -1,4 +1,7 @@
-﻿Function Get-ErrorsThatOccurred {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ErrorsThatOccurred {
 
     if ($Error.Count -gt 0) {
         Write-Grey(" "); Write-Grey(" ")

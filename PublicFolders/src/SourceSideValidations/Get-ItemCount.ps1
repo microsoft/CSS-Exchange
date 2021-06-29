@@ -1,4 +1,7 @@
-﻿function Get-ItemCount {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-ItemCount {
     <#
     .SYNOPSIS
         Populates the ItemCount property on our PSCustomObjects.

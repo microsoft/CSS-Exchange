@@ -1,4 +1,7 @@
-﻿Function Test-KnownLdifErrors {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-KnownLdifErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

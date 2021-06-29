@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeBasicServerObject {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeBasicServerObject {
     param(
         [Parameter(Mandatory = $true)][string]$ServerName,
         [Parameter(Mandatory = $false)][bool]$AddGetServerProperty = $false

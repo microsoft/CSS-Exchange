@@ -1,4 +1,7 @@
-﻿Function Get-OnlyRecentUniqueServersXMLs {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-OnlyRecentUniqueServersXMLs {
     param(
         [Parameter(Mandatory = $true)][array]$FileItems
     )

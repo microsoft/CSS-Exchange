@@ -1,4 +1,7 @@
-﻿Function Get-LogmanExt {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LogmanExt {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

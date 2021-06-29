@@ -1,4 +1,7 @@
-﻿Function Get-HttpProxySetting {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HttpProxySetting {
 
     $httpProxy32 = [String]::Empty
     $httpProxy64 = [String]::Empty

@@ -1,4 +1,7 @@
-﻿BeforeAll {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
     $parent = [IO.Path]::Combine($parent, "SetupLogReviewer")
     $sut = "SetupLogReviewer.ps1"

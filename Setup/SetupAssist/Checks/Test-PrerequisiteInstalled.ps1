@@ -1,4 +1,7 @@
-﻿Function Test-PrerequisiteInstalled {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-PrerequisiteInstalled {
     [CmdletBinding()]
     param()
     begin {

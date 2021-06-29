@@ -1,4 +1,7 @@
-﻿Function Get-LmCompatibilityLevelInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LmCompatibilityLevelInformation {
 
     Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
 

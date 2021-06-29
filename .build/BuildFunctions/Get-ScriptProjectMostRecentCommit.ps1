@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-EmbeddedFileList.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-EmbeddedFileList.ps1
 
 <#
 .SYNOPSIS

@@ -1,4 +1,7 @@
-﻿function Get-FolderData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-FolderData {
     [CmdletBinding()]
     param (
         [Parameter()]

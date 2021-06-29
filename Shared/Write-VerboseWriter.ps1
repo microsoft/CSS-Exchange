@@ -1,4 +1,7 @@
-﻿Function Write-VerboseWriter {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-VerboseWriter {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString
     )

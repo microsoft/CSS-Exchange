@@ -1,4 +1,7 @@
-﻿Function Test-OtherWellKnownObjects {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-OtherWellKnownObjects {
     [CmdletBinding()]
     param ()
 

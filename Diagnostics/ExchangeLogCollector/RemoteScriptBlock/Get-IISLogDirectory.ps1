@@ -1,4 +1,7 @@
-﻿Function Get-IISLogDirectory {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-IISLogDirectory {
     Write-ScriptDebug("Function Enter: Get-IISLogDirectory")
 
     Function Get-IISDirectoryFromGetWebSite {

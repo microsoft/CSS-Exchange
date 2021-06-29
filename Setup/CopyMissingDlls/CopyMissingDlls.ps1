@@ -1,4 +1,7 @@
-﻿[CmdletBinding(SupportsShouldProcess = $True)]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding(SupportsShouldProcess = $True)]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "CopyMissingDllsFromIso")]
     [ValidateNotNullOrEmpty()]

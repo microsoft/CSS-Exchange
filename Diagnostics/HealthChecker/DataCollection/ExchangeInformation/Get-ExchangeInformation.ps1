@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )

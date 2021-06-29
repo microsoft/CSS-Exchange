@@ -1,4 +1,7 @@
-﻿try {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+try {
     #Enums and custom data types
     Add-Type -TypeDefinition @"
     using System;

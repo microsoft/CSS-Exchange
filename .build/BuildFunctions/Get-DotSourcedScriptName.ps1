@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .SYNOPSIS
     Returns the dot-sourced script path from this line of PowerShell
     script, if any.

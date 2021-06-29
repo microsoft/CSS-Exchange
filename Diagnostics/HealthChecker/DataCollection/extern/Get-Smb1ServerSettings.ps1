@@ -1,4 +1,7 @@
-﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-Smb1ServerSettings/Get-Smb1ServerSettings.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-Smb1ServerSettings/Get-Smb1ServerSettings.ps1
 #v21.01.22.2234
 Function Get-Smb1ServerSettings {
     [CmdletBinding()]

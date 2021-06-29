@@ -1,4 +1,7 @@
-﻿Function Get-StringDataForNotEnoughFreeSpaceFile {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-StringDataForNotEnoughFreeSpaceFile {
     param(
         [Parameter(Mandatory = $true)][hashtable]$hasher
     )

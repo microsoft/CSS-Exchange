@@ -1,4 +1,7 @@
-﻿Function Test-NoSwitchesProvided {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or

@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
 Function Write-MailboxIndexMessageStatistics {
