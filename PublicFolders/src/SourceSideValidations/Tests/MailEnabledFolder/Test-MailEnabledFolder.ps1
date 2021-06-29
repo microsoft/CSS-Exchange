@@ -169,7 +169,7 @@ function Test-MailEnabledFolder {
 
                         $params = @{
                             Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
-                            EntryId    = ""
+                            EntryId    = $pf.EntryId
                             ResultType = "OrphanedMPFDuplicate"
                             ResultData = $command
                         }
@@ -178,7 +178,7 @@ function Test-MailEnabledFolder {
                     } else {
                         $params = @{
                             Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
-                            EntryId    = ""
+                            EntryId    = $pf.EntryId
                             ResultType = "OrphanedMPFDisconnected"
                         }
 
@@ -196,7 +196,7 @@ function Test-MailEnabledFolder {
 
                     $params = @{
                         Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
-                        EntryId    = ""
+                        EntryId    = $pf.EntryId
                         ResultType = "OrphanedMPFDuplicate"
                     }
 
@@ -208,7 +208,7 @@ function Test-MailEnabledFolder {
                 } else {
                     $params = @{
                         Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
-                        EntryId    = ""
+                        EntryId    = $pf.EntryId
                         ResultType = "OrphanedMPFDisconnected"
                     }
 

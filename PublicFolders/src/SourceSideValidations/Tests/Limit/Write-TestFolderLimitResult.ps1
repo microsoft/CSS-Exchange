@@ -31,18 +31,21 @@
         if ($childCount -gt 0) {
             Write-Host
             Write-Host $childCount "folders have exceeded the child folder limit of 10,000."
+            Write-Host "These folders are shown in the results CSV with a result type of ChildCount."
             Write-Host "Under each of the listed folders, child folders should be relocated or deleted to reduce this number."
         }
 
         if ($folderPathDepth -gt 0) {
             Write-Host
-            Write-Host $folderPathDepth "folders have exceeded the path depth limit of 299. These folders are"
+            Write-Host $folderPathDepth "folders have exceeded the path depth limit of 299."
+            Write-Host "These folders are shown in the results CSV with a result type of FolderPathDepth."
             Write-Host "These folders should be relocated to reduce the path depth, or deleted."
         }
 
         if ($itemCount -gt 0) {
             Write-Host
             Write-Host $itemCount "folders exceed the maximum of 1 million items."
+            Write-Host "These folders are shown in the results CSV with a result type of ItemCount."
             Write-Host "In each of these folders, items should be deleted to reduce the item count."
         }
 

@@ -1,4 +1,4 @@
-﻿function Repair-FolderPermission {
+﻿function Remove-InvalidPermission {
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(ValueFromPipeline = $true)]

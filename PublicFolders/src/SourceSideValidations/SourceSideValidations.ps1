@@ -8,23 +8,27 @@ param (
     [switch]
     $SlowTraversal,
 
-    [Parameter(Mandatory = $true, ParameterSetName = "Repair")]
-    [Switch]
-    $Repair,
+    [Parameter(Mandatory = $true, ParameterSetName = "RemoveInvalidPermissions")]
+    [switch]
+    $RemoveInvalidPermissions,
 
     [Parameter(Mandatory = $true, ParameterSetName = "SummarizePreviousResults")]
     [Switch]
     $SummarizePreviousResults,
 
     [Parameter(ParameterSetName = "Default")]
-    [Parameter(ParameterSetName = "Repair")]
+    [Parameter(ParameterSetName = "RemoveInvalidPermissions")]
     [Parameter(ParameterSetName = "SummarizePreviousResults")]
     [string]
     $ResultsFile = (Join-Path $PSScriptRoot "ValidationResults.csv"),
 
     [Parameter()]
     [switch]
-    $SkipVersionCheck
+    $SkipVersionCheck,
+
+    [Parameter()]
+    [switch]
+    $SkipPermissionValidation
 )
 
 . $PSScriptRoot\Tests\DumpsterMapping\AllFunctions.ps1
@@ -52,11 +56,11 @@ if ($SummarizePreviousResults) {
     return
 }
 
-if ($Repair) {
+if ($RemoveInvalidPermissions) {
     if (-not (Test-Path $ResultsFile)) {
-        Write-Error "File not found: $ResultsFile. Please run without -Repair to generate a results file."
+        Write-Error "File not found: $ResultsFile. Please run without -RemoveInvalidPermissions to generate a results file."
     } else {
-        Import-Csv $ResultsFile | Repair-FolderPermission
+        Import-Csv $ResultsFile | Remove-InvalidPermission
     }
 
     return
@@ -132,10 +136,12 @@ Write-Progress @progressParams -Status "Step 4 of 5"
 $badMailEnabled = Test-MailEnabledFolder -FolderData $folderData
 $badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append
 
-Write-Progress @progressParams -Status "Step 5 of 5"
+if (-not $SkipPermissionValidation) {
+    Write-Progress @progressParams -Status "Step 5 of 5"
 
-$badPermissions = Test-Permission -FolderData $folderData
-$badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
+    $badPermissions = Test-Permission -FolderData $folderData
+    $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
+}
 
 # Output the results
 

@@ -19,8 +19,10 @@
     end {
         if ($badDumpsters.Count -gt 0) {
             Write-Host
-            Write-Host $badDumpsters.Count "folders have invalid dumpster mappings."
-            Write-Host $badDumpsters[0].ActionRequired
+            Write-Host $badDumpsters.Count "folders have invalid dumpster mappings. These folders"
+            Write-Host "are shown in the results CSV with a result type of BadDumpsterMapping."
+            Write-Host "The -ExcludeDumpsters switch can be used to skip these folders during migration, or the"
+            Write-Host "folders can be deleted."
         }
     }
 }

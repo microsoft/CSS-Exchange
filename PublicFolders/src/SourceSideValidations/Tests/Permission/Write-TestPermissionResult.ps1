@@ -21,7 +21,7 @@
             Write-Host
             Write-Host $badPermissionCount "invalid permissions were found."
             Write-Host "The invalid permissions can be removed using the RemoveInvalidPermissions switch as follows:"
-            Write-Host ".\SourceSideValidations.ps1 -Repair" -ForegroundColor Green
+            Write-Host ".\SourceSideValidations.ps1 -RemoveInvalidPermissions" -ForegroundColor Green
         }
     }
 }
