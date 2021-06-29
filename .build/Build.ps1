@@ -95,8 +95,22 @@ $scriptFiles | ForEach-Object {
         }
     }
 
+
+    #Remove common comments
+    $linesToRemove = @("# Copyright (c) Microsoft Corporation.", "# Licensed under the MIT License.")
+
+    foreach ($comment in $linesToRemove) {
+
+        while ($expandedScript.Contains($comment)) {
+            $expandedScript.RemoveAt($expandedScript.IndexOf($comment))
+        }
+    }
+
     # Stamp version in comments
-    $expandedScript.Insert(0, "")
+    if (-not ([string]::IsNullOrWhiteSpace($expandedScript[0]))) {
+        $expandedScript.Insert(0, "")
+    }
+
     $expandedScript.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
