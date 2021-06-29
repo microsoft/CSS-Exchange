@@ -1,4 +1,7 @@
-﻿Function Get-PageFileInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-PageFileInformation {
 
     Write-VerboseOutput("Calling: Get-PageFileInformation")
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation

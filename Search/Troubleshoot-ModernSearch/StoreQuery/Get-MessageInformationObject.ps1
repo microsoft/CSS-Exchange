@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-IndexStateOfMessage.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-IndexStateOfMessage.ps1
 Function Get-MessageInformationObject {
     [CmdletBinding()]
     param(

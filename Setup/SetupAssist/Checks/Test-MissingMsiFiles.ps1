@@ -1,4 +1,7 @@
-﻿Function Test-MissingMsiFiles {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-MissingMsiFiles {
 
     $packageFiles = Get-InstallerPackages -FilterDisplayName @("Microsoft Lync Server", "Exchange", "Microsoft Server Speech", "Microsoft Unified Communications")
     $packagesMissing = @($packageFiles | Where-Object { $_.ValidMsi -eq $false })

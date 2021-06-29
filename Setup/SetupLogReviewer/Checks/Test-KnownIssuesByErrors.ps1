@@ -1,4 +1,7 @@
-﻿Function Test-KnownIssuesByErrors {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

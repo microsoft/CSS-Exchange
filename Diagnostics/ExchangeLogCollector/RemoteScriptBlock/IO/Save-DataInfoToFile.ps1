@@ -1,4 +1,7 @@
-﻿Function Save-DataInfoToFile {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Save-DataInfoToFile {
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,
         [Parameter(Mandatory = $true)][string]$SaveToLocation,

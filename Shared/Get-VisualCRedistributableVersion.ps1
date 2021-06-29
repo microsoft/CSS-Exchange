@@ -1,4 +1,7 @@
-﻿Function Get-VisualCRedistributableVersion {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-VisualCRedistributableVersion {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,

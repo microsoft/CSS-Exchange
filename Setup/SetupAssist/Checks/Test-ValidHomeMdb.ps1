@@ -1,4 +1,7 @@
-﻿Function Test-ValidHomeMDB {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-ValidHomeMDB {
     $filePath = "$PSScriptRoot\validHomeMdb.txt"
     ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l "distinguishedName,homeMDB" -f $filePath | Out-Null
     $ldifeObject = @(Get-Content $filePath | ConvertFrom-Ldif)

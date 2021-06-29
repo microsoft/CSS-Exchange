@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-DotSourcedScriptName.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-DotSourcedScriptName.ps1
 . $PSScriptRoot\Get-EmbeddedFileInfo.ps1
 
 <#

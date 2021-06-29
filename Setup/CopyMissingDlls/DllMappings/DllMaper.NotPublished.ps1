@@ -1,4 +1,7 @@
-﻿#This is mostly code that was slapped together to get the job done.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#This is mostly code that was slapped together to get the job done.
 [CmdletBinding()]
 param(
     [string]$ExInstall = "C:\Program Files\Microsoft\Exchange Server\V15",

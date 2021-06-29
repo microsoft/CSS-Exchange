@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
 Function Get-BasicMailboxQueryContext {
     [CmdletBinding()]
     param(

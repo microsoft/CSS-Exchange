@@ -1,4 +1,7 @@
-﻿# Managed Availability Troubleshooter
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Managed Availability Troubleshooter
 # The goal of this script is to more easily investigate issues related of Managed Availability
 
 #  Provide your feedback to ExToolsFeedback@microsoft.com

@@ -1,4 +1,7 @@
-﻿Function Get-HtmlServerReport {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )

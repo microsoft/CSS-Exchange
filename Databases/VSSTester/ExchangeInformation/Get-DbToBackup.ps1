@@ -1,4 +1,7 @@
-﻿function Get-DBtoBackup {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-DBtoBackup {
     $maxDbIndexRange = $script:databases.length - 1
     $matchCondition = "^([0-9]|[1-9][0-9])$"
     Write-Debug "matchCondition: $matchCondition"

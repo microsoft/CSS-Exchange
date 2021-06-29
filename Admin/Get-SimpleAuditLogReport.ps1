@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 
 .SYNOPSIS
 Parses the output of Search-AdminAuditlog to produce more readable results.

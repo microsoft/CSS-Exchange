@@ -1,4 +1,7 @@
-﻿Function Get-BigFunnelPropertyNameMapping {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-BigFunnelPropertyNameMapping {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler,

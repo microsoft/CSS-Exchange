@@ -1,4 +1,7 @@
-﻿function Remove-InvalidPermission {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Remove-InvalidPermission {
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter()]

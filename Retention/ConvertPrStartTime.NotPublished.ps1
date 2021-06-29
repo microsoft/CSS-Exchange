@@ -1,4 +1,7 @@
-﻿# Example:
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Example:
 # .\ConvertPrStartTime.ps1 000000008AF3B39BE681D001
 #
 param($byteString)

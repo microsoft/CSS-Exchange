@@ -1,4 +1,7 @@
-﻿Function Get-LogmanObject {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LogmanObject {
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,
         [Parameter(Mandatory = $true)][string]$ServerName

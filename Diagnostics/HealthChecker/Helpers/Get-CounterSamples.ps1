@@ -1,4 +1,7 @@
-﻿Function Get-CounterSamples {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-CounterSamples {
     param(
         [Parameter(Mandatory = $true)][array]$MachineNames,
         [Parameter(Mandatory = $true)][array]$Counters

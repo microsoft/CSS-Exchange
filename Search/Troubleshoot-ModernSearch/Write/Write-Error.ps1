@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Write-LogInformation.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Write-LogInformation.ps1
 Function Write-Error {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Error')]
     [CmdletBinding()]

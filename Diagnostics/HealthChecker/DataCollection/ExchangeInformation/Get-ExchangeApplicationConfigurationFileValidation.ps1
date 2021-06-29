@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeApplicationConfigurationFileValidation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeApplicationConfigurationFileValidation {
     param(
         [string[]]$ConfigFileLocation
     )

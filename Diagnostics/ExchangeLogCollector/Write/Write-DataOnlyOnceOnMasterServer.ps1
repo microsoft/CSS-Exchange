@@ -1,4 +1,7 @@
-﻿Function Write-DataOnlyOnceOnMasterServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
     Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnMasterServer")
