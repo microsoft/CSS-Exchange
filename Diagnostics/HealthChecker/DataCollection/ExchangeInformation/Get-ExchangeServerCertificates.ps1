@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeServerCertificates {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeServerCertificates {
 
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
 

@@ -1,4 +1,7 @@
-﻿Function Invoke-ScriptLogFileLocation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
         [Parameter(Mandatory = $false)][bool]$IncludeServerName = $false

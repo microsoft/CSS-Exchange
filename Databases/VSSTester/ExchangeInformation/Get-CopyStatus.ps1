@@ -1,4 +1,7 @@
-﻿function Get-CopyStatus {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-CopyStatus {
     if ((($databases[$dbToBackup]).IsMailboxDatabase) -eq "True") {
         Get-Date
         Write-Host "Status of '$selDB' and its replicas (if any)" -ForegroundColor Green $nl

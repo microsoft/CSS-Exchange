@@ -1,4 +1,7 @@
-﻿function Invoke-EnableDiagnosticsLogging {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-EnableDiagnosticsLogging {
     " "
     Get-Date
     Write-Host "Enabling Diagnostics Logging..." -ForegroundColor green $nl

@@ -1,4 +1,7 @@
-﻿Function Write-ScriptDebug {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-ScriptDebug {
     param(
         [Parameter(Mandatory = $true)]$WriteString
     )

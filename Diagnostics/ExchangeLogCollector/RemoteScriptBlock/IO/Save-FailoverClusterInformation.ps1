@@ -1,4 +1,7 @@
-﻿#Save out the failover cluster information for the local node, besides the event logs.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#Save out the failover cluster information for the local node, besides the event logs.
 Function Save-FailoverClusterInformation {
     Write-ScriptDebug("Function Enter: Save-FailoverClusterInformation")
     $copyTo = "$Script:RootCopyToDirectory\Cluster_Information"

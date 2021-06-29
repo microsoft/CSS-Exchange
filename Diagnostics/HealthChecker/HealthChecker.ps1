@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .NOTES
 	Name: HealthChecker.ps1
 	Requires: Exchange Management Shell and administrator rights on the target Exchange

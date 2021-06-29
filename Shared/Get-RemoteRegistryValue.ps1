@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
 Function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(

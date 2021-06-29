@@ -1,4 +1,7 @@
-﻿$jobsQueued = New-Object 'System.Collections.Generic.Queue[object]'
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+$jobsQueued = New-Object 'System.Collections.Generic.Queue[object]'
 
 function Add-JobQueueJob {
     [CmdletBinding()]

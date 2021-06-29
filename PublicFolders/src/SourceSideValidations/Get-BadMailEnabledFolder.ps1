@@ -1,4 +1,7 @@
-﻿function Get-BadMailEnabledFolder {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-BadMailEnabledFolder {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param (

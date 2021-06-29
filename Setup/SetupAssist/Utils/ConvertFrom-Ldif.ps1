@@ -1,4 +1,7 @@
-﻿function ConvertFrom-Ldif {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function ConvertFrom-Ldif {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

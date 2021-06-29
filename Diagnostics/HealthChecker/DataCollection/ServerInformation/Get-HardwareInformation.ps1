@@ -1,4 +1,7 @@
-﻿Function Get-HardwareInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HardwareInformation {
 
     Write-VerboseOutput("Calling: Get-HardwareInformation")
 

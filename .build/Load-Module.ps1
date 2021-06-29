@@ -1,4 +1,7 @@
-﻿function Load-Module {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Load-Module {
     [CmdletBinding()]
     [OutputType([bool])]
     param (

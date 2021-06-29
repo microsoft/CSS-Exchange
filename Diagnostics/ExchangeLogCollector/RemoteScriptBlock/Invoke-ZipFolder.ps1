@@ -1,4 +1,7 @@
-﻿Function Invoke-ZipFolder {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-ZipFolder {
     param(
         [string]$Folder,
         [bool]$ZipItAll,

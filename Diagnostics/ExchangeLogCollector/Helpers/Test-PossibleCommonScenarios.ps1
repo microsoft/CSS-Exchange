@@ -1,4 +1,7 @@
-﻿Function Test-PossibleCommonScenarios {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-PossibleCommonScenarios {
 
     #all possible logs
     if ($AllPossibleLogs) {

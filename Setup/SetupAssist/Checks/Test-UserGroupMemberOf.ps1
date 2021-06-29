@@ -1,4 +1,7 @@
-﻿Function Test-UserGroupMemberOf {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-UserGroupMemberOf {
 
     $whoamiOutput = whoami /all
 

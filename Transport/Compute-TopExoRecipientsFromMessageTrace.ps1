@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
     .SYNOPSIS
     This script aggregates message trace events hourly and generates a report with the top o365 recipients
 

@@ -1,4 +1,7 @@
-﻿function Get-Databases {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-Databases {
     Get-Date
     Write-Host "Getting databases on server: $serverName" -ForegroundColor Green $nl
     Write-Host "--------------------------------------------------------------------------------------------------------------"

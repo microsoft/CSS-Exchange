@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeAppPoolsInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeAppPoolsInformation {
 
     Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
 

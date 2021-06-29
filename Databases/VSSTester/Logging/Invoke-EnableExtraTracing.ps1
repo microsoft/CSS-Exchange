@@ -1,4 +1,7 @@
-﻿function Invoke-EnableExTRATracing {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-EnableExTRATracing {
 
     Function Invoke-ExtraTracingCreate {
         param(

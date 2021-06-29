@@ -1,4 +1,7 @@
-﻿Function Copy-LogmanData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Copy-LogmanData {
     param(
         [Parameter(Mandatory = $true)]$ObjLogman
     )

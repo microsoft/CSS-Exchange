@@ -1,4 +1,7 @@
-﻿Function Write-HostWriter {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-HostWriter {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Need to use Write Host')]
     param(
         [Parameter(Mandatory = $true)][string]$WriteString

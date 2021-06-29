@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
     .SYNOPSIS
 		This script contains 4 mitigations to help address the following vulnerabilities:
 

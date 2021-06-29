@@ -1,4 +1,7 @@
-﻿Function Write-PrepareADInfo {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-PrepareADInfo {
     param(
         [bool]$SchemaUpdateRequired
     )

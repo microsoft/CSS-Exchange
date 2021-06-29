@@ -1,4 +1,7 @@
-﻿function Get-NonIpmSubtree {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-NonIpmSubtree {
     [CmdletBinding()]
     param (
         [Parameter(Position = 0)]

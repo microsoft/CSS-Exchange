@@ -1,4 +1,7 @@
-﻿function Confirm-VirtualDirectoryConfiguration {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Confirm-VirtualDirectoryConfiguration {
     [CmdletBinding()]
     param ()
 

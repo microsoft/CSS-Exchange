@@ -1,4 +1,7 @@
-﻿Function Test-CriticalService {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-CriticalService {
     $critical = @(
         "MpsSvc",
         "FMS",

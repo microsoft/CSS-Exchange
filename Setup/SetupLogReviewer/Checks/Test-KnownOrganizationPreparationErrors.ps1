@@ -1,4 +1,7 @@
-﻿Function Test-KnownOrganizationPreparationErrors {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-KnownOrganizationPreparationErrors {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(
