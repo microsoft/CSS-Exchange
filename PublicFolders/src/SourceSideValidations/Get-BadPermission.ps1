@@ -1,4 +1,7 @@
-﻿function Get-BadPermission {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-BadPermission {
     [CmdletBinding()]
     param (
         [Parameter()]

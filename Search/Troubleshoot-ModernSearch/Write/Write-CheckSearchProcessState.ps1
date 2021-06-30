@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
 Function Write-CheckSearchProcessState {

@@ -1,4 +1,7 @@
-﻿$tagFileBytes = Get-Content "$PSScriptRoot\tags2016.txt" -AsByteStream -Raw
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+$tagFileBytes = Get-Content "$PSScriptRoot\tags2016.txt" -AsByteStream -Raw
 
 $htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
 

@@ -1,4 +1,7 @@
-﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
 #v21.01.22.2234
 Function Get-WmiObjectHandler {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'This is what this function is for')]

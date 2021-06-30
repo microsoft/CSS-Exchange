@@ -1,4 +1,7 @@
-﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'All Parameters are used in other functions of the script')]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'All Parameters are used in other functions of the script')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
 [CmdletBinding()]
 Param (

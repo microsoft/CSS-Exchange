@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 Function Get-ServerRebootPending {
     [CmdletBinding()]
     param(

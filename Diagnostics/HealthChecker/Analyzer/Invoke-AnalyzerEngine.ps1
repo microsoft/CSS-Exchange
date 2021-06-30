@@ -1,4 +1,7 @@
-﻿Function Invoke-AnalyzerEngine {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )
@@ -11,6 +14,7 @@
     $order = 0
     $keyBeginningInfo = Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
     $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
+    $keyHybridInformation = Get-DisplayResultsGroupingKey -Name "Hybrid Information" -DisplayOrder ($order++)
     $keyOSInformation = Get-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = Get-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = Get-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
@@ -164,6 +168,164 @@
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    #########################
+    # Hybrid Information
+    #########################
+    Write-VerboseOutput("Working on Hybrid Configuration Information")
+    if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+        $null -ne $exchangeInformation.GetHybridConfiguration) {
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Organization Hybrid enabled" -Details "True" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost))) {
+            $onPremSmartHostDomain = ($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost).ToString()
+            $onPremSmartHostWriteType = "Grey"
+        } else {
+            $onPremSmartHostDomain = "No on-premises smart host domain configured for hybrid use"
+            $onPremSmartHostWriteType = "Yellow"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "On-Premises Smart Host Domain" -Details $onPremSmartHostDomain `
+            -DisplayGroupingKey $keyHybridInformation `
+            -DisplayWriteType $onPremSmartHostWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Domains))) {
+            $domainsConfiguredForHybrid = $exchangeInformation.GetHybridConfiguration.Domains
+            $domainsConfiguredForHybridWriteType = "Grey"
+        } else {
+            $domainsConfiguredForHybridWriteType = "Yellow"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Domain(s) configured for Hybrid use" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -DisplayWriteType $domainsConfiguredForHybridWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($domainsConfiguredForHybrid.Count -ge 1) {
+            foreach ($domain in $domainsConfiguredForHybrid) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $domain `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayWriteType $domainsConfiguredForHybridWriteType `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "No domain configured for Hybrid use" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType $domainsConfiguredForHybridWriteType `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.EdgeTransportServers))) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            foreach ($edgeServer in $exchangeInformation.GetHybridConfiguration.EdgeTransportServers) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $edgeServer `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2  `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers)) -or
+                (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers)))) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayWriteType "Yellow" `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers))) {
+                foreach ($receivingTransportSrv in $exchangeInformation.GetHybridConfiguration.ReceivingTransportServers) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Details $receivingTransportSrv `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayCustomTabNumber 2 `
+                        -AnalyzedInformation $analyzedResults
+                }
+            } else {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "No Receiving Transport Server configured for Hybrid use" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers))) {
+                foreach ($sendingTransportSrv in $exchangeInformation.GetHybridConfiguration.SendingTransportServers) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Details $sendingTransportSrv `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayCustomTabNumber 2 `
+                        -AnalyzedInformation $analyzedResults
+                }
+            } else {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "No Sending Transport Server configured for Hybrid use" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+        }
+
+        if ($exchangeInformation.GetHybridConfiguration.ServiceInstance -eq 1) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Service Instance" -Details "Office 365 operated by 21Vianet" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+        } elseif ($exchangeInformation.GetHybridConfiguration.ServiceInstance -ne 0) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Service Instance" -Details ($exchangeInformation.GetHybridConfiguration.ServiceInstance) `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "You are using an invalid value. Please set this value to 0 (null) or re-run HCW" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details ($exchangeInformation.GetHybridConfiguration.TlsCertificateName).ToString() `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details "No valid certificate found" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Features))) {
+            foreach ($feature in $exchangeInformation.GetHybridConfiguration.Features) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $feature `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2  `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "No feature(s) enabled for Hybrid use" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayCustomTabNumber 2  `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -1677,6 +1839,10 @@
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.12", "2242.8" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.14", "2242.10" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
         }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU21) {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -1720,6 +1886,10 @@
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.13", "858.10" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.15", "858.12" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
+        }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU10) {
+            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
         }
     } else {
         Write-VerboseOutput("Unknown Version of Exchange")

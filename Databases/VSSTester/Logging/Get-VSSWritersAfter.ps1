@@ -1,4 +1,7 @@
-﻿function Get-VSSWritersAfter {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-VSSWritersAfter {
     " "
     Get-Date
     Write-Host "Checking VSS Writer Status: (after backup)" -ForegroundColor Green $nl

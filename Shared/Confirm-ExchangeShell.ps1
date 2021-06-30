@@ -1,4 +1,7 @@
-﻿Function Confirm-ExchangeShell {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,

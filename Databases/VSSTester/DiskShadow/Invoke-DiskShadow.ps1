@@ -1,4 +1,7 @@
-﻿function Invoke-DiskShadow {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-DiskShadow {
     Write-Host " " $nl
     Get-Date
     Write-Host "Starting DiskShadow copy of Exchange database: $selDB" -ForegroundColor Green $nl

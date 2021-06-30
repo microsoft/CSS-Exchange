@@ -1,4 +1,7 @@
-﻿[CmdletBinding(DefaultParameterSetName = "Default", SupportsShouldProcess)]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding(DefaultParameterSetName = "Default", SupportsShouldProcess)]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = "Default")]
     [bool]

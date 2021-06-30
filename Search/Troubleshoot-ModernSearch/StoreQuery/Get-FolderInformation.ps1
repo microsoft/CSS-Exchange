@@ -1,4 +1,7 @@
-﻿Function Get-FolderInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-FolderInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

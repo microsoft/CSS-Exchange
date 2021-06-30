@@ -1,4 +1,7 @@
-﻿function Invoke-EnableVSSTracing {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-EnableVSSTracing {
     " "
     Get-Date
     Write-Host "Enabling VSS Tracing..." -ForegroundColor Green $nl

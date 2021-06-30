@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeServerMaintenanceState {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeServerMaintenanceState {
     param(
         [Parameter(Mandatory = $false)][array]$ComponentsToSkip
     )

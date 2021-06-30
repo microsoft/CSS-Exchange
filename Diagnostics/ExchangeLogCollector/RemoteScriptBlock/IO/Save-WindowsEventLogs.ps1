@@ -1,4 +1,7 @@
-﻿Function Save-WindowsEventLogs {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Save-WindowsEventLogs {
 
     Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"

@@ -1,4 +1,7 @@
-﻿Function Get-LogmanRootPath {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LogmanRootPath {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

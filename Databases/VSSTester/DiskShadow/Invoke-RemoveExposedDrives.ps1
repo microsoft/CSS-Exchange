@@ -1,4 +1,7 @@
-﻿function Invoke-RemoveExposedDrives {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-RemoveExposedDrives {
 
     function Out-removeDHSFile {
         param ([string]$fileline)

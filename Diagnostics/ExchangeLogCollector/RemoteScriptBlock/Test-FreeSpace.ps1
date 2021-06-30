@@ -1,4 +1,7 @@
-﻿Function Test-FreeSpace {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-FreeSpace {
     param(
         [Parameter(Mandatory = $false)][array]$FilePaths
     )

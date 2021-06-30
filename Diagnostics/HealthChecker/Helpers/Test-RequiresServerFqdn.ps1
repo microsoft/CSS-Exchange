@@ -1,4 +1,7 @@
-﻿Function Test-RequiresServerFqdn {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-RequiresServerFqdn {
 
     Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
     $tempServerName = ($Script:Server).Split(".")

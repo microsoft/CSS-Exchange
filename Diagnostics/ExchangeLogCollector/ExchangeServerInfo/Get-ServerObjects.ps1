@@ -1,4 +1,7 @@
-﻿Function Get-ServerObjects {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ServerObjects {
     param(
         [Parameter(Mandatory = $true)][Array]$ValidServers
     )

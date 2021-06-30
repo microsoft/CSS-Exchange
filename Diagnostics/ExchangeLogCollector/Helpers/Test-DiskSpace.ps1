@@ -1,4 +1,7 @@
-﻿Function Test-DiskSpace {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
         [Parameter(Mandatory = $true)][string]$Path,

@@ -1,4 +1,7 @@
-﻿Function Get-HealthCheckerExchangeServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HealthCheckerExchangeServer {
 
     Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
 

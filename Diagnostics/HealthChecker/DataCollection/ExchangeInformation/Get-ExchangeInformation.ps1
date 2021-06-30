@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
@@ -79,11 +82,15 @@
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
                 $buildInformation.FriendlyName += "CU8"
                 $buildInformation.ReleaseDate = "12/15/2020"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 858.5) {
+            } elseif ($buildAndRevision -lt 922.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "03/16/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 922.7) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
+                $buildInformation.FriendlyName += "CU10"
+                $buildInformation.ReleaseDate = "06/29/2021"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -179,11 +186,15 @@
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19
                 $buildInformation.FriendlyName += "CU19"
                 $buildInformation.ReleaseDate = "12/15/2020"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 2242.4) {
+            } elseif ($buildAndRevision -lt 2308.8) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
                 $buildInformation.FriendlyName += "CU20"
                 $buildInformation.ReleaseDate = "03/16/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 2308.8) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
+                $buildInformation.FriendlyName += "CU21"
+                $buildInformation.ReleaseDate = "06/29/2021"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -372,6 +383,12 @@
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
+            try {
+                $exchangeInformation.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
+            } catch {
+                Write-Yellow "Failed to run Get-HybridConfiguration"
+                Invoke-CatchActions
+            }
         }
 
         $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `

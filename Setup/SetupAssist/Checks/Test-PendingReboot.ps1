@@ -1,4 +1,7 @@
-﻿# From https://stackoverflow.com/questions/47867949/how-can-i-check-for-a-pending-reboot
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# From https://stackoverflow.com/questions/47867949/how-can-i-check-for-a-pending-reboot
 function Test-PendingReboot {
     if (Get-Item "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) {
         "Key set in: HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending. Remove it if reboot doesn't work" | Receive-Output -Diagnostic

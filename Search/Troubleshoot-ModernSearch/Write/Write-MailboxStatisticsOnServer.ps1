@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\..\Exchange\Get-ActiveDatabasesOnServer.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\..\Exchange\Get-ActiveDatabasesOnServer.ps1
 . $PSScriptRoot\..\Exchange\Get-MailboxInformation.ps1
 . $PSScriptRoot\..\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 . $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1

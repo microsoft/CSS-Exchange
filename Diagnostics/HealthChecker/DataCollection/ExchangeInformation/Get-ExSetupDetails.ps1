@@ -1,4 +1,7 @@
-﻿Function Get-ExSetupDetails {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExSetupDetails {
 
     Write-VerboseOutput("Calling: Get-ExSetupDetails")
     $exSetupDetails = [string]::Empty

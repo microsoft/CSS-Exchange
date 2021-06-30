@@ -1,4 +1,7 @@
-﻿Function Get-IndexingErrorMessage {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-IndexingErrorMessage {
     [CmdletBinding()]
     param(
         [object]$Message

@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .SYNOPSIS
     Simple performance log collector for Exchange.
 .DESCRIPTION
