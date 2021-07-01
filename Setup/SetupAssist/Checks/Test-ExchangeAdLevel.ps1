@@ -209,7 +209,7 @@ function Test-ExchangeAdSetupObjects {
             Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
             return
         }
-        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
+        Write-ReadyFor -ExchangeVersion "2019" -UpperRange $schemaValue -CU $CU
     } elseif ($schemaValue -eq 17002) {
 
         if ($MESOValue -eq 13239 -and
@@ -222,7 +222,7 @@ function Test-ExchangeAdSetupObjects {
             Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
             return
         }
-        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
+        Write-ReadyFor -ExchangeVersion "2019" -UpperRange $schemaValue -CU $CU
     } elseif ($schemaValue -eq 17003) {
 
         if ($MESOValue -eq 13241 -and
