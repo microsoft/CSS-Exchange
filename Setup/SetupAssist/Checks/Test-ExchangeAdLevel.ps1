@@ -78,12 +78,12 @@ function Test-ExchangeAdSetupObjects {
 
     $exchLatest = @{}
     $exchLatest.Add("2016", [PSCustomObject]@{
-            CU         = "CU20"
-            UpperRange = 15333
+            CU         = "CU21"
+            UpperRange = 15334
         })
     $exchLatest.Add("2019", [PSCustomObject]@{
-            CU         = "CU9"
-            UpperRange = 17002
+            CU         = "CU10"
+            UpperRange = 17003
         })
     $exchLatest.Add("2013", [PSCustomObject]@{
             CU         = "CU23"
@@ -185,6 +185,16 @@ function Test-ExchangeAdSetupObjects {
             return
         }
         Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
+    } elseif ($schemaValue -eq 15334) {
+
+        if ($MESOValue -eq 13241 -and
+            $orgValue -eq 16221) {
+            $CU = "CU21"
+        } else {
+            Write-Mismatch -ExchVersion "2016" -UpperRange $schemaValue
+            return
+        }
+        Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
     }
     #Exchange 2019 CU2+
     elseif ($schemaValue -eq 17001) {
@@ -213,6 +223,16 @@ function Test-ExchangeAdSetupObjects {
             return
         }
         Write-ReadyFor -ExchangeVersion "2016" -UpperRange $schemaValue -CU $CU
+    } elseif ($schemaValue -eq 17003) {
+
+        if ($MESOValue -eq 13241 -and
+            $orgValue -eq 16758) {
+            $CU = "CU10"
+        } else {
+            Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
+            return
+        }
+        Write-ReadyFor -ExchangeVersion "2019" -UpperRange $schemaValue -CU $CU
     } else {
         Write-Mismatch -ExchVersion "2019" -UpperRange $schemaValue
     }
