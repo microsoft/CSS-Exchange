@@ -5,7 +5,8 @@ parent: Performance
 
 ## ExPerfAnalyzer.ps1
 
-Download the latest release: [ExPerfAnalyzer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfAnalyzer.ps1)
+Download the latest release: [ExPerfAnalyzer.ps1](https://github.com/microsoft/CSS-Exchange/raw/main/Performance/ExPerfAnalyzer.ps1) - 
+## it seems the link  used points us to a script version which throw some errors, but the one above provides the correct version
 
 ## Running the script
     .\ExPerfAnalyzer.ps1 .\EXSERVER01_FULL_000001.BLG
