@@ -15,6 +15,7 @@ try {
                 public OperatingSystemInformation  OSInformation; // OS Version Object Information
                 public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
                 public string HealthCheckerVersion; //To determine the version of the script on the object.
+                public DateTime GenerationTime; //Time stamp of running the script
             }
 
             // ExchangeInformation

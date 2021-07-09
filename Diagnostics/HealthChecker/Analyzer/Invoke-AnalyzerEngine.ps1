@@ -53,6 +53,11 @@ Function Invoke-AnalyzerEngine {
         -HtmlName "Server Name" `
         -AnalyzedInformation $analyzedResults
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Generation Time" -Details $HealthServerObject.GenerationTime `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
