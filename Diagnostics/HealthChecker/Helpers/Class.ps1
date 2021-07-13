@@ -15,6 +15,7 @@ try {
                 public OperatingSystemInformation  OSInformation; // OS Version Object Information
                 public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
                 public string HealthCheckerVersion; //To determine the version of the script on the object.
+                public DateTime GenerationTime; //Time stamp of running the script
             }
 
             // ExchangeInformation
@@ -24,6 +25,7 @@ try {
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
+                public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
                 public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
                 public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object

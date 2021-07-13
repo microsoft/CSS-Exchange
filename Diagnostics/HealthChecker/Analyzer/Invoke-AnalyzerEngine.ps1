@@ -53,6 +53,11 @@ Function Invoke-AnalyzerEngine {
         -HtmlName "Server Name" `
         -AnalyzedInformation $analyzedResults
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Generation Time" -Details $HealthServerObject.GenerationTime `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
@@ -170,6 +175,13 @@ Function Invoke-AnalyzerEngine {
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
         }
+    }
+
+    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $analyzedResults
     }
 
     #########################
