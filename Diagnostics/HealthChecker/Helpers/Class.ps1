@@ -25,6 +25,7 @@ try {
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
+                public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
                 public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
                 public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level

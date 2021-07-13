@@ -27,6 +27,7 @@ Function Get-ExchangeInformation {
             ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
                 $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
         $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
+        $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server
     }
 
     if ($Script:ExchangeShellComputer.ToolsOnly) {

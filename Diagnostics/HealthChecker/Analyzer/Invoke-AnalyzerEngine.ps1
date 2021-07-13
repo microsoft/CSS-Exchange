@@ -177,6 +177,13 @@ Function Invoke-AnalyzerEngine {
         }
     }
 
+    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $analyzedResults
+    }
+
     #########################
     # Hybrid Information
     #########################
