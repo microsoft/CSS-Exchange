@@ -169,6 +169,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-WmiObjectHandler.ps1
 . .\DataCollection\extern\Invoke-RegistryGetValue.ps1
 . $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. .\DataCollection\ExchangeInformation\Get-ExchangeAdSchemaClass.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeAppPoolsInformation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeInformation.ps1
