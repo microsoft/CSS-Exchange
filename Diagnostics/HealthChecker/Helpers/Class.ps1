@@ -27,6 +27,7 @@ try {
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
                 public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+                public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
                 public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
                 public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
