@@ -27,6 +27,7 @@ Function Get-ExchangeInformation {
             ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
                 $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
         $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
+        $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server
     }
 
     if ($Script:ExchangeShellComputer.ToolsOnly) {
@@ -408,6 +409,15 @@ Function Get-ExchangeInformation {
             Write-VerboseOutput("March 2021 SU: KB5000871 was not detected on the system")
             $buildInformation.March2021SUInstalled = $false
         }
+
+        Write-VerboseOutput("Query schema class information for CVE-2021-34470 testing")
+        try {
+            $exchangeInformation.msExchStorageGroup = Get-ExchangeAdSchemaClass -SchemaClassName "ms-Exch-Storage-Group"
+        } catch {
+            Write-VerboseOutput("Failed to run Get-ExchangeAdSchemaClass")
+            Invoke-CatchActions
+        }
+
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
             -GetValue "CtsProcessorAffinityPercentage" `
