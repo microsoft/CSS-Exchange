@@ -55,7 +55,7 @@ param (
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\Write-SimpleLogfile.ps1
+. $PSScriptRoot\..\..\Shared\Write-SimpleLogFile.ps1
 . $PSScriptRoot\..\..\Shared\Start-SleepWithProgress.ps1
 
 # Log file name
