@@ -1,3 +1,6 @@
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 <#
 .NOTES
 	Name: Write-SimpleLogFile.ps1

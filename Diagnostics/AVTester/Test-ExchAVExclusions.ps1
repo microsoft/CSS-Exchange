@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .NOTES
 	Name: Test-ExchAVExclusions.ps1
 	Requires: Administrator rights
@@ -6,7 +9,7 @@
         06/16/2021 - Initial Release
 
 .SYNOPSIS
-Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Uses EICA7 files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -41,6 +44,7 @@ Puts and Remove an EICAR file in all test paths + all subfolders.
 #>
 [CmdletBinding()]
 param (
+
     [Parameter()]
     [switch]
     $Recurse,
@@ -201,4 +205,3 @@ if ($BadFolderList.count -gt 0) {
 } else {
     Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
 }
-
