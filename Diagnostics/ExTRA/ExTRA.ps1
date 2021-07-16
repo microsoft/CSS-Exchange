@@ -148,6 +148,10 @@ if (Test-Path $outputPath) {
     Write-Host
     Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048" -ForegroundColor Green
     Write-Host
+    Write-Host "To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0" -ForegroundColor Green
+    Write-Host
     Write-Host "To start the trace:"
     Write-Host
     Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
