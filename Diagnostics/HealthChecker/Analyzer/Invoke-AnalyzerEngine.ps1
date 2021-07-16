@@ -53,6 +53,11 @@ Function Invoke-AnalyzerEngine {
         -HtmlName "Server Name" `
         -AnalyzedInformation $analyzedResults
 
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Generation Time" -Details $HealthServerObject.GenerationTime `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
+        -AnalyzedInformation $analyzedResults
+
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
@@ -170,6 +175,13 @@ Function Invoke-AnalyzerEngine {
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
         }
+    }
+
+    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $analyzedResults
     }
 
     #########################
@@ -1777,6 +1789,7 @@ Function Invoke-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.12" -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.15" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.18" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.23" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -1840,8 +1853,8 @@ Function Invoke-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.14", "2242.10" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
         }
 
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU21) {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2242.12", "2308.14" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
@@ -1888,8 +1901,8 @@ Function Invoke-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.15", "858.12" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
         }
 
-        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU10) {
-            Write-VerboseOutput("There are no known vulnerabilities in this Exchange Server Build.")
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "858.15", "922.13" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } else {
         Write-VerboseOutput("Unknown Version of Exchange")
@@ -1941,6 +1954,45 @@ Function Invoke-AnalyzerEngine {
         if ($null -ne $KBCveComb) {
             Show-March2021SUOutdatedCUWarning -KBCVEHT $KBCveComb
         }
+    }
+
+    #Description: Check for CVE-2021-34470 rights elevation vulnerability
+    #Affected Exchange versions: 2013, 2016, 2019
+    #Fix:
+    ##Exchange 2013 CU23 + July 2021 SU + /PrepareSchema,
+    ##Exchange 2016 CU20 + July 2021 SU + /PrepareSchema or CU21,
+    ##Exchange 2019 CU9 + July 2021 SU + /PrepareSchema or CU10
+    #Workaround: N/A
+
+    if (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) -or
+        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+            ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU21)) -or
+        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+            ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU10))) {
+        Write-VerboseOutput("Testing CVE: CVE-2021-34470")
+
+        if ($null -eq $exchangeInformation.msExchStorageGroup) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("CVE-2021-34470`r`n`t`tUnable to query 'ms-Exch-Storage-Group' to perform testing.") `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Yellow" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+            $Script:AllVulnerabilitiesPassed = $false
+            Write-VerboseOutput("Unable to query 'ms-Exch-Storage-Group' Exchange Schema class information")
+        } elseif ($exchangeInformation.msExchStorageGroup.Properties.posssuperiors -eq "computer") {
+            $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2021-34470"
+            $Script:Vulnerabilities += $details
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details $details `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Red" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+            $Script:AllVulnerabilitiesPassed = $false
+        } else {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
+        }
+    } else {
+        Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
     }
 
     #Description: Check for CVE-2021-1730 vulnerability
