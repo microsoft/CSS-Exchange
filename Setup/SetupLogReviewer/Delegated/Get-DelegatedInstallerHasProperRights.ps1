@@ -1,4 +1,7 @@
-﻿# Get-DelegatedInstallerHasProperRights
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Get-DelegatedInstallerHasProperRights
 #
 # Identifies the issue described in https://support.microsoft.com/en-us/help/2961741
 # by reading the setup log to see if this is why we failed.

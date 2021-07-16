@@ -1,4 +1,7 @@
-﻿Function Get-OperatingSystemInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-OperatingSystemInformation {
 
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
 

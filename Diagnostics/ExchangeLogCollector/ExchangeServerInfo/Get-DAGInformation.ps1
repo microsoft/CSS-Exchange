@@ -1,4 +1,7 @@
-﻿Function Get-DAGInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-DAGInformation {
     param(
         [Parameter(Mandatory = $true)][string]$DAGName
     )

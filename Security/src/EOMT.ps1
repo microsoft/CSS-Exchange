@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
     .SYNOPSIS
         This script contains mitigations to help address the following vulnerabilities.
             CVE-2021-26855

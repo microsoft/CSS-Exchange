@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding()]
 param(
     [Switch]
     $Save
@@ -52,6 +55,29 @@ foreach ($file in $scriptFiles) {
                 $content = Get-Content $file
                 Set-Content -Path $file -Value $content -Encoding utf8BOM -Force
                 Write-Warning "Saved $file with BOM."
+            } catch {
+                $filesFailed = $true
+                throw
+            }
+        } else {
+            $filesFailed = $true
+        }
+    }
+
+    #Check for compliance
+    $scriptContent = New-Object 'System.Collections.Generic.List[string]'
+    $scriptContent.AddRange([IO.File]::ReadAllLines($file))
+
+    if (-not ($scriptContent[0].Contains("# Copyright (c) Microsoft Corporation.")) -or
+        -not ($scriptContent[1].Contains("# Licensed under the MIT License."))) {
+
+        Write-Warning "File doesn't have header compliance set: $file"
+        if ($Save) {
+            try {
+                $scriptContent.Insert(0, "")
+                $scriptContent.Insert(0, "# Licensed under the MIT License.")
+                $scriptContent.Insert(0, "# Copyright (c) Microsoft Corporation.")
+                Set-Content -Path $file -Value $scriptContent -Encoding utf8BOM
             } catch {
                 $filesFailed = $true
                 throw

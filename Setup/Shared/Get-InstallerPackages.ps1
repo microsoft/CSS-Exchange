@@ -1,4 +1,7 @@
-﻿#By doing it this way and looking at the registry, we get msp files as well. (Security Updates)
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#By doing it this way and looking at the registry, we get msp files as well. (Security Updates)
 #Vs doing Get-CimInstance -ClassName Win32_Product
 Function Get-InstallerPackages {
     [CmdletBinding()]

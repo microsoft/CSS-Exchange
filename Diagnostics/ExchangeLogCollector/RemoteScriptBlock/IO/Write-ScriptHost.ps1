@@ -1,4 +1,7 @@
-﻿Function Write-ScriptHost {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-ScriptHost {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString,
         [Parameter(Mandatory = $false)][bool]$ShowServer = $true,

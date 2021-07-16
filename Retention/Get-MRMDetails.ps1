@@ -1,4 +1,7 @@
-﻿#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#
 # Get-MRMDetails.ps1
 # Modified 2017/02/13
 # Last Modifier:  Chris Pollitt

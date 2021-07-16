@@ -1,4 +1,7 @@
-﻿# This script reviews the ExchangeSetup.log and determines if it is a known issue and reports an
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# This script reviews the ExchangeSetup.log and determines if it is a known issue and reports an
 # action to take to resolve the issue.
 #
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue

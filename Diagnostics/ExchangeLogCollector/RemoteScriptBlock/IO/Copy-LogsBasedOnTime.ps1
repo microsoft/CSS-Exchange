@@ -1,4 +1,7 @@
-﻿Function Copy-LogsBasedOnTime {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $false)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation

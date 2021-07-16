@@ -1,4 +1,7 @@
-﻿Function Get-IndexStateOfMessage {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-IndexStateOfMessage {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(

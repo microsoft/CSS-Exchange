@@ -1,4 +1,7 @@
-﻿Function Save-ServerInfoData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Save-ServerInfoData {
     Write-ScriptDebug("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
     New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true

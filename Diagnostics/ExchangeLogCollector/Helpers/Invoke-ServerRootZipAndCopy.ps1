@@ -1,4 +1,7 @@
-﻿#This function is to handle all root zipping capabilities and copying of the data over.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#This function is to handle all root zipping capabilities and copying of the data over.
 Function Invoke-ServerRootZipAndCopy {
     param(
         [bool]$RemoteExecute = $true

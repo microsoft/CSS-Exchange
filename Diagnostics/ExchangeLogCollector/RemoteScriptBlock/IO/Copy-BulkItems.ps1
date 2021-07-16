@@ -1,4 +1,7 @@
-﻿Function Copy-BulkItems {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Copy-BulkItems {
     param(
         [string]$CopyToLocation,
         [Array]$ItemsToCopyLocation

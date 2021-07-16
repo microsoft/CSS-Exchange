@@ -1,4 +1,7 @@
-﻿Function Invoke-ScriptBlockHandler {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

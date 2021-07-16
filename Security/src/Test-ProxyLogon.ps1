@@ -1,4 +1,7 @@
-﻿# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Checks for signs of exploit from CVE-2021-26855, 26858, 26857, and 27065.
 #
 # Examples
 #

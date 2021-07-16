@@ -1,4 +1,7 @@
-﻿#Dependencies are based off EMS cmdlets.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#Dependencies are based off EMS cmdlets.
 Function Get-ActiveDatabasesOnServer {
     [CmdletBinding()]
     param(

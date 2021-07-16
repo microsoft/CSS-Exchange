@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-FolderInformation.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-FolderInformation.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
 Function Get-MessageIndexState {
     [CmdletBinding()]

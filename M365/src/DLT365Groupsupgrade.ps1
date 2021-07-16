@@ -1,4 +1,7 @@
-﻿Clear-Host
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Clear-Host
 #Create working folder on the logged user desktop
 $ts = Get-Date -Format yyyyMMdd_HHmmss
 $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgradeChecks_$ts"

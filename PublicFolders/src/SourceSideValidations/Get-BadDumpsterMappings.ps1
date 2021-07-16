@@ -1,4 +1,7 @@
-﻿function Get-BadDumpsterMappings {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-BadDumpsterMappings {
     [CmdletBinding()]
     [OutputType([System.Object[]])]
     param (

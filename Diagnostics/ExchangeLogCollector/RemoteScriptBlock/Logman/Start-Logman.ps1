@@ -1,4 +1,7 @@
-﻿Function Start-Logman {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Start-Logman {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I like Start Logman')]
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,

@@ -1,4 +1,7 @@
-﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters are being used')]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters are being used')]
 [CmdletBinding(DefaultParameterSetName = "CopyFromCu")]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "CopyFromCu")]

@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-RemoteRegistryValue.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-RemoteRegistryValue.ps1
 Function Get-NETFrameworkVersion {
     [CmdletBinding()]
     param(

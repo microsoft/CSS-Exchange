@@ -1,4 +1,7 @@
-﻿try {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+try {
     #Enums and custom data types
     Add-Type -TypeDefinition @"
     using System;
@@ -22,6 +25,7 @@
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+                public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
                 public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config

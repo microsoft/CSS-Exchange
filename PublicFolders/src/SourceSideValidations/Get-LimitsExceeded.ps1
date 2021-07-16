@@ -1,4 +1,7 @@
-﻿function Get-LimitsExceeded {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-LimitsExceeded {
     <#
     .SYNOPSIS
         Flags folders that exceed the child count limit, depth limit,
