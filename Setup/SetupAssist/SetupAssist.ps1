@@ -15,6 +15,7 @@ param(
 . .\Checks\Confirm-VirtualDirectoryConfiguration.ps1
 . .\Checks\Test-CriticalService.ps1
 . .\Checks\Test-ExchangeAdLevel.ps1
+. .\Checks\Test-ComputersContainerExists.ps1
 . .\Checks\Test-MissingDirectory.ps1
 . .\Checks\Test-MissingMsiFiles.ps1
 . .\Checks\Test-OtherWellKnownObjects.ps1
@@ -124,6 +125,7 @@ Function MainUse {
     Test-ValidHomeMDB
     Test-MissingDirectory
     Test-ExchangeAdSetupObjects
+    Test-ComputersContainerExists
     Confirm-VirtualDirectoryConfiguration
 
     $exSetupLog = "$($env:HOMEDRIVE)\ExchangeSetupLogs\ExchangeSetup.log"
