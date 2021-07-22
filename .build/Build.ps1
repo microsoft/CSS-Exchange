@@ -52,10 +52,12 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
 #>
 
 $scriptFiles = $scriptFiles | Where-Object {
+    $fullName = $_
     $scriptName = [IO.Path]::GetFileName($_)
     $pattern = "\. .*\\$scriptName"
     $m = $scriptFiles | Get-Item | Select-String -Pattern $pattern
-    $m.Count -lt 1
+    $r = $m | Where-Object { $_.Path -ne $fullName }
+    $r.Count -lt 1
 }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
