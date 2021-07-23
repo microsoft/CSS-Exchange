@@ -10,7 +10,7 @@ Function Get-VisualCRedistributableInstalledVersion {
         [scriptblock]$CatchActionFunction
     )
     begin {
-        Write-Verbose "Calling: Get-VisualCRedistributableVersion"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $softwareList = New-Object 'System.Collections.Generic.List[object]'
     }
     process {
@@ -33,7 +33,7 @@ Function Get-VisualCRedistributableInstalledVersion {
         }
     }
     end {
-        Write-Verbose "Exiting: Get-VisualCRedistributableVersion"
+        Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
         return $softwareList
     }
 }
@@ -65,11 +65,11 @@ Function Get-VisualCRedistributableInfo {
 Function Test-VisualCRedistributableDesiredVersionInstalled {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [object]
         $Installed,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [object]
         $Desired
     )
@@ -80,11 +80,11 @@ Function Test-VisualCRedistributableDesiredVersionInstalled {
 Function Test-VisualCRedistributableDesiredVersionUpToDate {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [object]
         $Installed,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [object]
         $Desired
     )
@@ -98,11 +98,12 @@ Function Test-VisualCRedistributableDesiredVersionUpToDate {
 Function Test-VisualCRedistributableInstalled {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateSet(2012, 2013)]
         [int]
         $Year,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [object]
         $Installed
     )
@@ -114,11 +115,12 @@ Function Test-VisualCRedistributableInstalled {
 Function Test-VisualCRedistributableUpToDate {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateSet(2012, 2013)]
         [int]
         $Year,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [object]
         $Installed
     )
