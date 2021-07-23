@@ -242,15 +242,6 @@ try {
                 public string Seconds;
             }
 
-            //enum for the dword values of the latest supported VC++ redistributable releases
-            //https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
-            public enum VCRedistVersion
-            {
-                Unknown = 0,
-                VCRedist2012 = 184610406,
-                VCRedist2013 = 201367256
-            }
-
             public class OSNetFrameworkInformation
             {
                 public NetMajorVersion NetMajorVersion; //NetMajorVersion value

@@ -33,7 +33,7 @@ param(
 #REPO Shared
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
-. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
+. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 
 #REPO Shared Dependencies
 . $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1

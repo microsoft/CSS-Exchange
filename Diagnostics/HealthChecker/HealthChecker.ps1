@@ -185,7 +185,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\ServerInformation\Get-OperatingSystemInformation.ps1
 . .\DataCollection\ServerInformation\Get-PageFileInformation.ps1
 . .\DataCollection\ServerInformation\Get-ServerRole.ps1
-. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
+. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . .\Analyzer\Add-AnalyzedResultInformation.ps1
 . .\Analyzer\Get-DisplayResultsGroupingKey.ps1
 . .\Analyzer\Invoke-AnalyzerEngine.ps1

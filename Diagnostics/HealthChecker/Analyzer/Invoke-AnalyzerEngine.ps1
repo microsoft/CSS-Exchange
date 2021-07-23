@@ -579,32 +579,18 @@ Function Invoke-AnalyzerEngine {
     $displayValue2013 = "Unknown"
 
     if ($null -ne $osInformation.VcRedistributable) {
-        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
-        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
 
-        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable) {
-            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
-
-            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2012*") {
-                $vcRedist2012Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
-                    $displayWriteType2012 = "Green"
-                    $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            } elseif ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
-                $vcRedist2013Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
-                    $displayWriteType2013 = "Green"
-                    $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            }
-        }
-
-        if (($vcRedist2012Detected -eq $true) -and ($displayWriteType2012 -ne "Green")) {
+        if (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $osInformation.VcRedistributable) {
+            $displayWriteType2012 = "Green"
+            $displayValue2012 = "$((Get-VisualCRedistributableInfo 2012).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayValue2012 = "Redistributable is outdated"
         }
 
-        if (($vcRedist2013Detected -eq $true) -and ($displayWriteType2013 -ne "Green")) {
+        if (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $osInformation.VcRedistributable) {
+            $displayWriteType2013 = "Green"
+            $displayValue2013 = "$((Get-VisualCRedistributableInfo 2013).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayValue2013 = "Redistributable is outdated"
         }
     }
