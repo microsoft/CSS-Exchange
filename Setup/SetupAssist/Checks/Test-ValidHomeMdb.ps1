@@ -46,6 +46,6 @@ Function Test-ValidHomeMDB {
             "All Critical Mailboxes have valid HomeMDB values" | Receive-Output
         }
     } else {
-        throw "Unexpected LDIF data."
+        Write-Error "Unexpected LDIF data in Test-ValidHomeMdb."
     }
 }
