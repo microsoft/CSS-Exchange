@@ -579,32 +579,23 @@ Function Invoke-AnalyzerEngine {
     $displayValue2013 = "Unknown"
 
     if ($null -ne $osInformation.VcRedistributable) {
-        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
-        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
 
-        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable) {
-            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
+        $version2012Status = Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $osInformation.VcRedistributable `
+            -VersionInformation (Get-VisualCRedistributable2012Information)
+        $version2013Status = Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $osInformation.VcRedistributable `
+            -VersionInformation (Get-VisualCRedistributable2013Information)
 
-            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2012*") {
-                $vcRedist2012Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
-                    $displayWriteType2012 = "Green"
-                    $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            } elseif ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
-                $vcRedist2013Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
-                    $displayWriteType2013 = "Green"
-                    $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            }
-        }
-
-        if (($vcRedist2012Detected -eq $true) -and ($displayWriteType2012 -ne "Green")) {
+        if ($version2012Status -band 2) {
+            $displayWriteType2012 = "Green"
+            $displayValue2012 = "$((Get-VisualCRedistributable2012Information).VersionNumber) Version is current"
+        } elseif ($version2012Status -band 1) {
             $displayValue2012 = "Redistributable is outdated"
         }
 
-        if (($vcRedist2013Detected -eq $true) -and ($displayWriteType2013 -ne "Green")) {
+        if ($version2013Status -band 2) {
+            $displayWriteType2013 = "Green"
+            $displayValue2013 = "$((Get-VisualCRedistributable2013Information).VersionNumber) Version is current"
+        } elseif ($version2013Status -band 1) {
             $displayValue2013 = "Redistributable is outdated"
         }
     }
