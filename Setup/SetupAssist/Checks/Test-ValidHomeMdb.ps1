@@ -3,7 +3,10 @@
 
 Function Test-ValidHomeMDB {
     $filePath = "$PSScriptRoot\validHomeMdb.txt"
-    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" -l "distinguishedName,homeMDB" -f $filePath | Out-Null
+    $rootDSE = [ADSI]("LDAP://RootDSE")
+    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" `
+        -l "distinguishedName,homeMDB" -f $filePath -d $rootDSE.rootDomainNamingContext | Out-Null
+
     $ldifeObject = @(Get-Content $filePath | ConvertFrom-Ldif)
 
     if ($ldifeObject.Count -gt 0) {
