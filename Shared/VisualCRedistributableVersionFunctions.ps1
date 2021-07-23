@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 
-Function Get-VisualCRedistributableVersion {
+Function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
@@ -38,52 +38,91 @@ Function Get-VisualCRedistributableVersion {
     }
 }
 
-Function Get-VisualCRedistributable2012Information {
-    return [PSCustomObject]@{
-        VersionNumber = 184610406
-        DownloadUrl   = "https://www.microsoft.com/en-us/download/details.aspx?id=30679"
-        DisplayName   = "Microsoft Visual C++ 2012*"
-    }
-}
-
-Function Get-VisualCRedistributable2013Information {
-    return [PSCustomObject]@{
-        VersionNumber = 201367256
-        DownloadUrl   = "https://support.microsoft.com/en-us/topic/update-for-visual-c-2013-redistributable-package-d8ccd6a5-4e26-c290-517b-8da6cfdf4f10"
-        DisplayName   = "Microsoft Visual C++ 2013*"
-    }
-}
-
-#Returns a 0 if no version is detected
-#Returns a 1 if version is detected, but the the version we wanted.
-#Returns a 2 if version is up to date.
-Function Get-VcRedistributableVersionStatus {
+Function Get-VisualCRedistributableInfo {
     [CmdletBinding()]
-    param(
-        [object]$VisualCRedistributableVersion,
+    param (
         [Parameter(Mandatory = $true)]
-        [object]$VersionInformation
+        [ValidateSet(2012, 2013)]
+        [int]
+        $Year
     )
-    begin {
-        $versionDetected = $true
-        $value = 0
-    }
-    process {
-        foreach ($detectVersion in $VisualCRedistributableVersion) {
-            if ($detectVersion.DisplayName -like $VersionInformation.DisplayName) {
-                $versionDetected = $true
 
-                if ($detectVersion.VersionIdentifier -eq $VersionInformation.VersionNumber) {
-                    $value += 1
-                    return
-                }
-            }
+    if ($Year -eq 2012) {
+        return [PSCustomObject]@{
+            VersionNumber = 184610406
+            DownloadUrl   = "https://www.microsoft.com/en-us/download/details.aspx?id=30679"
+            DisplayName   = "Microsoft Visual C++ 2012*"
+        }
+    } else {
+        return [PSCustomObject]@{
+            VersionNumber = 201367256
+            DownloadUrl   = "https://support.microsoft.com/en-us/topic/update-for-visual-c-2013-redistributable-package-d8ccd6a5-4e26-c290-517b-8da6cfdf4f10"
+            DisplayName   = "Microsoft Visual C++ 2013*"
         }
     }
-    end {
-        if ($versionDetected) {
-            $value += 1
-        }
-        return $value
-    }
+}
+
+Function Test-VisualCRedistributableDesiredVersionInstalled {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Installed,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Desired
+    )
+
+    return ($null -ne $Installed | Where-Object { $_.DisplayName -like $Desired.DisplayName })
+}
+
+Function Test-VisualCRedistributableDesiredVersionUpToDate {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Installed,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Desired
+    )
+
+    return ($null -ne ($Installed | Where-Object {
+                $_.DisplayName -like $Desired.DisplayName -and $_.VersionIdentifier -eq $Desired.VersionNumber
+            }))
+}
+
+
+Function Test-VisualCRedistributableInstalled {
+    [CmdletBinding()]
+    param (
+        [ValidateSet(2012, 2013)]
+        [int]
+        $Year,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Installed
+    )
+
+    $desired = Get-VisualCRedistributableInfo $Year
+    Test-VisualCRedistributableDesiredVersionInstalled $Installed $desired
+}
+
+Function Test-VisualCRedistributableUpToDate {
+    [CmdletBinding()]
+    param (
+        [ValidateSet(2012, 2013)]
+        [int]
+        $Year,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Installed
+    )
+
+    $desired = Get-VisualCRedistributableInfo $Year
+    Test-VisualCRedistributableDesiredVersionUpToDate $Installed $desired
 }

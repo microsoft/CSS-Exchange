@@ -12,16 +12,14 @@ Function Test-PrerequisiteInstalled {
             "Download .NET 4.8 and install: https://dotnet.microsoft.com/download/dotnet-framework/net48" | Receive-Output
         }
 
-        $vcRedistributable = Get-VisualCRedistributableVersion
+        $installed = Get-VisualCRedistributableInstalledVersion
 
-        if (-not ((Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $vcRedistributable `
-                        -VersionInformation (Get-VisualCRedistributable2012Information)) -band 2)) {
-            "Download Visual C++ 2012 Redistributable Package and install: $((Get-VisualCRedistributable2012Information).DownloadUrl)" | Receive-Output
+        if (-not (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $installed)) {
+            "Download Visual C++ 2012 Redistributable Package and install: $((Get-VisualCRedistributableInfo 2012).DownloadUrl)" | Receive-Output
         }
 
-        if (-not ((Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $vcRedistributable `
-                        -VersionInformation (Get-VisualCRedistributable2013Information)) -band 2)) {
-            "Download Visual C++ 2013 Redistributable Package and install: $((Get-VisualCRedistributable2013Information).DownloadUrl)" | Receive-Output
+        if (-not (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $installed)) {
+            "Download Visual C++ 2013 Redistributable Package and install: $((Get-VisualCRedistributableInfo 2013).DownloadUrl)" | Receive-Output
         }
     }
 }

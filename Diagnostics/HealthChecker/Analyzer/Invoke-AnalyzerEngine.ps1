@@ -580,22 +580,17 @@ Function Invoke-AnalyzerEngine {
 
     if ($null -ne $osInformation.VcRedistributable) {
 
-        $version2012Status = Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $osInformation.VcRedistributable `
-            -VersionInformation (Get-VisualCRedistributable2012Information)
-        $version2013Status = Get-VcRedistributableVersionStatus -VisualCRedistributableVersion $osInformation.VcRedistributable `
-            -VersionInformation (Get-VisualCRedistributable2013Information)
-
-        if ($version2012Status -band 2) {
+        if (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayWriteType2012 = "Green"
-            $displayValue2012 = "$((Get-VisualCRedistributable2012Information).VersionNumber) Version is current"
-        } elseif ($version2012Status -band 1) {
+            $displayValue2012 = "$((Get-VisualCRedistributableInfo 2012).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayValue2012 = "Redistributable is outdated"
         }
 
-        if ($version2013Status -band 2) {
+        if (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayWriteType2013 = "Green"
-            $displayValue2013 = "$((Get-VisualCRedistributable2013Information).VersionNumber) Version is current"
-        } elseif ($version2013Status -band 1) {
+            $displayValue2013 = "$((Get-VisualCRedistributableInfo 2013).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayValue2013 = "Redistributable is outdated"
         }
     }
