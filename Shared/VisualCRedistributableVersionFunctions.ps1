@@ -77,7 +77,7 @@ Function Test-VisualCRedistributableInstalled {
 
     $desired = Get-VisualCRedistributableInfo $Year
 
-    return ($null -ne $Installed | Where-Object { $_.DisplayName -like $desired.DisplayName })
+    return ($null -ne ($Installed | Where-Object { $_.DisplayName -like $desired.DisplayName }))
 }
 
 Function Test-VisualCRedistributableUpToDate {
