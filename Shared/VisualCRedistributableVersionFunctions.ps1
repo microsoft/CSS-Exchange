@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+
 Function Get-VisualCRedistributableVersion {
     [CmdletBinding()]
     param(
