@@ -62,39 +62,6 @@ Function Get-VisualCRedistributableInfo {
     }
 }
 
-Function Test-VisualCRedistributableDesiredVersionInstalled {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, Position = 0)]
-        [object]
-        $Installed,
-
-        [Parameter(Mandatory = $true, Position = 1)]
-        [object]
-        $Desired
-    )
-
-    return ($null -ne $Installed | Where-Object { $_.DisplayName -like $Desired.DisplayName })
-}
-
-Function Test-VisualCRedistributableDesiredVersionUpToDate {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, Position = 0)]
-        [object]
-        $Installed,
-
-        [Parameter(Mandatory = $true, Position = 1)]
-        [object]
-        $Desired
-    )
-
-    return ($null -ne ($Installed | Where-Object {
-                $_.DisplayName -like $Desired.DisplayName -and $_.VersionIdentifier -eq $Desired.VersionNumber
-            }))
-}
-
-
 Function Test-VisualCRedistributableInstalled {
     [CmdletBinding()]
     param (
@@ -109,7 +76,8 @@ Function Test-VisualCRedistributableInstalled {
     )
 
     $desired = Get-VisualCRedistributableInfo $Year
-    Test-VisualCRedistributableDesiredVersionInstalled $Installed $desired
+
+    return ($null -ne $Installed | Where-Object { $_.DisplayName -like $desired.DisplayName })
 }
 
 Function Test-VisualCRedistributableUpToDate {
@@ -126,5 +94,8 @@ Function Test-VisualCRedistributableUpToDate {
     )
 
     $desired = Get-VisualCRedistributableInfo $Year
-    Test-VisualCRedistributableDesiredVersionUpToDate $Installed $desired
+
+    return ($null -ne ($Installed | Where-Object {
+                $_.DisplayName -like $desired.DisplayName -and $_.VersionIdentifier -eq $desired.VersionNumber
+            }))
 }
