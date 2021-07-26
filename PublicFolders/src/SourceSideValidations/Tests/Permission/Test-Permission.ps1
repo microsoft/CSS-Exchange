@@ -25,17 +25,7 @@ function Test-Permission {
             }
         }
 
-        $completedJobs = Wait-QueuedJob
-
-        $params = @{
-            TestName   = "Permission"
-            ResultType = "BadPermission"
-            Severity   = "Error"
-        }
-
-        foreach ($job in $completedJobs) {
-            $job
-        }
+        Wait-QueuedJob
     }
 
     end {
