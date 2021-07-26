@@ -1,4 +1,6 @@
-﻿function Get-ItemCount {
+﻿. .\Get-ItemCountJob.ps1
+
+function Get-ItemCount {
     <#
     .SYNOPSIS
         Gets the item count for each folder.
@@ -10,17 +12,17 @@
         $Server,
 
         [Parameter(Position = 1)]
-        [object[]]
-        $FolderList = $null
+        [PSCustomObject]
+        $FolderData = $null
     )
 
     begin {
-        $WarningPreference = "SilentlyContinue"
-        if ($null -eq $FolderList) {
-            Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
+        Write-Verbose "$($MyInvocation.MyCommand) called."
+        $progressFile = Join-Path $PSScriptRoot "ItemCountProgress.csv"
+        if (Test-Path $progressFile) {
+            Remove-Item $progressFile
         }
 
-        $retryDelay = [TimeSpan]::FromMinutes(5)
         $progressCount = 0
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
@@ -33,7 +35,9 @@
     }
 
     process {
-        if ($null -eq $FolderList) {
+        if ($null -eq $FolderData) {
+            $WarningPreference = "SilentlyContinue"
+            Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
             $itemCounts = Get-PublicFolderStatistics -ResultSize Unlimited | ForEach-Object {
                 $progressCount++
                 if ($sw.ElapsedMilliseconds -gt 1000) {
@@ -44,48 +48,54 @@
                 Select-Object -InputObject $_ -Property EntryId, ItemCount
             }
         } else {
-            $itemCounts = New-Object System.Collections.ArrayList
-            foreach ($folder in $FolderList) {
-                $progressCount++
-                if ($sw.ElapsedMilliseconds -gt 1000) {
-                    $sw.Restart()
-                    Write-Progress @progressParams -Status $progressCount
+            $batchSize = 10000
+            $jobsToCreate = New-Object 'System.Collections.Generic.Dictionary[string, System.Collections.ArrayList]'
+            foreach ($group in $folderData.IpmSubtreeByMailbox) {
+                # MailboxToServerMap is not populated yet, so we can't use it here
+                $server = (Get-Mailbox $group.Name -PublicFolder).ServerName
+                [int]$mailboxBatchCount = ($group.Group.Count / $batchSize) + 1
+                Write-Verbose "Creating $mailboxBatchCount item count jobs for $($group.Group.Count) folders in mailbox $($group.Name) on server $server."
+                $jobsForThisMailbox = New-Object System.Collections.ArrayList
+                for ($i = 0; $i -lt $mailboxBatchCount; $i++) {
+                    $batch = $group.Group | Select-Object -First $batchSize -Skip ($batchSize * $i)
+                    $argumentList = $server, $group.Name, $batch
+                    $jobsForThisMailbox.Add(@{
+                            ArgumentList = $argumentList
+                            Name         = "Item Count $($group.Name) Job $($i + 1)"
+                            ScriptBlock  = ${Function:Get-ItemCountJob}
+                        })
                 }
 
-                $maxRetries = 5
-                for ($retryCount = 1; $retryCount -le $maxRetries; $retryCount++) {
-                    try {
-                        $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount
-                        $itemCounts.Add($stats)
-                        break
-                    } catch {
-                        # Only retry Kerberos errors
-                        if ($_.ToString().Contains("Kerberos")) {
-                            $sw.Restart()
-                            while ($sw.ElapsedMilliseconds -lt $retryDelay.TotalMilliseconds) {
-                                Write-Progress @progressParams -Status "Retry $retryCount of $maxRetries. Error: $($_.Message)"
-                                Start-Sleep -Seconds 5
-                                $remainingMilliseconds = $retryDelay.TotalMilliseconds - $sw.ElapsedMilliseconds
-                                if ($remainingMilliseconds -lt 0) { $remainingMilliseconds = 0 }
-                                Write-Progress @progressParams -Status "Retry $retryCount of $maxRetries. Will retry in $([TimeSpan]::FromMilliseconds($remainingMilliseconds))"
-                                Start-Sleep -Seconds 5
-                            }
+                $jobsToCreate.Add($group.Name, $jobsForThisMailbox)
+            }
 
-                            Get-PSSession | Remove-PSSession
-                            Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) -AllowClobber | Out-Null
-                        } else {
-                            $errorReport = @{
-                                TestName       = "Get-ItemCount"
-                                ResultType     = "CouldNotGetItemCount"
-                                Severity       = "Error"
-                                FolderIdentity = $folder.Identity
-                                FolderEntryId  = $folder.EntryId
-                                ResultData     = $_.ToString()
-                            }
-
-                            $errors.Add($error)
-                        }
+            # Add the jobs by round-robin among the mailboxes so we don't execute all jobs
+            # for one mailbox in parallel unless we have to
+            $jobsAddedThisRound = 0
+            $index = 0
+            do {
+                $jobsAddedThisRound = 0
+                foreach ($mailboxName in $jobsToCreate.Keys) {
+                    $batchesForThisMailbox = $jobsToCreate[$mailboxName]
+                    if ($batchesForThisMailbox.Count -gt $index) {
+                        $jobParams = $batchesForThisMailbox[$index]
+                        Add-JobQueueJob $jobParams
+                        $jobsAddedThisRound++
                     }
+                }
+
+                $index++
+            } while ($jobsAddedThisRound -gt 0)
+
+            $foldersDone = 0
+            Wait-QueuedJob | ForEach-Object {
+                $foldersDone += $_.ItemCounts.Count
+                Write-Verbose "Retrieved item counts for $foldersDone folders so far..."
+                $itemCounts.AddRange($_.ItemCounts)
+                $errors.AddRange($_.Errors)
+
+                if ($_.ItemCounts.Count -gt 0) {
+                    $_.ItemCounts | Export-Csv -Path $progressFile -Append
                 }
             }
         }
@@ -93,6 +103,8 @@
 
     end {
         Write-Progress @progressParams -Completed
+
+        Remove-Item $progressFile
 
         return [PSCustomObject]@{
             ItemCounts = $itemCounts
