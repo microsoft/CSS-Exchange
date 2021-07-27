@@ -76,6 +76,11 @@ function Test-ScriptVersion {
     $scriptPath = [IO.Path]::GetDirectoryName($script:MyInvocation.MyCommand.Path)
     $scriptFullName = (Join-Path $scriptPath $scriptName)
 
+    if ((Get-AuthenticodeSignature -FilePath $scriptFullName).Status -eq "NotSigned") {
+        Write-Warning "This script appears to be an unsigned test build. Skipping version check."
+        return $false
+    }
+
     $oldName = [IO.Path]::GetFileNameWithoutExtension($scriptName) + ".old"
     $oldFullName = (Join-Path $scriptPath $oldName)
 
@@ -88,7 +93,7 @@ function Test-ScriptVersion {
         $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
-            if ($AutoUpdate -and $BuildVersion -ne "") {
+            if ($AutoUpdate) {
                 if (Test-Path $tempFullName) {
                     Remove-Item $tempFullName -Force -Confirm:$false -ErrorAction Stop
                 }
