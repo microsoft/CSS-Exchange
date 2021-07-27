@@ -1,4 +1,7 @@
-﻿function Write-TestDumpsterMappingResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Write-TestDumpsterMappingResult {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

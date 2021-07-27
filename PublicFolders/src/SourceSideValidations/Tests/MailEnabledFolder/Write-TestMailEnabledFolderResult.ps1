@@ -1,4 +1,7 @@
-﻿function Write-TestMailEnabledFolderResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Write-TestMailEnabledFolderResult {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

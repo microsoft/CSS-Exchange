@@ -1,4 +1,7 @@
-﻿function Write-TestFolderLimitResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Write-TestFolderLimitResult {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

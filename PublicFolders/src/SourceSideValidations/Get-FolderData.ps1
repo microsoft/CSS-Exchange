@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation.
+﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-IpmSubtree.ps1

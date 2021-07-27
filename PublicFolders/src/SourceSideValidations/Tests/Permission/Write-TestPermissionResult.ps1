@@ -1,4 +1,7 @@
-﻿function Write-TestPermissionResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Write-TestPermissionResult {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

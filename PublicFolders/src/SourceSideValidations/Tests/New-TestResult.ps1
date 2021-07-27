@@ -1,4 +1,7 @@
-﻿function New-TestResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function New-TestResult {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
