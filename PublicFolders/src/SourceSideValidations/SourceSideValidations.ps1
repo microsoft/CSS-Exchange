@@ -58,7 +58,7 @@ if ($SummarizePreviousResults) {
 
 if ($RemoveInvalidPermissions) {
     if (-not (Test-Path $ResultsFile)) {
-        Write-Error "File not found: $ResultsFile. Please run without -RemoveInvalidPermissions to generate a results file."
+        Write-Error "File not found: $ResultsFile. Please specify -ResultsFile or run without -RemoveInvalidPermissions to generate a results file."
     } else {
         Import-Csv $ResultsFile | Remove-InvalidPermission
     }
@@ -114,7 +114,10 @@ if ($script:anyDatabaseDown) {
 # Now we're ready to do the checks
 
 if (Test-Path $ResultsFile) {
-    Remove-Item $ResultsFile
+    $directory = [System.IO.Path]::GetDirectoryName($ResultsFile)
+    $fileName = [System.IO.Path]::GetFileNameWithoutExtension($ResultsFile)
+    $timeString = (Get-Item $ResultsFile).LastWriteTime.ToString("yyMMdd-HHmm")
+    Move-Item -Path $ResultsFile -Destination (Join-Path $directory "$($fileName)-$timeString.csv")
 }
 
 if ($folderData.Errors.Count -gt 0) {
