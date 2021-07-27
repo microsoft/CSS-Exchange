@@ -102,3 +102,4 @@ DCCoreRatio | Gathers the Exchange to DC/GC Core ratio and displays the results 
 AnalyzeDataOnly | Switch to analyze the existing HealthChecker XML files. The results are displayed on the screen and an HTML report is generated.
 SkipVersionCheck | No version check is performed when this switch is used.
 SaveDebugLog | The debug log is kept even if the script is executed successfully.
+ScriptUpdateOnly | Switch to check for the latest version of the script and perform an auto update if a newer version was found. Can be run on any machine with internet connectivity. No elevated permissions or EMS are required.
