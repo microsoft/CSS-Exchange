@@ -59,6 +59,8 @@
     No version check is performed when this switch is used.
 .PARAMETER SaveDebugLog
     The debug log is kept even if the script is executed successfully.
+.PARAMETER ScriptUpdateOnly
+    Switch to check for the latest version of the script and perform an auto update. No elevated permissions or EMS are required.
 .PARAMETER Verbose
 	This optional parameter enables verbose logging.
 .EXAMPLE
@@ -109,7 +111,9 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
     [switch]$AnalyzeDataOnly,
     [Parameter(Mandatory = $false)][switch]$SkipVersionCheck,
-    [Parameter(Mandatory = $false)][switch]$SaveDebugLog
+    [Parameter(Mandatory = $false)][switch]$SaveDebugLog,
+    [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
 $BuildVersion = ""
@@ -206,7 +210,8 @@ Function Main {
 
     if (-not (Confirm-Administrator) -and
         (-not $AnalyzeDataOnly -and
-            -not $BuildHtmlServersReport)) {
+            -not $BuildHtmlServersReport -and
+            -not $ScriptUpdateOnly)) {
         Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
         $Error.Clear()
         Start-Sleep -Seconds 2;
@@ -276,6 +281,16 @@ Function Main {
         }
 
         Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+        return
+    }
+
+    if ($ScriptUpdateOnly) {
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
+        switch (Test-ScriptVersion -AutoUpdate) {
+            ($true) { Write-Green("Script was successfully updated.") }
+            ($false) { Write-Red("Script was not successfully updated.") }
+            default { Write-Yellow("Unable to perform ScriptUpdateOnly operation.") }
+        }
         return
     }
 

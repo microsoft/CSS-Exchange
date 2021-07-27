@@ -16,7 +16,8 @@ Function Invoke-ScriptLogFileLocation {
     $Script:OutXmlFullPath = $Script:OutputFullPath.Replace(".txt", ".xml")
 
     if ($AnalyzeDataOnly -or
-        $BuildHtmlServersReport) {
+        $BuildHtmlServersReport -or
+        $ScriptUpdateOnly) {
         return
     }
 
