@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-IpmSubtree.ps1
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-IpmSubtree.ps1
 . $PSScriptRoot\Get-NonIpmSubtree.ps1
 . $PSScriptRoot\Get-ItemCount.ps1
 

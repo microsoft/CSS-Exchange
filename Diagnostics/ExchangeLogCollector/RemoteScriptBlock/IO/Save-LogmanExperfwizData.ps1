@@ -1,4 +1,7 @@
-﻿Function  Save-LogmanExperfwizData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function  Save-LogmanExperfwizData {
 
     $PassedInfo.ExperfwizLogmanName |
         ForEach-Object {

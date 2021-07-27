@@ -1,4 +1,7 @@
-﻿function Test-BadPermissionJob {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Test-BadPermissionJob {
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
     param (

@@ -1,4 +1,7 @@
-﻿Function Get-OperatingSystemInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-OperatingSystemInformation {
 
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
 
@@ -68,7 +71,7 @@
         -ScriptBlockDescription "Getting Current Time Zone" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
         -MachineName $Script:Server `

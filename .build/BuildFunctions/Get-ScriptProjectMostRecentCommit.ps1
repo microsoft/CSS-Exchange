@@ -1,4 +1,8 @@
-﻿. $PSScriptRoot\Get-EmbeddedFileList.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-EmbeddedFileList.ps1
+. $PSScriptRoot\Get-FileMostRecentCommit.ps1
 
 <#
 .SYNOPSIS
@@ -16,15 +20,13 @@ function Get-ScriptProjectMostRecentCommit {
 
     process {
         Write-Verbose "Get-ScriptProjectMostRecentCommit called for file $File"
-        $mostRecentCommit = [DateTime]::MinValue
-        if ([DateTime]::TryParse((git log -n 1 --format="%ad" --date=rfc $File), [ref] $mostRecentCommit)) {
-            Get-EmbeddedFileList $File | ForEach-Object {
-                Write-Verbose "Getting commit time for $_"
-                $commitTime = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $_))
-                if ($commitTime -gt $mostRecentCommit) {
-                    $mostRecentCommit = $commitTime
-                    Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
-                }
+        $mostRecentCommit = Get-FileMostRecentCommit $File
+        foreach ($embeddedFile in (Get-EmbeddedFileList $File)) {
+            Write-Verbose "Getting commit time for $embeddedFile"
+            $commitTime = Get-FileMostRecentCommit $embeddedFile
+            if ($commitTime -gt $mostRecentCommit) {
+                $mostRecentCommit = $commitTime
+                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
             }
         }
 

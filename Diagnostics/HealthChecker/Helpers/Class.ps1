@@ -1,4 +1,7 @@
-﻿try {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+try {
     #Enums and custom data types
     Add-Type -TypeDefinition @"
     using System;
@@ -12,6 +15,7 @@
                 public OperatingSystemInformation  OSInformation; // OS Version Object Information
                 public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
                 public string HealthCheckerVersion; //To determine the version of the script on the object.
+                public DateTime GenerationTime; //Time stamp of running the script
             }
 
             // ExchangeInformation
@@ -21,7 +25,10 @@
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
+                public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+                public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
+                public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
                 public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config
@@ -233,15 +240,6 @@
                 public string Hours;
                 public string Minutes;
                 public string Seconds;
-            }
-
-            //enum for the dword values of the latest supported VC++ redistributable releases
-            //https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
-            public enum VCRedistVersion
-            {
-                Unknown = 0,
-                VCRedist2012 = 184610406,
-                VCRedist2013 = 201367256
             }
 
             public class OSNetFrameworkInformation

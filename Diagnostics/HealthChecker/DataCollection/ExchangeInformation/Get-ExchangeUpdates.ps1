@@ -1,4 +1,7 @@
-﻿Function Get-ExchangeUpdates {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
     )

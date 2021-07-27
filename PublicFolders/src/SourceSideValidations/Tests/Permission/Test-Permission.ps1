@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Test-PermissionJob.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Test-PermissionJob.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
 
 function Test-Permission {

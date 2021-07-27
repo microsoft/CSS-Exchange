@@ -1,4 +1,7 @@
-﻿Function Get-IndexStateOfMessage {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-IndexStateOfMessage {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(
@@ -18,7 +21,7 @@
         } elseif ($Message.BigFunnelPOISize -gt 0 -and
             $Message.BigFunnelPOISize -ne "NULL" -and
             $Message.p3655000B -eq $true -and
-            ($Message.($BigFunnelPropNameMapping.IsPartiallyIndexed) -eq "NULL" -or
+            ($Message.($BigFunnelPropNameMapping.IsPartiallyIndexed).ToString() -eq "NULL" -or
                 $Message.($BigFunnelPropNameMapping.IsPartiallyIndexed) -eq $false)) {
             $status = "Indexed"
         } elseif ($Message.BigFunnelPOISize -gt 0 -and

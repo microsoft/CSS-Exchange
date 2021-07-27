@@ -1,4 +1,7 @@
-﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
 #v21.03.11.0754
 Function Get-ExchangeBuildVersionInformation {
     [CmdletBinding()]

@@ -1,4 +1,7 @@
-﻿
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+
 Function New-SetupLogReviewer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'New is the best option')]
     [CmdletBinding()]

@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Write-ScriptOutput.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Write-ScriptOutput.ps1
 Function Write-BasicMailboxInformation {
     [CmdletBinding()]
     param(

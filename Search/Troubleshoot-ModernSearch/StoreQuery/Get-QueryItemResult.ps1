@@ -1,4 +1,7 @@
-﻿Function Get-QueryItemResult {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-QueryItemResult {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -31,10 +34,11 @@
 
         foreach ($docId in $DocumentId) {
 
-            $storeQueryHandler.ResetQueryInstances()
-            $storeQueryHandler.SetSelect("*")
-            $storeQueryHandler.SetFrom("BigFunnelMatchFilter('$QueryString', $mailboxNumber, $docId, '$QueryScope')")
-            $queryResult = $storeQueryHandler.InvokeGetStoreQuery()
+            $queryResult = $storeQueryHandler |
+                ResetQueryInstances |
+                SetSelect -Value "*" |
+                SetFrom -Value "BigFunnelMatchFilter('$QueryString', $mailboxNumber, $docId, '$QueryScope')" |
+                InvokeGetStoreQuery
 
             if ($queryResult.Value.Count -ne 1) {
                 $filterResult = "BigFunnelMatchFilter Failed"
@@ -44,8 +48,9 @@
                 $filterResult = $false
             }
 
-            $storeQueryHandler.SetFrom("BigFunnelMatchPOI('$QueryString', $mailboxNumber, $docId, '$QueryScope')")
-            $queryResult = $storeQueryHandler.InvokeGetStoreQuery()
+            $queryResult = $storeQueryHandler |
+                SetFrom -Value "BigFunnelMatchPOI('$QueryString', $mailboxNumber, $docId, '$QueryScope')" |
+                InvokeGetStoreQuery
 
             if ($queryResult.Value.Count -ne 1) {
                 $poiResult = "BigFunnelMatchPOI Failed"

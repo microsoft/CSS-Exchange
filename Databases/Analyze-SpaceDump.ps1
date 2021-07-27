@@ -1,4 +1,7 @@
-﻿# This script reports the space taken up by various tables based on a database space dump.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# This script reports the space taken up by various tables based on a database space dump.
 # The space dump must be obtained while the database is dismounted, or on a suspended copy
 # if the issue is happening there. To obtain the space dump, use the following syntax:
 #

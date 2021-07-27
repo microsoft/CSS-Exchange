@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .NOTES
 	Name: HealthChecker.ps1
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
@@ -166,6 +169,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\extern\Get-WmiObjectHandler.ps1
 . .\DataCollection\extern\Invoke-RegistryGetValue.ps1
 . $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. .\DataCollection\ExchangeInformation\Get-ExchangeAdSchemaClass.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeAppPoolsInformation.ps1
 . .\DataCollection\ExchangeInformation\Get-ExchangeInformation.ps1
@@ -181,7 +185,7 @@ if ($PSBoundParameters["Verbose"]) {
 . .\DataCollection\ServerInformation\Get-OperatingSystemInformation.ps1
 . .\DataCollection\ServerInformation\Get-PageFileInformation.ps1
 . .\DataCollection\ServerInformation\Get-ServerRole.ps1
-. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
+. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . .\Analyzer\Add-AnalyzedResultInformation.ps1
 . .\Analyzer\Get-DisplayResultsGroupingKey.ps1
 . .\Analyzer\Invoke-AnalyzerEngine.ps1

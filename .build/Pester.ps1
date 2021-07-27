@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Load-Module.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Load-Module.ps1
 
 if (-not (Load-Module -Name Pester -MinimumVersion 5.2.0)) {
     throw "Pester module could not be loaded"

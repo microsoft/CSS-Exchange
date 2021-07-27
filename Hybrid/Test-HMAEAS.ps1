@@ -1,4 +1,7 @@
-﻿#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#
 # Test-HMAEAS
 # Modified 2019/03/24
 # Syntax for running this script:

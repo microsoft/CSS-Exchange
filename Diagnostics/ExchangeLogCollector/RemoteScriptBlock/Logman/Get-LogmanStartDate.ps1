@@ -1,4 +1,7 @@
-﻿Function Get-LogmanStartDate {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LogmanStartDate {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

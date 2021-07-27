@@ -1,4 +1,7 @@
-﻿Function Get-CASLoadBalancingReport {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-CASLoadBalancingReport {
 
     Write-VerboseOutput("Calling: Get-CASLoadBalancingReport")
     #Connection and requests per server and client type values

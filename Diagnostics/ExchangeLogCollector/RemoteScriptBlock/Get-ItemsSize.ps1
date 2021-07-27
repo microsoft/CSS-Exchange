@@ -1,4 +1,7 @@
-﻿Function Get-ItemsSize {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ItemsSize {
     param(
         [Parameter(Mandatory = $true)][array]$FilePaths
     )

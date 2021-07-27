@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding()]
 param (
 
 )
@@ -49,10 +52,12 @@ $scriptFiles = Get-ChildItem -Path $repoRoot -Directory |
 #>
 
 $scriptFiles = $scriptFiles | Where-Object {
+    $fullName = $_
     $scriptName = [IO.Path]::GetFileName($_)
     $pattern = "\. .*\\$scriptName"
     $m = $scriptFiles | Get-Item | Select-String -Pattern $pattern
-    $m.Count -lt 1
+    $r = $m | Where-Object { $_.Path -ne $fullName }
+    $r.Count -lt 1
 }
 
 $nonUnique = @($scriptFiles | ForEach-Object { [IO.Path]::GetFileName($_) } | Group-Object | Where-Object { $_.Count -gt 1 })
@@ -68,7 +73,7 @@ if ($nonUnique.Count -gt 0) {
 
 $scriptVersions = @()
 
-$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\disclaimer.txt")
+$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\..\LICENSE")
 
 $scriptFiles | ForEach-Object {
     $scriptName = [IO.Path]::GetFileName($_)
@@ -92,13 +97,29 @@ $scriptFiles | ForEach-Object {
         }
     }
 
+
+    #Remove common comments
+    $linesToRemove = @("# Copyright (c) Microsoft Corporation.", "# Licensed under the MIT License.")
+
+    foreach ($comment in $linesToRemove) {
+
+        while ($expandedScript.Contains($comment)) {
+            $expandedScript.RemoveAt($expandedScript.IndexOf($comment))
+        }
+    }
+
     # Stamp version in comments
-    $expandedScript.Insert(0, "")
+    if (-not ([string]::IsNullOrWhiteSpace($expandedScript[0]))) {
+        $expandedScript.Insert(0, "")
+    }
+
     $expandedScript.Insert(0, "# Version $buildVersionString")
 
     # Add disclaimer
     $expandedScript.Insert(0, "")
+    $expandedScript.Insert(0, "#>")
     $expandedScript.InsertRange(0, $disclaimer)
+    $expandedScript.Insert(0, "<#")
 
     Set-Content -Path (Join-Path $distFolder $scriptName) -Value $expandedScript -Encoding utf8BOM
     $scriptVersions += [PSCustomObject]@{

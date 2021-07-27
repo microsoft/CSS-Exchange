@@ -1,4 +1,7 @@
-﻿. .\Get-ItemCountJob.ps1
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. .\Get-ItemCountJob.ps1
 
 function Get-ItemCount {
     <#

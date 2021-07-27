@@ -1,4 +1,7 @@
-﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Import-ScriptConfigFile/Import-ScriptConfigFile.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Import-ScriptConfigFile/Import-ScriptConfigFile.ps1
 #v21.02.07.1240
 Function Import-ScriptConfigFile {
     [CmdletBinding()]

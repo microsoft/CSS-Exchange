@@ -1,4 +1,7 @@
-﻿Function Invoke-AnalyzerEngine {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )
@@ -11,6 +14,7 @@
     $order = 0
     $keyBeginningInfo = Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder ($order++) -DefaultTabNumber 0
     $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder ($order++)
+    $keyHybridInformation = Get-DisplayResultsGroupingKey -Name "Hybrid Information" -DisplayOrder ($order++)
     $keyOSInformation = Get-DisplayResultsGroupingKey -Name "Operating System Information" -DisplayOrder ($order++)
     $keyHardwareInformation = Get-DisplayResultsGroupingKey -Name "Processor/Hardware Information" -DisplayOrder ($order++)
     $keyNICSettings = Get-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter" -DisplayOrder ($order++) -DefaultTabNumber 2
@@ -47,6 +51,11 @@
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true `
         -HtmlName "Server Name" `
+        -AnalyzedInformation $analyzedResults
+
+    $analyzedResults = Add-AnalyzedResultInformation -Name "Generation Time" -Details $HealthServerObject.GenerationTime `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -AddHtmlOverviewValues $true `
         -AnalyzedInformation $analyzedResults
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($exchangeInformation.BuildInformation.FriendlyName) `
@@ -164,6 +173,171 @@
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow" `
                 -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
+    }
+
+    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+        $analyzedResults = Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType "Red" `
+            -AnalyzedInformation $analyzedResults
+    }
+
+    #########################
+    # Hybrid Information
+    #########################
+    Write-VerboseOutput("Working on Hybrid Configuration Information")
+    if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+        $null -ne $exchangeInformation.GetHybridConfiguration) {
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Organization Hybrid enabled" -Details "True" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost))) {
+            $onPremSmartHostDomain = ($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost).ToString()
+            $onPremSmartHostWriteType = "Grey"
+        } else {
+            $onPremSmartHostDomain = "No on-premises smart host domain configured for hybrid use"
+            $onPremSmartHostWriteType = "Yellow"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "On-Premises Smart Host Domain" -Details $onPremSmartHostDomain `
+            -DisplayGroupingKey $keyHybridInformation `
+            -DisplayWriteType $onPremSmartHostWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Domains))) {
+            $domainsConfiguredForHybrid = $exchangeInformation.GetHybridConfiguration.Domains
+            $domainsConfiguredForHybridWriteType = "Grey"
+        } else {
+            $domainsConfiguredForHybridWriteType = "Yellow"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Domain(s) configured for Hybrid use" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -DisplayWriteType $domainsConfiguredForHybridWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($domainsConfiguredForHybrid.Count -ge 1) {
+            foreach ($domain in $domainsConfiguredForHybrid) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $domain `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayWriteType $domainsConfiguredForHybridWriteType `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "No domain configured for Hybrid use" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType $domainsConfiguredForHybridWriteType `
+                -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.EdgeTransportServers))) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            foreach ($edgeServer in $exchangeInformation.GetHybridConfiguration.EdgeTransportServers) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $edgeServer `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2  `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers)) -or
+                (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers)))) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayWriteType "Yellow" `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers))) {
+                foreach ($receivingTransportSrv in $exchangeInformation.GetHybridConfiguration.ReceivingTransportServers) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Details $receivingTransportSrv `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayCustomTabNumber 2 `
+                        -AnalyzedInformation $analyzedResults
+                }
+            } else {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "No Receiving Transport Server configured for Hybrid use" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+
+            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers))) {
+                foreach ($sendingTransportSrv in $exchangeInformation.GetHybridConfiguration.SendingTransportServers) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Details $sendingTransportSrv `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayCustomTabNumber 2 `
+                        -AnalyzedInformation $analyzedResults
+                }
+            } else {
+                $analyzedResults = Add-AnalyzedResultInformation -Details "No Sending Transport Server configured for Hybrid use" `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow" `
+                    -AnalyzedInformation $analyzedResults
+            }
+        }
+
+        if ($exchangeInformation.GetHybridConfiguration.ServiceInstance -eq 1) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Service Instance" -Details "Office 365 operated by 21Vianet" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+        } elseif ($exchangeInformation.GetHybridConfiguration.ServiceInstance -ne 0) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Service Instance" -Details ($exchangeInformation.GetHybridConfiguration.ServiceInstance) `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "You are using an invalid value. Please set this value to 0 (null) or re-run HCW" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details ($exchangeInformation.GetHybridConfiguration.TlsCertificateName).ToString() `
+                -DisplayGroupingKey $keyHybridInformation `
+                -AnalyzedInformation $analyzedResults
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details "No valid certificate found" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" `
+            -DisplayGroupingKey $keyHybridInformation `
+            -AnalyzedInformation $analyzedResults
+
+        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Features))) {
+            foreach ($feature in $exchangeInformation.GetHybridConfiguration.Features) {
+                $analyzedResults = Add-AnalyzedResultInformation -Details $feature `
+                    -DisplayGroupingKey $keyHybridInformation `
+                    -DisplayCustomTabNumber 2  `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "No feature(s) enabled for Hybrid use" `
+                -DisplayGroupingKey $keyHybridInformation `
+                -DisplayCustomTabNumber 2  `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -405,32 +579,18 @@
     $displayValue2013 = "Unknown"
 
     if ($null -ne $osInformation.VcRedistributable) {
-        Write-VerboseOutput("VCRedist2012 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2012.value__)
-        Write-VerboseOutput("VCRedist2013 Testing value: {0}" -f [HealthChecker.VCRedistVersion]::VCRedist2013.value__)
 
-        foreach ($detectedVisualRedistVersion in $osInformation.VcRedistributable) {
-            Write-VerboseOutput("Testing {0} version id '{1}'" -f $detectedVisualRedistVersion.DisplayName, $detectedVisualRedistVersion.VersionIdentifier)
-
-            if ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2012*") {
-                $vcRedist2012Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2012) {
-                    $displayWriteType2012 = "Green"
-                    $displayValue2012 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            } elseif ($detectedVisualRedistVersion.DisplayName -like "Microsoft Visual C++ 2013*") {
-                $vcRedist2013Detected = $true
-                if ($detectedVisualRedistVersion.VersionIdentifier -eq [HealthChecker.VCRedistVersion]::VCRedist2013) {
-                    $displayWriteType2013 = "Green"
-                    $displayValue2013 = "{0} Version is current" -f $detectedVisualRedistVersion.DisplayVersion
-                }
-            }
-        }
-
-        if (($vcRedist2012Detected -eq $true) -and ($displayWriteType2012 -ne "Green")) {
+        if (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $osInformation.VcRedistributable) {
+            $displayWriteType2012 = "Green"
+            $displayValue2012 = "$((Get-VisualCRedistributableInfo 2012).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayValue2012 = "Redistributable is outdated"
         }
 
-        if (($vcRedist2013Detected -eq $true) -and ($displayWriteType2013 -ne "Green")) {
+        if (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $osInformation.VcRedistributable) {
+            $displayWriteType2013 = "Green"
+            $displayValue2013 = "$((Get-VisualCRedistributableInfo 2013).VersionNumber) Version is current"
+        } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayValue2013 = "Redistributable is outdated"
         }
     }
@@ -1257,15 +1417,13 @@
         }
 
         if ($certificate.PublicKeySize -lt 2048) {
-            $additionalDisplayValue = "It's recommended to use a key size of at least 2048 bit."
-
             $analyzedResults = Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
 
-            $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue `
+            $analyzedResults = Add-AnalyzedResultInformation -Details "It's recommended to use a key size of at least 2048 bit" `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red" `
@@ -1274,6 +1432,32 @@
             $analyzedResults = Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
+                -AnalyzedInformation $analyzedResults
+        }
+
+        if ($certificate.SignatureHashAlgorithmSecure -eq 1) {
+            $shaDisplayWriteType = "Yellow"
+        } else {
+            $shaDisplayWriteType = "Grey"
+        }
+
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Signature Algorithm" -Details $certificate.SignatureAlgorithm `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType $shaDisplayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        $analyzedResultsults = Add-AnalyzedResultInformation -Name "Signature Hash Algorithm" -Details $certificate.SignatureHashAlgorithm `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType $shaDisplayWriteType `
+            -AnalyzedInformation $analyzedResults
+
+        if ($shaDisplayWriteType -eq "Yellow") {
+            $analyzedResults = Add-AnalyzedResultInformation -Details "It's recommended to use a hash algorithm from the SHA-2 family `r`n`t`tMore information: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-tls-038-ssl-best-practices/ba-p/603798" `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $shaDisplayWriteType `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -1591,6 +1775,7 @@
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.12" -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.15" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.18" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.23" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -1653,6 +1838,10 @@
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.12", "2242.8" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2176.14", "2242.10" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
         }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2242.12", "2308.14" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -1696,6 +1885,10 @@
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.13", "858.10" -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "792.15", "858.12" -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
+        }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "858.15", "922.13" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } else {
         Write-VerboseOutput("Unknown Version of Exchange")
@@ -1747,6 +1940,45 @@
         if ($null -ne $KBCveComb) {
             Show-March2021SUOutdatedCUWarning -KBCVEHT $KBCveComb
         }
+    }
+
+    #Description: Check for CVE-2021-34470 rights elevation vulnerability
+    #Affected Exchange versions: 2013, 2016, 2019
+    #Fix:
+    ##Exchange 2013 CU23 + July 2021 SU + /PrepareSchema,
+    ##Exchange 2016 CU20 + July 2021 SU + /PrepareSchema or CU21,
+    ##Exchange 2019 CU9 + July 2021 SU + /PrepareSchema or CU10
+    #Workaround: N/A
+
+    if (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) -or
+        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+            ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU21)) -or
+        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+            ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU10))) {
+        Write-VerboseOutput("Testing CVE: CVE-2021-34470")
+
+        if ($null -eq $exchangeInformation.msExchStorageGroup) {
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("CVE-2021-34470`r`n`t`tUnable to query 'ms-Exch-Storage-Group' to perform testing.") `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Yellow" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+            $Script:AllVulnerabilitiesPassed = $false
+            Write-VerboseOutput("Unable to query 'ms-Exch-Storage-Group' Exchange Schema class information")
+        } elseif ($exchangeInformation.msExchStorageGroup.Properties.posssuperiors -eq "computer") {
+            $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2021-34470"
+            $Script:Vulnerabilities += $details
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details $details `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Red" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+            $Script:AllVulnerabilitiesPassed = $false
+        } else {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
+        }
+    } else {
+        Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
     }
 
     #Description: Check for CVE-2021-1730 vulnerability

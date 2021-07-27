@@ -1,4 +1,7 @@
-﻿#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Invoke-RegistryGetValue/Invoke-RegistryGetValue.ps1
 #v21.01.22.2234
 Function Invoke-RegistryGetValue {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Multiple output types occur')]

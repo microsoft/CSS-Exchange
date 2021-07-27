@@ -1,4 +1,7 @@
-﻿# SetupAssist.ps1 is used for running on the Exchange Server that we are wanting to install or upgrade.
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# SetupAssist.ps1 is used for running on the Exchange Server that we are wanting to install or upgrade.
 # We validate common prerequisites that or overlooked and look at AD to make sure it is able to upgrade
 #
 # TODO: Add AD Object Permissions check
@@ -12,6 +15,8 @@ param(
 . .\Checks\Confirm-VirtualDirectoryConfiguration.ps1
 . .\Checks\Test-CriticalService.ps1
 . .\Checks\Test-ExchangeAdLevel.ps1
+. .\Checks\Test-ComputersContainerExists.ps1
+. .\Checks\Test-ReadOnlyDomainControllerLocation.ps1
 . .\Checks\Test-MissingDirectory.ps1
 . .\Checks\Test-MissingMsiFiles.ps1
 . .\Checks\Test-OtherWellKnownObjects.ps1
@@ -29,7 +34,7 @@ param(
 #REPO Shared
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
-. $PSScriptRoot\..\..\Shared\Get-VisualCRedistributableVersion.ps1
+. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 
 #REPO Shared Dependencies
 . $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
@@ -121,6 +126,8 @@ Function MainUse {
     Test-ValidHomeMDB
     Test-MissingDirectory
     Test-ExchangeAdSetupObjects
+    Test-ComputersContainerExists
+    Test-ReadOnlyDomainControllerLocation
     Confirm-VirtualDirectoryConfiguration
 
     $exSetupLog = "$($env:HOMEDRIVE)\ExchangeSetupLogs\ExchangeSetup.log"

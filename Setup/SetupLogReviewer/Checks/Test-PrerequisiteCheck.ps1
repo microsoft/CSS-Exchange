@@ -1,4 +1,7 @@
-﻿Function Test-PrerequisiteCheck {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-PrerequisiteCheck {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

@@ -1,4 +1,7 @@
-﻿function Invoke-DisableDiagnosticsLogging {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-DisableDiagnosticsLogging {
 
     Write-Host " "  $nl
     Get-Date

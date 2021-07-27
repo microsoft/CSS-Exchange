@@ -1,4 +1,7 @@
-﻿Function Get-SearchProcessState {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-SearchProcessState {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME

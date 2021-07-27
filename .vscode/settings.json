@@ -20,5 +20,8 @@
     "files.encoding": "utf8",
     "[powershell]": {
         "files.encoding": "utf8bom"
-    }
+    },
+    "cSpell.words": [
+        "cmdlet"
+    ]
 }

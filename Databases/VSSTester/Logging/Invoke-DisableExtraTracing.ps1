@@ -1,4 +1,7 @@
-﻿function Invoke-DisableExTRATracing {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-DisableExTRATracing {
     " "
     Get-Date
     Write-Host "Disabling ExTRA Tracing..." -ForegroundColor Green $nl

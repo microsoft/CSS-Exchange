@@ -1,4 +1,7 @@
-﻿Function Get-FolderInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-FolderInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -19,13 +22,14 @@
     }
     process {
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
-        $storeQueryHandler.ResetQueryInstances()
+        $storeQueryHandler = $storeQueryHandler | ResetQueryInstances
 
         if (-not([string]::IsNullOrEmpty($DisplayName))) {
-            $storeQueryHandler.SetSelect("FolderId")
-            $storeQueryHandler.SetFrom("Folder")
-            $storeQueryHandler.SetWhere("MailboxNumber = $mailboxNumber and DisplayName = '$DisplayName'")
-            $folderQuery = $storeQueryHandler.InvokeGetStoreQuery()
+            $folderQuery = $storeQueryHandler |
+                SetSelect -Value "FolderId" |
+                SetFrom -Value "Folder" |
+                SetWhere -Value "MailboxNumber = $mailboxNumber and DisplayName = '$DisplayName'" |
+                InvokeGetStoreQuery
 
             if ([string]::IsNullOrEmpty($folderQuery.FolderId)) {
                 throw "Failed to find valid folder by Display Name: $DisplayName"
@@ -39,15 +43,16 @@
                     "FolderId='$_'"
                 }) -join " or "
 
-        $storeQueryHandler.SetSelect(@(
+        [array]$folderInformation = $storeQueryHandler |
+            SetSelect -Value @(
                 "FolderId",
                 "DisplayName",
                 "ParentFolderId",
                 "CreationTime",
-                "LastModificationTime"))
-        $storeQueryHandler.SetFrom("Folder")
-        $storeQueryHandler.SetWhere("MailboxNumber = $mailboxNumber and ($folderFilter)")
-        [array]$folderInformation = $storeQueryHandler.InvokeGetStoreQuery()
+                "LastModificationTime") |
+            SetFrom -Value "Folder" |
+            SetWhere -Value "MailboxNumber = $mailboxNumber and ($folderFilter)" |
+            InvokeGetStoreQuery
 
         foreach ($folder in $folderInformation) {
             $folderList.Add([PSCustomObject]@{

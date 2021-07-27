@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\..\New-TestResult.ps1
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\..\New-TestResult.ps1
 
 function Test-MailEnabledFolder {
     [CmdletBinding()]

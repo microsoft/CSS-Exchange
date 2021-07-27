@@ -1,4 +1,7 @@
-﻿Function Get-LogmanStatus {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-LogmanStatus {
     param(
         [Parameter(Mandatory = $true)]$RawLogmanData
     )

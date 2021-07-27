@@ -1,4 +1,7 @@
-﻿Function Get-HealthCheckerExchangeServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HealthCheckerExchangeServer {
 
     Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
 
@@ -20,6 +23,7 @@
         }
     }
     $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
+    $HealthExSvrObj.GenerationTime = [datetime]::Now
     Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Script:Server)
     return $HealthExSvrObj
 }

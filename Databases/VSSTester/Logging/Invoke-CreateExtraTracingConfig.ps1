@@ -1,4 +1,7 @@
-﻿function Invoke-CreateExTRATracingConfig {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Invoke-CreateExTRATracingConfig {
 
     function Out-ExTRAConfigFile {
         param ([string]$fileline)

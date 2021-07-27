@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding()]
 param(
     [Switch]
     $Save
@@ -61,8 +64,32 @@ foreach ($file in $scriptFiles) {
         }
     }
 
+    #Check for compliance
+    $scriptContent = New-Object 'System.Collections.Generic.List[string]'
+    $scriptContent.AddRange([IO.File]::ReadAllLines($file))
+
+    if (-not ($scriptContent[0].Contains("# Copyright (c) Microsoft Corporation.")) -or
+        -not ($scriptContent[1].Contains("# Licensed under the MIT License."))) {
+
+        Write-Warning "File doesn't have header compliance set: $file"
+        if ($Save) {
+            try {
+                $scriptContent.Insert(0, "")
+                $scriptContent.Insert(0, "# Licensed under the MIT License.")
+                $scriptContent.Insert(0, "# Copyright (c) Microsoft Corporation.")
+                Set-Content -Path $file -Value $scriptContent -Encoding utf8BOM
+            } catch {
+                $filesFailed = $true
+                throw
+            }
+        } else {
+            $filesFailed = $true
+        }
+    }
+
+    $reloadFile = $false
     $before = Get-Content $file -Raw
-    $after = Invoke-Formatter -ScriptDefinition (Get-Content $file -Raw) -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
+    $after = Invoke-Formatter -ScriptDefinition $before -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
 
     if ($before -ne $after) {
         Write-Warning ("{0}:" -f $file)
@@ -71,6 +98,7 @@ foreach ($file in $scriptFiles) {
             try {
                 Set-Content -Path $file -Value $after -Encoding utf8NoBOM
                 Write-Information "Saved $file with formatting corrections."
+                $reloadFile = $true
             } catch {
                 $filesFailed = $true
                 Write-Warning "Failed to save $file with formatting corrections."
@@ -79,6 +107,16 @@ foreach ($file in $scriptFiles) {
             $filesFailed = $true
             git diff ($($before) | git hash-object -w --stdin) ($($after) | git hash-object -w --stdin)
         }
+    }
+
+    if ($reloadFile) {
+        $before = Get-Content -Path $file -Raw
+    }
+
+    if (-not ([string]::IsNullOrWhiteSpace($before[-1]))) {
+        Write-Warning $file
+        Write-Warning "Failed to have a whitespace at the end of the file"
+        $filesFailed = $true
     }
 
     $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1

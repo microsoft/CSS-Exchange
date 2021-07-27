@@ -1,4 +1,7 @@
-﻿Function Get-ArgumentList {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ArgumentList {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'TODO: Change this')]
     param(
         [Parameter(Mandatory = $true)][array]$Servers

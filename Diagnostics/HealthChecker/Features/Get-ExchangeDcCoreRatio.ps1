@@ -1,4 +1,7 @@
-﻿Function Get-ComputerCoresObject {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ComputerCoresObject {
     param(
         [Parameter(Mandatory = $true)][string]$Machine_Name
     )
