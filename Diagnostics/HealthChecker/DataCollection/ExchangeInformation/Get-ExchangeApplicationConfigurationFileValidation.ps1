@@ -6,7 +6,7 @@ Function Get-ExchangeApplicationConfigurationFileValidation {
     param(
         [string[]]$ConfigFileLocation
     )
-    Write-VerboseOutput("Calling: Get-ExchangeApplicationConfigurationFileValidation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $results = @{}
     $ConfigFileLocation |
         ForEach-Object {

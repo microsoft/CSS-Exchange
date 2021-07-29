@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 Function Get-LmCompatibilityLevelInformation {
 
-    Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.LmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.LmCompatibilityLevelInformation
     $ServerLmCompatObject.RegistryValue = Get-RemoteRegistryValue -RegistryHive "LocalMachine" `
@@ -26,6 +26,6 @@ Function Get-LmCompatibilityLevelInformation {
         5 { $ServerLmCompatObject.Description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
     }
 
-    Write-VerboseOutput("Exiting: Get-LmCompatibilityLevelInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     Return $ServerLmCompatObject
 }

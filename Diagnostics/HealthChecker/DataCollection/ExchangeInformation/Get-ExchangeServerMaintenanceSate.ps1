@@ -6,7 +6,7 @@ Function Get-ExchangeServerMaintenanceState {
     param(
         [Parameter(Mandatory = $false)][array]$ComponentsToSkip
     )
-    Write-VerboseOutput("Calling Function: Get-ExchangeServerMaintenanceState")
+    Write-Verbose "Calling Function: $($MyInvocation.MyCommand)"
 
     [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
     $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
@@ -14,18 +14,18 @@ Function Get-ExchangeServerMaintenanceState {
     try {
         $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $Script:Server -ErrorAction SilentlyContinue
     } catch {
-        Write-VerboseOutput("Failed to run Get-MailboxServer")
+        Write-Verbose "Failed to run Get-MailboxServer"
         Invoke-CatchActions
     }
 
     try {
         $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
     } catch {
-        Write-VerboseOutput("Failed to run Get-ClusterNode")
+        Write-Verbose "Failed to run Get-ClusterNode"
         Invoke-CatchActions
     }
 
-    Write-VerboseOutput("Running ServerComponentStates checks")
+    Write-Verbose "Running ServerComponentStates checks"
 
     foreach ($component in $serverMaintenance.GetServerComponentState) {
         if (($null -ne $ComponentsToSkip -and
@@ -45,7 +45,7 @@ Function Get-ExchangeServerMaintenanceState {
                     $latestRemoteState = ($component.RemoteStates | Sort-Object { $_.TimeStamp } -ErrorAction SilentlyContinue)[-1]
                 }
 
-                Write-VerboseOutput("Component: {0} LocalState: '{1}' RemoteState: '{2}'" -f $component.Component, $latestLocalState.State, $latestRemoteState.State)
+                Write-Verbose "Component: '$($component.Component)' LocalState: '$($latestLocalState.State)' RemoteState: '$($latestRemoteState.State)'"
 
                 if ($latestLocalState.State -eq $latestRemoteState.State) {
                     $serverMaintenance.InactiveComponents += "'{0}' is in Maintenance Mode" -f $component.Component
@@ -61,10 +61,10 @@ Function Get-ExchangeServerMaintenanceState {
                     }
                 }
             } else {
-                Write-VerboseOutput("Component '{0}' is Active" -f $component.Component)
+                Write-Verbose "Component '$($component.Component)' is Active"
             }
         } else {
-            Write-VerboseOutput("Component: {0} will be skipped" -f $component.Component)
+            Write-Verbose "Component: $($component.Component) will be skipped"
         }
     }
 

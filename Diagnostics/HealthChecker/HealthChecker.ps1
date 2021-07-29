@@ -289,7 +289,7 @@ Function Main {
     try {
         $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
     } catch {
-        Write-VerboseOutput("Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json")
+        Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
         $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
 
         $testOuputxml = [PSCustomObject]@{

@@ -8,7 +8,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 Function Get-HealthCheckerExchangeServer {
 
-    Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer
     $HealthExSvrObj.ServerName = $Script:Server
@@ -29,6 +29,6 @@ Function Get-HealthCheckerExchangeServer {
     }
     $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
     $HealthExSvrObj.GenerationTime = [datetime]::Now
-    Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Script:Server)
+    Write-Verbose "Finished building health Exchange Server Object for server: $Script:Server"
     return $HealthExSvrObj
 }

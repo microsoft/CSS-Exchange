@@ -6,8 +6,7 @@ Function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
     )
-    Write-VerboseOutput("Calling: Get-ExchangeUpdates")
-    Write-VerboseOutput("Passed: {0}" -f $ExchangeMajorVersion.ToString())
+    Write-Verbose("Calling: $($MyInvocation.MyCommand) Passed: $ExchangeMajorVersion")
     $RegLocation = [string]::Empty
 
     if ([HealthChecker.ExchangeMajorVersion]::Exchange2013 -eq $ExchangeMajorVersion) {
@@ -25,22 +24,22 @@ Function Get-ExchangeUpdates {
     if ($null -ne $RegKey) {
         $IU = $RegKey.GetSubKeyNames()
         if ($null -ne $IU) {
-            Write-VerboseOutput("Detected fixes installed on the server")
+            Write-Verbose "Detected fixes installed on the server"
             $fixes = @()
             foreach ($key in $IU) {
                 $IUKey = $RegKey.OpenSubKey($key)
                 $IUName = $IUKey.GetValue("PackageName")
-                Write-VerboseOutput("Found: " + $IUName)
+                Write-Verbose "Found: $IUName"
                 $fixes += $IUName
             }
             return $fixes
         } else {
-            Write-VerboseOutput("No IUs found in the registry")
+            Write-Verbose "No IUs found in the registry"
         }
     } else {
-        Write-VerboseOutput("No RegKey returned")
+        Write-Verbose "No RegKey returned"
     }
 
-    Write-VerboseOutput("Exiting: Get-ExchangeUpdates")
+    Write-Verbose "Exiting: Get-ExchangeUpdates"
     return $null
 }

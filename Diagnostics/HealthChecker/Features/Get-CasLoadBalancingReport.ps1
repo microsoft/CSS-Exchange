@@ -3,7 +3,7 @@
 
 Function Get-CASLoadBalancingReport {
 
-    Write-VerboseOutput("Calling: Get-CASLoadBalancingReport")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     #Connection and requests per server and client type values
     $CASConnectionStats = @{}
     $TotalCASConnectionCount = 0

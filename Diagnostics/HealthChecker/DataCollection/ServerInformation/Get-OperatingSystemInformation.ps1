@@ -18,7 +18,7 @@
 . $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
 Function Get-OperatingSystemInformation {
 
-    Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
     $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -37,12 +37,12 @@ Function Get-OperatingSystemInformation {
     if ($null -ne $win32_PowerPlan) {
 
         if ($win32_PowerPlan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}") {
-            Write-VerboseOutput("High Performance Power Plan is set to true")
+            Write-Verbose "High Performance Power Plan is set to true"
             $osInformation.PowerPlan.HighPerformanceSet = $true
-        } else { Write-VerboseOutput("High Performance Power Plan is NOT set to true") }
+        } else { Write-Verbose "High Performance Power Plan is NOT set to true" }
         $osInformation.PowerPlan.PowerPlanSetting = $win32_PowerPlan.ElementName
     } else {
-        Write-VerboseOutput("Power Plan Information could not be read")
+        Write-Verbose "Power Plan Information could not be read"
         $osInformation.PowerPlan.PowerPlanSetting = "N/A"
     }
     $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan
@@ -115,6 +115,6 @@ Function Get-OperatingSystemInformation {
     $osInformation.Smb1ServerSettings.WindowsFeature = $getSmb1ServerSettings.WindowsFeature
     $osInformation.Smb1ServerSettings.Smb1Status = $getSmb1ServerSettings.Smb1Status
 
-    Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $osInformation
 }

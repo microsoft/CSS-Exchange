@@ -26,14 +26,6 @@ function Write-Grey($message) {
     $message | Out-File ($OutputFullPath) -Append
 }
 
-function Write-VerboseOutput($message) {
-    #Write-Verbose has an override to handle the Write-DebugLog
-    Write-Verbose $message
-    if ($Script:VerboseEnabled) {
-        $message | Out-File ($OutputFullPath) -Append
-    }
-}
-
 function Write-DebugLog($message) {
     if (![string]::IsNullOrEmpty($message)) {
         $Script:Logger.WriteToFileOnly($message)
@@ -43,5 +35,3 @@ function Write-DebugLog($message) {
 Function Write-Break {
     Write-Host ""
 }
-
-$Script:VerboseFunctionCaller = ${Function:Write-VerboseOutput}

@@ -6,7 +6,7 @@ Function Get-HttpProxySetting {
 
     $httpProxy32 = [String]::Empty
     $httpProxy64 = [String]::Empty
-    Write-VerboseOutput("Calling: Get-HttpProxySetting")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     Function Get-WinHttpSettings {
         param(
@@ -28,9 +28,9 @@ Function Get-HttpProxySetting {
     $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 32 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
     $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-WinHttpSettings} -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" -ScriptBlockDescription "Getting 64 Http Proxy Value" -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    Write-VerboseOutput("Http Proxy 32: {0}" -f $httpProxy32)
-    Write-VerboseOutput("Http Proxy 64: {0}" -f $httpProxy64)
-    Write-VerboseOutput("Exiting: Get-HttpProxySetting")
+    Write-Verbose "Http Proxy 32: $httpProxy32"
+    Write-Verbose "Http Proxy 64: $httpProxy64"
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
 
     if ($httpProxy32 -ne "<None>") {
         return $httpProxy32
