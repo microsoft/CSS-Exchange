@@ -1,9 +1,11 @@
 ---
-Emerging Issues for Exchange On-Premises
+title: Emerging Issues
+nav_order: 2
 ---
 
+# Emerging Issues for Exchange On-Premises
+
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
-<BR><BR>
 
 Following are the known issues with July 2021 security updates/cumulaive updates for Exchange On-Premises servers
 
