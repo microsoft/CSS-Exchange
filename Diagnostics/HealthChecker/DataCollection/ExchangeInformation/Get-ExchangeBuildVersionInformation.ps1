@@ -1,21 +1,25 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeBuildVersionInformation/Get-ExchangeBuildVersionInformation.ps1
-#v21.03.11.0754
 Function Get-ExchangeBuildVersionInformation {
     [CmdletBinding()]
     param(
         [object]$AdminDisplayVersion
     )
-    #Function Version #v21.03.11.0754
-
-    Write-VerboseWriter("Calling: Get-ExchangeBuildVersionInformation")
-    Write-VerboseWriter("Passed $($AdminDisplayVersion.ToString())")
-
-    if ($AdminDisplayVersion.GetType().Name -eq "string") {
-        Write-VerboseWriter("String type object detected being passed.")
-        $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).split('.')
+    begin {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        Write-Verbose "Passed $($AdminDisplayVersion.ToString())"
+        $AdminDisplayVersion = $AdminDisplayVersion.ToString()
+        $exchangeMajorVersion = [string]::Empty
+        [int]$major = 0
+        [int]$minor = 0
+        [int]$build = 0
+        [int]$revision = 0
+        $product = $null
+        [double]$buildVersion = 0.0
+    }
+    process {
+        $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).Split(".")
         $major = [int]$split[0]
         $minor = [int]$split[1]
         $product = $major + ($minor / 10)
@@ -26,34 +30,27 @@ Function Get-ExchangeBuildVersionInformation {
         $revision = [int]$split[1]
         $revisionDecimal = if ($revision -lt 10) { $revision / 10 } else { $revision / 100 }
         $buildVersion = $build + $revisionDecimal
-    } else {
-        $major = $AdminDisplayVersion.Major
-        $minor = $AdminDisplayVersion.Minor
-        $product = $major + ($minor / 10)
-        $build = $AdminDisplayVersion.Build
-        $revision = $AdminDisplayVersion.Revision
-        $revisionDecimal = if ($revision -lt 10) { $revision / 10 } else { $revision / 100 }
-        $buildVersion = $build + $revisionDecimal
+
+        Write-Verbose "Determining Major Version based off of $product"
+
+        switch ([string]$product) {
+            "14.3" { $exchangeMajorVersion = "Exchange2010" }
+            "15" { $exchangeMajorVersion = "Exchange2013" }
+            "15.1" { $exchangeMajorVersion = "Exchange2016" }
+            "15.2" { $exchangeMajorVersion = "Exchange2019" }
+            default { $exchangeMajorVersion = "Unknown" }
+        }
     }
-
-    Write-VerboseWriter("Determining Major Version based off of $product")
-
-    switch ([string]$product) {
-        "14.3" { $exchangeMajorVersion = "Exchange2010" }
-        "15" { $exchangeMajorVersion = "Exchange2013" }
-        "15.1" { $exchangeMajorVersion = "Exchange2016" }
-        "15.2" { $exchangeMajorVersion = "Exchange2019" }
-        default { $exchangeMajorVersion = "Unknown" }
-    }
-
-    Write-VerboseWriter("Found Major Version '$exchangeMajorVersion'")
-    return [PSCustomObject]@{
-        MajorVersion = $exchangeMajorVersion
-        Major        = $major
-        Minor        = $minor
-        Build        = $build
-        Revision     = $revision
-        Product      = $product
-        BuildVersion = $buildVersion
+    end {
+        Write-Verbose "Found Major Version '$exchangeMajorVersion'"
+        return [PSCustomObject]@{
+            MajorVersion = $exchangeMajorVersion
+            Major        = $major
+            Minor        = $minor
+            Build        = $build
+            Revision     = $revision
+            Product      = $product
+            BuildVersion = $buildVersion
+        }
     }
 }

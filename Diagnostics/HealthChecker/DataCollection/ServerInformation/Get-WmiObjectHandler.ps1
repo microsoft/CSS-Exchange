@@ -1,39 +1,53 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Get-WmiObjectHandler/Get-WmiObjectHandler.ps1
-#v21.01.22.2234
 Function Get-WmiObjectHandler {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'This is what this function is for')]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false)][string]$ComputerName = $env:COMPUTERNAME,
-        [Parameter(Mandatory = $true)][string]$Class,
-        [Parameter(Mandatory = $false)][string]$Filter,
-        [Parameter(Mandatory = $false)][string]$Namespace,
-        [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
-    )
-    #Function Version #v21.01.22.2234
+        [string]
+        $ComputerName = $env:COMPUTERNAME,
 
-    Write-VerboseWriter("Calling: Get-WmiObjectHandler")
-    Write-VerboseWriter("Passed: [string]ComputerName: {0} | [string]Class: {1} | [string]Filter: {2} | [string]Namespace: {3}" -f $ComputerName, $Class, $Filter, $Namespace)
-    $execute = @{
-        ComputerName = $ComputerName
-        Class        = $Class
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Class,
+
+        [string]
+        $Filter,
+
+        [string]
+        $Namespace,
+
+        [scriptblock]
+        $CatchActionFunction
+    )
+    begin {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        Write-Verbose "Passed - ComputerName: '$ComputerName' | Class: '$Class' | Filter: '$Filter' | Namespace: '$Namespace'"
+
+        $execute = @{
+            ComputerName = $ComputerName
+            Class        = $Class
+        }
+
+        if (-not ([string]::IsNullOrEmpty($Filter))) {
+            $execute.Add("Filter", $Filter)
+        }
+
+        if (-not ([string]::IsNullOrEmpty($Namespace))) {
+            $execute.Add("Namespace", $Namespace)
+        }
     }
-    if (![string]::IsNullOrEmpty($Filter)) {
-        $execute.Add("Filter", $Filter)
-    }
-    if (![string]::IsNullOrEmpty($Namespace)) {
-        $execute.Add("Namespace", $Namespace)
-    }
-    try {
-        $wmi = Get-WmiObject @execute -ErrorAction Stop
-        return $wmi
-    } catch {
-        Write-VerboseWriter("Failed to run Get-WmiObject object on class '{0}'" -f $Class)
-        if ($null -ne $CatchActionFunction) {
-            & $CatchActionFunction
+    process {
+        try {
+            $wmi = Get-WmiObject @execute -ErrorAction Stop
+            return $wmi
+        } catch {
+            Write-Verbose "Failed to run Get-WmiObject on class '$class'"
+
+            if ($null -ne $CatchActionFunction) {
+                & $CatchActionFunction
+            }
         }
     }
 }
