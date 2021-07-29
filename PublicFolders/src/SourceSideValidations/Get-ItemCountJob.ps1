@@ -34,6 +34,7 @@ function Get-ItemCountJob {
     }
 
     process {
+        $ErrorActionPreference = "Stop" # So our try/catch works
         $itemCounts = New-Object System.Collections.ArrayList
         foreach ($folder in $Folders) {
             $progressCount++
@@ -73,7 +74,7 @@ function Get-ItemCountJob {
                             ResultData     = $_.ToString()
                         }
 
-                        [void]$errors.Add($error)
+                        [void]$errors.Add($errorReport)
                     }
                 }
             }

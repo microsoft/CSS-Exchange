@@ -73,12 +73,12 @@ $startTime = Get-Date
 
 $startingErrorCount = $Error.Count
 
-Set-ADServerSettings -ViewEntireForest $true
-
-if ($Error.Count -gt $startingErrorCount) {
-    # If we already have errors, we're not running from the right shell.
+if ($null -eq (Get-Command Set-ADServerSettings -ErrorAction:SilentlyContinue)) {
+    Write-Warning "Exchange Server cmdlets are not present in this shell."
     return
 }
+
+Set-ADServerSettings -ViewEntireForest $true
 
 $progressParams = @{
     Activity = "Validating public folders"

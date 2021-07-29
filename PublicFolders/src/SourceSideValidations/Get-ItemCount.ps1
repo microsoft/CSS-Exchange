@@ -62,14 +62,14 @@ function Get-ItemCount {
                 for ($i = 0; $i -lt $mailboxBatchCount; $i++) {
                     $batch = $group.Group | Select-Object -First $batchSize -Skip ($batchSize * $i)
                     $argumentList = $server, $group.Name, $batch
-                    $jobsForThisMailbox.Add(@{
+                    [void]$jobsForThisMailbox.Add(@{
                             ArgumentList = $argumentList
                             Name         = "Item Count $($group.Name) Job $($i + 1)"
                             ScriptBlock  = ${Function:Get-ItemCountJob}
                         })
                 }
 
-                $jobsToCreate.Add($group.Name, $jobsForThisMailbox)
+                [void]$jobsToCreate.Add($group.Name, $jobsForThisMailbox)
             }
 
             # Add the jobs by round-robin among the mailboxes so we don't execute all jobs
@@ -90,15 +90,13 @@ function Get-ItemCount {
                 $index++
             } while ($jobsAddedThisRound -gt 0)
 
-            $foldersDone = 0
             Wait-QueuedJob | ForEach-Object {
-                $foldersDone += $_.ItemCounts.Count
-                Write-Verbose "Retrieved item counts for $foldersDone folders so far..."
                 $itemCounts.AddRange($_.ItemCounts)
                 $errors.AddRange($_.Errors)
+                Write-Verbose "Retrieved item counts for $($itemCounts.Count) folders so far. $($errors.Count) errors encountered."
 
                 if ($_.ItemCounts.Count -gt 0) {
-                    $_.ItemCounts | Export-Csv -Path $progressFile -Append
+                    $_.ItemCounts | Export-Csv -Path $progressFile -Append -Force
                 }
             }
         }
@@ -106,8 +104,6 @@ function Get-ItemCount {
 
     end {
         Write-Progress @progressParams -Completed
-
-        Remove-Item $progressFile
 
         return [PSCustomObject]@{
             ItemCounts = $itemCounts
