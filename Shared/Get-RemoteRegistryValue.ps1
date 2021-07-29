@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+
 Function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(
@@ -27,7 +28,7 @@ Function Get-RemoteRegistryValue {
     #>
 
     begin {
-        Write-Verbose "Calling: Get-RemoteRegistryValue"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $registryGetValue = $null
     }
     process {

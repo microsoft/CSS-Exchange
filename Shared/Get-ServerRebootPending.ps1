@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+
 Function Get-ServerRebootPending {
     [CmdletBinding()]
     param(
@@ -37,7 +38,7 @@ Function Get-ServerRebootPending {
             return (Test-Path $TestingPath)
         }
 
-        Write-Verbose "Calling: Get-ServerRebootPending"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $pendingRebootLocations = New-Object 'System.Collections.Generic.List[string]'
     }
     process {
