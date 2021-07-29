@@ -1,12 +1,22 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 Function Get-LmCompatibilityLevelInformation {
 
     Write-VerboseOutput("Calling: Get-LmCompatibilityLevelInformation")
 
     [HealthChecker.LmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.LmCompatibilityLevelInformation
-    $ServerLmCompatObject.RegistryValue = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" -GetValue "LmCompatibilityLevel" -CatchActionFunction ${Function:Invoke-CatchActions} -DefaultValue 3
+    $ServerLmCompatObject.RegistryValue = Get-RemoteRegistryValue -RegistryHive "LocalMachine" `
+        -MachineName $Script:Server `
+        -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" `
+        -GetValue "LmCompatibilityLevel" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    if ($null -eq $ServerLmCompatObject.RegistryValue) {
+        $ServerLmCompatObject.RegistryValue = 3
+    }
+
     Switch ($ServerLmCompatObject.RegistryValue) {
         0 { $ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
         1 { $ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }

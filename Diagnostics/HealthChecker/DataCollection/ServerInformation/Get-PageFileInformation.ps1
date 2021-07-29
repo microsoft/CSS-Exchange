@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
 Function Get-PageFileInformation {
 
     Write-VerboseOutput("Calling: Get-PageFileInformation")

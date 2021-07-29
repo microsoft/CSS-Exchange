@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject

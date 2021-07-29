@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-HardwareInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-OperatingSystemInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-DotNetDllFileVersions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 Function Get-HealthCheckerExchangeServer {
 
     Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")

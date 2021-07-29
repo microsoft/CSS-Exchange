@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 Function Get-ExchangeServerCertificates {
 
     Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")

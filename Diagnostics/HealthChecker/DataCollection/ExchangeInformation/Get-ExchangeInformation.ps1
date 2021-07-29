@@ -1,6 +1,19 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
+. $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
+. $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeServerCertificates.ps1
+#TODO: Fix file name
+. $PSScriptRoot\Get-ExchangeServerMaintenanceSate.ps1
+. $PSScriptRoot\Get-ExchangeUpdates.ps1
+. $PSScriptRoot\Get-ExSetupDetails.ps1
+. $PSScriptRoot\Get-ServerRole.ps1
 Function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
@@ -418,11 +431,11 @@ Function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Get-RemoteRegistryValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
             -GetValue "CtsProcessorAffinityPercentage" `
             -CatchActionFunction ${Function:Invoke-CatchActions}
-        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Invoke-RegistryGetValue -MachineName $Script:Server `
+        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Get-RemoteRegistryValue -MachineName $Script:Server `
             -SubKey "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" `
             -GetValue "Enabled" `
             -CatchActionFunction ${Function:Invoke-CatchActions}

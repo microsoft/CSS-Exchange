@@ -1,6 +1,21 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
+. $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
+. $PSScriptRoot\Get-AllNicInformation.ps1
+. $PSScriptRoot\Get-CredentialGuardEnabled.ps1
+. $PSScriptRoot\Get-HttpProxySetting.ps1
+. $PSScriptRoot\Get-LmCompatibilityLevelInformation.ps1
+. $PSScriptRoot\Get-PageFileInformation.ps1
+. $PSScriptRoot\Get-ServerOperatingSystemVersion.ps1
+. $PSScriptRoot\Get-Smb1ServerSettings.ps1
+. $PSScriptRoot\Get-TimeZoneInformationRegistrySettings.ps1
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
 Function Get-OperatingSystemInformation {
 
     Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
@@ -41,9 +56,19 @@ Function Get-OperatingSystemInformation {
         }
     }
 
-    $osInformation.NetworkInformation.IPv6DisabledComponents = Get-RemoteRegistryValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -ValueType "DWord" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.IPv6DisabledComponents = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" `
+        -GetValue "DisabledComponents" `
+        -ValueType "DWord" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.TCPKeepAlive = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" `
+        -GetValue "KeepAliveTime" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" `
+        -GetValue "MinimumConnectionTimeout" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
     $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
@@ -73,13 +98,13 @@ Function Get-OperatingSystemInformation {
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
-    $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
+    $osInformation.RegistryValues.CurrentVersionUbr = Get-RemoteRegistryValue `
         -MachineName $Script:Server `
         -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" `
         -GetValue "UBR" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $osInformation.RegistryValues.LanManServerDisabledCompression = Invoke-RegistryGetValue `
+    $osInformation.RegistryValues.LanManServerDisabledCompression = Get-RemoteRegistryValue `
         -MachineName $Script:Server `
         -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
         -GetValue "DisableCompression" `

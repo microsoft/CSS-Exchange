@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 Function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
@@ -17,7 +18,9 @@ Function Get-ExchangeUpdates {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2019"
     }
 
-    $RegKey = Invoke-RegistryGetValue -MachineName $Script:Server -SubKey $RegLocation -ReturnAfterOpenSubKey $true -CatchActionFunction ${Function:Invoke-CatchActions}
+    $RegKey = Get-RemoteRegistrySubKey -MachineName $Script:Server `
+        -SubKey $RegLocation `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($null -ne $RegKey) {
         $IU = $RegKey.GetSubKeyNames()

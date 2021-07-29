@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 Function Get-ExchangeAppPoolsInformation {
 
     Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")

@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ProcessorInformation.ps1
+. $PSScriptRoot\Get-ServerType.ps1
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
 Function Get-HardwareInformation {
 
     Write-VerboseOutput("Calling: Get-HardwareInformation")

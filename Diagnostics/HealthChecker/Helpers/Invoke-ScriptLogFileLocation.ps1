@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 Function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
