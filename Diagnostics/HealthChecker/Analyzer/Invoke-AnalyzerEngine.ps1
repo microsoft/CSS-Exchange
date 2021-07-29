@@ -1957,25 +1957,31 @@ Function Invoke-AnalyzerEngine {
             ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU10))) {
         Write-VerboseOutput("Testing CVE: CVE-2021-34470")
 
+        $displayWriteTypeColor = $null
+        if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
+            Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "1497.23" -CVENames "CVE-2021-34470"
+        }
+
         if ($null -eq $exchangeInformation.msExchStorageGroup) {
-            $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details ("CVE-2021-34470`r`n`t`tUnable to query 'ms-Exch-Storage-Group' to perform testing.") `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayWriteType "Yellow" `
-                -AddHtmlDetailRow $false `
-                -AnalyzedInformation $analyzedResults
-            $Script:AllVulnerabilitiesPassed = $false
-            Write-VerboseOutput("Unable to query 'ms-Exch-Storage-Group' Exchange Schema class information")
+            Write-VerboseOutput("Unable to query classSchema: 'ms-Exch-Storage-Group' information")
+            $details = "CVE-2021-34470`r`n`t`tWarning: Unable to query classSchema: 'ms-Exch-Storage-Group' to perform testing."
+            $displayWriteTypeColor = "Yellow"
         } elseif ($exchangeInformation.msExchStorageGroup.Properties.posssuperiors -eq "computer") {
-            $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2021-34470"
+            Write-VerboseOutput("Attribute: 'possSuperiors' with value: 'computer' detected in classSchema: 'ms-Exch-Storage-Group'")
+            $details = "CVE-2021-34470`r`n`t`tPrepareSchema required: https://techcommunity.microsoft.com/t5/exchange-team-blog/released-july-2021-exchange-server-security-updates/ba-p/2523421"
+            $displayWriteTypeColor = "Red"
+        } else {
+            Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
+        }
+
+        if ($null -ne $displayWriteTypeColor) {
             $Script:Vulnerabilities += $details
             $analyzedResults = Add-AnalyzedResultInformation -Name "Security Vulnerability" -Details $details `
                 -DisplayGroupingKey $keySecuritySettings `
-                -DisplayWriteType "Red" `
+                -DisplayWriteType $displayWriteTypeColor `
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
             $Script:AllVulnerabilitiesPassed = $false
-        } else {
-            Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
         }
     } else {
         Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
