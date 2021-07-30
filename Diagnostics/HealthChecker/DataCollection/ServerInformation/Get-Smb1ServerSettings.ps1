@@ -2,15 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-<#
-Unknown 0
-Failed to get Install Setting 1
-Install is set to true 2
-Install is set to false 4
-Failed to get Block Setting 8
-SMB1 is not being blocked 16
-SMB1 is being blocked 32
-#>
 Function Get-Smb1ServerSettings {
     [CmdletBinding()]
     param(
@@ -19,7 +10,8 @@ Function Get-Smb1ServerSettings {
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $smb1Status = 0
+        $smbServerConfiguration = $null
+        $windowsFeature = $null
     }
     process {
         $smbServerConfiguration = Invoke-ScriptBlockHandler -ComputerName $ServerName `
@@ -33,28 +25,15 @@ Function Get-Smb1ServerSettings {
             Write-Verbose "Failed to Get-WindowsFeature for FS-SMB1"
             Invoke-CatchActionError $CatchActionFunction
         }
-
-        if ($null -eq $windowsFeature) {
-            $smb1Status += 1
-        } elseif ($windowsFeature.Installed) {
-            $smb1Status += 2
-        } else {
-            $smb1Status += 4
-        }
-
-        if ($null -eq $smbServerConfiguration) {
-            $smb1Status += 8
-        } elseif ($smbServerConfiguration.EnableSMB1Protocol) {
-            $smb1Status += 16
-        } else {
-            $smb1Status += 32
-        }
     }
     end {
         return [PSCustomObject]@{
             SmbServerConfiguration = $smbServerConfiguration
             WindowsFeature         = $windowsFeature
-            Smb1Status             = $smb1Status
+            SuccessfulGetInstall   = $null -ne $windowsFeature
+            SuccessfulGetBlocked   = $null -ne $smbServerConfiguration
+            Installed              = $windowsFeature.Installed -eq $true
+            IsBlocked              = $smbServerConfiguration.EnableSMB1Protocol -eq $false
         }
     }
 }

@@ -1548,16 +1548,16 @@ Function Invoke-AnalyzerEngine {
     }
 
     $additionalDisplayValue = [string]::Empty
-    $smb1Status = $osInformation.Smb1ServerSettings.Smb1Status
+    $smb1Settings = $osInformation.Smb1ServerSettings
 
     if ($osInformation.BuildInformation.MajorVersion -gt [HealthChecker.OSServerVersion]::Windows2012) {
         $displayValue = "False"
         $writeType = "Green"
 
-        if ($smb1Status -band 1) {
+        if (-not ($smb1Settings.SuccessfulGetInstall)) {
             $displayValue = "Failed to get install status"
             $writeType = "Yellow"
-        } elseif ($smb1Status -band 2) {
+        } elseif ($smb1Settings.Installed) {
             $displayValue = "True"
             $writeType = "Red"
             $additionalDisplayValue = "SMB1 should be uninstalled"
@@ -1572,10 +1572,10 @@ Function Invoke-AnalyzerEngine {
     $writeType = "Green"
     $displayValue = "True"
 
-    if ($smb1Status -band 8) {
+    if ($smb1Settings.SuccessfulGetBlocked) {
         $displayValue = "Failed to get block status"
         $writeType = "Yellow"
-    } elseif ($smb1Status -band 16) {
+    } elseif (-not($smb1Settings.IsBlocked)) {
         $displayValue = "False"
         $writeType = "Red"
         $additionalDisplayValue += " SMB1 should be blocked"
