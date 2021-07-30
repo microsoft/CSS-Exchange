@@ -7,8 +7,15 @@
 Function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false)][bool]$LoadExchangeShell = $true,
-        [Parameter(Mandatory = $false)][scriptblock]$CatchActionFunction
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Identity,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$LoadExchangeShell = $true,
+
+        [Parameter(Mandatory = $false)]
+        [scriptblock]$CatchActionFunction
     )
 
     begin {
@@ -16,12 +23,16 @@ Function Confirm-ExchangeShell {
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity"
+        $params = @{
+            Identity    = $Identity
+            ErrorAction = "Stop"
+        }
     }
     process {
         try {
             $currentErrors = $Error.Count
-            Get-ExchangeServer -ErrorAction Stop | Out-Null
+            Get-ExchangeServer @params | Out-Null
             Write-Verbose "Exchange PowerShell Module already loaded."
             $passed = $true
             Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
@@ -60,7 +71,7 @@ Function Confirm-ExchangeShell {
                     }
 
                     Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
-                    Get-ExchangeServer -ErrorAction Stop | Out-Null
+                    Get-ExchangeServer @params | Out-Null
                     $passed = $true
                     Write-Verbose "Successfully loaded Exchange Management Shell"
                     Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
