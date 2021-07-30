@@ -45,7 +45,7 @@ Function Write-LoggerInstance {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [object]$LoggerInstance,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [object]$Object
     )
     process {
