@@ -32,7 +32,7 @@ Function Get-ServerOperatingSystemVersion {
         }
     }
     end {
-        Write-Verbose "Returned: '$OsReturnValue'"
+        Write-Verbose "Returned: '$osReturnValue'"
         return [string]$osReturnValue
     }
 }
