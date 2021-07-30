@@ -24,7 +24,7 @@ Function Confirm-ExchangeShell {
             Get-ExchangeServer -ErrorAction Stop | Out-Null
             Write-Verbose "Exchange PowerShell Module already loaded."
             $passed = $true
-            Invoke-CatchActionErrorLoop -CurrentErrors $currentErrors
+            Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
         } catch {
             Write-Verbose "Failed to run Get-ExchangeServer"
             Invoke-CatchActionError $CatchActionFunction
@@ -63,7 +63,7 @@ Function Confirm-ExchangeShell {
                     Get-ExchangeServer -ErrorAction Stop | Out-Null
                     $passed = $true
                     Write-Verbose "Successfully loaded Exchange Management Shell"
-                    Invoke-CatchActionErrorLoop -CurrentErrors $currentErrors
+                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."
                     Invoke-CatchActionError $CatchActionFunction
@@ -88,7 +88,7 @@ Function Confirm-ExchangeShell {
             RemoteShell = $passed -and (!(Test-Path $setupKey))
         }
 
-        Invoke-CatchActionErrorLoop -CurrentErrors $currentErrors
+        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
         return $returnObject
     }
