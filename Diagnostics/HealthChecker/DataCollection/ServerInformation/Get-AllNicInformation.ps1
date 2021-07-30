@@ -16,12 +16,10 @@ Function Get-AllNicInformation {
         Function Get-NicPnpCapabilitiesSetting {
             [CmdletBinding()]
             param(
+                [ValidateNotNullOrEmpty()]
                 [string]$NicAdapterComponentId
             )
             begin {
-                if ($NicAdapterComponentId -eq [string]::Empty) {
-                    throw [System.Management.Automation.ParameterBindingException] "Failed to provide valid NicAdapterDeviceId or NicAdapterComponentId"
-                }
                 $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
                 [int]$i = 0
                 [int]$retryCounter = 0
