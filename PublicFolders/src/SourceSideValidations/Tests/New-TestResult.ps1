@@ -4,28 +4,28 @@
 function New-TestResult {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [string]
         $TestName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [string]
         $ResultType,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateSet("Information", "Warning", "Error")]
         [string]
         $Severity,
 
-        [Parameter()]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]
         $FolderIdentity,
 
-        [Parameter()]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]
         $FolderEntryId,
 
-        [Parameter()]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]
         $ResultData
     )
