@@ -4,7 +4,9 @@
 Function Invoke-CatchActionErrorLoop {
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory = $true, Position = 0)]
         [int]$CurrentErrors,
+        [Parameter(Mandatory = $false, Position = 1)]
         [scriptblock]$CatchActionFunction
     )
     process {
