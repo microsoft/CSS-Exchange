@@ -11,6 +11,7 @@ Function Get-LmCompatibilityLevelInformation {
         -MachineName $Script:Server `
         -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" `
         -GetValue "LmCompatibilityLevel" `
+        -ValueType "DWord" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($null -eq $ServerLmCompatObject.RegistryValue) {
