@@ -1572,7 +1572,7 @@ Function Invoke-AnalyzerEngine {
     $writeType = "Green"
     $displayValue = "True"
 
-    if ($smb1Settings.SuccessfulGetBlocked) {
+    if (-not ($smb1Settings.SuccessfulGetBlocked)) {
         $displayValue = "Failed to get block status"
         $writeType = "Yellow"
     } elseif (-not($smb1Settings.IsBlocked)) {
