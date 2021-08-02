@@ -24,6 +24,7 @@ param(
 . $PSScriptRoot\Checks\Test-PrerequisiteInstalled.ps1
 . .\Checks\Test-UserGroupMemberOf.ps1
 . .\Checks\Test-ValidHomeMdb.ps1
+. .\Checks\Test-FullLanguageMode.ps1
 . .\Utils\ConvertFrom-Ldif.ps1
 
 #Local Shared
@@ -185,6 +186,10 @@ Function Main {
 }
 
 try {
+    if (-not (Test-FullLanguageMode)) {
+        return
+    }
+
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Receive-Output "Test Latest Script Version" -Diagnostic
