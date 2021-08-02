@@ -6,14 +6,14 @@ Function Get-CounterSamples {
         [Parameter(Mandatory = $true)][array]$MachineNames,
         [Parameter(Mandatory = $true)][array]$Counters
     )
-    Write-VerboseOutput("Calling: Get-CounterSamples")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     try {
         $counterSamples = (Get-Counter -ComputerName $MachineNames -Counter $Counters -ErrorAction Stop).CounterSamples
     } catch {
         Invoke-CatchActions
-        Write-VerboseOutput("Failed to get counter samples")
+        Write-Verbose "Failed to get counter samples"
     }
-    Write-VerboseOutput("Exiting: Get-CounterSamples")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $counterSamples
 }

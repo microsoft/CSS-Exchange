@@ -24,11 +24,11 @@ Function Add-AnalyzedResultInformation {
         [HealthChecker.AnalyzedInformation]$AnalyzedInformation
     )
 
-    Write-VerboseOutput("Calling Add-AnalyzedResultInformation: {0}" -f $name)
+    Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
 
     if ($AddDisplayResultsLineInfo) {
         if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
-            Write-VerboseOutput("Adding Display Grouping Key: {0}" -f $DisplayGroupingKey.Name)
+            Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
             [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
             $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
         }

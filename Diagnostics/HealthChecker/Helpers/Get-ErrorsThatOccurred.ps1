@@ -6,7 +6,7 @@ Function Get-ErrorsThatOccurred {
     if ($Error.Count -gt 0) {
         Write-Grey(" "); Write-Grey(" ")
         Function Write-Errors {
-            Write-VerboseOutput("`r`n`r`nErrors that occurred that wasn't handled")
+            Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
 
             $index = 0
             $Error |
@@ -17,17 +17,17 @@ Function Get-ErrorsThatOccurred {
                         Where-Object { $_.Equals($currentError) }
 
                         if ($null -eq $handledError) {
-                            Write-VerboseOutput("Error Index: $index")
-                            Write-VerboseOutput($currentError)
+                            Write-Verbose "Error Index: $index"
+                            Write-Verbose $currentError
 
                             if ($null -ne $currentError.ScriptStackTrace) {
-                                Write-VerboseOutput($currentError.ScriptStackTrace)
+                                Write-Verbose $currentError.ScriptStackTrace
                             }
-                            Write-VerboseOutput("-----------------------------------`r`n`r`n")
+                            Write-Verbose "-----------------------------------`r`n`r`n"
                         }
                     }
 
-            Write-VerboseOutput("`r`n`r`nErrors that were handled")
+            Write-Verbose "`r`n`r`nErrors that were handled"
             $index = 0
             $Error |
                 ForEach-Object {
@@ -37,13 +37,13 @@ Function Get-ErrorsThatOccurred {
                         Where-Object { $_.Equals($currentError) }
 
                         if ($null -ne $handledError) {
-                            Write-VerboseOutput("Error Index: $index")
-                            Write-VerboseOutput($handledError)
+                            Write-Verbose "Error Index: $index"
+                            Write-Verbose $handledError
 
                             if ($null -ne $handledError.ScriptStackTrace) {
-                                Write-VerboseOutput($handledError.ScriptStackTrace)
+                                Write-Verbose $handledError.ScriptStackTrace
                             }
-                            Write-VerboseOutput("-----------------------------------`r`n`r`n")
+                            Write-Verbose "-----------------------------------`r`n`r`n"
                         }
                     }
         }
@@ -63,11 +63,11 @@ Function Get-ErrorsThatOccurred {
             }
         } elseif ($Script:VerboseEnabled -or
             $SaveDebugLog) {
-            Write-VerboseOutput("All errors that occurred were in try catch blocks and was handled correctly.")
+            Write-Verbose "All errors that occurred were in try catch blocks and was handled correctly."
             $Script:Logger.PreventLogCleanup = $true
             Write-Errors
         }
     } else {
-        Write-VerboseOutput("No errors occurred in the script.")
+        Write-Verbose "No errors occurred in the script."
     }
 }

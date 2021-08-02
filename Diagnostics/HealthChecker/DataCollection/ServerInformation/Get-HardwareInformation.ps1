@@ -1,9 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ProcessorInformation.ps1
+. $PSScriptRoot\Get-ServerType.ps1
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
 Function Get-HardwareInformation {
 
-    Write-VerboseOutput("Calling: Get-HardwareInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
     $system = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -34,6 +37,6 @@ Function Get-HardwareInformation {
     $hardware_obj.Processor = $processor
     $hardware_obj.Model = $system.Model
 
-    Write-VerboseOutput("Exiting: Get-HardwareInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $hardware_obj
 }

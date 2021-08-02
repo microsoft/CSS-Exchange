@@ -1,9 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
 Function Get-PageFileInformation {
 
-    Write-VerboseOutput("Calling: Get-PageFileInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     [HealthChecker.PageFileInformation]$page_obj = New-Object HealthChecker.PageFileInformation
     $pageFile = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -13,9 +14,9 @@ Function Get-PageFileInformation {
         }
         $page_obj.PageFile = $pageFile
     } else {
-        Write-VerboseOutput("Return Null value")
+        Write-Verbose "Return Null value"
     }
 
-    Write-VerboseOutput("Exiting: Get-PageFileInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $page_obj
 }
