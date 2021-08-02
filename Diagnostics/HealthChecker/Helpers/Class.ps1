@@ -147,7 +147,7 @@ try {
                 public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
                 public bool CredentialGuardEnabled;
                 public OSRegistryValues RegistryValues = new OSRegistryValues();
-                public Smb1ServerSettings Smb1ServerSettings = new Smb1ServerSettings();
+                public object Smb1ServerSettings;
             }
 
             public class ServerPendingReboot
@@ -279,14 +279,6 @@ try {
                 Net4d7d1 = 461308,
                 Net4d7d2 = 461808,
                 Net4d8 = 528040
-            }
-
-            public class Smb1ServerSettings
-            {
-                public object RegistryValue;
-                public object SmbServerConfiguration;
-                public object WindowsFeature;
-                public int Smb1Status;
             }
             // End OperatingSystemInformation
 

@@ -110,10 +110,7 @@ Function Get-OperatingSystemInformation {
         -GetValue "DisableCompression" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $getSmb1ServerSettings = Get-Smb1ServerSettings -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.Smb1ServerSettings.SmbServerConfiguration = $getSmb1ServerSettings.SmbServerConfiguration
-    $osInformation.Smb1ServerSettings.WindowsFeature = $getSmb1ServerSettings.WindowsFeature
-    $osInformation.Smb1ServerSettings.Smb1Status = $getSmb1ServerSettings.Smb1Status
+    $osInformation.Smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $osInformation
