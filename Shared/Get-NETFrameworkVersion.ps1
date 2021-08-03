@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-RemoteRegistryValue.ps1
+
 Function Get-NETFrameworkVersion {
     [CmdletBinding()]
     param(
@@ -10,7 +11,7 @@ Function Get-NETFrameworkVersion {
         [scriptblock]$CatchActionFunction
     )
     begin {
-        Write-Verbose "Calling: Get-NETFrameworkVersion"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $friendlyName = [string]::Empty
         $minValue = -1
     }

@@ -1,20 +1,34 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Invoke-CatchActionError.ps1
+
 Function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ComputerName,
+        [string]
+        $ComputerName,
+
         [Parameter(Mandatory = $true)]
-        [scriptblock]$ScriptBlock,
-        [string]$ScriptBlockDescription,
-        [object]$ArgumentList,
-        [bool]$IncludeNoProxyServerOption,
-        [scriptblock]$CatchActionFunction
+        [scriptblock]
+        $ScriptBlock,
+
+        [string]
+        $ScriptBlockDescription,
+
+        [object]
+        $ArgumentList,
+
+        [bool]
+        $IncludeNoProxyServerOption,
+
+        [scriptblock]
+        $CatchActionFunction
     )
     begin {
-        Write-Verbose "Calling: Invoke-ScriptBlockHandler"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $returnValue = $null
     }
     process {
 
@@ -44,28 +58,24 @@ Function Invoke-ScriptBlockHandler {
                     Write-Verbose "Running Invoke-Command without argument list"
                 }
 
-                return Invoke-Command @params
+                $returnValue = Invoke-Command @params
             } else {
 
                 if ($null -ne $ArgumentList) {
                     Write-Verbose "Running Script Block Locally with argument list"
-                    $localReturn = & $ScriptBlock $ArgumentList
+                    $returnValue = & $ScriptBlock $ArgumentList
                 } else {
                     Write-Verbose "Running Script Block Locally without argument list"
-                    $localReturn = & $ScriptBlock
+                    $returnValue = & $ScriptBlock
                 }
-
-                return $localReturn
             }
         } catch {
-            Write-Verbose "Failed to run Invoke-ScriptBlockHandler"
-
-            if ($null -ne $CatchActionFunction) {
-                & $CatchActionFunction
-            }
+            Write-Verbose "Failed to run $($MyInvocation.MyCommand)"
+            Invoke-CatchActionError $CatchActionFunction
         }
     }
     end {
-        Write-Verbose "Exiting: Invoke-ScriptBlockHandler"
+        Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
+        return $returnValue
     }
 }

@@ -1,9 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 Function Get-ExchangeAppPoolsInformation {
 
-    Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     Function Get-ExchangeAppPoolsScriptBlock {
         $windir = $env:windir
@@ -40,6 +41,6 @@ Function Get-ExchangeAppPoolsInformation {
         return $exchAppPools
     }
     $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $exchangeAppPoolsInfo
 }

@@ -1,12 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 Function Get-ExchangeServerCertificates {
 
-    Write-VerboseOutput("Calling: Get-ExchangeServerCertificates")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     try {
-        Write-VerboseOutput("Trying to receive certificates from Exchange server: {0}" -f $Script:Server)
+        Write-Verbose "Trying to receive certificates from Exchange server: $($Script:Server)"
         $exchangeServerCertificates = Get-ExchangeCertificate -Server $Script:Server -ErrorAction Stop
 
         if ($null -ne $exchangeServerCertificates) {
@@ -127,18 +128,18 @@ Function Get-ExchangeServerCertificates {
 
                     $certObject += $certInformationObj
                 } catch {
-                    Write-VerboseOutput("Unable to process certificate: {0}" -f $cert.Thumbprint)
+                    Write-Verbose "Unable to process certificate: $($cert.Thumbprint)"
                     Invoke-CatchActions
                 }
             }
-            Write-VerboseOutput("Processed: {0} certificates" -f $certObject.Count)
+            Write-Verbose "Processed: $($certObject.Count) certificates"
             return $certObject
         } else {
-            Write-VerboseOutput("Failed to find any Exchange certificates")
+            Write-Verbose "Failed to find any Exchange certificates"
             return $null
         }
     } catch {
-        Write-VerboseWriter("Failed to run Get-ExchangeCertificate. Error: {0}." -f $Error[0].Exception)
+        Write-Verbose "Failed to run Get-ExchangeCertificate. Error: $($Error[0].Exception)."
         Invoke-CatchActions
     }
 }
