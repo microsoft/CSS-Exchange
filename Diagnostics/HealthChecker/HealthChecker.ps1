@@ -314,7 +314,11 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
+    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+        -LogDirectory $OutputFilePath `
+        -VerboseEnabled $Script:VerboseEnabled `
+        -EnableDateTime $false `
+        -ErrorAction SilentlyContinue
     Main
 } finally {
     Get-ErrorsThatOccurred
