@@ -90,6 +90,11 @@ function Test-ScriptVersion {
     try {
         $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        if (([System.Net.WebRequest]::GetSystemWebproxy()).IsBypassed("https://github.com") -eq $false) {
+            $webClient = New-Object System.Net.WebClient
+            $webClient.Headers.Add("User-Agent", "PowerShell")
+            $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+        }
         $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
