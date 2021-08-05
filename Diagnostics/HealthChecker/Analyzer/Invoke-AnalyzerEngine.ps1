@@ -1,11 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )
-    Write-VerboseOutput("Calling: Invoke-AnalyzerEngine")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $analyzedResults = New-Object HealthChecker.AnalyzedInformation
     $analyzedResults.HealthCheckerExchangeServer = $HealthServerObject
@@ -45,7 +47,7 @@ Function Invoke-AnalyzerEngine {
     #########################
     # Exchange Information
     #########################
-    Write-VerboseOutput("Working on Exchange Information")
+    Write-Verbose "Working on Exchange Information"
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Name" -Details ($HealthServerObject.ServerName) `
         -DisplayGroupingKey $keyExchangeInformation `
@@ -187,7 +189,7 @@ Function Invoke-AnalyzerEngine {
     #########################
     # Hybrid Information
     #########################
-    Write-VerboseOutput("Working on Hybrid Configuration Information")
+    Write-Verbose "Working on Hybrid Configuration Information"
     if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $null -ne $exchangeInformation.GetHybridConfiguration) {
 
@@ -345,7 +347,7 @@ Function Invoke-AnalyzerEngine {
     ##############################
     # Exchange Test Services
     ##############################
-    Write-VerboseOutput("Working on results from Test-ServiceHealth")
+    Write-Verbose "Working on results from Test-ServiceHealth"
     $servicesNotRunning = $exchangeInformation.ExchangeServicesNotRunning
     if ($null -ne $servicesNotRunning) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Services Not Running" `
@@ -364,7 +366,7 @@ Function Invoke-AnalyzerEngine {
     ##############################
     # Exchange Server Maintenance
     ##############################
-    Write-VerboseOutput("Working on Exchange Server Maintenance")
+    Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
 
     if (($serverMaintenance.InactiveComponents).Count -eq 0 -and
@@ -418,7 +420,7 @@ Function Invoke-AnalyzerEngine {
     #########################
     # Operating System
     #########################
-    Write-VerboseOutput("Working on Operating System")
+    Write-Verbose "Working on Operating System"
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Version" -Details ($osInformation.BuildInformation.FriendlyName) `
         -DisplayGroupingKey $keyOSInformation `
@@ -499,8 +501,10 @@ Function Invoke-AnalyzerEngine {
 
     $displayValue = [string]::Empty
     $displayWriteType = "Yellow"
-    Write-VerboseOutput("Total Memory: {0}" -f ($totalPhysicalMemory = $hardwareInformation.TotalMemory))
-    Write-VerboseOutput("Page File: {0}" -f ($maxPageSize = $osInformation.PageFile.MaxPageSize))
+    $totalPhysicalMemory = $hardwareInformation.TotalMemory
+    $maxPageSize = $osInformation.PageFile.MaxPageSize
+    Write-Verbose "Total Memory: $totalPhysicalMemory"
+    Write-Verbose "Page File: $maxPageSize"
     $testingValue = New-Object PSCustomObject
     $testingValue | Add-Member -MemberType NoteProperty -Name "TotalPhysicalMemory" -Value $totalPhysicalMemory
     $testingValue | Add-Member -MemberType NoteProperty -Name "MaxPageSize" -Value $maxPageSize
@@ -514,7 +518,7 @@ Function Invoke-AnalyzerEngine {
         $displayWriteType = "Red"
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
         $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) / 4))
-        Write-VerboseOutput("Recommended Page File Size: {0}" -f $recommendedPageFileSize)
+        Write-Verbose "Recommended Page File Size: $recommendedPageFileSize"
         if ($recommendedPageFileSize -ne $maxPageSize) {
             $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Round($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
         } else {
@@ -636,7 +640,7 @@ Function Invoke-AnalyzerEngine {
     ################################
     # Processor/Hardware Information
     ################################
-    Write-VerboseOutput("Working on Processor/Hardware Information")
+    Write-Verbose "Working on Processor/Hardware Information"
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "Type" -Details ($hardwareInformation.ServerType) `
         -DisplayGroupingKey $keyHardwareInformation `
@@ -856,12 +860,12 @@ Function Invoke-AnalyzerEngine {
     ################################
     #NIC Settings Per Active Adapter
     ################################
-    Write-VerboseOutput("Working on NIC Settings Per Active Adapter Information")
+    Write-Verbose "Working on NIC Settings Per Active Adapter Information"
 
     foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters) {
 
         if ($adapter.Description -eq "Remote NDIS Compatible Device") {
-            Write-VerboseOutput("Remote NDSI Compatible Device found. Ignoring NIC.")
+            Write-Verbose "Remote NDSI Compatible Device found. Ignoring NIC."
             continue
         }
 
@@ -872,7 +876,7 @@ Function Invoke-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
 
         if ($osInformation.BuildInformation.MajorVersion -ge [HealthChecker.OSServerVersion]::Windows2012R2) {
-            Write-VerboseOutput("On Windows 2012 R2 or new. Can provide more details on the NICs")
+            Write-Verbose "On Windows 2012 R2 or new. Can provide more details on the NICs"
 
             $driverDate = $adapter.DriverDate
             $detailsValue = $driverDate
@@ -936,7 +940,7 @@ Function Invoke-AnalyzerEngine {
                 -DisplayTestingValue $testingValue `
                 -AnalyzedInformation $analyzedResults
         } else {
-            Write-VerboseOutput("On Windows 2012 or older and can't get advanced NIC settings")
+            Write-Verbose "On Windows 2012 or older and can't get advanced NIC settings"
         }
 
         $linkSpeed = $adapter.LinkSpeed
@@ -1033,7 +1037,7 @@ Function Invoke-AnalyzerEngine {
         $foundCounter = $false
 
         if ($null -eq $osInformation.NetworkInformation.PacketsReceivedDiscarded) {
-            Write-VerboseOutput("PacketsReceivedDiscarded is null")
+            Write-Verbose "PacketsReceivedDiscarded is null"
             continue
         }
 
@@ -1126,7 +1130,7 @@ Function Invoke-AnalyzerEngine {
     ################
     #TCP/IP Settings
     ################
-    Write-VerboseOutput("Working on TCP/IP Settings")
+    Write-Verbose "Working on TCP/IP Settings"
 
     $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
 
@@ -1222,7 +1226,7 @@ Function Invoke-AnalyzerEngine {
     ##############
     # TLS Settings
     ##############
-    Write-VerboseOutput("Working on TLS Settings")
+    Write-Verbose "Working on TLS Settings"
 
     $tlsVersions = @("1.0", "1.1", "1.2")
     $currentNetVersion = $osInformation.TLSSettings["NETv4"]
@@ -1544,16 +1548,16 @@ Function Invoke-AnalyzerEngine {
     }
 
     $additionalDisplayValue = [string]::Empty
-    $smb1Status = $osInformation.Smb1ServerSettings.Smb1Status
+    $smb1Settings = $osInformation.Smb1ServerSettings
 
     if ($osInformation.BuildInformation.MajorVersion -gt [HealthChecker.OSServerVersion]::Windows2012) {
         $displayValue = "False"
         $writeType = "Green"
 
-        if ($smb1Status -band 1) {
+        if (-not ($smb1Settings.SuccessfulGetInstall)) {
             $displayValue = "Failed to get install status"
             $writeType = "Yellow"
-        } elseif ($smb1Status -band 2) {
+        } elseif ($smb1Settings.Installed) {
             $displayValue = "True"
             $writeType = "Red"
             $additionalDisplayValue = "SMB1 should be uninstalled"
@@ -1568,10 +1572,10 @@ Function Invoke-AnalyzerEngine {
     $writeType = "Green"
     $displayValue = "True"
 
-    if ($smb1Status -band 8) {
+    if (-not ($smb1Settings.SuccessfulGetBlocked)) {
         $displayValue = "Failed to get block status"
         $writeType = "Yellow"
-    } elseif ($smb1Status -band 16) {
+    } elseif (-not($smb1Settings.IsBlocked)) {
         $displayValue = "False"
         $writeType = "Red"
         $additionalDisplayValue += " SMB1 should be blocked"
@@ -1597,7 +1601,7 @@ Function Invoke-AnalyzerEngine {
     #Exchange Web App GC Mode#
     ##########################
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
-        Write-VerboseOutput("Working on Exchange Web App GC Mode")
+        Write-Verbose "Working on Exchange Web App GC Mode"
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
             -DisplayGroupingKey $keyWebApps `
@@ -1668,7 +1672,7 @@ Function Invoke-AnalyzerEngine {
         param(
             [Parameter(Mandatory = $true)][hashtable]$KBCVEHT
         )
-        Write-VerboseOutput("Calling: Show-March2021SUOutdatedCUWarning")
+        Write-Verbose "Calling: Show-March2021SUOutdatedCUWarning"
 
         foreach ($kbName in $KBCVEHT.Keys) {
             foreach ($cveName in $KBCVEHT[$kbName]) {
@@ -1688,7 +1692,7 @@ Function Invoke-AnalyzerEngine {
             [Parameter(Mandatory = $true)][object]$OwaVDirObject,
             [Parameter(Mandatory = $true)][bool]$DownloadDomainsEnabled
         )
-        Write-VerboseOutput("Calling: Test-DownloadDomainConfiguration")
+        Write-Verbose "Calling: Test-DownloadDomainConfiguration"
 
         <#
         Unknown 0
@@ -1712,7 +1716,7 @@ Function Invoke-AnalyzerEngine {
                     $downloadDomainsStatus += 4
                 }
             } else {
-                Write-VerboseOutput("'ExternalDownloadHostName' is not configured")
+                Write-Verbose "'ExternalDownloadHostName' is not configured"
                 $downloadDomainsStatus += 8
             }
 
@@ -1723,7 +1727,7 @@ Function Invoke-AnalyzerEngine {
                     $downloadDomainsStatus += 16
                 }
             } else {
-                Write-VerboseOutput("'InternalDownloadHostName' is not configured")
+                Write-Verbose "'InternalDownloadHostName' is not configured"
                 $downloadDomainsStatus += 32
             }
 
@@ -1738,9 +1742,9 @@ Function Invoke-AnalyzerEngine {
     $Script:Vulnerabilities = @()
     $Script:AnalyzedInformation = $analyzedResults
     [string]$buildRevision = ("{0}.{1}" -f $exchangeInformation.BuildInformation.ExchangeSetup.FileBuildPart, $exchangeInformation.BuildInformation.ExchangeSetup.FilePrivatePart)
-
-    Write-VerboseOutput("Exchange Build Revision: {0}" -f $buildRevision)
-    Write-VerboseOutput("Exchange CU: {0}" -f ($exchangeCU = $exchangeInformation.BuildInformation.CU))
+    $exchangeCU = $exchangeInformation.BuildInformation.CU
+    Write-Verbose "Exchange Build Revision: $buildRevision"
+    Write-Verbose "Exchange CU: $exchangeCU"
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
 
@@ -1891,7 +1895,7 @@ Function Invoke-AnalyzerEngine {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "858.15", "922.13" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
     } else {
-        Write-VerboseOutput("Unknown Version of Exchange")
+        Write-Verbose "Unknown Version of Exchange"
         $Script:AllVulnerabilitiesPassed = $false
     }
 
@@ -1935,7 +1939,7 @@ Function Invoke-AnalyzerEngine {
             }
             $Script:AllVulnerabilitiesPassed = $false
         } else {
-            Write-VerboseOutput("No need to call 'Show-March2021SUOutdatedCUWarning'")
+            Write-Verbose "No need to call 'Show-March2021SUOutdatedCUWarning'"
         }
         if ($null -ne $KBCveComb) {
             Show-March2021SUOutdatedCUWarning -KBCVEHT $KBCveComb
@@ -1955,7 +1959,7 @@ Function Invoke-AnalyzerEngine {
             ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU21)) -or
         (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
             ($exchangeCU -lt [HealthChecker.ExchangeCULevel]::CU10))) {
-        Write-VerboseOutput("Testing CVE: CVE-2021-34470")
+        Write-Verbose "Testing CVE: CVE-2021-34470"
 
         $displayWriteTypeColor = $null
         if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
@@ -1963,15 +1967,15 @@ Function Invoke-AnalyzerEngine {
         }
 
         if ($null -eq $exchangeInformation.msExchStorageGroup) {
-            Write-VerboseOutput("Unable to query classSchema: 'ms-Exch-Storage-Group' information")
+            Write-Verbose "Unable to query classSchema: 'ms-Exch-Storage-Group' information"
             $details = "CVE-2021-34470`r`n`t`tWarning: Unable to query classSchema: 'ms-Exch-Storage-Group' to perform testing."
             $displayWriteTypeColor = "Yellow"
         } elseif ($exchangeInformation.msExchStorageGroup.Properties.posssuperiors -eq "computer") {
-            Write-VerboseOutput("Attribute: 'possSuperiors' with value: 'computer' detected in classSchema: 'ms-Exch-Storage-Group'")
+            Write-Verbose "Attribute: 'possSuperiors' with value: 'computer' detected in classSchema: 'ms-Exch-Storage-Group'"
             $details = "CVE-2021-34470`r`n`t`tPrepareSchema required: https://techcommunity.microsoft.com/t5/exchange-team-blog/released-july-2021-exchange-server-security-updates/ba-p/2523421"
             $displayWriteTypeColor = "Red"
         } else {
-            Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
+            Write-Verbose "System NOT vulnerable to CVE-2021-34470"
         }
 
         if ($null -ne $displayWriteTypeColor) {
@@ -1984,7 +1988,7 @@ Function Invoke-AnalyzerEngine {
             $Script:AllVulnerabilitiesPassed = $false
         }
     } else {
-        Write-VerboseOutput("System NOT vulnerable to CVE-2021-34470")
+        Write-Verbose "System NOT vulnerable to CVE-2021-34470"
     }
 
     #Description: Check for CVE-2021-1730 vulnerability
@@ -2097,7 +2101,7 @@ Function Invoke-AnalyzerEngine {
             $Script:AllVulnerabilitiesPassed = $false
         }
     } else {
-        Write-VerboseOutput("Download Domains feature not available because we are on: {0} {1} or on Edge Transport Server" -f $exchangeInformation.BuildInformation.MajorVersion, $exchangeCU)
+        Write-Verbose "Download Domains feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
     }
 
     #Description: Check for CVE-2020-0796 SMBv3 vulnerability
@@ -2106,22 +2110,22 @@ Function Invoke-AnalyzerEngine {
     #Workaround: Disable SMBv3 compression
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-        Write-VerboseOutput("Testing CVE: CVE-2020-0796")
+        Write-Verbose "Testing CVE: CVE-2020-0796"
         $buildNumber = $osInformation.BuildInformation.VersionBuild.Split(".")[2]
 
         if (($buildNumber -eq 18362 -or
                 $buildNumber -eq 18363) -and
             ($osInformation.RegistryValues.CurrentVersionUbr -lt 720)) {
-            Write-VerboseOutput("Build vulnerable to CVE-2020-0796. Checking if workaround is in place.")
+            Write-Verbose "Build vulnerable to CVE-2020-0796. Checking if workaround is in place."
             $writeType = "Red"
             $writeValue = "System Vulnerable"
 
             if ($osInformation.RegistryValues.LanManServerDisabledCompression -eq 1) {
-                Write-VerboseOutput("Workaround to disable affected SMBv3 compression is in place.")
+                Write-Verbose "Workaround to disable affected SMBv3 compression is in place."
                 $writeType = "Yellow"
                 $writeValue = "Workaround is in place"
             } else {
-                Write-VerboseOutput("Workaround to disable affected SMBv3 compression is NOT in place.")
+                Write-Verbose "Workaround to disable affected SMBv3 compression is NOT in place."
                 $Script:AllVulnerabilitiesPassed = $false
             }
 
@@ -2133,10 +2137,10 @@ Function Invoke-AnalyzerEngine {
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
         } else {
-            Write-VerboseOutput("System NOT vulnerable to CVE-2020-0796. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796")
+            Write-Verbose "System NOT vulnerable to CVE-2020-0796. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/CVE-2020-0796"
         }
     } else {
-        Write-VerboseOutput("Operating System NOT vulnerable to CVE-2020-0796.")
+        Write-Verbose "Operating System NOT vulnerable to CVE-2020-0796."
     }
 
     #Description: Check for CVE-2020-1147
@@ -2149,16 +2153,16 @@ Function Invoke-AnalyzerEngine {
         $dllFileBuildPartToCheckAgainst = 4190
     }
 
-    Write-VerboseOutput("System.Data.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemDataDll = $osInformation.NETFramework.FileInformation["System.Data.dll"]).VersionInfo.FileBuildPart, `
-            $systemDataDll.LastWriteTimeUtc)
-    Write-VerboseOutput("System.Configuration.dll FileBuildPart: {0} | LastWriteTimeUtc: {1}" -f ($systemConfigurationDll = $osInformation.NETFramework.FileInformation["System.Configuration.dll"]).VersionInfo.FileBuildPart, `
-            $systemConfigurationDll.LastWriteTimeUtc)
+    $systemDataDll = $osInformation.NETFramework.FileInformation["System.Data.dll"]
+    $systemConfigurationDll = $osInformation.NETFramework.FileInformation["System.Configuration.dll"]
+    Write-Verbose "System.Data.dll FileBuildPart: $($systemDataDll.VersionInfo.FileBuildPart) | LastWriteTimeUtc: $($systemDataDll.LastWriteTimeUtc)"
+    Write-Verbose "System.Configuration.dll FileBuildPart: $($systemConfigurationDll.VersionInfo.FileBuildPart) | LastWriteTimeUtc: $($systemConfigurationDll.LastWriteTimeUtc)"
 
     if ($systemDataDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
         $systemConfigurationDll.VersionInfo.FileBuildPart -ge $dllFileBuildPartToCheckAgainst -and
         $systemDataDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) -and
         $systemConfigurationDll.LastWriteTimeUtc -ge ([System.Convert]::ToDateTime("06/05/2020", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))) {
-        Write-VerboseOutput("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
+        Write-Verbose ("System NOT vulnerable to {0}. Information URL: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0}" -f "CVE-2020-1147")
     } else {
         $Script:AllVulnerabilitiesPassed = $false
         $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f "CVE-2020-1147"

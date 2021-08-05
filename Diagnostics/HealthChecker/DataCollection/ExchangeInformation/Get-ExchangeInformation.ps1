@@ -1,12 +1,24 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
+. $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
+. $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeServerCertificates.ps1
+#TODO: Fix file name
+. $PSScriptRoot\Get-ExchangeServerMaintenanceSate.ps1
+. $PSScriptRoot\Get-ExchangeUpdates.ps1
+. $PSScriptRoot\Get-ExSetupDetails.ps1
+. $PSScriptRoot\Get-ServerRole.ps1
 Function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
-    Write-VerboseOutput("Calling: Get-ExchangeInformation")
-    Write-VerboseOutput("Passed: OSMajorVersion: {0}" -f $OSMajorVersion)
+    Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: OSMajorVersion: $OSMajorVersion"
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
@@ -40,10 +52,10 @@ Function Get-ExchangeInformation {
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework
         $buildAndRevision = $buildVersionInfo.BuildVersion
-        Write-VerboseOutput("The build and revision number: {0}" -f $buildAndRevision)
+        Write-Verbose "The build and revision number: $buildAndRevision"
         #Build Numbers: https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-            Write-VerboseOutput("Exchange 2019 is detected. Checking build number...")
+            Write-Verbose "Exchange 2019 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2019 "
 
             #Exchange 2019 Information
@@ -107,7 +119,7 @@ Function Get-ExchangeInformation {
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
             }
         } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-            Write-VerboseOutput("Exchange 2016 is detected. Checking build number...")
+            Write-Verbose "Exchange 2016 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2016 "
 
             #Exchange 2016 Information
@@ -238,7 +250,7 @@ Function Get-ExchangeInformation {
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
             }
         } else {
-            Write-VerboseOutput("Exchange 2013 is detected. Checking build number...")
+            Write-Verbose "Exchange 2013 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2013"
 
             #Exchange 2013 Information
@@ -379,7 +391,7 @@ Function Get-ExchangeInformation {
                 $exchangeInformation.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
             }
         } else {
-            Write-VerboseOutput("MAPI HTTP Enabled and Download Domains Enabled results not accurate")
+            Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
         }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
@@ -398,31 +410,31 @@ Function Get-ExchangeInformation {
             -ScriptBlock {
             "{0}Bin\" -f (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
         }
-        Write-VerboseOutput("Found Exchange Bin: $serverExchangeBinDirectory")
+        Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
         if (($null -ne $buildInformation.KBsInstalled) -and ($buildInformation.KBsInstalled -like "*KB5000871*")) {
-            Write-VerboseOutput("March 2021 SU: KB5000871 was detected on the system")
+            Write-Verbose "March 2021 SU: KB5000871 was detected on the system"
             $buildInformation.March2021SUInstalled = $true
         } else {
-            Write-VerboseOutput("March 2021 SU: KB5000871 was not detected on the system")
+            Write-Verbose "March 2021 SU: KB5000871 was not detected on the system"
             $buildInformation.March2021SUInstalled = $false
         }
 
-        Write-VerboseOutput("Query schema class information for CVE-2021-34470 testing")
+        Write-Verbose "Query schema class information for CVE-2021-34470 testing"
         try {
             $exchangeInformation.msExchStorageGroup = Get-ExchangeAdSchemaClass -SchemaClassName "ms-Exch-Storage-Group"
         } catch {
-            Write-VerboseOutput("Failed to run Get-ExchangeAdSchemaClass")
+            Write-Verbose "Failed to run Get-ExchangeAdSchemaClass"
             Invoke-CatchActions
         }
 
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Invoke-RegistryGetValue -MachineName $Script:Server `
+        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Get-RemoteRegistryValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
             -GetValue "CtsProcessorAffinityPercentage" `
             -CatchActionFunction ${Function:Invoke-CatchActions}
-        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Invoke-RegistryGetValue -MachineName $Script:Server `
+        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Get-RemoteRegistryValue -MachineName $Script:Server `
             -SubKey "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" `
             -GetValue "Enabled" `
             -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -438,16 +450,16 @@ Function Get-ExchangeInformation {
                     }
                 }
             } catch {
-                Write-VerboseOutput ("Failed to run Test-ServiceHealth")
+                Write-Verbose "Failed to run Test-ServiceHealth"
                 Invoke-CatchActions
             }
         }
     } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010) {
-        Write-VerboseOutput("Exchange 2010 detected.")
+        Write-Verbose "Exchange 2010 detected."
         $buildInformation.FriendlyName = "Exchange 2010"
         $buildInformation.BuildNumber = $exchangeInformation.GetExchangeServer.AdminDisplayVersion.ToString()
     }
 
-    Write-VerboseOutput("Exiting: Get-ExchangeInformation")
+    Write-Verbose "Exiting: Get-ExchangeInformation"
     return $exchangeInformation
 }

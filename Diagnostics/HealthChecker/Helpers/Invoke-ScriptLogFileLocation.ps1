@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 Function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
@@ -21,7 +22,7 @@ Function Invoke-ScriptLogFileLocation {
         return
     }
 
-    $Script:ExchangeShellComputer = Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions}
+    $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if (!($Script:ExchangeShellComputer.ShellLoaded)) {
         Write-Yellow("Failed to load Exchange Shell... stopping script")

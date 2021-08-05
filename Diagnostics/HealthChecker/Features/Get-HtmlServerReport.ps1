@@ -5,7 +5,7 @@ Function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )
-    Write-VerboseOutput("Calling: Get-HtmlServerReport")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $htmlHeader = "<html>
         <style>

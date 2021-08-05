@@ -6,7 +6,7 @@ Function Get-ExchangeAdSchemaClass {
         [Parameter(Mandatory = $true)][string]$SchemaClassName
     )
 
-    Write-VerboseOutput("Calling: Get-ExchangeAdSchemaClass to query {0} schema class" -f $SchemaClassName)
+    Write-Verbose "Calling: $($MyInvocation.MyCommand) to query $SchemaClassName schema class"
 
     $rootDSE = [ADSI]("LDAP://RootDSE")
 
@@ -21,6 +21,6 @@ Function Get-ExchangeAdSchemaClass {
 
     $findAll = $directorySearcher.FindAll()
 
-    Write-VerboseOutput("Exiting: Get-ExchangeAdSchemaClass")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $findAll
 }

@@ -5,9 +5,9 @@ Function Get-ServerRole {
     param(
         [Parameter(Mandatory = $true)][object]$ExchangeServerObj
     )
-    Write-VerboseOutput("Calling: Get-ServerRole")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $roles = $ExchangeServerObj.ServerRole.ToString()
-    Write-VerboseOutput("Roll: " + $roles)
+    Write-Verbose "Roll: $roles"
     #Need to change this to like because of Exchange 2010 with AIO with the hub role.
     if ($roles -like "Mailbox, ClientAccess*") {
         return [HealthChecker.ExchangeServerRole]::MultiRole

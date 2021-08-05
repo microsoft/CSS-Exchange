@@ -1,11 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 Function Get-ExchangeApplicationConfigurationFileValidation {
     param(
         [string[]]$ConfigFileLocation
     )
-    Write-VerboseOutput("Calling: Get-ExchangeApplicationConfigurationFileValidation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $results = @{}
     $ConfigFileLocation |
         ForEach-Object {
