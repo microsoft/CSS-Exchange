@@ -15,3 +15,4 @@ This project contains scripts for supporting and troubleshooting Microsoft Excha
 | SetupAssist.ps1                      | [Docs](Setup/SetupAssist)                              | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupAssist.ps1)                      |
 | SourceSideValidations.ps1            | [Docs](PublicFolders/SourceSideValidations)            | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SourceSideValidations.ps1)            |
 | Test-AMSI.ps1                        | [Docs](Admin/Test-AMSI)                                | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-AMSI.ps1)                        |
+| Test-CVE-2021-34470.ps1              | [Docs](Security/Test-CVE-2021-34470)                   | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-CVE-2021-34470.ps1)

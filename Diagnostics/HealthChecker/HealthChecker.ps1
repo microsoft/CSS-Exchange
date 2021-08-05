@@ -206,7 +206,7 @@ Function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "LoadBalancingReport"
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -227,7 +227,7 @@ Function Main {
     }
 
     if ($MailboxReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
         Get-MailboxDatabaseAndMailboxStatistics
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
@@ -260,7 +260,7 @@ Function Main {
         return
     }
 
-    Invoke-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    Invoke-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
@@ -314,7 +314,11 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
+    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+        -LogDirectory $OutputFilePath `
+        -VerboseEnabled $Script:VerboseEnabled `
+        -EnableDateTime $false `
+        -ErrorAction SilentlyContinue
     Main
 } finally {
     Get-ErrorsThatOccurred
