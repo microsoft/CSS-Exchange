@@ -1,13 +1,13 @@
 ---
-title: Get-SimpleAdminAuditLogReport.ps1
+title: Get-SimpleAuditLogReport.ps1
 parent: Admin
 ---
 
-## Get-SimpleAdminAuditLog
+## Get-SimpleAuditLogReport
 
-Download the latest release: [Get-SimpleAdminAuditLogReport.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-SimpleAdminAuditLogReport.ps1)
+Download the latest release: [Get-SimpleAuditLogReport.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-SimpleAuditLogReport.ps1)
 
-Exchange admin audit logs are not readily human readable.  All of the data needed to understand what Cmdlet has been run is in the data but it is not very easy to read.  Get-SimpleAdminAuditLog will take the results of an audit log search and provide a significantly more human readable version of the data.
+Exchange admin audit logs are not readily human readable.  All of the data needed to understand what Cmdlet has been run is in the data but it is not very easy to read.  Get-SimpleAuditLogReport will take the results of an audit log search and provide a significantly more human readable version of the data.
 
 It will parse the audit log and attempt to reconstruct the actual Cmdlet that was run.
 
