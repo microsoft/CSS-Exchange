@@ -16,6 +16,27 @@ function Test-ScriptVersion {
         $AutoUpdate
     )
 
+    function Confirm-ProxyServer {
+        [CmdletBinding()]
+        [OutputType([bool])]
+        param (
+            [Parameter(Mandatory = $true)]
+            [string]
+            $TargetUri
+        )
+
+        try {
+            $proxyObject = ([System.Net.WebRequest]::GetSystemWebproxy()).GetProxy($TargetUri)
+            if ($TargetUri -ne $proxyObject.OriginalString) {
+                return $true
+            } else {
+                return $false
+            }
+        } catch {
+            return $false
+        }
+    }
+
     function Confirm-Signature {
         [CmdletBinding()]
         [OutputType([bool])]
@@ -90,7 +111,7 @@ function Test-ScriptVersion {
     try {
         $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        if (([System.Net.WebRequest]::GetSystemWebproxy()).IsBypassed("https://github.com") -eq $false) {
+        if (Confirm-ProxyServer -TargetUri "https://github.com") {
             $webClient = New-Object System.Net.WebClient
             $webClient.Headers.Add("User-Agent", "PowerShell")
             $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
