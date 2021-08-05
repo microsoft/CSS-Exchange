@@ -16,6 +16,7 @@ param(
 . .\Checks\Test-CriticalService.ps1
 . .\Checks\Test-ExchangeAdLevel.ps1
 . .\Checks\Test-ComputersContainerExists.ps1
+. .\Checks\Test-DomainControllerDnsHostName.ps1
 . .\Checks\Test-ReadOnlyDomainControllerLocation.ps1
 . .\Checks\Test-MissingDirectory.ps1
 . .\Checks\Test-MissingMsiFiles.ps1
@@ -128,6 +129,7 @@ Function MainUse {
     Test-MissingDirectory
     Test-ExchangeAdSetupObjects
     Test-ComputersContainerExists
+    Test-DomainControllerDnsHostName
     Test-ReadOnlyDomainControllerLocation
     Confirm-VirtualDirectoryConfiguration
 
