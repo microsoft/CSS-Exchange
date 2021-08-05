@@ -5,7 +5,12 @@ Function Test-ReadOnlyDomainControllerLocation {
     $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
     foreach ($domain in $forest.Domains) {
         foreach ($dc in $domain.DomainControllers) {
-            $cn = $dc.Name.Substring(0, $dc.Name.IndexOf("."))
+            $firstDotIndex = $dc.Name.IndexOf(".")
+            if ($firstDotIndex -ge 0) {
+                $cn = $dc.Name.Substring(0, $dc.Name.IndexOf("."))
+            } else {
+                $cn = $dc.Name
+            }
             $filter = "(&(objectClass=computer)(cn=$cn))"
             $searcher = New-Object System.DirectoryServices.DirectorySearcher
             $searcher.Filter = $filter
