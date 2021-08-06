@@ -18,8 +18,9 @@ Function Test-ReadOnlyDomainControllerLocation {
                 if ($result.Properties["primaryGroupID"][0] -eq 521) {
                     $dn = $result.Properties["distinguishedName"][0].ToString()
                     if (-not $dn.StartsWith("CN=$cn,OU=Domain Controllers,DC=")) {
-                        ("Domain Controller $cn appears to be in a container other than Domain Controllers. " +
-                            "This will cause /PrepareAd to fail in some scenarios. Please see https://support.microsoft.com/help/5005319 for details.") | Receive-Output -IsWarning
+                        ("Read Only Domain Controller $cn appears to be in a container other than Domain Controllers. " +
+                            "This will cause setup to fail if we attempt to domain prep that domain. The path" +
+                            "to the RODC must be CN=DCName,OU=Domain Controllers...") | Receive-Output -IsWarning
                     }
                 }
             }
