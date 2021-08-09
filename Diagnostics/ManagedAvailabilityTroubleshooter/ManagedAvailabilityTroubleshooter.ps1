@@ -1187,4 +1187,4 @@ if ($Investigationchoose -eq 5) {
 }
 if (($Investigationchoose -eq 6) -and ($exchangeversion)) {
     CollectMaLogs $MyInvocation.MyCommand.Path
-} 
+}

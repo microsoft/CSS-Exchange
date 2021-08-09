@@ -20,7 +20,7 @@ Function Test-RequiresServerFqdn {
 
     try {
         Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
-        Write-Verbose "Connected successfully using: $($Script:Server)." 
+        Write-Verbose "Connected successfully using: $($Script:Server)."
     } catch {
         Invoke-CatchActions
         if ($tempServerName.Count -gt 1) {
