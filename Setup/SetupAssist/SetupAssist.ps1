@@ -6,7 +6,6 @@
 #
 # TODO: Add AD Object Permissions check
 #
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(
     [switch]$OtherWellKnownObjects

@@ -1451,7 +1451,7 @@ Function Invoke-AnalyzerEngine {
             -DisplayWriteType $shaDisplayWriteType `
             -AnalyzedInformation $analyzedResults
 
-        $analyzedResultsults = Add-AnalyzedResultInformation -Name "Signature Hash Algorithm" -Details $certificate.SignatureHashAlgorithm `
+        $analyzedResults = Add-AnalyzedResultInformation -Name "Signature Hash Algorithm" -Details $certificate.SignatureHashAlgorithm `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType $shaDisplayWriteType `

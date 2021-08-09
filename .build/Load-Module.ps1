@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 function Load-Module {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Prefer verb usage')]
     [CmdletBinding()]
     [OutputType([bool])]
     param (

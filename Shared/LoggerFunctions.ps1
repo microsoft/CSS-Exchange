@@ -94,12 +94,13 @@ Function Invoke-LoggerInstanceCleanup {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [object]$LoggerInstance
     )
+    process {
+        if ($LoggerInstance.LoggerDisabled -or
+            $LoggerInstance.PreventLogCleanup) {
+            return
+        }
 
-    if ($LoggerInstance.LoggerDisabled -or
-        $LoggerInstance.PreventLogCleanup) {
-        return
+        Get-ChildItem -Path ([System.IO.Path]::GetDirectoryName($LoggerInstance.FullPath)) -Filter "*$($LoggerInstance.BaseInstanceFileName)*" |
+            Remove-Item -Force
     }
-
-    Get-ChildItem -Path ([System.IO.Path]::GetDirectoryName($LoggerInstance.FullPath)) -Filter "*$($LoggerInstance.BaseInstanceFileName)*" |
-        Remove-Item -Force
 }
