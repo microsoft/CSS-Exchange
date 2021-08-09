@@ -4,7 +4,11 @@
 Function Test-ValidHomeMDB {
     $filePath = "$PSScriptRoot\validHomeMdb.txt"
     $rootDSE = [ADSI]("LDAP://RootDSE")
-    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(!(msExchRemoteRecipientType=*))(!(targetAddress=*))(msExchHideFromAddressLists=TRUE)(!(cn=HealthMailbox*)))" `
+    $arbitration = 0x800000
+    $discovery = 0x20000000
+    $publicFolder = 0x1000000000
+    $recipientTypes = $arbitration -bor $discovery -bor $publicFolder
+    ldifde -t 3268 -r "(&(objectClass=user)(mailnickname=*)(msExchRecipientTypeDetails:1.2.840.113556.1.4.804:=$recipientTypes))" `
         -l "distinguishedName,homeMDB" -f $filePath -d $rootDSE.rootDomainNamingContext | Out-Null
 
     $ldifeObject = @(Get-Content $filePath | ConvertFrom-Ldif)
