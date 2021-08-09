@@ -93,6 +93,7 @@ Function AddToWhere {
 
 Function InvokeGetStoreQuery {
     [CmdletBinding()]
+    [OutputType("System.Object[]")]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         [object]$Query
