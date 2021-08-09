@@ -577,7 +577,7 @@ function CheckifthiscanbeaknownissueusingMonitor {
     if ($Script:lastProbeerror) {
         if ($Script:lastProbeerror.Exception -like "*The underlying connection was closed*") {
             Write-Host -foreground yellow "This probe error message related to underlying connection closed has been seen when connection for loopback adapter has been blocked at lower level before reaching Exchange`n"
-            Write-Host -foreground yellow "You can check in IIS Default Web Site /Actions pane / Bindings that `“All Unassigned`” is used and this has not been changed to only allow specific IP.`n"
+            Write-Host -foreground yellow "You can check in IIS Default Web Site /Actions pane / Bindings that `"All Unassigned`" is used and this has not been changed to only allow specific IP.`n"
             Write-Host -foreground yellow "This has been seen when blocking some TLS version using Secureprotocols registry key or through GPO.`n"
             Write-Host -foreground yellow "You can check if some TLS version are disabled under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols (https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and/ba-p/607761).`n"
             Write-Host -foreground yellow "You may also check if this is linked with antivirus or local firewall rules.`n"
