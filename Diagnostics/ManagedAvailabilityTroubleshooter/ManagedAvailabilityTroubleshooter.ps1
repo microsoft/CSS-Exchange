@@ -5,7 +5,7 @@
 # The goal of this script is to more easily investigate issues related of Managed Availability
 
 #  Provide your feedback to ExToolsFeedback@microsoft.com
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Override for now')]
 [cmdletbinding()]
 Param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
 
@@ -175,6 +175,7 @@ function InvestigateProbe {
 }
 
 Function InvestigateMonitor {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Override for now')]
     [cmdletbinding()]
     Param( [String]$MonitorToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource , [String] $ResponderToInvestigate)
 
