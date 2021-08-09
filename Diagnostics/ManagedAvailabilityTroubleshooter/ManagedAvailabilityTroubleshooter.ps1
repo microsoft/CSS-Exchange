@@ -122,7 +122,7 @@ function InvestigateProbe {
                 if ( -not ($ProbeInfo.TargetResource -eq "[null]"))
                 { $probename2add += "/" + $ProbeInfo.TargetResource }
             }
-            if ($ProbeDetailsfullname -eq $null )
+            if ($null -eq $ProbeDetailsfullname)
             { $ProbeDetailsfullname = $Probename = $probename2add }
             else {
                 $ProbeNameAlreadyinthelist = $false
