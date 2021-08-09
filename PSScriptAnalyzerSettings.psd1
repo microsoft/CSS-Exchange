@@ -6,15 +6,6 @@
         'PSAvoidUsingWriteHost'
     )
 
-    IncludeRules        = @(
-        'PSPlaceOpenBrace',
-        'PSPlaceCloseBrace',
-        'PSUseConsistentWhitespace',
-        'PSUseConsistentIndentation',
-        'PSAlignAssignmentStatement',
-        'PSUseCorrectCasing'
-    )
-
     Rules               = @{
         PSPlaceOpenBrace           = @{
             Enable             = $true
