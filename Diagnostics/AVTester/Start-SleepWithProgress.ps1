@@ -31,7 +31,7 @@ Counts down 60 seconds and updates the Progress bar during the proess.
 
 #>
 Function Start-SleepWithProgress {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', Justification = 'Start-Sleep does not use -WhatIf')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Start-Sleep does not use -WhatIf')]
     Param(
         [Parameter(Mandatory = $true)]
         [int]$SleepTime,
