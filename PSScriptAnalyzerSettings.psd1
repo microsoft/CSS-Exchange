@@ -3,7 +3,8 @@
     IncludeDefaultRules = $true
 
     ExcludeRules        = @(
-        'PSAvoidUsingWriteHost'
+        'PSAvoidUsingWriteHost',
+        'PSReviewUnusedParameter'
     )
 
     Rules               = @{

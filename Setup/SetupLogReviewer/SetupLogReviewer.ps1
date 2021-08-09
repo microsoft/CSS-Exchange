@@ -6,7 +6,6 @@
 #
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue
 #
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding(DefaultParameterSetName = "Main")]
 param(
     [Parameter(Mandatory = $true,
