@@ -59,7 +59,7 @@ Outputs to the screen
 #>
 
 Param (
-    [Parameter(Position = 0, Mandatory = $true, ValueFromPipelinepeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     $SearchResults,
     [switch]$ResolveCaller,
     [switch]$Agree
