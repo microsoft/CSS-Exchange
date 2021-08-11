@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 #Exchange On Prem Script to help assist with determining why search might not be working on an Exchange 2019+ Server
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding(DefaultParameterSetName = "SubjectAndFolder")]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "SubjectAndFolder")]

@@ -80,9 +80,6 @@ Process {
     # Deal with each object in the input
     $searchresults | ForEach-Object {
 
-        # Reset the result object
-        $Result = New-Object PSObject
-
         # Get the alias of the User that ran the command
         $user = ($_.caller.split("/"))[-1]
 
@@ -181,6 +178,8 @@ Process {
     # Get just the name of the cmdlet that was run
     [string]$cmdlet = $_.CmdletName
 
+    # Reset the result object
+    $Result = New-Object PSObject
     # Build the result object to return our values
     $Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
     $Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet

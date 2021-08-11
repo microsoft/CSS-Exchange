@@ -3,7 +3,8 @@ trigger:
     include:
       - release
 
-pool: Default
+pool:
+  vmImage: 'windows-latest'
 
 steps:
 - script: echo Hello, world!

@@ -3,7 +3,6 @@
 
 function Get-BadPermissionJob {
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
     param (
         [Parameter(Position = 0)]
         [string]
