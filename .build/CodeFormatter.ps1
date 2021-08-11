@@ -1,6 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = '$filesFailed is being used.')]
 [CmdletBinding()]
 param(
     [Switch]
@@ -27,7 +27,7 @@ $filesFailed = $false
 
 # MD files must NOT have a BOM
 Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
-    $encoding = Get-Encoding $_
+    $encoding = Get-PsOneEncoding $_
     if ($encoding.BOM) {
         Write-Warning "MD file has BOM: $($_.FullName)"
         if ($Save) {
@@ -47,7 +47,7 @@ Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
 
 foreach ($file in $scriptFiles) {
     # PS1 files must have a BOM
-    $encoding = Get-Encoding $file
+    $encoding = Get-PsOneEncoding $file
     if (-not $encoding.BOM) {
         Write-Warning "File has no BOM: $file"
         if ($Save) {

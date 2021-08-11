@@ -3,16 +3,8 @@
     IncludeDefaultRules = $true
 
     ExcludeRules        = @(
-        'PSAvoidUsingWriteHost'
-    )
-
-    IncludeRules        = @(
-        'PSPlaceOpenBrace',
-        'PSPlaceCloseBrace',
-        'PSUseConsistentWhitespace',
-        'PSUseConsistentIndentation',
-        'PSAlignAssignmentStatement',
-        'PSUseCorrectCasing'
+        'PSAvoidUsingWriteHost',
+        'PSReviewUnusedParameter'
     )
 
     Rules               = @{

@@ -14,7 +14,6 @@ Function Write-CheckSearchProcessState {
         $thirdPartyModuleFound = $false
         $checksPassed = $true
         $status = "Passed"
-        $processNotStarted = $false
     }
     process {
 

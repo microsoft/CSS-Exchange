@@ -25,9 +25,6 @@ into the script.
 Attempts to resolve the alias of the person who ran the command into the
 primary SMTP address.
 
-.PARAMETER Agree
-Verifies you have read and agree to the disclaimer at the top of the script file
-
 .OUTPUTS
 Creates an output that contains the following information:
 
@@ -39,18 +36,18 @@ ObjectModified : Object that was modified by the command
 
 .EXAMPLE
 $Search = Search-AdminAuditLog
-$search | C:\Scripts\Get-SimpleAuditLogReport.ps1 -agree
+$search | C:\Scripts\Get-SimpleAuditLogReport.ps1
 
 Converts the results of Search-AdminAuditLog and sends the output to the screen
 
 .EXAMPLE
-Search-AdminAuditLog | C:\Scripts\Get-SimpleAuditlogReport.ps1 -agree | Export-CSV -path C:\temp\auditlog.csv
+Search-AdminAuditLog | C:\Scripts\Get-SimpleAuditlogReport.ps1 | Export-CSV -path C:\temp\auditlog.csv
 
 Converts the restuls of Search-AdminAuditLog and sends the output to a CSV file
 
 .EXAMPLE
 $MySearch = Search-AdminAuditLog -cmdlet set-mailbox
-C:\Script\C:\Scripts\Get-SimpleAuditLogReport.ps1 -agree -searchresults $MySearch
+C:\Script\C:\Scripts\Get-SimpleAuditLogReport.ps1 -searchresults $MySearch
 
 Finds all instances of set-mailbox
 Converts them by passing in the results to the switch searchresults
@@ -59,20 +56,13 @@ Outputs to the screen
 #>
 
 Param (
-    [Parameter(Position = 0, Mandatory = $true, ValueFromPipelinepeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     $SearchResults,
-    [switch]$ResolveCaller,
-    [switch]$Agree
+    [switch]$ResolveCaller
 )
 
 # Setup to process incomming results
 Begin {
-
-    # Statement to ensure that you have looked at the disclaimer or that you have removed this line so you don't have too
-    If ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
-
-    # Make sure the array is null
-    [array]$ResultSet = $null
 
     # Set the counter to 1
     $i = 1
@@ -86,9 +76,6 @@ Process {
 
     # Deal with each object in the input
     $searchresults | ForEach-Object {
-
-        # Reset the result object
-        $Result = New-Object PSObject
 
         # Get the alias of the User that ran the command
         $user = ($_.caller.split("/"))[-1]
@@ -160,17 +147,22 @@ Process {
     $Oldvalue = $null
     $NewValue = $null
 
-    # Push each property set into a seperate string
-    $ModifiedProperties | ForEach-Object {
-        [string]$Property = $Property + $_.name + ";"
-        [string]$OldValue = $OldValue + $_.oldvalue + ";"
-        [string]$NewValue = $NewValue + $_.newvalue + ";"
-    }
+    if ($ModifiedProperties.count -gt 0) {
 
-    # Trim off the last ;
-    $Property = $Property.TrimEnd(";")
-    $Oldvalue = $Oldvalue.TrimEnd(";")
-    $NewValue = $NewValue.TrimEnd(";")
+        # Push each property set into a seperate string
+        $ModifiedProperties | ForEach-Object {
+            [string]$Property = $Property + $_.name + ";"
+            [string]$OldValue = $OldValue + $_.oldvalue + ";"
+            [string]$NewValue = $NewValue + $_.newvalue + ";"
+        }
+
+        # Trim off the last ;
+        $Property = $Property.TrimEnd(";")
+        $Oldvalue = $Oldvalue.TrimEnd(";")
+        $NewValue = $NewValue.TrimEnd(";")
+    } else {
+        #since the are null nothing to do here
+    }
 
     # Format our modified object
     if ([string]::IsNullOrEmpty($_.objectModified)) {
@@ -183,6 +175,8 @@ Process {
     # Get just the name of the cmdlet that was run
     [string]$cmdlet = $_.CmdletName
 
+    # Reset the result object
+    $Result = New-Object PSObject
     # Build the result object to return our values
     $Result | Add-Member -MemberType NoteProperty -Value $user -Name Caller
     $Result | Add-Member -MemberType NoteProperty -Value $cmdlet -Name Cmdlet
@@ -194,10 +188,5 @@ Process {
     $Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
 
     # Add the object to the array to be returned
-    $ResultSet = $ResultSet + $Result
-}
-# Final steps
-End {
-    # Return the array set
-    Return $ResultSet
+    $Result
 }

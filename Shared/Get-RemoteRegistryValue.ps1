@@ -44,7 +44,7 @@ Function Get-RemoteRegistryValue {
                 $registryGetValue = $regSubKey.GetValue($GetValue)
                 Write-Verbose "Finished running GetValue()"
 
-                if ($registryGetValue -ne $null -and
+                if ($null -ne $registryGetValue -and
                     (-not ([System.String]::IsNullOrWhiteSpace($ValueType)))) {
                     Write-Verbose "Validating ValueType $ValueType"
                     $registryValueType = $regSubKey.GetValueKind($GetValue)
