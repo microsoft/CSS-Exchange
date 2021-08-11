@@ -254,8 +254,8 @@ Function Main {
         Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
         switch (Test-ScriptVersion -AutoUpdate) {
             ($true) { Write-Green("Script was successfully updated.") }
-            ($false) { Write-Red("Script was not successfully updated.") }
-            default { Write-Yellow("Unable to perform ScriptUpdateOnly operation.") }
+            ($false) { Write-Yellow("No update of the script performed.") }
+            default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
         }
         return
     }
