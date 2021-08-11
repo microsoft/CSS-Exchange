@@ -64,9 +64,6 @@ Param (
 # Setup to process incomming results
 Begin {
 
-    # Make sure the array is null
-    [array]$ResultSet = $null
-
     # Set the counter to 1
     $i = 1
 
@@ -194,5 +191,3 @@ Process {
     # Add the object to the array to be returned
     $Result
 }
-# Final steps
-End {}
