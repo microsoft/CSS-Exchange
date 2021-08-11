@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Vars are in use')]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters are in use')]
 [CmdletBinding()]
 Param(
     #[Parameter(Mandatory=$true,ParameterSetName="FileDirectory")][string]$PerfmonFileDirectory,

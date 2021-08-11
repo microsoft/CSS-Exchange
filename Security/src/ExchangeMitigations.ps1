@@ -107,7 +107,6 @@
 #>
 
 [CmdLetBinding()]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Incorrect rule result')]
 param(
     [switch]$ApplyAllMitigations,
     [switch]$ApplyBackendCookieMitigation,

@@ -5,7 +5,6 @@
 #v21.01.22.2234
 Function Start-JobManager {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer Start here')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Removed unneeded functions')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][array]$ServersWithArguments,
