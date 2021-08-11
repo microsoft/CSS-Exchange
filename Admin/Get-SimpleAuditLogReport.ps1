@@ -153,17 +153,22 @@ Process {
     $Oldvalue = $null
     $NewValue = $null
 
-    # Push each property set into a seperate string
-    $ModifiedProperties | ForEach-Object {
-        [string]$Property = $Property + $_.name + ";"
-        [string]$OldValue = $OldValue + $_.oldvalue + ";"
-        [string]$NewValue = $NewValue + $_.newvalue + ";"
-    }
+    if ($ModifiedProperties.count -gt 0) {
 
-    # Trim off the last ;
-    $Property = $Property.TrimEnd(";")
-    $Oldvalue = $Oldvalue.TrimEnd(";")
-    $NewValue = $NewValue.TrimEnd(";")
+        # Push each property set into a seperate string
+        $ModifiedProperties | ForEach-Object {
+            [string]$Property = $Property + $_.name + ";"
+            [string]$OldValue = $OldValue + $_.oldvalue + ";"
+            [string]$NewValue = $NewValue + $_.newvalue + ";"
+        }
+
+        # Trim off the last ;
+        $Property = $Property.TrimEnd(";")
+        $Oldvalue = $Oldvalue.TrimEnd(";")
+        $NewValue = $NewValue.TrimEnd(";")
+    } else {
+        #since the are null nothing to do here
+    }
 
     # Format our modified object
     if ([string]::IsNullOrEmpty($_.objectModified)) {
