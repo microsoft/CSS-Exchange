@@ -187,10 +187,7 @@ Process {
     $Result | Add-Member -MemberType NoteProperty -Value $NewValue -Name NewValue
 
     # Add the object to the array to be returned
-    $ResultSet = $ResultSet + $Result
+    $Result
 }
 # Final steps
-End {
-    # Return the array set
-    Return $ResultSet
-}
+End {}
