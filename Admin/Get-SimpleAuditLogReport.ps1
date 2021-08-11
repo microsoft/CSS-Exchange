@@ -25,9 +25,6 @@ into the script.
 Attempts to resolve the alias of the person who ran the command into the
 primary SMTP address.
 
-.PARAMETER Agree
-Verifies you have read and agree to the disclaimer at the top of the script file
-
 .OUTPUTS
 Creates an output that contains the following information:
 
@@ -39,18 +36,18 @@ ObjectModified : Object that was modified by the command
 
 .EXAMPLE
 $Search = Search-AdminAuditLog
-$search | C:\Scripts\Get-SimpleAuditLogReport.ps1 -agree
+$search | C:\Scripts\Get-SimpleAuditLogReport.ps1
 
 Converts the results of Search-AdminAuditLog and sends the output to the screen
 
 .EXAMPLE
-Search-AdminAuditLog | C:\Scripts\Get-SimpleAuditlogReport.ps1 -agree | Export-CSV -path C:\temp\auditlog.csv
+Search-AdminAuditLog | C:\Scripts\Get-SimpleAuditlogReport.ps1 | Export-CSV -path C:\temp\auditlog.csv
 
 Converts the restuls of Search-AdminAuditLog and sends the output to a CSV file
 
 .EXAMPLE
 $MySearch = Search-AdminAuditLog -cmdlet set-mailbox
-C:\Script\C:\Scripts\Get-SimpleAuditLogReport.ps1 -agree -searchresults $MySearch
+C:\Script\C:\Scripts\Get-SimpleAuditLogReport.ps1 -searchresults $MySearch
 
 Finds all instances of set-mailbox
 Converts them by passing in the results to the switch searchresults
@@ -61,15 +58,11 @@ Outputs to the screen
 Param (
     [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     $SearchResults,
-    [switch]$ResolveCaller,
-    [switch]$Agree
+    [switch]$ResolveCaller
 )
 
 # Setup to process incomming results
 Begin {
-
-    # Statement to ensure that you have looked at the disclaimer or that you have removed this line so you don't have too
-    If ($Agree -ne $true) { Write-Error "Please run the script with -Agree to indicate that you have read and agreed to the sample script disclaimer at the top of the script file" -ErrorAction Stop }
 
     # Make sure the array is null
     [array]$ResultSet = $null
