@@ -671,12 +671,14 @@ Function Invoke-AnalyzerEngine {
             -DisplayGroupingKey $keyHardwareInformation `
             -AnalyzedInformation $analyzedResults
 
+    <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions. 
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare) {
             $analyzedResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
                 -DisplayGroupingKey $keyHardwareInformation `
                 -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
+    #>
     } elseif ($value -gt 2) {
         $analyzedResults = Add-AnalyzedResultInformation -Name $processorName -Details ("{0} - Error: Recommended to only have 2 Processors" -f $value) `
             -DisplayGroupingKey $keyHardwareInformation `
