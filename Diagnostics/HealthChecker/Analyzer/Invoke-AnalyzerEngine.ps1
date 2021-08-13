@@ -389,7 +389,7 @@ Function Invoke-AnalyzerEngine {
                 $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details $inactiveComponent `
                     -DisplayGroupingKey $keyExchangeInformation `
                     -DisplayCustomTabNumber 2  `
-                    -DisplayWriteType "Yellow" `
+                    -DisplayWriteType "Red" `
                     -AnalyzedInformation $analyzedResults
             }
         }
@@ -403,7 +403,7 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
+                -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -412,7 +412,7 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
+                -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
         }
     }
