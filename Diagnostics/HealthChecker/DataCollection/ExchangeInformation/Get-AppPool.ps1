@@ -20,15 +20,23 @@
 
                 [Parameter(Mandatory = $false)]
                 [int]
-                $Line = 0
+                $Line = 0,
+
+                [Parameter(Mandatory = $false)]
+                [int]
+                $MinimumIndentLevel = 2
             )
 
             if ($Line -ge $Text.Count) {
                 return $null
             }
 
-            $hash = @{}
             $startingIndentLevel = Get-IndentLevel $Text[$Line]
+            if ($startingIndentLevel -lt $MinimumIndentLevel) {
+                return $null
+            }
+
+            $hash = @{}
 
             while ($Line -lt $Text.Count) {
                 $indentLevel = Get-IndentLevel $Text[$Line]
@@ -38,7 +46,7 @@
                     # We have a property at this level. Add it to the object.
                     if ($Text[$Line] -match "\[(\S+)\]") {
                         $name = $Matches[1]
-                        $value = Convert-FromAppPoolText $Text ($Line + 1)
+                        $value = Convert-FromAppPoolText $Text ($Line + 1) $startingIndentLevel
                         $hash[$name] = $value
                     } elseif ($Text[$Line] -match "\s+(\S+):`"(\S+)`"") {
                         $name = $Matches[1]
