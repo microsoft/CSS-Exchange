@@ -392,6 +392,12 @@ Function Invoke-AnalyzerEngine {
                     -DisplayWriteType "Red" `
                     -AnalyzedInformation $analyzedResults
             }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "For more information: https://aka.ms/HC-ServerComponentState" `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
         }
 
         if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
@@ -679,7 +685,7 @@ Function Invoke-AnalyzerEngine {
             -DisplayGroupingKey $keyHardwareInformation `
             -AnalyzedInformation $analyzedResults
 
-    <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions. 
+    <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions.
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare) {
             $analyzedResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
                 -DisplayGroupingKey $keyHardwareInformation `
