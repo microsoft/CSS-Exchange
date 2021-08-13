@@ -51,7 +51,7 @@ function Get-AppPool {
                         $name = $Matches[1]
                         $value = Convert-FromAppPoolText -Text $Text -Line ($Line + 1) -MinimumIndentLevel $startingIndentLevel
                         $hash[$name] = $value
-                    } elseif ($Text[$Line] -match "\s+(\S+):`"(\S+)`"") {
+                    } elseif ($Text[$Line] -match "\s+(\S+):`"(.*)`"") {
                         $name = $Matches[1]
                         $value = $Matches[2].Trim("`"")
                         $hash[$name] = $value
