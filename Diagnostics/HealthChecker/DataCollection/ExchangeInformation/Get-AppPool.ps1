@@ -1,4 +1,7 @@
-﻿function Get-AppPool {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-AppPool {
     [CmdletBinding()]
     param ()
 
@@ -46,7 +49,7 @@
                     # We have a property at this level. Add it to the object.
                     if ($Text[$Line] -match "\[(\S+)\]") {
                         $name = $Matches[1]
-                        $value = Convert-FromAppPoolText $Text ($Line + 1) $startingIndentLevel
+                        $value = Convert-FromAppPoolText -Text $Text -Line ($Line + 1) -MinimumIndentLevel $startingIndentLevel
                         $hash[$name] = $value
                     } elseif ($Text[$Line] -match "\s+(\S+):`"(\S+)`"") {
                         $name = $Matches[1]
