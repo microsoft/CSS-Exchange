@@ -169,6 +169,7 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
 Function Main {
 
@@ -317,6 +318,7 @@ try {
         -VerboseEnabled $Script:VerboseEnabled `
         -EnableDateTime $false `
         -ErrorAction SilentlyContinue
+    SetProperForegroundColor
     Main
 } finally {
     Get-ErrorsThatOccurred
@@ -327,4 +329,5 @@ try {
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
+    RevertProperForegroundColor
 }
