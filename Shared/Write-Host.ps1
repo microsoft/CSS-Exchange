@@ -35,3 +35,27 @@ Function Write-Host {
         Microsoft.PowerShell.Utility\Write-Host @params
     }
 }
+
+Function SetProperForegroundColor {
+    $Script:OriginalConsoleForegroundColor = $host.UI.RawUI.ForegroundColor
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.WarningForegroundColor) {
+        Write-Verbose "Foreground Color matches warning's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.ErrorForegroundColor) {
+        Write-Verbose "Foreground Color matches error's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+}
+
+Function RevertProperForegroundColor {
+    $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
+}
