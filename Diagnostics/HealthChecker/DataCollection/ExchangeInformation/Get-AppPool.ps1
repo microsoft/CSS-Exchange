@@ -40,7 +40,7 @@
                         $name = $Matches[1]
                         $value = Convert-FromAppPoolText $Text ($Line + 1)
                         $hash[$name] = $value
-                    } elseif ($Text[$Line] -match "\s+(\S+):(\S+)") {
+                    } elseif ($Text[$Line] -match "\s+(\S+):`"(\S+)`"") {
                         $name = $Matches[1]
                         $value = $Matches[2].Trim("`"")
                         $hash[$name] = $value
