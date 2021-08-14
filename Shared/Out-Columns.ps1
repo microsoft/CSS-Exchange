@@ -31,12 +31,17 @@ function Out-Columns {
 
         [Parameter(Mandatory = $false)]
         [int]
-        $IndentSpaces = 0
+        $IndentSpaces = 0,
+
+        [Parameter(Mandatory = $false)]
+        [ref]
+        $StringOutput
     )
 
     begin {
         $objects = New-Object System.Collections.ArrayList
         $padding = 2
+        $stb = New-Object System.Text.StringBuilder
     }
 
     process {
@@ -74,27 +79,35 @@ function Out-Columns {
             }
 
             Write-Host
+            [void]$stb.Append([System.Environment]::NewLine)
 
             Write-Host (" " * $IndentSpaces) -NoNewline
+            [void]$stb.Append(" " * $IndentSpaces)
 
             for ($i = 0; $i -lt $props.Count; $i++) {
                 Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $props[$i]) -NoNewline
+                [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $props[$i])
             }
 
             Write-Host
+            [void]$stb.Append([System.Environment]::NewLine)
 
             Write-Host (" " * $IndentSpaces) -NoNewline
+            [void]$stb.Append(" " * $IndentSpaces)
 
             for ($i = 0; $i -lt $props.Count; $i++) {
                 Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f ("-" * $props[$i].Length)) -NoNewline
+                [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f ("-" * $props[$i].Length))
             }
 
             Write-Host
+            [void]$stb.Append([System.Environment]::NewLine)
 
             $defaultFgColor = (Get-Host).ui.rawui.ForegroundColor
 
             foreach ($o in $objects) {
                 Write-Host (" " * $IndentSpaces) -NoNewline
+                [void]$stb.Append(" " * $IndentSpaces)
                 for ($i = 0; $i -lt $props.Count; $i++) {
                     $val = $o."$($props[$i])"
                     $fgColor = $defaultFgColor
@@ -105,12 +118,17 @@ function Out-Columns {
                         }
                     }
                     Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $o."$($props[$i])") -NoNewline -ForegroundColor $fgColor
+                    [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $o."$($props[$i])")
                 }
 
                 Write-Host
+                [void]$stb.Append([System.Environment]::NewLine)
             }
 
             Write-Host
+            [void]$stb.Append([System.Environment]::NewLine)
+
+            $StringOutput.Value = $stb.ToString()
         }
     }
 }
