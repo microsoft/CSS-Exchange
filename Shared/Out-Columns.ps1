@@ -27,7 +27,11 @@ function Out-Columns {
 
         [Parameter(Mandatory = $false, Position = 1)]
         [scriptblock[]]
-        $ColorizerFunctions = @()
+        $ColorizerFunctions = @(),
+
+        [Parameter(Mandatory = $false)]
+        [int]
+        $IndentSpaces = 0
     )
 
     begin {
@@ -71,11 +75,15 @@ function Out-Columns {
 
             Write-Host
 
+            Write-Host (" " * $IndentSpaces) -NoNewline
+
             for ($i = 0; $i -lt $props.Count; $i++) {
                 Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $props[$i]) -NoNewline
             }
 
             Write-Host
+
+            Write-Host (" " * $IndentSpaces) -NoNewline
 
             for ($i = 0; $i -lt $props.Count; $i++) {
                 Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f ("-" * $props[$i].Length)) -NoNewline
@@ -86,6 +94,7 @@ function Out-Columns {
             $defaultFgColor = (Get-Host).ui.rawui.ForegroundColor
 
             foreach ($o in $objects) {
+                Write-Host (" " * $IndentSpaces) -NoNewline
                 for ($i = 0; $i -lt $props.Count; $i++) {
                     $val = $o."$($props[$i])"
                     $fgColor = $defaultFgColor
