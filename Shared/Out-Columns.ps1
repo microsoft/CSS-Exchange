@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .SYNOPSIS
     Outputs a table of objects with certain values colorized
 .EXAMPLE
