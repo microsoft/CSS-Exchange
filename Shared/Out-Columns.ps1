@@ -128,7 +128,9 @@ function Out-Columns {
             Write-Host
             [void]$stb.Append([System.Environment]::NewLine)
 
-            $StringOutput.Value = $stb.ToString()
+            if ($null -ne $StringOutput) {
+                $StringOutput.Value = $stb.ToString()
+            }
         }
     }
 }
