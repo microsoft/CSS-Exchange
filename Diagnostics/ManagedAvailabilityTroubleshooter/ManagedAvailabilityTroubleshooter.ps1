@@ -5,7 +5,7 @@
 # The goal of this script is to more easily investigate issues related of Managed Availability
 
 #  Provide your feedback to ExToolsFeedback@microsoft.com
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Override for now')]
 [cmdletbinding()]
 Param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
 
@@ -30,9 +30,18 @@ function ParseProbeResult {
     Param( [String] $FilterXpath , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
     TestFileorCmd $ProbeResulteventcmd;
-    ParseProbeResult2 ($ProbeResulteventcmd + " -maxevents 200" ) $FilterXpath "Parsing only last 200 probe events for quicker response time" $MonitorToInvestigate $ResponderToInvestigate
-    if ("yes", "YES", "Y", "y" -contains (Read-Host ("`nParsed last 200 probe events for quicker response.`nDo you like to parse all probe events ? Y/N (default is ""N"")")))
-    { ParseProbeResult2 $ProbeResulteventcmd $FilterXpath "Parsing all probe events. this may be slow as there is lots of events" $MonitorToInvestigate $ResponderToInvestigate }
+    ParseProbeResult2 -ProbeResulteventcompletecmd ($ProbeResulteventcmd + " -maxevents 200" ) `
+        -FilterXpath $FilterXpath `
+        -waitstring "Parsing only last 200 probe events for quicker response time" `
+        -MonitorToInvestigate $MonitorToInvestigate `
+        -ResponderToInvestigate $ResponderToInvestigate
+    if ("yes", "YES", "Y", "y" -contains (Read-Host ("`nParsed last 200 probe events for quicker response.`nDo you like to parse all probe events ? Y/N (default is ""N"")"))) {
+        ParseProbeResult2 -ProbeResulteventcompletecmd $ProbeResulteventcmd `
+            -FilterXpath $FilterXpath `
+            -waitstring "Parsing all probe events. this may be slow as there is lots of events" `
+            -MonitorToInvestigate $MonitorToInvestigate `
+            -ResponderToInvestigate $ResponderToInvestigate
+    }
 }
 
 function ParseProbeResult2 {
@@ -122,7 +131,7 @@ function InvestigateProbe {
                 if ( -not ($ProbeInfo.TargetResource -eq "[null]"))
                 { $probename2add += "/" + $ProbeInfo.TargetResource }
             }
-            if ($ProbeDetailsfullname -eq $null )
+            if ($null -eq $ProbeDetailsfullname)
             { $ProbeDetailsfullname = $Probename = $probename2add }
             else {
                 $ProbeNameAlreadyinthelist = $false
@@ -157,13 +166,16 @@ function InvestigateProbe {
             } else
             { Write-Host -ForegroundColor red ("Missing logs from path $EacBackEndLogonProbefolder ") }
         } else {
-            ParseProbeResult ("*[UserData[EventXML[ResultName='" + $ProbeDetailsfullname + "']]]") $MonitorToInvestigate $ResponderToInvestigate
+            ParseProbeResult -FilterXpath ("*[UserData[EventXML[ResultName='" + $ProbeDetailsfullname + "']]]") `
+                -MonitorToInvestigate $MonitorToInvestigate `
+                -ResponderToInvestigate $ResponderToInvestigate
         }
     } else
     { Write-Host("`nFound no definitions for " + $ProbeToInvestigate + " probe") }
 }
 
 Function InvestigateMonitor {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Override for now')]
     [cmdletbinding()]
     Param( [String]$MonitorToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource , [String] $ResponderToInvestigate)
 
@@ -218,11 +230,20 @@ Function InvestigateMonitor {
     if ($ProbeToInvestigate) {
         if ($ProbeToInvestigate.Count -gt 1) {
             Write-Host ("`nMultiple probes linked with the monitor " + $MonitorToInvestigate + " , here is the list : " + $ProbeToInvestigate)
-            foreach ($individualProbetoInvestigate in $ProbeToInvestigate)
-            { InvestigateProbe $individualProbetoInvestigate $MonitorToInvestigate $ResponderToInvestigate $ResourceNameToInvestigate $ResponderTargetResource }
+            foreach ($individualProbetoInvestigate in $ProbeToInvestigate) {
+                InvestigateProbe -ProbeToInvestigate $individualProbetoInvestigate `
+                    -MonitorToInvestigate $MonitorToInvestigate `
+                    -ResponderToInvestigate $ResponderToInvestigate `
+                    -ResourceNameToInvestigate $ResourceNameToInvestigate `
+                    -ResponderTargetResource $ResponderTargetResource
+            }
         } else {
             Write-Host ("`nThe probe triggering " + $MonitorToInvestigate + " monitor is " + $ProbeToInvestigate)
-            InvestigateProbe $ProbeToInvestigate $MonitorToInvestigate $ResponderToInvestigate $ResourceNameToInvestigate $ResponderTargetResource
+            InvestigateProbe -ProbeToInvestigate $ProbeToInvestigate `
+                -MonitorToInvestigate $MonitorToInvestigate `
+                -ResponderToInvestigate $ResponderToInvestigate `
+                -ResourceNameToInvestigate $ResourceNameToInvestigate `
+                -ResponderTargetResource $ResponderTargetResource
         }
     } else
     { Write-Host ("`nFound no probe triggering " + $MonitorToInvestigate ) }
@@ -402,7 +423,10 @@ Function InvestigateResponder {
             $MonitorToInvestigate = $ResponderDetails.AlertMask
             if ($MonitorToInvestigate) {
                 Write-Host ("`nThe monitor triggering " + $ResponderToInvestigate + " Responder is " + $MonitorToInvestigate)
-                InvestigateMonitor $MonitorToInvestigate $ResourceNameToInvestigate $ResponderDetails.TargetResource $ResponderToInvestigate
+                InvestigateMonitor -MonitorToInvestigate $MonitorToInvestigate `
+                    -ResourceNameToInvestigate $ResourceNameToInvestigate `
+                    -ResponderTargetResource $ResponderDetails.TargetResource `
+                    -ResponderToInvestigate $ResponderToInvestigate
             } else
             {	Write-Host ("`nFound no monitor triggering " + $ResponderToInvestigate + "`n" ) }
             if ($Script:KnownIssueDetectionAlreadydone -eq $false) { KnownIssueDetection $null $ResponderToInvestigate }
@@ -553,7 +577,7 @@ function CheckifthiscanbeaknownissueusingMonitor {
     if ($Script:lastProbeerror) {
         if ($Script:lastProbeerror.Exception -like "*The underlying connection was closed*") {
             Write-Host -foreground yellow "This probe error message related to underlying connection closed has been seen when connection for loopback adapter has been blocked at lower level before reaching Exchange`n"
-            Write-Host -foreground yellow "You can check in IIS Default Web Site /Actions pane / Bindings that “All Unassigned” is used and this has not been changed to only allow specific IP.`n"
+            Write-Host -foreground yellow "You can check in IIS Default Web Site /Actions pane / Bindings that `"All Unassigned`" is used and this has not been changed to only allow specific IP.`n"
             Write-Host -foreground yellow "This has been seen when blocking some TLS version using Secureprotocols registry key or through GPO.`n"
             Write-Host -foreground yellow "You can check if some TLS version are disabled under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols (https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and/ba-p/607761).`n"
             Write-Host -foreground yellow "You may also check if this is linked with antivirus or local firewall rules.`n"
@@ -616,16 +640,21 @@ function InvestigateUnhealthyMonitor {
         Start-Sleep -s 1
         $UnhealthyMonitorToInvestigate = $myHealthEntryList | Out-GridView -PassThru -Title $Selectunhealthymonitor
         if ( $UnhealthyMonitorToInvestigate) {
-            if (([string]::Compare($UnhealthyMonitorToInvestigate.Server, $env:computername, $true) -eq 0) -or ($pathforlogsspecified))
-            {	InvestigateMonitor $UnhealthyMonitorToInvestigate.Name $null $UnhealthyMonitorToInvestigate.TargetResource $null }
-            else {
+            if (([string]::Compare($UnhealthyMonitorToInvestigate.Server, $env:computername, $true) -eq 0) -or ($pathforlogsspecified)) {
+                InvestigateMonitor -MonitorToInvestigate $UnhealthyMonitorToInvestigate.Name `
+                    -ResourceNameToInvestigate $null `
+                    -ResponderTargetResource $UnhealthyMonitorToInvestigate.TargetResource `
+                    -ResponderToInvestigate $null
+            } else {
                 Write-Host -ForegroundColor yellow ("`nThe Monitor you select is regarding a different server : " + $UnhealthyMonitorToInvestigate.Server + " .")
                 Write-Host -ForegroundColor yellow ("Run this script on this server directly to analyse this monitor further." )
             }
-        } else
-        { Write-Host ("`nYou have not selected any unhealthy monitor. Run the script again and select an occurrence" ) }
-    } else
-    { Write-Host ("`nFound no unhealthy monitor." ) }
+        } else {
+            Write-Host ("`nYou have not selected any unhealthy monitor. Run the script again and select an occurrence" )
+        }
+    } else {
+        Write-Host ("`nFound no unhealthy monitor." )
+    }
 }
 
 function CollectMaLogs {
@@ -645,7 +674,7 @@ function CollectMaLogs {
     if (-not (Test-Path($OutputPath)))
     { New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null }
     if (-not (Test-Path($OutputPath)))
-    { Write-Host "Failed to create " + $OutputPath + " to store logs collected"; exit }
+    { Write-Host "Failed to create $OutputPath to store logs collected"; exit }
 
     $ExchangeServerinfofile = $OutputPath + "\" + $env:computername + "_ExchangeServer_FL.TXT"
     $ExchangeServerinfo | Out-File $ExchangeServerinfofile
@@ -685,7 +714,7 @@ function CollectMaLogs {
         if (-not (Test-Path($logcollectionmonitoringfolder)))
         { New-Item -ItemType Directory -Force -Path $logcollectionmonitoringfolder | Out-Null }
         if (-not (Test-Path($logcollectionmonitoringfolder)))
-        { Write-Host "Failed to create " + $logcollectionmonitoringfolder + " to store logs collected"; exit }
+        { Write-Host "Failed to create $logcollectionmonitoringfolder to store logs collected"; exit }
 
         $monitoringfiles = Get-ChildItem ( $monitoringfolder.Fullname ) | Where-Object { $_.PSIsContainer -eq $false }
         if ($monitoringfolder.Name -eq "ActiveMonitoringTraceLogs")
@@ -703,7 +732,7 @@ function CollectMaLogs {
     if (-not (Test-Path($logHighAvailabilityfolder)))
     { New-Item -ItemType Directory -Force -Path $logHighAvailabilityfolder | Out-Null }
     if (-not (Test-Path($logHighAvailabilityfolder)))
-    { Write-Host "Failed to create " + $logHighAvailabilityfolder + " to store HighAvailability logs collected"; exit }
+    { Write-Host "Failed to create $logHighAvailabilityfolder to store HighAvailability logs collected"; exit }
     foreach ($HighAvailabilityfile in $HighAvailabilityfiles ) {
         Write-Progress ("Collecting " + $HighAvailabilityfile.Fullname)
         Copy-Item $HighAvailabilityfile.Fullname -Destination $logHighAvailabilityfolder
@@ -1146,8 +1175,19 @@ if ($Investigationchoose -eq 2) {
         }
         switch ( $IsitaResponderorMonitororProbe) {
             0 { InvestigateResponder $SpecificResponderorMonitororProbe $null }
-            1 { InvestigateMonitor $SpecificResponderorMonitororProbe $null $null $null }
-            2 { InvestigateProbe $SpecificResponderorMonitororProbe $null $null $null $null }
+            1 {
+                InvestigateMonitor -MonitorToInvestigate $SpecificResponderorMonitororProbe `
+                    -ResourceNameToInvestigate $null `
+                    -ResponderTargetResource $null `
+                    -ResponderToInvestigate $null
+            }
+            2 {
+                InvestigateProbe -ProbeToInvestigate $SpecificResponderorMonitororProbe `
+                    -MonitorToInvestigate $null `
+                    -ResponderToInvestigate $null `
+                    -ResourceNameToInvestigate $null `
+                    -ResponderTargetResource $null
+            }
         }
     } else
     { Write-Host -ForegroundColor red ("No name specified") }
@@ -1183,8 +1223,10 @@ if ($Investigationchoose -eq 4) {
     InvestigateUnhealthyMonitor $ServerHealthfile
 }
 if ($Investigationchoose -eq 5) {
-    ParseProbeResult "*[UserData[EventXML [ResultType='4']]]" $null $null
+    ParseProbeResult -FilterXpath "*[UserData[EventXML [ResultType='4']]]" `
+        -MonitorToInvestigate $null `
+        -ResponderToInvestigate $null
 }
 if (($Investigationchoose -eq 6) -and ($exchangeversion)) {
     CollectMaLogs $MyInvocation.MyCommand.Path
-} 
+}

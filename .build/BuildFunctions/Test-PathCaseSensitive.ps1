@@ -3,6 +3,7 @@
 
 function Test-PathCaseSensitive {
     [CmdletBinding()]
+    [OutputType("System.Boolean")]
     param (
         [Parameter(Mandatory = $true)]
         [string]

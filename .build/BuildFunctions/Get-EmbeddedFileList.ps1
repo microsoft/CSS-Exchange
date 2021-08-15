@@ -11,7 +11,6 @@
 function Get-EmbeddedFileList {
     [CmdletBinding()]
     [OutputType([string[]])]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'FilesAlreadyAdded', Justification = 'Incorrect rule result')]
     param (
         [Parameter()]
         [string]

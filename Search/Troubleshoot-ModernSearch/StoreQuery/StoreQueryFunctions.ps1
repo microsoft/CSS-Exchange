@@ -8,12 +8,13 @@ Function ResetQueryInstances {
         [object]
         $Query
     )
-
-    $Query.IsUnlimited = $false
-    $Query.SelectPartQuery = [string]::Empty
-    $Query.FromPartQuery = [string]::Empty
-    $Query.WherePartQuery = [string]::Empty
-    $Query
+    process {
+        $Query.IsUnlimited = $false
+        $Query.SelectPartQuery = [string]::Empty
+        $Query.FromPartQuery = [string]::Empty
+        $Query.WherePartQuery = [string]::Empty
+        $Query
+    }
 }
 
 Function SetSelect {
@@ -26,11 +27,12 @@ Function SetSelect {
         [Parameter(Mandatory = $true)]
         [string[]]$Value
     )
-
-    [string]$temp = $Value |
-        ForEach-Object { "$_," }
-    $Query.SelectPartQuery = $temp.TrimEnd(",")
-    $Query
+    process {
+        [string]$temp = $Value |
+            ForEach-Object { "$_," }
+        $Query.SelectPartQuery = $temp.TrimEnd(",")
+        $Query
+    }
 }
 
 Function AddToSelect {
@@ -42,11 +44,12 @@ Function AddToSelect {
         [Parameter(Mandatory = $true)]
         [string[]]$Value
     )
-
-    [string]$temp = $Value |
-        ForEach-Object { "$_," }
-    $Query.SelectPartQuery = "$($Query.SelectPartQuery), $($temp.TrimEnd(","))"
-    $Query
+    process {
+        [string]$temp = $Value |
+            ForEach-Object { "$_," }
+        $Query.SelectPartQuery = "$($Query.SelectPartQuery), $($temp.TrimEnd(","))"
+        $Query
+    }
 }
 
 Function SetFrom {
@@ -58,9 +61,10 @@ Function SetFrom {
         [Parameter(Mandatory = $true)]
         [string]$Value
     )
-
-    $Query.FromPartQuery = $Value
-    $Query
+    process {
+        $Query.FromPartQuery = $Value
+        $Query
+    }
 }
 
 Function SetWhere {
@@ -72,9 +76,10 @@ Function SetWhere {
         [Parameter(Mandatory = $true)]
         [string]$Value
     )
-
-    $Query.WherePartQuery = $Value
-    $Query
+    process {
+        $Query.WherePartQuery = $Value
+        $Query
+    }
 }
 
 Function AddToWhere {
@@ -86,46 +91,49 @@ Function AddToWhere {
         [Parameter(Mandatory = $true)]
         [string]$Value
     )
-
-    $Query.WherePartQuery = "$($Query.WherePartQuery)$Value"
-    $Query
+    process {
+        $Query.WherePartQuery = "$($Query.WherePartQuery)$Value"
+        $Query
+    }
 }
 
 Function InvokeGetStoreQuery {
     [CmdletBinding()]
+    [OutputType("System.Object[]")]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         [object]$Query
     )
-
-    if (-not([string]::IsNullOrEmpty($Query.WherePartQuery))) {
-        $queryString = "SELECT $($Query.SelectPartQuery) FROM $($Query.FromPartQuery) WHERE $($Query.WherePartQuery)"
-    } else {
-        $queryString = "SELECT $($Query.SelectPartQuery) FROM $($Query.FromPartQuery)"
-    }
-
-    $myParams = @{
-        Server    = $Query.Server
-        ProcessId = $Query.ProcessId
-        Query     = $queryString
-        Unlimited = $Query.IsUnlimited
-    }
-
-    Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:`$$($Query.IsUnlimited) -Query `"$queryString`"'"
-    $result = @(Get-StoreQuery @myParams)
-
-    if ($result.GetType().ToString() -ne "System.Object[]" -or
-        $result.Count -le 1) {
-        if ($null -ne ($result.DiagnosticQueryException)) {
-            Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
-        } elseif ($null -ne ($result.DiagnosticQueryTranslatorException)) {
-            Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
-        } elseif ($null -ne ($result.DiagnosticQueryParserException)) {
-            Write-Error "Get-StoreQuery DiagnosticQueryParserException : $($result.DiagnosticQueryParserException)"
+    process {
+        if (-not([string]::IsNullOrEmpty($Query.WherePartQuery))) {
+            $queryString = "SELECT $($Query.SelectPartQuery) FROM $($Query.FromPartQuery) WHERE $($Query.WherePartQuery)"
+        } else {
+            $queryString = "SELECT $($Query.SelectPartQuery) FROM $($Query.FromPartQuery)"
         }
-    }
 
-    return $result
+        $myParams = @{
+            Server    = $Query.Server
+            ProcessId = $Query.ProcessId
+            Query     = $queryString
+            Unlimited = $Query.IsUnlimited
+        }
+
+        Write-Verbose "Running 'Get-StoreQuery -Server $($Query.Server) -ProcessId $($Query.ProcessId) -Unlimited:`$$($Query.IsUnlimited) -Query `"$queryString`"'"
+        $result = @(Get-StoreQuery @myParams)
+
+        if ($result.GetType().ToString() -ne "System.Object[]" -or
+            $result.Count -le 1) {
+            if ($null -ne ($result.DiagnosticQueryException)) {
+                Write-Error "Get-StoreQuery DiagnosticQueryException : $($result.DiagnosticQueryException)"
+            } elseif ($null -ne ($result.DiagnosticQueryTranslatorException)) {
+                Write-Error "Get-StoreQuery DiagnosticQueryTranslatorException : $($result.DiagnosticQueryTranslatorException)"
+            } elseif ($null -ne ($result.DiagnosticQueryParserException)) {
+                Write-Error "Get-StoreQuery DiagnosticQueryParserException : $($result.DiagnosticQueryParserException)"
+            }
+        }
+
+        return $result
+    }
 }
 
 Function Get-StoreQueryObject {
