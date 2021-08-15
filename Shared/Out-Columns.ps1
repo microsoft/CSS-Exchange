@@ -51,7 +51,7 @@ function Out-Columns {
     }
 
     end {
-        if ($objects.Count -gt 1) {
+        if ($objects.Count -gt 0) {
             $props = $null
 
             if ($null -ne $Properties) {
