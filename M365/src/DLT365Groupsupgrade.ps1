@@ -46,7 +46,7 @@ Function Connect2EXO {
         } else {
             #log failure and try to install EXO V2 module then Connect to EXO
             Write-Host "ExchangeOnlineManagement Powershell Module is missing `n Trying to install the module" -ForegroundColor Red
-            Install-Module -Name ExchangeOnlineManagement -Force -ErrorAction Stop
+            Install-Module -Name ExchangeOnlineManagement -Force -ErrorAction Stop -Scope CurrentUser
             Import-Module ExchangeOnlineManagement -ErrorAction stop -Force
             $CurrentDescription = "Installing & Importing EXO V2 powershell module"
             $CurrentStatus = "Success"
@@ -100,13 +100,13 @@ Function Debugmatchingeap {
     $eap = Get-EmailAddressPolicy -ErrorAction stop
     # Bypass that step if there's no EAP
     if ($null -ne $eap) {
-        $matchingEap = @( $eap | Where-Object { $_.RecipientFilter -eq "RecipientTypeDetails -eq 'GroupMailbox'" -and $_.EnabledPrimarySMTPAddressTemplate.ToString().Split("@")[1] -ne $Distgroup.PrimarySmtpAddress.ToString().Split("@")[1] })
+        $matchingEap = @( $eap | Where-Object { $_.RecipientFilter -eq "RecipientTypeDetails -eq 'GroupMailbox'" -and $_.EnabledPrimarySMTPAddressTemplate.ToString().Split("@")[1] -cne $Distgroup.PrimarySmtpAddress.ToString().Split("@")[1] })
         if ($matchingEap.Count -ge 1) {
             $script:Conditionsfailed++
-            Write-Host "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization" -ForegroundColor Red
+            Write-Host "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization e.g. DL PrimarySmtpAddress @Contoso.com while the EAP EnabledPrimarySMTPAddressTemplate is @contoso.com OR DL PrimarySmtpAddress @contoso.com however there's an EAP with EnabledPrimarySMTPAddressTemplate set to @fabrikam.com" -ForegroundColor Red
             Write-Host "Group Email Address Policy found:" -BackgroundColor Yellow -ForegroundColor Black
             $matchingEap | Format-Table name, recipientfilter, Guid, enabledemailaddresstemplates
-            "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization e.g. DL PrimarySmtpAddress @Contoso.com while the EAP EnabledPrimarySMTPAddressTemplate is @contoso.com OR DL PrimarySmtpAddress @contoso.com however there's an EAP with EnabledPrimarySMTPAddressTemplate set to @fabrikam.com" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             "Group Email Address Policy found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $matchingEap | Format-Table name, recipientfilter, Guid, enabledemailaddresstemplates | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
@@ -121,9 +121,9 @@ Function Debuggroupnesting {
     $ParentDGroups = @()
     try {
         $alldgs = Get-DistributionGroup -ResultSize unlimited -ErrorAction Stop
-        $CurrentDescription = "Retrieving All DGs in the EXO directory"
-        $CurrentStatus = "Success"
-        log -Function "Retrieve All DGs" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+        #$CurrentDescription = "Retrieving All DGs in the EXO directory"
+        #$CurrentStatus = "Success"
+        #log -Function "Retrieve All DGs" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     } catch {
         $CurrentDescription = "Retrieving All DGs in the EXO directory"
         $CurrentStatus = "Failure"
@@ -132,9 +132,9 @@ Function Debuggroupnesting {
     foreach ($parentdg in $alldgs) {
         try {
             $Pmembers = Get-DistributionGroupMember $($parentdg.Guid.ToString()) -ErrorAction Stop
-            $CurrentDescription = "Retrieving: $parentdg members"
-            $CurrentStatus = "Success"
-            log -Function "Retrieve Distribution Group membership" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+            #$CurrentDescription = "Retrieving: $parentdg members"
+            #$CurrentStatus = "Success"
+            #log -Function "Retrieve Distribution Group membership" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
         } catch {
             $CurrentDescription = "Retrieving: $parentdg members"
             $CurrentStatus = "Failure"
@@ -206,6 +206,44 @@ Function Debugownerscount {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" -ForegroundColor Red
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+    }
+}
+#Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
+Function Debugownersstatus {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$Distgroup
+    )
+    $owners = $Distgroup.ManagedBy
+    if ($owners.Count -le 100 -and $owners.Count -ge 1) {
+        $ConditionDGownerswithoutMBX = @()
+        foreach ($owner in $owners) {
+            try {
+                $owner = Get-Recipient $owner -ErrorAction stop
+                $CurrentDescription = "Validating: $owner RecipientTypeDetails"
+                $CurrentStatus = "Success"
+                log -Function "Validate owner RecipientTypeDetails" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+                if (!($owner.RecipientTypeDetails -eq "UserMailbox" -or $owner.RecipientTypeDetails -eq "MailUser")) {
+                    $ConditionDGownerswithoutMBX = $ConditionDGownerswithoutMBX + $owner
+                }
+            } catch {
+                $CurrentDescription = "Validating: $owner RecipientTypeDetails"
+                $CurrentStatus = "Failure"
+                log -Function "Validate owner RecipientTypeDetails" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+                #Check if the owner RecipientTypeDetails is User
+                $owner = Get-User $owner -ErrorAction stop
+                $ConditionDGownerswithoutMBX = $ConditionDGownerswithoutMBX + $owner
+            }
+        }
+        if ($ConditionDGownerswithoutMBX.Count -ge 1) {
+            Write-Host "Distribution Group can't be upgraded because DL owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser" -ForegroundColor Red
+            Write-Host "Non-supported Owner(s) found:" -BackgroundColor Yellow -ForegroundColor Black
+            $ConditionDGownerswithoutMBX | Format-Table -AutoSize -Wrap Name, GUID, RecipientTypeDetails
+            "Distribution Group can't be upgraded because DL owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            "Non-supported Owner(s) found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $ConditionDGownerswithoutMBX | Format-Table -AutoSize -Wrap Name, GUID, RecipientTypeDetails | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $script:Conditionsfailed++
+        }
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL
@@ -377,6 +415,7 @@ Debugmatchingeap($dg)
 Debuggroupnesting($dg)
 DebugmembersrecipientTypes($dg)
 Debugownerscount($dg)
+Debugownersstatus($dg)
 Debugsenderrestriction($dg)
 Debuggrouprecipienttype($dg)
 Debugforwardingforsharedmbxs($dg)
