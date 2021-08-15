@@ -139,9 +139,9 @@ Function Invoke-AnalyzerEngine {
 
         if ($null -ne $exchangeInformation.ApplicationPools -and
             $exchangeInformation.ApplicationPools.Count -gt 0) {
-            $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
-            [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
-            [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
+            $mapiFEAppPool = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"]
+            [bool]$enabled = $mapiFEAppPool.GCServerEnabled
+            [bool]$unknown = $mapiFEAppPool.GCUnknown
             $warning = [string]::Empty
             $displayWriteType = "Green"
             $displayValue = "Server"
@@ -655,7 +655,7 @@ Function Invoke-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Amazon's Hypervisor is not supported with Exchange."
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Amazon's Hypervisor is not supported with Exchange." `
             -DisplayGroupingKey $keyHardwareInformation `
             -DisplayWriteType "Red" `
             -DisplayCustomTabNumber 2 `
@@ -685,7 +685,7 @@ Function Invoke-AnalyzerEngine {
             -DisplayGroupingKey $keyHardwareInformation `
             -AnalyzedInformation $analyzedResults
 
-    <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions.
+        <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions.
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare) {
             $analyzedResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
                 -DisplayGroupingKey $keyHardwareInformation `
@@ -1615,23 +1615,29 @@ Function Invoke-AnalyzerEngine {
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
         Write-Verbose "Working on Exchange Web App GC Mode"
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
+        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+        foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys) {
+
+            $appPool = $exchangeInformation.ApplicationPools[$webAppKey]
+
+            $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                        AppPoolName     = $webAppKey
+                        State           = $appPool.AppSettings.state
+                        GCServerEnabled = $appPool.GCServerEnabled
+                    })
+            )
+        }
+
+        $sbStarted = { param($v) if ($v -eq "Started") { "Green" } }
+        $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                DisplayObject      = $outputObjectDisplayValue
+                Properties         = @("AppPoolName", "State", "GCServerEnabled")
+                ColorizerFunctions = @($null, $sbStarted, $null)
+                IndentSpaces       = 10
+            }) `
             -DisplayGroupingKey $keyWebApps `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
-
-        foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys) {
-            $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
-            $testingValue = New-Object PSCustomObject
-            $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled -eq 'true')
-            $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
-
-            $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
-                -DisplayGroupingKey $keyWebApps `
-                -DisplayTestingValue $testingValue `
-                -AddHtmlDetailRow $false `
-                -AnalyzedInformation $analyzedResults
-        }
     }
 
     ######################

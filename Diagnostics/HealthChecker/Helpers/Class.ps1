@@ -350,6 +350,7 @@ try {
                 public string Name;
                 public int TabNumber;
                 public object TestingValue; //Used for pester testing down the road.
+                public object OutColumns; //used for colorized format table option.
                 public string WriteType;
 
                 public string Line

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
+. $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
 function Write-Red($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
@@ -29,6 +29,19 @@ function Write-Grey($message) {
 function Write-DebugLog($message) {
     if (![string]::IsNullOrEmpty($message)) {
         $Script:Logger.WriteToFileOnly($message)
+    }
+}
+
+function Write-OutColumns($OutColumns) {
+    if ($null -ne $OutColumns) {
+        $stringOutput = $null
+        $OutColumns.DisplayObject |
+            Out-Columns -Properties $OutColumns.SelectProperties `
+                -ColorizerFunctions $OutColumns.ColorizerFunctions `
+                -IndentSpaces $OutColumns.IndentSpaces `
+                -StringOutput ([ref]$stringOutput)
+        $stringOutput | Out-File ($OutputFullPath) -Append
+        Write-DebugLog $stringOutput
     }
 }
 
