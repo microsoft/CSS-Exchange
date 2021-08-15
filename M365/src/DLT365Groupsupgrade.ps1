@@ -121,9 +121,9 @@ Function Debuggroupnesting {
     $ParentDGroups = @()
     try {
         $alldgs = Get-DistributionGroup -ResultSize unlimited -ErrorAction Stop
-        #$CurrentDescription = "Retrieving All DGs in the EXO directory"
-        #$CurrentStatus = "Success"
-        #log -Function "Retrieve All DGs" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+        $CurrentDescription = "Retrieving All DGs in the EXO directory"
+        $CurrentStatus = "Success"
+        log -Function "Retrieve All DGs" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     } catch {
         $CurrentDescription = "Retrieving All DGs in the EXO directory"
         $CurrentStatus = "Failure"
@@ -132,9 +132,6 @@ Function Debuggroupnesting {
     foreach ($parentdg in $alldgs) {
         try {
             $Pmembers = Get-DistributionGroupMember $($parentdg.Guid.ToString()) -ErrorAction Stop
-            #$CurrentDescription = "Retrieving: $parentdg members"
-            #$CurrentStatus = "Success"
-            #log -Function "Retrieve Distribution Group membership" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
         } catch {
             $CurrentDescription = "Retrieving: $parentdg members"
             $CurrentStatus = "Failure"
