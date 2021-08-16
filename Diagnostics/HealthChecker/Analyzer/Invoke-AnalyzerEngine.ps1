@@ -139,7 +139,7 @@ Function Invoke-AnalyzerEngine {
 
         if ($null -ne $exchangeInformation.ApplicationPools -and
             $exchangeInformation.ApplicationPools.Count -gt 0) {
-            $mapiFEAppPool = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"]
+            $mapiFEAppPool = $exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"]
             [bool]$enabled = $mapiFEAppPool.GCServerEnabled
             [bool]$unknown = $mapiFEAppPool.GCUnknown
             $warning = [string]::Empty
