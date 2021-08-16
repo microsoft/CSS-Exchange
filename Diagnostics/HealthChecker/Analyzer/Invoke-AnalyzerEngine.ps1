@@ -1619,25 +1619,78 @@ Function Invoke-AnalyzerEngine {
         foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys) {
 
             $appPool = $exchangeInformation.ApplicationPools[$webAppKey]
+            $appRestarts = $appPool.AppSettings.add.recycling.periodicRestart
+            $appRestartSet = ($appRestarts.PrivateMemory -ne "0" -or
+                $appRestarts.Memory -ne "0" -or
+                $appRestarts.Requests -ne "0" -or
+                $null -ne $appRestarts.Schedule -or
+                ($appRestarts.Time -ne "00:00:00" -and
+                    ($webAppKey -ne "MSExchangeOWAAppPool" -and
+                        $webAppKey -ne "MSExchangeECPAppPool")))
 
             $outputObjectDisplayValue.Add(([PSCustomObject]@{
-                        AppPoolName     = $webAppKey
-                        State           = $appPool.AppSettings.state
-                        GCServerEnabled = $appPool.GCServerEnabled
+                        AppPoolName         = $webAppKey
+                        State               = $appPool.AppSettings.state
+                        GCServerEnabled     = $appPool.GCServerEnabled
+                        RestartConditionSet = $appRestartSet
                     })
             )
         }
 
-        $sbStarted = { param($v) if ($v -eq "Started") { "Green" } }
+        $sbStarted = { param($v) if ($v -eq "Started") { "Green" } else { "Red" } }
+        $sbRestart = { param($v) if ($v) { "Red" } else { "Green" } }
         $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
                 DisplayObject      = $outputObjectDisplayValue
-                Properties         = @("AppPoolName", "State", "GCServerEnabled")
-                ColorizerFunctions = @($null, $sbStarted, $null)
-                IndentSpaces       = 10
+                ColorizerFunctions = @($null, $sbStarted, $null, $sbRestart)
+                IndentSpaces       = 8
             }) `
             -DisplayGroupingKey $keyWebApps `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
+
+        $periodicStartAppPools = $outputObjectDisplayValue | Where-Object { $_.RestartConditionSet -eq $true }
+
+        if ($null -ne $periodicStartAppPools) {
+
+            $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+            foreach ($appPool in $periodicStartAppPools) {
+                $periodicRestart = $exchangeInformation.ApplicationPools[$appPool.AppPoolName].AppSettings.add.recycling.periodicRestart
+                $schedule = $periodicRestart.Schedule
+
+                if ([string]::IsNullOrEmpty($schedule)) {
+                    $schedule = "null"
+                }
+
+                $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                            AppPoolName   = $appPool.AppPoolName
+                            PrivateMemory = $periodicRestart.PrivateMemory
+                            Memory        = $periodicRestart.Memory
+                            Requests      = $periodicRestart.Requests
+                            Schedule      = $schedule
+                            Time          = $periodicRestart.Time
+                        }))
+            }
+
+            $sbZero = { param($v) if ($v -eq "0") { "Green" } else { "Red" } }
+            $sbTime = { param($v) if ($v -eq "00:00:00") { "Green" } else { "Red" } }
+            $sbSchedule = { param($v) if ($v -eq "null") { "Green" } else { "Red" } }
+
+            $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                    DisplayObject      = $outputObjectDisplayValue
+                    ColorizerFunctions = @($null, $sbZero, $sbZero, $sbZero, $sbSchedule, $sbTime)
+                    IndentSpaces       = 8
+                }) `
+                -DisplayGroupingKey $keyWebApps `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Error: The above app pools currently have the periodic restarts set. This restart will cause disruption to end users." `
+                -DisplayGroupingKey $keyWebApps `
+                -DisplayWriteType "Red" `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+        }
     }
 
     ######################
