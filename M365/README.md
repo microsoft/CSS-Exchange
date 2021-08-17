@@ -1,8 +1,8 @@
 # [DLT365Groupsupgrade.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1)
 
-## Validating Distribution group eligibility for upgrade to O365 Group
+## Validating Distribution group eligibility for upgrade to Microsoft 365 Group
 
-This script allows you to check Distribution to O365 Group migration eligibility for a specific distribution group SMTP, for more information over the Distribution to O365 Group migration blockers please check: https://docs.microsoft.com/en-us/microsoft-365/admin/manage/upgrade-distribution-lists?view=o365-worldwide
+This script allows you to check Distribution to Microsoft 365 Group migration eligibility for a specific distribution group SMTP, for more information over the Distribution to Microsoft 365 Group migration blockers please check: https://docs.microsoft.com/en-us/microsoft-365/admin/manage/upgrade-distribution-lists?view=o365-worldwide
 
 Download the latest release here: [https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1)
 
