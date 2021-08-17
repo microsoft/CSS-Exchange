@@ -119,7 +119,7 @@ foreach ($file in $scriptFiles) {
         $filesFailed = $true
     }
 
-    $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
+    $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -Verbose
     if ($null -ne $analyzerResults) {
         $filesFailed = $true
         $analyzerResults | Format-Table -AutoSize

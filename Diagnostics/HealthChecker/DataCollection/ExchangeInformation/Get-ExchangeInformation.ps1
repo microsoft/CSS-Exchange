@@ -9,8 +9,7 @@
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
-#TODO: Fix file name
-. $PSScriptRoot\Get-ExchangeServerMaintenanceSate.ps1
+. $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-ServerRole.ps1

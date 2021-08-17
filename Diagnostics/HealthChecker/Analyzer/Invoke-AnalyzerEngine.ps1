@@ -139,9 +139,9 @@ Function Invoke-AnalyzerEngine {
 
         if ($null -ne $exchangeInformation.ApplicationPools -and
             $exchangeInformation.ApplicationPools.Count -gt 0) {
-            $content = [xml]$exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"].Content
-            [bool]$enabled = $content.Configuration.Runtime.gcServer.Enabled -eq "true"
-            [bool]$unknown = $content.Configuration.Runtime.gcServer.Enabled -ne "true" -and $content.Configuration.Runtime.gcServer.Enabled -ne "false"
+            $mapiFEAppPool = $exchangeInformation.ApplicationPools["MSExchangeMapiFrontEndAppPool"]
+            [bool]$enabled = $mapiFEAppPool.GCServerEnabled
+            [bool]$unknown = $mapiFEAppPool.GCUnknown
             $warning = [string]::Empty
             $displayWriteType = "Green"
             $displayValue = "Server"
@@ -389,9 +389,15 @@ Function Invoke-AnalyzerEngine {
                 $analyzedResults = Add-AnalyzedResultInformation -Name "Component" -Details $inactiveComponent `
                     -DisplayGroupingKey $keyExchangeInformation `
                     -DisplayCustomTabNumber 2  `
-                    -DisplayWriteType "Yellow" `
+                    -DisplayWriteType "Red" `
                     -AnalyzedInformation $analyzedResults
             }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "For more information: https://aka.ms/HC-ServerComponentState" `
+                -DisplayGroupingKey $keyExchangeInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow" `
+                -AnalyzedInformation $analyzedResults
         }
 
         if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
@@ -403,7 +409,7 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
+                -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
         }
 
@@ -412,7 +418,7 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Cluster Node" -Details ("'{0}' --- should be 'Up'" -f $serverMaintenance.GetClusterNode.State) `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
+                -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
         }
     }
@@ -531,7 +537,7 @@ Function Invoke-AnalyzerEngine {
             $displayValue = "{0}MB" -f $maxPageSize
             $displayWriteType = "Grey"
         } else {
-            $displayValue = "{0}MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#pagefile" -f $maxPageSize
+            $displayValue = "{0}MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://aka.ms/HC-SystemRequirements2016#hardware-requirements-for-exchange-2016" -f $maxPageSize
         }
     } else {
         $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) + 10))
@@ -616,7 +622,7 @@ Function Invoke-AnalyzerEngine {
                 $displayWriteType2013 -eq "Yellow")) -or
         $displayWriteType2012 -eq "Yellow") {
 
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow" `
@@ -648,6 +654,14 @@ Function Invoke-AnalyzerEngine {
         -Htmlname "Hardware Type" `
         -AnalyzedInformation $analyzedResults
 
+    if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Amazon's Hypervisor is not supported with Exchange." `
+            -DisplayGroupingKey $keyHardwareInformation `
+            -DisplayWriteType "Red" `
+            -DisplayCustomTabNumber 2 `
+            -AnalyzedInformation $analyzedResults
+    }
+
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
         $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Manufacturer" -Details ($hardwareInformation.Manufacturer) `
@@ -671,12 +685,14 @@ Function Invoke-AnalyzerEngine {
             -DisplayGroupingKey $keyHardwareInformation `
             -AnalyzedInformation $analyzedResults
 
+        <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions.
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare) {
             $analyzedResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
                 -DisplayGroupingKey $keyHardwareInformation `
                 -DisplayCustomTabNumber 2 `
                 -AnalyzedInformation $analyzedResults
         }
+    #>
     } elseif ($value -gt 2) {
         $analyzedResults = Add-AnalyzedResultInformation -Name $processorName -Details ("{0} - Error: Recommended to only have 2 Processors" -f $value) `
             -DisplayGroupingKey $keyHardwareInformation `
@@ -729,10 +745,6 @@ Function Invoke-AnalyzerEngine {
             $displayValue = "Enabled --- Not Applicable"
             $displayTestingValue = $true
             $displayWriteType = "Grey"
-        }
-
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-            $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/"
         }
 
         if ($hardwareInformation.Processor.Name.StartsWith("AMD")) {
@@ -1022,7 +1034,7 @@ Function Invoke-AnalyzerEngine {
 
             if (!$adapter.SleepyNicDisabled) {
                 $displayWriteType = "Yellow"
-                $displayValue = "False --- Warning: It's recommended to disable NIC power saving options`r`n`t`t`tMore Information: http://support.microsoft.com/kb/2740020"
+                $displayValue = "False --- Warning: It's recommended to disable NIC power saving options`r`n`t`t`tMore Information: https://aka.ms/HC-NICPowerManagement"
             }
 
             $analyzedResults = Add-AnalyzedResultInformation -Name "Sleepy NIC Disabled" -Details $displayValue `
@@ -1089,7 +1101,7 @@ Function Invoke-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
 
         if ($knownIssue) {
-            $analyzedResults = Add-AnalyzedResultInformation -Details "Known Issue with vmxnet3: 'Large packet loss at the guest operating system level on the VMXNET3 vNIC in ESXi (2039495)' - https://kb.vmware.com/s/article/2039495" `
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Known Issue with vmxnet3: 'Large packet loss at the guest operating system level on the VMXNET3 vNIC in ESXi (2039495)' - https://aka.ms/HC-VMwareLostPackets" `
                 -DisplayGroupingKey $keyNICSettings `
                 -DisplayWriteType "Yellow" `
                 -DisplayCustomTabNumber 3 `
@@ -1099,7 +1111,7 @@ Function Invoke-AnalyzerEngine {
     }
 
     if ($osInformation.NetworkInformation.NetworkAdapters.Count -gt 1) {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://docs.microsoft.com/en-us/exchange/planning-for-high-availability-and-site-resilience-exchange-2013-help#NR" `
+        $analyzedResults = Add-AnalyzedResultInformation -Details "Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://aka.ms/HC-PlanHA#network-requirements" `
             -DisplayGroupingKey $keyNICSettings `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
@@ -1113,11 +1125,11 @@ Function Invoke-AnalyzerEngine {
         if ($osInformation.NetworkInformation.IPv6DisabledComponents -eq -1) {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not correctly disabled via DisabledComponents registry value. It is currently set to '-1'. `r`n`t`tThis setting cause a system startup delay of 5 seconds. For details please refer to: `r`n`t`thttps://docs.microsoft.com/en-US/troubleshoot/windows-server/networking/configure-ipv6-in-windows#use-registry-key-to-configure-ipv6"
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not correctly disabled via DisabledComponents registry value. It is currently set to '-1'. `r`n`t`tThis setting cause a system startup delay of 5 seconds. For details please refer to: `r`n`t`thttps://aka.ms/HC-ConfigureIPv6"
         } elseif ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255) {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry value currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://blog.rmilne.ca/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way `r`n`t`thttps://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users" -f $osInformation.NetworkInformation.IPv6DisabledComponents
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry value currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://aka.ms/HC-DisableIPv6`r`n`t`thttps://aka.ms/HC-ConfigureIPv6" -f $osInformation.NetworkInformation.IPv6DisabledComponents
         }
 
         $analyzedResults = Add-AnalyzedResultInformation -Name "Disable IPv6 Correctly" -Details $displayValue `
@@ -1135,11 +1147,11 @@ Function Invoke-AnalyzerEngine {
     $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
 
     if ($tcpKeepAlive -eq 0) {
-        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792"
+        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist"
         $displayWriteType = "Red"
     } elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000) {
-        $displayValue = "{0} `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Checklist-for-troubleshooting-Outlook-connectivity-in-Exchange/ba-p/604792" -f $tcpKeepAlive
+        $displayValue = "{0} `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist" -f $tcpKeepAlive
         $displayWriteType = "Yellow"
     } else {
         $displayValue = $tcpKeepAlive
@@ -1153,7 +1165,7 @@ Function Invoke-AnalyzerEngine {
         -HtmlName "TCPKeepAlive" `
         -AnalyzedInformation $analyzedResults
 
-    $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://blogs.technet.microsoft.com/messaging_with_communications/2012/06/06/outlook-anywhere-network-timeout-issue/" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
+    $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
         -DisplayGroupingKey $keyFrequentConfigIssues `
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
@@ -1276,7 +1288,7 @@ Function Invoke-AnalyzerEngine {
                 $currentTlsVersion.ClientDisabledByDefault) -and
             ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
                 $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
-            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761") `
+            $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2") `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 3 `
                 -DisplayWriteType "Red" `
@@ -1329,9 +1341,9 @@ Function Invoke-AnalyzerEngine {
 #>
 
     if ($detectedTlsMismatch) {
-        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649",
-            "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761",
-            "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898")
+        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
+            "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
+            "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
 
         $analyzedResults = Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
             -DisplayGroupingKey $keySecuritySettings `
@@ -1458,7 +1470,7 @@ Function Invoke-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
 
         if ($shaDisplayWriteType -eq "Yellow") {
-            $analyzedResults = Add-AnalyzedResultInformation -Details "It's recommended to use a hash algorithm from the SHA-2 family `r`n`t`tMore information: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-tls-038-ssl-best-practices/ba-p/603798" `
+            $analyzedResults = Add-AnalyzedResultInformation -Details "It's recommended to use a hash algorithm from the SHA-2 family `r`n`t`tMore information: https://aka.ms/HC-SSLBP" `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $shaDisplayWriteType `
@@ -1515,7 +1527,7 @@ Function Invoke-AnalyzerEngine {
                 -DisplayWriteType "Red" `
                 -AnalyzedInformation $analyzedResults
 
-            $renewExpiredAuthCert = "Auth Certificate has expired `r`n`t`tMore Information: https://docs.microsoft.com/en-us/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired#resolution"
+            $renewExpiredAuthCert = "Auth Certificate has expired `r`n`t`tMore Information: https://aka.ms/HC-OAuthExpired"
             $analyzedResults = Add-AnalyzedResultInformation -Details $renewExpiredAuthCert `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
@@ -1539,7 +1551,7 @@ Function Invoke-AnalyzerEngine {
             -DisplayWriteType "Red" `
             -AnalyzedInformation $analyzedResults
 
-        $createNewAuthCert = "No valid Auth Certificate found. This may cause several problems. `r`n`t`tMore Information: https://docs.microsoft.com/en-us/exchange/troubleshoot/administration/exchange-oauth-authentication-could-not-find-the-authorization"
+        $createNewAuthCert = "No valid Auth Certificate found. This may cause several problems. `r`n`t`tMore Information: https://aka.ms/HC-FindOAuthHybrid"
         $analyzedResults = Add-AnalyzedResultInformation -Details $createNewAuthCert `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2 `
@@ -1587,7 +1599,7 @@ Function Invoke-AnalyzerEngine {
         -AnalyzedInformation $analyzedResults
 
     if ($additionalDisplayValue -ne [string]::Empty) {
-        $additionalDisplayValue += "`r`n`t`tMore Information: https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615"
+        $additionalDisplayValue += "`r`n`t`tMore Information: https://aka.ms/HC-SMB1"
 
         $analyzedResults = Add-AnalyzedResultInformation -Details $additionalDisplayValue.Trim() `
             -DisplayGroupingKey $keySecuritySettings `
@@ -1603,20 +1615,79 @@ Function Invoke-AnalyzerEngine {
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
         Write-Verbose "Working on Exchange Web App GC Mode"
 
-        $analyzedResults = Add-AnalyzedResultInformation -Name "Web App Pool" -Details "GC Server Mode Enabled | Status" `
+        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+        foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys) {
+
+            $appPool = $exchangeInformation.ApplicationPools[$webAppKey]
+            $appRestarts = $appPool.AppSettings.add.recycling.periodicRestart
+            $appRestartSet = ($appRestarts.PrivateMemory -ne "0" -or
+                $appRestarts.Memory -ne "0" -or
+                $appRestarts.Requests -ne "0" -or
+                $null -ne $appRestarts.Schedule -or
+                ($appRestarts.Time -ne "00:00:00" -and
+                    ($webAppKey -ne "MSExchangeOWAAppPool" -and
+                        $webAppKey -ne "MSExchangeECPAppPool")))
+
+            $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                        AppPoolName         = $webAppKey
+                        State               = $appPool.AppSettings.state
+                        GCServerEnabled     = $appPool.GCServerEnabled
+                        RestartConditionSet = $appRestartSet
+                    })
+            )
+        }
+
+        $sbStarted = { param($v) if ($v -eq "Started") { "Green" } else { "Red" } }
+        $sbRestart = { param($v) if ($v) { "Red" } else { "Green" } }
+        $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                DisplayObject      = $outputObjectDisplayValue
+                ColorizerFunctions = @($null, $sbStarted, $null, $sbRestart)
+                IndentSpaces       = 8
+            }) `
             -DisplayGroupingKey $keyWebApps `
             -AddHtmlDetailRow $false `
             -AnalyzedInformation $analyzedResults
 
-        foreach ($webAppKey in $exchangeInformation.ApplicationPools.Keys) {
-            $xmlData = [xml]$exchangeInformation.ApplicationPools[$webAppKey].Content
-            $testingValue = New-Object PSCustomObject
-            $testingValue | Add-Member -MemberType NoteProperty -Name "GCMode" -Value ($enabled = $xmlData.Configuration.Runtime.gcServer.Enabled -eq 'true')
-            $testingValue | Add-Member -MemberType NoteProperty -Name "Status" -Value ($status = $exchangeInformation.ApplicationPools[$webAppKey].Status)
+        $periodicStartAppPools = $outputObjectDisplayValue | Where-Object { $_.RestartConditionSet -eq $true }
 
-            $analyzedResults = Add-AnalyzedResultInformation -Name $webAppKey -Details ("{0} | {1}" -f $enabled, $status) `
+        if ($null -ne $periodicStartAppPools) {
+
+            $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+            foreach ($appPool in $periodicStartAppPools) {
+                $periodicRestart = $exchangeInformation.ApplicationPools[$appPool.AppPoolName].AppSettings.add.recycling.periodicRestart
+                $schedule = $periodicRestart.Schedule
+
+                if ([string]::IsNullOrEmpty($schedule)) {
+                    $schedule = "null"
+                }
+
+                $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                            AppPoolName   = $appPool.AppPoolName
+                            PrivateMemory = $periodicRestart.PrivateMemory
+                            Memory        = $periodicRestart.Memory
+                            Requests      = $periodicRestart.Requests
+                            Schedule      = $schedule
+                            Time          = $periodicRestart.Time
+                        }))
+            }
+
+            $sbZero = { param($v) if ($v -eq "0") { "Green" } else { "Red" } }
+            $sbTime = { param($v) if ($v -eq "00:00:00") { "Green" } else { "Red" } }
+            $sbSchedule = { param($v) if ($v -eq "null") { "Green" } else { "Red" } }
+
+            $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                    DisplayObject      = $outputObjectDisplayValue
+                    ColorizerFunctions = @($null, $sbZero, $sbZero, $sbZero, $sbSchedule, $sbTime)
+                    IndentSpaces       = 8
+                }) `
                 -DisplayGroupingKey $keyWebApps `
-                -DisplayTestingValue $testingValue `
+                -AddHtmlDetailRow $false `
+                -AnalyzedInformation $analyzedResults
+
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Error: The above app pools currently have the periodic restarts set. This restart will cause disruption to end users." `
+                -DisplayGroupingKey $keyWebApps `
+                -DisplayWriteType "Red" `
                 -AddHtmlDetailRow $false `
                 -AnalyzedInformation $analyzedResults
         }
@@ -1972,7 +2043,7 @@ Function Invoke-AnalyzerEngine {
             $displayWriteTypeColor = "Yellow"
         } elseif ($exchangeInformation.msExchStorageGroup.Properties.posssuperiors -eq "computer") {
             Write-Verbose "Attribute: 'possSuperiors' with value: 'computer' detected in classSchema: 'ms-Exch-Storage-Group'"
-            $details = "CVE-2021-34470`r`n`t`tPrepareSchema required: https://techcommunity.microsoft.com/t5/exchange-team-blog/released-july-2021-exchange-server-security-updates/ba-p/2523421"
+            $details = "CVE-2021-34470`r`n`t`tPrepareSchema required: https://aka.ms/HC-July21SU"
             $displayWriteTypeColor = "Red"
         } else {
             Write-Verbose "System NOT vulnerable to CVE-2021-34470"

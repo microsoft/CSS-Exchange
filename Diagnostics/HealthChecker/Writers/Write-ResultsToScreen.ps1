@@ -40,6 +40,7 @@ Function Write-ResultsToScreen {
                 "Yellow" { Write-Yellow($writeValue) }
                 "Green" { Write-Green($writeValue) }
                 "Red" { Write-Red($writeValue) }
+                "OutColumns" { Write-OutColumns($line.OutColumns) }
             }
         }
 
