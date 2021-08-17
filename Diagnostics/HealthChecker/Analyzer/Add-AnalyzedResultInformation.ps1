@@ -5,6 +5,7 @@ Function Add-AnalyzedResultInformation {
     param(
         [object]$Details,
         [string]$Name,
+        [object]$OutColumns,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
         [int]$DisplayCustomTabNumber = -1,
@@ -34,22 +35,31 @@ Function Add-AnalyzedResultInformation {
         }
 
         $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
-        $lineInfo.DisplayValue = $Details
-        $lineInfo.Name = $Name
 
-        if ($DisplayCustomTabNumber -ne -1) {
-            $lineInfo.TabNumber = $DisplayCustomTabNumber
+        if ($null -ne $OutColumns) {
+            $lineInfo.OutColumns = $OutColumns
+            $lineInfo.WriteType = "OutColumns"
+            $lineInfo.TestingValue = $OutColumns
         } else {
-            $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+
+            $lineInfo.DisplayValue = $Details
+            $lineInfo.Name = $Name
+
+            if ($DisplayCustomTabNumber -ne -1) {
+                $lineInfo.TabNumber = $DisplayCustomTabNumber
+            } else {
+                $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+            }
+
+            if ($null -ne $DisplayTestingValue) {
+                $lineInfo.TestingValue = $DisplayTestingValue
+            } else {
+                $lineInfo.TestingValue = $Details
+            }
+
+            $lineInfo.WriteType = $DisplayWriteType
         }
 
-        if ($null -ne $DisplayTestingValue) {
-            $lineInfo.TestingValue = $DisplayTestingValue
-        } else {
-            $lineInfo.TestingValue = $Details
-        }
-
-        $lineInfo.WriteType = $DisplayWriteType
         $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
     }
 

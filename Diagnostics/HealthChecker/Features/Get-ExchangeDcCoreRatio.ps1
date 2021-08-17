@@ -110,8 +110,8 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
-        Write-Yellow("`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Sizing-Exchange-2013-Deployments/ba-p/594229")
-        Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
+        Write-Yellow("`thttps://aka.ms/HC-PerfSize")
+        Write-Yellow("`thttps://aka.ms/HC-ADCoreCount")
     } else {
         Write-Break
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")
