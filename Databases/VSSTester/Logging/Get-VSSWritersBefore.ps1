@@ -56,7 +56,7 @@ function Get-VSSWritersBefore {
         Write-Host
 
         if ($possibleDcomPermissionIssue) {
-            Write-Host " - Recommend to verify local Administrators group applied to COM+ Security settings: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/#COM-Security" -ForegroundColor Cyan
+            Write-Host " - Recommend to verify local Administrators group applied to COM+ Security settings: https://aka.ms/VSSTester-COMSecurity" -ForegroundColor Cyan
         }
 
         Write-Host " - Recommend to restart MSExchangeRepl service to see if the writer comes back. If it doesn't, review the application logs for any events to determine why." -ForegroundColor Cyan
