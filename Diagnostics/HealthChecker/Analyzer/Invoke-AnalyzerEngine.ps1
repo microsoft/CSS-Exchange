@@ -654,14 +654,6 @@ Function Invoke-AnalyzerEngine {
         -Htmlname "Hardware Type" `
         -AnalyzedInformation $analyzedResults
 
-    if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-        $analyzedResults = Add-AnalyzedResultInformation -Details "Amazon's Hypervisor is not supported with Exchange." `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Red" `
-            -DisplayCustomTabNumber 2 `
-            -AnalyzedInformation $analyzedResults
-    }
-
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
         $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Manufacturer" -Details ($hardwareInformation.Manufacturer) `
@@ -745,6 +737,10 @@ Function Invoke-AnalyzerEngine {
             $displayValue = "Enabled --- Not Applicable"
             $displayTestingValue = $true
             $displayWriteType = "Grey"
+        }
+
+        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+            $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More information: https://aka.ms/HC-EC2HyperThreading"
         }
 
         if ($hardwareInformation.Processor.Name.StartsWith("AMD")) {
