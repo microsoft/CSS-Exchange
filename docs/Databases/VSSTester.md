@@ -18,7 +18,7 @@ The script is self-explanatory. You can test run diskshadow on a single Exchange
 
 ## COM+ Security
 
-Here are the steps to follow if the script determines that we can't find our Exchange Writers under normal user context and detects these permissions to have been altered.
+Here are the steps to verify that the local Administrators group is allowed to the COM+ Security on the computer. The script will detect if this is a possibility if we can not see the Exchange Writers and we have the registry settings set that determine this is a possibility.
 
 1. Run "dcomcnfg" from the run box or command prompt
 2. Expand Component Services then Computers
@@ -30,7 +30,7 @@ Here are the steps to follow if the script determines that we can't find our Exc
 
 ![Edit Default](EditDefault.png)
 
-5. Click Add... to add the local Administrators group to the Default Security permissions
+5. If the local Administrators group is not here for Allow for Local and Remote Access, click Add... to add the local Administrators group to the Default Security permissions
 
 ![Add Access Permission](AddAccessPermission.png)
 
