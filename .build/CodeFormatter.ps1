@@ -119,10 +119,27 @@ foreach ($file in $scriptFiles) {
         $filesFailed = $true
     }
 
-    $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -Verbose
-    if ($null -ne $analyzerResults) {
+    $maxRetries = 5
+
+    for ($i = 0; $i -lt $maxRetries; $i++) {
+
+        try {
+            $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
+            if ($null -ne $analyzerResults) {
+                $filesFailed = $true
+                $analyzerResults | Format-Table -AutoSize
+            }
+            break
+        } catch {
+            Write-Warning "Invoke-ScriptAnalyer failed. Error:"
+            $_.Exception | Format-List | Out-Host
+            Write-Warning "Retrying in 5 seconds."
+            Start-Sleep -Seconds 5
+        }
+    }
+
+    if ($i -eq $maxRetries) {
         $filesFailed = $true
-        $analyzerResults | Format-Table -AutoSize
     }
 }
 
