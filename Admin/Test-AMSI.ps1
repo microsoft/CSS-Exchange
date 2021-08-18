@@ -1,11 +1,9 @@
-﻿# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
-[CmdletBinding(DefaultParameterSetName = "TestAMSI", HelpUri = "https://aka.ms/css-exchange")]
+﻿[CmdletBinding(DefaultParameterSetName = "TestAMSI", HelpUri = "https://aka.ms/css-exchange")]
 param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [string]$ExchangeServerFQDN,
+    [switch]$IgnoreSSL,  
     [Parameter(ParameterSetName = 'CheckAMSIProviders', Mandatory = $false)]
     [switch]$CheckAMSIProviders,
     [Parameter(ParameterSetName = 'EnableAMSI', Mandatory = $false)]
@@ -37,6 +35,21 @@ function Test-AMSI {
     }
     $datetime = Get-Date
     $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+    if ($IgnoreSSL) {
+        $IGSSL = @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+        Add-Type -TypeDefinition $IGSSL
+        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+    }
     if ($ExchangeServerFQDN) {
         try {
             $CookieContainer = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -44,7 +57,7 @@ function Test-AMSI {
             $CookieContainer.Cookies.Add($Cookie)
             Invoke-WebRequest https://$ExchangeServerFQDN/ecp/x.js -Method POST -Headers @{"Host" = "$ExchangeServerFQDN" } -WebSession $CookieContainer
         } catch [System.Net.WebException] {
-            If ($_.Exception.Message -notlike "*The remote server returned an error: (400) Bad Request*") {
+            If ($_.Exception.Message -notlike "*: (400)*") {
                 $Message = ($_.Exception.Message).ToString().Trim()
                 Write-Output $msgNewLine
                 Write-Error $Message
