@@ -41,9 +41,24 @@ function Get-VSSWritersBefore {
     " " + $nl
 
     if (!$exchangeWriter) {
+
+        #Check for possible COM security issue.
+        $oleKey = "HKLM:\SOFTWARE\Microsoft\Ole"
+        $dcomKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DCOM"
+
+        $possibleDcomPermissionIssue = ((Test-Path $oleKey) -and
+            ($null -ne (Get-ItemProperty $oleKey).DefaultAccessPermission)) -or
+        ((Test-Path $dcomKey) -and
+            ($null -ne (Get-ItemProperty $dcomKey).MachineAccessRestriction))
+
         Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!   WARNING   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor red
         Write-Host "Microsoft Exchange Writer not present on server. Unable to preform proper backups on the server."  -ForegroundColor Red
         Write-Host
+
+        if ($possibleDcomPermissionIssue) {
+            Write-Host " - Recommend to verify local Administrators group applied to COM+ Security settings: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/#COM-Security" -ForegroundColor Cyan
+        }
+
         Write-Host " - Recommend to restart MSExchangeRepl service to see if the writer comes back. If it doesn't, review the application logs for any events to determine why." -ForegroundColor Cyan
         Write-Host " --- Look for Event ID 2003 to verify that all internal components come online. If you see this event, try to use PSExec.exe to start a cmd.exe as the SYSTEM account and run 'vssadmin list writers'" -ForegroundColor Cyan
         Write-Host " --- If you find the Microsoft Exchange Writer, then we have a permissions issue on the computer that is preventing normal user accounts from finding all the writers." -ForegroundColor Cyan
