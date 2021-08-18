@@ -740,7 +740,7 @@ Function Invoke-AnalyzerEngine {
         }
 
         if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-            $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More informaiton: https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-ec2-windows-instances/"
+            $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More information: https://aka.ms/HC-EC2HyperThreading"
         }
 
         if ($hardwareInformation.Processor.Name.StartsWith("AMD")) {
