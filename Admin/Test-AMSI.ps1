@@ -1,9 +1,12 @@
-﻿[CmdletBinding(DefaultParameterSetName = "TestAMSI", HelpUri = "https://aka.ms/css-exchange")]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding(DefaultParameterSetName = "TestAMSI", HelpUri = "https://aka.ms/css-exchange")]
 param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [string]$ExchangeServerFQDN,
-    [switch]$IgnoreSSL,  
+    [switch]$IgnoreSSL,
     [Parameter(ParameterSetName = 'CheckAMSIProviders', Mandatory = $false)]
     [switch]$CheckAMSIProviders,
     [Parameter(ParameterSetName = 'EnableAMSI', Mandatory = $false)]
@@ -37,18 +40,24 @@ function Test-AMSI {
     $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     if ($IgnoreSSL) {
         $IGSSL = @"
+        using System;
         using System.Net;
+        using System.Net.Security;
         using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
+        public class ServerCertificateValidationBehavior
+        {
+            public static void Ignore()
+            {
+                ServicePointManager.ServerCertificateValidationCallback +=
+                    delegate(Object obj, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+                    {
+                        return true;
+                    };
             }
         }
 "@
         Add-Type -TypeDefinition $IGSSL
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+        [ServerCertificateValidationBehavior]::Ignore()
     }
     if ($ExchangeServerFQDN) {
         try {
@@ -83,8 +92,8 @@ function Test-AMSI {
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
                 Write-Output $msgNewLine
             }
-        } catch {
-            Write-Error -Message $_.Exception.Message
+        } finally {
+            [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
         }
         return
     }
