@@ -2,39 +2,22 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
-function Test-ComputersContainerExists {
-    [CmdletBinding()]
-    param(
-        $DisableTest = $false
-    )
-    begin {
-        $domainsFailed = New-Object 'System.Collections.Generic.List[object]'
-        $context = [string]::Empty
-        $result = "Passed"
-        if ($DisableTest) {
-            return
-        }
-    }
-    process {
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
-        foreach ($domain in $forest.Domains) {
-            $domainDN = $domain.GetDirectoryEntry().distinguishedName
-            $computersPath = ("LDAP://CN=Computers," + $domainDN)
 
-            if (-not ([System.DirectoryServices.DirectoryEntry]::Exists($computersPath))) {
-                $result = "Failed"
-                $domainsFailed.Add($domainDN)
-            }
-        }
-    }
-    end {
+Function Test-ComputersContainerExists {
+    $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    foreach ($domain in $forest.Domains) {
+        $domainDN = $domain.GetDirectoryEntry().distinguishedName
+        $computersPath = ("LDAP://CN=Computers," + $domainDN)
         $params = @{
-            TestName          = "Computers Container Exists"
-            Result            = $result
-            AdditionalContext = $context
-            CustomData        = $domainsFailed
+            TestName         = "Computers Container Exists"
+            AdditonalContext = "A Failed result indicates /PrepareAD will fail in some scenarios. Please see https://support.microsoft.com/help/5005319 for details."
+            CustomData       = $domainDN
         }
 
-        return (New-TestResult @params)
+        if (-not [System.DirectoryServices.DirectoryEntry]::Exists($computersPath)) {
+            New-TestResult @params -Result "Failed"
+        } else {
+            New-TestResult @params -Result "Passed"
+        }
     }
 }
