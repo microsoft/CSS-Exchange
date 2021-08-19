@@ -26,20 +26,20 @@ Function Confirm-Administrator {
     }
 }
 
-function Test-AMSI {
-    $msgNewLine = "`n"
-    $currentForegroundColor = $host.ui.RawUI.ForegroundColor
-    if (-not (Confirm-Administrator)) {
-        Write-Output $msgNewLine
-        Write-Warning "This script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator and try again."
-        $Error.Clear()
-        Start-Sleep -Seconds 2
-        exit
-    }
-    $datetime = Get-Date
-    $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-    if ($IgnoreSSL) {
-        $IGSSL = @"
+function SetCertificateValidationBehavior {
+    [CmdletBinding()]
+    param (
+        [Parameter(ParameterSetName = "Ignore", Mandatory = $true)]
+        [switch]
+        $Ignore,
+
+        [Parameter(ParameterSetName = "Default", Mandatory = $true)]
+        [switch]
+        $Default
+    )
+
+    if ($Ignore) {
+        Add-Type @"
         using System;
         using System.Net;
         using System.Net.Security;
@@ -56,11 +56,30 @@ function Test-AMSI {
             }
         }
 "@
-        Add-Type -TypeDefinition $IGSSL
         [ServerCertificateValidationBehavior]::Ignore()
+    } else {
+        [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
     }
+}
+
+function Test-AMSI {
+    $msgNewLine = "`n"
+    $currentForegroundColor = $host.ui.RawUI.ForegroundColor
+    if (-not (Confirm-Administrator)) {
+        Write-Output $msgNewLine
+        Write-Warning "This script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator and try again."
+        $Error.Clear()
+        Start-Sleep -Seconds 2
+        exit
+    }
+    $datetime = Get-Date
+    $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     if ($ExchangeServerFQDN) {
         try {
+            if ($IgnoreSSL) {
+                SetCertificateValidationBehavior -Ignore
+            }
+
             $CookieContainer = New-Object Microsoft.PowerShell.Commands.WebRequestSession
             $Cookie = New-Object System.Net.Cookie("X-BEResource", "a]@$($ExchangeServerFQDN):444/ecp/proxyLogon.ecp#~1941997017", "/", "$ExchangeServerFQDN")
             $CookieContainer.Cookies.Add($Cookie)
@@ -93,7 +112,9 @@ function Test-AMSI {
                 Write-Output $msgNewLine
             }
         } finally {
-            [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+            if ($IgnoreSSL) {
+                SetCertificateValidationBehavior -Default
+            }
         }
         return
     }
