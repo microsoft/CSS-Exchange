@@ -10,12 +10,11 @@ Function Test-ComputersContainerExists {
         $computersPath = ("LDAP://CN=Computers," + $domainDN)
         $params = @{
             TestName          = "Computers Container Exists"
-            AdditionalContext = "A Failed result indicates /PrepareAD will fail in some scenarios. Please see https://support.microsoft.com/help/5005319 for details."
             CustomData        = $domainDN
         }
 
         if (-not [System.DirectoryServices.DirectoryEntry]::Exists($computersPath)) {
-            New-TestResult @params -Result "Failed"
+            New-TestResult @params -Result "Failed" -AdditionalContext "A Failed result indicates /PrepareAD will fail in some scenarios. Please see https://support.microsoft.com/help/5005319 for details."
         } else {
             New-TestResult @params -Result "Passed"
         }
