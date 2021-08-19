@@ -9,8 +9,8 @@ Function Test-ComputersContainerExists {
         $domainDN = $domain.GetDirectoryEntry().distinguishedName
         $computersPath = ("LDAP://CN=Computers," + $domainDN)
         $params = @{
-            TestName          = "Computers Container Exists"
-            CustomData        = $domainDN
+            TestName   = "Computers Container Exists"
+            CustomData = $domainDN
         }
 
         if (-not [System.DirectoryServices.DirectoryEntry]::Exists($computersPath)) {
