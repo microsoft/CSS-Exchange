@@ -11,36 +11,17 @@ param(
     [switch]$OtherWellKnownObjects
 )
 
-. .\Checks\Confirm-VirtualDirectoryConfiguration.ps1
-. .\Checks\Test-CriticalService.ps1
-. .\Checks\Test-ExchangeAdLevel.ps1
-. .\Checks\Test-ComputersContainerExists.ps1
-. .\Checks\Test-DomainControllerDnsHostName.ps1
-. .\Checks\Test-ReadOnlyDomainControllerLocation.ps1
-. .\Checks\Test-MissingDirectory.ps1
-. .\Checks\Test-MissingMsiFiles.ps1
-. .\Checks\Test-OtherWellKnownObjects.ps1
-. .\Checks\Test-PendingReboot.ps1
-. $PSScriptRoot\Checks\Test-PrerequisiteInstalled.ps1
-. .\Checks\Test-UserGroupMemberOf.ps1
-. .\Checks\Test-ValidHomeMdb.ps1
-. .\Checks\Test-FullLanguageMode.ps1
-. .\Utils\ConvertFrom-Ldif.ps1
-
-#Local Shared
-. $PSScriptRoot\..\Shared\Get-FileInformation.ps1
-. $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
-. $PSScriptRoot\..\Shared\New-SetupLogReviewer.ps1
-
-#REPO Shared
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
-. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
-
-#REPO Shared Dependencies
-. $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\Checks\Domain\Test-ComputersContainerExists.ps1
+. $PSScriptRoot\Checks\Domain\Test-DomainControllerDnsHostName.ps1
+. $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
+. $PSScriptRoot\Checks\UserContext\Test-UserAdministrator.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-MissingDirectory.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-MsiCacheFiles.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
+. $PSScriptRoot\Checks\Test-FullLanguageMode.ps1
+. $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\SetupAssist_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -177,13 +158,43 @@ Function MainUse {
     }
 }
 
+Function RunAllTests {
+    Test-UserAdministrator
+    Test-ExecutionPolicy
+    Test-ExchangeServices
+    Test-ComputersContainerExists
+    Test-DomainControllerDnsHostName
+    Test-MissingDirectory
+    Test-MsiCacheFiles
+    Test-PrerequisiteInstalled
+    Test-ReadOnlyDomainControllerLocation
+}
+
 Function Main {
 
+    $results = RunAllTests
+
+    $sbResults = {
+        param($r)
+
+        if ($r -eq "Failed") {
+            "Red"
+        } elseif ($r -eq "Passed") {
+            "Green"
+        } else {
+            "Yellow"
+        }
+    }
+
+    $results | Out-Columns -Properties @("TestName", "Result", "AdditionalContext") -ColorizerFunctions @($null, $sbResults, $null)
+
+    <#
     if ($OtherWellKnownObjects) {
         Test-OtherWellKnownObjects
     } else {
         MainUse
     }
+#>
 }
 
 try {
@@ -191,18 +202,7 @@ try {
         return
     }
 
-    Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
-    Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
-    Receive-Output "Test Latest Script Version" -Diagnostic
-
-    if (Test-ScriptVersion -AutoUpdate) {
-        Receive-Output "Script was updated. Please rerun the command."
-        return
-    }
-
     Main
-    Receive-Output "Finished Script At: $([DateTime]::Now)" -Diagnostic
-    Write-Output "File Written at: $Script:ScriptLogging"
 } catch {
     Receive-Output "$($_.Exception)"
     Receive-Output "$($_.ScriptStackTrace)"
