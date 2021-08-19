@@ -6,6 +6,7 @@ param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [string]$ExchangeServerFQDN,
+    [switch]$IgnoreSSL,
     [Parameter(ParameterSetName = 'CheckAMSIProviders', Mandatory = $false)]
     [switch]$CheckAMSIProviders,
     [Parameter(ParameterSetName = 'EnableAMSI', Mandatory = $false)]
@@ -25,6 +26,42 @@ Function Confirm-Administrator {
     }
 }
 
+function SetCertificateValidationBehavior {
+    [CmdletBinding()]
+    param (
+        [Parameter(ParameterSetName = "Ignore", Mandatory = $true)]
+        [switch]
+        $Ignore,
+
+        [Parameter(ParameterSetName = "Default", Mandatory = $true)]
+        [switch]
+        $Default
+    )
+
+    if ($Ignore) {
+        Add-Type @"
+        using System;
+        using System.Net;
+        using System.Net.Security;
+        using System.Security.Cryptography.X509Certificates;
+        public class ServerCertificateValidationBehavior
+        {
+            public static void Ignore()
+            {
+                ServicePointManager.ServerCertificateValidationCallback +=
+                    delegate(Object obj, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+                    {
+                        return true;
+                    };
+            }
+        }
+"@
+        [ServerCertificateValidationBehavior]::Ignore()
+    } else {
+        [Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+    }
+}
+
 function Test-AMSI {
     $msgNewLine = "`n"
     $currentForegroundColor = $host.ui.RawUI.ForegroundColor
@@ -39,12 +76,16 @@ function Test-AMSI {
     $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     if ($ExchangeServerFQDN) {
         try {
+            if ($IgnoreSSL) {
+                SetCertificateValidationBehavior -Ignore
+            }
+
             $CookieContainer = New-Object Microsoft.PowerShell.Commands.WebRequestSession
             $Cookie = New-Object System.Net.Cookie("X-BEResource", "a]@$($ExchangeServerFQDN):444/ecp/proxyLogon.ecp#~1941997017", "/", "$ExchangeServerFQDN")
             $CookieContainer.Cookies.Add($Cookie)
             Invoke-WebRequest https://$ExchangeServerFQDN/ecp/x.js -Method POST -Headers @{"Host" = "$ExchangeServerFQDN" } -WebSession $CookieContainer
         } catch [System.Net.WebException] {
-            If ($_.Exception.Message -notlike "*The remote server returned an error: (400) Bad Request*") {
+            If ($_.Exception.Message -notlike "*: (400)*") {
                 $Message = ($_.Exception.Message).ToString().Trim()
                 Write-Output $msgNewLine
                 Write-Error $Message
@@ -70,8 +111,10 @@ function Test-AMSI {
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
                 Write-Output $msgNewLine
             }
-        } catch {
-            Write-Error -Message $_.Exception.Message
+        } finally {
+            if ($IgnoreSSL) {
+                SetCertificateValidationBehavior -Default
+            }
         }
         return
     }
