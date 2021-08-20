@@ -13,8 +13,10 @@ param(
 
 . $PSScriptRoot\Checks\Domain\Test-ComputersContainerExists.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainControllerDnsHostName.ps1
+. $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
+. $PSScriptRoot\Checks\Domain\Test-OtherWellKnownObjects.ps1
 . $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
-. $PSScriptRoot\Checks\UserContext\Test-UserAdministrator.ps1
+. $PSScriptRoot\Checks\UserContext\Test-UserGroupMemberOf.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-MissingDirectory.ps1
@@ -159,7 +161,7 @@ Function MainUse {
 }
 
 Function RunAllTests {
-    Test-UserAdministrator
+    Test-UserGroupMemberOf
     Test-ExecutionPolicy
     Test-ExchangeServices
     Test-ComputersContainerExists
@@ -168,6 +170,8 @@ Function RunAllTests {
     Test-MsiCacheFiles
     Test-PrerequisiteInstalled
     Test-ReadOnlyDomainControllerLocation
+    Test-OtherWellKnownObjects
+    Test-ExchangeADSetupLevel
 }
 
 Function Main {
