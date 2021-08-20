@@ -3,35 +3,22 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 function Test-DomainControllerDnsHostName {
-    [CmdletBinding()]
-    param()
-    begin {
-        $result = "Passed"
-        $context = [string]::Empty
-        $dcsFailed = New-Object 'System.Collections.Generic.List[object]'
-    }
-    process {
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    foreach ($domain in $forest.Domains) {
+        foreach ($dc in $domain.DomainControllers) {
+            $firstDotIndex = $dc.Name.IndexOf(".")
 
-        foreach ($domain in $forest.Domains) {
-            foreach ($dc in $domain.DomainControllers) {
-                $firstDotIndex = $dc.Name.IndexOf(".")
+            $params = @{
+                TestName          = "DC DNS Host Name"
+                AdditionalContext = $null
+                CustomData        = $dc.Name
+            }
 
-                if ($firstDotIndex -lt 0) {
-                    $result = "Failed"
-                    $dcsFailed.Add($dc)
-                }
+            if ($firstDotIndex -lt 0) {
+                New-TestResult @params -Result "Failed"
+            } else {
+                New-TestResult @params -Result "Passed"
             }
         }
-    }
-    end {
-        $params = @{
-            TestName          = "DC DNS Host Name"
-            Result            = $result
-            AdditionalContext = $context
-            CustomData        = $dcsFailed
-        }
-
-        return (New-TestResult @params)
     }
 }

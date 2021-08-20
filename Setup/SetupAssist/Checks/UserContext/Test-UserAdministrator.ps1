@@ -4,22 +4,16 @@
 . $PSScriptRoot\..\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
 Function Test-UserAdministrator {
-    [CmdletBinding()]
-    param()
-    process {
-        $user = whoami
-        $passed = Confirm-Administrator
-        $result = "Failed"
 
-        if ($passed) { $result = "Passed" }
+    $params = @{
+        TestName          = "User Administrator"
+        AdditionalContext = (whoami)
+        CustomData        = $null
     }
-    end {
-        $params = @{
-            TestName          = "User Administrator"
-            Result            = $result
-            AdditionalContext = $user
-            CustomData        = $null
-        }
-        return (New-TestResult @params)
+
+    if (Confirm-Administrator) {
+        New-TestResult @params -Result "Passed"
+    } else {
+        New-TestResult @params -Result "Failed"
     }
 }

@@ -4,25 +4,17 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 Function Test-ExecutionPolicy {
-    [CmdletBinding()]
-    param()
-    process {
-        $executionPolicy = Get-ExecutionPolicy
 
-        if ($executionPolicy -ne "Unrestricted" -and
-            $executionPolicy -ne "Bypass") {
-            $result = "Warning"
-        } else {
-            $result = "Passed"
-        }
+    $executionPolicy = Get-ExecutionPolicy
+
+    $params = @{
+        TestName   = "Execution Policy"
+        CustomData = $executionPolicy
     }
-    end {
-        $params = @{
-            TestName          = "Execution Policy"
-            Result            = $result
-            AdditionalContext = $executionPolicy
-            CustomData        = $null
-        }
-        return (New-TestResult @params)
+    if ($executionPolicy -ne "Unrestricted" -and
+        $executionPolicy -ne "Bypass") {
+        New-TestResult @params -Result "Warning"
+    } else {
+        New-TestResult @params -Result "Passed"
     }
 }

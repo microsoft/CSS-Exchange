@@ -5,38 +5,30 @@
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
 function Test-PrerequisiteInstalled {
-    [CmdletBinding()]
-    param()
-    begin {
-        $result = "Passed"
-        $context = [string]::Empty
-        #TODO: add context for failed stuff
+    $netVersion = Get-NETFrameworkVersion
+    $params = @{
+        TestName   = ".NET Framework"
+        CustomData = $netVersion
     }
-    process {
-        $netVersion = Get-NETFrameworkVersion
 
-        if ($netVersion.MinimumValue -lt 528040) {
-            $result = "Failed"
-        }
-
-        $installed = @(Get-VisualCRedistributableInstalledVersion)
-
-        if (-not (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $installed)) {
-            $result = "Failed"
-        }
-
-        if (-not (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $installed)) {
-            $result = "Failed"
-        }
+    if ($netVersion.MinimumValue -lt 528040) {
+        New-TestResult @params -Result "Failed"
     }
-    end {
+
+    $installed = @(Get-VisualCRedistributableInstalledVersion)
+    $years = @(2012, 2013)
+
+    foreach ($year in $years) {
+        $info = Get-VisualCRedistributableInfo -Year $year
         $params = @{
-            TestName          = "Prerequisites Installed"
-            Result            = $result
-            AdditionalContext = $context
-            CustomData        = $null
+            TestName   = $info.DisplayName.Replace("*", "")
+            CustomData = $info.DownloadUrl
         }
 
-        return (New-TestResult @params)
+        if (-not (Test-VisualCRedistributableUpToDate -Year $year -Installed $installed)) {
+            New-TestResult @params -Result "Failed"
+        } else {
+            New-TestResult @params -Result "Passed"
+        }
     }
 }
