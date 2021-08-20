@@ -14,7 +14,7 @@ Function Test-ComputersContainerExists {
         }
 
         if (-not [System.DirectoryServices.DirectoryEntry]::Exists($computersPath)) {
-            New-TestResult @params -Result "Failed" -ReferenceInfo "A Failed result indicates /PrepareAD will fail in some scenarios. Please see https://support.microsoft.com/help/5005319 for details."
+            New-TestResult @params -Result "Failed" -ReferenceInfo "https://aka.ms/SA-Computers"
         } else {
             New-TestResult @params -Result "Passed"
         }
