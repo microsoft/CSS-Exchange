@@ -34,8 +34,8 @@ function Test-ExchangeServices {
     foreach ($service in $services) {
 
         $params = @{
-            TestName   = "Exchange Services"
-            CustomData = "Service: $($service.Name) Status: $($service.Status) StartType: $($service.StartType)"
+            TestName = "Exchange Services"
+            Details  = "Service: $($service.Name) Status: $($service.Status) StartType: $($service.StartType)"
         }
 
         if ($service.Status.ToString() -ne "Running" -or

@@ -13,16 +13,16 @@ Function New-TestResult {
         [string]$Result,
 
         [Parameter(Mandatory = $false)]
-        [string]$AdditionalContext,
+        [object]$Details,
 
         [Parameter(Mandatory = $false)]
-        [object]$CustomData
+        [string]$ReferenceInfo
     )
 
     return [PSCustomObject]@{
-        TestName          = $TestName
-        Result            = $Result
-        AdditionalContext = $AdditionalContext
-        CustomData        = $CustomData
+        TestName      = $TestName
+        Result        = $Result
+        Details       = $Details
+        ReferenceInfo = $ReferenceInfo
     }
 }

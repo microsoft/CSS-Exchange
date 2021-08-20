@@ -9,9 +9,8 @@ function Test-DomainControllerDnsHostName {
             $firstDotIndex = $dc.Name.IndexOf(".")
 
             $params = @{
-                TestName          = "DC DNS Host Name"
-                AdditionalContext = $null
-                CustomData        = $dc.Name
+                TestName = "DC DNS Host Name"
+                Details  = $dc.Name
             }
 
             if ($firstDotIndex -lt 0) {

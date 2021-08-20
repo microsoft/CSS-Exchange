@@ -12,8 +12,8 @@ function Test-MsiCacheFiles {
 
     foreach ($msi in $msiFiles) {
         $params = @{
-            TestName   = "Msi Cache File"
-            CustomData = "$($msi.DisplayName)"
+            TestName = "Msi Cache File"
+            Details  = "$($msi.DisplayName)"
         }
 
         if ($msi.ValidMsi) {

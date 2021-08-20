@@ -12,8 +12,8 @@ function Test-MissingDirectory {
         $owaVersion -notlike "15.2.*") {
         foreach ($path in $checkLocations) {
             $params = @{
-                TestName   = "Missing Directories"
-                CustomData = ([System.IO.Path]::Combine($installPath, $path))
+                TestName = "Missing Directories"
+                Details  = ([System.IO.Path]::Combine($installPath, $path))
             }
             if (-not (Test-Path ([System.IO.Path]::Combine($installPath, $path)))) {
                 New-TestResult @params -Result "Failed"

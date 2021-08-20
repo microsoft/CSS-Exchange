@@ -6,9 +6,8 @@
 Function Test-UserAdministrator {
 
     $params = @{
-        TestName          = "User Administrator"
-        AdditionalContext = (whoami)
-        CustomData        = $null
+        TestName = "User Administrator"
+        Details  = (whoami)
     }
 
     if (Confirm-Administrator) {

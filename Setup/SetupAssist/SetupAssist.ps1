@@ -192,17 +192,17 @@ Function Main {
             $result = $_.Group.Result | Where-Object { $_ -ne "Passed" } | Select-Object -First 1
             if ([string]::IsNullOrEmpty($result)) { $result = "Passed" }
             $params = @{
-                TestName          = $_.Name
-                Result            = $result
-                AdditionalContext = $_.Group.AdditionalContext | Where-Object { if (-not([string]::IsNullOrEmpty($_))) { return $_ } } | Select-Object -First 1
+                TestName = $_.Name
+                Result   = $result
+                Details  = $_.Group.Details | Where-Object { if (-not([string]::IsNullOrEmpty($_))) { return $_ } } | Select-Object -First 1
             }
             New-TestResult @params
         }
-    $quickResults | Out-Columns -Properties @("TestName", "Result", "AdditionalContext") -ColorizerFunctions @($null, $sbResults, $null)
+    $quickResults | Out-Columns -Properties @("TestName", "Result", "Details") -ColorizerFunctions @($null, $sbResults, $null)
 
     Write-Host ""
     Write-Host "Results That Didn't Pass"
-    $results | Where-Object { $_.Result -ne "Passed" } | Out-Columns -Properties @("TestName", "CustomData") @($null, { "yellow" })
+    $results | Where-Object { $_.Result -ne "Passed" } | Out-Columns -Properties @("TestName", "Details", "ReferenceInfo") @($null, { "yellow" }, { "yellow" })
 
     <#
     if ($OtherWellKnownObjects) {

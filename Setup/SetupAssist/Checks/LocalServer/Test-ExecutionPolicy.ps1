@@ -8,8 +8,8 @@ Function Test-ExecutionPolicy {
     $executionPolicy = Get-ExecutionPolicy
 
     $params = @{
-        TestName   = "Execution Policy"
-        CustomData = $executionPolicy
+        TestName = "Execution Policy"
+        Details  = $executionPolicy
     }
     if ($executionPolicy -ne "Unrestricted" -and
         $executionPolicy -ne "Bypass") {

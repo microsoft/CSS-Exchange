@@ -7,8 +7,8 @@
 function Test-PrerequisiteInstalled {
     $netVersion = Get-NETFrameworkVersion
     $params = @{
-        TestName   = ".NET Framework"
-        CustomData = $netVersion
+        TestName = ".NET Framework"
+        Details  = $netVersion
     }
 
     if ($netVersion.MinimumValue -lt 528040) {
@@ -21,8 +21,8 @@ function Test-PrerequisiteInstalled {
     foreach ($year in $years) {
         $info = Get-VisualCRedistributableInfo -Year $year
         $params = @{
-            TestName   = $info.DisplayName.Replace("*", "")
-            CustomData = $info.DownloadUrl
+            TestName      = $info.DisplayName.Replace("*", "")
+            ReferenceInfo = $info.DownloadUrl
         }
 
         if (-not (Test-VisualCRedistributableUpToDate -Year $year -Installed $installed)) {

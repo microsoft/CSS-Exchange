@@ -24,9 +24,8 @@ function Test-ReadOnlyDomainControllerLocation {
                     $dn = $searchResult.Properties["distinguishedName"][0].ToString()
 
                     $params = @{
-                        TestName          = "RODC In Computers Container"
-                        AdditionalContext = $null
-                        CustomData        = $dn
+                        TestName = "RODC In Computers Container"
+                        Details  = $dn
                     }
 
                     if (-not $dn.StartsWith("CN=$cn,OU=Domain Controllers,DC=")) {
