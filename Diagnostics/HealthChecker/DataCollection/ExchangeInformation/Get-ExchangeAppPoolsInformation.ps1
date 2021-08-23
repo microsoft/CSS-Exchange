@@ -33,7 +33,7 @@ Function Get-ExchangeAppPoolsInformation {
             $gcServerEnabled = $false
 
             if (-not ([string]::IsNullOrEmpty($configContent))) {
-                $gcSetting = [xml]$configContent.Configuration.Runtime.gcServer.Enabled
+                $gcSetting = ([xml]$configContent).Configuration.Runtime.gcServer.Enabled
                 $gcUnknown = $gcSetting -ne "true" -and $gcSetting -ne "false"
                 $gcServerEnabled = $gcSetting -eq "true"
             }
