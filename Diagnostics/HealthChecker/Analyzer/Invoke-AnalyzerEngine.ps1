@@ -1633,11 +1633,11 @@ Function Invoke-AnalyzerEngine {
             )
         }
 
-        $sbStarted = { param($v) if ($v -eq "Started") { "Green" } else { "Red" } }
-        $sbRestart = { param($v) if ($v) { "Red" } else { "Green" } }
+        $sbStarted = { param($o, $p) if ($p -eq "State") { if ($o."$p" -eq "Started") { "Green" } else { "Red" } } }
+        $sbRestart = { param($o, $p) if ($p -eq "RestartConditionSet") { if ($o."$p") { "Red" } else { "Green" } } }
         $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
                 DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($null, $sbStarted, $null, $sbRestart)
+                ColorizerFunctions = @($sbStarted, $sbRestart)
                 IndentSpaces       = 8
             }) `
             -DisplayGroupingKey $keyWebApps `
@@ -1668,13 +1668,24 @@ Function Invoke-AnalyzerEngine {
                         }))
             }
 
-            $sbZero = { param($v) if ($v -eq "0") { "Green" } else { "Red" } }
-            $sbTime = { param($v) if ($v -eq "00:00:00") { "Green" } else { "Red" } }
-            $sbSchedule = { param($v) if ($v -eq "null") { "Green" } else { "Red" } }
+            $sbColorizer = {
+                param($o, $p)
+                switch ($p) {
+                    { $_ -in "PrivateMemory", "Memory", "Requests" } {
+                        if ($o."$p" -eq "0") { "Green" } else { "Red" }
+                    }
+                    "Time" {
+                        if ($o."$p" -eq "00:00:00") { "Green" } else { "Red" }
+                    }
+                    "Schedule" {
+                        if ($o."$p" -eq "null") { "Green" } else { "Red" }
+                    }
+                }
+            }
 
             $analyzedResults = Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
                     DisplayObject      = $outputObjectDisplayValue
-                    ColorizerFunctions = @($null, $sbZero, $sbZero, $sbZero, $sbSchedule, $sbTime)
+                    ColorizerFunctions = @($sbColorizer)
                     IndentSpaces       = 8
                 }) `
                 -DisplayGroupingKey $keyWebApps `

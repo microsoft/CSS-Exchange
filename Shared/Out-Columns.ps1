@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-    Outputs a table of objects with certain values colorized
+    Outputs a table of objects with certain values colorized.
 .EXAMPLE
     PS C:\> <example usage>
     Explanation of what the example does
@@ -111,12 +111,14 @@ function Out-Columns {
                 for ($i = 0; $i -lt $props.Count; $i++) {
                     $val = $o."$($props[$i])"
                     $fgColor = $defaultFgColor
-                    if ($i -lt $ColorizerFunctions.Length -and $null -ne $ColorizerFunctions[$i]) {
-                        $result = $ColorizerFunctions[$i].Invoke($val)
+                    foreach ($func in $ColorizerFunctions) {
+                        $result = $func.Invoke($o, $props[$i])
                         if (-not [string]::IsNullOrEmpty($result)) {
                             $fgColor = $result
+                            break # The first colorizer that takes action wins
                         }
                     }
+
                     Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $o."$($props[$i])") -NoNewline -ForegroundColor $fgColor
                     [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $o."$($props[$i])")
                 }
