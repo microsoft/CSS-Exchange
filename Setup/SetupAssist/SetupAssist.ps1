@@ -181,14 +181,16 @@ Function Main {
     $results = RunAllTests
 
     $sbResults = {
-        param($r)
+        param($o, $p)
 
-        if ($r -eq "Failed") {
-            "Red"
-        } elseif ($r -eq "Passed") {
-            "Green"
-        } else {
-            "Yellow"
+        if ($p -eq "Result") {
+            if ($o."$p" -eq "Failed") {
+                "Red"
+            } elseif ($o."$p" -eq "Warning") {
+                "Yellow"
+            } else {
+                "Green"
+            }
         }
     }
 
@@ -204,11 +206,11 @@ Function Main {
             }
             New-TestResult @params
         }
-    $quickResults | Out-Columns -Properties @("TestName", "Result", "Details") -ColorizerFunctions @($null, $sbResults, $null)
+    $quickResults | Out-Columns -Properties @("TestName", "Result", "Details") -ColorizerFunctions $sbResults
 
     Write-Host ""
     Write-Host "Results That Didn't Pass"
-    $results | Where-Object { $_.Result -ne "Passed" } | Out-Columns -Properties @("TestName", "Details", "ReferenceInfo") @($null, { "yellow" }, { "yellow" })
+    $results | Where-Object { $_.Result -ne "Passed" } | Out-Columns -Properties @("TestName", "Details", "ReferenceInfo")
 
     <#
     if ($OtherWellKnownObjects) {
