@@ -9,7 +9,7 @@ Function New-TestResult {
         [string]$TestName,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("Passed", "Failed", "Warning")]
+        [ValidateSet("Passed", "Failed", "Warning", "Information")]
         [string]$Result,
 
         [Parameter(Mandatory = $false)]

@@ -115,7 +115,9 @@ function Confirm-VirtualDirectoryConfiguration {
                     New-TestResult @resultParams -Result "Failed" -Details "Virtual directory `"$($expectedVdir.DirectoryName)`" exists in AD but not in IIS."
                     # Should we say to delete the AD object? What if it's PushNotifications?
                 } else {
-                    # If there are no IIS objects and no AD object, then the state is consistent. Do we need to say run New-*VirtualDirectory?
+                    New-TestResult @resultParams -Result "Information" -Details "$($expectedVdir.DirectoryName) not found. This might be expected."
+                    # If there are no IIS objects and no AD object, then the state is consistent.
+                    # Do we know when this is expected vs when we need to run New-VirtualDirectory?
                 }
             } elseif ($expectedIISObjectsMissing.Count -gt 0) {
                 New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"."
@@ -126,6 +128,7 @@ function Confirm-VirtualDirectoryConfiguration {
                     $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
 
                     if ($null -ne $adObject) {
+                        New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $(expectedVdir.DirectoryName)"
                         # Should we say to delete the AD object?
                     }
                 }
