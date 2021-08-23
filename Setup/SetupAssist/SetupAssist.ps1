@@ -21,6 +21,7 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-MissingDirectory.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-MsiCacheFiles.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
 . $PSScriptRoot\Checks\Test-FullLanguageMode.ps1
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
@@ -172,6 +173,7 @@ Function RunAllTests {
     Test-ReadOnlyDomainControllerLocation
     Test-OtherWellKnownObjects
     Test-ExchangeADSetupLevel
+    Test-PendingReboot
 }
 
 Function Main {
