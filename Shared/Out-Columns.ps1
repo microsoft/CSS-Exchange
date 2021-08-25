@@ -39,12 +39,61 @@ function Out-Columns {
     )
 
     begin {
+        function WrapLine {
+            param([string]$line, [int]$width)
+            if ($line.Length -le $width -and $line.IndexOf("`n") -lt 0) {
+                return $line
+            }
+
+            $lines = New-Object System.Collections.ArrayList
+
+            $noLF = $line.Replace("`r", "")    # The caller should really send an array to Out-Columns instead
+            $split = $noLF.Split(@(" ", "`n")) # of using `n or `n`r. However, handle it if they do.
+            $sb = New-Object System.Text.StringBuilder
+            for ($i = 0; $i -lt $split.Length; $i++) {
+                if ($sb.Length -eq 0 -and $sb.Length + $split[$i].Length -lt $width) {
+                    [void]$sb.Append($split[$i])
+                } elseif ($sb.Length -gt 0 -and $sb.Length + $split[$i].Length + 1 -lt $width) {
+                    [void]$sb.Append(" " + $split[$i])
+                } elseif ($sb.Length -gt 0) {
+                    [void]$lines.Add($sb.ToString())
+                    [void]$sb.Clear()
+                    $i--
+                } else {
+                    if ($split[$i].Length -lt $width) {
+                        [void]$lines.Add($split[$i])
+                    } else {
+                        [void]$lines.Add($split[$i].Substring(0, $width))
+                        $split[$i] = $split[$i].Substring($width + 1)
+                        $i--
+                    }
+                }
+            }
+
+            if ($sb.Length -gt 0) {
+                [void]$lines.Add($sb.ToString())
+            }
+
+            return $lines
+        }
+
         function GetLineObjects {
-            param($obj, $props)
+            param($obj, $props, $colWidths)
             $linesNeededForThisObject = 1
             $multiLineProps = @{}
-            foreach ($p in $props) {
+            for ($i = 0; $i -lt $props.Length; $i++) {
+                $p = $props[$i]
                 $val = $obj."$p"
+
+                if ($val -isnot [array] -and ("$val").Length -gt $colWidths[$i]) {
+                    $val = WrapLine -line $val -width $colWidths[$i]
+                } elseif ($val -is [array]) {
+                    $widestVal = $val | ForEach-Object { $_.ToString().Length } | Sort-Object -Descending | Select-Object -First 1
+                    if ($widestVal -gt $colWidths[$i]) {
+                        $val = $val | ForEach-Object { WrapLine -line $_ -width $colWidths[$i] }
+                    }
+                }
+
                 if ($val -is [array]) {
                     $multiLineProps[$p] = $val
                     if ($val.Length -gt $linesNeededForThisObject) {
@@ -76,9 +125,14 @@ function Out-Columns {
         function GetColumnColors {
             param($obj, $props, $funcs)
 
+            $consoleHost = (Get-Host).Name -eq "ConsoleHost"
             $colColors = New-Object string[] $props.Count
             for ($i = 0; $i -lt $props.Count; $i++) {
-                $fgColor = (Get-Host).ui.rawui.ForegroundColor
+                if ($consoleHost) {
+                    $fgColor = (Get-Host).ui.rawui.ForegroundColor
+                } else {
+                    $fgColor = "White"
+                }
                 foreach ($func in $funcs) {
                     $result = $func.Invoke($o, $props[$i])
                     if (-not [string]::IsNullOrEmpty($result)) {
@@ -91,6 +145,63 @@ function Out-Columns {
             }
 
             $colColors
+        }
+
+        function GetColumnWidths {
+            param($objects, $props)
+
+            $colWidths = New-Object int[] $props.Count
+
+            # Start with the widths of the property names
+            for ($i = 0; $i -lt $props.Count; $i++) {
+                $colWidths[$i] = $props[$i].Length
+            }
+
+            # Now check the widths of the widest values
+            foreach ($thing in $objects) {
+                for ($i = 0; $i -lt $props.Count; $i++) {
+                    $val = $thing."$($props[$i])"
+                    if ($null -ne $val) {
+                        $width = 0
+                        if ($val -is [array]) {
+                            $width = ($val | ForEach-Object { $_.ToString() } | Sort-Object Length -Descending | Select-Object -First 1).Length
+                        } else {
+                            $width = $thing."$($props[$i])".ToString().Length
+                        }
+                        if ($width -gt $colWidths[$i]) {
+                            $colWidths[$i] = $width
+                        }
+                    }
+                }
+            }
+
+            # If we're within the window width, we're done
+            $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+            $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
+            if ($windowWidth -lt 1 -or $totalColumnWidth -lt $windowWidth) {
+                return $colWidths
+            }
+
+            # Take size away from one or more columns to make them fit
+            while ($totalColumnWidth -ge $windowWidth) {
+                $startingTotalWidth = $totalColumnWidth
+                $widest = $colWidths | Sort-Object -Descending | Select-Object -First 1
+                $newWidest = [Math]::Floor($widest * 0.75)
+                for ($i = 0; $i -lt $colWidths.Length; $i++) {
+                    if ($colWidths[$i] -eq $widest) {
+                        $colWidths[$i] = $newWidest
+                        break
+                    }
+                }
+
+                $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+                if ($totalColumnWidth -ge $startingTotalWidth) {
+                    # Somehow we didn't reduce the size at all, so give up
+                    break
+                }
+            }
+
+            return $colWidths
         }
 
         $objects = New-Object System.Collections.ArrayList
@@ -114,28 +225,7 @@ function Out-Columns {
                 $props = $objects[0].PSObject.Properties.Name
             }
 
-            $colWidths = New-Object int[] $props.Count
-
-            for ($i = 0; $i -lt $props.Count; $i++) {
-                $colWidths[$i] = $props[$i].Length
-            }
-
-            foreach ($thing in $objects) {
-                for ($i = 0; $i -lt $props.Count; $i++) {
-                    $val = $thing."$($props[$i])"
-                    if ($null -ne $val) {
-                        $width = 0
-                        if ($val -is [array]) {
-                            $width = ($val | ForEach-Object { $_.ToString() } | Sort-Object Length -Descending | Select-Object -First 1).Length
-                        } else {
-                            $width = $thing."$($props[$i])".ToString().Length
-                        }
-                        if ($width -gt $colWidths[$i]) {
-                            $colWidths[$i] = $width
-                        }
-                    }
-                }
-            }
+            $colWidths = GetColumnWidths $objects $props
 
             Write-Host
             [void]$stb.Append([System.Environment]::NewLine)
@@ -164,7 +254,7 @@ function Out-Columns {
 
             foreach ($o in $objects) {
                 $colColors = GetColumnColors -obj $o -props $props -funcs $ColorizerFunctions
-                $lineObjects = @(GetLineObjects -obj $o -props $props)
+                $lineObjects = @(GetLineObjects -obj $o -props $props -colWidths $colWidths)
                 foreach ($lineObj in $lineObjects) {
                     Write-Host (" " * $IndentSpaces) -NoNewline
                     [void]$stb.Append(" " * $IndentSpaces)
