@@ -76,9 +76,14 @@ function Out-Columns {
         function GetColumnColors {
             param($obj, $props, $funcs)
 
+            $consoleHost = (Get-Host).Name -eq "ConsoleHost"
             $colColors = New-Object string[] $props.Count
             for ($i = 0; $i -lt $props.Count; $i++) {
-                $fgColor = (Get-Host).ui.rawui.ForegroundColor
+                if ($consoleHost) {
+                    $fgColor = (Get-Host).ui.rawui.ForegroundColor
+                } else {
+                    $fgColor = "White"
+                }
                 foreach ($func in $funcs) {
                     $result = $func.Invoke($o, $props[$i])
                     if (-not [string]::IsNullOrEmpty($result)) {
