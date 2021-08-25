@@ -11,6 +11,7 @@ Function Write-Host {
         [string]$ForegroundColor
     )
     begin {
+        $consoleHost = $host.Name -eq "ConsoleHost"
         $params = @{
             Object    = $Object
             NoNewLine = $NoNewLine
@@ -19,13 +20,16 @@ Function Write-Host {
     process {
 
         if ([string]::IsNullOrEmpty($ForegroundColor)) {
-            if ($null -ne $host.UI.RawUI.ForegroundColor) {
+            if ($null -ne $host.UI.RawUI.ForegroundColor -and
+                $consoleHost) {
                 $params.Add("ForegroundColor", $host.UI.RawUI.ForegroundColor)
             }
         } elseif ($ForegroundColor -eq "Yellow" -and
+            $consoleHost -and
             $null -ne $host.PrivateData.WarningForegroundColor) {
             $params.Add("ForegroundColor", $host.PrivateData.WarningForegroundColor)
         } elseif ($ForegroundColor -eq "Red" -and
+            $consoleHost -and
             $null -ne $host.PrivateData.ErrorForegroundColor) {
             $params.Add("ForegroundColor", $host.PrivateData.ErrorForegroundColor)
         } else {
