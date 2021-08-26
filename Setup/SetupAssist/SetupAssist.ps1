@@ -224,7 +224,8 @@ Function Main {
 }
 
 try {
-    if (-not (Test-FullLanguageMode)) {
+    if ($ExecutionContext.SessionState.LanguageMode -ne "FullLanguage") {
+        Write-Error "PowerShell is not in FullLanguage mode. Exchange Setup requires FullLanguage mode. The SetupAssist script also requires it. Cannot continue."
         return
     }
 
