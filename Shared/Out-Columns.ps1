@@ -34,6 +34,10 @@ function Out-Columns {
         $IndentSpaces = 0,
 
         [Parameter(Mandatory = $false)]
+        [int]
+        $LinesBetweenObjects = 0,
+
+        [Parameter(Mandatory = $false)]
         [ref]
         $StringOutput
     )
@@ -264,6 +268,11 @@ function Out-Columns {
                         [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $lineObj."$($props[$i])")
                     }
 
+                    Write-Host
+                    [void]$stb.Append([System.Environment]::NewLine)
+                }
+
+                for ($i = 0; $i -lt $LinesBetweenObjects; $i++) {
                     Write-Host
                     [void]$stb.Append([System.Environment]::NewLine)
                 }
