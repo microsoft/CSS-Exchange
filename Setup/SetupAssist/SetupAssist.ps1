@@ -24,7 +24,6 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-MsiCacheFiles.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
-. $PSScriptRoot\Checks\Test-FullLanguageMode.ps1
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
 
@@ -62,23 +61,37 @@ Function Main {
         }
     }
 
-    #TODO: Clean this up later
+    #TODO: Add check for log reviewer check that was there
     $quickResults = $results | Group-Object TestName |
         ForEach-Object {
             $result = $_.Group.Result | Where-Object { $_ -ne "Passed" } | Select-Object -First 1
+
+            if ($_.Group.Count -gt 1) {
+                $details = [string]::Empty
+            } else {
+                $details = $_.Group.Details
+            }
             if ([string]::IsNullOrEmpty($result)) { $result = "Passed" }
             $params = @{
                 TestName = $_.Name
                 Result   = $result
-                Details  = $_.Group.Details | Where-Object { if (-not([string]::IsNullOrEmpty($_))) { return $_ } } | Select-Object -First 1
+                Details  = $details
             }
             New-TestResult @params
         }
     $quickResults | Out-Columns -Properties @("TestName", "Result", "Details") -ColorizerFunctions $sbResults
 
     Write-Host ""
-    Write-Host "Results That Didn't Pass"
-    $results | Where-Object { $_.Result -ne "Passed" } | Out-Columns -Properties @("TestName", "Details", "ReferenceInfo")
+    Write-Host "-----Results That Didn't Pass-----"
+    Write-Host ""
+    $failedResultGroups = $results | Where-Object { $_.Result -ne "Passed" } | Group-Object TestName
+
+    foreach ($failedResultGroup in $failedResultGroups) {
+        Write-Host $failedResultGroup.Name
+        Write-Host ("-" * $failedResultGroup.Name.Length)
+        $failedResultGroup.Group | Out-Columns -Properties @("Details", "ReferenceInfo") -IndentSpaces 10
+        Write-Host ""
+    }
 }
 
 try {
