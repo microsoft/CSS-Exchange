@@ -2169,7 +2169,7 @@ Function Invoke-AnalyzerEngine {
             $downloadDomainsExtWriteType -eq "Red" -or
             $downloadDomainsIntWriteType -eq "Red") {
 
-            $analyzedResults = Add-AnalyzedResultInformation -Details "Configuration instructions: https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-1730" `
+            $analyzedResults = Add-AnalyzedResultInformation -Details "Configuration instructions: https://aka.ms/HC-DownloadDomains" `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Red" `
                 -DisplayCustomTabNumber 2 `
