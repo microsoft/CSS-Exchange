@@ -12,44 +12,35 @@ Function Test-ValidHomeMDB {
         -l "distinguishedName,homeMDB" -f $filePath -d $rootDSE.rootDomainNamingContext | Out-Null
 
     $ldifeObject = @(Get-Content $filePath | ConvertFrom-Ldif)
+    $testName = "Valid Home MDB"
 
     if ($ldifeObject.Count -gt 0) {
 
-        $emptyHomeMDB = @()
-        $runActions = $false
         foreach ($result in $ldifeObject) {
             $dbName = $result.homeMDB
+            $params = @{
+                TestName      = $testName
+                Details       = @("Mailbox DN: $($result.dn)",
+                    "Database DN: $dbName")
+                ReferenceInfo = @("Run the following command in EMS.",
+                    "If EMS is down, launch PowerShell and run `"Add-PSSnapin *Exchange*`"",
+                    "    Set-Mailbox 'DN' -Database 'DB_Name'")
+            }
 
             if (![string]::IsNullOrEmpty($dbName)) {
 
                 if (!([ADSI]::Exists("LDAP://$dbName"))) {
-                    "Mailbox DN: $($result.dn) has an invalid homeMDB value." | Receive-Output -IsWarning
-                    $runActions = $true
+                    New-TestResult @params -Result "Failed"
+                } else {
+                    New-TestResult @params -Result "Passed"
                 }
             } else {
-                $emptyHomeMDB += $result.dn
+                New-TestResult @params -Result "Failed"
             }
         }
 
-        if ($emptyHomeMDB.Count -ge 1) {
-            $runActions = $true
-            "The following mailbox(es) have empty homeMDB values that will cause issues with setup" | Receive-Output -IsWarning
-            foreach ($dn in $emptyHomeMDB) {
-                "`t$dn" | Receive-Output
-            }
-        }
-
-        if ($runActions) {
-            "" | Receive-Output
-            "Follow the below steps to address empty/invalid homeMDB" | Receive-Output -IsWarning
-            "`tRun the below command in EMS against each of the above mailboxes. If EMS is down, launch PowerShell and run `"Add-PSSnapin *Exchange*`"" | Receive-Output
-            "`t`tSet-Mailbox 'DN' -Database 'DB_Name'" | Receive-Output
-            "" | Receive-Output
-        } else {
-            Remove-Item $filePath -Force
-            "All Critical Mailboxes have valid HomeMDB values" | Receive-Output
-        }
+        Remove-Item $filePath -Force
     } else {
-        Write-Error "Unexpected LDIF data in Test-ValidHomeMdb."
+        New-TestResult -TestName $testName -Result "Failed" -Details "Unexpected LDIF Data"
     }
 }

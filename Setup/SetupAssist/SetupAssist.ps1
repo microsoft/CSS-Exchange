@@ -16,6 +16,7 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
 . $PSScriptRoot\Checks\Domain\Test-OtherWellKnownObjects.ps1
 . $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
+. $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
 . $PSScriptRoot\Checks\UserContext\Test-UserGroupMemberOf.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
@@ -174,6 +175,7 @@ Function RunAllTests {
     Test-OtherWellKnownObjects
     Test-ExchangeADSetupLevel
     Test-PendingReboot
+    Test-ValidHomeMDB
 }
 
 Function Main {
