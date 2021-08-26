@@ -51,11 +51,9 @@ Function Test-ExchangeADSetupLevel {
             "---------------------------------------",
             "Local Server:         $serverFQDN",
             "Local Server Domain:  $serverDomain",
-            "Local Server Site:    $localSite",
-            "",
-            "$runPrepareAD")
+            "Local Server Site:    $localSite")
 
-        New-TestResult @params -Details $details
+        New-TestResult @params -Details $details -ReferenceInfo $runPrepareAD
     }
 
     Function TestMismatchLevel {

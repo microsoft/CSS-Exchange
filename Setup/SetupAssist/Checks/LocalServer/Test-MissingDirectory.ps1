@@ -11,11 +11,13 @@ function Test-MissingDirectory {
         (Test-Path $installPath) -and
         $owaVersion -notlike "15.2.*") {
         foreach ($path in $checkLocations) {
+            $fullPath = ([System.IO.Path]::Combine($installPath, $path))
             $params = @{
-                TestName = "Missing Directories"
-                Details  = ([System.IO.Path]::Combine($installPath, $path))
+                TestName      = "Missing Directories"
+                Details       = $fullPath
+                ReferenceInfo = "Create the path $fullPath"
             }
-            if (-not (Test-Path ([System.IO.Path]::Combine($installPath, $path)))) {
+            if (-not (Test-Path $fullPath)) {
                 New-TestResult @params -Result "Failed"
             } else {
                 New-TestResult @params -Result "Passed"

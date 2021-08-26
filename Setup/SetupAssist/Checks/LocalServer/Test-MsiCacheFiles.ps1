@@ -12,8 +12,9 @@ function Test-MsiCacheFiles {
 
     foreach ($msi in $msiFiles) {
         $params = @{
-            TestName = "Msi Cache File"
-            Details  = "$($msi.DisplayName)"
+            TestName      = "Msi Cache File"
+            Details       = "$($msi.DisplayName)"
+            ReferenceInfo = "Fix the missing cache files by running the script located here: https://aka.ms/ExInstallerCacheFix"
         }
 
         if ($msi.ValidMsi) {

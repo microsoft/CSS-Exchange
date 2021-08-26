@@ -8,7 +8,7 @@ Function Test-PendingReboot {
     $params = @{
         TestName      = "Pending Reboot"
         Details       = $rebootPending.PendingRebootLocations
-        ReferenceInfo = "#TODO: Aka.ms"
+        ReferenceInfo = "https://aka.ms/SA-RebootPending"
     }
 
     if ($rebootPending.PendingReboot) {

@@ -9,6 +9,7 @@ function Test-PrerequisiteInstalled {
     $params = @{
         TestName = ".NET Framework"
         Details  = $netVersion
+        ReferenceInfo = "https://aka.ms/SA-NetDownload"
     }
 
     if ($netVersion.MinimumValue -lt 528040) {
@@ -22,6 +23,7 @@ function Test-PrerequisiteInstalled {
         $info = Get-VisualCRedistributableInfo -Year $year
         $params = @{
             TestName      = $info.DisplayName.Replace("*", "")
+            Details       = "Visual C++ $year Redistributable"
             ReferenceInfo = $info.DownloadUrl
         }
 
