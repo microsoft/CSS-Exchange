@@ -37,8 +37,10 @@ Function Test-OtherWellKnownObjects {
 
         if ($value -like "*CN=Deleted Objects*") {
             $badItemsFound = $true
-            New-TestResult @params -Result "Failed" -ReferenceInfo ("Verify the results in $importFilePath. Then run the following command:`r`n`t" + `
-                    "ldifde -i -f $importFilePath`r`nThen, run Setup.exe /PrepareAD to recreate the deleted groups.")
+            New-TestResult @params -Result "Failed" -ReferenceInfo @(
+                "Verify the results in $importFilePath. Then run the following command:",
+                "     ldifde -i -f $importFilePath",
+                "Then, run Setup.exe /PrepareAD to recreate the deleted groups.")
         } else {
             $outputLines.Add("otherWellKnownObjects: $value")
             New-TestResult @params -Result "Passed"

@@ -44,14 +44,16 @@ Function Test-ExchangeADSetupLevel {
             $runPrepareAD = "/PrepareAD needs to be run from a computer in domain '$smDomain' and site '$smSite'"
         }
 
-        $details = `
-            "Schema Master:        $schemaMaster`r`n" + `
-            "Schema Master Domain: $smDomain`r`n" + `
-            "Schema Master Site:   $smSite`r`n" + `
-            "---------------------------------------`r`n" + `
-            "Local Server:         $serverFQDN`r`n" + `
-            "Local Server Domain:  $serverDomain`r`n" + `
-            "Local Server Site:    $localSite`r`n`r`n$runPrepareAD"
+        $details = @(
+            "Schema Master:        $schemaMaster",
+            "Schema Master Domain: $smDomain",
+            "Schema Master Site:   $smSite",
+            "---------------------------------------",
+            "Local Server:         $serverFQDN",
+            "Local Server Domain:  $serverDomain",
+            "Local Server Site:    $localSite",
+            "",
+            "$runPrepareAD")
 
         New-TestResult @params -Details $details
     }

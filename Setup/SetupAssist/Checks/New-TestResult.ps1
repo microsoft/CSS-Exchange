@@ -16,7 +16,7 @@ Function New-TestResult {
         [object]$Details,
 
         [Parameter(Mandatory = $false)]
-        [string]$ReferenceInfo
+        [object]$ReferenceInfo
     )
 
     return [PSCustomObject]@{
