@@ -85,13 +85,13 @@ Function Main {
     Write-Host "-----Results That Didn't Pass-----"
     Write-Host ""
     $failedResultGroups = $results | Where-Object { $_.Result -ne "Passed" } | Group-Object TestName
-
-    foreach ($failedResultGroup in $failedResultGroups) {
-        Write-Host $failedResultGroup.Name
-        Write-Host ("-" * $failedResultGroup.Name.Length)
-        $failedResultGroup.Group | Out-Columns -Properties @("Details", "ReferenceInfo") -IndentSpaces 10
-        Write-Host ""
-    }
+    $failedResultGroups | ForEach-Object {
+        [PSCustomObject]@{
+            TestName      = $_.Name
+            Details       = $_.Group.Details
+            ReferenceInfo = $_.Group[0].ReferenceInfo
+        }
+    } | Out-Columns -IndentSpaces 5 -LinesBetweenObjects 2
 }
 
 try {
