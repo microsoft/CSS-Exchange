@@ -176,7 +176,7 @@ function Out-Columns {
             }
 
             # If we're within the window width, we're done
-            $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+            $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum + $IndentSpaces
             $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
             if ($windowWidth -lt 1 -or $totalColumnWidth -lt $windowWidth) {
                 return $colWidths
@@ -194,7 +194,7 @@ function Out-Columns {
                     }
                 }
 
-                $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+                $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum + $IndentSpaces
                 if ($totalColumnWidth -ge $startingTotalWidth) {
                     # Somehow we didn't reduce the size at all, so give up
                     break
