@@ -8,7 +8,7 @@ function Test-PrerequisiteInstalled {
     $netVersion = Get-NETFrameworkVersion
     $params = @{
         TestName      = ".NET Framework"
-        Details       = $netVersion
+        Details       = ".NET $($netVersion.FriendlyName)"
         ReferenceInfo = "https://aka.ms/SA-NetDownload"
     }
 
