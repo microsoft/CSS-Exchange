@@ -39,7 +39,7 @@ Function Test-ExchangeADSetupLevel {
 
         if ($serverDomain -eq $smDomain -and
             $localSite -eq $smSite) {
-            $runPrepareAD = "We are able to run /PrepareAD from this computer"
+            $runPrepareAD = "Run /PrepareAD from this computer"
         } else {
             $runPrepareAD = "/PrepareAD needs to be run from a computer in domain '$smDomain' and site '$smSite'"
         }

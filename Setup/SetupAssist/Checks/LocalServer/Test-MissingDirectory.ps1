@@ -15,7 +15,7 @@ function Test-MissingDirectory {
             $params = @{
                 TestName      = "Missing Directories"
                 Details       = $fullPath
-                ReferenceInfo = "Create the path $fullPath"
+                ReferenceInfo = "Create the path"
             }
             if (-not (Test-Path $fullPath)) {
                 New-TestResult @params -Result "Failed"

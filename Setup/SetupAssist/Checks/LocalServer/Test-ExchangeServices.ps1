@@ -34,8 +34,9 @@ function Test-ExchangeServices {
     foreach ($service in $services) {
 
         $params = @{
-            TestName = "Exchange Services"
-            Details  = "Service: $($service.Name) Status: $($service.Status) StartType: $($service.StartType)"
+            TestName      = "Exchange Services"
+            Details       = "Service: $($service.Name) Status: $($service.Status) StartType: $($service.StartType)"
+            ReferenceInfo = "Set the service to Automatic and start it"
         }
 
         if ($service.Status.ToString() -ne "Running" -or
