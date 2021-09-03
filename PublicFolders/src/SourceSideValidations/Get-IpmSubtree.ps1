@@ -90,9 +90,9 @@ function Get-IpmSubtree {
                     MailRecipientGuid = $Folder.MailRecipientGuid
                 }
 
-                $null = $ipmSubtree.Add($result)
+                [void]$ipmSubtree.Add($result)
 
-                $null = $foldersProcessed.Add($Folder.EntryId.ToString())
+                [void]$foldersProcessed.Add($Folder.EntryId.ToString())
             }
         }
 
