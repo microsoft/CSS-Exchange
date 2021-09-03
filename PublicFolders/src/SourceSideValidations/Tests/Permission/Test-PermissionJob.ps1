@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-BadPermissionJob {
+function Test-BadPermissionJob {
     [CmdletBinding()]
     param (
         [Parameter(Position = 0)]
@@ -22,7 +22,6 @@ function Get-BadPermissionJob {
         Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
         $startTime = Get-Date
         $progressCount = 0
-        $badPermissions = @()
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
         $progressParams = @{
@@ -49,10 +48,14 @@ function Get-BadPermissionJob {
                     ($null -eq $_.User.ADRecipient) -and
                     ($_.User.UserType.ToString() -eq "Unknown")
                 ) {
-                    $badPermissions += [PSCustomObject]@{
-                        Identity = $identity
-                        EntryId  = $entryId
-                        User     = $_.User.DisplayName
+                    # We can't use New-TestResult here since we are inside a job
+                    [PSCustomObject]@{
+                        TestName       = "Permission"
+                        ResultType     = "BadPermission"
+                        Severity       = "Error"
+                        FolderIdentity = $identity
+                        FolderEntryId  = $entryId
+                        ResultData     = $_.User.DisplayName
                     }
                 }
             }
@@ -61,11 +64,13 @@ function Get-BadPermissionJob {
 
     end {
         Write-Progress @progressParams -Completed
-        $duration = ((Get-Date) - $startTime)
-        return [PSCustomObject]@{
-            Count          = $progressCount
-            Duration       = $duration
-            BadPermissions = $badPermissions
+        [PSCustomObject]@{
+            TestName       = "Permission"
+            ResultType     = "$Mailbox Duration"
+            Severity       = "Information"
+            FolderIdentity = ""
+            FolderEntryId  = ""
+            ResultData     = ((Get-Date) - $startTime)
         }
     }
 }
