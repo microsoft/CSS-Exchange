@@ -21,10 +21,6 @@ function Get-ItemCount {
 
     begin {
         Write-Verbose "$($MyInvocation.MyCommand) called."
-        $progressFile = Join-Path $PSScriptRoot "ItemCountProgress.csv"
-        if (Test-Path $progressFile) {
-            Remove-Item $progressFile
-        }
 
         $progressCount = 0
         $sw = New-Object System.Diagnostics.Stopwatch
@@ -94,10 +90,6 @@ function Get-ItemCount {
                 $itemCounts.AddRange($_.ItemCounts)
                 $errors.AddRange($_.Errors)
                 Write-Verbose "Retrieved item counts for $($itemCounts.Count) folders so far. $($errors.Count) errors encountered."
-
-                if ($_.ItemCounts.Count -gt 0) {
-                    $_.ItemCounts | Export-Csv -Path $progressFile -Append -Force
-                }
             }
         }
     }
