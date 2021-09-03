@@ -24,6 +24,7 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-MsiCacheFiles.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
 
@@ -41,6 +42,7 @@ Function RunAllTests {
     Test-ExchangeADSetupLevel
     Test-PendingReboot
     Test-ValidHomeMDB
+    Test-VirtualDirectoryConfiguration
 }
 
 Function Main {
@@ -89,7 +91,7 @@ Function Main {
         [PSCustomObject]@{
             TestName      = $_.Name
             Details       = $_.Group.Details
-            ReferenceInfo = $_.Group[0].ReferenceInfo
+            ReferenceInfo = $_.Group.ReferenceInfo | Select-Object -Unique
         }
     } | Out-Columns -IndentSpaces 5 -LinesBetweenObjects 2
 }

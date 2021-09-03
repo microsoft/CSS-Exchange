@@ -128,7 +128,7 @@ function Test-VirtualDirectoryConfiguration {
                     $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
 
                     if ($null -ne $adObject) {
-                        New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $(expectedVdir.DirectoryName)"
+                        New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
                         # Should we say to delete the AD object?
                     }
                 }
@@ -140,16 +140,14 @@ function Test-VirtualDirectoryConfiguration {
         if ($fixesPerformed) {
             $newAppHostConfig = "$PSScriptRoot\applicationHost.config"
             $appHostConfig.Save($newAppHostConfig)
-            $errorDetails = @(
-                "Virtual directory configuration problems were found and fixed.",
-                "An updated applicationHost.config file was created here:",
-                "$PSScriptRoot\applicationHost.config.",
-                "The one currently in place can be found here:",
-                $appHostConfigPath,
-                "Rename the current one and put the updated file in place,",
-                "to correct these issues."
-            )
-            New-TestResult @resultParams -Result "Failed" -Details $errorDetails
+            $referenceInfo =
+            "Virtual directory configuration problems were found and fixed. An updated applicationHost.config file was created here:`n`n" +
+            "$PSScriptRoot\applicationHost.config.`n`n" +
+            "The one currently in place can be found here:`n`n" +
+            "$appHostConfigPath`n`n" +
+            "Rename the current one and put the updated file in place to correct these issues."
+
+            New-TestResult @resultParams -Result "Failed" -Details @() -ReferenceInfo $referenceInfo
         }
 
         if ($problemsFound) {
