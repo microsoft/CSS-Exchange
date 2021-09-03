@@ -46,13 +46,13 @@ Typically, the script should be run with no parameters:
 
 `.\SourceSideValidations.ps1`
 
-Run the script with no parameters. Progress indicators are displayed as it collects data and validates the results.
+Progress indicators are displayed as it collects data and validates the results.
 
 ![Picture of progress bars](ssv1.png)
 
 The final test, which checks permissions, will usually take much longer than the other tests.
 
-When all the tests are done, the script will provide a summary of what it found, along with example commands that will fix some issues.
+When all the tests are done, the script provides a summary of what it found, along with example commands that fix some issues.
 
 ![Picture of summary](ssv2.png)
 
@@ -80,17 +80,17 @@ The script tells us we have a mail public folder object for a public folder that
 
 ![Picture of folders with bad characters in Excel](ssv7.png)
 
-Well, the folder says MailEnabled is False, yet we have a MailPublicFolder which points to it. We need to decide whether we want the folder to receive email or not. For this lab, I decide I _do_ want the folder to be mail-enabled, so I remove the orphaned MailPublicFolder and then mail-enable the folder.
+The folder says MailEnabled is False, yet we have a MailPublicFolder which points to it. We need to decide whether we want the folder to receive email or not. For this lab, I decide I _do_ want the folder to be mail-enabled, so I remove the orphaned MailPublicFolder and then mail-enable the folder.
 
 ![Picture of folders with bad characters in Excel](ssv8.png)
 
 I also confirm the new object has the same email address as the old one. This might need to be adjusted manually in some cases, but here I didn't have to.
 
-Finally, the script says I have 9,850 invalid permissions. Fortunately, this is another one that is easy to fix, as the script provides a command.
+Finally, the script says we have 9,850 invalid permissions. Fortunately, this is another one that is easy to fix, as the script provides a command.
 
 ![Picture of folders with bad characters in Excel](ssv9.png)
 
-This one is going to take a while. Once completed, I can rerun SourceSideValidations to make sure all the issues are resolved.
+This one is going to take a while. Once completed, we can rerun SourceSideValidations to make sure all the issues are resolved.
 
 If you close the shell and you need to see the summary results again, use the *-SummarizePreviousResults* switch.
 
