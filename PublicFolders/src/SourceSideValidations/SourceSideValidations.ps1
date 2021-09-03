@@ -56,6 +56,7 @@ if ($SummarizePreviousResults) {
     $results | Write-TestFolderLimitResult
     $results | Write-TestMailEnabledFolderResult
     $results | Write-TestPermissionResult
+    Write-Host
     return
 }
 
