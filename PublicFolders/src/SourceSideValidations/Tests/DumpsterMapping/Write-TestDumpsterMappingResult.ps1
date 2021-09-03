@@ -14,7 +14,7 @@ function Write-TestDumpsterMappingResult {
     }
 
     process {
-        if ($TestResult.Name -eq "DumpsterMapping" -and $TestResult.ResultType -eq "BadDumpsterMapping") {
+        if ($TestResult.TestName -eq "DumpsterMapping" -and $TestResult.ResultType -eq "BadDumpsterMapping") {
             $badDumpsters += $TestResult
         }
     }
