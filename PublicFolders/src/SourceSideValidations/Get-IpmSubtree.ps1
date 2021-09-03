@@ -83,7 +83,6 @@ function Get-IpmSubtree {
                     EntryId           = $Folder.EntryId.ToString()
                     ParentEntryId     = $Folder.ParentFolder.ToString()
                     DumpsterEntryId   = if ($Folder.DumpsterEntryId) { $Folder.DumpsterEntryId.ToString() } else { $null }
-                    FolderPathDepth   = $Folder.Identity.ToString().Split("\").Count - 1 # Naive path depth implementation as Depth is not available without rehydration
                     FolderSize        = $Folder.FolderSize
                     HasSubfolders     = $Folder.HasSubfolders
                     ContentMailbox    = $Folder.ContentMailboxName

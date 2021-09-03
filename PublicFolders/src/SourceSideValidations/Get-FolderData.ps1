@@ -91,6 +91,18 @@ function Get-FolderData {
         $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailbox
         $folderData.IpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
         $folderData.IpmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
+        # We can't count on $folder.Path.Depth being available in remote powershell,
+        # so we calculate the depth by walking the parent entry IDs.
+        $folderData.IpmSubtree | ForEach-Object {
+            $pathDepth = 1
+            $parent = $folderData.EntryIdDictionary[$_.ParentEntryId]
+            while ($null -ne $parent) {
+                $pathDepth++
+                $parent = $folderData.EntryIdDictionary[$parent.ParentEntryId]
+            }
+
+            Add-Member -InputObject $_ -MemberType NoteProperty -Name FolderPathDepth -Value $pathDepth
+        }
         $folderData.NonIpmSubtree | ForEach-Object { $folderData.NonIpmEntryIdDictionary[$_.EntryId] = $_ }
 
         # If we're doing slow traversal, we have to get the stats after we have the hierarchy
