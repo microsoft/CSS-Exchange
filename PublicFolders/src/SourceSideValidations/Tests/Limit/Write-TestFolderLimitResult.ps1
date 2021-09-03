@@ -13,6 +13,7 @@ function Write-TestFolderLimitResult {
         $childCount = 0
         $folderPathDepth = 0
         $itemCount = 0
+        $emptyFolders = 0
         $hierarchyCount = $null
         $hierarchyAndDumpsterCount = $null
         $folderCountMigrationLimit = 250000
@@ -21,6 +22,7 @@ function Write-TestFolderLimitResult {
     process {
         if ($TestResult.TestName -eq "Limit") {
             switch ($TestResult.ResultType) {
+                "EmptyFolder" { $emptyFolders++ }
                 "ChildCount" { $childCount++ }
                 "FolderPathDepth" { $folderPathDepth++ }
                 "ItemCount" { $itemCount++ }
@@ -66,6 +68,13 @@ function Write-TestFolderLimitResult {
             Write-Host "This exceeds the supported migration limit of $folderCountMigrationLimit for Exchange Online."
             Write-Host "New-MigrationBatch can be run with the -ExcludeDumpsters switch to skip the dumpster"
             Write-Host "folders, or public folders may be deleted to reduce the number of folders."
+        }
+
+        if ($emptyFolders -gt 0) {
+            Write-Host
+            Write-Host $emptyFolders "folders contain no items and have only empty subfolders."
+            Write-Host "These folders are shown in the results CSV with a result type of EmptyFolder."
+            Write-Host "These will not cause a migration issue, but they may be pruned if desired."
         }
     }
 }

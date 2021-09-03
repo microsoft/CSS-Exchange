@@ -31,47 +31,56 @@ function Test-FolderLimit {
             Severity = "Error"
         }
         $folderCountMigrationLimit = 250000
+        $aggregateChildItemCounts = @{}
     }
 
     process {
-        $FolderData.IpmSubtree | ForEach-Object {
+        # We start from the deepest folders and work upwards so we can calculate the aggregate child
+        # counts in one pass
+        foreach ($folder in ($FolderData.IpmSubtree | Sort-Object FolderPathDepth -Descending)) {
             $progressCount++
             if ($sw.ElapsedMilliseconds -gt 1000) {
                 $sw.Restart()
                 Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
-            if ($FolderData.ParentEntryIdCounts[$_.EntryId] -gt 10000) {
-                $testResultParams.ResultType = "ChildCount"
-                $testResultParams.FolderIdentity = $_.Identity.ToString()
-                $testResultParams.FolderEntryId = $_.EntryId.ToString()
-                New-TestResult @testResultParams
+            [int]$itemCount = $FolderData.ItemCountDictionary[$folder.EntryId]
+
+            $parent = $FolderData.EntryIdDictionary[$folder.ParentEntryId]
+            if ($null -ne $parent) {
+                $aggregateChildItemCounts[$parent.EntryId] += $itemCount
             }
 
-            if ([int]$_.FolderPathDepth -gt 299) {
-                $testResultParams.ResultType = "FolderPathDepth"
-                $testResultParams.FolderIdentity = $_.Identity.ToString()
-                $testResultParams.FolderEntryId = $_.EntryId.ToString()
-                New-TestResult @testResultParams
-            }
-
-            if ($FolderData.ItemCountDictionary[$_.EntryId] -gt 1000000) {
-                $testResultParams.ResultType = "ItemCount"
-                $testResultParams.FolderIdentity = $_.Identity.ToString()
-                $testResultParams.FolderEntryId = $_.EntryId.ToString()
-                New-TestResult @testResultParams
-            }
-
-            # We have to do a string test against the False value here, because this might have been imported from CSV.
-            if ($FolderData.ItemCountDictionary[$_.EntryId] -eq 0 -and $_.HasSubfolders.ToString() -eq "False") {
+            if ($itemCount -lt 1 -and $aggregateChildItemCounts[$folder.EntryId] -lt 1 -and $folder.FolderPathDepth -gt 0) {
                 $emptyFolderInformation = @{
                     TestName       = "Limit"
                     Severity       = "Information"
                     ResultType     = "EmptyFolder"
-                    FolderIdentity = $_.Identity.ToString()
-                    FolderEntryId  = $_.EntryId.ToString()
+                    FolderIdentity = $folder.Identity.ToString()
+                    FolderEntryId  = $folder.EntryId.ToString()
                 }
                 New-TestResult @emptyFolderInformation
+            }
+
+            if ($FolderData.ParentEntryIdCounts[$folder.EntryId] -gt 10000) {
+                $testResultParams.ResultType = "ChildCount"
+                $testResultParams.FolderIdentity = $folder.Identity.ToString()
+                $testResultParams.FolderEntryId = $folder.EntryId.ToString()
+                New-TestResult @testResultParams
+            }
+
+            if ($folder.FolderPathDepth -gt 299) {
+                $testResultParams.ResultType = "FolderPathDepth"
+                $testResultParams.FolderIdentity = $folder.Identity.ToString()
+                $testResultParams.FolderEntryId = $folder.EntryId.ToString()
+                New-TestResult @testResultParams
+            }
+
+            if ($itemCount -gt 1000000) {
+                $testResultParams.ResultType = "ItemCount"
+                $testResultParams.FolderIdentity = $folder.Identity.ToString()
+                $testResultParams.FolderEntryId = $folder.EntryId.ToString()
+                New-TestResult @testResultParams
             }
         }
 

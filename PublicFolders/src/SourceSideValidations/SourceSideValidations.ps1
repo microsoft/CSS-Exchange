@@ -139,7 +139,8 @@ if ("Dumpsters" -in $Tests) {
 if ("Limits" -in $Tests) {
     Write-Progress @progressParams -Status "Step 3 of 6"
 
-    $limitsExceeded = Test-FolderLimit -FolderData $folderData
+    # This test emits results in a weird order, so sort them.
+    $limitsExceeded = Test-FolderLimit -FolderData $folderData | Sort-Object FolderIdentity
     $limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append
 }
 
