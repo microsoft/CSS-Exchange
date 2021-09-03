@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 
-function Confirm-VirtualDirectoryConfiguration {
+function Test-VirtualDirectoryConfiguration {
     [CmdletBinding()]
     param ()
 
