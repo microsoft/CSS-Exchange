@@ -1,45 +1,50 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-AppPool.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 Function Get-ExchangeAppPoolsInformation {
 
-    Write-VerboseOutput("Calling: Get-ExchangeAppPoolsInformation")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    Function Get-ExchangeAppPoolsScriptBlock {
-        $windir = $env:windir
-        $Script:appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
+    $appPool = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-AppPool} `
+        -ScriptBlockDescription "Getting App Pool information" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
 
-        $appPools = &$Script:appCmd list apppool
-        $exchangeAppPools = @()
-        foreach ($appPool in $appPools) {
-            $startIndex = $appPool.IndexOf('"') + 1
-            $appPoolName = $appPool.Substring($startIndex, ($appPool.Substring($startIndex).IndexOf('"')))
-            if ($appPoolName.StartsWith("MSExchange")) {
-                $exchangeAppPools += $appPoolName
+    $exchangeAppPoolsInfo = @{}
+
+    $appPool |
+        Where-Object { $_.add.name -like "MSExchange*" } |
+        ForEach-Object {
+            $configContent = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {
+                param(
+                    $FilePath
+                )
+                if (Test-Path $FilePath) {
+                    return (Get-Content $FilePath)
+                }
+                return [string]::Empty
+            } `
+                -ScriptBlockDescription "Getting Content file for $($_.add.name)" `
+                -ArgumentList $_.add.CLRConfigFile `
+                -CatchActionFunction ${Function:Invoke-CatchActions}
+
+            $gcUnknown = $true
+            $gcServerEnabled = $false
+
+            if (-not ([string]::IsNullOrEmpty($configContent))) {
+                $gcSetting = ([xml]$configContent).Configuration.Runtime.gcServer.Enabled
+                $gcUnknown = $gcSetting -ne "true" -and $gcSetting -ne "false"
+                $gcServerEnabled = $gcSetting -eq "true"
             }
+            $exchangeAppPoolsInfo.Add($_.add.Name, [PSCustomObject]@{
+                    ConfigContent   = $configContent
+                    AppSettings     = $_
+                    GCUnknown       = $gcUnknown
+                    GCServerEnabled = $gcServerEnabled
+                })
         }
 
-        $exchAppPools = @{}
-        foreach ($appPool in $exchangeAppPools) {
-            $status = &$Script:appCmd list apppool $appPool /text:state
-            $config = &$Script:appCmd list apppool $appPool /text:CLRConfigFile
-            if (!([System.String]::IsNullOrEmpty($config)) -and
-                (Test-Path $config)) {
-                $content = Get-Content $config
-            } else {
-                $content = $null
-            }
-            $statusObj = New-Object PSCustomObject
-            $statusObj | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
-            $statusObj | Add-Member -MemberType NoteProperty -Name "ConfigPath" -Value $config
-            $statusObj | Add-Member -MemberType NoteProperty -Name "Content" -Value $content
-
-            $exchAppPools.Add($appPool, $statusObj)
-        }
-
-        return $exchAppPools
-    }
-    $exchangeAppPoolsInfo = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-ExchangeAppPoolsScriptBlock} -ScriptBlockDescription "Getting Exchange App Pool information" -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-VerboseOutput("Exiting: Get-ExchangeAppPoolsInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $exchangeAppPoolsInfo
 }

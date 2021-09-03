@@ -6,7 +6,6 @@
 #
 # TODO: Add AD Object Permissions check
 #
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameter is used')]
 [CmdletBinding()]
 param(
     [switch]$OtherWellKnownObjects
@@ -16,6 +15,7 @@ param(
 . .\Checks\Test-CriticalService.ps1
 . .\Checks\Test-ExchangeAdLevel.ps1
 . .\Checks\Test-ComputersContainerExists.ps1
+. .\Checks\Test-DomainControllerDnsHostName.ps1
 . .\Checks\Test-ReadOnlyDomainControllerLocation.ps1
 . .\Checks\Test-MissingDirectory.ps1
 . .\Checks\Test-MissingMsiFiles.ps1
@@ -24,6 +24,7 @@ param(
 . $PSScriptRoot\Checks\Test-PrerequisiteInstalled.ps1
 . .\Checks\Test-UserGroupMemberOf.ps1
 . .\Checks\Test-ValidHomeMdb.ps1
+. .\Checks\Test-FullLanguageMode.ps1
 . .\Utils\ConvertFrom-Ldif.ps1
 
 #Local Shared
@@ -127,6 +128,7 @@ Function MainUse {
     Test-MissingDirectory
     Test-ExchangeAdSetupObjects
     Test-ComputersContainerExists
+    Test-DomainControllerDnsHostName
     Test-ReadOnlyDomainControllerLocation
     Confirm-VirtualDirectoryConfiguration
 
@@ -185,6 +187,10 @@ Function Main {
 }
 
 try {
+    if (-not (Test-FullLanguageMode)) {
+        return
+    }
+
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Receive-Output "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Receive-Output "Test Latest Script Version" -Diagnostic

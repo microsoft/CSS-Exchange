@@ -127,12 +127,10 @@ Virtual Machine detected.  Certain settings about the host hardware cannot be de
 
 Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.
 
-VMWare recommends a 1:1 ratio.  Their guidance can be found at https://www.vmware.com/files/pdf/Exchange_2013_on_VMware_Best_Practices_Guide.pdf.
-Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=2039495.
+VMWare recommends a 1:1 ratio.  Their guidance can be found at https://aka.ms/HC-VMwareBP2019.
+Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  https://aka.ms/HC-VMwareLostPackets.
 
-For further details, please review the virtualization recommendations on Microsoft Docs at the following locations:
-Exchange 2013: https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization.
-Exchange 2016/2019: https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019.
+For further details, please review the virtualization recommendations on Microsoft Docs here: https://aka.ms/HC-Virtualization.
 
 "@
 
@@ -145,66 +143,33 @@ if ($PSBoundParameters["Verbose"]) {
     $Host.PrivateData.VerboseForegroundColor = "Cyan"
 }
 
-. $PSScriptRoot\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
-. .\Helpers\Class.ps1
-. .\Writers\Write-ResultsToScreen.ps1
-. .\Writers\Write-Verbose.ps1
-. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
-. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
-. $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
-. .\extern\Write-ScriptMethodHostWriters.ps1
-. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+. $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
+. $PSScriptRoot\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
+. $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
+. $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
+. $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
+. $PSScriptRoot\Helpers\Import-MyData.ps1
+. $PSScriptRoot\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\Helpers\Invoke-ScriptLogFileLocation.ps1
+. $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
+. $PSScriptRoot\Helpers\Class.ps1
+. $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
+. $PSScriptRoot\Writers\Write-Verbose.ps1
+. $PSScriptRoot\Writers\Write-Functions.ps1
+. $PSScriptRoot\Features\Get-HtmlServerReport.ps1
+. $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
+. $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
+. $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
+
+#TODO: Address this
+. $PSScriptRoot\extern\Write-ScriptMethodHostWriters.ps1
 . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-. .\Writers\Write-Functions.ps1
-. .\DataCollection\extern\Get-AllNicInformation.ps1
-. .\DataCollection\extern\Get-AllTlsSettingsFromRegistry.ps1
-. .\DataCollection\extern\Get-DotNetDllFileVersions.ps1
-. .\DataCollection\extern\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\Shared\Get-NETFrameworkVersion.ps1
-. .\DataCollection\extern\Get-ProcessorInformation.ps1
-. .\DataCollection\extern\Get-ServerOperatingSystemVersion.ps1
-. .\DataCollection\extern\Get-ServerRebootPending.ps1
-. .\DataCollection\extern\Get-ServerType.ps1
-. .\DataCollection\extern\Get-Smb1ServerSettings.ps1
-. .\DataCollection\extern\Get-TimeZoneInformationRegistrySettings.ps1
-. .\DataCollection\extern\Get-WmiObjectHandler.ps1
-. .\DataCollection\extern\Invoke-RegistryGetValue.ps1
-. $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeAdSchemaClass.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeApplicationConfigurationFileValidation.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeAppPoolsInformation.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeInformation.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeServerCertificates.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeServerMaintenanceSate.ps1
-. .\DataCollection\ExchangeInformation\Get-ExchangeUpdates.ps1
-. .\DataCollection\ExchangeInformation\Get-ExSetupDetails.ps1
-. .\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
-. .\DataCollection\ServerInformation\Get-CredentialGuardEnabled.ps1
-. .\DataCollection\ServerInformation\Get-HardwareInformation.ps1
-. .\DataCollection\ServerInformation\Get-HttpProxySetting.ps1
-. .\DataCollection\ServerInformation\Get-LmCompatibilityLevelInformation.ps1
-. .\DataCollection\ServerInformation\Get-OperatingSystemInformation.ps1
-. .\DataCollection\ServerInformation\Get-PageFileInformation.ps1
-. .\DataCollection\ServerInformation\Get-ServerRole.ps1
-. $PSScriptRoot\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
-. .\Analyzer\Add-AnalyzedResultInformation.ps1
-. .\Analyzer\Get-DisplayResultsGroupingKey.ps1
-. .\Analyzer\Invoke-AnalyzerEngine.ps1
-. .\Helpers\Get-CounterSamples.ps1
-. .\Helpers\Get-ErrorsThatOccurred.ps1
-. .\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
-. .\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
-. .\Helpers\Import-MyData.ps1
-. .\Helpers\Invoke-CatchActions.ps1
-. .\Helpers\Invoke-ScriptLogFileLocation.ps1
-. .\Helpers\Test-RequiresServerFqdn.ps1
-. .\Features\Get-HtmlServerReport.ps1
-. .\Features\Get-CasLoadBalancingReport.ps1
-. .\Features\Get-ExchangeDcCoreRatio.ps1
-. .\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
+. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
+
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
 Function Main {
 
@@ -240,7 +205,7 @@ Function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "LoadBalancingReport"
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -261,7 +226,7 @@ Function Main {
     }
 
     if ($MailboxReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthCheck-MailboxReport" -IncludeServerName $true
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
         Get-MailboxDatabaseAndMailboxStatistics
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
@@ -288,13 +253,13 @@ Function Main {
         Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
         switch (Test-ScriptVersion -AutoUpdate) {
             ($true) { Write-Green("Script was successfully updated.") }
-            ($false) { Write-Red("Script was not successfully updated.") }
-            default { Write-Yellow("Unable to perform ScriptUpdateOnly operation.") }
+            ($false) { Write-Yellow("No update of the script performed.") }
+            default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
         }
         return
     }
 
-    Invoke-ScriptLogFileLocation -FileName "HealthCheck" -IncludeServerName $true
+    Invoke-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
@@ -323,7 +288,7 @@ Function Main {
     try {
         $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
     } catch {
-        Write-VerboseOutput("Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json")
+        Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
         $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
 
         $testOuputxml = [PSCustomObject]@{
@@ -348,7 +313,12 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-Debug" -LogDirectory $OutputFilePath -VerboseEnabled $Script:VerboseEnabled -EnableDateTime $false -ErrorAction SilentlyContinue
+    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+        -LogDirectory $OutputFilePath `
+        -VerboseEnabled $Script:VerboseEnabled `
+        -EnableDateTime $false `
+        -ErrorAction SilentlyContinue
+    SetProperForegroundColor
     Main
 } finally {
     Get-ErrorsThatOccurred
@@ -359,4 +329,5 @@ try {
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
+    RevertProperForegroundColor
 }

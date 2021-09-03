@@ -5,8 +5,7 @@ Function Get-ComputerCoresObject {
     param(
         [Parameter(Mandatory = $true)][string]$Machine_Name
     )
-    Write-VerboseOutput("Calling: Get-ComputerCoresObject")
-    Write-VerboseOutput("Passed: {0}" -f $Machine_Name)
+    Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: $Machine_Name"
 
     $returnObj = New-Object PSCustomObject
     $returnObj | Add-Member -MemberType NoteProperty -Name Error -Value $false
@@ -42,15 +41,15 @@ Function Get-ComputerCoresObject {
 
 Function Get-ExchangeDCCoreRatio {
 
-    Invoke-ScriptLogFileLocation -FileName "HealthCheck-ExchangeDCCoreRatio"
-    Write-VerboseOutput("Calling: Get-ExchangeDCCoreRatio")
+    Invoke-ScriptLogFileLocation -FileName "HealthChecker-ExchangeDCCoreRatio"
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $BuildVersion)
     $coreRatioObj = New-Object PSCustomObject
 
     try {
-        Write-VerboseOutput("Attempting to load Active Directory Module")
+        Write-Verbose "Attempting to load Active Directory Module"
         Import-Module ActiveDirectory
-        Write-VerboseOutput("Successfully loaded")
+        Write-Verbose "Successfully loaded"
     } catch {
         Write-Red("Failed to load Active Directory Module. Stopping the script")
         exit
@@ -111,8 +110,8 @@ Function Get-ExchangeDCCoreRatio {
         Write-Red("Your Exchange to Active Directory Global Catalog server's core ratio does not meet the recommended guidelines of 8:1")
         Write-Red("Recommended guidelines for Exchange 2013/2016 for every 8 Exchange cores you want at least 1 Active Directory Global Catalog Core.")
         Write-Yellow("Documentation:")
-        Write-Yellow("`thttps://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Ask-the-Perf-Guy-Sizing-Exchange-2013-Deployments/ba-p/594229")
-        Write-Yellow("`thttps://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#active-directory")
+        Write-Yellow("`thttps://aka.ms/HC-PerfSize")
+        Write-Yellow("`thttps://aka.ms/HC-ADCoreCount")
     } else {
         Write-Break
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")

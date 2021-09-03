@@ -21,7 +21,7 @@ Function Get-VisualCRedistributableInstalledVersion {
 
         foreach ($software in $installedSoftware) {
 
-            if ($software.DisplayName -like "Microsoft Visual C++ *") {
+            if ($software.PSObject.Properties.Name -contains "DisplayName" -and $software.DisplayName -like "Microsoft Visual C++ *") {
                 Write-Verbose "Microsoft Visual C++ Found: $($software.DisplayName)"
                 $softwareList.Add([PSCustomObject]@{
                         DisplayName       = $software.DisplayName

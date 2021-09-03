@@ -5,6 +5,7 @@ Function Add-AnalyzedResultInformation {
     param(
         [object]$Details,
         [string]$Name,
+        [object]$OutColumns,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
         [int]$DisplayCustomTabNumber = -1,
@@ -24,32 +25,41 @@ Function Add-AnalyzedResultInformation {
         [HealthChecker.AnalyzedInformation]$AnalyzedInformation
     )
 
-    Write-VerboseOutput("Calling Add-AnalyzedResultInformation: {0}" -f $name)
+    Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
 
     if ($AddDisplayResultsLineInfo) {
         if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
-            Write-VerboseOutput("Adding Display Grouping Key: {0}" -f $DisplayGroupingKey.Name)
+            Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
             [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
             $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
         }
 
         $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
-        $lineInfo.DisplayValue = $Details
-        $lineInfo.Name = $Name
 
-        if ($DisplayCustomTabNumber -ne -1) {
-            $lineInfo.TabNumber = $DisplayCustomTabNumber
+        if ($null -ne $OutColumns) {
+            $lineInfo.OutColumns = $OutColumns
+            $lineInfo.WriteType = "OutColumns"
+            $lineInfo.TestingValue = $OutColumns
         } else {
-            $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+
+            $lineInfo.DisplayValue = $Details
+            $lineInfo.Name = $Name
+
+            if ($DisplayCustomTabNumber -ne -1) {
+                $lineInfo.TabNumber = $DisplayCustomTabNumber
+            } else {
+                $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+            }
+
+            if ($null -ne $DisplayTestingValue) {
+                $lineInfo.TestingValue = $DisplayTestingValue
+            } else {
+                $lineInfo.TestingValue = $Details
+            }
+
+            $lineInfo.WriteType = $DisplayWriteType
         }
 
-        if ($null -ne $DisplayTestingValue) {
-            $lineInfo.TestingValue = $DisplayTestingValue
-        } else {
-            $lineInfo.TestingValue = $Details
-        }
-
-        $lineInfo.WriteType = $DisplayWriteType
         $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
     }
 

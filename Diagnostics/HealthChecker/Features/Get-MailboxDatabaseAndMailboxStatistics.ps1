@@ -3,7 +3,7 @@
 
 Function Get-MailboxDatabaseAndMailboxStatistics {
 
-    Write-VerboseOutput("Calling: Get-MailboxDatabaseAndMailboxStatistics")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $AllDBs = Get-MailboxDatabaseCopyStatus -server $Script:Server -ErrorAction SilentlyContinue
     $MountedDBs = $AllDBs | Where-Object { $_.ActiveCopy -eq $true }
 
@@ -12,9 +12,9 @@ Function Get-MailboxDatabaseAndMailboxStatistics {
         foreach ($db in $MountedDBs) {
             Write-Grey("`t`t" + $db.Name)
         }
-        $MountedDBs.DatabaseName | ForEach-Object { Write-VerboseOutput("Calculating User Mailbox Total for Active Database: $_"); $TotalActiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count }
+        $MountedDBs.DatabaseName | ForEach-Object { Write-Verbose "Calculating User Mailbox Total for Active Database: $_"; $TotalActiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count }
         Write-Grey("`tTotal Active User Mailboxes on server: " + $TotalActiveUserMailboxCount)
-        $MountedDBs.DatabaseName | ForEach-Object { Write-VerboseOutput("Calculating Public Mailbox Total for Active Database: $_"); $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count }
+        $MountedDBs.DatabaseName | ForEach-Object { Write-Verbose "Calculating Public Mailbox Total for Active Database: $_"; $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count }
         Write-Grey("`tTotal Active Public Folder Mailboxes on server: " + $TotalActivePublicFolderMailboxCount)
         Write-Grey("`tTotal Active Mailboxes on server " + $Script:Server + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
     } else {
@@ -28,9 +28,9 @@ Function Get-MailboxDatabaseAndMailboxStatistics {
         foreach ($db in $HealthyDbs) {
             Write-Grey("`t`t" + $db.Name)
         }
-        $HealthyDbs.DatabaseName | ForEach-Object { Write-VerboseOutput("`tCalculating User Mailbox Total for Passive Healthy Databases: $_"); $TotalPassiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count }
+        $HealthyDbs.DatabaseName | ForEach-Object { Write-Verbose "`tCalculating User Mailbox Total for Passive Healthy Databases: $_"; $TotalPassiveUserMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited).Count }
         Write-Grey("`tTotal Passive user Mailboxes on Server: " + $TotalPassiveUserMailboxCount)
-        $HealthyDbs.DatabaseName | ForEach-Object { Write-VerboseOutput("`tCalculating Passive Mailbox Total for Passive Healthy Databases: $_"); $TotalPassivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count }
+        $HealthyDbs.DatabaseName | ForEach-Object { Write-Verbose "`tCalculating Passive Mailbox Total for Passive Healthy Databases: $_"; $TotalPassivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count }
         Write-Grey("`tTotal Passive Public Mailboxes on server: " + $TotalPassivePublicFolderMailboxCount)
         Write-Grey("`tTotal Passive Mailboxes on server: " + ($TotalPassiveUserMailboxCount + $TotalPassivePublicFolderMailboxCount).ToString())
     } else {

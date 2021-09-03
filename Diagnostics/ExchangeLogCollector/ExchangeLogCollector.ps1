@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'All Parameters are used in other functions of the script')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
 [CmdletBinding()]
 Param (
@@ -212,7 +211,7 @@ Function Main {
         exit
     }
 
-    $Script:LocalExchangeShell = Confirm-ExchangeShell
+    $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
 
     if (!($Script:LocalExchangeShell.ShellLoaded)) {
         Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false

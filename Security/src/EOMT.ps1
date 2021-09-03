@@ -45,7 +45,6 @@
         https://aka.ms/privacy
 #>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Invalid rule result')]
 [Cmdletbinding()]
 param (
     [switch]$RunFullScan,

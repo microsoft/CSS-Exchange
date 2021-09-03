@@ -1,6 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = '$filesFailed is being used.')]
 [CmdletBinding()]
 param(
     [Switch]
@@ -27,7 +27,7 @@ $filesFailed = $false
 
 # MD files must NOT have a BOM
 Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
-    $encoding = Get-Encoding $_
+    $encoding = Get-PsOneEncoding $_
     if ($encoding.BOM) {
         Write-Warning "MD file has BOM: $($_.FullName)"
         if ($Save) {
@@ -47,7 +47,7 @@ Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
 
 foreach ($file in $scriptFiles) {
     # PS1 files must have a BOM
-    $encoding = Get-Encoding $file
+    $encoding = Get-PsOneEncoding $file
     if (-not $encoding.BOM) {
         Write-Warning "File has no BOM: $file"
         if ($Save) {
@@ -119,10 +119,27 @@ foreach ($file in $scriptFiles) {
         $filesFailed = $true
     }
 
-    $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
-    if ($null -ne $analyzerResults) {
+    $maxRetries = 5
+
+    for ($i = 0; $i -lt $maxRetries; $i++) {
+
+        try {
+            $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
+            if ($null -ne $analyzerResults) {
+                $filesFailed = $true
+                $analyzerResults | Format-Table -AutoSize
+            }
+            break
+        } catch {
+            Write-Warning "Invoke-ScriptAnalyer failed. Error:"
+            $_.Exception | Format-List | Out-Host
+            Write-Warning "Retrying in 5 seconds."
+            Start-Sleep -Seconds 5
+        }
+    }
+
+    if ($i -eq $maxRetries) {
         $filesFailed = $true
-        $analyzerResults | Format-Table -AutoSize
     }
 }
 

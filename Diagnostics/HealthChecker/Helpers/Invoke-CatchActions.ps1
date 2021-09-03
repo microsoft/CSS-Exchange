@@ -5,14 +5,14 @@ Function Invoke-CatchActions {
     param(
         [object]$CopyThisError = $Error[0]
     )
-    Write-VerboseOutput("Calling: Invoke-CatchActions")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $Script:ErrorsExcludedCount++
     $Script:ErrorsExcluded += $CopyThisError
-    Write-VerboseOutput("Error Excluded Count: $Script:ErrorsExcludedCount")
-    Write-VerboseOutput("Error Count: $($Error.Count)")
-    Write-VerboseOutput($CopyThisError)
+    Write-Verbose "Error Excluded Count: $Script:ErrorsExcludedCount"
+    Write-Verbose "Error Count: $($Error.Count)"
+    Write-Verbose $CopyThisError
 
     if ($null -ne $CopyThisError.ScriptStackTrace) {
-        Write-VerboseOutput($CopyThisError.ScriptStackTrace)
+        Write-Verbose $CopyThisError.ScriptStackTrace
     }
 }

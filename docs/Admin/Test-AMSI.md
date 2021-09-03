@@ -25,6 +25,8 @@ If you want to disable AMSI on the Exchange Server, you can run: `.\Test-AMSI.ps
 
 If you want to restart the Internet Information Services (IIS) you can run: `.\Test-AMSI.ps1 -RestartIIS`  
 
+If you need to test and ignoring the certificate check you can run: `.\Test-AMSI.ps1 -IgnoreSSL`  
+
 ## More to come
 
 1. We will be adding the ability to review the web.config to make sure that the HttpRequestFilteringModule line is present

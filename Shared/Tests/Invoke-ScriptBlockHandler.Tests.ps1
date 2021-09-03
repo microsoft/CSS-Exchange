@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Incorrect rule result')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingComputerNameHardcoded', '', Justification = 'Pester testing, no issues')]
+[CmdletBinding()]
+param()
 BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
     $scriptName = "Invoke-ScriptBlockHandler.ps1"
@@ -100,7 +103,7 @@ Describe "Testing $scriptName" {
             $result = Invoke-ScriptBlockHandler -ComputerName "BadComputerName" `
                 -ScriptBlock { [System.Environment]::ProcessorCount } `
                 -ScriptBlockDescription "Getting Processor Count"
-            $results | Should -Be $null
+            $result | Should -Be $null
 
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
             Test-VerboseOutput -Local $false
@@ -145,10 +148,12 @@ Describe "Testing $scriptName" {
         }
 
         It "Processor Count" {
-            $myValue = [System.Environment]::ProcessorCount
             $results = Invoke-ScriptBlockHandler -ComputerName $myFQDN `
                 -ScriptBlock { [System.Environment]::ProcessorCount } `
                 -ScriptBlockDescription "Getting Processor Count"
+
+            #not able to properly test because of Admin
+            $results | Should -Be $null
 
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
             Assert-MockCalled -CommandName Invoke-Command -Exactly 1
@@ -156,11 +161,13 @@ Describe "Testing $scriptName" {
         }
         It "Passing Argument List" {
             $httpProxyPath32 = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections"
-            $testResults = Get-WinHttpSettings $httpProxyPath32
             $results = Invoke-ScriptBlockHandler -ComputerName $myFQDN `
                 -ScriptBlock ${Function:Get-WinHttpSettings} `
                 -ScriptBlockDescription "Getting Http Proxy Settings 32 bit" `
                 -ArgumentList $httpProxyPath32
+
+            #not able to properly test because of Admin
+            $results | Should -Be $null
 
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
             Assert-MockCalled -CommandName Invoke-Command -Exactly 1

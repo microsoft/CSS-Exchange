@@ -50,12 +50,11 @@ $CreateHourlyReport =
     $eventList = $eventList | Sort-Object RecipientAddress, Received
     $eventList.foreach(
         {
-            $event = $_
             $hourlyEvent = $hourlyReport[-1] #data is sorted to min get operations. we only need to compare with last element in the array
-            if ($hourlyEvent.RecipientAddress -eq $event.RecipientAddress -and $hourlyEvent.Hour -eq $event.Received.Hour) {
+            if ($hourlyEvent.RecipientAddress -eq $_.RecipientAddress -and $hourlyEvent.Hour -eq $_.Received.Hour) {
                 $hourlyEvent.MessageCount +=1
             } else {
-                $eventObj = New-Object PSObject -Property @{ Hour=$event.Received.Hour; Date=$event.Received.Date.ToString("dd/mm/yyyy dd:hh tt"); MessageCount=1; RecipientAddress=$event.RecipientAddress };
+                $eventObj = New-Object PSObject -Property @{ Hour=$_.Received.Hour; Date=$_.Received.Date.ToString("dd/mm/yyyy dd:hh tt"); MessageCount=1; RecipientAddress=$_.RecipientAddress };
                 [void]$hourlyReport.Add($eventObj)
             }
         }
