@@ -24,7 +24,7 @@ function Remove-InvalidPermission {
 
     process {
         if ($TestResult.TestName -eq "Permission" -and $TestResult.ResultType -eq "BadPermission") {
-            $badPermissions.Add($TestResult)
+            [void]$badPermissions.Add($TestResult)
         }
     }
 
