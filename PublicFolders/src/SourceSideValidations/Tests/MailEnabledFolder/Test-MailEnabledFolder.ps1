@@ -28,7 +28,7 @@ function Test-MailEnabledFolder {
             }
         }
 
-        function New-TestMailEnabledFolderResult {
+        function NewTestMailEnabledFolderResult {
             [CmdletBinding()]
             param (
                 [Parameter(Position = 0)]
@@ -76,7 +76,7 @@ function Test-MailEnabledFolder {
     }
 
     process {
-        $FolderData.NonIpmSubtree | Where-Object { $_.MailEnabled -eq $true } | ForEach-Object { New-TestMailEnabledFolderResult $_.Identity $_.EntryId "MailEnabledSystemFolder" }
+        $FolderData.NonIpmSubtree | Where-Object { $_.MailEnabled -eq $true } | ForEach-Object { NewTestMailEnabledFolderResult -Identity $_.Identity -EntryId $_.EntryId -ResultType "MailEnabledSystemFolder" }
         $ipmSubtreeMailEnabled = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -eq $true })
         $mailDisabledWithProxyGuid = @($FolderData.IpmSubtree | Where-Object { $_.MailEnabled -ne $true -and -not [string]::IsNullOrEmpty($_.MailRecipientGuid) -and [Guid]::Empty -ne $_.MailRecipientGuid } | ForEach-Object { $_.Identity.ToString() })
         $mailDisabledWithProxyGuid | ForEach-Object {
@@ -86,7 +86,7 @@ function Test-MailEnabledFolder {
                 ResultType = "MailDisabledWithProxyGuid"
             }
 
-            New-TestMailEnabledFolderResult @params
+            NewTestMailEnabledFolderResult @params
         }
 
 
@@ -109,7 +109,7 @@ function Test-MailEnabledFolder {
                     ResultType = "MailEnabledWithNoADObject"
                 }
 
-                New-TestMailEnabledFolderResult @params
+                NewTestMailEnabledFolderResult @params
             } else {
                 $guidString = $result.Guid.ToString()
                 if (-not $mailPublicFoldersLinked.ContainsKey($guidString)) {
@@ -177,7 +177,7 @@ function Test-MailEnabledFolder {
                             ResultData = $command
                         }
 
-                        New-TestMailEnabledFolderResult @params
+                        NewTestMailEnabledFolderResult @params
                     } else {
                         $params = @{
                             Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
@@ -185,7 +185,7 @@ function Test-MailEnabledFolder {
                             ResultType = "OrphanedMPFDisconnected"
                         }
 
-                        New-TestMailEnabledFolderResult @params
+                        NewTestMailEnabledFolderResult @params
                     }
 
                     continue
@@ -207,7 +207,7 @@ function Test-MailEnabledFolder {
                         $params.ResultData = $command
                     }
 
-                    New-TestMailEnabledFolderResult @params
+                    NewTestMailEnabledFolderResult @params
                 } else {
                     $params = @{
                         Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")
@@ -215,7 +215,7 @@ function Test-MailEnabledFolder {
                         ResultType = "OrphanedMPFDisconnected"
                     }
 
-                    New-TestMailEnabledFolderResult @params
+                    NewTestMailEnabledFolderResult @params
                 }
             } else {
                 $params = @{
@@ -224,7 +224,7 @@ function Test-MailEnabledFolder {
                     ResultType = "OrphanedMPF"
                 }
 
-                New-TestMailEnabledFolderResult @params
+                NewTestMailEnabledFolderResult @params
             }
         }
     }

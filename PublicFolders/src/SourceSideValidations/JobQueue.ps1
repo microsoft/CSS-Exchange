@@ -32,7 +32,6 @@ function Wait-QueuedJob {
 
     begin {
         $jobsRunning = @()
-        $jobResults = @()
         $jobQueueMaxConcurrency = 5
     }
 

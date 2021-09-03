@@ -19,11 +19,6 @@ function Test-FolderLimit {
     begin {
         $startTime = Get-Date
         $progressCount = 0
-        $limitsExceeded = [PSCustomObject]@{
-            ChildCount      = @()
-            FolderPathDepth = @()
-            ItemCount       = @()
-        }
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
         $progressParams = @{

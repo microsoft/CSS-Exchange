@@ -71,7 +71,6 @@ function Get-NonIpmSubtree {
 
             process {
                 $progressCount++
-                $currentFolder = $Folder.Identity.ToString()
                 if ($sw.ElapsedMilliseconds -gt 1000) {
                     $sw.Restart()
                     Write-Progress @progressParams -Status $progressCount

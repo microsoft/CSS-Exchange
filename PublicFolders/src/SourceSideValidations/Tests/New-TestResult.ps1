@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 function New-TestResult {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No state change.')]
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -30,12 +31,14 @@ function New-TestResult {
         $ResultData
     )
 
-    [PSCustomObject]@{
-        TestName       = $TestName
-        ResultType     = $ResultType
-        Severity       = $Severity
-        FolderIdentity = $FolderIdentity
-        FolderEntryId  = $FolderEntryId
-        ResultData     = $ResultData
+    process {
+        [PSCustomObject]@{
+            TestName       = $TestName
+            ResultType     = $ResultType
+            Severity       = $Severity
+            FolderIdentity = $FolderIdentity
+            FolderEntryId  = $FolderEntryId
+            ResultData     = $ResultData
+        }
     }
 }

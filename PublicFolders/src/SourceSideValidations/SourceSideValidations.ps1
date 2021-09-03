@@ -71,8 +71,6 @@ if ($RemoveInvalidPermissions) {
 
 $startTime = Get-Date
 
-$startingErrorCount = $Error.Count
-
 if ($null -eq (Get-Command Set-ADServerSettings -ErrorAction:SilentlyContinue)) {
     Write-Warning "Exchange Server cmdlets are not present in this shell."
     return

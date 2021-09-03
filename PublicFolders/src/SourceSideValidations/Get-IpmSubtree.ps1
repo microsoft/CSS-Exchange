@@ -71,7 +71,6 @@ function Get-IpmSubtree {
 
             process {
                 $progressCount++
-                $currentFolder = $Folder.Identity.ToString()
 
                 if ($sw.ElapsedMilliseconds -gt 1000) {
                     $sw.Restart()

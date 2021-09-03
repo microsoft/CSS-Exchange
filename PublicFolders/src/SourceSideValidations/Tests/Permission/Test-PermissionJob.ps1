@@ -22,7 +22,6 @@ function Test-BadPermissionJob {
         Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
         $startTime = Get-Date
         $progressCount = 0
-        $badPermissions = @()
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
         $progressParams = @{
@@ -65,7 +64,6 @@ function Test-BadPermissionJob {
 
     end {
         Write-Progress @progressParams -Completed
-        $duration = ((Get-Date) - $startTime)
         [PSCustomObject]@{
             TestName       = "Permission"
             ResultType     = "$Mailbox Duration"

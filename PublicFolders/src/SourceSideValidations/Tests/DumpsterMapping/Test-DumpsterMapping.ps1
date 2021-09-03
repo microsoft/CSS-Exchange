@@ -46,7 +46,7 @@ function Test-DumpsterMapping {
             }
         }
 
-        function New-TestDumpsterMappingResult {
+        function NewTestDumpsterMappingResult {
             [CmdletBinding()]
             param (
                 [Parameter(Position = 0)]
@@ -87,7 +87,7 @@ function Test-DumpsterMapping {
             }
 
             if (-not (Test-DumpsterValid $_ $FolderData)) {
-                New-TestDumpsterMappingResult $_
+                NewTestDumpsterMappingResult $_
             }
         }
 
@@ -95,7 +95,7 @@ function Test-DumpsterMapping {
 
         $FolderData.NonIpmSubtree | Where-Object { $_.Identity -like "\NON_IPM_SUBTREE\EFORMS REGISTRY\*" } | ForEach-Object {
             if (-not (Test-DumpsterValid $_ $FolderData)) {
-                New-TestDumpsterMappingResult $_
+                NewTestDumpsterMappingResult $_
             }
         }
     }
