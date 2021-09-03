@@ -26,7 +26,7 @@ function Write-TestFolderNameResult {
             Write-Host "These are shown in the results CSV with a result type of SpecialCharacters."
             Write-Host "These folders should be renamed prior to migrating. The following command"
             Write-Host "can be used:"
-            Write-Host "Import-Csv .\ValidationResults.csv | ? ResultType -eq SpecialCharacters | % { Set-PublicFolder `$_.FolderEntryId -Name (`$_.ResultData -replace `"@|/|\\`") }" -ForegroundColor Green
+            Write-Host "Import-Csv .\ValidationResults.csv | ? ResultType -eq SpecialCharacters | % { Set-PublicFolder `$_.FolderEntryId -Name (`$_.ResultData -replace `"@|/|\\`", `" `").Trim() }" -ForegroundColor Green
         }
     }
 }
