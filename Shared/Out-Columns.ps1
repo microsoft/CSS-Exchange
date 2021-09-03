@@ -92,6 +92,7 @@ function Out-Columns {
                 if ($val -isnot [array] -and ("$val").Length -gt $colWidths[$i]) {
                     $val = WrapLine -line $val -width $colWidths[$i]
                 } elseif ($val -is [array]) {
+                    $val = $val | Where-Object { $null -ne $_ }
                     $widestVal = $val | ForEach-Object { $_.ToString().Length } | Sort-Object -Descending | Select-Object -First 1
                     if ($widestVal -gt $colWidths[$i]) {
                         $val = $val | ForEach-Object { WrapLine -line $_ -width $colWidths[$i] }
@@ -168,7 +169,9 @@ function Out-Columns {
                     if ($null -ne $val) {
                         $width = 0
                         if ($val -is [array]) {
-                            $width = ($val | ForEach-Object { $_.ToString() } | Sort-Object Length -Descending | Select-Object -First 1).Length
+                            $width = ($val | ForEach-Object {
+                                    if ($null -ne $_) { $_.ToString() } else { "" }
+                                } | Sort-Object Length -Descending | Select-Object -First 1).Length
                         } else {
                             $width = $thing."$($props[$i])".ToString().Length
                         }
