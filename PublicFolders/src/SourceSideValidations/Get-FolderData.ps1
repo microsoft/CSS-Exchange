@@ -94,7 +94,7 @@ function Get-FolderData {
         # We can't count on $folder.Path.Depth being available in remote powershell,
         # so we calculate the depth by walking the parent entry IDs.
         $folderData.IpmSubtree | ForEach-Object {
-            $pathDepth = 1
+            $pathDepth = 0
             $parent = $folderData.EntryIdDictionary[$_.ParentEntryId]
             while ($null -ne $parent) {
                 $pathDepth++
