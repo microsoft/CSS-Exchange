@@ -14,7 +14,7 @@ function Write-TestFolderNameResult {
     }
 
     process {
-        if ($TestResult.Name -eq "FolderName" -and $TestResult.ResultType -eq "SpecialCharacters") {
+        if ($TestResult.TestName -eq "FolderName" -and $TestResult.ResultType -eq "SpecialCharacters") {
             $badNames += $TestResult
         }
     }
