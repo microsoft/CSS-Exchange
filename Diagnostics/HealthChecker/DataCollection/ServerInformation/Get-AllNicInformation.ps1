@@ -225,39 +225,20 @@ Function Get-AllNicInformation {
                             }
                         }
 
-                        #determine if IPv6 is enabled
-                        $stopProcess = $false
-                        foreach ($adapterConfiguration in $networkAdapterConfigurations) {
-                            $settingID = $adapterConfiguration.SettingID
-                            Write-Verbose "Working on '$($adapterConfiguration.Description)' | SettingID: $settingID"
+                        #set the correct $adapterConfiguration to link to the correct $networkConfig that we are on
+                        $adapterConfiguration = $networkAdapterConfigurations |
+                            Where-Object { $_.SettingID -eq $networkConfig.GUID -or
+                                $_.SettingID -eq $networkConfig.InterfaceGuid }
 
-                            if ($settingID -eq $networkConfig.GUID -or
-                                $settingID -eq $networkConfig.InterfaceGuid) {
-                                foreach ($ipAddress in $adapterConfiguration.IPAddress) {
-                                    if ($ipAddress.Contains(":")) {
-                                        $ipv6Enabled = $true
-                                        $stopProcess = $true
-                                        break
-                                    }
-                                }
-                            }
-
-                            if ($stopProcess) {
-                                break
-                            }
+                        if ($null -eq $adapterConfiguration) {
+                            Write-Verbose "Failed to find correct adapterConfiguration for this networkConfig."
+                            Write-Verbose "GUID: $($networkConfig.GUID) | InterfaceGuid: $($networkConfig.InterfaceGuid)"
                         }
 
-                        $ipv4Gateway = @()
-                        $ipv6Gateway = @()
-                        foreach ($gateway in $adapterConfiguration.DefaultIPGateway) {
-                            if (($null -ne $gateway) -and
-                                ($gateway.Contains("."))) {
-                                $ipv4Gateway += $gateway
-                            } elseif (($null -ne $gateway) -and
-                                ($gateway.Contains(":"))) {
-                                $ipv6Gateway += $gateway
-                            }
-                        }
+                        $ipv6Enabled = ($adapterConfiguration.IPAddress | Where-Object { $_.Contains(":") }).Count -ge 1
+
+                        $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
+                        $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
 
                         for ($i = 0; $i -lt $adapterConfiguration.IPAddress.Count; $i++) {
 
@@ -268,13 +249,7 @@ Function Get-AllNicInformation {
                                     $newIpv6Address.Subnet = $adapterConfiguration.IPSubnet[$i]
                                 }
 
-                                if ($null -ne $ipv6Gateway) {
-                                    if ($ipv6Gateway.count -gt 1) {
-                                        $newIpv6Address.DefaultGateway = ($ipv6Gateway | Group-Object | Select-Object -ExpandProperty Name) -Join ", "
-                                    } else {
-                                        $newIpv6Address.DefaultGateway = $ipv6Gateway
-                                    }
-                                }
+                                $newIpv6Address.DefaultGateway = $ipv6Gateway
                                 $ipv6Address += $newIpv6Address
                             } else {
                                 $newIpv4Address = Get-IpvAddresses
@@ -283,13 +258,7 @@ Function Get-AllNicInformation {
                                     $newIpv4Address.Subnet = $adapterConfiguration.IPSubnet[$i]
                                 }
 
-                                if ($null -ne $ipv4Gateway) {
-                                    if ($ipv4Gateway.count -gt 1) {
-                                        $newIpv4Address.DefaultGateway = ($ipv4Gateway | Group-Object | Select-Object -ExpandProperty Name) -Join ", "
-                                    } else {
-                                        $newIpv4Address.DefaultGateway = $ipv4Gateway
-                                    }
-                                }
+                                $newIpv4Address.DefaultGateway = $ipv4Gateway
                                 $ipv4Address += $newIpv4Address
                             }
                         }
