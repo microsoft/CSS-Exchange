@@ -74,19 +74,19 @@ function Get-FolderData {
         foreach ($job in $completedJobs) {
             if ($null -ne $job.IpmSubtree) {
                 $folderData.IpmSubtree = $job.IpmSubtree
+                $folderData.IpmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
             }
 
             if ($null -ne $job.NonIpmSubtree) {
                 $folderData.NonIpmSubtree = $job.NonIpmSubtree
+                $folderData.NonIpmSubtree | Export-Csv $PSScriptRoot\NonIpmSubtree.csv
             }
 
             if ($null -ne $job.ItemCounts) {
                 $folderData.ItemCounts = $job.ItemCounts
+                $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
             }
         }
-
-        $folderData.IpmSubtree | Export-Csv $PSScriptRoot\IpmSubtree.csv
-        $folderData.NonIpmSubtree | Export-Csv $PSScriptRoot\NonIpmSubtree.csv
 
         $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailbox
         $folderData.IpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
@@ -114,6 +114,7 @@ function Get-FolderData {
                 Write-Verbose "Starting slow traversal item count."
                 $itemCountResult = Get-ItemCount $serverName $folderData
                 $folderData.ItemCounts = $itemCountResult.ItemCounts
+                $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
                 foreach ($errorParam in $itemCountResult.Errors) {
                     $errorResult = New-TestResult @errorParam
                     $folderData.Errors.Add($errorResult)
@@ -122,7 +123,6 @@ function Get-FolderData {
         }
 
         $folderData.ItemCounts | ForEach-Object { $folderData.ItemCountDictionary[$_.EntryId] = $_.ItemCount }
-        $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
     }
 
     end {
