@@ -20,7 +20,7 @@ function Get-ItemCountJob {
     begin {
         $retryDelay = [TimeSpan]::FromMinutes(5)
         $WarningPreference = "SilentlyContinue"
-        Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
+        Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) -AllowClobber | Out-Null
         $startTime = Get-Date
         $progressCount = 0
         $sw = New-Object System.Diagnostics.Stopwatch
