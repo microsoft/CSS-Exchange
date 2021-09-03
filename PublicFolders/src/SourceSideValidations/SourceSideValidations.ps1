@@ -29,9 +29,10 @@ param (
     [switch]
     $SkipVersionCheck,
 
-    [Parameter()]
-    [switch]
-    $SkipPermissionValidation
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateSet("Dumpsters", "Limits", "Names", "MailEnabled", "Permissions")]
+    [string[]]
+    $Tests = @("Dumpsters", "Limits", "Names", "MailEnabled", "Permissions")
 )
 
 . $PSScriptRoot\Tests\DumpsterMapping\AllFunctions.ps1
@@ -128,27 +129,35 @@ if ($folderData.Errors.Count -gt 0) {
     $folderData.Errors | Export-Csv $ResultsFile -NoTypeInformation
 }
 
-Write-Progress @progressParams -Status "Step 2 of 6"
+if ("Dumpsters" -in $Tests) {
+    Write-Progress @progressParams -Status "Step 2 of 6"
 
-$badDumpsters = Test-DumpsterMapping -FolderData $folderData
-$badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append
+    $badDumpsters = Test-DumpsterMapping -FolderData $folderData
+    $badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append
+}
 
-Write-Progress @progressParams -Status "Step 3 of 6"
+if ("Limits" -in $Tests) {
+    Write-Progress @progressParams -Status "Step 3 of 6"
 
-$limitsExceeded = Test-FolderLimit -FolderData $folderData
-$limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append
+    $limitsExceeded = Test-FolderLimit -FolderData $folderData
+    $limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append
+}
 
-Write-Progress @progressParams -Status "Step 4 of 6"
+if ("Names" -in $Tests) {
+    Write-Progress @progressParams -Status "Step 4 of 6"
 
-$badNames = Test-FolderName -FolderData $folderData
-$badNames | Export-Csv $ResultsFile -NoTypeInformation -Append
+    $badNames = Test-FolderName -FolderData $folderData
+    $badNames | Export-Csv $ResultsFile -NoTypeInformation -Append
+}
 
-Write-Progress @progressParams -Status "Step 5 of 6"
+if ("MailEnabled" -in $Tests) {
+    Write-Progress @progressParams -Status "Step 5 of 6"
 
-$badMailEnabled = Test-MailEnabledFolder -FolderData $folderData
-$badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append
+    $badMailEnabled = Test-MailEnabledFolder -FolderData $folderData
+    $badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append
+}
 
-if (-not $SkipPermissionValidation) {
+if ("Permissions" -in $Tests) {
     Write-Progress @progressParams -Status "Step 6 of 6"
 
     $badPermissions = Test-Permission -FolderData $folderData
