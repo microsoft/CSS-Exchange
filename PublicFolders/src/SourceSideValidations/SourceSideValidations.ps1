@@ -36,6 +36,7 @@ param (
 
 . $PSScriptRoot\Tests\DumpsterMapping\AllFunctions.ps1
 . $PSScriptRoot\Tests\Limit\AllFunctions.ps1
+. $PSScriptRoot\Tests\Name\AllFunctions.ps1
 . $PSScriptRoot\Tests\MailEnabledFolder\AllFunctions.ps1
 . $PSScriptRoot\Tests\Permission\AllFunctions.ps1
 . $PSScriptRoot\Get-FolderData.ps1
@@ -54,6 +55,7 @@ if ($SummarizePreviousResults) {
     $results = Import-Csv $ResultsFile
     $results | Write-TestDumpsterMappingResult
     $results | Write-TestFolderLimitResult
+    $results | Write-TestFolderNameResult
     $results | Write-TestMailEnabledFolderResult
     $results | Write-TestPermissionResult
     Write-Host
@@ -84,7 +86,7 @@ $progressParams = @{
     Id       = 1
 }
 
-Write-Progress @progressParams -Status "Step 1 of 5"
+Write-Progress @progressParams -Status "Step 1 of 6"
 
 $folderData = Get-FolderData -StartFresh $StartFresh -SlowTraversal $SlowTraversal
 
@@ -126,23 +128,28 @@ if ($folderData.Errors.Count -gt 0) {
     $folderData.Errors | Export-Csv $ResultsFile -NoTypeInformation
 }
 
-Write-Progress @progressParams -Status "Step 2 of 5"
+Write-Progress @progressParams -Status "Step 2 of 6"
 
 $badDumpsters = Test-DumpsterMapping -FolderData $folderData
 $badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append
 
-Write-Progress @progressParams -Status "Step 3 of 5"
+Write-Progress @progressParams -Status "Step 3 of 6"
 
 $limitsExceeded = Test-FolderLimit -FolderData $folderData
 $limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append
 
-Write-Progress @progressParams -Status "Step 4 of 5"
+Write-Progress @progressParams -Status "Step 4 of 6"
+
+$badNames = Test-FolderName -FolderData $folderData
+$badNames | Export-Csv $ResultsFile -NoTypeInformation -Append
+
+Write-Progress @progressParams -Status "Step 5 of 6"
 
 $badMailEnabled = Test-MailEnabledFolder -FolderData $folderData
 $badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append
 
 if (-not $SkipPermissionValidation) {
-    Write-Progress @progressParams -Status "Step 5 of 5"
+    Write-Progress @progressParams -Status "Step 6 of 6"
 
     $badPermissions = Test-Permission -FolderData $folderData
     $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
@@ -152,6 +159,7 @@ if (-not $SkipPermissionValidation) {
 
 $badDumpsters | Write-TestDumpsterMappingResult
 $limitsExceeded | Write-TestFolderLimitResult
+$badNames | Write-TestFolderNameResult
 $badMailEnabled | Write-TestMailEnabledFolderResult
 $badPermissions | Write-TestPermissionResult
 

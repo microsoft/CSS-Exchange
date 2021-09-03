@@ -78,6 +78,7 @@ function Get-IpmSubtree {
                 }
 
                 $result = [PSCustomObject]@{
+                    Name              = $Folder.Name
                     Identity          = $Folder.Identity.ToString()
                     EntryId           = $Folder.EntryId.ToString()
                     ParentEntryId     = $Folder.ParentFolder.ToString()
