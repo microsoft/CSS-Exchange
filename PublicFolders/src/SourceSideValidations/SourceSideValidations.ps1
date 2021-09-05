@@ -54,12 +54,13 @@ if (-not $SkipVersionCheck) {
 
 if ($SummarizePreviousResults) {
     $results = Import-Csv $ResultsFile
-    $results | Write-TestDumpsterMappingResult
-    $results | Write-TestFolderLimitResult
-    $results | Write-TestFolderNameResult
-    $results | Write-TestMailEnabledFolderResult
-    $results | Write-TestPermissionResult
-    Write-Host
+    $summary = New-Object System.Collections.ArrayList
+    $summary.AddRange(@($results | Write-TestDumpsterMappingResult))
+    $summary.AddRange(@($results | Write-TestFolderLimitResult))
+    $summary.AddRange(@($results | Write-TestFolderNameResult))
+    $summary.AddRange(@($results | Write-TestMailEnabledFolderResult))
+    $summary.AddRange(@($results | Write-TestPermissionResult))
+    $summary | Format-Table -Wrap
     return
 }
 

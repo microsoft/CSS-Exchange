@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Get-ResultSummary.ps1
+
 function Write-TestFolderNameResult {
     [CmdletBinding()]
     param (
@@ -15,18 +17,17 @@ function Write-TestFolderNameResult {
 
     process {
         if ($TestResult.TestName -eq "FolderName" -and $TestResult.ResultType -eq "SpecialCharacters") {
-            $badNames += $TestResult
+            [void]$badNames.Add($TestResult)
         }
     }
 
     end {
         if ($badNames.Count -gt 0) {
-            Write-Host
-            Write-Host $badNames.Count "folders have characters @, /, or \ in the folder name."
-            Write-Host "These are shown in the results CSV with a result type of SpecialCharacters."
-            Write-Host "These folders should be renamed prior to migrating. The following command"
-            Write-Host "can be used:"
-            Write-Host "Import-Csv .\ValidationResults.csv | ? ResultType -eq SpecialCharacters | % { Set-PublicFolder `$_.FolderEntryId -Name (`$_.ResultData -replace `"@|/|\\`", `" `").Trim() }" -ForegroundColor Green
+            Get-ResultSummary -ResultType $badNames[0].ResultType -Severity $badNames[0].Severity -Count $badNames.Count -Action (
+                "Folders have characters @, /, or \ in the folder name. " +
+                "These folders should be renamed prior to migrating. The following command " +
+                "can be used:`n`n" +
+                "Import-Csv .\ValidationResults.csv | ? ResultType -eq SpecialCharacters | % { Set-PublicFolder `$_.FolderEntryId -Name (`$_.ResultData -replace `"@|/|\\`", `" `").Trim() }")
         }
     }
 }
