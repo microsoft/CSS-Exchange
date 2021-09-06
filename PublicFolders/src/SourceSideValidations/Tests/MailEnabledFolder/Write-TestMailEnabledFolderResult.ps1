@@ -38,21 +38,27 @@ function Write-TestMailEnabledFolderResult {
             Get-ResultSummary -ResultType $mailEnabledSystemFolderResults[0].ResultType -Severity $mailEnabledSystemFolderResults[0].Severity -Count $mailEnabledSystemFolderResults.Count -Action (
                 "System folders are mail-enabled. These folders should be mail-disabled. " +
                 "After confirming the accuracy of the results, you can mail-disable them with the following command:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq MailEnabledSystemFolder | % { Disable-MailPublicFolder $_.FolderIdentity }")
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq MailEnabledSystemFolder |`n" +
+                " % { Disable-MailPublicFolder $_.FolderIdentity }")
         }
 
         if ($mailEnabledWithNoADObjectResults.Count -gt 0) {
             Get-ResultSummary -ResultType $mailEnabledWithNoADObjectResults[0].ResultType -Severity $mailEnabledWithNoADObjectResults[0].Severity -Count $mailEnabledWithNoADObjectResults.Count -Action (
                 "Folders are mail-enabled, but have no AD object. These folders should be mail-disabled. " +
                 "After confirming the accuracy of the results, you can mail-disable them with the following command:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq MailEnabledWithNoADObject | % { Disable-MailPublicFolder $_.FolderIdentity }")
+                "Import-Csv .\ValidationResults.csv | `n" +
+                " ? ResultType -eq MailEnabledWithNoADObject |`n" +
+                " % { Disable-MailPublicFolder $_.FolderIdentity }")
         }
 
         if ($mailDisabledWithProxyGuidResults.Count -gt 0) {
             Get-ResultSummary -ResultType $mailDisabledWithProxyGuidResults[0].ResultType -Severity $mailDisabledWithProxyGuidResults[0].Severity -Count $mailDisabledWithProxyGuidResults.Count -Action (
                 "Folders are mail-disabled, but have proxy GUID values. These folders should be mail-enabled. " +
                 "After confirming the accuracy of the results, you can mail-enable them with the following command:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq MailDisabledWithProxyGuid | % { Enable-MailPublicFolder $_.FolderIdentity }")
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq MailDisabledWithProxyGuid |`n" +
+                " % { Enable-MailPublicFolder $_.FolderIdentity }")
         }
 
         if ($orphanedMPFResults.Count -gt 0) {
@@ -60,8 +66,14 @@ function Write-TestMailEnabledFolderResult {
                 "Mail public folders are orphaned. They exist in Active Directory " +
                 "but are not linked to any public folder. Therefore, they should be deleted. " +
                 "After confirming the accuracy of the results, you can delete them manually, " +
-                "or use a command like this:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq OrphanedMPF | % { `$folder = ([ADSI](`"LDAP://`$_`")); `$parent = ([ADSI]`"`$(`$folder.Parent)`"); `$parent.Children.Remove(`$folder) }")
+                "or use a command like this to delete them all:`n`n" +
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq OrphanedMPF |`n" +
+                " % {`n" +
+                "  `$folder = ([ADSI](`"LDAP://`$_`"))`n" +
+                "  `$parent = ([ADSI]`"`$(`$folder.Parent)`")`n" +
+                "  `$parent.Children.Remove(`$folder)`n" +
+                " }")
         }
 
         if ($orphanedMPFDuplicateResults.Count -gt 0) {
@@ -70,9 +82,17 @@ function Write-TestMailEnabledFolderResult {
                 "These should be deleted. Their email addresses may be merged onto the linked object. " +
                 "After confirming the accuracy of the results, you can delete them manually, " +
                 "or use a command like this:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq OrphanedMPFDuplicate | % { `$folder = ([ADSI](`"LDAP://`$(`$_.FolderIdentity)`")); `$parent = ([ADSI]`"`$(`$folder.Parent)`"); `$parent.Children.Remove(`$folder) }`n`n" +
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq OrphanedMPFDuplicate |`n" +
+                " % {`n" +
+                "  `$folder = ([ADSI](`"LDAP://`$(`$_.FolderIdentity)`"))`n" +
+                "  `$parent = ([ADSI]`"`$(`$folder.Parent)`")`n" +
+                "  `$parent.Children.Remove(`$folder)`n" +
+                " }`n`n" +
                 "After these objects are deleted, the email addresses can be merged onto the linked objects:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq OrphanedMPFDuplicate | % { Invoke-Expression `$_.ResultData }")
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq OrphanedMPFDuplicate |`n" +
+                " % { Invoke-Expression `$_.ResultData }")
         }
 
         if ($orphanedMPFDisconnectedResults.Count -gt 0) {

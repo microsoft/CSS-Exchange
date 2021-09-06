@@ -27,7 +27,12 @@ function Write-TestFolderNameResult {
                 "Folders have characters @, /, or \ in the folder name. " +
                 "These folders should be renamed prior to migrating. The following command " +
                 "can be used:`n`n" +
-                "Import-Csv .\ValidationResults.csv | ? ResultType -eq SpecialCharacters | % { Set-PublicFolder `$_.FolderEntryId -Name (`$_.ResultData -replace `"@|/|\\`", `" `").Trim() }")
+                "Import-Csv .\ValidationResults.csv |`n" +
+                " ? ResultType -eq SpecialCharacters |`n" +
+                " % {`n" +
+                "  `$newName = (`$_.ResultData -replace `"@|/|\\`", `" `").Trim()`n" +
+                "  Set-PublicFolder `$_.FolderEntryId -Name $newName`n" +
+                " }")
         }
     }
 }

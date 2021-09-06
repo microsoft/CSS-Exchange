@@ -69,7 +69,7 @@ function Write-TestFolderLimitResult {
 
         if ($emptyFolderResults.Count -gt 0) {
             Get-ResultSummary -ResultType $emptyFolderResults[0].ResultType -Severity $emptyFolderResults[0].Severity -Count $emptyFolderResults.Count -Action (
-                "These folders contain no items and have only empty subfolders. " +
+                "Folders contain no items and have only empty subfolders. " +
                 "These will not cause a migration issue, but they may be pruned if desired.")
         }
     }
