@@ -198,7 +198,7 @@ function Out-Columns {
             while ($totalColumnWidth -ge $windowWidth) {
                 $startingTotalWidth = $totalColumnWidth
                 $widest = $colWidths | Sort-Object -Descending | Select-Object -First 1
-                $newWidest = [Math]::Floor($widest * 0.75)
+                $newWidest = [Math]::Floor($widest * 0.95)
                 for ($i = 0; $i -lt $colWidths.Length; $i++) {
                     if ($colWidths[$i] -eq $widest) {
                         $colWidths[$i] = $newWidest
