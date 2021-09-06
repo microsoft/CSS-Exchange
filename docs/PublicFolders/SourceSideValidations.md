@@ -44,7 +44,9 @@ ValidationResults.csv|Information about any issues found. This is file we want t
 
 Typically, the script should be run with no parameters:
 
-`.\SourceSideValidations.ps1`
+```powershell
+.\SourceSideValidations.ps1
+```
 
 Progress indicators are displayed as it collects data and validates the results.
 
