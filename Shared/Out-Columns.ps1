@@ -34,6 +34,10 @@ function Out-Columns {
         $IndentSpaces = 0,
 
         [Parameter(Mandatory = $false)]
+        [int]
+        $LinesBetweenObjects = 0,
+
+        [Parameter(Mandatory = $false)]
         [ref]
         $StringOutput
     )
@@ -47,31 +51,38 @@ function Out-Columns {
 
             $lines = New-Object System.Collections.ArrayList
 
-            $noLF = $line.Replace("`r", "")    # The caller should really send an array to Out-Columns instead
-            $split = $noLF.Split(@(" ", "`n")) # of using `n or `n`r. However, handle it if they do.
-            $sb = New-Object System.Text.StringBuilder
-            for ($i = 0; $i -lt $split.Length; $i++) {
-                if ($sb.Length -eq 0 -and $sb.Length + $split[$i].Length -lt $width) {
-                    [void]$sb.Append($split[$i])
-                } elseif ($sb.Length -gt 0 -and $sb.Length + $split[$i].Length + 1 -lt $width) {
-                    [void]$sb.Append(" " + $split[$i])
-                } elseif ($sb.Length -gt 0) {
-                    [void]$lines.Add($sb.ToString())
-                    [void]$sb.Clear()
-                    $i--
+            $noLF = $line.Replace("`r", "")
+            $lineSplit = $noLF.Split("`n")
+            foreach ($l in $lineSplit) {
+                if ($l.Length -le $width) {
+                    [void]$lines.Add($l)
                 } else {
-                    if ($split[$i].Length -lt $width) {
-                        [void]$lines.Add($split[$i])
-                    } else {
-                        [void]$lines.Add($split[$i].Substring(0, $width))
-                        $split[$i] = $split[$i].Substring($width + 1)
-                        $i--
+                    $split = $l.Split(" ")
+                    $sb = New-Object System.Text.StringBuilder
+                    for ($i = 0; $i -lt $split.Length; $i++) {
+                        if ($sb.Length -eq 0 -and $sb.Length + $split[$i].Length -lt $width) {
+                            [void]$sb.Append($split[$i])
+                        } elseif ($sb.Length -gt 0 -and $sb.Length + $split[$i].Length + 1 -lt $width) {
+                            [void]$sb.Append(" " + $split[$i])
+                        } elseif ($sb.Length -gt 0) {
+                            [void]$lines.Add($sb.ToString())
+                            [void]$sb.Clear()
+                            $i--
+                        } else {
+                            if ($split[$i].Length -lt $width) {
+                                [void]$lines.Add($split[$i])
+                            } else {
+                                [void]$lines.Add($split[$i].Substring(0, $width))
+                                $split[$i] = $split[$i].Substring($width + 1)
+                                $i--
+                            }
+                        }
+                    }
+
+                    if ($sb.Length -gt 0) {
+                        [void]$lines.Add($sb.ToString())
                     }
                 }
-            }
-
-            if ($sb.Length -gt 0) {
-                [void]$lines.Add($sb.ToString())
             }
 
             return $lines
@@ -85,13 +96,11 @@ function Out-Columns {
                 $p = $props[$i]
                 $val = $obj."$p"
 
-                if ($val -isnot [array] -and ("$val").Length -gt $colWidths[$i]) {
+                if ($val -isnot [array]) {
                     $val = WrapLine -line $val -width $colWidths[$i]
                 } elseif ($val -is [array]) {
-                    $widestVal = $val | ForEach-Object { $_.ToString().Length } | Sort-Object -Descending | Select-Object -First 1
-                    if ($widestVal -gt $colWidths[$i]) {
-                        $val = $val | ForEach-Object { WrapLine -line $_ -width $colWidths[$i] }
-                    }
+                    $val = $val | Where-Object { $null -ne $_ }
+                    $val = $val | ForEach-Object { WrapLine -line $_ -width $colWidths[$i] }
                 }
 
                 if ($val -is [array]) {
@@ -163,11 +172,14 @@ function Out-Columns {
                     $val = $thing."$($props[$i])"
                     if ($null -ne $val) {
                         $width = 0
-                        if ($val -is [array]) {
-                            $width = ($val | ForEach-Object { $_.ToString() } | Sort-Object Length -Descending | Select-Object -First 1).Length
-                        } else {
-                            $width = $thing."$($props[$i])".ToString().Length
+                        if ($val -isnot [array]) {
+                            $val = $val.ToString().Split("`n")
                         }
+
+                        $width = ($val | ForEach-Object {
+                                if ($null -ne $_) { $_.ToString() } else { "" }
+                            } | Sort-Object Length -Descending | Select-Object -First 1).Length
+
                         if ($width -gt $colWidths[$i]) {
                             $colWidths[$i] = $width
                         }
@@ -176,7 +188,7 @@ function Out-Columns {
             }
 
             # If we're within the window width, we're done
-            $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+            $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum + $IndentSpaces
             $windowWidth = (Get-Host).UI.RawUI.WindowSize.Width
             if ($windowWidth -lt 1 -or $totalColumnWidth -lt $windowWidth) {
                 return $colWidths
@@ -194,7 +206,7 @@ function Out-Columns {
                     }
                 }
 
-                $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum
+                $totalColumnWidth = $colWidths.Length * $padding + ($colWidths | Measure-Object -Sum).Sum + $IndentSpaces
                 if ($totalColumnWidth -ge $startingTotalWidth) {
                     # Somehow we didn't reduce the size at all, so give up
                     break
@@ -264,6 +276,11 @@ function Out-Columns {
                         [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $lineObj."$($props[$i])")
                     }
 
+                    Write-Host
+                    [void]$stb.Append([System.Environment]::NewLine)
+                }
+
+                for ($i = 0; $i -lt $LinesBetweenObjects; $i++) {
                     Write-Host
                     [void]$stb.Append([System.Environment]::NewLine)
                 }
