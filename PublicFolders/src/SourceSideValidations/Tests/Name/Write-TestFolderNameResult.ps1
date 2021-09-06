@@ -31,7 +31,7 @@ function Write-TestFolderNameResult {
                 " ? ResultType -eq SpecialCharacters |`n" +
                 " % {`n" +
                 "  `$newName = (`$_.ResultData -replace `"@|/|\\`", `" `").Trim()`n" +
-                "  Set-PublicFolder `$_.FolderEntryId -Name $newName`n" +
+                "  Set-PublicFolder `$_.FolderEntryId -Name `$newName`n" +
                 " }")
         }
     }
