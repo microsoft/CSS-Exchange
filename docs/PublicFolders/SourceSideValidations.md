@@ -60,7 +60,7 @@ When all the tests are done, the script provides a summary of what it found, alo
 
 In this example output, the script calls out four issues.
 
-First, it points out that we have 111,124 folders that are completely empty (this is a lab). Note that it says to look for a result type of EmptyFolder in the CSV. If we want to see the list of empty folders, we can open up ValidationResults.csv in Excel, filter for a ResultType of EmptyFolder, and then we see all those results:
+First, it points out that we have 111,124 folders that are completely empty (this is a lab). Note the ResultType of EmptyFolder. If we want to see the list of empty folders, we can open up ValidationResults.csv in Excel, filter for a ResultType of EmptyFolder, and then we see all those results:
 
 ![Picture of empty folders in Excel](ssv3.png)
 
@@ -99,6 +99,5 @@ If you close the shell and you need to see the summary results again, use the *-
 ```powershell
 .\SourceSideValidations -SummarizePreviousResults
 ```
-![Picture of folders with bad characters in Excel](ssv10.png)
 
 The script reads the output file and repeats the instructions on what to do. You can also summarize the results from previous runs, or point to files in other locations, by providing the *-ResultsFile* parameter.
