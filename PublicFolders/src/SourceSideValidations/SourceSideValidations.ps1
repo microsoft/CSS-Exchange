@@ -43,12 +43,23 @@ param (
 . $PSScriptRoot\Get-FolderData.ps1
 . $PSScriptRoot\JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
 
 if (-not $SkipVersionCheck) {
     if (Test-ScriptVersion -AutoUpdate) {
         # Update was downloaded, so stop here.
         Write-Host "Script was updated. Please rerun the command."
         return
+    }
+}
+
+$severityColorizer = {
+    param($o, $propName)
+    if ($propName -eq "Severity") {
+        switch ($o.$propName) {
+            "Error" { "Red" }
+            "Warning" { "Yellow" }
+        }
     }
 }
 
@@ -60,7 +71,7 @@ if ($SummarizePreviousResults) {
     $summary.AddRange(@($results | Write-TestFolderNameResult))
     $summary.AddRange(@($results | Write-TestMailEnabledFolderResult))
     $summary.AddRange(@($results | Write-TestPermissionResult))
-    $summary | Format-Table -Wrap
+    $summary | Out-Columns -LinesBetweenObjects 1 -ColorizerFunctions $severityColorizer
     return
 }
 
@@ -168,11 +179,13 @@ if ("Permissions" -in $Tests) {
 
 # Output the results
 
-$badDumpsters | Write-TestDumpsterMappingResult
-$limitsExceeded | Write-TestFolderLimitResult
-$badNames | Write-TestFolderNameResult
-$badMailEnabled | Write-TestMailEnabledFolderResult
-$badPermissions | Write-TestPermissionResult
+$results = New-Object System.Collections.ArrayList
+$results.AddRange(@($badDumpsters | Write-TestDumpsterMappingResult))
+$results.AddRange(@($limitsExceeded | Write-TestFolderLimitResult))
+$results.AddRange(@($badNames | Write-TestFolderNameResult))
+$results.AddRange(@($badMailEnabled | Write-TestMailEnabledFolderResult))
+$results.AddRange(@($badPermissions | Write-TestPermissionResult))
+$results | Out-Columns -LinesBetweenObjects 1
 
 Write-Host
 Write-Host "Validation results were written to file:"
