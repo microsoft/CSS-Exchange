@@ -53,12 +53,24 @@ if (-not $SkipVersionCheck) {
     }
 }
 
+$errorColor = "Red"
+$configuredErrorColor = (Get-Host).PrivateData.ErrorForegroundColor
+if ($configuredErrorColor -is [ConsoleColor]) {
+    $errorColor = $configuredErrorColor
+}
+
+$warningColor = "Yellow"
+$configuredWarningColor = (Get-Host).PrivateData.WarningForegroundColor
+if ($configuredWarningColor -is [ConsoleColor]) {
+    $warningColor = $configuredWarningColor
+}
+
 $severityColorizer = {
     param($o, $propName)
     if ($propName -eq "Severity") {
         switch ($o.$propName) {
-            "Error" { "Red" }
-            "Warning" { "Yellow" }
+            "Error" { $errorColor }
+            "Warning" { $warningColor }
         }
     }
 }
