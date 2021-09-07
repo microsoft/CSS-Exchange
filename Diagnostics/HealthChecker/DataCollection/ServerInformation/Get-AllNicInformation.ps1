@@ -24,6 +24,7 @@ Function Get-AllNicInformation {
                 [int]$i = 0
                 [int]$retryCounter = 0
                 Write-Verbose "Probing started to detect NIC adapter registry path"
+                [int]$retryLimit = 3
             }
             process {
                 do {
@@ -45,11 +46,14 @@ Function Get-AllNicInformation {
 
                         if ($null -eq $netCfgInstanceId) {
                             $retryCounter++
-                            Write-Verbose "Enumeration possibly interrupted. Attempt: $retryCounter/3"
+                            Write-Verbose "Enumeration possibly interrupted. Attempt: $retryCounter/$retryLimit"
+                        } else {
+                            Write-Verbose "Reset the retry counter"
+                            $retryCounter = 0
                         }
                         $i++
                     }
-                } while ($retryCounter -le 2)
+                } while ($retryCounter -lt $retryLimit)
             }
             end {
                 return [PSCustomObject]@{
@@ -145,6 +149,7 @@ Function Get-AllNicInformation {
 
                         try {
                             $dnsClient = $adapter | Get-DnsClient -ErrorAction Stop
+                            $isRegisteredInDns = $dnsClient.RegisterThisConnectionsAddress
                             Write-Verbose "Got DNS Client information"
                         } catch {
                             Write-Verbose "Failed to get the DNS client information"
@@ -205,6 +210,7 @@ Function Get-AllNicInformation {
                         $driverDate = $adapter.DriverDate
                         $driverVersion = $adapter.DriverVersionString
                         $description = $adapter.InterfaceDescription
+                        $dnsServerToBeUsed = $networkConfig.DNSServer.ServerAddresses
                     } else {
                         Write-Verbose "Working on NIC: $($networkConfig.Description)"
                         $adapter = $networkConfig
@@ -219,27 +225,46 @@ Function Get-AllNicInformation {
                             }
                         }
 
-                        #determine if IPv6 is enabled
-                        $stopProcess = $false
-                        foreach ($adapterConfiguration in $networkAdapterConfigurations) {
-                            $settingID = $adapterConfiguration.SettingID
-                            Write-Verbose "Working on '$($adapterConfiguration.Description)' | SettingID: $settingID"
+                        #set the correct $adapterConfiguration to link to the correct $networkConfig that we are on
+                        $adapterConfiguration = $networkAdapterConfigurations |
+                            Where-Object { $_.SettingID -eq $networkConfig.GUID -or
+                                $_.SettingID -eq $networkConfig.InterfaceGuid }
 
-                            if ($settingID -eq $networkConfig.GUID -or
-                                $settingID -eq $networkConfig.InterfaceGuid) {
-                                foreach ($ipAddress in $adapterConfiguration.IPAddress) {
-                                    if ($ipAddress.Contains(":")) {
-                                        $ipv6Enabled = $true
-                                        $stopProcess = $true
-                                        break
-                                    }
+                        if ($null -eq $adapterConfiguration) {
+                            Write-Verbose "Failed to find correct adapterConfiguration for this networkConfig."
+                            Write-Verbose "GUID: $($networkConfig.GUID) | InterfaceGuid: $($networkConfig.InterfaceGuid)"
+                        }
+
+                        $ipv6Enabled = ($adapterConfiguration.IPAddress | Where-Object { $_.Contains(":") }).Count -ge 1
+
+                        $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
+                        $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
+
+                        for ($i = 0; $i -lt $adapterConfiguration.IPAddress.Count; $i++) {
+
+                            if ($adapterConfiguration.IPAddress[$i].Contains(":")) {
+                                $newIpv6Address = Get-IpvAddresses
+                                if ($i -lt $adapterConfiguration.IPAddress.Count) {
+                                    $newIpv6Address.Address = $adapterConfiguration.IPAddress[$i]
+                                    $newIpv6Address.Subnet = $adapterConfiguration.IPSubnet[$i]
                                 }
-                            }
 
-                            if ($stopProcess) {
-                                break
+                                $newIpv6Address.DefaultGateway = $ipv6Gateway
+                                $ipv6Address += $newIpv6Address
+                            } else {
+                                $newIpv4Address = Get-IpvAddresses
+                                if ($i -lt $adapterConfiguration.IPAddress.Count) {
+                                    $newIpv4Address.Address = $adapterConfiguration.IPAddress[$i]
+                                    $newIpv4Address.Subnet = $adapterConfiguration.IPSubnet[$i]
+                                }
+
+                                $newIpv4Address.DefaultGateway = $ipv4Gateway
+                                $ipv4Address += $newIpv4Address
                             }
                         }
+
+                        $isRegisteredInDns = $adapterConfiguration.FullDNSRegistrationEnabled
+                        $dnsServerToBeUsed = $adapterConfiguration.DNSServerSearchOrder
                     }
 
                     $nicObjects.Add([PSCustomObject]@{
@@ -257,8 +282,8 @@ Function Get-AllNicInformation {
                             SleepyNicDisabled = $nicPnpCapabilitiesSetting.SleepyNicDisabled
                             IPv4Addresses     = $ipv4Address
                             IPv6Addresses     = $ipv6Address
-                            RegisteredInDns   = $dnsClient.RegisterThisConnectionsAddress
-                            DnsServer         = $networkConfig.DNSServer.ServerAddresses
+                            RegisteredInDns   = $isRegisteredInDns
+                            DnsServer         = $dnsServerToBeUsed
                             DnsClient         = $dnsClient
                         })
                 }
@@ -278,7 +303,7 @@ Function Get-AllNicInformation {
             try {
                 $networkConfiguration = Get-NetworkConfiguration -ComputerName $ComputerName
             } catch {
-                Invoke-CatchActionError
+                Invoke-CatchActionError $CatchActionFunction
 
                 try {
                     if (-not ([string]::IsNullOrEmpty($ComputerFQDN))) {
@@ -294,10 +319,17 @@ Function Get-AllNicInformation {
                 }
             }
 
+            if ([String]::IsNullOrEmpty($networkConfiguration)) {
+                # Throw if nothing was returned by previous calls.
+                # Can be caused when executed on Server 2008 R2 where CIM namespace ROOT/StandardCimv2 is invalid.
+                Write-Verbose "No value was returned by 'Get-NetworkConfiguration'. Fallback to WMI."
+                throw
+            }
+
             return (Get-NicInformation -NetworkConfiguration $networkConfiguration)
         } catch {
             if (-not $bypassCatchActions) {
-                Invoke-CatchActionError
+                Invoke-CatchActionError $CatchActionFunction
             }
 
             $wmiNetworkCards = Get-WmiObjectHandler -ComputerName $ComputerName `
