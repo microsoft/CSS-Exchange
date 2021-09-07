@@ -1,7 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-BadPermission {
+. $PSScriptRoot\Test-PermissionJob.ps1
+. $PSScriptRoot\..\New-TestResult.ps1
+
+function Test-Permission {
     [CmdletBinding()]
     param (
         [Parameter()]
@@ -11,14 +14,13 @@ function Get-BadPermission {
 
     begin {
         $startTime = Get-Date
-        $badPermissions = @()
     }
 
     process {
         $folderData.IpmSubtreeByMailbox | ForEach-Object {
             $argumentList = $FolderData.MailboxToServerMap[$_.Name], $_.Name, $_.Group
             $name = $_.Name
-            $scriptBlock = ${Function:Get-BadPermissionJob}
+            $scriptBlock = ${Function:Test-BadPermissionJob}
             Add-JobQueueJob @{
                 ArgumentList = $argumentList
                 Name         = "$name Permissions Check"
@@ -26,16 +28,19 @@ function Get-BadPermission {
             }
         }
 
-        $completedJobs = Wait-QueuedJob
-        foreach ($job in $completedJobs) {
-            if ($job.BadPermissions.Count -gt 0) {
-                $badPermissions = $badPermissions + $job.BadPermissions
-            }
-        }
+        Wait-QueuedJob
     }
 
     end {
-        Write-Host "Get-BadPermission duration" ((Get-Date) - $startTime)
-        return $badPermissions
+        $params = @{
+            TestName       = "Permission"
+            ResultType     = "Duration"
+            Severity       = "Information"
+            FolderIdentity = ""
+            FolderEntryId  = ""
+            ResultData     = ((Get-Date) - $startTime)
+        }
+
+        New-TestResult @params
     }
 }

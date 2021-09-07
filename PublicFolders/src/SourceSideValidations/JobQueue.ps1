@@ -32,7 +32,6 @@ function Wait-QueuedJob {
 
     begin {
         $jobsRunning = @()
-        $jobResults = @()
         $jobQueueMaxConcurrency = 5
     }
 
@@ -55,7 +54,7 @@ function Wait-QueuedJob {
                     }
                     Write-Host $job.Name "job finished."
                     Remove-Job $job -Force
-                    $jobResults += $result
+                    $result
                 }
 
                 $jobsRunning = @($jobsRunning | Where-Object { -not $justFinished.Contains($_) })
@@ -72,11 +71,5 @@ function Wait-QueuedJob {
 
             Start-Sleep 1
         }
-    }
-
-    end {
-        $jobsToReturn = $jobResults
-        $jobResults = @()
-        return $jobsToReturn
     }
 }
