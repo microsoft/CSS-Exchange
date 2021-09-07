@@ -36,7 +36,7 @@ Function Get-ExchangeInformation {
             $buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) -or
         ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
             ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
-                $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
+        $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
         $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
         $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server
     }
@@ -462,3 +462,4 @@ Function Get-ExchangeInformation {
     Write-Verbose "Exiting: Get-ExchangeInformation"
     return $exchangeInformation
 }
+

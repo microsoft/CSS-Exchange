@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Get-ResultSummary.ps1
+
 function Write-TestDumpsterMappingResult {
     [CmdletBinding()]
     param (
@@ -21,11 +23,8 @@ function Write-TestDumpsterMappingResult {
 
     end {
         if ($badDumpsters.Count -gt 0) {
-            Write-Host
-            Write-Host $badDumpsters.Count "folders have invalid dumpster mappings. These folders"
-            Write-Host "are shown in the results CSV with a result type of BadDumpsterMapping."
-            Write-Host "The -ExcludeDumpsters switch can be used to skip these folders during migration, or the"
-            Write-Host "folders can be deleted."
+            Get-ResultSummary -ResultType $badDumpsters[0].ResultType -Severity $badDumpsters[0].Severity -Count $badDumpsters.Count -Action `
+                "Use the -ExcludeDumpsters switch to skip these folders during migration, or delete the folders."
         }
     }
 }
