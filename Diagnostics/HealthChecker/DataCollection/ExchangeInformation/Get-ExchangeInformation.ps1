@@ -8,6 +8,7 @@
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -21,6 +22,7 @@ Function Get-ExchangeInformation {
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
+    $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $buildInformation = $exchangeInformation.BuildInformation
     $buildVersionInfo = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildVersionInfo.MajorVersion)
