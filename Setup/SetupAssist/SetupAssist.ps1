@@ -75,8 +75,8 @@ Function Receive-Output {
         if (($Diagnostic -and
                 $VerbosePreference) -or
             (-not $Diagnostic -and
-                -not $IsWarning -and
-                -not $IsError)) {
+            -not $IsWarning -and
+            -not $IsError)) {
             $Object | Write-Output
         } elseif ($IsWarning) {
             $Object | Write-Warning
@@ -208,3 +208,4 @@ try {
     Receive-Output "$($_.ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
+

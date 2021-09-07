@@ -29,7 +29,7 @@ Function Get-TimeZoneInformationRegistrySettings {
 
         if ($dynamicDaylightTimeDisabled -ne 0 -and
             ($standardStartNonZeroValue -or
-                $daylightStartNonZeroValue)) {
+            $daylightStartNonZeroValue)) {
             Write-Verbose "Determined that there is a chance the settings set could cause a DST issue."
             $dstIssueDetected = $true
             $actionsToTake += "High Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone. `
@@ -50,3 +50,4 @@ Function Get-TimeZoneInformationRegistrySettings {
         }
     }
 }
+

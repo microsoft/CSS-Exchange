@@ -6,10 +6,10 @@ function Test-PendingReboot {
     if (Get-Item "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -EA Ignore) {
         "Key set in: HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending. Remove it if reboot doesn't work" | Receive-Output -Diagnostic
         ("To Fix, only after reboot does work: `r`n`t" + `
-                "Open regedit, find HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing.`r`n`t" + `
-                "1. If you see PackagesPending, right click it, open Permissions, click on Advanced, change owner to your account. Close Advanced window.`r`n`t`t" + `
-                "Give your account Full Control in Permissions window. Delete the key.`r`n`t" + `
-                "2. Repeat step 1. with Reboot Pending") | Receive-Output -Diagnostic
+            "Open regedit, find HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing.`r`n`t" + `
+            "1. If you see PackagesPending, right click it, open Permissions, click on Advanced, change owner to your account. Close Advanced window.`r`n`t`t" + `
+            "Give your account Full Control in Permissions window. Delete the key.`r`n`t" + `
+            "2. Repeat step 1. with Reboot Pending") | Receive-Output -Diagnostic
         return $true
     }
     if (Get-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" -EA Ignore) {
@@ -33,3 +33,4 @@ function Test-PendingReboot {
 
     return $false
 }
+
