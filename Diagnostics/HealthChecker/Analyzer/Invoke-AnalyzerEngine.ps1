@@ -371,10 +371,10 @@ Function Invoke-AnalyzerEngine {
 
     if (($serverMaintenance.InactiveComponents).Count -eq 0 -and
         ($null -eq $serverMaintenance.GetClusterNode -or
-            $serverMaintenance.GetClusterNode.State -eq "Up") -and
+        $serverMaintenance.GetClusterNode.State -eq "Up") -and
         ($null -eq $serverMaintenance.GetMailboxServer -or
             ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
-                $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted"))) {
+        $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted"))) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenance" -Details "Server is not in Maintenance Mode" `
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green" `
@@ -619,7 +619,7 @@ Function Invoke-AnalyzerEngine {
 
     if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
             ($displayWriteType2012 -eq "Yellow" -or
-                $displayWriteType2013 -eq "Yellow")) -or
+            $displayWriteType2013 -eq "Yellow")) -or
         $displayWriteType2012 -eq "Yellow") {
 
         $analyzedResults = Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
@@ -1283,7 +1283,7 @@ Function Invoke-AnalyzerEngine {
                 $currentTlsVersion.ServerDisabledByDefault -or
                 $currentTlsVersion.ClientDisabledByDefault) -and
             ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
-                $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
+            $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
             $analyzedResults = Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2") `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 3 `
@@ -1622,7 +1622,7 @@ Function Invoke-AnalyzerEngine {
                 $null -ne $appRestarts.Schedule -or
                 ($appRestarts.Time -ne "00:00:00" -and
                     ($webAppKey -ne "MSExchangeOWAAppPool" -and
-                        $webAppKey -ne "MSExchangeECPAppPool")))
+                $webAppKey -ne "MSExchangeECPAppPool")))
 
             $outputObjectDisplayValue.Add(([PSCustomObject]@{
                         AppPoolName         = $webAppKey
@@ -1724,7 +1724,7 @@ Function Invoke-AnalyzerEngine {
 
             if (($fileBuildPart -lt $securityFixedBuildPart) -or
                 ($fileBuildPart -eq $securityFixedBuildPart -and
-                    $filePrivatePart -lt $securityFixedPrivatePart)) {
+                $filePrivatePart -lt $securityFixedPrivatePart)) {
                 foreach ($cveName in $CVENames) {
                     $details = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName
                     $Script:Vulnerabilities += $details
@@ -2393,4 +2393,5 @@ Function Invoke-AnalyzerEngine {
     Write-Debug("End of Analyzer Engine")
     return $Script:AnalyzedInformation
 }
+
 

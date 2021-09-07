@@ -11,7 +11,7 @@ param(
 
 . $PSScriptRoot\Load-Module.ps1
 
-if (-not (Load-Module -Name PSScriptAnalyzer)) {
+if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.20")) {
     throw "PSScriptAnalyzer module could not be loaded"
 }
 

@@ -43,6 +43,7 @@ param (
 . $PSScriptRoot\Get-FolderData.ps1
 . $PSScriptRoot\JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
 
 if (-not $SkipVersionCheck) {
     if (Test-ScriptVersion -AutoUpdate) {
@@ -52,14 +53,37 @@ if (-not $SkipVersionCheck) {
     }
 }
 
+$errorColor = "Red"
+$configuredErrorColor = (Get-Host).PrivateData.ErrorForegroundColor
+if ($configuredErrorColor -is [ConsoleColor]) {
+    $errorColor = $configuredErrorColor
+}
+
+$warningColor = "Yellow"
+$configuredWarningColor = (Get-Host).PrivateData.WarningForegroundColor
+if ($configuredWarningColor -is [ConsoleColor]) {
+    $warningColor = $configuredWarningColor
+}
+
+$severityColorizer = {
+    param($o, $propName)
+    if ($propName -eq "Severity") {
+        switch ($o.$propName) {
+            "Error" { $errorColor }
+            "Warning" { $warningColor }
+        }
+    }
+}
+
 if ($SummarizePreviousResults) {
     $results = Import-Csv $ResultsFile
-    $results | Write-TestDumpsterMappingResult
-    $results | Write-TestFolderLimitResult
-    $results | Write-TestFolderNameResult
-    $results | Write-TestMailEnabledFolderResult
-    $results | Write-TestPermissionResult
-    Write-Host
+    $summary = New-Object System.Collections.ArrayList
+    $summary.AddRange(@($results | Write-TestDumpsterMappingResult))
+    $summary.AddRange(@($results | Write-TestFolderLimitResult))
+    $summary.AddRange(@($results | Write-TestFolderNameResult))
+    $summary.AddRange(@($results | Write-TestMailEnabledFolderResult))
+    $summary.AddRange(@($results | Write-TestPermissionResult))
+    $summary | Out-Columns -LinesBetweenObjects 1 -ColorizerFunctions $severityColorizer
     return
 }
 
@@ -167,11 +191,13 @@ if ("Permissions" -in $Tests) {
 
 # Output the results
 
-$badDumpsters | Write-TestDumpsterMappingResult
-$limitsExceeded | Write-TestFolderLimitResult
-$badNames | Write-TestFolderNameResult
-$badMailEnabled | Write-TestMailEnabledFolderResult
-$badPermissions | Write-TestPermissionResult
+$results = New-Object System.Collections.ArrayList
+$results.AddRange(@($badDumpsters | Write-TestDumpsterMappingResult))
+$results.AddRange(@($limitsExceeded | Write-TestFolderLimitResult))
+$results.AddRange(@($badNames | Write-TestFolderNameResult))
+$results.AddRange(@($badMailEnabled | Write-TestMailEnabledFolderResult))
+$results.AddRange(@($badPermissions | Write-TestPermissionResult))
+$results | Out-Columns -LinesBetweenObjects 1
 
 Write-Host
 Write-Host "Validation results were written to file:"
