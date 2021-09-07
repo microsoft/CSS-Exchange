@@ -4,7 +4,8 @@
 
     ExcludeRules        = @(
         'PSAvoidUsingWriteHost',
-        'PSReviewUnusedParameter'
+        'PSReviewUnusedParameter',
+        'PSUseSingularNouns'
     )
 
     Rules               = @{
