@@ -122,8 +122,8 @@ Function Get-MessageIndexState {
 
             $messageList.Add(
                 (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
-                        -BigFunnelPropNameMapping $extPropMapping `
-                        -DisplayName $displayName)
+                    -BigFunnelPropNameMapping $extPropMapping `
+                    -DisplayName $displayName)
             )
         }
     }
@@ -131,3 +131,4 @@ Function Get-MessageIndexState {
         return $messageList
     }
 }
+

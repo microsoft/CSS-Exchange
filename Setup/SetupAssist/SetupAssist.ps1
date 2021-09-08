@@ -108,3 +108,4 @@ try {
     "$($_.ScriptStackTrace)" | Write-Output
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
+
