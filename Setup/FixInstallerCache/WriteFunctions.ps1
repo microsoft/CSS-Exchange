@@ -22,16 +22,3 @@ Function Write-Host {
         Microsoft.PowerShell.Utility\Write-Host $Object -ForegroundColor $ForegroundColor
     }
 }
-
-Function Write-Output {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Output')]
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 1, ValueFromPipeline)]
-        [object]$InputObject
-    )
-    process {
-        $InputObject | WriteLog
-        Microsoft.PowerShell.Utility\Write-Output $InputObject
-    }
-}

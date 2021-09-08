@@ -145,7 +145,7 @@ Function Main {
 try {
     Main
 } catch {
-    Write-Output "$($_.Exception)"
-    Write-Output "$($_.ScriptStackTrace)"
+    Write-Host "$($_.Exception)"
+    Write-Host "$($_.ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:scriptLogging)'")
 }
