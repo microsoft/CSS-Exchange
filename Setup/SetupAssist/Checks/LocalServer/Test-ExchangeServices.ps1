@@ -46,4 +46,21 @@ function Test-ExchangeServices {
             New-TestResult @params -Result "Passed"
         }
     }
+
+    $params = @{
+        TestName      = "Services Cache Files"
+        ReferenceInfo = "Delete the file and start Exchange Services"
+    }
+
+    [array]$serviceCacheFiles = Get-ChildItem "C:\ExchangeSetupLogs" |
+        Where-Object { $_.Name -like "Service*.xml" }
+
+    if ($serviceCacheFiles.Count -gt 0) {
+        $serviceCacheFiles |
+            ForEach-Object {
+                New-TestResult @params -Result "Failed" -Details $_.FullName
+            }
+    } else {
+        New-TestResult @params -Result "Passed"
+    }
 }
