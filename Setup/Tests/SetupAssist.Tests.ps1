@@ -43,6 +43,7 @@ Describe "Testing SetupAssist" {
             Mock GetExchangeADSetupLevel { return $Script:GetExchangeADSetupLevel }
             Mock TestMismatchLevel {}
             Mock TestPrepareAD {}
+            Mock Test-UserGroupMemberOf {}
 
             Function SetGetExchangeADSetupLevel {
                 param(
