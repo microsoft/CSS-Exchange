@@ -89,11 +89,11 @@ begin {
             $OutputFolder,
 
             [Parameter(Mandatory = $true, Position = 4)]
-            [switch]
+            [bool]
             $IncludeThread,
 
             [Parameter(Mandatory = $true, Position = 5)]
-            [switch]
+            [bool]
             $Circular
         )
 
