@@ -81,7 +81,7 @@ Function Test-ExchangeADSetupLevel {
         if ($latestExchangeVersion.$ExchangeVersion.CU -eq $CULevel) { $result = "Passed" } else { $result = "Failed" }
 
         $params = @{
-            TestName      = "Exchange AD Latest Level"
+            TestName      = $testName
             Result        = $result
             Details       = "At Exchange $ExchangeVersion $CULevel"
             ReferenceInfo = "Latest Version is Exchange $ExchangeVersion $($latestExchangeVersion.$ExchangeVersion.CU)"
@@ -147,10 +147,11 @@ Function Test-ExchangeADSetupLevel {
     }
 
     $adLevel = GetExchangeADSetupLevel
+    $testName = "Exchange AD Latest Level"
 
     #Less than the known Exchange 2013 schema version
     if ($adLevel.Schema.Value -lt 15137) {
-        New-TestResult @params -Result "Failed" -Details "Unknown Exchange Schema Version"
+        New-TestResult -TestName $testName -Result "Failed" -Details "Unknown Exchange Schema Version"
         return
     }
 
@@ -158,9 +159,9 @@ Function Test-ExchangeADSetupLevel {
     if ($adLevel.Schema.Value -eq 15312) {
         if ($adLevel.MESO.Value -eq 13237 -and
             $adLevel.Org.Value -eq 16133) {
-            New-TestResult @params -Result "Passed" -Details "Exchange 2013 CU23 Ready"
+            New-TestResult -TestName $testName -Result "Passed" -Details "Exchange 2013 CU23 Ready"
         } else {
-            New-TestResult @params -Result "Failed" -Details "Exchange 2013 CU23 Not Ready"
+            New-TestResult -TestName $testName -Result "Failed" -Details "Exchange 2013 CU23 Not Ready"
         }
     } elseif ($adLevel.Schema.Value -eq 15332) {
         #Exchange 2016 CU10+
