@@ -85,7 +85,7 @@ Function Test-ExchangeADSetupLevel {
             TestName      = $testName
             Result        = $result
             Details       = "At Exchange $ExchangeVersion $CULevel"
-            ReferenceInfo = "Latest Version is Exchange $ExchangeVersion $($latestExchangeVersion.$ExchangeVersion.CU)"
+            ReferenceInfo = "Latest Version is Exchange $ExchangeVersion $($latestExchangeVersion.$ExchangeVersion.CU). More Info: https://aka.ms/SA-ExchangeLatest"
         }
 
         New-TestResult @params
