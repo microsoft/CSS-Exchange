@@ -4,6 +4,11 @@
 . $PSScriptRoot\..\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
 Function Test-UserGroupMemberOf {
+    [CmdletBinding()]
+    param(
+        [bool]$PrepareAdRequired,
+        [bool]$PrepareSchemaRequired
+    )
 
     function GetGroupMatches($whoamiOutput, $groupName) {
         $m = @($whoamiOutput | Select-String "(^\w+\\$($groupName))\s+")
@@ -26,10 +31,16 @@ Function Test-UserGroupMemberOf {
         [array]$g = GetGroupMatches $WhoamiOutput $GroupName
         $params = @{
             TestName = $GroupName
+            Details  = "Not a member of the $GroupName Group"
         }
 
         if ($g.Count -gt 0) {
-            New-TestResult @params -Result "Passed" -Details "$($g.GroupName) $($g.SID)"
+            $params.Details = "$($g.GroupName) $($g.SID)"
+            New-TestResult @params -Result "Passed"
+        } elseif ($GroupName -eq "Schema Admins") {
+            New-TestResult @params -Result "Failed" -ReferenceInfo "User must be in Schema Admins to update Schema which is required."
+        } elseif ($GroupName -eq "Enterprise Admins") {
+            New-TestResult @params -Result "Failed" -ReferenceInfo "User must be Enterprise Admins to do PrepareSchema or PrepareAD"
         } else {
             New-TestResult @params -Result "Failed"
         }
@@ -50,9 +61,15 @@ Function Test-UserGroupMemberOf {
         New-TestResult @params -Result "Failed"
     }
 
-    TestGroupResult $whoamiAllOutput "Domain Admins"
-    TestGroupResult $whoamiAllOutput "Schema Admins"
-    TestGroupResult $whoamiAllOutput "Enterprise Admins"
     TestGroupResult $whoamiAllOutput "Organization Management"
+
+    if ($PrepareSchemaRequired) {
+        TestGroupResult $whoamiAllOutput "Schema Admins"
+    }
+
+    if ($PrepareAdRequired) {
+        TestGroupResult $whoamiAllOutput "Domain Admins"
+        TestGroupResult $whoamiAllOutput "Enterprise Admins"
+    }
 }
 

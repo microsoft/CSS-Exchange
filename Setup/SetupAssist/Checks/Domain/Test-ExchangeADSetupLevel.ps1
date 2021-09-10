@@ -2,10 +2,14 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
+. $PSScriptRoot\..\UserContext\Test-UserGroupMemberOf.ps1
 Function Test-ExchangeADSetupLevel {
 
     # Extract for Pester Testing - Start
     Function TestPrepareAD {
+        param(
+            [string]$ExchangeVersion
+        )
         $netDom = netdom query fsmo
         $params = @{
             TestName = "Prepare AD Requirements"
@@ -55,6 +59,7 @@ Function Test-ExchangeADSetupLevel {
             "Local Server Site:    $localSite")
 
         New-TestResult @params -Details $details -ReferenceInfo $runPrepareAD
+        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
     }
 
     Function TestMismatchLevel {
@@ -70,7 +75,7 @@ Function Test-ExchangeADSetupLevel {
         New-TestResult @params -Details ("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)`n`n" +
             "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)`n`n" +
             "DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
-        TestPrepareAD
+        TestPrepareAD -ExchangeVersion $ExchangeVersion
     }
 
     Function TestReadyLevel {
@@ -90,7 +95,9 @@ Function Test-ExchangeADSetupLevel {
 
         New-TestResult @params
         if ($result -eq "Failed") {
-            TestPrepareAD
+            TestPrepareAD -ExchangeVersion $ExchangeVersion
+        } else {
+            Test-UserGroupMemberOf -PrepareAdRequired $false
         }
     }
 
@@ -149,6 +156,7 @@ Function Test-ExchangeADSetupLevel {
 
     $adLevel = GetExchangeADSetupLevel
     $testName = "Exchange AD Latest Level"
+    $currentSchemaValue = $adLevel.Schema.Value
 
     #Less than the known Exchange 2013 schema version
     if ($adLevel.Schema.Value -lt 15137) {
