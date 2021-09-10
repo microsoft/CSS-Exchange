@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
-. $PSScriptRoot\..\..\Utils\ConvertFrom-Ldif.ps1
 Function Test-OtherWellKnownObjects {
     $rootDSE = [ADSI]("LDAP://RootDSE")
     $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
