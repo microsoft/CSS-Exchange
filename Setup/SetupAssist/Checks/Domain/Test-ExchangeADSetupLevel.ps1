@@ -63,12 +63,13 @@ Function Test-ExchangeADSetupLevel {
             [object]$ADSetupLevel
         )
         $params = @{
+            TestName      = $testName
             Result        = "Failed"
-            ReferenceInfo = "More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchangeVersion"
+            ReferenceInfo = "Mismatch detected `n    More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchangeVersion"
         }
-        New-TestResult @params -TestName "AD Org" -Details "DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)"
-        New-TestResult @params -TestName "AD Schema" -Details "DN Value: $($ADSetupLevel.Schema.Value) Version: $($ADSetupLevel.Schema.Value)"
-        New-TestResult @params -TestName "AD MESO" -Details "DN Value: $($ADSetupLevel.MESO.Value) Version: $($ADSetupLevel.MESO.Value)"
+        New-TestResult @params -Details ("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)`n`n" +
+            "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)`n`n" +
+            "DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
         TestPrepareAD
     }
 
