@@ -311,9 +311,9 @@ Foreach ($Process in $ExchProcessList) {
     # First see if the process is running
     [array]$RunningProcess = $ServerProcessList | Where-Object { $_.name -like $Process }
     if ($null -eq $RunningProcess) {
-        #Write-SimpleLogFile -string "Process $Process not found" -name $LogFile
+        Write-SimpleLogFile -string "Process $Process not found" -name $LogFile
     } else {
-        #Write-SimpleLogFile -string "Found $Process" -name $LogFile
+        Write-SimpleLogFile -string "Found $Process" -name $LogFile
 
         # Pull each instance of the process
         Foreach ($Instance in $RunningProcess) {
