@@ -8,7 +8,7 @@ param()
 BeforeAll {
     . $PSScriptRoot\..\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1
     $Script:parentPath = [IO.Path]::Combine((Split-Path -Parent $PSScriptRoot), "SetupAssist")
-    $Script:PesterExtract = "# Extract for Pester Testing"
+    $Script:PesterExtract = "# Extract for Pester Testing - Start"
 }
 
 Describe "Testing SetupAssist" {
@@ -20,7 +20,7 @@ Describe "Testing SetupAssist" {
         $scriptContent = Get-ExpandedScriptContent -File "$Script:parentPath\Checks\Domain\Test-ExchangeADSetupLevel.ps1"
         $startIndex = $scriptContent.Trim().IndexOf($Script:PesterExtract)
         for ($i = $startIndex + 1; $i -lt $scriptContent.Count; $i++) {
-            if ($scriptContent[$i].Trim().Contains($Script:PesterExtract)) {
+            if ($scriptContent[$i].Trim().Contains($Script:PesterExtract.Replace("Start", "End"))) {
                 $endIndex = $i
                 break
             }

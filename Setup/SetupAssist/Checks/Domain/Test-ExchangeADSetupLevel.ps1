@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-TestResult.ps1
 Function Test-ExchangeADSetupLevel {
 
-    # Extract for Pester Testing
+    # Extract for Pester Testing - Start
     Function TestPrepareAD {
         $netDom = netdom query fsmo
         $params = @{
@@ -128,7 +128,7 @@ Function Test-ExchangeADSetupLevel {
             MESO   = (GetVersionObject -SearchResults $mesoFindAll)
         }
     }
-    # Extract for Pester Testing
+    # Extract for Pester Testing - End
 
     #https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
     #https://docs.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help
