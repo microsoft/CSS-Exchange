@@ -48,6 +48,7 @@ Function RunAllTests {
 Function Main {
 
     $results = RunAllTests
+    $results | Export-Csv "$PSScriptRoot\SetupAssistResults-$((Get-Date).ToString("yyyyMMddhhmm")).csv" -NoTypeInformation
 
     $sbResults = {
         param($o, $p)
