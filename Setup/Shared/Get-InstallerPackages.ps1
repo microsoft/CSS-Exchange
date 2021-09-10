@@ -30,10 +30,10 @@ Function Get-InstallerPackages {
                     try {
                         $revisionGuid = Get-GuidProductCodeFromString -GuidString ($item.GetValue("PackageCode"))
                     } catch {
-                        "Failed to get the Revision Guid $($item.FullName)" | Receive-Output
+                        "Failed to get the Revision Guid $($item.FullName)" | Write-Host
                     }
                 } else {
-                    "Failed to find $productRegKey in order to get the revisionGuid value" | Receive-Output
+                    "Failed to find $productRegKey in order to get the revisionGuid value" | Write-Host
                 }
             }
 
