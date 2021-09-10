@@ -1,7 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Confirm-VirtualDirectoryConfiguration {
+. $PSScriptRoot\..\New-TestResult.ps1
+
+function Test-VirtualDirectoryConfiguration {
     [CmdletBinding()]
     param ()
 
@@ -9,6 +11,9 @@ function Confirm-VirtualDirectoryConfiguration {
         $problemsFound = $false
         $fixesPerformed = $false
         $appHostConfigPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+        $resultParams = @{
+            TestName = "Virtual Directory Configuration"
+        }
     }
 
     process {
@@ -46,9 +51,7 @@ function Confirm-VirtualDirectoryConfiguration {
             $exchangeContainer = [ADSI]("LDAP://$exchangeDN")
             $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer)
         } catch {
-            # If we failed here, either Exchange is not in the forest or we can't see it.
-            # Since the scope of this check is purely for vdirs, we fail silently.
-            $_ | Receive-Output -Diagnostic
+            New-TestResult @resultParams -Result "Failed" -Details "Failed to find Exchange configuration object."
             return
         }
 
@@ -57,11 +60,9 @@ function Confirm-VirtualDirectoryConfiguration {
             $searcher.Filter = "(&(objectClass=msExchExchangeServer)(cn=$($env:COMPUTERNAME)))"
             $thisServer = $searcher.FindOne()
         } catch {
-            "Failed to find Exchange server with name $($env:COMPUTERNAME)." | Receive-Output -IsWarning
+            New-TestResult @resultParams -Result "Failed" -Details "Failed to find Exchange Server AD object."
             return
         }
-
-        "Found Exchange server $($thisServer.Properties["cn"][0].ToString())." | Receive-Output -Diagnostic
 
         $httpProtocol = $null
         try {
@@ -69,8 +70,7 @@ function Confirm-VirtualDirectoryConfiguration {
             $serverSearcher.Filter = "(&(objectClass=msExchProtocolCfgHTTPContainer))"
             $httpProtocol = $serverSearcher.FindOne()
         } catch {
-            "Failed to find HTTP protocol AD object for server $($env:COMPUTERNAME)."  | Receive-Output -IsWarning
-            $_ | Receive-Output -IsWarning
+            New-TestResult @resultParams -Result "Failed" -Details "Failed to find HTTP protocol object."
             return
         }
 
@@ -80,8 +80,12 @@ function Confirm-VirtualDirectoryConfiguration {
         try {
             $appHostConfig.Load($appHostConfigPath)
         } catch {
-            "applicationHost.config file XML could not be loaded and my be malformed." | Receive-Output -IsWarning
-            $_ | Receive-Output -IsWarning
+            $errorDetails = @(
+                "applicationHost.config file XML could not be loaded.",
+                "Path: $appHostConfigPath",
+                "Error: $($_.Exception.Message)"
+            )
+            New-TestResult @resultParams -Result "Failed" -Details $errorDetails
             return
         }
 
@@ -90,7 +94,7 @@ function Confirm-VirtualDirectoryConfiguration {
         #>
 
         foreach ($expectedVdir in $expectedVdirs) {
-            "Validating vdir $($expectedVdir.DirectoryName)." | Receive-Output -Diagnostic
+            Write-Verbose "Validating vdir $($expectedVdir.DirectoryName)."
             $expectedIISObjectsPresent = @()
             $expectedIISObjectsMissing = @()
             $siteName = ($expectedVdir.DirectoryName | Select-String "\((.*)\)").Matches.Groups[1].Value
@@ -108,14 +112,15 @@ function Confirm-VirtualDirectoryConfiguration {
 
             if ($expectedIISObjectsPresent.Count -eq 0) {
                 if ($null -ne $adObject) {
-                    "Virtual directory `"$($expectedVdir.DirectoryName)`" exists in AD but not in IIS." | Receive-Output -IsWarning
+                    New-TestResult @resultParams -Result "Failed" -Details "Virtual directory `"$($expectedVdir.DirectoryName)`" exists in AD but not in IIS."
                     # Should we say to delete the AD object? What if it's PushNotifications?
                 } else {
-                    # If there are no IIS objects and no AD object, then the state is consistent. Do we need to say run New-*VirtualDirectory?
+                    New-TestResult @resultParams -Result "Information" -Details "$($expectedVdir.DirectoryName) not found. This might be expected."
+                    # If there are no IIS objects and no AD object, then the state is consistent.
+                    # Do we know when this is expected vs when we need to run New-VirtualDirectory?
                 }
             } elseif ($expectedIISObjectsMissing.Count -gt 0) {
-                "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"." | Receive-Output -IsWarning
-                "A new applicationHost.config file will be generated with these objects cleaned up." | Receive-Output -IsWarning
+                New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"."
                 $fixesPerformed = $true
 
                 $expectedIISObjectsPresent | ForEach-Object {
@@ -123,6 +128,7 @@ function Confirm-VirtualDirectoryConfiguration {
                     $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
 
                     if ($null -ne $adObject) {
+                        New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
                         # Should we say to delete the AD object?
                     }
                 }
@@ -134,14 +140,18 @@ function Confirm-VirtualDirectoryConfiguration {
         if ($fixesPerformed) {
             $newAppHostConfig = "$PSScriptRoot\applicationHost.config"
             $appHostConfig.Save($newAppHostConfig)
-            "Virtual directory configuration problems were found and fixed. An updated applicationHost.config" | Receive-Output -IsWarning
-            "file was created here: $PSScriptRoot\applicationHost.config. You can rename the one at" | Receive-Output -IsWarning
-            $appHostConfigPath | Receive-Output -IsWarning
-            "and put the updated file in place to correct these issues." | Receive-Output -IsWarning
+            $referenceInfo =
+            "Virtual directory configuration problems were found and fixed. An updated applicationHost.config file was created here:`n`n" +
+            "$PSScriptRoot\applicationHost.config.`n`n" +
+            "The one currently in place can be found here:`n`n" +
+            "$appHostConfigPath`n`n" +
+            "Rename the current one and put the updated file in place to correct these issues."
+
+            New-TestResult @resultParams -Result "Failed" -Details @() -ReferenceInfo $referenceInfo
         }
 
         if ($problemsFound) {
-            "Some virtual directory configuration problems which must be fixed manually were found." | Receive-Output -IsWarning
+            New-TestResult @resultParams -Result "Failed" -Details "Virtual directory problems which must be fixed manually were found."
         }
     }
 }
