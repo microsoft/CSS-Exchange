@@ -9,7 +9,7 @@
         06/16/2021 - Initial Release
 
 .SYNOPSIS
-Uses EICA7 files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -30,6 +30,9 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 
 List of Scanned Folders:
 $env:LOCALAPPDATA\BadFolders.txt
+
+List of suspect Processes
+$env:LOCALAPPDATA\SuspectProcesses.csv
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -58,8 +61,46 @@ param (
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
 
+Function Test-UnknownCompany {
+    param (
+        [Parameter()]
+        [string]
+        $CompanyName
+    )
+
+    switch -Wildcard ($CompanyName) {
+        'Microsoft*' { return $false }
+        'Newtonsoft' { return $false }
+        'Google Inc.' { return $false }
+        'Oracle Corporation' { return $false }
+        'Fraunhofer Institut Integrierte Schaltungen IIS' { return $false }
+        Default { Return $true }
+    }
+}
+
+Function Test-UnknownModule {
+    param (
+        [Parameter()]
+        [string]
+        $ModuleName
+    )
+
+    switch -Wildcard ($ModuleName) {
+        'Microsoft.RightsManagementServices.Core.ni.dll' { return $false }
+        'ExDBFailureItemAPI.dll' { return $false }
+        'ManagedBlingSigned.dll' { return $false }
+        'System.IdentityModel.Tokens.jwt.ni.dll' { return $false }
+        Default { Return $true }
+    }
+}
+
+
 # Log file name
 $LogFile = "ExchAvExclusions.log"
+$SuspectCSV = (Join-Path $env:LOCALAPPDATA SuspectProcesses.csv)
+
+# Remove the suspectCSV if it is already there
+If (Test-Path $SuspectCSV) { Remove-Item $SuspectCSV -Force -Confirm:$false }
 
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
@@ -119,24 +160,24 @@ if (Confirm-Administrator) {}
 else { Write-Error "Please run as Administrator" }
 
 # Make sure each folders in our list resolve
-foreach ($path in $BaseFolders) {
+foreach ($Path in $BaseFolders) {
     try {
         # Resolve path only returns a bool so we have to manually throw to catch
-        if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
+        if (!(Resolve-Path -Path $Path -ErrorAction SilentlyContinue)) {
             throw "Failed to resolve"
         }
         # If -recurse then we need to find all subfolders and Add them to the list to be tested
         if ($Recurse) {
 
             # Add the root folder
-            $FolderList.Add($path)
+            $FolderList.Add($Path)
 
             # Get the Folder and all subFolders and just return the fullname value as a string
-            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_) }
+            Get-ChildItem $Path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_) }
         }
         # Just Add the root folder
-        else { $FolderList.Add($path) }
-    } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
+        else { $FolderList.Add($Path) }
+    } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $Path) -Name $LogFile }
 }
 
 Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
@@ -203,5 +244,90 @@ if ($BadFolderList.count -gt 0) {
     Write-Warning ("Found " + $BadFolderList.count + " folders that are possibly being scanned!")
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
+    Write-SimpleLogfile -String "All EICAR files found; File Exclusions appear to be set properly" -Name $LogFile -OutHost
+}
+
+# Check thru all of the Processes that are supposed to be excluded and verify if there are non-msft modules loaded
+Write-SimpleLogFile -string "Checking Processes for 3rd party Modules" -name $LogFile -OutHost
+
+# Get all of the processes on the server
+$ServerProcessList = Get-Process
+
+# List of Exchange processes to check that we document
+$ExchProcessList = ('ComplianceAuditService',
+    'Dsamain',
+    'EdgeTransport',
+    'fms',
+    'hostcontrollerservice',
+    'inetinfo',
+    'Microsoft.Exchange.AntispamUpdateSvc',
+    'Microsoft.Exchange.ContentFilter.Wrapper',
+    'Microsoft.Exchange.Diagnostics.Service',
+    'Microsoft.Exchange.Directory.TopologyService',
+    'Microsoft.Exchange.EdgeCredentialSvc',
+    'Microsoft.Exchange.EdgeSyncSvc',
+    'Microsoft.Exchange.Imap4',
+    'Microsoft.Exchange.Imap4service',
+    'Microsoft.Exchange.Notifications.Broker',
+    'Microsoft.Exchange.Pop3',
+    'Microsoft.Exchange.Pop3service',
+    'Microsoft.Exchange.ProtectedServiceHost',
+    'Microsoft.Exchange.RPCClientAccess.Service',
+    'Microsoft.Exchange.Search.Service',
+    'Microsoft.Exchange.Servicehost',
+    'Microsoft.Exchange.Store.Service',
+    'Microsoft.Exchange.Store.Worker',
+    'Microsoft.Exchange.UM.CallRouter',
+    'MSExchangeCompliance',
+    'MSExchangeDagMgmt',
+    'MSExchangeDelivery',
+    'MSExchangeFrontendTransport',
+    'MSExchangeHMHost',
+    'MSExchangeHMWorker',
+    'MSExchangeMailboxAssistants',
+    'MSExchangeMailboxReplication',
+    'MSExchangeRepl',
+    'MSExchangeSubmission',
+    'MSExchangeTransport',
+    'MSExchangeTransportLogSearch',
+    'MSExchangeThrottling',
+    'Noderunner',
+    'OleConverter',
+    'ParserServer',
+    'Powershell',
+    'ScanEngineTest',
+    'ScanningProcess',
+    'UmService',
+    'UmWorkerProcess',
+    'UpdateService',
+    'W3wp',
+    'wsbexchange'
+)
+
+# Determine if the process contains 3rd party DLLs
+Foreach ($Process in $ExchProcessList) {
+    [array]$RunningProcess = $null
+
+    # First see if the process is running
+    [array]$RunningProcess = $ServerProcessList | Where-Object { $_.name -like $Process }
+    if ($null -eq $RunningProcess) {
+        #Write-SimpleLogFile -string "Process $Process not found" -name $LogFile
+    } else {
+        #Write-SimpleLogFile -string "Found $Process" -name $LogFile
+
+        # Pull each instance of the process
+        Foreach ($Instance in $RunningProcess) {
+
+            # Grab the modules in that instance
+            Foreach ($Module in $Instance.Modules) {
+                # Test if they are known or unknown
+                if (Test-UnknownCompany $Module.Company) {
+                    if (Test-UnknownModule $Module.ModuleName) {
+                        # If unknown then we want to pull some data on them push to a CSV file
+                        $Module | Select-Object -Property @{Name = "PID"; Expression = { $Instance.id } }, @{Name = "Name"; Expression = { $Instance.ProcessName } }, company, ModuleName | Export-Csv -Path $SuspectCSV -Append -NoTypeInformation
+                    }
+                }
+            }
+        }
+    }
 }
