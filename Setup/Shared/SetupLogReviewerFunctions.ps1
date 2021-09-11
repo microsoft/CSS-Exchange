@@ -7,7 +7,7 @@ Function SelectStringLastRunOfExchangeSetup {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
         [object]$LogReviewer,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [string]$Pattern
     )
     process {
@@ -28,13 +28,13 @@ Function GetEvaluatedSettingOrRule {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
         [object]$LogReviewer,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [string]$SettingName,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string]$SettingOrRule = "Setting",
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [string]$ValueType = "\w"
     )
     process {
@@ -49,10 +49,10 @@ Function TestEvaluatedSettingOrRule {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
         [object]$LogReviewer,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [string]$SettingName,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string]$SettingOrRule = "Setting"
     )
     process {
@@ -61,7 +61,7 @@ Function TestEvaluatedSettingOrRule {
         if ($null -ne $results -and
             $results.LineNumber -gt $LogReviewer.LastSetupRunLine -and
             $null -ne $results.Matches) {
-            $value = $results.Matches.Group[1].Value
+            $value = $results.Matches.Groups[1].Value
 
             if ($value -ne "True" -and
                 $value -ne "False") {

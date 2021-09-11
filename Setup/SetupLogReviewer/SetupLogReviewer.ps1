@@ -14,6 +14,10 @@ param(
     [switch]$DelegatedSetup
 )
 
+. $PSScriptRoot\..\Shared\SetupLogReviewerFunctions.ps1
+. $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\Checks\Write-Result.ps1
+
 Function Main {
 
     if (-not ([IO.File]::Exists($SetupLog))) {
@@ -21,8 +25,33 @@ Function Main {
         return
     }
 
+    $setupLogReviewer = Get-SetupLogReviewer -SetupLog $SetupLog
+    $color = "Gray"
+    $ranDate = $setupLogReviewer.SetupRunDate
 
+    if ($ranDate -lt ([DateTime]::Now.AddDays(-14))) { $color = "Yellow" }
+    Write-Host "Setup.exe Run Date: $ranDate" -ForegroundColor $color
+    Write-Host "Setup.exe Build Number: $($setupLogReviewer.SetupBuildNumber)"
 
+    if ($null -ne $setupLogReviewer.LocalBuildNumber) {
+        Write-Host "Current Exchange Build: $($setupLogReviewer.LocalBuildNumber)"
+
+        if ($setupLogReviewer.LocalBuildNumber -eq $setupLogReviewer.SetupBuildNumber) {
+            Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor "Red"
+        }
+    }
+
+    if ($DelegatedSetup) {
+        $setupLogReviewer | Test-DelegatedInstallerHasProperRights
+        return
+    }
+
+    $prerequisiteCheck = $setupLogReviewer | Test-PrerequisiteCheck
+
+    if ($null -ne $prerequisiteCheck) {
+        $prerequisiteCheck | Write-Result
+        return
+    }
 
 
 
