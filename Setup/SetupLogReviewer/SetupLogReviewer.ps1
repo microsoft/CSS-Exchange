@@ -6,6 +6,7 @@
 #
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue
 #
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true,
         Position = 0)]
@@ -13,17 +14,19 @@ param(
     [switch]$DelegatedSetup
 )
 
-. $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
-. $PSScriptRoot\Checks\Test-KnownIssuesByErrors.ps1
-. $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
-. $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
-. $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
-. $PSScriptRoot\Delegated\Get-DelegatedInstallerHasProperRights.ps1
-
-#Shared Local
-. $PSScriptRoot\..\Shared\New-SetupLogReviewer.ps1
-
 Function Main {
+
+    if (-not ([IO.File]::Exists($SetupLog))) {
+        Write-Error "Could not find file: $SetupLog"
+        return
+    }
+
+
+
+
+
+
+    <#
     try {
 
         if (-not ([IO.File]::Exists($SetupLog))) {
@@ -150,6 +153,13 @@ Function Main {
         Write-Output "$($Error[0].ScriptStackTrace)"
         Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to 'ExToolsFeedback@microsoft.com', or at least notify them of the issue.")
     }
+    #>
 }
 
-Main
+try {
+    Main
+} catch {
+    "$($Error[0].Exception)" | Write-Output
+    "$($Error[0].ScriptStackTrace)" | Write-Output
+    Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to 'ExToolsFeedback@microsoft.com', or at least notify them of the issue.")
+}
