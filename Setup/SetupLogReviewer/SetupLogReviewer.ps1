@@ -6,16 +6,11 @@
 #
 # Use the DelegateSetup switch if the log is from a Delegated Setup and you are running into a Prerequisite Check issue
 #
-[CmdletBinding(DefaultParameterSetName = "Main")]
 param(
     [Parameter(Mandatory = $true,
-        ParameterSetName = "Main",
         Position = 0)]
     [System.IO.FileInfo]$SetupLog,
-    [Parameter(ParameterSetName = "Main")]
-    [switch]$DelegatedSetup,
-    [Parameter(ParameterSetName = "PesterLoading")]
-    [switch]$PesterLoad
+    [switch]$DelegatedSetup
 )
 
 . $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
@@ -30,10 +25,6 @@ param(
 
 Function Main {
     try {
-
-        if ($PesterLoad) {
-            return
-        }
 
         if (-not ([IO.File]::Exists($SetupLog))) {
             Write-Error "Could not find file: $SetupLog"

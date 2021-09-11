@@ -5,8 +5,6 @@ BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
     $parent = [IO.Path]::Combine($parent, "SetupLogReviewer")
     $sut = "SetupLogReviewer.ps1"
-    . "$parent\$sut" -PesterLoad
-
     $Script:sr = "$parent\$sut"
 }
 
