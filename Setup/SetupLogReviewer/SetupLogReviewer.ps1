@@ -15,8 +15,27 @@ param(
 )
 
 . $PSScriptRoot\..\Shared\SetupLogReviewerFunctions.ps1
+. $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
 . $PSScriptRoot\Checks\Write-Result.ps1
+
+Function InvokeTests {
+    [CmdletBinding()]
+    param(
+        [object]$SetupLogReviewer,
+        [string[]]$Tests
+    )
+
+    foreach ($test in $Tests) {
+        $result = $SetupLogReviewer | & $test
+
+        if ($null -ne $result) {
+            $result | Write-Result
+            break
+        }
+    }
+}
 
 Function Main {
 
@@ -33,7 +52,7 @@ Function Main {
     Write-Host "Setup.exe Run Date: $ranDate" -ForegroundColor $color
     Write-Host "Setup.exe Build Number: $($setupLogReviewer.SetupBuildNumber)"
 
-    if ($null -ne $setupLogReviewer.LocalBuildNumber) {
+    if (-not ([string]::IsNullOrEmpty($setupLogReviewer.LocalBuildNumber))) {
         Write-Host "Current Exchange Build: $($setupLogReviewer.LocalBuildNumber)"
 
         if ($setupLogReviewer.LocalBuildNumber -eq $setupLogReviewer.SetupBuildNumber) {
@@ -46,14 +65,11 @@ Function Main {
         return
     }
 
-    $prerequisiteCheck = $setupLogReviewer | Test-PrerequisiteCheck
-
-    if ($null -ne $prerequisiteCheck) {
-        $prerequisiteCheck | Write-Result
-        return
-    }
-
-
+    InvokeTests -SetupLogReviewer $setupLogReviewer -Tests @(
+        "Test-PrerequisiteCheck",
+        "Test-KnownLdifErrors",
+        "Test-KnownOrganizationPreparationErrors"
+    )
 
     <#
     try {

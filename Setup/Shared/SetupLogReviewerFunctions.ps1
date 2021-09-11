@@ -79,13 +79,13 @@ Function GetFirstErrorWithContextToLine {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
         [object]$LogReviewer,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [int]$ToLine,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [int]$Before = 0,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [int]$After = 200
     )
     process {
