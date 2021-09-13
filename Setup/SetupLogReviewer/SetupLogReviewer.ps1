@@ -62,6 +62,15 @@ Function Main {
         }
     }
 
+    $successFullInstall = $setupLogReviewer | SelectStringLastRunOfExchangeSetup -Pattern "The Exchange Server setup operation completed successfully\."
+
+    if ($null -ne $successFullInstall) {
+        Write-Host "The most recent setup attempt completed successfully based off this line:"
+        Write-Host $successFullInstall.Line
+        Write-Host "`r`nNo Action is required."
+        return
+    }
+
     if ($DelegatedSetup) {
         $setupLogReviewer | Test-DelegatedInstallerHasProperRights
         return
