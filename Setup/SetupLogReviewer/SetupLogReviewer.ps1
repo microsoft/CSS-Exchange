@@ -20,6 +20,7 @@ param(
 . $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\Checks\Write-LastErrorInformation.ps1
 . $PSScriptRoot\Checks\Write-Result.ps1
 
 Function InvokeTests {
@@ -81,7 +82,8 @@ Function Main {
         "Test-KnownLdifErrors",
         "Test-KnownOrganizationPreparationErrors",
         "Test-KnownMsiIssuesCheck",
-        "Test-KnownIssuesByErrors"
+        "Test-KnownIssuesByErrors",
+        "Write-LastErrorInformation"
     )
 
     <#
