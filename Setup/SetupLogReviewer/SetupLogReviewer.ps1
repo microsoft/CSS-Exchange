@@ -16,6 +16,7 @@ param(
 
 . $PSScriptRoot\..\Shared\SetupLogReviewerFunctions.ps1
 . $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\Checks\Test-PrerequisiteCheck.ps1
 . $PSScriptRoot\Checks\Write-Result.ps1
@@ -68,7 +69,8 @@ Function Main {
     InvokeTests -SetupLogReviewer $setupLogReviewer -Tests @(
         "Test-PrerequisiteCheck",
         "Test-KnownLdifErrors",
-        "Test-KnownOrganizationPreparationErrors"
+        "Test-KnownOrganizationPreparationErrors",
+        "Test-KnownMsiIssuesCheck"
     )
 
     <#
