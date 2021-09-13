@@ -68,7 +68,7 @@ Function Test-KnownIssuesByErrors {
             }
 
             $actionPlan += "Please replace it, reboot the server and run setup again."
-            $actionPlan | New-ActionPlan
+            New-ActionPlan $actionPlan
             return
         }
         $errorReference = $SetupLogReviewer | SelectStringLastRunOfExchangeSetup "\[ERROR-REFERENCE\] Id=(.+) Component="
