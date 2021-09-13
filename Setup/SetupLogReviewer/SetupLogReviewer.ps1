@@ -15,6 +15,7 @@ param(
 )
 
 . $PSScriptRoot\..\Shared\SetupLogReviewerFunctions.ps1
+. $PSScriptRoot\Checks\Test-KnownIssuesByErrors.ps1
 . $PSScriptRoot\Checks\Test-KnownLdifErrors.ps1
 . $PSScriptRoot\Checks\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\Checks\Test-KnownOrganizationPreparationErrors.ps1
@@ -70,7 +71,8 @@ Function Main {
         "Test-PrerequisiteCheck",
         "Test-KnownLdifErrors",
         "Test-KnownOrganizationPreparationErrors",
-        "Test-KnownMsiIssuesCheck"
+        "Test-KnownMsiIssuesCheck",
+        "Test-KnownIssuesByErrors"
     )
 
     <#
