@@ -155,5 +155,11 @@ Function Get-SetupLogReviewer {
         $logReviewer.LocalBuildNumber = $localInstall.Matches.Groups[1].Value
     }
 
+    $backupLocalInstall = $logReviewer | SelectStringLastRunOfExchangeSetup -Pattern "The backup copy of the previously installed version is '(.+)'\."
+
+    if ($null -ne $backupLocalInstall) {
+        $logReviewer.LocalBuildNumber = $backupLocalInstall.Matches.Groups[1].Value
+    }
+
     return $logReviewer
 }
