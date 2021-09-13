@@ -14,25 +14,25 @@ Describe "Testing SetupLogReviewer" {
         BeforeEach {
             Mock Write-Host {}
             Mock Write-Warning {}
-            Mock Write-Output {}
+            Mock Write-Host {}
             Function Test-GeneralAdditionalContext {
                 param(
                     [bool]$SkipSchema = $false
                 )
-                Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                    -ParameterFilter { $InputObject -like "User Logged On: *" }
-                Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                    -ParameterFilter { $InputObject -like "Setup Running on: *" }
-                Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                    -ParameterFilter { $InputObject -like "Setup Running in Domain: *" }
-                Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                    -ParameterFilter { $InputObject -like "Setup Running in AD Site Name: *" }
+                Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                    -ParameterFilter { $Object -like "User Logged On: *" }
+                Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                    -ParameterFilter { $Object -like "Setup Running on: *" }
+                Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                    -ParameterFilter { $Object -like "Setup Running in Domain: *" }
+                Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                    -ParameterFilter { $Object -like "Setup Running in AD Site Name: *" }
 
                 if (!$SkipSchema) {
-                    Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                        -ParameterFilter { $InputObject -like "Schema Master: *" }
-                    Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                        -ParameterFilter { $InputObject -like "Schema Master in Domain: *" }
+                    Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                        -ParameterFilter { $Object -like "Schema Master: *" }
+                    Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                        -ParameterFilter { $Object -like "Schema Master in Domain: *" }
                 }
             }
         }
@@ -47,8 +47,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "Computer is pending reboot based off the Windows Component is the registry" -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Additional PowerShell Sessions are open. Close them before running setup again." -and $ForegroundColor -eq "Red" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "Schema Master in AD Site Name: *" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Unable to run setup in current domain." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -58,18 +58,18 @@ Describe "Testing SetupLogReviewer" {
 
         It "Additional Context" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "User Logged On: CHILD\Kylo" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "Setup Running on: Solo-E16A.Child.Solo.net" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "Setup Running in Domain: Child" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $Inputobject -eq "Setup Running in AD Site Name: Default-First-Site-Name" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "Schema Master: Solo-DC1.Solo.net" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "Schema Master in Domain: Solo" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "User Logged On: CHILD\Kylo" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Setup Running on: Solo-E16A.Child.Solo.net" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Setup Running in Domain: Child" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Setup Running in AD Site Name: Default-First-Site-Name" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Schema Master: Solo-DC1.Solo.net" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Schema Master in Domain: Solo" }
         }
         It "Prepare AD Failed" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
@@ -79,14 +79,14 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
                 -ParameterFilter { $Object -like "*Run setup with the /prepareAD parameter on a computer in the domain Solo and site Default-First-Site-Name, and wait for replication to complete.*" -and $ForegroundColor -eq "Yellow" }
-            Assert-MockCalled -Exactly -CommandName Write-Output `
+            Assert-MockCalled -Exactly -CommandName Write-Host `
                 -Scope It `
-                -ParameterFilter { $Inputobject -like "Setup Running in AD Site Name*" }
+                -ParameterFilter { $Object -like "Setup Running in AD Site Name*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Warning `
                 -Scope It `
                 -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -like "Schema Master in AD Site Name: *" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "Schema Master in AD Site Name: *" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Computer is pending reboot based off the Session Manager is the registry" -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
@@ -174,7 +174,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local points to an invalid DN or a deleted object*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script with '-OtherWellKnownObjects' to be able address deleted objects type" }
+                -ParameterFilter { $Object -like "*Run the SetupAssist.ps1 script to address the deleted objects type" }
         }
 
         It "INSUFF_ACCESS_RIGHTS CN=Microsoft Exchange System Objects" {
@@ -244,7 +244,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 4 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Couldn't remove product with code 8466eaed-7024-4aee-9d13-f3a55b98d114. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.995.29" }
+                -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.0.995.29" }
         }
 
         It "MSI Issue 2" {
@@ -252,7 +252,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.1367.3" }
+                -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.0.1367.3" }
         }
 
         It "MSI Issue 3" {
@@ -260,7 +260,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* Installing product C:\ExchangeCU23\exchangeserver.msi failed. Fatal error during installation. Error code is 1603." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.0.1130.7" }
+                -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.0.1130.7" }
         }
 
         It "MSI Issue 4" {
@@ -270,7 +270,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 4 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Object reference not set to an instance of an object." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`tNeed to run FixInstallerCache.ps1 against 15.1.1913.5" }
+                -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.1.1913.5" }
         }
     }
 
@@ -278,17 +278,17 @@ Describe "Testing SetupLogReviewer" {
         BeforeEach {
             Mock Write-Host {}
             Mock Write-Warning {}
-            Mock Write-Output {}
+            Mock Write-Host {}
         }
 
         It "Good Run Of Setup" {
             & $sr -SetupLog "$PSScriptRoot\ExchangeSetup_Good.log"
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "The most recent setup attempt completed successfully based off this line:" }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "[04/02/2021 22:15:23.0126] [0] The Exchange Server setup operation completed successfully." }
-            Assert-MockCalled -Exactly 1 -CommandName Write-Output `
-                -ParameterFilter { $InputObject -eq "`r`nNo Action is required." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "The most recent setup attempt completed successfully based off this line:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "[04/02/2021 22:15:23.0126] [0] The Exchange Server setup operation completed successfully." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`r`nNo Action is required." }
         }
     }
 }
