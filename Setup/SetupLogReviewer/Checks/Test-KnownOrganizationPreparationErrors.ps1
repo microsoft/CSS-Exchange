@@ -80,8 +80,10 @@ Function Test-KnownOrganizationPreparationErrors {
 
             if ($msExchangeSecurityGroupsContainerDeleted[0].Pattern -ne $msExchangeSecurityGroupsContainerDeleted[1].Pattern -and
                 $msExchangeSecurityGroupsContainerDeleted[0].LineNumber -eq ($msExchangeSecurityGroupsContainerDeleted[1].LineNumber - 1)) {
-                $msExchangeSecurityGroupsContainerDeleted[0].Line | New-ErrorContext
-                $msExchangeSecurityGroupsContainerDeleted[1].Line | New-ErrorContext
+                $errorContext = @()
+                $errorContext += $msExchangeSecurityGroupsContainerDeleted[0].Line
+                $errorContext += $msExchangeSecurityGroupsContainerDeleted[1].Line
+                $errorContext | New-ErrorContext
                 Write-Verbose "Matched additional information"
                 New-ActionPlan "'OU=Microsoft Exchange Security Groups' was deleted from the root of the domain. We need to have it created again at the root of the domain to continue."
                 return
