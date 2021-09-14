@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\SetupLogReviewerFunctions.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-DelegatedInstallerHasProperRights.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-ExpiredCertificate.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-InvalidWKObjectTargetException.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-IsHybridObjectFoundOnPremises.ps1
