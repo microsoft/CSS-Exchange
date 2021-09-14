@@ -4,7 +4,6 @@
 . $PSScriptRoot\New-ActionPlan.ps1
 Function Test-ExpiredCertificate {
     [CmdletBinding()]
-    [OutputType([System.Boolean])]
     param(
         [Parameter(ValueFromPipeline = $true)]
         [object]

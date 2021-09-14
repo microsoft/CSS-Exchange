@@ -5,7 +5,6 @@
 . $PSScriptRoot\New-ErrorContext.ps1
 Function Test-KnownMsiIssuesCheck {
     [CmdletBinding()]
-    [OutputType([System.Boolean])]
     param(
         [Parameter(ValueFromPipeline = $true)]
         [object]
