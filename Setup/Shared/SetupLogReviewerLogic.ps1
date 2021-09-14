@@ -3,12 +3,13 @@
 
 . $PSScriptRoot\SetupLogReviewerFunctions.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-ExpiredCertificate.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-InvalidWKObjectTargetException.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-IsHybridObjectFoundOnPremises.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownIssuesByErrors.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownLdifErrors.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownMsiIssuesCheck.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownOrganizationPreparationErrors.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-OtherWellKnownObjects.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Write-LastErrorInformation.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Write-Result.ps1
 Function Invoke-SetupLogReviewer {
@@ -74,11 +75,12 @@ Function Invoke-SetupLogReviewer {
     InvokeTests -SetupLogReviewer $setupLogReviewer -Tests @(
         "Test-PrerequisiteCheck",
         "Test-KnownLdifErrors",
-        "Test-KnownOrganizationPreparationErrors",
         "Test-KnownMsiIssuesCheck",
         "Test-KnownIssuesByErrors",
         "Test-ExpiredCertificate",
+        "Test-OtherWellKnownObjects",
         "Test-IsHybridObjectFoundOnPremises",
+        "Test-InvalidWKObjectTargetException",
         "Write-LastErrorInformation"
     )
 }

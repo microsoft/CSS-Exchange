@@ -1,17 +1,37 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-ActionPlan.ps1
-. $PSScriptRoot\New-ErrorContext.ps1
-. $PSScriptRoot\New-WriteObject.ps1
+. $PSScriptRoot\Test-DisabledService.ps1
+. $PSScriptRoot\Test-ExceptionADOperationFailedAlreadyExist.ps1
+. $PSScriptRoot\Test-InitializePermissionsOfDomain.ps1
+. $PSScriptRoot\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
 Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
-    [OutputType([System.Boolean])]
     param(
         [Parameter(ValueFromPipeline = $true)]
         [object]
         $SetupLogReviewer
     )
+    begin {
+        #Use this to call similar tests and break when we find a result that we like
+        Function InvokeTest {
+            [CmdletBinding()]
+            param(
+                [object]$PipeObject,
+                [string[]]$Tests
+            )
+
+            foreach ($test in $Tests) {
+                $result = $PipeObject | & $test
+
+                if ($null -ne $result) {
+                    #put the test back on the pipe and let the main caller write the results
+                    $result
+                    break
+                }
+            }
+        }
+    }
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -24,20 +44,19 @@ Function Test-KnownIssuesByErrors {
 
         $contextOfError = $SetupLogReviewer | GetFirstErrorWithContextToLine $errorReference.LineNumber
 
-        if ($null -ne $contextOfError) {
-            Write-Verbose "Found context around error reference"
-            $serviceNotStarted = $contextOfError | Select-String "System.ComponentModel.Win32Exception: The service cannot be started, either because it is disabled or because it has no enabled devices associated with it"
+        InvokeTest -PipeObject ([PSCustomObject]@{
+                ErrorContext = $contextOfError
+            }) -Tests @(
+            "Test-DisabledService",
+            "Test-ExceptionADOperationFailedAlreadyExist",
+            "Test-MSExchangeSecurityGroupsContainerDeleted"
+        )
 
-            if ($null -ne $serviceNotStarted) {
-                Write-Verbose "Found Service isn't starting"
-                $contextOfError | New-ErrorContext
-                New-ActionPlan @(
-                    "Required Exchange Services are failing to start because it appears to be disabled or dependent services are disabled. Enable them and try again",
-                    "NOTE: Might need to do this often while setup is running",
-                    "Example Command: Get-Service MSExchange* | Set-Service -StartupType Automatic"
-                )
-                return
-            }
-        }
+        InvokeTest -PipeObject ([PSCustomObject]@{
+                ErrorReference   = $errorReference
+                SetupLogReviewer = $SetupLogReviewer
+            }) -Tests @(
+            "Test-InitializePermissionsOfDomain"
+        )
     }
 }
