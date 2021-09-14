@@ -15,7 +15,9 @@ Function Write-LastErrorInformation {
 
         if ($null -ne $lastErrorInfo) {
             New-WriteObject "Failed to determine known cause, but here is your error context that we are seeing" -WriteType "Error"
-            $lastErrorInfo | New-ErrorContext
+            $lastErrorInfo |
+                Where-Object { -not [string]::IsNullOrEmpty($_) } |
+                New-ErrorContext
         }
 
         New-WriteObject "Looks like we weren't able to determine the cause of the issue with Setup. Please run SetupAssist.ps1 on the server."
