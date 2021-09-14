@@ -14,7 +14,7 @@ Function Write-LastErrorInformation {
         $lastErrorInfo = $SetupLogReviewer | GetFirstErrorWithContextToLine -1 30 200
 
         if ($null -ne $lastErrorInfo) {
-            New-WriteObject "Failed to determine known cause, but here is your error context that we are seeing" -WriteType "Red"
+            New-WriteObject "Failed to determine known cause, but here is your error context that we are seeing" -WriteType "Error"
             $lastErrorInfo | New-ErrorContext
         }
 
