@@ -157,6 +157,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "`tReview ldif.err file 'C:\Users\Han\AppData\Local\Temp\ldif.err' to help determine which object in the file 'C:\Windows\Temp\ExchangeSetup\Setup\Data\PostExchange2003_schema80.ldf' was trying to be imported that was causing problems." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tIf you can't find the ldf file in the C:\Windows\Temp location, then find the file in the ISO." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*There was an error while running 'ldifde.exe' to import the schema file 'C:\Windows\Temp\ExchangeSetup\Setup\Data\PostExchange2003_schema80.ldf'. The error code is: 8245.*" -and $ForegroundColor -eq "Yellow" }
         }
 
         It "Wrong Group Type" {
