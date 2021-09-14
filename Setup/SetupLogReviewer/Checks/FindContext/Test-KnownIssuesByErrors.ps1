@@ -1,10 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Test-DisabledService.ps1
-. $PSScriptRoot\Test-ExceptionADOperationFailedAlreadyExist.ps1
-. $PSScriptRoot\Test-InitializePermissionsOfDomain.ps1
-. $PSScriptRoot\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
+. $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
+. $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
+. $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
+. $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
 Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     param(

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-WriteObject.ps1
+. $PSScriptRoot\..\New-WriteObject.ps1
 Function Test-PrerequisiteCheck {
     [CmdletBinding()]
     param(

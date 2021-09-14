@@ -1,8 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-ErrorContext.ps1
-. $PSScriptRoot\New-WriteObject.ps1
+. $PSScriptRoot\..\New-ErrorContext.ps1
+. $PSScriptRoot\..\New-WriteObject.ps1
 Function Write-LastErrorInformation {
     [CmdletBinding()]
     param(

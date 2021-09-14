@@ -1,16 +1,14 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Get-DelegatedInstallerHasProperRights
-#
 # Identifies the issue described in https://support.microsoft.com/en-us/help/2961741
 # by reading the setup log to see if this is why we failed.
 #
 # The article says this was fixed, but the fix was to add the Server Management
 # group. The options are either add the delegated installer to that group, or
 # remove them from whatever group is giving them too many rights (usually Domain Admins).
-. $PSScriptRoot\New-WriteObject.ps1
-Function Get-DelegatedInstallerHasProperRights {
+. $PSScriptRoot\..\New-WriteObject.ps1
+Function Test-DelegatedInstallerHasProperRights {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

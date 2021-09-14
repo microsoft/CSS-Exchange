@@ -2,15 +2,15 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\SetupLogReviewerFunctions.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-ExpiredCertificate.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-InvalidWKObjectTargetException.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-IsHybridObjectFoundOnPremises.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownIssuesByErrors.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownLdifErrors.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownMsiIssuesCheck.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-PrerequisiteCheck.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-OtherWellKnownObjects.ps1
-. $PSScriptRoot\..\SetupLogReviewer\Checks\Write-LastErrorInformation.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-ExpiredCertificate.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-InvalidWKObjectTargetException.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-IsHybridObjectFoundOnPremises.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-KnownIssuesByErrors.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-KnownLdifErrors.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-KnownMsiIssuesCheck.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-OtherWellKnownObjects.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Write-LastErrorInformation.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Write-Result.ps1
 Function Invoke-SetupLogReviewer {
     [CmdletBinding()]

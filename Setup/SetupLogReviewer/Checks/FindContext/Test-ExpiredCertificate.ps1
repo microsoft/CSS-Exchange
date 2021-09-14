@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-ActionPlan.ps1
+. $PSScriptRoot\..\New-ActionPlan.ps1
 Function Test-ExpiredCertificate {
     [CmdletBinding()]
     param(
