@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\SetupLogReviewerFunctions.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-ExpiredCertificate.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\Test-IsHybridObjectFoundOnPremises.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownIssuesByErrors.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownLdifErrors.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Test-KnownMsiIssuesCheck.ps1
@@ -75,6 +77,8 @@ Function Invoke-SetupLogReviewer {
         "Test-KnownOrganizationPreparationErrors",
         "Test-KnownMsiIssuesCheck",
         "Test-KnownIssuesByErrors",
+        "Test-ExpiredCertificate",
+        "Test-IsHybridObjectFoundOnPremises",
         "Write-LastErrorInformation"
     )
 }
