@@ -12,6 +12,7 @@ Function Test-KnownMsiIssuesCheck {
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        #Because not all issues of this type contain [Error-Reference] in the log, need to do it this way.
         $contextOfError = $SetupLogReviewer | GetFirstErrorWithContextToLine -1 2
 
         if ($null -eq $contextOfError) {
