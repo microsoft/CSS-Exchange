@@ -27,6 +27,7 @@ Function Test-KnownIssuesByErrors {
                 if ($null -ne $result) {
                     #put the test back on the pipe and let the main caller write the results
                     $result
+                    $Script:ReturnNow = $true
                     break
                 }
             }
@@ -51,6 +52,10 @@ Function Test-KnownIssuesByErrors {
             "Test-ExceptionADOperationFailedAlreadyExist",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
         )
+
+        if ($Script:ReturnNow) {
+            return
+        }
 
         InvokeTest -PipeObject ([PSCustomObject]@{
                 ErrorReference   = $errorReference
