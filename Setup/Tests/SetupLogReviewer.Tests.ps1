@@ -37,7 +37,7 @@ Describe "Testing SetupLogReviewer" {
             }
         }
 
-        It "Prepare AD with Reboot As Well" {
+        It "Prepare AD with Reboot and Remote Registry As Well" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_AD_Prep_Reboot.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Warning `
                 -ParameterFilter { $Message -eq "Setup failed to validate AD environment level. This is the internal exception that occurred:" }
@@ -53,6 +53,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "Unable to run setup in current domain." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Unable to run setup in the current AD Site" -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Failed to run '[Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, [System.Net.Dns]::GetHostEntry([System.Net.Dns]::GetHostName()).HostName)' on this computer causing setup to fail" -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 
