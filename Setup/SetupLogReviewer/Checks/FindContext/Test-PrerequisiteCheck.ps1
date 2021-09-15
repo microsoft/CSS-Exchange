@@ -61,6 +61,11 @@ Function Test-PrerequisiteCheck {
             }
         }
 
+        if (($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "RemoteRegException" -SettingOrRule "Rule") -eq "True") {
+            New-WriteObject "Failed to run '[Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, [System.Net.Dns]::GetHostEntry([System.Net.Dns]::GetHostName()).HostName)' on this computer causing setup to fail" -ForegroundColor "Red"
+            $returnNow = $true
+        }
+
         if ($returnNow) {
             $foundKnownIssue = $true
             return
