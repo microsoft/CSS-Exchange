@@ -331,4 +331,19 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -like "*Check access rights to this location OR use PROCMON to determine why this is occurring." }
         }
     }
+
+    Context "Error Context" {
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
+        It "Missing Grammars Directory" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_MissingDirectory.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.Management.Automation.ItemNotFoundException: Cannot find path 'C:\Program Files\Microsoft\Exchange Server\V15\UnifiedMessaging\grammars' because it does not exist." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Create the directory: `"C:\Program Files\Microsoft\Exchange Server\V15\UnifiedMessaging\grammars`"" }
+        }
+    }
 }
