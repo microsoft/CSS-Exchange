@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
+. $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
 Function Test-KnownIssuesByErrors {
     [CmdletBinding()]
@@ -61,7 +62,8 @@ Function Test-KnownIssuesByErrors {
                 ErrorReference   = $errorReference
                 SetupLogReviewer = $SetupLogReviewer
             }) -Tests @(
-            "Test-InitializePermissionsOfDomain"
+            "Test-InitializePermissionsOfDomain",
+            "Test-FipsUpgradeConfiguration"
         )
     }
 }
