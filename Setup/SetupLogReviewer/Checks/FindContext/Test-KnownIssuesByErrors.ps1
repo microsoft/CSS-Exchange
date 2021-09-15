@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
+. $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
@@ -51,6 +52,7 @@ Function Test-KnownIssuesByErrors {
             }) -Tests @(
             "Test-DisabledService",
             "Test-ExceptionADOperationFailedAlreadyExist",
+            "Test-MissingDirectory",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
         )
 
