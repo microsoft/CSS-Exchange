@@ -131,6 +131,27 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "/PrepareAD is required and user SOLO\Kylo isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
+
+        It "DC Out of Site - 1" {
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\DCOutOfSite\ExchangeSetup_DC_Site_1.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Selected domain controller that isn't in the same site as the Exchange Server." -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`r`nDomain Controller: 'DC2.Solo.local'" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Domain Controller Site: 'NULL VALUE'" }
+            Test-GeneralAdditionalContext -SkipSchema $true
+        }
+
+        It "DC Out of Site - 2" {
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\DCOutOfSite\ExchangeSetup_DC_Site_2.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Selected domain controller that isn't in the same site as the Exchange Server." -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "`r`nDomain Controller: 'DC2.Child.Solo.local'" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Domain Controller Site: 'SiteA'" }
+        }
     }
 
     Context "Known Issues" {
