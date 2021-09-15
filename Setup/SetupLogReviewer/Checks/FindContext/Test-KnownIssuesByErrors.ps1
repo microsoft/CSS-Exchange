@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
+. $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
@@ -51,6 +52,7 @@ Function Test-KnownIssuesByErrors {
                 ErrorContext = $contextOfError
             }) -Tests @(
             "Test-DisabledService",
+            "Test-EndpointMapper",
             "Test-ExceptionADOperationFailedAlreadyExist",
             "Test-MissingDirectory",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
