@@ -390,6 +390,7 @@
 [03/06/2021 15:15:25.0160] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0177] [1] Ending processing Get-ProcessModule
 [03/05/2021 17:10:10.0276] [1] Evaluated [Rule:RemoteRegException] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:22.2862107]
+[03/06/2021 22:00:06.0231] [1] Evaluated [Rule:MSDTCStopped] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:01.6709877]
 [03/06/2021 15:15:25.0182] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (powershell)"] [ParentValue:"<NULL>"] [Thread:69] [Duration:00:00:06.7414209]
 [03/06/2021 15:15:25.0183] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (svchost)"] [ParentValue:"<NULL>"] [Thread:68] [Duration:00:00:00]
 [03/06/2021 15:15:25.0183] [1] Finished [Setting:OpenProcesses] [Duration:00:00:06.7424217]

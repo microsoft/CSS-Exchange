@@ -66,6 +66,10 @@ Function Test-PrerequisiteCheck {
             $returnNow = $true
         }
 
+        if (($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "MSDTCStopped" -SettingOrRule "Rule") -eq "True") {
+            New-WriteObject "The MSDTC Service is currently stopped. Start it before running setup again." -ForegroundColor "Red"
+        }
+
         if ($returnNow) {
             $foundKnownIssue = $true
             return
