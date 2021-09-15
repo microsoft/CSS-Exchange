@@ -293,4 +293,21 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "`r`nNo Action is required." }
         }
     }
+
+    Context "Error Reference" {
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
+        It "FIPS Access Denied" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_FIPS_AccessDenied.log"
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling `"Upgrade`" with `"0`" argument(s): `"Access to the path is denied.`"" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Failed to access the path and upgrade '\V15\FIP-FS\Data\Configuration.xml'" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Check access rights to this location OR use PROCMON to determine why this is occurring." }
+        }
+    }
 }
