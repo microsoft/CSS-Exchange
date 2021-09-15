@@ -359,5 +359,15 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Start the Windows Firewall Service, as this is required to run setup." }
         }
+
+        It "Failed Mount Database" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Failed_Mount_Database.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.InvalidOperationException: Failed to mount database `"ExSvr1 - DB1`". Error: An Active Manager operation failed. Error: The database action failed.*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.MountDatabaseDirectEx(String serverToRpc, Guid dbGuid, AmMountArg mountArg)" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Determine why you aren't able to mount the database and have it mounted prior to running setup again." }
+        }
     }
 }
