@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
+. $PSScriptRoot\..\ErrorContext\Test-MountDatabaseFailure.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
@@ -55,6 +56,7 @@ Function Test-KnownIssuesByErrors {
             "Test-EndpointMapper",
             "Test-ExceptionADOperationFailedAlreadyExist",
             "Test-MissingDirectory",
+            "Test-MountDatabaseFailure",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
         )
 
