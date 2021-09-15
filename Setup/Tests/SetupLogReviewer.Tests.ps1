@@ -349,5 +349,15 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Create the directory: `"C:\Program Files\Microsoft\Exchange Server\V15\UnifiedMessaging\grammars`"" }
         }
+
+        It "Firewall Endpoint Mapper" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Firewall_Endpoint.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.Runtime.InteropServices.COMException (0x800706D9): There are no more endpoints available from the endpoint mapper. (Exception from HRESULT: 0x800706D9)" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* at Interop.NetFw.INetFwRules.Add(NetFwRule rule)" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Start the Windows Firewall Service, as this is required to run setup." }
+        }
     }
 }
