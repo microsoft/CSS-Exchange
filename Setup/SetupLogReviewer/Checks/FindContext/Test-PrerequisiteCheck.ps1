@@ -37,6 +37,30 @@ Function Test-PrerequisiteCheck {
             $returnNow = $true
         }
 
+        if (($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "DomainControllerIsOutOfSite" -SettingOrRule "Rule") -eq "True") {
+            New-WriteObject "Selected domain controller that isn't in the same site as the Exchange Server." -ForegroundColor "Red"
+            $returnNow = $true
+            $domainController = $SetupLogReviewer | GetEvaluatedSettingOrRule "DomainController" "Setting" "."
+            $domainControllerSite = $SetupLogReviewer | GetEvaluatedSettingOrRule "DomainControllerSiteName" "Setting" "."
+
+            if ($null -ne $domainController) {
+                $dcValue = $domainController.Matches.Groups[1].Value
+            } else {
+                $dcValue = "Failed to find DC Value"
+            }
+
+            if ($null -ne $domainControllerSite) {
+                $dcSite = $domainControllerSite.Matches.Groups[1].Value
+            } else {
+                $dcSite = "NULL VALUE"
+            }
+            if ($null -ne $domainController -or
+                $null -ne $domainControllerSite) {
+                New-WriteObject "`r`nDomain Controller: '$dcValue'"
+                New-WriteObject "Domain Controller Site: '$dcSite'"
+            }
+        }
+
         if ($returnNow) {
             $foundKnownIssue = $true
             return
