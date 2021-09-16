@@ -124,7 +124,7 @@ foreach ($file in $scriptFiles) {
     for ($i = 0; $i -lt $maxRetries; $i++) {
 
         try {
-            $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
+            $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -ErrorAction Stop
             if ($null -ne $analyzerResults) {
                 $filesFailed = $true
                 $analyzerResults | Format-Table -AutoSize

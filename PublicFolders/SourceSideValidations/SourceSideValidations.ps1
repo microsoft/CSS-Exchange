@@ -42,8 +42,8 @@ param (
 . $PSScriptRoot\Tests\Permission\AllFunctions.ps1
 . $PSScriptRoot\Get-FolderData.ps1
 . $PSScriptRoot\JobQueue.ps1
-. $PSScriptRoot\..\..\..\Shared\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
 if (-not $SkipVersionCheck) {
     if (Test-ScriptVersion -AutoUpdate) {
