@@ -27,6 +27,13 @@ Function Test-KnownMsiIssuesCheck {
             return
         }
 
+        $productError = $contextOfError | Select-String -Pattern "Unable to remove product with code (.+). Fatal error during installation"
+
+        if ($null -ne $productError) {
+            Write-Verbose "Found failure to remove MSI"
+            return
+        }
+
         $installingProductError = $contextOfError | Select-String -Pattern "\[ERROR\] Installing product .+ failed\. The installation source for this product is not available"
 
         if ($null -ne $installingProductError) {
