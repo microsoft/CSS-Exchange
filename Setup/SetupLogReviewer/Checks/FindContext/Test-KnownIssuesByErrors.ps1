@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
+. $PSScriptRoot\..\ErrorContext\Test-FailedSearchFoundation.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MountDatabaseFailure.ps1
@@ -55,6 +56,7 @@ Function Test-KnownIssuesByErrors {
             "Test-DisabledService",
             "Test-EndpointMapper",
             "Test-ExceptionADOperationFailedAlreadyExist",
+            "Test-FailedSearchFoundation",
             "Test-MissingDirectory",
             "Test-MountDatabaseFailure",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
