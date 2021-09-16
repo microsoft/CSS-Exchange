@@ -9,6 +9,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-MissingHomeMdb.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MountDatabaseFailure.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
+. $PSScriptRoot\..\ErrorContext\Test-VirtualDirectoryFailure.ps1
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
 Function Test-KnownIssuesByErrors {
@@ -61,7 +62,8 @@ Function Test-KnownIssuesByErrors {
             "Test-MissingDirectory",
             "Test-MissingHomeMdb",
             "Test-MountDatabaseFailure",
-            "Test-MSExchangeSecurityGroupsContainerDeleted"
+            "Test-MSExchangeSecurityGroupsContainerDeleted",
+            "Test-VirtualDirectoryFailure"
         )
 
         if ($Script:ReturnNow) {
