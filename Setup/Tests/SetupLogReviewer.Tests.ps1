@@ -327,6 +327,42 @@ Describe "Testing SetupLogReviewer" {
         }
     }
 
+    Context "Virtual Directory" {
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
+        AfterEach {
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run SetupAssist on the server and address the issues it calls out with the virtual directories." }
+        }
+
+        It "Virtual Directory 1" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_1.log"
+            Assert-MockCalled -Exactly 5 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*The operation couldn't be performed because object 'ExSvr1\OWA (Exchange Back End)' couldn't be found on 'DC2.Solo.local'." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"Microsoft.Exchange.Configuration.Tasks.ManagementObjectNotFoundException: The operation couldn't be performed because object 'ExSvr1\OWA (Exchange Back End)' couldn't be found on*" -and $ForegroundColor -eq "Yellow" }
+        }
+
+        It "Virtual Directory 2" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_2.log"
+            Assert-MockCalled -Exactly 6 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.ArgumentException: The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'." -and $ForegroundColor -eq "Yellow" }
+        }
+
+        It "Virtual Directory 3" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_3.log"
+            Assert-MockCalled -Exactly 6 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Process execution failed with exit code 50." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"Microsoft.Exchange.Configuration.Tasks.TaskException: Process execution failed with exit code 50." -and $ForegroundColor -eq "Yellow" }
+        }
+    }
+
     Context "Error Reference" {
         BeforeEach {
             Mock Write-Host {}
