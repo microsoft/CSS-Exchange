@@ -399,5 +399,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 4. Now install the Search component with this command: .\installconfig.ps1 -action I -datafolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
         }
+
+        It "Missing HomeMdb" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Missing_HomeMdb.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "[03/07/2021 16:22:39.0469] [2] [ERROR] Database is mandatory on UserMailbox." -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Missing homeMdb on critical mailbox. Run SetupAssist.ps1 to find all problem mailboxes that needs to be addressed." }
+        }
     }
 }
