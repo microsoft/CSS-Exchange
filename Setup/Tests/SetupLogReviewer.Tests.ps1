@@ -369,5 +369,27 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Determine why you aren't able to mount the database and have it mounted prior to running setup again." }
         }
+
+        It "Search Foundation Failure" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Search_Foundation_Failure.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.Exception: Failure configuring SearchFoundation through installconfig.ps1*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*- Make sure the Microsoft Exchange Search Host Controller and Microsoft Exchange Search service is not disabled and started." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*- Make sure that all 4 noderunner.exe processes are able to start and run. If they aren't able to troubleshoot that." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*- Try to manually configure the Search Foundation by following these steps, and troubleshoot why it might be failing before trying setup again:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* 1. Stop the Microsoft Exchange Search and Microsoft Exchange Search Host Controller services." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* 2. Remove all subfolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* 3. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "* 4. Now install the Search component with this command: .\installconfig.ps1 -action I -datafolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+        }
     }
 }
