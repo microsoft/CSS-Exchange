@@ -6,6 +6,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-FailedSearchFoundation.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
+. $PSScriptRoot\..\ErrorContext\Test-MissingHomeMdb.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MountDatabaseFailure.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
@@ -58,6 +59,7 @@ Function Test-KnownIssuesByErrors {
             "Test-ExceptionADOperationFailedAlreadyExist",
             "Test-FailedSearchFoundation",
             "Test-MissingDirectory",
+            "Test-MissingHomeMdb",
             "Test-MountDatabaseFailure",
             "Test-MSExchangeSecurityGroupsContainerDeleted"
         )
