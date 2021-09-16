@@ -299,6 +299,14 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.1.1913.5" }
         }
+
+        It "MSI Issue 5" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_5.log"
+            Assert-MockCalled -Exactly 4 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603.*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.1.2242.4" }
+        }
     }
 
     Context "Good Test Case" {
