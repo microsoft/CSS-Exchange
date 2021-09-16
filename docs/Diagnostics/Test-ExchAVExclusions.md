@@ -5,7 +5,7 @@ parent: Diagnostics
 
 ## Test-ExchAVExclusions.ps1
 
-Download the latest release: [Test-ExchAVExclusions.ps1.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchAVExclusions.ps1)
+Download the latest release: [Test-ExchAVExclusions.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchAVExclusions.ps1)
 
 Assists with testing Exchange Servers to determine if AV Exclusions have been properly set according to our documentation.
 
