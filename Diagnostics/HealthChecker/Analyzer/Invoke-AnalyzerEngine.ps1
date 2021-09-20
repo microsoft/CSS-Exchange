@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
@@ -374,7 +375,7 @@ Function Invoke-AnalyzerEngine {
         $serverMaintenance.GetClusterNode.State -eq "Up") -and
         ($null -eq $serverMaintenance.GetMailboxServer -or
             ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
-        $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Unrestricted"))) {
+        $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy.ToString() -eq "Unrestricted"))) {
         $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Server Maintenance" -Details "Server is not in Maintenance Mode" `
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green" `
@@ -1163,6 +1164,7 @@ Function Invoke-AnalyzerEngine {
 
     $analyzedResults = Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
         -DisplayGroupingKey $keyFrequentConfigIssues `
+        -DisplayTestingValue $osInformation.NetworkInformation.RpcMinConnectionTimeout `
         -HtmlName "RPC Minimum Connection Timeout" `
         -AnalyzedInformation $analyzedResults
 
