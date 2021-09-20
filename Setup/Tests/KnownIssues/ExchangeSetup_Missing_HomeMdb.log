@@ -1,0 +1,197 @@
+[03/07/2021 16:10:31.0871] [0] **********************************************
+[03/07/2021 16:10:31.0877] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/07/2021 16:10:31.0877] [0] **********************************************
+[03/07/2021 16:10:31.0879] [0] Local time zone: (UTC-08:00) Pacific Time (US & Canada).
+[03/07/2021 16:10:31.0880] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/07/2021 16:10:31.0880] [0] Setup version: 15.0.1497.2.
+[03/07/2021 16:10:31.0881] [0] Logged on user: SOLO\Han.
+[03/07/2021 16:10:31.0909] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/07/2021 16:10:31.0909] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/07/2021 16:10:31.0909] [0] Command Line Parameter Name='sourcedir', Value='c:\bin\Exchange2013-x64-cu23 (1)'.
+[03/07/2021 16:10:32.0301] [0] RuntimeAssembly was started with the following command: '/IAcceptExchangeServerLicenseTerms /Mode:Upgrade /sourcedir:c:\bin\Exchange2013-x64-cu23 (1)'.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\HubTransportRole, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\ClientAccessRole, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\Hygiene, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\MailboxRole, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\UnifiedMessagingRole, wasn't found.
+[03/07/2021 16:10:32.0306] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14\AdminToolsRole, wasn't found.
+[03/07/2021 16:10:32.0311] [0] Copying Files...
+[03/07/2021 16:10:32.0316] [0] Starting copy from c:\bin\Exchange2013-x64-cu23 (1)\Setup\ServerRoles\Common to C:\WINDOWS\Temp\ExchangeSetup.
+[03/07/2021 16:10:41.0659] [0] Finished copy from c:\bin\Exchange2013-x64-cu23 (1)\Setup\ServerRoles\Common to C:\WINDOWS\Temp\ExchangeSetup.
+[03/07/2021 16:10:41.0660] [0] File copy complete. Setup will now collect additional information needed for installation.
+[03/07/2021 16:10:41.0663] [0] Assembly dll file location is C:\WINDOWS\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/07/2021 16:10:42.0591] [0] Setup is choosing the domain controller to use
+[03/07/2021 16:10:42.0731] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Child.Solo.local
+[03/07/2021 16:10:43.0124] [0] The MSExchangeADTopology-persisted domain controller DC1.Child.Solo.local is not in the local domain; setup will pick another domain controller.
+[03/07/2021 16:10:43.0124] [0] Setup is choosing a local domain controller...
+[03/07/2021 16:10:43.0230] [0] Setup has chosen the local domain controller DC2.Solo.local for initial queries
+[03/07/2021 16:10:43.0351] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/07/2021 16:10:43.0351] [0] Setup is choosing a global catalog...
+[03/07/2021 16:10:43.0388] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/07/2021 16:10:43.0407] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/07/2021 16:10:43.0407] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/07/2021 16:10:43.0410] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 16:10:43.0414] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 16:10:43.0429] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/07/2021 16:10:43.0494] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 16:10:43.0504] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 16:10:43.0505] [0] The following datacenter roles are unpacked:
+[03/07/2021 16:10:43.0506] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 16:10:43.0508] [0] The local server has some Exchange files installed.
+[03/07/2021 16:10:43.0522] [0] Server Name=ExSvr1
+[03/07/2021 16:10:43.0536] [0] Setup will use the path 'c:\bin\Exchange2013-x64-cu23 (1)' for installing Exchange.
+[03/07/2021 16:10:43.0537] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 16:10:43.0537] [0] 'BridgeheadRole' is installed on the server object.
+[03/07/2021 16:10:43.0537] [0] 'ClientAccessRole' is installed on the server object.
+[03/07/2021 16:10:43.0537] [0] 'MailboxRole' is installed on the server object.
+[03/07/2021 16:10:43.0537] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/07/2021 16:10:43.0537] [0] 'CafeRole' is installed on the server object.
+[03/07/2021 16:10:43.0537] [0] 'FrontendTransportRole' is installed on the server object.
+[03/07/2021 16:10:43.0540] [0] The backup copy of the install path is 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/07/2021 16:10:43.0541] [0] The backup copy of the previously installed version is '15.0.1365.1'.
+[03/07/2021 16:10:43.0542] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/07/2021 16:10:57.0602] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/07/2021 16:10:57.0602] [0] Active Directory Initialization status : 'True'.
+[03/07/2021 16:10:57.0603] [0] Schema Update Required Status : 'False'.
+[03/07/2021 16:10:57.0603] [0] Organization Configuration Update Required Status : 'False'.
+[03/07/2021 16:10:57.0603] [0] Domain Configuration Update Required Status : 'False'.
+[03/07/2021 16:10:57.0603] [0] The locally installed version is 15.0.1497.2.
+[03/07/2021 16:10:57.0604] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/07/2021 16:10:57.0676] [0] Setup is determining what organization-level operations to perform.
+[03/07/2021 16:10:57.0677] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/07/2021 16:10:57.0677] [0] The installed MSI is current for this version of Setup.
+[03/07/2021 16:10:57.0686] [0] RootDataHandler has 1 DataHandlers
+[03/07/2021 16:10:57.0686] [0]      Mailbox role: Transport service
+[03/07/2021 16:10:57.0686] [0]      Client Access role: Front End Transport service
+[03/07/2021 16:10:57.0686] [0]      Mailbox role: Client Access service
+[03/07/2021 16:10:57.0686] [0]      Mailbox role: Unified Messaging service
+[03/07/2021 16:10:57.0687] [0]      Mailbox role: Mailbox service
+[03/07/2021 16:10:57.0687] [0]      Management tools
+[03/07/2021 16:10:57.0687] [0]      Client Access role: Client Access Front End service
+[03/07/2021 16:10:57.0695] [0] Validating options for the 7 requested roles
+[03/07/2021 16:10:57.0695] [0] UpgradeModeDataHandler has 9 handlers and 9 work units
+[03/07/2021 16:10:57.0716] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/07/2021 16:10:57.0781] [0] **************
+[03/07/2021 16:11:02.0282] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00]
+[03/07/2021 16:22:39.0468] [2] Processing object "SoloORG.COM/Users/DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852}".
+[03/07/2021 16:22:39.0469] [2] [ERROR] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0470] [2] [ERROR] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0505] [2] [ERROR] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0508] [2] [WARNING] The object SoloORG.COM/Users/DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852} has been corrupted, and it's in an inconsistent state. The following validation errors happened:
+[03/07/2021 16:22:39.0509] [2] [WARNING] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0509] [2] [WARNING] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0510] [2] Ending processing get-mailbox
+[03/07/2021 16:22:39.0511] [2] Ending processing set-mailbox
+[03/07/2021 16:22:39.0523] [2] Active Directory session settings for 'Get-Mailbox' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/07/2021 16:22:39.0523] [2] User specified parameters:  -Filter:'name -eq $name' -IgnoreDefaultScope:'True' -ResultSize:'1'
+[03/07/2021 16:22:39.0523] [2] Beginning processing get-mailbox
+[03/07/2021 16:22:39.0526] [2] Searching objects of type "ADUser" with filter "(&((&((|((RecipientTypeDetails Equal RoomMailbox)(RecipientTypeDetails Equal EquipmentMailbox)(RecipientTypeDetails Equal LegacyMailbox)(RecipientTypeDetails Equal LinkedMailbox)(RecipientTypeDetails Equal LinkedRoomMailbox)(RecipientTypeDetails Equal UserMailbox)(RecipientTypeDetails Equal DiscoveryMailbox)(RecipientTypeDetails Equal TeamMailbox)(RecipientTypeDetails Equal SharedMailbox)(RecipientTypeDetails Equal GroupMailbox)))(Name Equal DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})))(!((BitwiseAnd(ProvisioningFlags,131072))))))", scope "SubTree" under the root "$null".
+[03/07/2021 16:22:39.0527] [2] Request filter in Get Task: (&(!(!(objectClass=user)))(objectCategory=person)(mailNickname=*)(msExchHomeServerName=*)(!(msExchRecipientTypeDetails=8388608))(!(msExchRecipientTypeDetails=4398046511104))(!(msExchRecipientTypeDetails=16777216))(name=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})(!(msExchProvisioningFlags:1.2.840.113556.1.4.803:=131072))(!(msExchCU=*))(!(!(objectClass=user)))(objectCategory=person)(|(&(msExchVersion<=2251799813685248)(!(msExchVersion=2251799813685248)))(!(msExchVersion=*)))).
+[03/07/2021 16:22:39.0527] [2] Internal Query Filter in Get Task: (&((&((|((RecipientTypeDetails Equal RoomMailbox)(RecipientTypeDetails Equal EquipmentMailbox)(RecipientTypeDetails Equal LegacyMailbox)(RecipientTypeDetails Equal LinkedMailbox)(RecipientTypeDetails Equal LinkedRoomMailbox)(RecipientTypeDetails Equal UserMailbox)(RecipientTypeDetails Equal DiscoveryMailbox)(RecipientTypeDetails Equal TeamMailbox)(RecipientTypeDetails Equal SharedMailbox)(RecipientTypeDetails Equal GroupMailbox)))(Name Equal DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})))(!((BitwiseAnd(ProvisioningFlags,131072)))))).
+[03/07/2021 16:22:39.0532] [2] Previous operation run on global catalog server 'DC2.Solo.local'.
+[03/07/2021 16:22:39.0532] [2] Preparing to output objects. The maximum size of the result set is "1".
+[03/07/2021 16:22:39.0536] [2] [WARNING] The object SoloORG.COM/Users/DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852} has been corrupted, and it's in an inconsistent state. The following validation errors happened:
+[03/07/2021 16:22:39.0536] [2] [WARNING] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0537] [2] [WARNING] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0538] [2] Ending processing get-mailbox
+[03/07/2021 16:22:39.0540] [1] The following 2 error(s) occurred during task execution:
+[03/07/2021 16:22:39.0540] [1] 0.  ErrorRecord: Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0540] [1] 0.  ErrorRecord: Microsoft.Exchange.Data.DataValidationException: Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0549] [1] [ERROR] The following error was generated when "$error.Clear();
+          if (($RoleIsDatacenter -ne $true) -and ($RoleIsDatacenterDedicated -ne $true))
+          {
+            if (test-ExchangeServersWriteAccess -DomainController $RoleDomainController -ErrorAction SilentlyContinue)
+            {
+              # upgrade the discovery mailboxes to R5 version, this will fix the RecipientDisplayType property of the discovery mailbox which was wrong in R4.
+              get-mailbox -RecipientTypeDetails DiscoveryMailbox -DomainController $RoleDomainController | where {$_.IsValid -eq $false} | set-mailbox -DomainController $RoleDomainController
+              $name = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxUniqueName;
+              $dispname = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxDisplayName;
+              $mbxs = @( get-mailbox -Filter {name -eq $name} -IgnoreDefaultScope -resultSize 1 );
+              if ( $mbxs.length -eq 0)
+              {
+                $dbs = @(get-MailboxDatabase -Server:$RoleFqdnOrName -DomainController $RoleDomainController);
+                if($dbs.Length -ne 0)
+                {
+                  $mbxUser = @(get-user -Filter {name -eq $name} -IgnoreDefaultScope -ResultSize 1);
+                  if ($mbxUser.Length -ne 0)
+                  {
+                    enable-mailbox -Discovery -identity $mbxUser[0] -DisplayName $dispname -database $dbs[0].Identity;
+                  }
+                }
+              }
+            }
+            else
+            {
+              write-exchangesetuplog -info "Skipping creating Discovery Search Mailbox because of insufficient permission."
+            }
+          }
+        " was run: "Microsoft.Exchange.Data.DataValidationException: Database is mandatory on UserMailbox.".
+[03/07/2021 16:22:39.0549] [1] [ERROR] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0549] [1] 1.  ErrorRecord: Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0549] [1] 1.  ErrorRecord: Microsoft.Exchange.Data.DataValidationException: Database is mandatory on UserMailbox.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target, Boolean reThrow)
+   at Microsoft.Exchange.Configuration.Tasks.DataAccessTask`1.Validate(TDataObject dataObject)
+   at Microsoft.Exchange.Configuration.Tasks.SetTaskBase`1.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.SetRecipientObjectTask`3.InternalValidate()
+   at Microsoft.Exchange.Management.Common.SetMailEnabledRecipientObjectTask`3.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetUserBase`2.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetMailboxBase`2.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetMailbox.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/07/2021 16:22:39.0549] [1] [ERROR] The following error was generated when "$error.Clear();
+          if (($RoleIsDatacenter -ne $true) -and ($RoleIsDatacenterDedicated -ne $true))
+          {
+            if (test-ExchangeServersWriteAccess -DomainController $RoleDomainController -ErrorAction SilentlyContinue)
+            {
+              # upgrade the discovery mailboxes to R5 version, this will fix the RecipientDisplayType property of the discovery mailbox which was wrong in R4.
+              get-mailbox -RecipientTypeDetails DiscoveryMailbox -DomainController $RoleDomainController | where {$_.IsValid -eq $false} | set-mailbox -DomainController $RoleDomainController
+              $name = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxUniqueName;
+              $dispname = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxDisplayName;
+              $mbxs = @( get-mailbox -Filter {name -eq $name} -IgnoreDefaultScope -resultSize 1 );
+              if ( $mbxs.length -eq 0)
+              {
+                $dbs = @(get-MailboxDatabase -Server:$RoleFqdnOrName -DomainController $RoleDomainController);
+                if($dbs.Length -ne 0)
+                {
+                  $mbxUser = @(get-user -Filter {name -eq $name} -IgnoreDefaultScope -ResultSize 1);
+                  if ($mbxUser.Length -ne 0)
+                  {
+                    enable-mailbox -Discovery -identity $mbxUser[0] -DisplayName $dispname -database $dbs[0].Identity;
+                  }
+                }
+              }
+            }
+            else
+            {
+              write-exchangesetuplog -info "Skipping creating Discovery Search Mailbox because of insufficient permission."
+            }
+          }
+        " was run: "Microsoft.Exchange.Data.DataValidationException: Database is mandatory on UserMailbox.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target, Boolean reThrow)
+   at Microsoft.Exchange.Configuration.Tasks.DataAccessTask`1.Validate(TDataObject dataObject)
+   at Microsoft.Exchange.Configuration.Tasks.SetTaskBase`1.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.SetRecipientObjectTask`3.InternalValidate()
+   at Microsoft.Exchange.Management.Common.SetMailEnabledRecipientObjectTask`3.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetUserBase`2.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetMailboxBase`2.InternalValidate()
+   at Microsoft.Exchange.Management.RecipientTasks.SetMailbox.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/07/2021 16:22:39.0550] [1] [ERROR] Database is mandatory on UserMailbox.
+[03/07/2021 16:22:39.0550] [1] [ERROR-REFERENCE] Id=SystemAttendantDependent___590e51a8a98846d3a7fa8ddcc5472c74 Component=EXCHANGE14:\Current\Release\PIM Storage\Discovery
+[03/07/2021 16:22:39.0550] [1] Setup is stopping now because of one or more critical errors.
+[03/07/2021 16:22:39.0550] [1] Finished executing component tasks.
+[03/07/2021 16:22:39.0605] [1] Ending processing Install-MailboxRole
+[03/07/2021 16:22:39.0608] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/07/2021 16:22:39.0608] [0] CurrentResult launcherbase.maincore:90: 1
+[03/07/2021 16:22:39.0608] [0] CurrentResult console.startmain:52: 1
+[03/07/2021 16:22:39.0608] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/07/2021 16:22:39.0609] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/07/2021 16:22:39.0610] [0] CurrentResult main.run:235: 1
+[03/07/2021 16:22:39.0610] [0] CurrentResult setupbase.maincore:396: 1
+[03/07/2021 16:22:39.0610] [0] End of Setup
+[03/07/2021 16:22:39.0610] [0] **********************************************

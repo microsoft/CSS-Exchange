@@ -1,0 +1,246 @@
+[03/07/2021 18:24:37.0773] [0] **********************************************
+[03/07/2021 18:24:37.0792] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/07/2021 18:24:37.0792] [0] **********************************************
+[03/07/2021 18:24:37.0798] [0] Local time zone: (UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi.
+[03/07/2021 18:24:37.0798] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/07/2021 18:24:37.0799] [0] Setup version: 15.0.1497.2.
+[03/07/2021 18:24:37.0799] [0] Logged on user: SOLO\Han.
+[03/07/2021 18:24:37.0819] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/07/2021 18:24:37.0819] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/07/2021 18:24:37.0819] [0] Command Line Parameter Name='sourcedir', Value='E:\Software\Exchange2013-x64-cu23 (1)'.
+[03/07/2021 18:24:38.0051] [0] RuntimeAssembly was started with the following command: '/IAcceptExchangeServerLicenseTerms /Mode:Upgrade /sourcedir:E:\Software\Exchange2013-x64-cu23 (1)'.
+[03/07/2021 18:24:38.0055] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/07/2021 18:24:38.0055] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/07/2021 18:24:38.0062] [0] Copying Files...
+[03/07/2021 18:24:38.0066] [0] Starting copy from E:\Software\Exchange2013-x64-cu23 (1)\Setup\ServerRoles\Common to C:\WINDOWS\Temp\ExchangeSetup.
+[03/07/2021 18:24:42.0419] [0] Finished copy from E:\Software\Exchange2013-x64-cu23 (1)\Setup\ServerRoles\Common to C:\WINDOWS\Temp\ExchangeSetup.
+[03/07/2021 18:24:42.0420] [0] File copy complete. Setup will now collect additional information needed for installation.
+[03/07/2021 18:24:42.0423] [0] Assembly dll file location is C:\WINDOWS\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/07/2021 18:24:43.0580] [0] Setup is choosing the domain controller to use
+[03/07/2021 18:24:43.0742] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Solo.local
+[03/07/2021 18:24:44.0235] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/07/2021 18:24:44.0235] [0] Setup is choosing a global catalog...
+[03/07/2021 18:24:44.0280] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/07/2021 18:24:44.0298] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/07/2021 18:24:44.0298] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/07/2021 18:24:44.0301] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:24:44.0304] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:24:44.0319] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/07/2021 18:24:44.0372] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:24:44.0383] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 18:24:44.0383] [0] The following datacenter roles are unpacked:
+[03/07/2021 18:24:44.0384] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 18:24:44.0386] [0] The local server has some Exchange files installed.
+[03/07/2021 18:24:44.0397] [0] Server Name=ExSvr1
+[03/07/2021 18:24:44.0406] [0] Setup will use the path 'E:\Software\Exchange2013-x64-cu23 (1)' for installing Exchange.
+[03/07/2021 18:24:44.0407] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:24:44.0407] [0] 'BridgeheadRole' is installed on the server object.
+[03/07/2021 18:24:44.0408] [0] 'ClientAccessRole' is installed on the server object.
+[03/07/2021 18:24:44.0408] [0] 'MailboxRole' is installed on the server object.
+[03/07/2021 18:24:44.0408] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/07/2021 18:24:44.0408] [0] 'CafeRole' is installed on the server object.
+[03/07/2021 18:24:44.0408] [0] 'FrontendTransportRole' is installed on the server object.
+[03/07/2021 18:24:44.0410] [0] The backup copy of the install path is 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/07/2021 18:24:44.0410] [0] The backup copy of the previously installed version is '15.0.1293.2'.
+[03/07/2021 18:24:44.0411] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/07/2021 18:24:50.0770] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/07/2021 18:24:50.0771] [0] Active Directory Initialization status : 'True'.
+[03/07/2021 18:24:50.0771] [0] Schema Update Required Status : 'False'.
+[03/07/2021 18:24:50.0771] [0] Organization Configuration Update Required Status : 'False'.
+[03/07/2021 18:24:50.0771] [0] Domain Configuration Update Required Status : 'False'.
+[03/07/2021 18:24:50.0772] [0] The locally installed version is 15.0.1497.2.
+[03/07/2021 18:24:50.0772] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/07/2021 18:24:50.0832] [0] Setup is determining what organization-level operations to perform.
+[03/07/2021 18:24:50.0832] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/07/2021 18:24:50.0832] [0] The installed MSI is current for this version of Setup.
+[03/07/2021 18:24:50.0841] [0] RootDataHandler has 1 DataHandlers
+[03/07/2021 18:24:50.0841] [0]      Mailbox role: Transport service
+[03/07/2021 18:24:50.0841] [0]      Client Access role: Front End Transport service
+[03/07/2021 18:24:50.0841] [0]      Mailbox role: Client Access service
+[03/07/2021 18:24:50.0841] [0]      Mailbox role: Unified Messaging service
+[03/07/2021 18:24:50.0842] [0]      Mailbox role: Mailbox service
+[03/07/2021 18:24:50.0842] [0]      Management tools
+[03/07/2021 18:24:50.0842] [0]      Client Access role: Client Access Front End service
+[03/07/2021 18:24:50.0851] [0] Validating options for the 7 requested roles
+[03/07/2021 18:24:50.0851] [0] UpgradeModeDataHandler has 9 handlers and 9 work units
+[03/07/2021 18:24:50.0874] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/07/2021 18:24:50.0932] [0] **************
+[03/07/2021 18:24:56.0032] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:10] [Duration:00:00:00.0009984]
+[03/07/2021 19:33:27.0480] [1] Executing:
+          $name = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxUniqueName;
+          $dispname = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxDisplayName;
+          $dismbx = get-mailbox -Filter {name -eq $name} -IgnoreDefaultScope -resultSize 1;
+          if( $dismbx -ne $null)
+          {
+          $srvname = $dismbx.ServerName;
+          if( $dismbx.Database -ne $null -and $RoleFqdnOrName -like "$srvname.*" )
+          {
+          Write-ExchangeSetupLog -info "Setup DiscoverySearchMailbox Permission.";
+          $mountedMdb = get-mailboxdatabase $dismbx.Database -status | where { $_.Mounted -eq $true };
+          if( $mountedMdb -eq $null )
+          {
+          Write-ExchangeSetupLog -info "Mounting database before stamp DiscoverySearchMailbox Permission...";
+          mount-database $dismbx.Database;
+          }
+
+          $mountedMdb = get-mailboxdatabase $dismbx.Database -status | where { $_.Mounted -eq $true };
+          if( $mountedMdb -ne $null )
+          {
+          $dmRoleGroupGuid = [Microsoft.Exchange.Data.Directory.Management.RoleGroup]::DiscoveryManagement_InitInfo.WellKnownGuid;
+          $dmRoleGroup = Get-RoleGroup -Identity $dmRoleGroupGuid -DomainController $RoleDomainController -ErrorAction:SilentlyContinue;
+          if( $dmRoleGroup -ne $null )
+          {
+            trap [Exception]
+            {
+              Add-MailboxPermission $dismbx -User $dmRoleGroup.Name -AccessRights FullAccess -DomainController $RoleDomainController -ErrorAction SilentlyContinue;
+              continue;
+            }
+
+            Add-MailboxPermission $dismbx -User $dmRoleGroup.Identity -AccessRights FullAccess -DomainController $RoleDomainController -WarningAction SilentlyContinue;
+          }
+          }
+          }
+          }
+
+[03/07/2021 19:33:27.0532] [2] Active Directory session settings for 'Get-Mailbox' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/07/2021 19:33:27.0532] [2] User specified parameters:  -Filter:'name -eq $name' -IgnoreDefaultScope:'True' -ResultSize:'1'
+[03/07/2021 19:33:27.0532] [2] Beginning processing get-mailbox
+[03/07/2021 19:33:27.0535] [2] Searching objects of type "ADUser" with filter "(&((&((|((RecipientTypeDetails Equal RoomMailbox)(RecipientTypeDetails Equal EquipmentMailbox)(RecipientTypeDetails Equal LegacyMailbox)(RecipientTypeDetails Equal LinkedMailbox)(RecipientTypeDetails Equal LinkedRoomMailbox)(RecipientTypeDetails Equal UserMailbox)(RecipientTypeDetails Equal DiscoveryMailbox)(RecipientTypeDetails Equal TeamMailbox)(RecipientTypeDetails Equal SharedMailbox)(RecipientTypeDetails Equal GroupMailbox)))(Name Equal DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})))(!((BitwiseAnd(ProvisioningFlags,131072))))))", scope "SubTree" under the root "$null".
+[03/07/2021 19:33:27.0536] [2] Request filter in Get Task: (&(!(!(objectClass=user)))(objectCategory=person)(mailNickname=*)(msExchHomeServerName=*)(!(msExchRecipientTypeDetails=8388608))(!(msExchRecipientTypeDetails=4398046511104))(!(msExchRecipientTypeDetails=16777216))(name=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})(!(msExchProvisioningFlags:1.2.840.113556.1.4.803:=131072))(!(msExchCU=*))(!(!(objectClass=user)))(objectCategory=person)(|(&(msExchVersion<=2251799813685248)(!(msExchVersion=2251799813685248)))(!(msExchVersion=*)))).
+[03/07/2021 19:33:27.0536] [2] Internal Query Filter in Get Task: (&((&((|((RecipientTypeDetails Equal RoomMailbox)(RecipientTypeDetails Equal EquipmentMailbox)(RecipientTypeDetails Equal LegacyMailbox)(RecipientTypeDetails Equal LinkedMailbox)(RecipientTypeDetails Equal LinkedRoomMailbox)(RecipientTypeDetails Equal UserMailbox)(RecipientTypeDetails Equal DiscoveryMailbox)(RecipientTypeDetails Equal TeamMailbox)(RecipientTypeDetails Equal SharedMailbox)(RecipientTypeDetails Equal GroupMailbox)))(Name Equal DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852})))(!((BitwiseAnd(ProvisioningFlags,131072)))))).
+[03/07/2021 19:33:27.0541] [2] Previous operation run on global catalog server 'DC2.Solo.local'.
+[03/07/2021 19:33:27.0541] [2] Preparing to output objects. The maximum size of the result set is "1".
+[03/07/2021 19:33:27.0544] [2] Searching objects "ExSvr1 - DB1" of type "MailboxDatabase" under the root "$null".
+[03/07/2021 19:33:27.0548] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/07/2021 19:33:27.0552] [2] Ending processing get-mailbox
+[03/07/2021 19:33:27.0558] [2] Beginning processing Write-ExchangeSetupLog
+[03/07/2021 19:33:27.0560] [2] Setup DiscoverySearchMailbox Permission.
+[03/07/2021 19:33:27.0561] [2] Ending processing Write-ExchangeSetupLog
+[03/07/2021 19:33:27.0564] [2] Active Directory session settings for 'Get-MailboxDatabase' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/07/2021 19:33:27.0564] [2] User specified parameters:  -Status:'True' -Identity:'ExSvr1 - DB1'
+[03/07/2021 19:33:27.0564] [2] Beginning processing get-mailboxdatabase
+[03/07/2021 19:33:27.0567] [2] Searching objects "ExSvr1 - DB1" of type "MailboxDatabase" under the root "$null".
+[03/07/2021 19:33:27.0570] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/07/2021 19:33:27.0728] [2] The Admin RPC connection is being established with server "ExSvr1.Solo.local".
+[03/07/2021 19:33:27.0764] [2] Checking the status of database "22d070a0-40f5-4f89-9b10-1977c9c207c5".
+[03/07/2021 19:33:27.0788] [2] Ending processing get-mailboxdatabase
+[03/07/2021 19:33:27.0790] [2] Beginning processing Write-ExchangeSetupLog
+[03/07/2021 19:33:27.0792] [2] Mounting database before stamp DiscoverySearchMailbox Permission...
+[03/07/2021 19:33:27.0793] [2] Ending processing Write-ExchangeSetupLog
+[03/07/2021 19:33:27.0796] [2] Active Directory session settings for 'Mount-Database' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/07/2021 19:33:27.0796] [2] User specified parameters:  -Identity:'ExSvr1 - DB1'
+[03/07/2021 19:33:27.0796] [2] Beginning processing mount-database
+[03/07/2021 19:33:27.0801] [2] Searching objects "ExSvr1 - DB1" of type "Database" under the root "$null".
+[03/07/2021 19:33:27.0805] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/07/2021 19:33:27.0806] [2] Processing object "ExSvr1 - DB1".
+[03/07/2021 19:33:27.0987] [2] Searching objects "SoloORG.COM/Microsoft Exchange System Objects/SystemMailbox{22d070a0-40f5-4f89-9b10-1977c9c207c5}" of type "ADRecipient" under the root "$null".
+[03/07/2021 19:33:28.0021] [2] Mounting database "ExSvr1 - DB1".
+[03/07/2021 19:33:28.0329] [2] Mounting the database, "ExSvr1 - DB1", forcefully.
+[03/07/2021 19:33:28.0539] [2] [ERROR] Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0586] [2] [ERROR] An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0586] [2] [ERROR] An Active Manager operation failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0589] [2] [ERROR] Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0589] [2] [ERROR] An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0589] [2] [ERROR] An Active Manager operation failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0594] [2] Ending processing mount-database
+[03/07/2021 19:33:28.0596] [2] Active Directory session settings for 'Get-MailboxDatabase' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/07/2021 19:33:28.0596] [2] User specified parameters:  -Status:'True' -Identity:'ExSvr1 - DB1'
+[03/07/2021 19:33:28.0596] [2] Beginning processing get-mailboxdatabase
+[03/07/2021 19:33:28.0599] [2] Searching objects "ExSvr1 - DB1" of type "MailboxDatabase" under the root "$null".
+[03/07/2021 19:33:28.0604] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/07/2021 19:33:28.0638] [2] The Admin RPC connection is being established with server "ExSvr1.Solo.local".
+[03/07/2021 19:33:28.0639] [2] Checking the status of database "22d070a0-40f5-4f89-9b10-1977c9c207c5".
+[03/07/2021 19:33:28.0646] [2] Ending processing get-mailboxdatabase
+[03/07/2021 19:33:28.0648] [1] The following 1 error(s) occurred during task execution:
+[03/07/2021 19:33:28.0648] [1] 0.  ErrorRecord: Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0648] [1] 0.  ErrorRecord: System.InvalidOperationException: Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local] ---> Microsoft.Exchange.Cluster.Replay.AmDbActionWrapperException: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local] ---> Microsoft.Exchange.Cluster.Replay.AmMountBlockedOnStandaloneDbWithMissingEdbException: An Active Manager operation failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Server: ExSvr1.Solo.local]
+   at Microsoft.Exchange.Data.Storage.Cluster.HaRpcExceptionWrapperBase`2.ClientRethrowIfFailed(String databaseName, String serverName, RpcErrorExceptionInfo errorInfo)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.RunRpcOperationWithAuth(AmRpcOperationHint rpcOperationHint, String serverName, String databaseName, NetworkCredential networkCredential, Nullable`1 timeoutMs, InternalRpcOperation rpcOperation)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.MountDatabaseDirectEx(String serverToRpc, Guid dbGuid, AmMountArg mountArg)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmRpcClientWrapper.MountDatabaseDirectEx(String serverToRpc, Guid dbGuid, AmMountArg mountArg)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmDbAction.MountDatabaseDirect(AmServerName serverName, AmServerName lastMountedServerName, Guid dbGuid, MountFlags storeFlags, AmMountFlags amFlags, AmDbActionCode actionCode)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmDbStandaloneAction.<>c__DisplayClass2.<MountInternal>b__0(Object param0, EventArgs param1)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmHelper.HandleKnownExceptions(EventHandler ev)
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Data.Storage.Cluster.HaRpcExceptionWrapperBase`2.ClientRethrowIfFailed(String databaseName, String serverName, RpcErrorExceptionInfo errorInfo)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.RunDatabaseRpcWithReferral(AmRpcOperationHint rpcOperationHint, IADDatabase database, String targetServer, InternalRpcOperation rpcOperation)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.RequestMount(MountFlags storeMountFlags)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.AttemptForcedMountIfNecessary(Boolean suppressPrompt, LocalizedString promptMessage, LocalizedString verboseMessage, LocalizedString replicatedDbErrorMessage, Exception mountException, MountFlags mountFlags)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.InternalProcessRecord()
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/07/2021 19:33:28.0651] [1] [ERROR] The following error was generated when "$error.Clear();
+          $name = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxUniqueName;
+          $dispname = [Microsoft.Exchange.Management.RecipientTasks.EnableMailbox]::DiscoveryMailboxDisplayName;
+          $dismbx = get-mailbox -Filter {name -eq $name} -IgnoreDefaultScope -resultSize 1;
+          if( $dismbx -ne $null)
+          {
+          $srvname = $dismbx.ServerName;
+          if( $dismbx.Database -ne $null -and $RoleFqdnOrName -like "$srvname.*" )
+          {
+          Write-ExchangeSetupLog -info "Setup DiscoverySearchMailbox Permission.";
+          $mountedMdb = get-mailboxdatabase $dismbx.Database -status | where { $_.Mounted -eq $true };
+          if( $mountedMdb -eq $null )
+          {
+          Write-ExchangeSetupLog -info "Mounting database before stamp DiscoverySearchMailbox Permission...";
+          mount-database $dismbx.Database;
+          }
+
+          $mountedMdb = get-mailboxdatabase $dismbx.Database -status | where { $_.Mounted -eq $true };
+          if( $mountedMdb -ne $null )
+          {
+          $dmRoleGroupGuid = [Microsoft.Exchange.Data.Directory.Management.RoleGroup]::DiscoveryManagement_InitInfo.WellKnownGuid;
+          $dmRoleGroup = Get-RoleGroup -Identity $dmRoleGroupGuid -DomainController $RoleDomainController -ErrorAction:SilentlyContinue;
+          if( $dmRoleGroup -ne $null )
+          {
+            trap [Exception]
+            {
+              Add-MailboxPermission $dismbx -User $dmRoleGroup.Name -AccessRights FullAccess -DomainController $RoleDomainController -ErrorAction SilentlyContinue;
+              continue;
+            }
+
+            Add-MailboxPermission $dismbx -User $dmRoleGroup.Identity -AccessRights FullAccess -DomainController $RoleDomainController -WarningAction SilentlyContinue;
+          }
+          }
+          }
+          }
+        " was run: "System.InvalidOperationException: Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local] ---> Microsoft.Exchange.Cluster.Replay.AmDbActionWrapperException: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local] ---> Microsoft.Exchange.Cluster.Replay.AmMountBlockedOnStandaloneDbWithMissingEdbException: An Active Manager operation failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Server: ExSvr1.Solo.local]
+   at Microsoft.Exchange.Data.Storage.Cluster.HaRpcExceptionWrapperBase`2.ClientRethrowIfFailed(String databaseName, String serverName, RpcErrorExceptionInfo errorInfo)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.RunRpcOperationWithAuth(AmRpcOperationHint rpcOperationHint, String serverName, String databaseName, NetworkCredential networkCredential, Nullable`1 timeoutMs, InternalRpcOperation rpcOperation)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.MountDatabaseDirectEx(String serverToRpc, Guid dbGuid, AmMountArg mountArg)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmRpcClientWrapper.MountDatabaseDirectEx(String serverToRpc, Guid dbGuid, AmMountArg mountArg)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmDbAction.MountDatabaseDirect(AmServerName serverName, AmServerName lastMountedServerName, Guid dbGuid, MountFlags storeFlags, AmMountFlags amFlags, AmDbActionCode actionCode)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmDbStandaloneAction.<>c__DisplayClass2.<MountInternal>b__0(Object param0, EventArgs param1)
+   at Microsoft.Exchange.Cluster.ActiveManagerServer.AmHelper.HandleKnownExceptions(EventHandler ev)
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Data.Storage.Cluster.HaRpcExceptionWrapperBase`2.ClientRethrowIfFailed(String databaseName, String serverName, RpcErrorExceptionInfo errorInfo)
+   at Microsoft.Exchange.Data.Storage.ActiveManager.AmRpcClientHelper.RunDatabaseRpcWithReferral(AmRpcOperationHint rpcOperationHint, IADDatabase database, String targetServer, InternalRpcOperation rpcOperation)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.RequestMount(MountFlags storeMountFlags)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.AttemptForcedMountIfNecessary(Boolean suppressPrompt, LocalizedString promptMessage, LocalizedString verboseMessage, LocalizedString replicatedDbErrorMessage, Exception mountException, MountFlags mountFlags)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.InternalProcessRecord()
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Configuration.Tasks.Task.WriteError(Exception exception, ErrorCategory category, Object target)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.MountDatabase.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/07/2021 19:33:28.0651] [1] [ERROR] Failed to mount database "ExSvr1 - DB1". Error: An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0651] [1] [ERROR] An Active Manager operation failed. Error: The database action failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Database: ExSvr1 - DB1, Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0651] [1] [ERROR] An Active Manager operation failed. Error: The mount operation is being prevented for database 'ExSvr1 - DB1' because its database file at 'C:\Program Files\Microsoft\Exchange Server\V15\Mailbox\ExSvr1 - DB1\ExSvr1 - DB1.edb' is missing, but still has transaction log files, with the highest generation number being 0x21028. Please either recover the database file from a backup, or remove the log files if your intention is to mount a newly-created empty database. [Server: ExSvr1.Solo.local]
+[03/07/2021 19:33:28.0651] [1] [ERROR-REFERENCE] Id=MailboxServiceControlLast___05b3bbd421504e0c93fefa6d5d1ae590 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/07/2021 19:33:28.0653] [1] Setup is stopping now because of one or more critical errors.
+[03/07/2021 19:33:28.0653] [1] Finished executing component tasks.
+[03/07/2021 19:33:28.0715] [1] Ending processing Install-MailboxRole
+[03/07/2021 19:33:28.0718] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/07/2021 19:33:28.0718] [0] CurrentResult launcherbase.maincore:90: 1
+[03/07/2021 19:33:28.0718] [0] CurrentResult console.startmain:52: 1
+[03/07/2021 19:33:28.0718] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/07/2021 19:33:28.0719] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/07/2021 19:33:28.0721] [0] CurrentResult main.run:235: 1
+[03/07/2021 19:33:28.0721] [0] CurrentResult setupbase.maincore:396: 1
+[03/07/2021 19:33:28.0729] [0] End of Setup
+[03/07/2021 19:33:28.0729] [0] **********************************************

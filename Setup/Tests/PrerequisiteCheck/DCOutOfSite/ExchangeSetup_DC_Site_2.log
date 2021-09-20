@@ -1,0 +1,573 @@
+[03/09/2021 01:19:06.0304] [0] **********************************************
+[03/09/2021 01:19:06.0320] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/09/2021 01:19:06.0320] [0] **********************************************
+[03/09/2021 01:19:06.0335] [0] Local time zone: (UTC+00:00) Dublin, Edinburgh, Lisbon, London.
+[03/09/2021 01:19:06.0335] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/09/2021 01:19:06.0367] [0] Setup version: 15.0.1497.2.
+[03/09/2021 01:19:06.0367] [0] Logged on user: SOLO\Han.
+[03/09/2021 01:19:06.0414] [0] Command Line Parameter Name='sourcedir', Value='D:\CU23'.
+[03/09/2021 01:19:06.0414] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/09/2021 01:19:06.0429] [0] RuntimeAssembly was started with the following command: '/sourcedir:D:\CU23 /mode:Upgrade'.
+[03/09/2021 01:19:07.0445] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/09/2021 01:19:07.0835] [0] Finished loading screen CheckForUpdatesPage.
+[03/09/2021 01:19:14.0039] [0] Starting file's copying...
+[03/09/2021 01:19:14.0055] [0] Setup copy files from 'D:\CU23\Setup\ServerRoles\Common' to 'C:\Windows\Temp\ExchangeSetup'
+[03/09/2021 01:19:14.0242] [0] Finished loading screen CopyFilesPage.
+[03/09/2021 01:19:14.0336] [0] Disk space required: 1860028597 bytes.
+[03/09/2021 01:19:14.0336] [0] Disk space available: 15547645952 bytes.
+[03/09/2021 01:20:29.0054] [0] File's copying finished.
+[03/09/2021 01:20:29.0257] [0] Finished loading screen InitializingSetupPage.
+[03/09/2021 01:20:33.0351] [0] Setup is choosing the domain controller to use
+[03/09/2021 01:20:33.0523] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Child.Solo.local
+[03/09/2021 01:20:37.0789] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller DC2.Child.Solo.local
+[03/09/2021 01:20:37.0804] [0] The schema master domain controller is available
+[03/09/2021 01:20:37.0804] [0] The schema master domain controller is in the local domain; setup will use DC2.Child.Solo.local
+[03/09/2021 01:20:37.0804] [0] Setup is choosing a global catalog...
+[03/09/2021 01:20:37.0992] [0] Setup has chosen the global catalog server DC2.Child.Solo.local.
+[03/09/2021 01:20:38.0023] [0] Setup will use the domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:20:38.0023] [0] Setup will use the global catalog 'DC2.Child.Solo.local'.
+[03/09/2021 01:20:38.0023] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/09/2021 01:20:38.0023] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/09/2021 01:20:38.0054] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/09/2021 01:20:38.0195] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/09/2021 01:20:38.0195] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/09/2021 01:20:38.0195] [0] The following datacenter roles are unpacked:
+[03/09/2021 01:20:38.0195] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/09/2021 01:20:38.0195] [0] The local server has some Exchange files installed.
+[03/09/2021 01:20:38.0210] [0] Server Name=ExSvr1
+[03/09/2021 01:20:38.0226] [0] Setup will use the path 'D:\CU23' for installing Exchange.
+[03/09/2021 01:20:38.0226] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[03/09/2021 01:20:38.0226] [0] 'BridgeheadRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] 'ClientAccessRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] 'MailboxRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] 'CafeRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] 'FrontendTransportRole' is installed on the server object.
+[03/09/2021 01:20:38.0226] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/09/2021 01:20:39.0382] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/09/2021 01:20:39.0382] [0] Active Directory Initialization status : 'True'.
+[03/09/2021 01:20:39.0382] [0] Schema Update Required Status : 'False'.
+[03/09/2021 01:20:39.0382] [0] Organization Configuration Update Required Status : 'True'.
+[03/09/2021 01:20:39.0382] [0] Domain Configuration Update Required Status : 'True'.
+[03/09/2021 01:20:39.0382] [0] The locally installed version is 15.0.1210.3.
+[03/09/2021 01:20:39.0398] [0] Exchange Installation Directory : 'D:\Microsoft\Exchange Server\V15'.
+[03/09/2021 01:20:39.0429] [0] Setup is determining what organization-level operations to perform.
+[03/09/2021 01:20:39.0429] [0] Setup has detected a missing value. Setup is adding the value PrepareOrganization.
+[03/09/2021 01:20:39.0429] [0] Setup has detected a missing value. Setup is adding the value PrepareDomain.
+[03/09/2021 01:20:39.0429] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/09/2021 01:20:39.0445] [0] RootDataHandler has 1 DataHandlers
+[03/09/2021 01:20:39.0445] [0] Validating options for the 7 requested roles
+[03/09/2021 01:20:39.0445] [0] UpgradeModeDataHandler has 18 handlers and 18 work units
+[03/09/2021 01:20:39.0539] [0] CurrentResult launcherbase.maincore:90: 0
+[03/09/2021 01:20:39.0757] [0] Finished loading screen WelcomePage.
+[03/09/2021 01:21:41.0898] [0] Finished loading screen EULAPage.
+[03/09/2021 01:21:54.0085] [0] Setup is determining what organization-level operations to perform.
+[03/09/2021 01:21:54.0085] [0] Setup has detected a missing value. Setup is adding the value PrepareOrganization.
+[03/09/2021 01:21:54.0085] [0] Setup has detected a missing value. Setup is adding the value PrepareDomain.
+[03/09/2021 01:21:54.0085] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/09/2021 01:22:09.0226] [0] **************
+[03/09/2021 01:22:15.0492] [1] Evaluated [Setting:DomainController] [HasException:False] [Value:"DC2.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:10] [Duration:00:00:00]
+[03/09/2021 01:22:15.0539] [1] Evaluated [Setting:DomainControllerSiteName] [HasException:False] [Value:"SiteA"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[03/09/2021 01:22:15.0539] [1] Finished [Setting:DomainControllerSiteName] [Duration:00:00:00]
+[03/09/2021 01:22:15.0539] [1] Evaluated [Rule:DomainControllerIsOutOfSite] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[03/09/2021 01:22:15.0273] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00.0156256]
+[03/09/2021 01:22:21.0257] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0257] [1] User specified parameters:  -ProcessId:'2172'
+[03/09/2021 01:22:21.0257] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0289] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0289] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0289] [1] User specified parameters:  -ProcessId:'16200'
+[03/09/2021 01:22:21.0289] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0304] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0304] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0304] [1] User specified parameters:  -ProcessId:'13752'
+[03/09/2021 01:22:21.0304] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0351] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0351] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0351] [1] User specified parameters:  -ProcessId:'2396'
+[03/09/2021 01:22:21.0351] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0351] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0351] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0367] [1] User specified parameters:  -ProcessId:'6516'
+[03/09/2021 01:22:21.0367] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0367] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0367] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0367] [1] User specified parameters:  -ProcessId:'9508'
+[03/09/2021 01:22:21.0367] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0367] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0367] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0367] [1] User specified parameters:  -ProcessId:'9864'
+[03/09/2021 01:22:21.0367] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0382] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0382] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0382] [1] User specified parameters:  -ProcessId:'10092'
+[03/09/2021 01:22:21.0382] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0382] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0398] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0398] [1] User specified parameters:  -ProcessId:'12372'
+[03/09/2021 01:22:21.0398] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0398] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0398] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0398] [1] User specified parameters:  -ProcessId:'15920'
+[03/09/2021 01:22:21.0398] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0414] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0414] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0414] [1] User specified parameters:  -ProcessId:'564'
+[03/09/2021 01:22:21.0414] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0429] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0429] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0429] [1] User specified parameters:  -ProcessId:'620'
+[03/09/2021 01:22:21.0429] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0429] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0429] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0429] [1] User specified parameters:  -ProcessId:'13332'
+[03/09/2021 01:22:21.0429] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0445] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0445] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0445] [1] User specified parameters:  -ProcessId:'932'
+[03/09/2021 01:22:21.0445] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0445] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0460] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0460] [1] User specified parameters:  -ProcessId:'13008'
+[03/09/2021 01:22:21.0460] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0460] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0460] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0460] [1] User specified parameters:  -ProcessId:'15572'
+[03/09/2021 01:22:21.0460] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0507] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0507] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0507] [1] User specified parameters:  -ProcessId:'2444'
+[03/09/2021 01:22:21.0507] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0539] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0539] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0539] [1] User specified parameters:  -ProcessId:'14836'
+[03/09/2021 01:22:21.0539] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0554] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0554] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0554] [1] User specified parameters:  -ProcessId:'708'
+[03/09/2021 01:22:21.0554] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0570] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0570] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0570] [1] User specified parameters:  -ProcessId:'0'
+[03/09/2021 01:22:21.0570] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0570] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0570] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0570] [1] User specified parameters:  -ProcessId:'2420'
+[03/09/2021 01:22:21.0570] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0585] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0585] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0585] [1] User specified parameters:  -ProcessId:'924'
+[03/09/2021 01:22:21.0585] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0632] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0632] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0632] [1] User specified parameters:  -ProcessId:'724'
+[03/09/2021 01:22:21.0632] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0632] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0632] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0632] [1] User specified parameters:  -ProcessId:'2600'
+[03/09/2021 01:22:21.0632] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0648] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0648] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0664] [1] User specified parameters:  -ProcessId:'3096'
+[03/09/2021 01:22:21.0664] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0679] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0679] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0679] [1] User specified parameters:  -ProcessId:'14956'
+[03/09/2021 01:22:21.0679] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0695] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0695] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0695] [1] User specified parameters:  -ProcessId:'2952'
+[03/09/2021 01:22:21.0695] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0726] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0726] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0726] [1] User specified parameters:  -ProcessId:'6952'
+[03/09/2021 01:22:21.0726] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0742] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0742] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0742] [1] User specified parameters:  -ProcessId:'3048'
+[03/09/2021 01:22:21.0742] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0757] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0757] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0757] [1] User specified parameters:  -ProcessId:'2900'
+[03/09/2021 01:22:21.0757] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0773] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0773] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0773] [1] User specified parameters:  -ProcessId:'10072'
+[03/09/2021 01:22:21.0773] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0789] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0789] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0789] [1] User specified parameters:  -ProcessId:'11816'
+[03/09/2021 01:22:21.0789] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0804] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0804] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0804] [1] User specified parameters:  -ProcessId:'2648'
+[03/09/2021 01:22:21.0804] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0820] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0820] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0820] [1] User specified parameters:  -ProcessId:'2064'
+[03/09/2021 01:22:21.0820] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0835] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0835] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0835] [1] User specified parameters:  -ProcessId:'15396'
+[03/09/2021 01:22:21.0835] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0835] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0835] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0835] [1] User specified parameters:  -ProcessId:'3116'
+[03/09/2021 01:22:21.0835] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0851] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0851] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0851] [1] User specified parameters:  -ProcessId:'19400'
+[03/09/2021 01:22:21.0851] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0867] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0867] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0867] [1] User specified parameters:  -ProcessId:'1224'
+[03/09/2021 01:22:21.0867] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0898] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0898] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0898] [1] User specified parameters:  -ProcessId:'19436'
+[03/09/2021 01:22:21.0898] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0914] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0914] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0914] [1] User specified parameters:  -ProcessId:'9796'
+[03/09/2021 01:22:21.0914] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0945] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0945] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0945] [1] User specified parameters:  -ProcessId:'904'
+[03/09/2021 01:22:21.0945] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0960] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0960] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0960] [1] User specified parameters:  -ProcessId:'712'
+[03/09/2021 01:22:21.0960] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0960] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0960] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0960] [1] User specified parameters:  -ProcessId:'19964'
+[03/09/2021 01:22:21.0960] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0976] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0976] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0976] [1] User specified parameters:  -ProcessId:'468'
+[03/09/2021 01:22:21.0976] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0976] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:21.0976] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:21.0976] [1] User specified parameters:  -ProcessId:'2376'
+[03/09/2021 01:22:21.0976] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:21.0992] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0007] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0007] [1] User specified parameters:  -ProcessId:'5716'
+[03/09/2021 01:22:22.0007] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0007] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0007] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0007] [1] User specified parameters:  -ProcessId:'7160'
+[03/09/2021 01:22:22.0007] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0039] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0039] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0039] [1] User specified parameters:  -ProcessId:'13436'
+[03/09/2021 01:22:22.0039] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0054] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0054] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0054] [1] User specified parameters:  -ProcessId:'13004'
+[03/09/2021 01:22:22.0054] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0070] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0070] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0070] [1] User specified parameters:  -ProcessId:'3772'
+[03/09/2021 01:22:22.0070] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0085] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0085] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0085] [1] User specified parameters:  -ProcessId:'3980'
+[03/09/2021 01:22:22.0085] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0101] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0101] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0101] [1] User specified parameters:  -ProcessId:'4052'
+[03/09/2021 01:22:22.0101] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0117] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0117] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0117] [1] User specified parameters:  -ProcessId:'3460'
+[03/09/2021 01:22:22.0117] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0117] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0132] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0132] [1] User specified parameters:  -ProcessId:'3820'
+[03/09/2021 01:22:22.0132] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0132] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0132] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0132] [1] User specified parameters:  -ProcessId:'3928'
+[03/09/2021 01:22:22.0132] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0148] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0148] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0148] [1] User specified parameters:  -ProcessId:'4000'
+[03/09/2021 01:22:22.0148] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0164] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0164] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0164] [1] User specified parameters:  -ProcessId:'3332'
+[03/09/2021 01:22:22.0164] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0179] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0179] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0179] [1] User specified parameters:  -ProcessId:'6020'
+[03/09/2021 01:22:22.0179] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0195] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0195] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0195] [1] User specified parameters:  -ProcessId:'11432'
+[03/09/2021 01:22:22.0195] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0210] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0210] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0210] [1] User specified parameters:  -ProcessId:'12364'
+[03/09/2021 01:22:22.0210] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0210] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0210] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0210] [1] User specified parameters:  -ProcessId:'3480'
+[03/09/2021 01:22:22.0210] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0226] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0226] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0226] [1] User specified parameters:  -ProcessId:'1932'
+[03/09/2021 01:22:22.0226] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0257] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0257] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0257] [1] User specified parameters:  -ProcessId:'6156'
+[03/09/2021 01:22:22.0257] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0273] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0273] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0273] [1] User specified parameters:  -ProcessId:'3384'
+[03/09/2021 01:22:22.0273] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0304] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0304] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0304] [1] User specified parameters:  -ProcessId:'796'
+[03/09/2021 01:22:22.0304] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0320] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0320] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0320] [1] User specified parameters:  -ProcessId:'840'
+[03/09/2021 01:22:22.0320] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0320] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0320] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0335] [1] User specified parameters:  -ProcessId:'1104'
+[03/09/2021 01:22:22.0335] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0351] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0351] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0351] [1] User specified parameters:  -ProcessId:'1136'
+[03/09/2021 01:22:22.0351] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0367] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0367] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0367] [1] User specified parameters:  -ProcessId:'1152'
+[03/09/2021 01:22:22.0367] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0414] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0414] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0414] [1] User specified parameters:  -ProcessId:'1180'
+[03/09/2021 01:22:22.0414] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0429] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0429] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0429] [1] User specified parameters:  -ProcessId:'1616'
+[03/09/2021 01:22:22.0429] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0445] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0445] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0445] [1] User specified parameters:  -ProcessId:'1748'
+[03/09/2021 01:22:22.0445] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0476] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0476] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0476] [1] User specified parameters:  -ProcessId:'1980'
+[03/09/2021 01:22:22.0476] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0492] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0492] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0492] [1] User specified parameters:  -ProcessId:'2116'
+[03/09/2021 01:22:22.0492] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0507] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0507] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0507] [1] User specified parameters:  -ProcessId:'4300'
+[03/09/2021 01:22:22.0507] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0539] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0539] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0539] [1] User specified parameters:  -ProcessId:'4320'
+[03/09/2021 01:22:22.0539] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0554] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0554] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0554] [1] User specified parameters:  -ProcessId:'9860'
+[03/09/2021 01:22:22.0554] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0554] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0554] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0570] [1] User specified parameters:  -ProcessId:'12608'
+[03/09/2021 01:22:22.0570] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0585] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0585] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0585] [1] User specified parameters:  -ProcessId:'12688'
+[03/09/2021 01:22:22.0585] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0601] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0601] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0601] [1] User specified parameters:  -ProcessId:'16168'
+[03/09/2021 01:22:22.0601] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0617] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0617] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0617] [1] User specified parameters:  -ProcessId:'24824'
+[03/09/2021 01:22:22.0617] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0617] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0617] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0617] [1] User specified parameters:  -ProcessId:'3060'
+[03/09/2021 01:22:22.0617] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0632] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0632] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0632] [1] User specified parameters:  -ProcessId:'4252'
+[03/09/2021 01:22:22.0632] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0648] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0648] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0648] [1] User specified parameters:  -ProcessId:'4164'
+[03/09/2021 01:22:22.0648] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0664] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0664] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0664] [1] User specified parameters:  -ProcessId:'4272'
+[03/09/2021 01:22:22.0664] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0679] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0679] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0679] [1] User specified parameters:  -ProcessId:'4'
+[03/09/2021 01:22:22.0679] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0679] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0679] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0679] [1] User specified parameters:  -ProcessId:'13844'
+[03/09/2021 01:22:22.0679] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0695] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0695] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0695] [1] User specified parameters:  -ProcessId:'24500'
+[03/09/2021 01:22:22.0695] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0710] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0710] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0710] [1] User specified parameters:  -ProcessId:'8996'
+[03/09/2021 01:22:22.0710] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0726] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0726] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0726] [1] User specified parameters:  -ProcessId:'13336'
+[03/09/2021 01:22:22.0726] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0742] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0742] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0742] [1] User specified parameters:  -ProcessId:'628'
+[03/09/2021 01:22:22.0742] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0757] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0757] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0757] [1] User specified parameters:  -ProcessId:'656'
+[03/09/2021 01:22:22.0757] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0773] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0773] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0773] [1] User specified parameters:  -ProcessId:'14812'
+[03/09/2021 01:22:22.0773] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0773] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0773] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0773] [1] User specified parameters:  -ProcessId:'25268'
+[03/09/2021 01:22:22.0773] [1] Beginning processing Get-ProcessModule
+[03/09/2021 01:22:22.0804] [1] Ending processing Get-ProcessModule
+[03/09/2021 01:22:22.0804] [1] Finished [Setting:OpenProcesses] [Duration:00:00:07.8750317]
+[03/09/2021 01:22:22.0804] [1] Finished [Setting:OpenProcessesOnUpgrade] [Duration:00:00:07.8750317]
+[03/09/2021 01:22:22.0804] [1] Finished [Setting:OpenProcessesOnUninstall] [Duration:00:00:07.8594050]
+[03/09/2021 01:22:22.0804] [1] Evaluated [Rule:ProcessNeedsToBeClosedOnUpgrade] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:02.6094073]
+[03/09/2021 01:22:22.0804] [1] Finished [Rule:ProcessNeedsToBeClosedOnUpgrade] [Duration:00:00:02.6094073]
+[03/09/2021 01:22:22.0820] [1] Active Directory session settings for 'Get-SendConnector' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0820] [1] User specified parameters:
+[03/09/2021 01:22:22.0820] [1] Beginning processing Get-SendConnector
+[03/09/2021 01:22:22.0820] [1] Searching objects of type "SmtpSendConnectorConfig" with filter "$null", scope "SubTree" under the root "Administrative Groups".
+[03/09/2021 01:22:22.0835] [1] Request filter in Get Task: (&(objectCategory=msExchRoutingSMTPConnector)(|(&(msExchVersion<=1125899906842624)(!(msExchVersion=1125899906842624)))(!(msExchVersion=*)))).
+[03/09/2021 01:22:22.0851] [1] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:22.0851] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/09/2021 01:22:22.0867] [1] Ending processing Get-SendConnector
+[03/09/2021 01:22:22.0867] [1] Evaluated [Rule:SendConnectorException] [HasException:False] [Value:"False"] [ParentValue:"System.DirectoryServices.ResultPropertyCollection"] [Thread:58] [Duration:00:00:07.9688013]
+[03/09/2021 01:22:22.0867] [1] Finished [Rule:SendConnectorException] [Duration:00:00:07.9688013]
+[03/09/2021 01:22:22.0882] [1] Active Directory session settings for 'Get-UMService' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:22.0882] [1] User specified parameters:  -Identity:'ExSvr1'
+[03/09/2021 01:22:22.0882] [1] Beginning processing Get-UMService
+[03/09/2021 01:22:22.0882] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/09/2021 01:22:22.0945] [1] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:22.0945] [1] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:22.0945] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/09/2021 01:22:22.0976] [1] Ending processing Get-UMService
+[03/09/2021 01:22:22.0976] [1] Evaluated [Setting:CmdletGetUMServerResult] [HasException:False] [Value:"ExSvr1"] [ParentValue:"<NULL>"] [Thread:99] [Duration:00:00:07.9219099]
+[03/09/2021 01:22:22.0976] [1] Finished [Setting:CmdletGetUMServerResult] [Duration:00:00:07.9219099]
+[03/09/2021 01:22:22.0976] [1] Finished [Setting:LanguageInUMServer] [Duration:00:00:07.9219099]
+[03/09/2021 01:22:22.0976] [1] Finished [Rule:AdditionalUMLangPackExists] [Duration:00:00:07.7031610]
+[03/09/2021 01:22:22.0976] [1] Started [Rule:ExchangeAlreadyInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0976] [1] Started [Setting:NewestBuild] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[03/09/2021 01:22:22.0976] [1] Evaluated [Setting:NewestBuild] [HasException:False] [Value:"11210"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0976] [1] Finished [Setting:NewestBuild] [Duration:00:00:00]
+[03/09/2021 01:22:22.0976] [1] Evaluated [Rule:ExchangeAlreadyInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0976] [1] Finished [Rule:ExchangeAlreadyInstalled] [Duration:00:00:00]
+[03/09/2021 01:22:22.0976] [1] Started [Rule:W3SVCDisabledOrNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0992] [1] Started [Setting:W3SVCStartMode] [Parent:RootAnalysisMember] [ValueType:Int32]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Setting:W3SVCStartMode] [HasException:False] [Value:"2"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Setting:W3SVCStartMode] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Rule:W3SVCDisabledOrNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00.0156826]
+[03/09/2021 01:22:22.0992] [1] Finished [Rule:W3SVCDisabledOrNotInstalled] [Duration:00:00:00.0156826]
+[03/09/2021 01:22:22.0992] [1] Started [Rule:ShouldReRunSetupForW3SVC] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Rule:ShouldReRunSetupForW3SVC] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Rule:ShouldReRunSetupForW3SVC] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Started [Rule:SMTPSvcInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0992] [1] Started [Setting:SMTPSvcStartMode] [Parent:RootAnalysisMember] [ValueType:String]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Setting:SMTPSvcStartMode] [HasException:True] [Value:
+Expected failure for SMTPSvcStartMode:The registry key, HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\SMTPSVC, wasn't found.
+] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Setting:SMTPSvcStartMode] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Rule:SMTPSvcInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Rule:SMTPSvcInstalled] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Started [Rule:LonghornIIS6MetabaseNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0992] [1] Started [Setting:IIS6MetabaseStatus] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Setting:IIS6MetabaseStatus] [HasException:False] [Value:"1"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Setting:IIS6MetabaseStatus] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Rule:LonghornIIS6MetabaseNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Rule:LonghornIIS6MetabaseNotInstalled] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Started [Rule:LonghornIIS6MgmtConsoleNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
+[03/09/2021 01:22:22.0992] [1] Started [Setting:IIS6ManagementConsoleStatus] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Setting:IIS6ManagementConsoleStatus] [HasException:False] [Value:"1"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Setting:IIS6ManagementConsoleStatus] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Evaluated [Rule:LonghornIIS6MgmtConsoleNotInstalled] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/09/2021 01:22:22.0992] [1] Finished [Rule:LonghornIIS6MgmtConsoleNotInstalled] [Duration:00:00:00]
+[03/09/2021 01:22:23.0039] [1] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:23.0039] [1] User specified parameters:  -Identity:'ExSvr1'
+[03/09/2021 01:22:23.0039] [1] Beginning processing get-ExchangeServer
+[03/09/2021 01:22:23.0039] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/09/2021 01:22:23.0054] [1] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:23.0054] [1] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:23.0054] [1] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/09/2021 01:22:23.0070] [1] Ending processing get-ExchangeServer
+[03/09/2021 01:22:23.0070] [1] Evaluated [Setting:CmdletGetExchangeServerResult] [HasException:False] [Value:"ExSvr1"] [ParentValue:"<NULL>"] [Thread:78] [Duration:00:00:08.1560884]
+[03/09/2021 01:22:23.0070] [1] Finished [Setting:CmdletGetExchangeServerResult] [Duration:00:00:08.1560884]
+[03/09/2021 01:22:23.0132] [1] Evaluated [Setting:PowerShellExecutionPolicy] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:76] [Duration:00:00:08.2185799]
+[03/09/2021 01:22:23.0132] [1] Finished [Setting:PowerShellExecutionPolicy] [Duration:00:00:08.2185799]
+[03/09/2021 01:22:23.0132] [1] Evaluated [Rule:PowerShellExecutionPolicyCheckSet] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:76] [Duration:00:00:08.2185799]
+[03/09/2021 01:22:23.0132] [1] Finished [Rule:PowerShellExecutionPolicyCheckSet] [Duration:00:00:08.2185799]
+[03/09/2021 01:22:23.0132] [1] Finished [Analysis:Prereq] [Duration:00:00:08.3437423]
+[03/09/2021 01:22:23.0148] [1] Failed [Rule:RebootPending] [Message:A reboot from a previous installation is pending. Please restart the system and then rerun Setup.]
+[03/09/2021 01:22:23.0148] [1] Failed [Rule:NotInDC2Site] [Message:Setup needs to contact the Active Directory schema master, but this computer isn't in the same Active Directory site as the schema master (Southport-Kew).]
+[03/09/2021 01:22:23.0148] [1] Failed [Rule:DomainControllerIsOutOfSite] [Message:Setup can't use the domain controller 'Southport' because it belongs to Active Directory site 'Southport-Kew'. Setup must use a domain controller in the same site as this computer (DC2.Child.Solo.local).]
+[03/09/2021 01:22:23.0148] [1] [REQUIRED] A reboot from a previous installation is pending. Please restart the system and then rerun Setup.
+[03/09/2021 01:22:23.0148] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.RebootPending.aspx
+[03/09/2021 01:22:23.0148] [1] [REQUIRED] Setup needs to contact the Active Directory schema master, but this computer isn't in the same Active Directory site as the schema master (Southport-Kew).
+[03/09/2021 01:22:23.0148] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.NotInDC2Site.aspx
+[03/09/2021 01:22:23.0148] [1] [REQUIRED] Setup can't use the domain controller 'Southport' because it belongs to Active Directory site 'Southport-Kew'. Setup must use a domain controller in the same site as this computer (DC2.Child.Solo.local).
+[03/09/2021 01:22:23.0148] [1] Help URL: http://technet.microsoft.com/library(EXCHG.150)/ms.exch.setupreadiness.DomainControllerIsOutOfSite.aspx
+[03/09/2021 01:22:23.0164] [1] Ending processing test-SetupPrerequisites
+[03/09/2021 01:22:23.0164] [0] Exchange Server installation failed during prereq check. Trying to restore the server state back to active.
+[03/09/2021 01:22:23.0164] [0] RestoreServer Script Path: C:\Windows\Temp\ExchangeSetup\RestoreServerOnPrereqFailure.ps1
+[03/09/2021 01:22:23.0304] [0] Beginning processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0304] [0] Trying to restore server state.
+[03/09/2021 01:22:23.0304] [0] Ending processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0304] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:23.0304] [0] User specified parameters:  -ErrorAction:'SilentlyContinue' -Identity:'ExSvr1'
+[03/09/2021 01:22:23.0304] [0] Beginning processing get-ExchangeServer
+[03/09/2021 01:22:23.0304] [0] Searching objects "ExSvr1" of type "Server" under the root "$null".
+[03/09/2021 01:22:23.0320] [0] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:23.0320] [0] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 01:22:23.0320] [0] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/09/2021 01:22:23.0335] [0] Ending processing get-ExchangeServer
+[03/09/2021 01:22:23.0335] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:23.0335] [0] User specified parameters:  -Component:'Monitoring' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/09/2021 01:22:23.0335] [0] Beginning processing Set-ServerComponentState
+[03/09/2021 01:22:23.0507] [0] Ending processing Set-ServerComponentState
+[03/09/2021 01:22:23.0507] [0] Beginning processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0507] [0] Restoring server state. Monitoring has been set to Active.
+[03/09/2021 01:22:23.0507] [0] Ending processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0507] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:23.0507] [0] User specified parameters:  -Component:'RecoveryActionsEnabled' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/09/2021 01:22:23.0507] [0] Beginning processing Set-ServerComponentState
+[03/09/2021 01:22:23.0539] [0] Ending processing Set-ServerComponentState
+[03/09/2021 01:22:23.0539] [0] Beginning processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0539] [0] Restoring server state.  RecoveryActionsEnabled has been set to Active.
+[03/09/2021 01:22:23.0539] [0] Ending processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0539] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 01:22:23.0539] [0] User specified parameters:  -Component:'ServerWideOffline' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
+[03/09/2021 01:22:23.0539] [0] Beginning processing Set-ServerComponentState
+[03/09/2021 01:22:23.0570] [0] Ending processing Set-ServerComponentState
+[03/09/2021 01:22:23.0570] [0] Beginning processing Write-ExchangeSetupLog
+[03/09/2021 01:22:23.0570] [0] Restoring server state.  Server state has been set to Active.
+[03/09/2021 01:22:23.0570] [0] Ending processing Write-ExchangeSetupLog
+[03/09/2021 02:01:04.0117] [0] CurrentResult setupbase.maincore:396: 0
+[03/09/2021 02:01:04.0117] [0] End of Setup
+[03/09/2021 02:01:04.0117] [0] **********************************************
