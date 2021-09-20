@@ -81,7 +81,7 @@ Function Invoke-AnalyzerEngine {
             -AnalyzedInformation $analyzedResults
     }
 
-    if ($null -ne $exchangeInformation.BuildInformation.LocalBuildNumber) {
+    if (-not ([string]::IsNullOrEmpty($exchangeInformation.BuildInformation.LocalBuildNumber))) {
         $local = $exchangeInformation.BuildInformation.LocalBuildNumber
         $remote = $exchangeInformation.BuildInformation.BuildNumber
 
