@@ -161,9 +161,6 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
 . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
-#TODO: Address this
-. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
