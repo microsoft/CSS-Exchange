@@ -162,12 +162,10 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
 #TODO: Address this
-. $PSScriptRoot\extern\Write-ScriptMethodHostWriters.ps1
 . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
@@ -313,10 +311,9 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-$($Script:Server)-Debug" `
         -LogDirectory $OutputFilePath `
-        -VerboseEnabled $Script:VerboseEnabled `
-        -EnableDateTime $false `
+        -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     Main
@@ -325,7 +322,7 @@ try {
     if ($Script:VerboseEnabled) {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
     }
-    $Script:Logger.RemoveLatestLogFile()
+    $Script:Logger | Invoke-LoggerInstanceCleanup
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
