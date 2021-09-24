@@ -100,11 +100,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "03/16/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 922.7) {
+            } elseif ($buildAndRevision -lt 986.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 986.5) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
+                $buildInformation.FriendlyName += "CU11"
+                $buildInformation.ReleaseDate = "09/28/2021"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -204,11 +208,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
                 $buildInformation.FriendlyName += "CU20"
                 $buildInformation.ReleaseDate = "03/16/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 2308.8) {
+            } elseif ($buildAndRevision -lt 2375.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 2375.7) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
+                $buildInformation.FriendlyName += "CU22"
+                $buildInformation.ReleaseDate = "09/28/2021"
                 $buildInformation.SupportedBuild = $true
             }
 

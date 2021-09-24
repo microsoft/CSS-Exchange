@@ -1924,6 +1924,10 @@ Function Invoke-AnalyzerEngine {
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2242.12", "2308.14" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU22) {
+            Write-Verbose "There are no known vulnerabilities in this build"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -1971,6 +1975,10 @@ Function Invoke-AnalyzerEngine {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "858.15", "922.13" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
+        }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU11) {
+            Write-Verbose "There are no known vulnerabilities in this build"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"
