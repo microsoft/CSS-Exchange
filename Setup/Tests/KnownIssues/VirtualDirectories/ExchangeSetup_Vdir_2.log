@@ -1,0 +1,96 @@
+[03/09/2021 16:02:07.0996] [0] **********************************************
+[03/09/2021 16:02:08.0099] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/09/2021 16:02:08.0100] [0] **********************************************
+[03/09/2021 16:02:08.0104] [0] Local time zone: (UTC-08:00) Pacific Time (US & Canada).
+[03/09/2021 16:02:08.0104] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/09/2021 16:02:08.0106] [0] Setup version: 15.1.2176.2.
+[03/09/2021 16:02:08.0117] [0] Logged on user: SOLO\Han.
+[03/09/2021 16:02:08.0301] [0] Command Line Parameter Name='sourcedir', Value='G:\'.
+[03/09/2021 16:02:08.0302] [0] Command Line Parameter Name='mode', Value='Install'.
+[03/09/2021 16:02:08.0355] [0] RuntimeAssembly was started with the following command: '/sourcedir:G: /mode:Install'.
+[03/09/2021 16:02:14.0355] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/09/2021 16:02:19.0709] [0] Setup is choosing the domain controller to use
+[03/09/2021 16:02:19.0904] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Child.Solo.local
+[03/09/2021 16:02:22.0980] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Child.Solo.local
+[03/09/2021 16:02:22.0980] [0] Setup is choosing a global catalog...
+[03/09/2021 16:02:23.0042] [0] Setup has chosen the global catalog server DC2.Child.Solo.local.
+[03/09/2021 16:02:23.0194] [0] Setup will use the domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 16:02:23.0195] [0] Setup will use the global catalog 'DC2.Child.Solo.local'.
+[03/09/2021 16:02:23.0202] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/09/2021 16:02:23.0209] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/09/2021 16:02:23.0234] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/09/2021 16:02:23.0639] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/09/2021 16:02:23.0647] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/09/2021 16:02:23.0647] [0] The following datacenter roles are unpacked: 
+[03/09/2021 16:02:23.0648] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/09/2021 16:02:23.0651] [0] The local server has some Exchange files installed.
+[03/09/2021 16:02:23.0665] [0] Server Name=ExSvr1
+[03/09/2021 16:02:23.0678] [0] Setup will use the path 'G:\' for installing Exchange.
+[03/09/2021 16:02:23.0680] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/09/2021 16:02:23.0680] [0] 'BridgeheadRole' is installed on the server object.
+[03/09/2021 16:02:23.0680] [0] 'ClientAccessRole' is installed on the server object.
+[03/09/2021 16:02:23.0680] [0] 'MailboxRole' is installed on the server object.
+[03/09/2021 16:02:23.0680] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/09/2021 16:02:23.0680] [0] 'CafeRole' is installed on the server object.
+[03/09/2021 16:02:23.0680] [0] 'FrontendTransportRole' is installed on the server object.
+[03/09/2021 16:02:23.0684] [0] The backup copy of the install path is 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/09/2021 16:02:23.0684] [0] The backup copy of the previously installed version is '15.1.1779.2'.
+[03/09/2021 16:02:23.0686] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/09/2021 16:02:34.0671] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/09/2021 16:02:34.0671] [0] Active Directory Initialization status : 'True'.
+[03/09/2021 16:02:34.0672] [0] Schema Update Required Status : 'False'.
+[03/09/2021 16:02:34.0672] [0] Organization Configuration Update Required Status : 'False'.
+[03/09/2021 16:02:34.0674] [0] Domain Configuration Update Required Status : 'False'.
+[03/09/2021 16:02:34.0674] [0] The locally installed version is 15.1.2176.2.
+[03/09/2021 16:02:34.0674] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/09/2021 16:02:34.0762] [0] Setup is determining what organization-level operations to perform.
+[03/09/2021 16:02:34.0763] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/09/2021 16:02:34.0763] [0] The installed MSI is current for this version of Setup.
+[03/09/2021 16:02:34.0779] [0] RootDataHandler has 1 DataHandlers
+[03/09/2021 16:02:34.0794] [0] Validating options for the 7 requested roles
+[03/09/2021 16:02:34.0794] [0] UpgradeModeDataHandler has 11 handlers and 11 work units
+[03/09/2021 16:02:35.0095] [0] CurrentResult launcherbase.maincore:90: 0
+[03/09/2021 16:02:35.0358] [0] Finished loading screen IncompleteInstallationDetectedPage.
+[03/09/2021 16:02:39.0914] [0] Setup is determining what organization-level operations to perform.
+[03/09/2021 16:02:39.0914] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/09/2021 16:02:39.0914] [0] The installed MSI is current for this version of Setup.
+[03/09/2021 16:02:39.0914] [0] RootDataHandler has 1 DataHandlers
+[03/09/2021 16:02:39.0957] [0] Will look for the directory 'G:\' for language pack.
+[03/09/2021 16:02:39.0957] [0] The log file path for the language packs installation operation is set to 'C:\ExchangeSetupLogs'.
+[03/09/2021 16:02:39.0958] [0] **************
+[03/06/2021 17:30:16.0880] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:41] [Duration:00:00:00]
+[03/09/2021 16:28:31.0515] [2] Active Directory session settings for 'New-PushNotificationsVirtualDirectory' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Child.Solo.local', Preferred Global Catalog: 'DC2.Child.Solo.local', Preferred Domain Controllers: '{ DC2.Child.Solo.local }'
+[03/09/2021 16:28:31.0515] [2] User specified parameters:  -Role:'Mailbox' -OAuthAuthentication:'False' -DomainController:'DC2.Child.Solo.local'
+[03/09/2021 16:28:31.0515] [2] Beginning processing New-PushNotificationsVirtualDirectory
+[03/09/2021 16:28:31.0531] [2] Searching objects "ExSvr1.child.SoloORG.COM" of type "Server" under the root "$null".
+[03/09/2021 16:28:31.0591] [2] Previous operation run on domain controller 'DC2.Child.Solo.local'.
+[03/09/2021 16:28:31.0594] [2] Processing object "ExSvr1\PushNotifications".
+[03/09/2021 16:28:36.0885] [2] [ERROR] The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+[03/09/2021 16:28:36.0896] [2] [ERROR] The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+[03/09/2021 16:28:36.0900] [2] Ending processing New-PushNotificationsVirtualDirectory
+[03/09/2021 16:28:36.0903] [1] The following 1 error(s) occurred during task execution:
+[03/09/2021 16:28:36.0903] [1] 0.  ErrorRecord: The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+[03/09/2021 16:28:36.0904] [1] 0.  ErrorRecord: System.ArgumentException: The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.NewExchangeVirtualDirectory`1.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/09/2021 16:28:36.0908] [1] [ERROR] The following error was generated when "$error.Clear(); 
+        Get-PushNotificationsVirtualDirectory -ShowMailboxVirtualDirectories -server $RoleFqdnOrName -DomainController $RoleDomainController | Remove-PushNotificationsVirtualDirectory -DomainController $RoleDomainController;
+        New-PushNotificationsVirtualDirectory -Role Mailbox -OAuthAuthentication:$RoleIsDatacenter -DomainController $RoleDomainController;
+      " was run: "System.ArgumentException: The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.SystemConfigurationTasks.NewExchangeVirtualDirectory`1.InternalValidate()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/09/2021 16:28:36.0908] [1] [ERROR] The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'.
+Parameter name: VirtualDirectoryName
+[03/09/2021 16:28:36.0908] [1] [ERROR-REFERENCE] Id=ClientAccessComponent___75f8c93d15314369983d33ec0742e189 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/09/2021 16:28:36.0909] [1] Setup is stopping now because of one or more critical errors.
+[03/09/2021 16:28:36.0909] [1] Finished executing component tasks.
+[03/09/2021 16:28:36.0954] [1] Ending processing Install-ClientAccessRole

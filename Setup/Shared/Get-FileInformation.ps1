@@ -48,8 +48,8 @@ TODO: Fix this code. Clearly didn't finish it.
         $subject = $shellFolder.GetDetailsOf($shellFolder.ParseName($fileItem.Name), 22)
 #>
         } catch {
-            $_.Exception | Receive-Output
-            $_.ScriptStackTrace | Receive-Output
+            Write-Host "$($_.Exception)"
+            Write-Host "$($_.ScriptStackTrace)"
             throw "Failed to properly process file $($File.FullName) to get required MSI information"
         }
     }
