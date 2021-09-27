@@ -111,7 +111,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Number of Logical Cores" 6
             TestObjectMatch "All Processor Cores Visible" "Passed"
             TestObjectMatch "Max Processor Speed" 2200
-            TestObjectMatch "Physical Memory" "6 GB"
+            TestObjectMatch "Physical Memory" 6
 
             $Script:ActiveGrouping.Count | Should -Be 9
         }
