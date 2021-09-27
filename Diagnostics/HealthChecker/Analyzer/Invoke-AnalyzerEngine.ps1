@@ -12,6 +12,7 @@
 . $PSScriptRoot\Invoke-AnalyzerFrequentConfigurationIssues.ps1
 . $PSScriptRoot\Invoke-AnalyzerWebAppPools.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecuritySettings.ps1
+. $PSScriptRoot\Security\Invoke-AnalyzerSecurityVulnerability.ps1
 Function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
@@ -45,6 +46,7 @@ Function Invoke-AnalyzerEngine {
     Invoke-AnalyzerNicSettings -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerFrequentConfigurationIssues -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerSecuritySettings -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
+    Invoke-AnalyzerSecurityVulnerability -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerWebAppPools -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Write-Debug("End of Analyzer Engine")
     return $analyzedResults

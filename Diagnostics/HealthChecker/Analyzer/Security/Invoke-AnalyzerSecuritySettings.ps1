@@ -3,7 +3,6 @@
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCveCheck.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
 Function Invoke-AnalyzerSecuritySettings {
     [CmdletBinding()]
@@ -189,36 +188,4 @@ Function Invoke-AnalyzerSecuritySettings {
     }
 
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -KeySecuritySettings $keySecuritySettings
-
-
-    $Script:AllVulnerabilitiesPassed = $true
-    $Script:Vulnerabilities = @()
-    Invoke-AnalyzerSecurityCveCheck -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -KeySecuritySettings $keySecuritySettings
-
-    if ($Script:AllVulnerabilitiesPassed) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "All known security issues in this version of the script passed." `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Green" `
-            -AddHtmlDetailRow $false
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Security Vulnerabilities" -Details "None" `
-            -AddDisplayResultsLineInfo $false `
-            -AddHtmlOverviewValues $true
-    } else {
-
-        $details = $Script:Vulnerabilities |
-            ForEach-Object {
-                return $_ + "<br>"
-            }
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Security Vulnerabilities" -Details $details `
-            -AddDisplayResultsLineInfo $false `
-            -DisplayWriteType "Red"
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Vulnerability Detected" -Details $true `
-            -AddDisplayResultsLineInfo $false `
-            -DisplayWriteType "Red" `
-            -AddHtmlOverviewValues $true `
-            -AddHtmlDetailRow $false
-    }
 }
