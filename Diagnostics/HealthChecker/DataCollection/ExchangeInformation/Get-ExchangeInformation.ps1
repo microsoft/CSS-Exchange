@@ -22,7 +22,6 @@ Function Get-ExchangeInformation {
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
-    $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $buildInformation = $exchangeInformation.BuildInformation
     $buildVersionInfo = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildVersionInfo.MajorVersion)
@@ -393,6 +392,19 @@ Function Get-ExchangeInformation {
             Write-Yellow "Failed to run Get-OrganizationConfig."
             Invoke-CatchActions
         }
+
+        $mitigationsEnabled = $null
+        if ($null -ne $organizationConfig) {
+            $mitigationsEnabled = $organizationConfig.MitigationsEnabled
+        }
+
+        $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
+            -RequiredInformation ([PSCustomObject]@{
+                ComputerName       = $Script:Server
+                MitigationsEnabled = $mitigationsEnabled
+                GetExchangeServer  = $exchangeInformation.GetExchangeServer
+            }) `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -ne $organizationConfig) {
             $exchangeInformation.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled

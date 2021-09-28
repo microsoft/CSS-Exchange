@@ -7,24 +7,20 @@ Function Get-ExchangeEmergencyMitigationServiceState {
     [OutputType("System.Object")]
     param(
         [Parameter(Mandatory = $true)]
-        [string]
-        $ComputerName,
+        [object]
+        $RequiredInformation,
         [Parameter(Mandatory = $false)]
         [scriptblock]
         $CatchActionFunction
     )
     begin {
+        $computerName = $RequiredInformation.ComputerName
+        $emergencyMitigationServiceOrgState = $RequiredInformation.MitigationsEnabled
+        $exchangeServerConfiguration = $RequiredInformation.GetExchangeServer
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Passed - Computername: $ComputerName"
     }
     process {
-        try {
-            $emergencyMitigationServiceOrgState = (Get-OrganizationConfig).MitigationsEnabled
-        } catch {
-            Write-Verbose "Failed to run Get-OrganizationConfig to get EEMS organization state"
-            Invoke-CatchActionError $CatchActionFunction
-        }
-
         if ($null -ne $emergencyMitigationServiceOrgState) {
             Write-Verbose "Exchange Emergency Mitigation Service detected"
             try {
@@ -38,13 +34,6 @@ Function Get-ExchangeEmergencyMitigationServiceState {
                 }
             } catch {
                 Write-Verbose "Failed to query EEMS Windows service data"
-                Invoke-CatchActionError $CatchActionFunction
-            }
-
-            try {
-                $exchangeServerConfiguration = Get-ExchangeServer -Identity $ComputerName
-            } catch {
-                Write-Verbose "Failed to run Get-ExchangeServer to get EEMS server config"
                 Invoke-CatchActionError $CatchActionFunction
             }
 
