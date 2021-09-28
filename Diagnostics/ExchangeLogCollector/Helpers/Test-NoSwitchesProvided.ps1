@@ -27,7 +27,8 @@ Function Test-NoSwitchesProvided {
         $OABLogs -or
         $PowerShellLogs -or
         $WindowsSecurityLogs -or
-        $ExchangeServerInformation
+        $ExchangeServerInformation -or
+        $MitigationService
     ) {
         return
     } else {
