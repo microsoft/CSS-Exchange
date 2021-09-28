@@ -1924,6 +1924,10 @@ Function Invoke-AnalyzerEngine {
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "2242.12", "2308.14" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU22) {
+            Write-Verbose "There are no known vulnerabilities in this build"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -1971,6 +1975,10 @@ Function Invoke-AnalyzerEngine {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
             Test-VulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision -SecurityFixedBuilds "858.15", "922.13" -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
+        }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU11) {
+            Write-Verbose "There are no known vulnerabilities in this build"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"
@@ -2180,6 +2188,108 @@ Function Invoke-AnalyzerEngine {
         }
     } else {
         Write-Verbose "Download Domains feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
+    }
+
+    #Description: Check for Exchange Emergency Mitigation Service (EEMS)
+    #Introduced in: Exchange 2016 CU22, Exchange 2019 CU11
+
+    if (((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU22)) -or
+            (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU11))) -and
+        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+
+        if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceOrgState))) {
+            if (($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceOrgState) -and
+                ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceSrvState)) {
+                $eemsWriteType = "Green"
+                $eemsOveralState = "Enabled"
+            } elseif (($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceOrgState -eq $false) -and
+                ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceSrvState)) {
+                $eemsWriteType = "Yellow"
+                $eemsOveralState = "Disabled on org level"
+            } elseif (($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceSrvState -eq $false) -and
+                ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceOrgState)) {
+                $eemsWriteType = "Yellow"
+                $eemsOveralState = "Disabled on server level"
+            } else {
+                $eemsWriteType = "Yellow"
+                $eemsOveralState = "Disabled"
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details $eemsOveralState `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType $eemsWriteType `
+                -AnalyzedInformation $analyzedResults
+
+            $eemsWinSrvWriteType = "Yellow"
+            if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState))) {
+                if ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState -eq "Running") {
+                    $eemsWinSrvWriteType = "Grey"
+                }
+                $details = $exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState
+            } else {
+                $details = "Unknown"
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Windows service" -Details $details `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $eemsWinSrvWriteType `
+                -AnalyzedInformation $analyzedResults
+
+            if ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceEndpoint -eq 200) {
+                $eemsPatternServiceWriteType = "Grey"
+                $eemsPatternServiceStatus = ("{0} - Reachable" -f $exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceEndpoint)
+            } else {
+                $eemsPatternServiceWriteType = "Yellow"
+                $eemsPatternServiceStatus = "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
+            }
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Pattern service" -Details $eemsPatternServiceStatus `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $eemsPatternServiceWriteType `
+                -AnalyzedInformation $analyzedResults
+
+            if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationsApplied))) {
+                foreach ($mitigationApplied in $exchangeInformation.ExchangeEmergencyMitigationService.MitigationsApplied) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Name "Mitigation applied" -Details $mitigationApplied `
+                        -DisplayGroupingKey $keySecuritySettings `
+                        -DisplayCustomTabNumber 2 `
+                        -AnalyzedInformation $analyzedResults
+                }
+
+                $analyzedResults = Add-AnalyzedResultInformation -Details ("Run: 'Get-Mitigations.ps1' from: '{0}' to learn more." -f $exscripts) `
+                    -DisplayGroupingKey $keySecuritySettings `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+
+            if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationsBlocked))) {
+                foreach ($mitigationBlocked in $exchangeInformation.ExchangeEmergencyMitigationService.MitigationsBlocked) {
+                    $analyzedResults = Add-AnalyzedResultInformation -Name "Mitigation blocked" -Details $mitigationBlocked `
+                        -DisplayGroupingKey $keySecuritySettings `
+                        -DisplayCustomTabNumber 2 `
+                        -DisplayWriteType "Yellow" `
+                        -AnalyzedInformation $analyzedResults
+                }
+            }
+
+            if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.DataCollectionEnabled))) {
+                $analyzedResults = Add-AnalyzedResultInformation -Name "Telemetry enabled" -Details $exchangeInformation.ExchangeEmergencyMitigationService.DataCollectionEnabled `
+                    -DisplayGroupingKey $keySecuritySettings `
+                    -DisplayCustomTabNumber 2 `
+                    -AnalyzedInformation $analyzedResults
+            }
+        } else {
+            Write-Verbose "Unable to validate Exchange Emergency Mitigation Service state"
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details "Failed to query config" `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayWriteType "Red" `
+                -AnalyzedInformation $analyzedResults
+        }
+    } else {
+        Write-Verbose "Exchange Emergency Mitigation Service feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
     }
 
     #Description: Check for CVE-2020-0796 SMBv3 vulnerability
