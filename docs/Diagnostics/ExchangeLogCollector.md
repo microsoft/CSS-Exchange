@@ -103,7 +103,7 @@ RPCLogs | Enable to collect RPC Logs. Location: `V15\Logging\RPC Client Access`,
 SearchLogs | Enable to collect Search Logs. Location: `V15\Bin\Search\Ceres\Diagnostics\Logs`, `V15\Bin\Search\Ceres\Diagnostics\ETLTraces`, `V15\Logging\Search`. On 2019 only we also include `V15\Logging\BigFunnelMetricsCollectionAssistant`, `V15\Logging\BigFunnelQueryParityAssistant`, and `V15\Logging\BigFunnelRetryFeederTimeBasedAssistant`
 SendConnectors | Enable to collect the send connector information from the environment.
 ServerInformation | Enable to collect general server information.
-TransportConfig | Enable to collect the Transport Configuration from the Server. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
+TransportConfig | Enable to collect the Transport Configuration files from the Server and `Get-TransportConfig` from the org. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\Winevt\Logs\Security.evtx'`
 AcceptEULA | Enable to accept the conditions of the script and not get prompted.
 AllPossibleLogs | Enables the collection of all default logging collection on the Server.
