@@ -145,11 +145,11 @@ Function Test-ExchangeADSetupLevel {
             UpperRange = 15312
         }
         2016 = [PSCustomObject]@{
-            CU         = "CU21"
+            CU         = "CU22"
             UpperRange = 15334
         }
         2019 = [PSCustomObject]@{
-            CU         = "CU10"
+            CU         = "CU11"
             UpperRange = 17003
         }
     }
@@ -207,6 +207,9 @@ Function Test-ExchangeADSetupLevel {
         if ($adLevel.MESO.Value -eq 13241 -and
             $adLevel.Org.Value -eq 16221) {
             TestReadyLevel "2016" "CU21"
+        } elseif ( $adLevel.MESO.Value -eq 13242 -and
+            $adLevel.Org.Value -eq 16222) {
+            TestReadyLevel "2016" "CU22"
         } else {
             TestMismatchLevel -ExchangeVersion "2016" -ADSetupLevel $adLevel
         }
@@ -225,6 +228,9 @@ Function Test-ExchangeADSetupLevel {
         if ($adLevel.MESO.Value -eq 13241 -and
             $adLevel.Org.Value -eq 16758) {
             TestReadyLevel "2019" "CU10"
+        } elseif ($adLevel.MESO.Value -eq 13242 -and
+            $adLevel.Org.Value -eq 16759) {
+            TestReadyLevel "2019" "CU11"
         } else {
             TestMismatchLevel -ExchangeVersion "2019" -ADSetupLevel $adLevel
         }
