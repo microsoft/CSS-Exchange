@@ -2220,7 +2220,6 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details $eemsOveralState `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType $eemsWriteType `
-                -AddHtmlDetailRow $true `
                 -AnalyzedInformation $analyzedResults
 
             if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState))) {
@@ -2233,7 +2232,6 @@ Function Invoke-AnalyzerEngine {
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayCustomTabNumber 2 `
                     -DisplayWriteType $eemsWinSrvWriteType `
-                    -AddHtmlDetailRow $true `
                     -AnalyzedInformation $analyzedResults
             }
 
@@ -2248,7 +2246,6 @@ Function Invoke-AnalyzerEngine {
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $eemsPatternServiceWriteType `
-                -AddHtmlDetailRow $true `
                 -AnalyzedInformation $analyzedResults
 
             if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationsApplied))) {
@@ -2256,14 +2253,12 @@ Function Invoke-AnalyzerEngine {
                     $analyzedResults = Add-AnalyzedResultInformation -Name "Mitigation applied" -Details $mitigationApplied `
                         -DisplayGroupingKey $keySecuritySettings `
                         -DisplayCustomTabNumber 2 `
-                        -AddHtmlDetailRow $true `
                         -AnalyzedInformation $analyzedResults
                 }
 
                 $analyzedResults = Add-AnalyzedResultInformation -Details ("Run: 'Get-Mitigations.ps1' from: '{0}' to learn more." -f $exscripts) `
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayCustomTabNumber 2 `
-                    -AddHtmlDetailRow $true `
                     -AnalyzedInformation $analyzedResults
             }
 
@@ -2273,7 +2268,6 @@ Function Invoke-AnalyzerEngine {
                         -DisplayGroupingKey $keySecuritySettings `
                         -DisplayCustomTabNumber 2 `
                         -DisplayWriteType "Yellow" `
-                        -AddHtmlDetailRow $true `
                         -AnalyzedInformation $analyzedResults
                 }
             }
@@ -2282,7 +2276,6 @@ Function Invoke-AnalyzerEngine {
                 $analyzedResults = Add-AnalyzedResultInformation -Name "Telemetry enabled" -Details $exchangeInformation.ExchangeEmergencyMitigationService.DataCollectionEnabled `
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayCustomTabNumber 2 `
-                    -AddHtmlDetailRow $true `
                     -AnalyzedInformation $analyzedResults
             }
         } else {
@@ -2290,7 +2283,6 @@ Function Invoke-AnalyzerEngine {
             $analyzedResults = Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details "Failed to query config" `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayWriteType "Red" `
-                -AddHtmlDetailRow $true `
                 -AnalyzedInformation $analyzedResults
         }
     } else {
