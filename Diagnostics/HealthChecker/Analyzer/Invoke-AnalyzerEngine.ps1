@@ -2222,18 +2222,21 @@ Function Invoke-AnalyzerEngine {
                 -DisplayWriteType $eemsWriteType `
                 -AnalyzedInformation $analyzedResults
 
+            $eemsWinSrvWriteType = "Yellow"
             if (-not([String]::IsNullOrEmpty($exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState))) {
                 if ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState -eq "Running") {
                     $eemsWinSrvWriteType = "Grey"
-                } else {
-                    $eemsWinSrvWriteType = "Yellow"
                 }
-                $analyzedResults = Add-AnalyzedResultInformation -Name "Windows service" -Details $exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState `
+                $details = $exchangeInformation.ExchangeEmergencyMitigationService.MitigationWinServiceState
+            } else {
+                $details = "Unknown"
+            }
+
+            $analyzedResults = Add-AnalyzedResultInformation -Name "Windows service" -Details $details `
                     -DisplayGroupingKey $keySecuritySettings `
                     -DisplayCustomTabNumber 2 `
                     -DisplayWriteType $eemsWinSrvWriteType `
                     -AnalyzedInformation $analyzedResults
-            }
 
             if ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceEndpoint -eq 200) {
                 $eemsPatternServiceWriteType = "Grey"
