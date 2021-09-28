@@ -154,9 +154,47 @@ Describe "Testing Analyzer" {
             TestObjectMatch "LmCompatibilityLevel Settings" 3
             TestObjectMatch "SMB1 Installed" $true
             TestObjectMatch "SMB1 Blocked" "False"
-            TestObjectMatch "Download Domains Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 104
+            $Script:ActiveGrouping.Count | Should -Be 71
+        }
+
+        It "Display Results - Security Vulnerability" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+
+            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests.Contains("CVE-2020-16969") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17083") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17084") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17085") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17117") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17132") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17141") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17142") | Should -Be $true
+            $cveTests.Contains("CVE-2020-17143") | Should -Be $true
+            $cveTests.Contains("CVE-2021-24085") | Should -Be $true
+            $cveTests.Contains("CVE-2021-26855") | Should -Be $true
+            $cveTests.Contains("CVE-2021-26857") | Should -Be $true
+            $cveTests.Contains("CVE-2021-26858") | Should -Be $true
+            $cveTests.Contains("CVE-2021-27065") | Should -Be $true
+            $cveTests.Contains("CVE-2021-26412") | Should -Be $true
+            $cveTests.Contains("CVE-2021-27078") | Should -Be $true
+            $cveTests.Contains("CVE-2021-26854") | Should -Be $true
+            $cveTests.Contains("CVE-2021-28480") | Should -Be $true
+            $cveTests.Contains("CVE-2021-28481") | Should -Be $true
+            $cveTests.Contains("CVE-2021-28482") | Should -Be $true
+            $cveTests.Contains("CVE-2021-28483") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31195") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31198") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31207") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31209") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31206") | Should -Be $true
+            $cveTests.Contains("CVE-2021-31196") | Should -Be $true
+            $cveTests.Contains("CVE-2021-33768") | Should -Be $true
+            $cveTests.Contains("CVE-2020-1147") | Should -Be $true
+            $cveTests.Contains("CVE-2021-34470") | Should -Be $true
+            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
+
+            $Script:ActiveGrouping.Count | Should -Be 31
         }
     }
 }
