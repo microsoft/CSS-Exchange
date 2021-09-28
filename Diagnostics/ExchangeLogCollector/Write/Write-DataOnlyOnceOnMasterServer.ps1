@@ -33,6 +33,12 @@ Function Write-DataOnlyOnceOnMasterServer {
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation -AddServerName $false
     }
 
+    if ($TransportConfig) {
+        $target = $RootCopyToDirectory + "\TransportConfig"
+        $data = Get-TransportConfig
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
+    }
+
     if ($Error.Count -ne 0) {
         Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$RootCopyToDirectory\AllErrors")
         Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$RootCopyToDirectory\HandledErrors")
