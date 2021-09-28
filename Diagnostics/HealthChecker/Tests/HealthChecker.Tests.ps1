@@ -18,46 +18,158 @@ Describe "Testing Analyzer" {
         $scriptContent | ForEach-Object { $scriptContentString += "$($_)`n" }
 
         Invoke-Expression $scriptContentString
+
+        Function SetActiveDisplayGrouping {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, Position = 1)]
+                [string]$Name
+            )
+            $key = $results.DisplayResults.Keys | Where-Object { $_.Name -eq $Name }
+            $Script:ActiveGrouping = $results.DisplayResults[$key]
+        }
+
+        Function GetObject {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, Position = 1)]
+                [string]$Name
+            )
+
+            ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).TestingValue
+        }
+
+        Function TestObjectMatch {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, Position = 1)]
+                [string]$Name,
+
+                [Parameter(Mandatory = $true, Position = 2)]
+                [object]$ResultValue
+            )
+
+            GetObject $Name |
+                Should -Be $ResultValue
+        }
+    }
+
+    Context "Testing Exchange 2013 CU23" {
+
+        BeforeAll {
+            $Script:results = Invoke-AnalyzerEngine (Import-Clixml "$Script:parentPath\Tests\Analyzer\E15_CU23.xml")
+        }
+
+        It "Display Results - Exchange Information" {
+            SetActiveDisplayGrouping "Exchange Information"
+
+            TestObjectMatch "Name" "SOLO-E15A"
+            TestObjectMatch "Version" "Exchange 2013 CU23"
+            TestObjectMatch "Build Number" "15.0.1497.2"
+            TestObjectMatch "Server Role" "MultiRole"
+            TestObjectMatch "DAG Name" "Standalone Server"
+            TestObjectMatch "AD Site" "Default-First-Site-Name"
+            TestObjectMatch "MAPI/HTTP Enabled" $true
+            $Script:ActiveGrouping.Count | Should -Be 11
+        }
+
+        It "Display Results - Operating System Information" {
+            SetActiveDisplayGrouping "Operating System Information"
+
+            TestObjectMatch "Version" "Microsoft Windows Server 2012 R2 Datacenter"
+            TestObjectMatch "Time Zone" "Pacific Standard Time"
+            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch ".NET Framework" "4.8"
+            TestObjectMatch "Power Plan" "Balanced --- Error"
+            TestObjectMatch "Http Proxy Setting" "<None>"
+            TestObjectMatch "Visual C++ 2012" "184610406 Version is current"
+            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated"
+            TestObjectMatch "Server Pending Reboot" $false
+
+            $upTime = GetObject "System Up Time"
+            $upTime.Days | Should -Be 0
+            $upTime.Hours | Should -Be 2
+            $upTime.Minutes | Should -Be 58
+            $upTime.Seconds | Should -Be 40
+
+            $pageFile = GetObject "Page File Size"
+            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile.MaxPageSize | Should -Be 0
+            $pageFile.MultiPageFile | Should -Be $false
+            $pageFile.RecommendedPageFile | Should -Be 0
+
+            $Script:ActiveGrouping.Count | Should -Be 12
+        }
+
+        It "Display Results - Process/Hardware Information" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+
+            TestObjectMatch "Type" "HyperV"
+            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
+            TestObjectMatch "Number of Processors" 1
+            TestObjectMatch "Number of Physical Cores" 2
+            TestObjectMatch "Number of Logical Cores" 4
+            TestObjectMatch "All Processor Cores Visible" "Passed"
+            TestObjectMatch "Max Processor Speed" 2200
+            TestObjectMatch "Physical Memory" 6
+
+            $Script:ActiveGrouping.Count | Should -Be 9
+        }
+
+        It "Display Results - NIC Settings" {
+            SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
+
+            TestObjectMatch "Interface Description" "Microsoft Hyper-V Network Adapter [Ethernet]"
+            TestObjectMatch "Driver Date" "2006-06-21"
+            TestObjectMatch "MTU Size" 1500
+            TestObjectMatch "Max Processors" 2
+            TestObjectMatch "Max Processor Number" 2
+            TestObjectMatch "Number of Receive Queues" 0
+            TestObjectMatch "RSS Enabled" $false
+            TestObjectMatch "Link Speed" "10000 Mbps"
+            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "Address" "192.168.9.11\24 Gateway: 192.168.9.1"
+            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Packets Received Discarded" 0
+
+            $Script:ActiveGrouping.Count | Should -Be 16
+        }
+
+        It "Display Results - Frequent Configuration Issues" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+
+            TestObjectMatch "TCP/IP Settings" 0
+            TestObjectMatch "RPC Min Connection Timeout" 0
+            TestObjectMatch "FIPS Algorithm Policy Enabled" 0
+            TestObjectMatch "CTS Processor Affinity Percentage" 0
+            TestObjectMatch "Credential Guard Enabled" $false
+            TestObjectMatch "EdgeTransport.exe.config Present" $true
+
+            $Script:ActiveGrouping.Count | Should -Be 6
+        }
+
+        It "Display Results - Security Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+
+            TestObjectMatch "LmCompatibilityLevel Settings" 3
+            TestObjectMatch "SMB1 Installed" $true
+            TestObjectMatch "SMB1 Blocked" "False"
+
+            $Script:ActiveGrouping.Count | Should -Be 72
+        }
+
+        It "Display Results - Security Vulnerability" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+
+            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests.Contains("CVE-2020-1147") | Should -Be $true
+        }
     }
 
     Context "Testing Exchange 2016 CU18" {
 
         BeforeAll {
             $Script:results = Invoke-AnalyzerEngine (Import-Clixml "$Script:parentPath\Tests\Analyzer\E16_CU18.xml")
-
-            Function SetActiveDisplayGrouping {
-                [CmdletBinding()]
-                param(
-                    [Parameter(Mandatory = $true, Position = 1)]
-                    [string]$Name
-                )
-                $key = $results.DisplayResults.Keys | Where-Object { $_.Name -eq $Name }
-                $Script:ActiveGrouping = $results.DisplayResults[$key]
-            }
-
-            Function GetObject {
-                [CmdletBinding()]
-                param(
-                    [Parameter(Mandatory = $true, Position = 1)]
-                    [string]$Name
-                )
-
-                ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).TestingValue
-            }
-
-            Function TestObjectMatch {
-                [CmdletBinding()]
-                param(
-                    [Parameter(Mandatory = $true, Position = 1)]
-                    [string]$Name,
-
-                    [Parameter(Mandatory = $true, Position = 2)]
-                    [object]$ResultValue
-                )
-
-                GetObject $Name |
-                    Should -Be $ResultValue
-            }
         }
 
         It "Display Results - Exchange Information" {
@@ -66,6 +178,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Name" "SOLO-E16A"
             TestObjectMatch "Version" "Exchange 2016 CU18"
             TestObjectMatch "Build Number" "15.1.2106.2"
+            TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" $true
@@ -195,6 +308,123 @@ Describe "Testing Analyzer" {
             $cveTests.Contains("CVE-2021-1730") | Should -Be $true
 
             $Script:ActiveGrouping.Count | Should -Be 31
+        }
+    }
+
+    Context "Testing Exchange 2019 CU11" {
+
+        BeforeAll {
+            $Script:results = Invoke-AnalyzerEngine (Import-Clixml "$Script:parentPath\Tests\Analyzer\E19_CU11.xml")
+        }
+
+        It "Display Results - Exchange Information" {
+            SetActiveDisplayGrouping "Exchange Information"
+
+            TestObjectMatch "Name" "SOLO-E19A"
+            TestObjectMatch "Version" "Exchange 2019 CU11"
+            TestObjectMatch "Build Number" "15.2.986.5"
+            TestObjectMatch "Server Role" "Mailbox"
+            TestObjectMatch "DAG Name" "Standalone Server"
+            TestObjectMatch "AD Site" "Default-First-Site-Name"
+            TestObjectMatch "MAPI/HTTP Enabled" $true
+            $Script:ActiveGrouping.Count | Should -Be 11
+        }
+
+        It "Display Results - Operating System Information" {
+            SetActiveDisplayGrouping "Operating System Information"
+
+            TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
+            TestObjectMatch "Time Zone" "Pacific Standard Time"
+            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch ".NET Framework" "4.8"
+            TestObjectMatch "Power Plan" "Balanced --- Error"
+            TestObjectMatch "Http Proxy Setting" "<None>"
+            TestObjectMatch "Visual C++ 2012" "184610406 Version is current"
+            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated"
+            TestObjectMatch "Server Pending Reboot" $false
+
+            $upTime = GetObject "System Up Time"
+            $upTime.Days | Should -Be 0
+            $upTime.Hours | Should -Be 2
+            $upTime.Minutes | Should -Be 15
+            $upTime.Seconds | Should -Be 56
+
+            $pageFile = GetObject "Page File Size"
+            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile.MaxPageSize | Should -Be 0
+            $pageFile.MultiPageFile | Should -Be $false
+            $pageFile.RecommendedPageFile | Should -Be 0
+
+            $Script:ActiveGrouping.Count | Should -Be 12
+        }
+
+        It "Display Results - Process/Hardware Information" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+
+            TestObjectMatch "Type" "HyperV"
+            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
+            TestObjectMatch "Number of Processors" 1
+            TestObjectMatch "Number of Physical Cores" 2
+            TestObjectMatch "Number of Logical Cores" 4
+            TestObjectMatch "All Processor Cores Visible" "Passed"
+            TestObjectMatch "Max Processor Speed" 2200
+            TestObjectMatch "Physical Memory" 6
+
+            $Script:ActiveGrouping.Count | Should -Be 9
+        }
+
+        It "Display Results - NIC Settings" {
+            SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
+
+            TestObjectMatch "Interface Description" "Microsoft Hyper-V Network Adapter [Ethernet]"
+            TestObjectMatch "Driver Date" "2006-06-21"
+            TestObjectMatch "MTU Size" 1500
+            TestObjectMatch "Max Processors" 2
+            TestObjectMatch "Max Processor Number" 2
+            TestObjectMatch "Number of Receive Queues" 2
+            TestObjectMatch "RSS Enabled" $true
+            TestObjectMatch "Link Speed" "10000 Mbps"
+            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
+            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Packets Received Discarded" 0
+
+            $Script:ActiveGrouping.Count | Should -Be 16
+        }
+
+        It "Display Results - Frequent Configuration Issues" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+
+            TestObjectMatch "TCP/IP Settings" 0
+            TestObjectMatch "RPC Min Connection Timeout" 0
+            TestObjectMatch "FIPS Algorithm Policy Enabled" 0
+            TestObjectMatch "CTS Processor Affinity Percentage" 0
+            TestObjectMatch "Credential Guard Enabled" $false
+            TestObjectMatch "EdgeTransport.exe.config Present" $true
+
+            $Script:ActiveGrouping.Count | Should -Be 6
+        }
+
+        It "Display Results - Security Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+
+            TestObjectMatch "LmCompatibilityLevel Settings" 3
+            TestObjectMatch "SMB1 Installed" $true
+            TestObjectMatch "SMB1 Blocked" "True"
+            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled"
+            TestObjectMatch "Windows service" "Running"
+            TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
+            TestObjectMatch "Telemetry enabled" "False"
+
+            $Script:ActiveGrouping.Count | Should -Be 74
+        }
+
+        It "Display Results - Security Vulnerability" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+
+            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests.Contains("CVE-2020-1147") | Should -Be $true
+            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
         }
     }
 }
