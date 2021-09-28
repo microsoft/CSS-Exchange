@@ -160,8 +160,15 @@ Describe "Testing SetupAssist" {
         It "Exchange 2016 CU21" {
             SetGetExchangeADSetupLevel -OrgValue 16221 -SchemaValue 15334 -MESOValue 13241
             $results = Test-ExchangeADSetupLevel
-            $results.Result | Should -Be "Passed"
+            $results.Result | Should -Be "Failed"
             $results.Details | Should -Be "At Exchange 2016 CU21"
+        }
+
+        It "Exchange 2016 CU22" {
+            SetGetExchangeADSetupLevel -OrgValue 16222 -SchemaValue 15334 -MESOValue 13242
+            $results = Test-ExchangeADSetupLevel
+            $results.Result | Should -Be "Passed"
+            $results.Details | Should -Be "At Exchange 2016 CU22"
         }
 
         It "Exchange 2016 Mismatch Schema 15334" {
@@ -193,8 +200,15 @@ Describe "Testing SetupAssist" {
         It "Exchange 2019 CU10" {
             SetGetExchangeADSetupLevel -OrgValue 16758 -SchemaValue 17003 -MESOValue 13241
             $results = Test-ExchangeADSetupLevel
-            $results.Result | Should -Be "Passed"
+            $results.Result | Should -Be "Failed"
             $results.Details | Should -Be "At Exchange 2019 CU10"
+        }
+
+        It "Exchange 2019 CU11" {
+            SetGetExchangeADSetupLevel -OrgValue 16759 -SchemaValue 17003 -MESOValue 13242
+            $results = Test-ExchangeADSetupLevel
+            $results.Result | Should -Be "Passed"
+            $results.Details | Should -Be "At Exchange 2019 CU11"
         }
 
         It "Exchange 2019 Mismatch Schema 17003" {
