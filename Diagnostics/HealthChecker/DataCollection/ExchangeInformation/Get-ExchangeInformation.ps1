@@ -8,6 +8,7 @@
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -98,11 +99,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "03/16/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 922.7) {
+            } elseif ($buildAndRevision -lt 986.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 986.5) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
+                $buildInformation.FriendlyName += "CU11"
+                $buildInformation.ReleaseDate = "09/28/2021"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -202,11 +207,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
                 $buildInformation.FriendlyName += "CU20"
                 $buildInformation.ReleaseDate = "03/16/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 2308.8) {
+            } elseif ($buildAndRevision -lt 2375.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($buildAndRevision -ge 2375.7) {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
+                $buildInformation.FriendlyName += "CU22"
+                $buildInformation.ReleaseDate = "09/28/2021"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -383,6 +392,19 @@ Function Get-ExchangeInformation {
             Write-Yellow "Failed to run Get-OrganizationConfig."
             Invoke-CatchActions
         }
+
+        $mitigationsEnabled = $null
+        if ($null -ne $organizationConfig) {
+            $mitigationsEnabled = $organizationConfig.MitigationsEnabled
+        }
+
+        $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
+            -RequiredInformation ([PSCustomObject]@{
+                ComputerName       = $Script:Server
+                MitigationsEnabled = $mitigationsEnabled
+                GetExchangeServer  = $exchangeInformation.GetExchangeServer
+            }) `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -ne $organizationConfig) {
             $exchangeInformation.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled

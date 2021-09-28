@@ -37,6 +37,7 @@ try {
                 public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
                 public ExchangeServerMaintenance ServerMaintenance;
                 public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
+                public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
                 public Hashtable ApplicationConfigFileStatus = new Hashtable();
             }
 
