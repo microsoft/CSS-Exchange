@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 Function Invoke-AnalyzerSecurityMitigationService {
     [CmdletBinding()]
     param(
