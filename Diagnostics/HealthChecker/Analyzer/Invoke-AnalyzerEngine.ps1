@@ -2233,10 +2233,10 @@ Function Invoke-AnalyzerEngine {
             }
 
             $analyzedResults = Add-AnalyzedResultInformation -Name "Windows service" -Details $details `
-                    -DisplayGroupingKey $keySecuritySettings `
-                    -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType $eemsWinSrvWriteType `
-                    -AnalyzedInformation $analyzedResults
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType $eemsWinSrvWriteType `
+                -AnalyzedInformation $analyzedResults
 
             if ($exchangeInformation.ExchangeEmergencyMitigationService.MitigationServiceEndpoint -eq 200) {
                 $eemsPatternServiceWriteType = "Grey"
