@@ -207,7 +207,7 @@ Describe "Testing Analyzer" {
 
             TestObjectMatch "Version" "Microsoft Windows Server 2016 Datacenter"
             TestObjectMatch "Time Zone" "Central Standard Time"
-            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch "Dynamic Daylight Time Enabled" $false -WriteType "Red"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error"-WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
@@ -227,7 +227,7 @@ Describe "Testing Analyzer" {
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Process/Hardware Information" {
@@ -236,13 +236,14 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Type" "HyperV"
             TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
-            TestObjectMatch "Number of Physical Cores" 3 -WriteType "Green"
-            TestObjectMatch "Number of Logical Cores" 6 -WriteType "Green"
-            TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
+            TestObjectMatch "Number of Physical Cores" 24 -WriteType "Yellow"
+            TestObjectMatch "Number of Logical Cores" 48 -WriteType "Yellow"
+            TestObjectMatch "All Processor Cores Visible" "Failed" -WriteType "Red"
             TestObjectMatch "Max Processor Speed" 2200
+            TestObjectMatch "Current Processor Speed" 0 -WriteType "Red"
             TestObjectMatch "Physical Memory" 6
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -267,12 +268,12 @@ Describe "Testing Analyzer" {
         It "Display Results - Frequent Configuration Issues" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
-            TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
+            TestObjectMatch "TCP/IP Settings" 900000 -WriteType "Green"
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
-            TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
+            TestObjectMatch "CTS Processor Affinity Percentage" 10 -WriteType "Red"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
+            TestObjectMatch "EdgeTransport.exe.config Present" "False --- Error" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }

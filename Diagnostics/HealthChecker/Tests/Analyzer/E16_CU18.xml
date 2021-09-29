@@ -336,12 +336,12 @@
             <ToString>HealthChecker.ProcessorInformation</ToString>
             <Props>
               <S N="Name">Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz</S>
-              <I32 N="NumberOfPhysicalCores">3</I32>
-              <I32 N="NumberOfLogicalCores">6</I32>
+              <I32 N="NumberOfPhysicalCores">24</I32>
+              <I32 N="NumberOfLogicalCores">48</I32>
               <I32 N="NumberOfProcessors">1</I32>
               <I32 N="MaxMegacyclesPerCore">2200</I32>
               <I32 N="CurrentMegacyclesPerCore">0</I32>
-              <B N="ProcessorIsThrottled">false</B>
+              <B N="ProcessorIsThrottled">true</B>
               <B N="DifferentProcessorsDetected">false</B>
               <B N="DifferentProcessorCoreCountDetected">false</B>
               <I32 N="EnvironmentProcessorCount">6</I32>
@@ -600,7 +600,7 @@
             </TN>
             <ToString>HealthChecker.NetworkInformation</ToString>
             <Props>
-              <Db N="TCPKeepAlive">0</Db>
+              <Db N="TCPKeepAlive">900000</Db>
               <Db N="RpcMinConnectionTimeout">0</Db>
               <S N="HttpProxy">&lt;None&gt;</S>
               <Obj N="PacketsReceivedDiscarded" RefId="24">
@@ -4252,7 +4252,7 @@
               <S N="TimeZoneKeyName">Central Standard Time</S>
               <S N="StandardStart">0 0 11 0 1 0 2 0 0 0 0 0 0 0 0 0</S>
               <S N="DaylightStart">0 0 3 0 2 0 2 0 0 0 0 0 0 0 0 0</S>
-              <B N="DstIssueDetected">false</B>
+              <B N="DstIssueDetected">true</B>
               <Obj N="ActionsToTake" RefId="455">
                 <TNRef RefId="3" />
                 <LST />
@@ -13041,7 +13041,7 @@
             </TN>
             <ToString>HealthChecker.ExchangeRegistryValues</ToString>
             <Props>
-              <I32 N="CtsProcessorAffinityPercentage">0</I32>
+              <I32 N="CtsProcessorAffinityPercentage">10</I32>
               <I32 N="FipsAlgorithmPolicyEnabled">0</I32>
             </Props>
           </Obj>
@@ -15647,7 +15647,7 @@
                 <Obj N="Value" RefId="1399">
                   <TNRef RefId="17" />
                   <MS>
-                    <B N="Present">true</B>
+                    <B N="Present">false</B>
                     <S N="FileName">EdgeTransport.exe.config</S>
                     <S N="FilePath">C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config</S>
                   </MS>
