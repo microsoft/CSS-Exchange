@@ -444,4 +444,43 @@ Describe "Testing Analyzer" {
             $cveTests.Contains("CVE-2021-1730") | Should -Be $true
         }
     }
+
+    Context "Testing Exchange 2019 CU11" {
+
+        BeforeAll {
+            $Script:results = Invoke-AnalyzerEngine (Import-Clixml "$Script:parentPath\Tests\Analyzer\E19_Edge_CU9.xml")
+        }
+
+        It "Display Results - Exchange Information" {
+            SetActiveDisplayGrouping "Exchange Information"
+
+            TestObjectMatch "Server Role" "Edge"
+            $Script:ActiveGrouping.Count | Should -Be 9
+        }
+
+        It "Display Results - Operating System Information" {
+            SetActiveDisplayGrouping "Operating System Information"
+            $Script:ActiveGrouping.Count | Should -Be 10
+        }
+
+        It "Display Results - Process/Hardware Information" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+            $Script:ActiveGrouping.Count | Should -Be 9
+        }
+
+        It "Display Results - NIC Settings" {
+            SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
+            $Script:ActiveGrouping.Count | Should -Be 16
+        }
+
+        It "Display Results - Frequent Configuration Issues" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            $Script:ActiveGrouping.Count | Should -Be 6
+        }
+
+        It "Display Results - Security Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+            $Script:ActiveGrouping.Count | Should -Be 54
+        }
+    }
 }
