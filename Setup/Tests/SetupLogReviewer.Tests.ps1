@@ -57,6 +57,8 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "Failed to run '[Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, [System.Net.Dns]::GetHostEntry([System.Net.Dns]::GetHostName()).HostName)' on this computer causing setup to fail" -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "The MSDTC Service is currently stopped. Start it before running setup again." -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "IIS URL Rewrite is not installed on the computer. Install it before running setup again." -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 
