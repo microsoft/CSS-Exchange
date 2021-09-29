@@ -560,7 +560,7 @@
             </TN>
             <ToString>HealthChecker.NetworkInformation</ToString>
             <Props>
-              <Db N="TCPKeepAlive">0</Db>
+              <Db N="TCPKeepAlive">800000</Db>
               <Db N="RpcMinConnectionTimeout">0</Db>
               <S N="HttpProxy">&lt;None&gt;</S>
               <Obj N="PacketsReceivedDiscarded" RefId="23">

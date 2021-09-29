@@ -39,6 +39,16 @@ Describe "Testing Analyzer" {
             ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).TestingValue
         }
 
+        Function GetWriteTypeObject {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, Position = 1)]
+                [string]$Name
+            )
+
+            ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).WriteType
+        }
+
         Function TestObjectMatch {
             [CmdletBinding()]
             param(
@@ -46,11 +56,16 @@ Describe "Testing Analyzer" {
                 [string]$Name,
 
                 [Parameter(Mandatory = $true, Position = 2)]
-                [object]$ResultValue
+                [object]$ResultValue,
+
+                [Parameter(Position = 3)]
+                [string]$WriteType = "Grey"
             )
 
             GetObject $Name |
                 Should -Be $ResultValue
+            GetWriteTypeObject $Name |
+                Should -Be $WriteType
         }
     }
 
@@ -70,6 +85,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" $true
+            TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             $Script:ActiveGrouping.Count | Should -Be 11
         }
 
@@ -79,11 +95,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Version" "Microsoft Windows Server 2012 R2 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" $true
-            TestObjectMatch ".NET Framework" "4.8"
-            TestObjectMatch "Power Plan" "Balanced --- Error"
+            TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
+            TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
-            TestObjectMatch "Visual C++ 2012" "184610406 Version is current"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated"
+            TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
+            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
             $upTime = GetObject "System Up Time"
@@ -107,9 +123,9 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Type" "HyperV"
             TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
-            TestObjectMatch "Number of Physical Cores" 2
-            TestObjectMatch "Number of Logical Cores" 4
-            TestObjectMatch "All Processor Cores Visible" "Passed"
+            TestObjectMatch "Number of Physical Cores" 2 -WriteType "Green"
+            TestObjectMatch "Number of Logical Cores" 4 -WriteType "Green"
+            TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
@@ -125,12 +141,12 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 2
             TestObjectMatch "Max Processor Number" 2
             TestObjectMatch "Number of Receive Queues" 0
-            TestObjectMatch "RSS Enabled" $false
+            TestObjectMatch "RSS Enabled" $false -WriteType "Yellow"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" $true
             TestObjectMatch "Address" "192.168.9.11\24 Gateway: 192.168.9.1"
             TestObjectMatch "Registered In DNS" $true
-            TestObjectMatch "Packets Received Discarded" 0
+            TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
         }
@@ -138,12 +154,12 @@ Describe "Testing Analyzer" {
         It "Display Results - Frequent Configuration Issues" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
-            TestObjectMatch "TCP/IP Settings" 0
+            TestObjectMatch "TCP/IP Settings" 800000 -WriteType "Yellow"
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
-            TestObjectMatch "CTS Processor Affinity Percentage" 0
+            TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true
+            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -152,8 +168,8 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true
-            TestObjectMatch "SMB1 Blocked" "False"
+            TestObjectMatch "SMB1 Installed" $true -WriteType "Red"
+            TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 72
         }
@@ -182,7 +198,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" $true
-            TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode"
+            TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             $Script:ActiveGrouping.Count | Should -Be 10
         }
 
@@ -192,11 +208,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Version" "Microsoft Windows Server 2016 Datacenter"
             TestObjectMatch "Time Zone" "Central Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" $true
-            TestObjectMatch ".NET Framework" "4.8"
-            TestObjectMatch "Power Plan" "Balanced --- Error"
+            TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
+            TestObjectMatch "Power Plan" "Balanced --- Error"-WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
-            TestObjectMatch "Visual C++ 2012" "Redistributable is outdated"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated"
+            TestObjectMatch "Visual C++ 2012" "Redistributable is outdated" -WriteType "Yellow"
+            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
             $upTime = GetObject "System Up Time"
@@ -220,9 +236,9 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Type" "HyperV"
             TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
-            TestObjectMatch "Number of Physical Cores" 3
-            TestObjectMatch "Number of Logical Cores" 6
-            TestObjectMatch "All Processor Cores Visible" "Passed"
+            TestObjectMatch "Number of Physical Cores" 3 -WriteType "Green"
+            TestObjectMatch "Number of Logical Cores" 6 -WriteType "Green"
+            TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
@@ -238,12 +254,12 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 3
             TestObjectMatch "Max Processor Number" 4
             TestObjectMatch "Number of Receive Queues" 3
-            TestObjectMatch "RSS Enabled" $true
+            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" $true
             TestObjectMatch "Address" "192.168.5.11\24 Gateway: 192.168.5.1"
             TestObjectMatch "Registered In DNS" $true
-            TestObjectMatch "Packets Received Discarded" 0
+            TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
         }
@@ -251,12 +267,12 @@ Describe "Testing Analyzer" {
         It "Display Results - Frequent Configuration Issues" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
-            TestObjectMatch "TCP/IP Settings" 0
+            TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
-            TestObjectMatch "CTS Processor Affinity Percentage" 0
+            TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true
+            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -265,8 +281,8 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true
-            TestObjectMatch "SMB1 Blocked" "False"
+            TestObjectMatch "SMB1 Installed" $true -WriteType "Red"
+            TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 71
         }
@@ -336,11 +352,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" $true
-            TestObjectMatch ".NET Framework" "4.8"
-            TestObjectMatch "Power Plan" "Balanced --- Error"
+            TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
+            TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
-            TestObjectMatch "Visual C++ 2012" "184610406 Version is current"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated"
+            TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
+            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
             $upTime = GetObject "System Up Time"
@@ -364,11 +380,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Type" "HyperV"
             TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
-            TestObjectMatch "Number of Physical Cores" 2
-            TestObjectMatch "Number of Logical Cores" 4
-            TestObjectMatch "All Processor Cores Visible" "Passed"
+            TestObjectMatch "Number of Physical Cores" 2 -WriteType "Green"
+            TestObjectMatch "Number of Logical Cores" 4 -WriteType "Green"
+            TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
-            TestObjectMatch "Physical Memory" 6
+            TestObjectMatch "Physical Memory" 6 -WriteType "Yellow"
 
             $Script:ActiveGrouping.Count | Should -Be 9
         }
@@ -382,12 +398,12 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 2
             TestObjectMatch "Max Processor Number" 2
             TestObjectMatch "Number of Receive Queues" 2
-            TestObjectMatch "RSS Enabled" $true
+            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" $true
             TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
             TestObjectMatch "Registered In DNS" $true
-            TestObjectMatch "Packets Received Discarded" 0
+            TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
         }
@@ -395,12 +411,12 @@ Describe "Testing Analyzer" {
         It "Display Results - Frequent Configuration Issues" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
-            TestObjectMatch "TCP/IP Settings" 0
+            TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
-            TestObjectMatch "CTS Processor Affinity Percentage" 0
+            TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true
+            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -409,11 +425,11 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true
-            TestObjectMatch "SMB1 Blocked" "True"
-            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled"
+            TestObjectMatch "SMB1 Installed" $true -WriteType "Green"
+            TestObjectMatch "SMB1 Blocked" "True" -WriteType "Green"
+            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
             TestObjectMatch "Windows service" "Running"
-            TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
+            TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
             $Script:ActiveGrouping.Count | Should -Be 74
