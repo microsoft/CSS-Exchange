@@ -15,6 +15,7 @@ function Write-TestFolderLimitResult {
         $childCountResults = New-Object System.Collections.ArrayList
         $folderPathDepthResults = New-Object System.Collections.ArrayList
         $itemCountResults = New-Object System.Collections.ArrayList
+        $totalItemSizeResults = New-Object System.Collections.ArrayList
         $emptyFolderResults = New-Object System.Collections.ArrayList
         $hierarchyCountResult = $null
         $hierarchyAndDumpsterCountResult = $null
@@ -28,6 +29,7 @@ function Write-TestFolderLimitResult {
                 "ChildCount" { [void]$childCountResults.Add($TestResult) }
                 "FolderPathDepth" { [void]$folderPathDepthResults.Add($TestResult) }
                 "ItemCount" { [void]$itemCountResults.Add($TestResult) }
+                "TotalItemSize" { [void]$totalItemSizeResults.Add($TestResult) }
                 "HierarchyCount" { $hierarchyCountResult = $TestResult }
                 "HierarchyAndDumpsterCount" { $hierarchyAndDumpsterCountResult = $TestResult }
             }
@@ -49,6 +51,11 @@ function Write-TestFolderLimitResult {
         if ($itemCountResults.Count -gt 0) {
             Get-ResultSummary -ResultType $itemCountResults[0].ResultType -Severity $itemCountResults[0].Severity -Count $itemCountResults.Count -Action (
                 "Items should be deleted from these folders to reduce the item count in each folder to 1 million items or less.")
+        }
+
+        if ($totalItemSizeResults.Count -gt 0) {
+            Get-ResultSummary -ResultType $totalItemSizeResults[0].ResultType -Severity $totalItemSizeResults[0].Severity -Count $totalItemSizeResults.Count -Action (
+                "Items should be deleted from these folders until the folder size is less than 25 GB.")
         }
 
         if ($null -ne $hierarchyCountResult) {

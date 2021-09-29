@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-IpmSubtree.ps1
 . $PSScriptRoot\Get-NonIpmSubtree.ps1
-. $PSScriptRoot\Get-ItemCount.ps1
+. $PSScriptRoot\Get-Statistics.ps1
 
 function Get-FolderData {
     [CmdletBinding()]
@@ -29,8 +29,8 @@ function Get-FolderData {
             NonIpmSubtree           = $null
             NonIpmEntryIdDictionary = @{}
             MailboxToServerMap      = @{}
-            ItemCounts              = @()
-            ItemCountDictionary     = @{}
+            Statistics              = @()
+            StatisticsDictionary    = @{}
             Errors                  = New-Object System.Collections.ArrayList
         }
     }
@@ -58,13 +58,13 @@ function Get-FolderData {
 
         # If we're not doing slow traversal, we can get the stats concurrently with the other jobs
         if (-not $SlowTraversal) {
-            if (-not $StartFresh -and (Test-Path $PSScriptRoot\ItemCounts.csv)) {
-                $folderData.ItemCounts = Import-Csv $PSScriptRoot\ItemCounts.csv
+            if (-not $StartFresh -and (Test-Path $PSScriptRoot\Statistics.csv)) {
+                $folderData.Statistics = Import-Csv $PSScriptRoot\Statistics.csv
             } else {
                 Add-JobQueueJob @{
                     ArgumentList = $serverName
-                    Name         = "Get-ItemCount"
-                    ScriptBlock  = ${Function:Get-ItemCount}
+                    Name         = "Get-Statistics"
+                    ScriptBlock  = ${Function:Get-Statistics}
                 }
             }
         }
@@ -82,9 +82,9 @@ function Get-FolderData {
                 $folderData.NonIpmSubtree | Export-Csv $PSScriptRoot\NonIpmSubtree.csv
             }
 
-            if ($null -ne $job.ItemCounts) {
-                $folderData.ItemCounts = $job.ItemCounts
-                $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
+            if ($null -ne $job.Statistics) {
+                $folderData.Statistics = $job.Statistics
+                $folderData.Statistics | Export-Csv $PSScriptRoot\Statistics.csv
             }
         }
 
@@ -108,21 +108,21 @@ function Get-FolderData {
         # If we're doing slow traversal, we have to get the stats after we have the hierarchy
         # grouped by mailbox.
         if ($SlowTraversal) {
-            if (-not $StartFresh -and (Test-Path $PSScriptRoot\ItemCounts.csv)) {
-                $folderData.ItemCounts = Import-Csv $PSScriptRoot\ItemCounts.csv
+            if (-not $StartFresh -and (Test-Path $PSScriptRoot\Statistics.csv)) {
+                $folderData.Statistics = Import-Csv $PSScriptRoot\Statistics.csv
             } else {
                 Write-Verbose "Starting slow traversal item count."
-                $itemCountResult = Get-ItemCount $serverName $folderData
-                $folderData.ItemCounts = $itemCountResult.ItemCounts
-                $folderData.ItemCounts | Export-Csv $PSScriptRoot\ItemCounts.csv
-                foreach ($errorParam in $itemCountResult.Errors) {
+                $statisticsResult = Get-Statistics $serverName $folderData
+                $folderData.Statistics = $statisticsResult.Statistics
+                $folderData.Statistics | Export-Csv $PSScriptRoot\Statistics.csv
+                foreach ($errorParam in $statisticsResult.Errors) {
                     $errorResult = New-TestResult @errorParam
                     $folderData.Errors.Add($errorResult)
                 }
             }
         }
 
-        $folderData.ItemCounts | ForEach-Object { $folderData.ItemCountDictionary[$_.EntryId] = $_.ItemCount }
+        $folderData.Statistics | ForEach-Object { $folderData.StatisticsDictionary[$_.EntryId] = $_ }
     }
 
     end {
