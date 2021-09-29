@@ -318,6 +318,16 @@ Function Invoke-RemoteMain {
             $PassedInfo.DAGInformation) {
             $cmdsToRun += "Save-FailoverClusterInformation"
         }
+
+        if ($PassedInfo.MitigationService) {
+            $info = ($copyInfo -f ($Script:localExinstall + "\Logging\MitigationService"), ($Script:RootCopyToDirectory + "\Mitigation_Service_Logs"))
+
+            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            } else {
+                $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
+            }
+        }
     }
 
     ############################################

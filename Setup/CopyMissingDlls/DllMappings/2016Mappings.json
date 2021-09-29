@@ -69,6 +69,7 @@
       "Bond.IO.dll",
       "Bond.JSON.dll",
       "Bond.Precompiler.dll",
+      "BouncyCastle.Crypto.dll",
       "chksgfiles.dll",
       "clusmsg.dll",
       "coconet.dll",
@@ -312,6 +313,7 @@
       "Microsoft.Exchange.HttpProxy.Flighting.dll",
       "Microsoft.Exchange.HttpProxy.PassiveMonitor.dll",
       "Microsoft.Exchange.HttpProxy.Routing.dll",
+      "Microsoft.Exchange.HttpRequestFiltering.dll",
       "Microsoft.Exchange.Hygiene.Data.dll",
       "Microsoft.Exchange.Hygiene.DiagnosisUtil.dll",
       "Microsoft.Exchange.Hygiene.EopInstantProvisioning.dll",
@@ -4229,6 +4231,7 @@
       "Microsoft.Exchange.MailboxTransportWatchdogServicelet.EventLog.dll",
       "Microsoft.Exchange.MessagingPolicies.Eventlog.dll",
       "Microsoft.Exchange.MigrationWorkflowService.EventLog.dll",
+      "Microsoft.Exchange.Mitigation.Service.EventLog.dll",
       "Microsoft.Exchange.Notifications.Broker.EventLog.dll",
       "Microsoft.Exchange.Provisioning.EventLog.dll",
       "Microsoft.Exchange.Routing.EventLog.dll",
@@ -10742,6 +10745,15 @@
   },
   {
     "InstallDirectory": "FIP-FS\\Bin\\Engine\\Microsoft\\bin\\1603190004",
+    "IsoDirectory": "Setup\\Filtering\\Engine\\Microsoft\\Bin\\MsavVersionFolder",
+    "DllFileNames": [
+      "avemicrosoft.dll",
+      "mpengine.dll",
+      "mpgear.dll"
+    ]
+  },
+  {
+    "InstallDirectory": "FIP-FS\\Data\\Engines\\amd64\\Microsoft\\bin\\1603190004",
     "IsoDirectory": "Setup\\Filtering\\Engine\\Microsoft\\Bin\\MsavVersionFolder",
     "DllFileNames": [
       "avemicrosoft.dll",

@@ -33,6 +33,7 @@ Function Test-PossibleCommonScenarios {
         $Script:CollectFailoverMetrics = $true
         $Script:ConnectivityLogs = $true
         $Script:ProtocolLogs = $true
+        $Script:MitigationService = $true
     }
 
     if ($DefaultTransportLogging) {

@@ -74,6 +74,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name PowerShellLogs -MemberType NoteProperty -Value $PowerShellLogs
     $obj | Add-Member -Name WindowsSecurityLogs -MemberType NoteProperty $WindowsSecurityLogs
     $obj | Add-Member -Name MasterServer -MemberType NoteProperty -Value $Script:MasterServer
+    $obj | Add-Member -Name MitigationService -MemberType NoteProperty -Value $MitigationService
 
     return $obj
 }

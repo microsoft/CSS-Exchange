@@ -70,6 +70,10 @@ Function Test-PrerequisiteCheck {
             New-WriteObject "The MSDTC Service is currently stopped. Start it before running setup again." -ForegroundColor "Red"
         }
 
+        if (($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "IISURLRewriteNotInstalled" -SettingOrRule "Rule") -eq "True") {
+            New-WriteObject "IIS URL Rewrite is not installed on the computer. Install it before running setup again." -ForegroundColor "Red"
+        }
+
         if ($returnNow) {
             $foundKnownIssue = $true
             return
