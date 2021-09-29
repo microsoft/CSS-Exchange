@@ -11,7 +11,7 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
         [object]$HealthServerObject,
 
         [Parameter(Mandatory = $true)]
-        [object]$KeySecuritySettings
+        [object]$DisplayGroupingKey
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -28,30 +28,30 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
         }
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate" `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 1
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "FriendlyName" -Details $certificate.FriendlyName `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Thumbprint" -Details $certificate.Thumbprint `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime in days" -Details $certificate.LifetimeInDays `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType $displayColor
 
         if ($certificate.LifetimeInDays -lt 0) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate has expired" -Details $true `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red"
         } else {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate has expired" -Details $false `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2
         }
 
@@ -71,29 +71,29 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
             }
 
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate status" -Details $certificate.Status `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $certStatusWriteType
         } else {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate status" -Details "Unknown" `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Yellow"
         }
 
         if ($certificate.PublicKeySize -lt 2048) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red"
 
             $AnalyzeResults | Add-AnalyzedResultInformation -Details "It's recommended to use a key size of at least 2048 bit" `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red"
         } else {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Key size" -Details $certificate.PublicKeySize `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2
         }
 
@@ -104,45 +104,45 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
         }
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Signature Algorithm" -Details $certificate.SignatureAlgorithm `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType $shaDisplayWriteType
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Signature Hash Algorithm" -Details $certificate.SignatureHashAlgorithm `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType $shaDisplayWriteType
 
         if ($shaDisplayWriteType -eq "Yellow") {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details "It's recommended to use a hash algorithm from the SHA-2 family `r`n`t`tMore information: https://aka.ms/HC-SSLBP" `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $shaDisplayWriteType
         }
 
         if ($null -ne $certificate.Services) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Bound to services" -Details $certificate.Services `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2
         }
 
         if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Current Auth Certificate" -Details $certificate.IsCurrentAuthConfigCertificate `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2
         }
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "SAN Certificate" -Details $certificate.IsSanCertificate `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Namespaces" `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2
 
         foreach ($namespace in $certificate.Namespaces) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details $namespace `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 3
         }
 
@@ -154,38 +154,38 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
     if ($null -ne $currentAuthCertificate) {
         if ($currentAuthCertificate.LifetimeInDays -gt 0) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $true `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 1 `
                 -DisplayWriteType "Green"
         } else {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 1 `
                 -DisplayWriteType "Red"
 
             $renewExpiredAuthCert = "Auth Certificate has expired `r`n`t`tMore Information: https://aka.ms/HC-OAuthExpired"
             $AnalyzeResults | Add-AnalyzedResultInformation -Details $renewExpiredAuthCert `
-                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType "Red"
         }
     } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 1
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Details "We can't check for Auth Certificates on Edge Transport Servers" `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2
     } else {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Valid Auth Certificate Found On Server" -Details $false `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 1 `
             -DisplayWriteType "Red"
 
         $createNewAuthCert = "No valid Auth Certificate found. This may cause several problems. `r`n`t`tMore Information: https://aka.ms/HC-FindOAuthHybrid"
         $AnalyzeResults | Add-AnalyzedResultInformation -Details $createNewAuthCert `
-            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayGroupingKey $DisplayGroupingKey `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Red"
     }

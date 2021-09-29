@@ -12,7 +12,7 @@ Function Invoke-AnalyzerSecurityMitigationService {
         [object]$HealthServerObject,
 
         [Parameter(Mandatory = $true)]
-        [object]$KeySecuritySettings
+        [object]$DisplayGroupingKey
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -46,7 +46,7 @@ Function Invoke-AnalyzerSecurityMitigationService {
             }
 
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details $eemsOveralState `
-                -DisplayGroupingKey $KeySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayWriteType $eemsWriteType
 
             $eemsWinSrvWriteType = "Yellow"
@@ -60,7 +60,7 @@ Function Invoke-AnalyzerSecurityMitigationService {
             }
 
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Windows service" -Details $details `
-                -DisplayGroupingKey $KeySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $eemsWinSrvWriteType
 
@@ -72,26 +72,26 @@ Function Invoke-AnalyzerSecurityMitigationService {
                 $eemsPatternServiceStatus = "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
             }
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Pattern service" -Details $eemsPatternServiceStatus `
-                -DisplayGroupingKey $KeySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayCustomTabNumber 2 `
                 -DisplayWriteType $eemsPatternServiceWriteType
 
             if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsApplied))) {
                 foreach ($mitigationApplied in $mitigationService.MitigationsApplied) {
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Mitigation applied" -Details $mitigationApplied `
-                        -DisplayGroupingKey $KeySecuritySettings `
+                        -DisplayGroupingKey $DisplayGroupingKey `
                         -DisplayCustomTabNumber 2
                 }
 
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Run: 'Get-Mitigations.ps1' from: '{0}' to learn more." -f $exscripts) `
-                    -DisplayGroupingKey $KeySecuritySettings `
+                    -DisplayGroupingKey $DisplayGroupingKey `
                     -DisplayCustomTabNumber 2
             }
 
             if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsBlocked))) {
                 foreach ($mitigationBlocked in $mitigationService.MitigationsBlocked) {
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Mitigation blocked" -Details $mitigationBlocked `
-                        -DisplayGroupingKey $KeySecuritySettings `
+                        -DisplayGroupingKey $DisplayGroupingKey `
                         -DisplayCustomTabNumber 2 `
                         -DisplayWriteType "Yellow"
                 }
@@ -99,13 +99,13 @@ Function Invoke-AnalyzerSecurityMitigationService {
 
             if (-not([String]::IsNullOrEmpty($mitigationService.DataCollectionEnabled))) {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Name "Telemetry enabled" -Details $mitigationService.DataCollectionEnabled `
-                    -DisplayGroupingKey $KeySecuritySettings `
+                    -DisplayGroupingKey $DisplayGroupingKey `
                     -DisplayCustomTabNumber 2
             }
         } else {
             Write-Verbose "Unable to validate Exchange Emergency Mitigation Service state"
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details "Failed to query config" `
-                -DisplayGroupingKey $KeySecuritySettings `
+                -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayWriteType "Red"
         }
     } else {
