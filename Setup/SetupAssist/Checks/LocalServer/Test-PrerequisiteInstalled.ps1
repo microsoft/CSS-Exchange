@@ -16,6 +16,20 @@ function Test-PrerequisiteInstalled {
         New-TestResult @params -Result "Failed"
     }
 
+    $params = @{
+        TestName      = "IIS URL Rewrite"
+        Details       = "Not Installed"
+        ReferenceInfo = "https://aka.ms/SA-IISRewrite"
+    }
+
+    try {
+        $results = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\IIS Extensions\URL Rewrite\" -Name Version -ErrorAction Stop
+        $params.Details = "Installed Version $($results.Version)"
+        New-TestResult @params -Result "Passed"
+    } catch {
+        New-TestResult @params -Result "Failed"
+    }
+
     $installed = @(Get-VisualCRedistributableInstalledVersion)
     $years = @(2012, 2013)
 
