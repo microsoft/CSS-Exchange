@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-ItemCountJob {
+function Get-StatisticsJob {
     [CmdletBinding()]
     param (
         [Parameter(Position = 0)]
@@ -29,13 +29,13 @@ function Get-ItemCountJob {
             Activity = "Getting public folder statistics"
         }
 
-        $itemCounts = New-Object System.Collections.ArrayList
+        $statistics = New-Object System.Collections.ArrayList
         $errors = New-Object System.Collections.ArrayList
     }
 
     process {
         $ErrorActionPreference = "Stop" # So our try/catch works
-        $itemCounts = New-Object System.Collections.ArrayList
+        $statistics = New-Object System.Collections.ArrayList
         foreach ($folder in $Folders) {
             $progressCount++
             if ($sw.ElapsedMilliseconds -gt 1000) {
@@ -46,8 +46,18 @@ function Get-ItemCountJob {
             $maxRetries = 5
             for ($retryCount = 1; $retryCount -le $maxRetries; $retryCount++) {
                 try {
-                    $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount
-                    [void]$itemCounts.Add($stats)
+                    $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount, TotalItemSize
+
+                    [Int64]$totalItemSize = -1
+                    if ($stats.TotalItemSize.ToString() -match "\(([\d|,|.]+) bytes\)") {
+                        $totalItemSize = [Int64]::Parse($Matches[1], "AllowThousands")
+                    }
+
+                    [void]$statistics.Add([PSCustomObject]@{
+                            EntryId       = $stats.EntryId
+                            ItemCount     = $stats.ItemCount
+                            TotalItemSize = $totalItemSize
+                        })
                     break
                 } catch {
                     # Only retry Kerberos errors
@@ -66,8 +76,8 @@ function Get-ItemCountJob {
                         Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) -AllowClobber | Out-Null
                     } else {
                         $errorReport = @{
-                            TestName       = "Get-ItemCount"
-                            ResultType     = "CouldNotGetItemCount"
+                            TestName       = "Get-Statistics"
+                            ResultType     = "CouldNotGetStatistics"
                             Severity       = "Error"
                             FolderIdentity = $folder.Identity
                             FolderEntryId  = $folder.EntryId
@@ -85,7 +95,7 @@ function Get-ItemCountJob {
         Write-Progress @progressParams -Completed
         $duration = ((Get-Date) - $startTime)
         return [PSCustomObject]@{
-            ItemCounts = $itemCounts
+            Statistics = $statistics
             Errors     = $errors
             Duration   = $duration
         }
