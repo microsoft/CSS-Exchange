@@ -230,8 +230,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
             Assert-MockCalled Get-ExSetupDetails -Exactly 1
-            #Need to change this as we shouldn't be calling Get-MailboxServer twice
-            Assert-MockCalled Get-MailboxServer -Exactly 2
+            Assert-MockCalled Get-MailboxServer -Exactly 1
             Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
@@ -348,6 +347,21 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "HighPerformanceSet" {
             TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+    }
+
+    Context "Testing Throws" {
+        BeforeAll {
+            #This causes a RuntimeException because of issue #743 when not fixed
+            Mock Get-MailboxServer { throw "Pester testing" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Verify we still analyze the data from throw Get-MailboxServer" {
+            SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "DAG Name" "Standalone Server"
         }
     }
 }
