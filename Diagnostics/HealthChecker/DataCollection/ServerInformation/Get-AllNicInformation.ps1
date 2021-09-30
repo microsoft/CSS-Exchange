@@ -13,6 +13,7 @@ Function Get-AllNicInformation {
     )
     begin {
 
+        # Extract for Pester Testing - Start
         Function Get-NicPnpCapabilitiesSetting {
             [CmdletBinding()]
             param(
@@ -62,6 +63,8 @@ Function Get-AllNicInformation {
                 }
             }
         }
+
+        # Extract for Pester Testing - End
 
         Function Get-NetworkConfiguration {
             [CmdletBinding()]

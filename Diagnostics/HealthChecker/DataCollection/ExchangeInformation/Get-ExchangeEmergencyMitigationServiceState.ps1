@@ -26,8 +26,8 @@ Function Get-ExchangeEmergencyMitigationServiceState {
             try {
                 $exchangeEmergencyMitigationWinServiceRating = $null
                 $emergencyMitigationWinService = Get-Service -ComputerName $ComputerName -Name MSExchangeMitigation
-                if (($emergencyMitigationWinService.Status -eq "Running") -and
-                    ($emergencyMitigationWinService.StartType -eq "Automatic")) {
+                if (($emergencyMitigationWinService.Status.ToString() -eq "Running") -and
+                    ($emergencyMitigationWinService.StartType.ToString() -eq "Automatic")) {
                     $exchangeEmergencyMitigationWinServiceRating = "Running"
                 } else {
                     $exchangeEmergencyMitigationWinServiceRating = "Investigate"
