@@ -186,6 +186,8 @@ Function Invoke-AnalyzerHardwareInformation {
         $AnalyzeResults | Add-AnalyzedResultInformation -Details $displayValue `
             -DisplayGroupingKey $keyHardwareInformation `
             -DisplayWriteType "Red" `
+            -TestingName "HighPerformanceSet" `
+            -DisplayTestingValue $osInformation.PowerPlan.HighPerformanceSet `
             -AddHtmlDetailRow $false
     }
 

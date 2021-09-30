@@ -66,6 +66,8 @@ Function Invoke-AnalyzerSecuritySettings {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.") `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 3 `
+                -TestingName "TLS $tlsKey - Mismatch" `
+                -DisplayTestingValue $true `
                 -DisplayWriteType "Red"
         }
 
@@ -80,6 +82,8 @@ Function Invoke-AnalyzerSecuritySettings {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2") `
                 -DisplayGroupingKey $keySecuritySettings `
                 -DisplayCustomTabNumber 3 `
+                -TestingName "TLS $tlsKey - SystemDefaultTlsVersions Error" `
+                -DisplayTestingValue $true `
                 -DisplayWriteType "Red"
         }
     }
@@ -131,6 +135,8 @@ Function Invoke-AnalyzerSecuritySettings {
         $AnalyzeResults | Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2 `
+            -TestingName "Detected TLS Mismatch Display More Info" `
+            -DisplayTestingValue $true `
             -DisplayWriteType "Yellow"
 
         foreach ($displayValue in $displayValues) {

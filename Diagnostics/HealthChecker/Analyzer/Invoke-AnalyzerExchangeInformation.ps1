@@ -47,6 +47,8 @@ Function Invoke-AnalyzerExchangeInformation {
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Red" `
             -DisplayCustomTabNumber 2 `
+            -TestingName "Out of Date" `
+            -DisplayTestingValue $true `
             -AddHtmlDetailRow $false
     }
 

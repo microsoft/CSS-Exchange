@@ -199,6 +199,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" $true
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
+            TestObjectMatch "Out of Date" $true -WriteType "Red"
             $Script:ActiveGrouping.Count | Should -Be 10
         }
 

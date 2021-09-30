@@ -488,4 +488,113 @@ Describe "Testing Analyzer" {
             Assert-MockCalled Test-ServiceHealth -Exactly 1
         }
     }
+
+    Context "Checking Scenarios 1" {
+        BeforeAll {
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 0 }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "CtsProcessorAffinityPercentage" } -MockWith { return 10 }
+            Mock Get-CredentialGuardEnabled -MockWith { return $true }
+            Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
+            Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
+            Mock Get-AllTlsSettingsFromRegistry { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry1.xml" }
+            Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
+
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "TCP Keep Alive Time" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
+        }
+
+        It "CTS Processor Affinity Percentage" {
+            TestObjectMatch "CTS Processor Affinity Percentage" 10 -WriteType "Red"
+        }
+
+        It "Credential Guard Enabled" {
+            TestObjectMatch "Credential Guard Enabled" $true -WriteType "Red"
+        }
+
+        It "EdgeTransport.exe.config Present" {
+            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Red"
+        }
+
+        It "Server Pending Reboot" {
+            SetActiveDisplayGrouping "Operating System Information"
+            TestObjectMatch "Server Pending Reboot" $true -WriteType "Yellow"
+        }
+
+        It "TLS Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "TLS 1.1 - Mismatch" $true -WriteType "Red"
+            TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" $true -WriteType "Red"
+            TestObjectMatch "Detected TLS Mismatch Display More Info" $true -WriteType "Yellow"
+        }
+
+        It "SMB Settings" {
+            TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
+            TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
+        }
+    }
+
+    Context "Checking Scenarios 2" {
+        BeforeAll {
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "TCP Keep Alive Time" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+
+            TestObjectMatch "TCP/IP Settings" 1800000 -WriteType "Green"
+        }
+    }
+
+    Context "Checking Scenario 3 - Physical" {
+        BeforeAll {
+            $Script:date = Get-Date
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_ComputerSystem" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_ComputerSystem1.xml" }
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PhysicalMemory" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Number of Processors" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+            TestObjectMatch "Number of Processors" 4 -WriteType "Red"
+        }
+
+        It "Number of Physical Cores" {
+            TestObjectMatch "Number of Physical Cores" 48 -WriteType "Yellow"
+        }
+
+        It "Number of Logical Cores" {
+            TestObjectMatch "Number of Logical Cores" 96 -WriteType "Yellow"
+        }
+
+        It "Hyper-Threading" {
+            TestObjectMatch "Hyper-Threading" $true -WriteType "Red"
+        }
+
+        It "NUMA Group Size Optimization" {
+            TestObjectMatch "NUMA Group Size Optimization" "Clustered" -WriteType "Red"
+        }
+
+        It "Current Processor Speed" {
+            TestObjectMatch "Current Processor Speed" 2200 -WriteType "Red"
+        }
+
+        It "HighPerformanceSet" {
+            TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+    }
 }
