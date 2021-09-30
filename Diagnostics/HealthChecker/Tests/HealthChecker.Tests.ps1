@@ -426,4 +426,66 @@ Describe "Testing Analyzer" {
             $Script:ActiveGrouping.Count | Should -Be 18
         }
     }
+
+    Context "Mocked Calls" {
+
+        It "Testing Standard Mock Calls" {
+            $Script:ErrorCount = 0
+            Mock Invoke-CatchActions { $Script:ErrorCount++ }
+            #redo change to a mock call for Exchange cmdlets
+            Mock Get-ExchangeServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml" }
+            Mock Get-ExchangeCertificate { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeCertificate.xml" }
+            Mock Get-AuthConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAuthConfig.xml" }
+            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml" }
+            Mock Get-MailboxServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetMailboxServer.xml" }
+            Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml" }
+            Mock Get-WebServicesVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml" }
+            Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
+            Mock Get-HybridConfiguration { return $null }
+            Mock Get-Service { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+            Mock Get-ServerComponentState { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml" }
+            Mock Test-ServiceHealth { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml" }
+
+            $Error.Clear()
+            Get-HealthCheckerExchangeServer | Out-Null
+            $Error.Count | Should -Be $Script:ErrorCount
+            # Hard coded to know if this ever changes.
+            Assert-MockCalled Invoke-CatchActions -Exactly 1
+
+            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
+            Assert-MockCalled Get-WmiObjectHandler -Exactly 6
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 6
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 8
+            Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
+            Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
+            Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
+            Assert-MockCalled Get-NetIPConfiguration -Exactly 1
+            Assert-MockCalled Get-DnsClient -Exactly 1
+            Assert-MockCalled Get-NetAdapterRss -Exactly 1
+            Assert-MockCalled Get-HotFix -Exactly 1
+            Assert-MockCalled Get-CounterSamples -Exactly 1
+            Assert-MockCalled Get-ServerRebootPending -Exactly 1
+            Assert-MockCalled Get-TimeZoneInformationRegistrySettings -Exactly 1
+            Assert-MockCalled Get-AllTlsSettingsFromRegistry -Exactly 1
+            Assert-MockCalled Get-CredentialGuardEnabled -Exactly 1
+            Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
+            Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
+            Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
+            Assert-MockCalled Get-ExchangeUpdates -Exactly 1
+            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
+            Assert-MockCalled Get-ExchangeServer -Exactly 1
+            Assert-MockCalled Get-ExchangeCertificate -Exactly 1
+            Assert-MockCalled Get-AuthConfig -Exactly 1
+            Assert-MockCalled Get-ExSetupDetails -Exactly 1
+            #Need to change this as we shouldn't be calling Get-MailboxServer twice
+            Assert-MockCalled Get-MailboxServer -Exactly 2
+            Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-OrganizationConfig -Exactly 1
+            Assert-MockCalled Get-HybridConfiguration -Exactly 1
+            Assert-MockCalled Get-Service -Exactly 1
+            Assert-MockCalled Get-ServerComponentState -Exactly 1
+            Assert-MockCalled Test-ServiceHealth -Exactly 1
+        }
+    }
 }
