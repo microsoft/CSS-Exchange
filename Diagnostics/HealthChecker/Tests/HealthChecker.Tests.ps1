@@ -57,7 +57,7 @@ Describe "Testing Analyzer" {
                 [string]$Name
             )
 
-            ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).TestingValue
+            ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).TestingValue
         }
 
         Function GetWriteTypeObject {
@@ -67,7 +67,7 @@ Describe "Testing Analyzer" {
                 [string]$Name
             )
 
-            ($Script:ActiveGrouping | Where-Object { $_.Name -eq $Name }).WriteType
+            ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).WriteType
         }
 
         Function TestObjectMatch {

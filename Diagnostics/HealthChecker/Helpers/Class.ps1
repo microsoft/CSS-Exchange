@@ -349,6 +349,7 @@ try {
             {
                 public string DisplayValue;
                 public string Name;
+                public string TestingName; // Used for pestering testing
                 public int TabNumber;
                 public object TestingValue; //Used for pester testing down the road.
                 public object OutColumns; //used for colorized format table option.

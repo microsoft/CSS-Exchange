@@ -8,6 +8,7 @@ Function Add-AnalyzedResultInformation {
         [HealthChecker.AnalyzedInformation]$AnalyzedInformation,
         [object]$Details,
         [string]$Name,
+        [string]$TestingName,
         [object]$OutColumns,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
@@ -57,6 +58,12 @@ Function Add-AnalyzedResultInformation {
                     $lineInfo.TestingValue = $DisplayTestingValue
                 } else {
                     $lineInfo.TestingValue = $Details
+                }
+
+                if (-not ([string]::IsNullOrEmpty($TestingName))) {
+                    $lineInfo.TestingName = $TestingName
+                } else {
+                    $lineInfo.TestingName = $Name
                 }
 
                 $lineInfo.WriteType = $DisplayWriteType
