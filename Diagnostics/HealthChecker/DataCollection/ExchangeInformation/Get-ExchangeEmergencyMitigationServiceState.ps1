@@ -25,7 +25,7 @@ Function Get-ExchangeEmergencyMitigationServiceState {
             Write-Verbose "Exchange Emergency Mitigation Service detected"
             try {
                 $exchangeEmergencyMitigationWinServiceRating = $null
-                $emergencyMitigationWinService = Get-Service -ComputerName $ComputerName -Name MSExchangeMitigation
+                $emergencyMitigationWinService = Get-Service -ComputerName $ComputerName -Name MSExchangeMitigation -ErrorAction Stop
                 if (($emergencyMitigationWinService.Status.ToString() -eq "Running") -and
                     ($emergencyMitigationWinService.StartType.ToString() -eq "Automatic")) {
                     $exchangeEmergencyMitigationWinServiceRating = "Running"
