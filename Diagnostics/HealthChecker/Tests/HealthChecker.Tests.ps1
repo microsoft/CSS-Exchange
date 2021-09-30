@@ -12,7 +12,7 @@ BeforeAll {
     $Script:PesterExtract = "# Extract for Pester Testing - Start"
 }
 
-Describe "Testing Analyzer" {
+Describe "Testing Health Checker by Mock Data Imports" {
 
     BeforeAll {
 
