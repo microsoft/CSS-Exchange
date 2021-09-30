@@ -395,47 +395,17 @@ Describe "Testing Analyzer" {
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
-        It "Display Results - Exchange Information" {
-            SetActiveDisplayGrouping "Exchange Information"
-
-            TestObjectMatch "Name" $env:COMPUTERNAME
-            TestObjectMatch "Version" "Exchange 2019 CU11"
-            TestObjectMatch "Build Number" "15.2.986.5"
-            TestObjectMatch "Server Role" "Mailbox"
-            TestObjectMatch "DAG Name" "Standalone Server"
-            TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" $true
-            TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
-            $Script:ActiveGrouping.Count | Should -Be 9
-        }
-
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
-            TestObjectMatch "Time Zone" "Pacific Standard Time"
-            TestObjectMatch "Dynamic Daylight Time Enabled" $true
-            TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
-            TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
-            TestObjectMatch "Http Proxy Setting" "<None>"
-            TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
-            TestObjectMatch "Server Pending Reboot" $false
-
             $pageFile = GetObject "Page File Size"
             $pageFile.TotalPhysicalMemory | Should -Be 103079215104
-            $pageFile.MaxPageSize | Should -Be 0
-            $pageFile.MultiPageFile | Should -Be $false
-            $pageFile.RecommendedPageFile | Should -Be 0
-
-            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Process/Hardware Information" {
             SetActiveDisplayGrouping "Processor/Hardware Information"
 
             TestObjectMatch "Type" "Physical"
-            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 2 -WriteType "Green"
             TestObjectMatch "Number of Physical Cores" 12 -WriteType "Green"
             TestObjectMatch "Number of Logical Cores" 24 -WriteType "Green"
@@ -451,56 +421,9 @@ Describe "Testing Analyzer" {
         It "Display Results - NIC Settings" {
             SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
 
-            TestObjectMatch "Interface Description" "Microsoft Hyper-V Network Adapter [Ethernet]"
-            TestObjectMatch "Driver Date" "2006-06-21"
-            TestObjectMatch "MTU Size" 1500
-            TestObjectMatch "Max Processors" 2
-            TestObjectMatch "Max Processor Number" 2
-            TestObjectMatch "Number of Receive Queues" 2
-            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
-            TestObjectMatch "Link Speed" "10000 Mbps"
-            TestObjectMatch "IPv6 Enabled" $true
-            TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
-            TestObjectMatch "Registered In DNS" $true
-            TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
             TestObjectMatch "Sleepy NIC Disabled" $true
 
             $Script:ActiveGrouping.Count | Should -Be 18
-        }
-
-        It "Display Results - Frequent Configuration Issues" {
-            SetActiveDisplayGrouping "Frequent Configuration Issues"
-
-            TestObjectMatch "TCP/IP Settings" 90000 -WriteType "Yellow"
-            TestObjectMatch "RPC Min Connection Timeout" 0
-            TestObjectMatch "FIPS Algorithm Policy Enabled" 0
-            TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
-            TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
-
-            $Script:ActiveGrouping.Count | Should -Be 6
-        }
-
-        It "Display Results - Security Settings" {
-            SetActiveDisplayGrouping "Security Settings"
-
-            TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true -WriteType "Green"
-            TestObjectMatch "SMB1 Blocked" "True" -WriteType "Green"
-            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
-            TestObjectMatch "Windows service" "Running"
-            TestObjectMatch "Pattern service" "200 - Reachable"
-            TestObjectMatch "Telemetry enabled" "False"
-
-            $Script:ActiveGrouping.Count | Should -Be 71
-        }
-
-        It "Display Results - Security Vulnerability" {
-            SetActiveDisplayGrouping "Security Vulnerability"
-
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
-            $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
         }
     }
 }
