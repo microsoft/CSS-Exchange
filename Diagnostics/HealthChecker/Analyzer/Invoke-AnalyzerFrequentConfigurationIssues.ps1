@@ -74,6 +74,7 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Credential Guard Enabled" -Details $displayValue `
         -DisplayGroupingKey $keyFrequentConfigIssues `
+        -DisplayTestingValue $osInformation.CredentialGuardEnabled `
         -DisplayWriteType $displayWriteType
 
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and

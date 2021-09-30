@@ -284,7 +284,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" $true
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             $Script:ActiveGrouping.Count | Should -Be 9
         }
@@ -294,7 +294,7 @@ Describe "Testing Analyzer" {
 
             TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
-            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
@@ -335,11 +335,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 2
             TestObjectMatch "Max Processor Number" 2
             TestObjectMatch "Number of Receive Queues" 2
-            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
+            TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
-            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "IPv6 Enabled" "True"
             TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
-            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
@@ -353,7 +353,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
+            TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -362,7 +362,7 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true -WriteType "Green"
+            TestObjectMatch "SMB1 Installed" "False" -WriteType "Green"
             TestObjectMatch "SMB1 Blocked" "True" -WriteType "Green"
             TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
             TestObjectMatch "Windows service" "Running"
@@ -421,7 +421,7 @@ Describe "Testing Analyzer" {
         It "Display Results - NIC Settings" {
             SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
 
-            TestObjectMatch "Sleepy NIC Disabled" $true
+            TestObjectMatch "Sleepy NIC Disabled" "True"
 
             $Script:ActiveGrouping.Count | Should -Be 18
         }
@@ -514,23 +514,23 @@ Describe "Testing Analyzer" {
         }
 
         It "Credential Guard Enabled" {
-            TestObjectMatch "Credential Guard Enabled" $true -WriteType "Red"
+            TestObjectMatch "Credential Guard Enabled" "True" -WriteType "Red"
         }
 
         It "EdgeTransport.exe.config Present" {
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Red"
+            TestObjectMatch "EdgeTransport.exe.config Present" "False --- Error" -WriteType "Red"
         }
 
         It "Server Pending Reboot" {
             SetActiveDisplayGrouping "Operating System Information"
-            TestObjectMatch "Server Pending Reboot" $true -WriteType "Yellow"
+            TestObjectMatch "Server Pending Reboot" "True" -WriteType "Yellow"
         }
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            TestObjectMatch "TLS 1.1 - Mismatch" $true -WriteType "Red"
-            TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" $true -WriteType "Red"
-            TestObjectMatch "Detected TLS Mismatch Display More Info" $true -WriteType "Yellow"
+            TestObjectMatch "TLS 1.1 - Mismatch" "True" -WriteType "Red"
+            TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" "True" -WriteType "Red"
+            TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
         }
 
         It "SMB Settings" {
@@ -582,7 +582,7 @@ Describe "Testing Analyzer" {
         }
 
         It "Hyper-Threading" {
-            TestObjectMatch "Hyper-Threading" $true -WriteType "Red"
+            TestObjectMatch "Hyper-Threading" "True" -WriteType "Red"
         }
 
         It "NUMA Group Size Optimization" {

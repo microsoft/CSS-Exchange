@@ -84,7 +84,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Server Role" "MultiRole"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" $true
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             $Script:ActiveGrouping.Count | Should -Be 11
         }
@@ -94,7 +94,7 @@ Describe "Testing Analyzer" {
 
             TestObjectMatch "Version" "Microsoft Windows Server 2012 R2 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
-            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
@@ -143,9 +143,9 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Number of Receive Queues" 0
             TestObjectMatch "RSS Enabled" $false -WriteType "Yellow"
             TestObjectMatch "Link Speed" "10000 Mbps"
-            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "IPv6 Enabled" "True"
             TestObjectMatch "Address" "192.168.9.11\24 Gateway: 192.168.9.1"
-            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
@@ -159,7 +159,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
+            TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -168,7 +168,7 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true -WriteType "Red"
+            TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 72
@@ -197,9 +197,9 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" $true
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
-            TestObjectMatch "Out of Date" $true -WriteType "Red"
+            TestObjectMatch "Out of Date" "True" -WriteType "Red"
             $Script:ActiveGrouping.Count | Should -Be 10
         }
 
@@ -256,11 +256,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 3
             TestObjectMatch "Max Processor Number" 4
             TestObjectMatch "Number of Receive Queues" 3
-            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
+            TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
-            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "IPv6 Enabled" "True"
             TestObjectMatch "Address" "192.168.5.11\24 Gateway: 192.168.5.1"
-            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
@@ -283,7 +283,7 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true -WriteType "Red"
+            TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 71
@@ -344,7 +344,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" $true
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
             $Script:ActiveGrouping.Count | Should -Be 11
         }
 
@@ -353,7 +353,7 @@ Describe "Testing Analyzer" {
 
             TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
-            TestObjectMatch "Dynamic Daylight Time Enabled" $true
+            TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             TestObjectMatch "Http Proxy Setting" "<None>"
@@ -400,11 +400,11 @@ Describe "Testing Analyzer" {
             TestObjectMatch "Max Processors" 2
             TestObjectMatch "Max Processor Number" 2
             TestObjectMatch "Number of Receive Queues" 2
-            TestObjectMatch "RSS Enabled" $true -WriteType "Green"
+            TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
-            TestObjectMatch "IPv6 Enabled" $true
+            TestObjectMatch "IPv6 Enabled" "True"
             TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
-            TestObjectMatch "Registered In DNS" $true
+            TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 16
@@ -418,7 +418,7 @@ Describe "Testing Analyzer" {
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
-            TestObjectMatch "EdgeTransport.exe.config Present" $true -WriteType "Green"
+            TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
 
             $Script:ActiveGrouping.Count | Should -Be 6
         }
@@ -427,7 +427,7 @@ Describe "Testing Analyzer" {
             SetActiveDisplayGrouping "Security Settings"
 
             TestObjectMatch "LmCompatibilityLevel Settings" 3
-            TestObjectMatch "SMB1 Installed" $true -WriteType "Green"
+            TestObjectMatch "SMB1 Installed" "False" -WriteType "Green"
             TestObjectMatch "SMB1 Blocked" "True" -WriteType "Green"
             TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
             TestObjectMatch "Windows service" "Running"
