@@ -69,7 +69,7 @@ try {
                 public System.Array InactiveComponents;
                 public object GetServerComponentState;
                 public object GetClusterNode;
-                public object GetMailboxServer;
+                public object GetMailboxServer; //TODO: Remove this
             }
 
             //enum for CU levels of Exchange
