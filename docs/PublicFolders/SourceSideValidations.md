@@ -36,7 +36,7 @@ The script will generate the following files. Usually the only one we care about
 File Name|Content|Use
 -|-|-
 IpmSubtree.csv|A subset of properties of all Public Folders|Running with -StartFresh $false loads this file instead of retrieving fresh data
-ItemCounts.csv|EntryID and item count of every folder|Running with -StartFresh $false loads this file instead of retrieving fresh data
+Statistics.csv|EntryID, item count, and size of every folder|Running with -StartFresh $false loads this file instead of retrieving fresh data
 NonIpmSubtree.csv|A subset of properties of all System Folders|Running with -StartFresh $false loads this file instead of retrieving fresh data
 ValidationResults.csv|Information about any issues found. This is file we want to examine to understand any issues found.|The script will display a summary of what it found, and in many cases it will provide an example command that uses input from this file to fix the problem.
 

@@ -44,7 +44,9 @@ function Test-FolderLimit {
                 Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
-            [int]$itemCount = $FolderData.ItemCountDictionary[$folder.EntryId]
+            $stats = $FolderData.StatisticsDictionary[$folder.EntryId]
+            [int]$itemCount = $stats.ItemCount
+            [Int64]$totalItemSize = $stats.TotalItemSize
 
             $parent = $FolderData.EntryIdDictionary[$folder.ParentEntryId]
             if ($null -ne $parent) {
@@ -78,6 +80,13 @@ function Test-FolderLimit {
 
             if ($itemCount -gt 1000000) {
                 $testResultParams.ResultType = "ItemCount"
+                $testResultParams.FolderIdentity = $folder.Identity.ToString()
+                $testResultParams.FolderEntryId = $folder.EntryId.ToString()
+                New-TestResult @testResultParams
+            }
+
+            if ($totalItemSize -gt 25000000000) {
+                $testResultParams.ResultType = "TotalItemSize"
                 $testResultParams.FolderIdentity = $folder.Identity.ToString()
                 $testResultParams.FolderEntryId = $folder.EntryId.ToString()
                 New-TestResult @testResultParams
