@@ -1,0 +1,203 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_QuickFixEngineering</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_QuickFixEngineering</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB3192137",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB3192137",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB3192137",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=3192137</S>
+      <S N="CSName">SOLO-E16A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB3192137</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">NT AUTHORITY\SYSTEM</S>
+      <S N="InstalledOn">9/12/2016</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+      <DT N="InstalledOn">2016-09-12T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4049065",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB4049065",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4049065",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=4049065</S>
+      <S N="CSName">SOLO-E16A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB4049065</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">NT AUTHORITY\SYSTEM</S>
+      <S N="InstalledOn">12/7/2017</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+      <DT N="InstalledOn">2017-12-07T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4054590",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB4054590",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="5">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4054590",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=4054590</S>
+      <S N="CSName">SOLO-E16A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB4054590</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO\Han</S>
+      <S N="InstalledOn">11/24/2018</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+      <DT N="InstalledOn">2018-11-24T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4486129",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB4486129",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="7">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4486129",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=4486129</S>
+      <S N="CSName">SOLO-E16A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB4486129</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO\Han</S>
+      <S N="InstalledOn">6/12/2020</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+      <DT N="InstalledOn">2020-06-12T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4051033",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB4051033",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4051033",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=4051033</S>
+      <S N="CSName">SOLO-E16A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB4051033</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">NT AUTHORITY\SYSTEM</S>
+      <S N="InstalledOn">12/7/2017</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+      <DT N="InstalledOn">2017-12-07T00:00:00</DT>
+    </MS>
+  </Obj>
+</Objs>

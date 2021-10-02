@@ -1,0 +1,467 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.DirectoryServices.SearchResult</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.DirectoryServices.SearchResult</ToString>
+    <Props>
+      <S N="Path">LDAP://CN=ms-Exch-Storage-Group,CN=Schema,CN=Configuration,DC=Solo,DC=local</S>
+      <Obj N="Properties" RefId="1">
+        <TN RefId="1">
+          <T>System.DirectoryServices.ResultPropertyCollection</T>
+          <T>System.Collections.DictionaryBase</T>
+          <T>System.Object</T>
+        </TN>
+        <DCT>
+          <En>
+            <S N="Key">objectcategory</S>
+            <Obj N="Value" RefId="2">
+              <TN RefId="2">
+                <T>System.DirectoryServices.ResultPropertyValueCollection</T>
+                <T>System.Collections.ReadOnlyCollectionBase</T>
+                <T>System.Object</T>
+              </TN>
+              <IE>
+                <S>CN=Class-Schema,CN=Schema,CN=Configuration,DC=Solo,DC=local</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">dscorepropagationdata</S>
+            <Obj N="Value" RefId="3">
+              <TNRef RefId="2" />
+              <IE>
+                <DT>1601-01-01T00:00:00</DT>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">defaultobjectcategory</S>
+            <Obj N="Value" RefId="4">
+              <TNRef RefId="2" />
+              <IE>
+                <S>CN=ms-Exch-Storage-Group,CN=Schema,CN=Configuration,DC=Solo,DC=local</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">usnchanged</S>
+            <Obj N="Value" RefId="5">
+              <TNRef RefId="2" />
+              <IE>
+                <I64>58095</I64>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">instancetype</S>
+            <Obj N="Value" RefId="6">
+              <TNRef RefId="2" />
+              <IE>
+                <I32>4</I32>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">maycontain</S>
+            <Obj N="Value" RefId="7">
+              <TNRef RefId="2" />
+              <IE>
+                <S>msExchStandbyCopyMachines</S>
+                <S>msExchHasLocalCopy</S>
+                <S>msExchESEParamCopySystemPath</S>
+                <S>msExchESEParamCopyLogFilePath</S>
+                <S>msExchMinAdminVersion</S>
+                <S>msExchESEParamCachedClosedTables</S>
+                <S>msExchRestore</S>
+                <S>msExchESEParamPageTempDBMin</S>
+                <S>msExchESEParamPageFragment</S>
+                <S>msExchESEParamMaxTemporaryTables</S>
+                <S>msExchESEParamMaxCursors</S>
+                <S>msExchESEParamEnableOnlineDefrag</S>
+                <S>msExchESEParamEnableIndexChecking</S>
+                <S>msExchESEParamDbExtensionSize</S>
+                <S>msExchESEParamCommitDefault</S>
+                <S>msExchESEParamCheckpointDepthMax</S>
+                <S>msExchESEParamBaseName</S>
+                <S>msExchRecovery</S>
+                <S>msExchESEParamZeroDatabaseDuringBackup</S>
+                <S>msExchESEParamWaitLogFlush</S>
+                <S>msExchESEParamTempPath</S>
+                <S>msExchESEParamSystemPath</S>
+                <S>msExchESEParamPreferredVerPages</S>
+                <S>msExchESEParamPreferredMaxOpenTables</S>
+                <S>msExchESEParamMaxVerPages</S>
+                <S>msExchESEParamMaxSessions</S>
+                <S>msExchESEParamMaxOpenTables</S>
+                <S>msExchESEParamLogWaitingUserMax</S>
+                <S>msExchESEParamLogFileSize</S>
+                <S>msExchESEParamLogFilePath</S>
+                <S>msExchESEParamLogCheckpointPeriod</S>
+                <S>msExchESEParamLogBuffers</S>
+                <S>msExchESEParamEventSource</S>
+                <S>msExchESEParamCircularLog</S>
+                <S>displayName</S>
+                <S>description</S>
+              </IE>
+              <Props>
+                <I32 N="Count">36</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">name</S>
+            <Obj N="Value" RefId="8">
+              <TNRef RefId="2" />
+              <IE>
+                <S>ms-Exch-Storage-Group</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">defaultsecuritydescriptor</S>
+            <Obj N="Value" RefId="9">
+              <TNRef RefId="2" />
+              <IE>
+                <S>D:S:</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">usncreated</S>
+            <Obj N="Value" RefId="10">
+              <TNRef RefId="2" />
+              <IE>
+                <I64>18269</I64>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">objectclass</S>
+            <Obj N="Value" RefId="11">
+              <TNRef RefId="2" />
+              <IE>
+                <S>top</S>
+                <S>classSchema</S>
+              </IE>
+              <Props>
+                <I32 N="Count">2</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">mustcontain</S>
+            <Obj N="Value" RefId="12">
+              <TNRef RefId="2" />
+              <IE>
+                <S>cn</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">systemonly</S>
+            <Obj N="Value" RefId="13">
+              <TNRef RefId="2" />
+              <IE>
+                <B>false</B>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">auxiliaryclass</S>
+            <Obj N="Value" RefId="14">
+              <TNRef RefId="2" />
+              <IE>
+                <S>msExchBaseClass</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">governsid</S>
+            <Obj N="Value" RefId="15">
+              <TNRef RefId="2" />
+              <IE>
+                <S>1.2.840.113556.1.5.7000.62.11006</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">admindescription</S>
+            <Obj N="Value" RefId="16">
+              <TNRef RefId="2" />
+              <IE>
+                <S>ms-Exch-Storage-Group</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">objectclasscategory</S>
+            <Obj N="Value" RefId="17">
+              <TNRef RefId="2" />
+              <IE>
+                <I32>1</I32>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">objectguid</S>
+            <Obj N="Value" RefId="18">
+              <TNRef RefId="2" />
+              <IE>
+                <BA>AdHvWFEcUU+rscRq4boARQ==</BA>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">whencreated</S>
+            <Obj N="Value" RefId="19">
+              <TNRef RefId="2" />
+              <IE>
+                <DT>2018-11-24T00:11:41</DT>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">adspath</S>
+            <Obj N="Value" RefId="20">
+              <TNRef RefId="2" />
+              <IE>
+                <S>LDAP://CN=ms-Exch-Storage-Group,CN=Schema,CN=Configuration,DC=Solo,DC=local</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">cn</S>
+            <Obj N="Value" RefId="21">
+              <TNRef RefId="2" />
+              <IE>
+                <S>ms-Exch-Storage-Group</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">rdnattid</S>
+            <Obj N="Value" RefId="22">
+              <TNRef RefId="2" />
+              <IE>
+                <S>cn</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">whenchanged</S>
+            <Obj N="Value" RefId="23">
+              <TNRef RefId="2" />
+              <IE>
+                <DT>2021-09-28T16:38:34</DT>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">ldapdisplayname</S>
+            <Obj N="Value" RefId="24">
+              <TNRef RefId="2" />
+              <IE>
+                <S>msExchStorageGroup</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">admindisplayname</S>
+            <Obj N="Value" RefId="25">
+              <TNRef RefId="2" />
+              <IE>
+                <S>ms-Exch-Storage-Group</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">schemaidguid</S>
+            <Obj N="Value" RefId="26">
+              <TNRef RefId="2" />
+              <IE>
+                <BA>SiQ1NIKp0hGp/wDAT47t2A==</BA>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">showinadvancedviewonly</S>
+            <Obj N="Value" RefId="27">
+              <TNRef RefId="2" />
+              <IE>
+                <B>true</B>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">subclassof</S>
+            <Obj N="Value" RefId="28">
+              <TNRef RefId="2" />
+              <IE>
+                <S>container</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">distinguishedname</S>
+            <Obj N="Value" RefId="29">
+              <TNRef RefId="2" />
+              <IE>
+                <S>CN=ms-Exch-Storage-Group,CN=Schema,CN=Configuration,DC=Solo,DC=local</S>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">defaulthidingvalue</S>
+            <Obj N="Value" RefId="30">
+              <TNRef RefId="2" />
+              <IE>
+                <B>true</B>
+              </IE>
+              <Props>
+                <I32 N="Count">1</I32>
+                <S N="SyncRoot">System.Object</S>
+                <B N="IsSynchronized">false</B>
+              </Props>
+            </Obj>
+          </En>
+        </DCT>
+      </Obj>
+    </Props>
+  </Obj>
+</Objs>

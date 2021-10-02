@@ -1,0 +1,24 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Collections.Hashtable</T>
+      <T>System.Object</T>
+    </TN>
+    <DCT>
+      <En>
+        <S N="Key">EdgeTransport.exe.config</S>
+        <Obj N="Value" RefId="1">
+          <TN RefId="1">
+            <T>System.Management.Automation.PSCustomObject</T>
+            <T>System.Object</T>
+          </TN>
+          <MS>
+            <B N="Present">true</B>
+            <S N="FileName">EdgeTransport.exe.config</S>
+            <S N="FilePath">C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config</S>
+          </MS>
+        </Obj>
+      </En>
+    </DCT>
+  </Obj>
+</Objs>

@@ -1,0 +1,89 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_NetworkAdapter</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_NetworkAdapter</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalDevice</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_NetworkAdapter</T>
+      <T>System.Management.ManagementObject#CIM_NetworkAdapter</T>
+      <T>System.Management.ManagementObject#CIM_LogicalDevice</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_NetworkAdapter.DeviceID="10"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_NetworkAdapter</S>
+      <S N="__SUPERCLASS">CIM_NetworkAdapter</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_NetworkAdapter.DeviceID="10"</S>
+      <I32 N="__PROPERTY_COUNT">40</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_NetworkAdapter</S>
+          <S>CIM_LogicalDevice</S>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_NetworkAdapter.DeviceID="10"</S>
+      <S N="AdapterType">Ethernet 802.3</S>
+      <U16 N="AdapterTypeId">0</U16>
+      <Nil N="AutoSense" />
+      <U16 N="Availability">3</U16>
+      <S N="Caption">[00000010] Microsoft Hyper-V Network Adapter</S>
+      <U32 N="ConfigManagerErrorCode">0</U32>
+      <B N="ConfigManagerUserConfig">false</B>
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="Description">Microsoft Hyper-V Network Adapter</S>
+      <S N="DeviceID">10</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <S N="GUID">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+      <U32 N="Index">10</U32>
+      <Nil N="InstallDate" />
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">12</U32>
+      <Nil N="LastErrorCode" />
+      <S N="MACAddress">00:15:5D:00:0A:98</S>
+      <S N="Manufacturer">Microsoft</S>
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="MaxSpeed" />
+      <S N="Name">Microsoft Hyper-V Network Adapter</S>
+      <S N="NetConnectionID">Ethernet</S>
+      <U16 N="NetConnectionStatus">2</U16>
+      <B N="NetEnabled">true</B>
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <B N="PhysicalAdapter">true</B>
+      <S N="PNPDeviceID">VMBUS\{F8615163-DF3E-46C5-913F-F2D2F965ED0E}\{0575D161-5E35-4217-8747-47B168D2524B}</S>
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <S N="ProductName">Microsoft Hyper-V Network Adapter</S>
+      <S N="ServiceName">netvsc</S>
+      <U64 N="Speed">10000000000</U64>
+      <Nil N="Status" />
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">SOLO-E15A</S>
+      <S N="TimeOfLastReset">20210928112143.143929-420</S>
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+    </MS>
+  </Obj>
+</Objs>
