@@ -90,7 +90,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         }
 
         $Script:Server = $env:COMPUTERNAME
-        $Script:MockDataCollectionRoot = "$Script:parentPath\Tests\DataCollection"
+        $Script:MockDataCollectionRoot = "$Script:parentPath\Tests\DataCollection\E19"
         Function Invoke-CatchActions {}
 
         Mock Get-WmiObjectHandler {
