@@ -137,7 +137,7 @@ try {
                 public OSBuildInformation BuildInformation = new OSBuildInformation(); // contains build information
                 public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
                 public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
-                public PageFileInformation PageFile;             //stores the page file information
+                public object PageFile;             //stores the page file information
                 public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
                 public ServerPendingReboot ServerPendingReboot = new ServerPendingReboot();// determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at.
                 public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
@@ -187,12 +187,6 @@ try {
                 public bool HighPerformanceSet;      // If the power plan is High Performance
                 public string PowerPlanSetting;      //value for the power plan that is set
                 public object PowerPlan;            //object to store the power plan information
-            }
-
-            public class PageFileInformation
-            {
-                public object PageFile;       //store the information that we got for the page file
-                public double MaxPageSize;    //holds the information of what our page file is set to
             }
 
             public class OSRegistryValues
