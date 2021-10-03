@@ -24,7 +24,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
     Context "Basic Exchange 2019 CU11 Testing HyperV" {
         BeforeAll {
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_HyperV_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_HyperV_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
@@ -144,7 +144,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_Physical_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
@@ -253,7 +253,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
 
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
@@ -296,7 +296,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         BeforeAll {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
@@ -317,7 +317,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 

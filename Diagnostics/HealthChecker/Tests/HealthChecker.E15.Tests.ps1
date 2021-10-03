@@ -22,7 +22,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
     Context "Basic Exchange 2013 CU23 Testing" {
         BeforeAll {
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_E15_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_E15_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
