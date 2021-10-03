@@ -53,8 +53,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
-            $pageFile = GetObject "Page File Size"
-            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile = GetObject "Page File Size 0"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
