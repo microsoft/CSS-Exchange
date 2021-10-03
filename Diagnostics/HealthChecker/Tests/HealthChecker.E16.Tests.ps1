@@ -32,7 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2016 CU22"
-            TestObjectMatch "Build Number" "15.1.2375.7"
+            TestObjectMatch "Build Number" "15.01.2375.007"
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"

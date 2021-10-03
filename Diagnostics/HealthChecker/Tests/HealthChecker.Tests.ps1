@@ -33,7 +33,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2019 CU11"
-            TestObjectMatch "Build Number" "15.2.986.5"
+            TestObjectMatch "Build Number" "15.02.0986.005"
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"

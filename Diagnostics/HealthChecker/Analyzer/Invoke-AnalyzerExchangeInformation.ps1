@@ -35,7 +35,7 @@ Function Invoke-AnalyzerExchangeInformation {
         -AddHtmlOverviewValues $true `
         -HtmlName "Exchange Version"
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.BuildNumber) `
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.ExchangeSetup.FileVersion) `
         -DisplayGroupingKey $keyExchangeInformation
 
     if ($exchangeInformation.BuildInformation.SupportedBuild -eq $false) {
