@@ -23,7 +23,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_E15_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
