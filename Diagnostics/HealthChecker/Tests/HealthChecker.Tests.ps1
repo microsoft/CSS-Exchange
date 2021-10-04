@@ -128,9 +128,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
         }
     }
 
@@ -250,6 +251,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettingsFromRegistry { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
+            Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
+            Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
 
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
@@ -293,11 +296,21 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
         }
+
+        It "Enabled Domains" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
+            $downloadDomains.ExternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
+            $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
+        }
     }
 
     Context "Checking Scenarios 2" {
         BeforeAll {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
+            Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
+            Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -307,6 +320,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
             TestObjectMatch "TCP/IP Settings" 1800000 -WriteType "Green"
+        }
+
+        It "Enabled Domains" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
+            $downloadDomains.ExternalDownloadHostName | Should -Be "Set Correctly."
+            $downloadDomains.InternalDownloadHostName | Should -Be "Not Configured"
         }
     }
 
