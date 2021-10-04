@@ -32,7 +32,7 @@ Function Get-HttpProxySetting {
             }
 
             $Proxy = [PSCustomObject]@{
-                ProxyAddress = $(if ($proxyAddress -eq [string]::Empty) { "<None>" } else { $proxyAddress })
+                ProxyAddress = $(if ($proxyAddress -eq [string]::Empty) { "None" } else { $proxyAddress })
                 ByPassList   = $byPassList
             }
         }
@@ -53,7 +53,7 @@ Function Get-HttpProxySetting {
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
     $httpProxy = [PSCustomObject]@{
-        ProxyAddress         = $(if ($httpProxy32.ProxyAddress -ne "<None>") { $httpProxy32.ProxyAddress } else { $httpProxy64.ProxyAddress })
+        ProxyAddress         = $(if ($httpProxy32.ProxyAddress -ne "None") { $httpProxy32.ProxyAddress } else { $httpProxy64.ProxyAddress })
         ByPassList           = $(if ($httpProxy32.ByPassList -ne [string]::Empty) { $httpProxy32.ByPassList } else { $httpProxy64.ByPassList })
         HttpProxyDifference  = $httpProxy32.ProxyAddress -ne $httpProxy64.ProxyAddress
         HttpByPassDifference = $httpProxy32.ByPassList -ne $httpProxy64.ByPassList

@@ -5,21 +5,21 @@
       <T>System.Object</T>
     </TN>
     <MS>
-      <S N="ProxyAddress">&lt;None&gt;</S>
+      <S N="ProxyAddress">None</S>
       <S N="ByPassList"></S>
       <B N="HttpProxyDifference">false</B>
       <B N="HttpByPassDifference">false</B>
       <Obj N="HttpProxy32" RefId="1">
         <TNRef RefId="0" />
         <MS>
-          <S N="ProxyAddress">&lt;None&gt;</S>
+          <S N="ProxyAddress">None</S>
           <S N="ByPassList"></S>
         </MS>
       </Obj>
       <Obj N="HttpProxy64" RefId="2">
         <TNRef RefId="0" />
         <MS>
-          <S N="ProxyAddress">&lt;None&gt;</S>
+          <S N="ProxyAddress">None</S>
           <S N="ByPassList"></S>
         </MS>
       </Obj>

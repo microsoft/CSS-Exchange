@@ -49,7 +49,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error"-WriteType "Red"
-            TestObjectMatch "Http Proxy Setting" "<None>"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "None"
             TestObjectMatch "Visual C++ 2012" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false

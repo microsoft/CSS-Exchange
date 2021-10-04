@@ -173,18 +173,20 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayWriteType "Red"
     }
 
-    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -eq "<None>") {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
-            -Details ($osInformation.NetworkInformation.HttpProxy.ProxyAddress) `
-            -DisplayGroupingKey $keyOSInformation `
-            -HtmlDetailsCustomValue "None"
-    } else {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
-            -Details "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues." `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
-            -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy)
+    $displayWriteType = "Grey"
+    $displayValue = $osInformation.NetworkInformation.HttpProxy.ProxyAddress
 
+    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") {
+        $displayValue = "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues."
+        $displayWriteType = "Yellow"
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
+        -Details $displayValue `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayTestingValue $osInformation.NetworkInformation.HttpProxy
+
+    if ($displayWriteType -eq "Yellow") {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy By Pass List" `
             -Details "$($osInformation.NetworkInformation.HttpProxy.ByPassList)" `
             -DisplayGroupingKey $keyOSInformation `
