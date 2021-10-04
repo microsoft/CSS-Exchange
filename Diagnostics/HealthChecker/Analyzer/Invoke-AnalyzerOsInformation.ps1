@@ -248,12 +248,15 @@ Function Invoke-AnalyzerOsInformation {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details $line `
                 -DisplayGroupingKey $keyOSInformation `
                 -DisplayCustomTabNumber 2 `
+                -TestingName $line `
                 -DisplayWriteType "Yellow"
         }
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-RebootPending" `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Yellow" `
+            -TestingName "Reboot More Information" `
+            -DisplayTestingValue $true `
             -DisplayCustomTabNumber 2
     }
 }
