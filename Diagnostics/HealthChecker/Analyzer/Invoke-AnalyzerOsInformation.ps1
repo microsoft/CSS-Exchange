@@ -240,4 +240,20 @@ Function Invoke-AnalyzerOsInformation {
         -DisplayGroupingKey $keyOSInformation `
         -DisplayWriteType $writeType `
         -DisplayTestingValue ($osInformation.ServerPendingReboot.PendingReboot)
+
+    if ($osInformation.ServerPendingReboot.PendingReboot -and
+        $osInformation.ServerPendingReboot.PendingRebootLocations.Count -gt 0) {
+
+        foreach ($line in $osInformation.ServerPendingReboot.PendingRebootLocations) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details $line `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Yellow"
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-RebootPending" `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow" `
+            -DisplayCustomTabNumber 2
+    }
 }
