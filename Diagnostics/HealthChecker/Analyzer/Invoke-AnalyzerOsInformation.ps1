@@ -184,6 +184,7 @@ Function Invoke-AnalyzerOsInformation {
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
         -Details $displayValue `
         -DisplayGroupingKey $keyOSInformation `
+        -DisplayWriteType $displayWriteType `
         -DisplayTestingValue $osInformation.NetworkInformation.HttpProxy
 
     if ($displayWriteType -eq "Yellow") {
