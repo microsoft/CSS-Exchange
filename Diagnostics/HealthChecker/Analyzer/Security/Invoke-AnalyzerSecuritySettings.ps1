@@ -38,6 +38,21 @@ Function Invoke-AnalyzerSecuritySettings {
     $tlsVersions = @("1.0", "1.1", "1.2")
     $currentNetVersion = $osInformation.TLSSettings["NETv4"]
 
+    function TestTlsValue {
+        param(
+            [string]$Name,
+            [int]$Value
+        )
+        if ($Value -ne 0 -and
+            $Value -ne 1) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name $Name -Details "$Value --- Error: Must be a value of 1 or 0." `
+                -DisplayGroupingKey $keySecuritySettings `
+                -DisplayCustomTabNumber 2 `
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $Value
+        }
+    }
+
     foreach ($tlsKey in $tlsVersions) {
         $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
 
@@ -49,17 +64,25 @@ Function Invoke-AnalyzerSecuritySettings {
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2
 
+        TestTlsValue -Name "Server Enabled Value" -Value $currentTlsVersion.ServerEnabledValue
+
         $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Server Disabled By Default") -Details ($currentTlsVersion.ServerDisabledByDefault) `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2
+
+        TestTlsValue -Name "Server Disabled By Default Value" -Value $currentTlsVersion.ServerDisabledByDefaultValue
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Client Enabled") -Details ($currentTlsVersion.ClientEnabled) `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2
 
+        TestTlsValue -Name "Client Enabled Value" -Value $currentTlsVersion.ClientEnabledValue
+
         $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Client Disabled By Default") -Details ($currentTlsVersion.ClientDisabledByDefault) `
             -DisplayGroupingKey $keySecuritySettings `
             -DisplayCustomTabNumber 2
+
+        TestTlsValue -Name "Client Disabled By Default Value" -Value $currentTlsVersion.ClientDisabledByDefaultValue
 
         if ($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled) {
             $detectedTlsMismatch = $true

@@ -77,8 +77,6 @@ Function Get-AllTlsSettingsFromRegistry {
             }
 
             foreach ($getKey in $keyValues) {
-                $memberServerName = "Server$getKey"
-                $memberClientName = "Client$getKey"
 
                 $serverValue = Get-RemoteRegistryValue `
                     -MachineName $MachineName `
@@ -92,11 +90,17 @@ Function Get-AllTlsSettingsFromRegistry {
                     -CatchActionFunction $CatchActionFunction
 
                 $currentTLSObject | Add-Member -MemberType NoteProperty `
-                    -Name $memberServerName `
+                    -Name "Server$getKey" `
                     -Value (Get-TLSMemberValue -GetKeyType $getKey -KeyValue $serverValue -ServerClientType "Server" -TlsVersion $tlsVersion)
                 $currentTLSObject | Add-Member -MemberType NoteProperty `
-                    -Name $memberClientName `
+                    -Name "Server$getKey`Value" `
+                    -Value $serverValue
+                $currentTLSObject | Add-Member -MemberType NoteProperty `
+                    -Name "Client$getKey" `
                     -Value (Get-TLSMemberValue -GetKeyType $getKey -KeyValue $clientValue -ServerClientType "Client" -TlsVersion $tlsVersion)
+                $currentTLSObject | Add-Member -MemberType NoteProperty `
+                    -Name "Client$getKey`Value" `
+                    -Value $clientValue
             }
             $allTlsObjects.Add($TlsVersion, $currentTLSObject)
         }
