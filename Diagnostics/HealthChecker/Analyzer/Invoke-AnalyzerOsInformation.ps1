@@ -193,6 +193,15 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayWriteType "Yellow"
     }
 
+    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None" -and
+        $osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy." `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Red" `
+            -TestingName "Proxy Doesn't Match" `
+            -DisplayCustomTabNumber 2
+    }
+
     $displayWriteType2012 = "Yellow"
     $displayWriteType2013 = "Yellow"
     $displayValue2012 = "Unknown"

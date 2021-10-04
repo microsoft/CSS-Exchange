@@ -142,6 +142,12 @@ Function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    $internetProxy = $exchangeInformation.GetExchangeServer.InternetWebProxy
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Internet Web Proxy" `
+        -Details $( if ([string]::IsNullOrEmpty($internetProxy)) { "Not Set" } else { $internetProxy } )`
+        -DisplayGroupingKey $keyExchangeInformation
+
     if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" `
             -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `

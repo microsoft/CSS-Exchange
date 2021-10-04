@@ -39,7 +39,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
-            $Script:ActiveGrouping.Count | Should -Be 9
+            TestObjectMatch "Internet Web Proxy" "Not Set"
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Operating System Information" {

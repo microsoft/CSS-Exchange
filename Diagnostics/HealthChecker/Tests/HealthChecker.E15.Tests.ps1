@@ -37,7 +37,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
-            $Script:ActiveGrouping.Count | Should -Be 11
+            TestObjectMatch "Internet Web Proxy" "Not Set"
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Operating System Information" {
