@@ -163,7 +163,7 @@ try {
             {
                 public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry
                 public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout.
-                public string HttpProxy;                // holds the setting for HttpProxy if one is set.
+                public object HttpProxy;                // holds the setting for HttpProxy if one is set.
                 public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
                 public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents
                 public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.

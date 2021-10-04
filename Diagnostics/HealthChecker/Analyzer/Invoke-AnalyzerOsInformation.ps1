@@ -173,16 +173,22 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayWriteType "Red"
     }
 
-    if ($osInformation.NetworkInformation.HttpProxy -eq "<None>") {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details ($osInformation.NetworkInformation.HttpProxy) `
+    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -eq "<None>") {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
+            -Details ($osInformation.NetworkInformation.HttpProxy.ProxyAddress) `
             -DisplayGroupingKey $keyOSInformation `
             -HtmlDetailsCustomValue "None"
     } else {
-        $displayValue = "{0} --- Warning this can cause client connectivity issues." -f $osInformation.NetworkInformation.HttpProxy
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details $displayValue `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
+            -Details "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Yellow" `
             -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy)
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy By Pass List" `
+            -Details "$($osInformation.NetworkInformation.HttpProxy.ByPassList)" `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow"
     }
 
     $displayWriteType2012 = "Yellow"

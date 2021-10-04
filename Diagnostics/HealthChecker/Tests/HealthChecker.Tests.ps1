@@ -208,7 +208,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 6
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 8
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
@@ -253,10 +253,20 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
+            Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
 
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Http Proxy Settings" {
+            SetActiveDisplayGrouping "Operating System Information"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "proxy.contoso.com:8080"
+            $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
+            $httpProxy.HttpProxyDifference | Should -Be "False"
+            $httpProxy.HttpByPassDifference | Should -Be "False"
         }
 
         It "TCP Keep Alive Time" {
