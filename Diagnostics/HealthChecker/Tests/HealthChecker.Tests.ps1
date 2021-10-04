@@ -280,6 +280,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "TLS 1.0 - Client Enabled Value" "-1" -WriteType "Red"
             TestObjectMatch "TLS 1.1 - Mismatch" "True" -WriteType "Red"
             TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" "True" -WriteType "Red"
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
