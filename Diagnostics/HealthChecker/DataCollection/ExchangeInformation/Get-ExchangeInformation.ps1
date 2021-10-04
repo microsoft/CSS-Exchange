@@ -259,7 +259,7 @@ Function Get-ExchangeInformation {
             }
         } else {
             Write-Verbose "Exchange 2013 is detected. Checking build number..."
-            $buildInformation.FriendlyName = "Exchange 2013"
+            $buildInformation.FriendlyName = "Exchange 2013 "
 
             #Exchange 2013 Information
             if ($buildAndRevision -lt 712.24) {

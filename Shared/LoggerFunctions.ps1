@@ -21,13 +21,12 @@ Function Get-NewLoggerInstance {
         [int]$NumberOfLogsToKeep = 10
     )
 
-    $fileName = if ($AppendDateTime) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
+    $fileName = if ($AppendDateTimeToFileName) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
     $fullFilePath = [System.IO.Path]::Combine($LogDirectory, $fileName)
 
     return [PSCustomObject]@{
         FullPath                 = $fullFilePath
         AppendDateTime           = $AppendDateTime
-        AppendDateTimeToFileName = $AppendDateTimeToFileName
         MaxFileSizeMB            = $MaxFileSizeMB
         CheckSizeIntervalMinutes = $CheckSizeIntervalMinutes
         NumberOfLogsToKeep       = $NumberOfLogsToKeep

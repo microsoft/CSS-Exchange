@@ -1,0 +1,408 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_PhysicalMemory</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_PhysicalMemory</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_Chip</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_PhysicalComponent</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_PhysicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_PhysicalMemory</T>
+      <T>System.Management.ManagementObject#CIM_PhysicalMemory</T>
+      <T>System.Management.ManagementObject#CIM_Chip</T>
+      <T>System.Management.ManagementObject#CIM_PhysicalComponent</T>
+      <T>System.Management.ManagementObject#CIM_PhysicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 0"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 0"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 0"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_A1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_A1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 0</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 1"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 1"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 1"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_B1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_B1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 1</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 2"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 2"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="5">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 2"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_C1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_C1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 2</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 3"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 3"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="7">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 3"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_D1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_D1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 3</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 4"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 4"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 4"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_E1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_E1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 4</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="10">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 5"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PhysicalMemory</S>
+      <S N="__SUPERCLASS">CIM_PhysicalMemory</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_PhysicalMemory.Tag="Physical Memory 5"</S>
+      <I32 N="__PROPERTY_COUNT">36</I32>
+      <Obj N="__DERIVATION" RefId="11">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_PhysicalMemory</S>
+          <S>CIM_Chip</S>
+          <S>CIM_PhysicalComponent</S>
+          <S>CIM_PhysicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_PhysicalMemory.Tag="Physical Memory 5"</S>
+      <U32 N="Attributes">1</U32>
+      <S N="BankLabel">DIMM_F1</S>
+      <U64 N="Capacity">17179869184</U64>
+      <S N="Caption">Physical Memory</S>
+      <U32 N="ConfiguredClockSpeed">1333</U32>
+      <Nil N="ConfiguredVoltage" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Physical Memory</S>
+      <S N="DeviceLocator">DIMM_F1</S>
+      <U16 N="FormFactor">8</U16>
+      <Nil N="HotSwappable" />
+      <Nil N="InstallDate" />
+      <Nil N="InterleaveDataDepth" />
+      <Nil N="InterleavePosition" />
+      <S N="Manufacturer">Microsoft Corporation            </S>
+      <Nil N="MaxVoltage" />
+      <U16 N="MemoryType">24</U16>
+      <Nil N="MinVoltage" />
+      <Nil N="Model" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PositionInRow" />
+      <Nil N="PoweredOn" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <S N="SerialNumber">None      </S>
+      <Nil N="SKU" />
+      <U32 N="SMBIOSMemoryType">24</U32>
+      <U32 N="Speed">1333</U32>
+      <Nil N="Status" />
+      <S N="Tag">Physical Memory 5</S>
+      <U16 N="TotalWidth">72</U16>
+      <U16 N="TypeDetail">8192</U16>
+      <Nil N="Version" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+</Objs>

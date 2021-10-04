@@ -12,6 +12,7 @@ Function Get-TimeZoneInformationRegistrySettings {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $timeZoneInformationSubKey = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
         $actionsToTake = @()
+        $dstIssueDetected = $false
     }
     process {
         $dynamicDaylightTimeDisabled = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DynamicDaylightTimeDisabled" -CatchActionFunction $CatchActionFunction

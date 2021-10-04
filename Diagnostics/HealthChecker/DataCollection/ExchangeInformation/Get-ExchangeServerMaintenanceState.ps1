@@ -31,7 +31,7 @@ Function Get-ExchangeServerMaintenanceState {
         if (($null -ne $ComponentsToSkip -and
                 $ComponentsToSkip.Count -ne 0) -and
             $ComponentsToSkip -notcontains $component.Component) {
-            if ($component.State -ne "Active") {
+            if ($component.State.ToString() -ne "Active") {
                 $latestLocalState = $null
                 $latestRemoteState = $null
 

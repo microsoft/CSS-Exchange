@@ -1,0 +1,146 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_NetworkAdapterConfiguration</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_Setting</T>
+      <T>System.Management.ManagementObject#Win32_NetworkAdapterConfiguration</T>
+      <T>System.Management.ManagementObject#CIM_Setting</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_NetworkAdapterConfiguration.Index=1</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_NetworkAdapterConfiguration</S>
+      <S N="__SUPERCLASS">CIM_Setting</S>
+      <S N="__DYNASTY">CIM_Setting</S>
+      <S N="__RELPATH">Win32_NetworkAdapterConfiguration.Index=1</S>
+      <I32 N="__PROPERTY_COUNT">61</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_Setting</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_NetworkAdapterConfiguration.Index=1</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <S N="Caption">[00000001] Microsoft Hyper-V Network Adapter</S>
+      <S N="DatabasePath">%SystemRoot%\System32\drivers\etc</S>
+      <Nil N="DeadGWDetectEnabled" />
+      <Obj N="DefaultIPGateway" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <S>192.168.11.1</S>
+        </LST>
+      </Obj>
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <S N="Description">Microsoft Hyper-V Network Adapter</S>
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Obj N="DNSDomainSuffixSearchOrder" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Solo.com</S>
+        </LST>
+      </Obj>
+      <B N="DNSEnabledForWINSResolution">false</B>
+      <S N="DNSHostName">Solo-E19A</S>
+      <Obj N="DNSServerSearchOrder" RefId="4">
+        <TNRef RefId="1" />
+        <LST>
+          <S>192.168.11.10</S>
+        </LST>
+      </Obj>
+      <B N="DomainDNSRegistrationEnabled">false</B>
+      <Nil N="ForwardBufferMemory" />
+      <B N="FullDNSRegistrationEnabled">true</B>
+      <Obj N="GatewayCostMetric" RefId="5">
+        <TN RefId="2">
+          <T>System.UInt16[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <U16>256</U16>
+        </LST>
+      </Obj>
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">1</U32>
+      <U32 N="InterfaceIndex">7</U32>
+      <Obj N="IPAddress" RefId="6">
+        <TNRef RefId="1" />
+        <LST>
+          <S>192.168.11.11</S>
+          <S>fe80::9849:f94f:c7a1:cacb</S>
+        </LST>
+      </Obj>
+      <U32 N="IPConnectionMetric">15</U32>
+      <B N="IPEnabled">true</B>
+      <B N="IPFilterSecurityEnabled">false</B>
+      <Nil N="IPPortSecurityEnabled" />
+      <Obj N="IPSecPermitIPProtocols" RefId="7">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSecPermitTCPPorts" RefId="8">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSecPermitUDPPorts" RefId="9">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSubnet" RefId="10">
+        <TNRef RefId="1" />
+        <LST>
+          <S>255.255.255.0</S>
+          <S>64</S>
+        </LST>
+      </Obj>
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <S N="MACAddress">00:15:5D:00:0A:46</S>
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">netvsc</S>
+      <S N="SettingID">{6B5CCC07-72EB-4DA6-B543-0341FC0B613F}</S>
+      <U32 N="TcpipNetbiosOptions">0</U32>
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <B N="WINSEnableLMHostsLookup">true</B>
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <S N="WINSScopeID"></S>
+      <Nil N="WINSSecondaryServer" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+</Objs>

@@ -61,7 +61,7 @@ Function Get-CASLoadBalancingReport {
             $i++
         }
 
-        Write-VerboseWriter("Failed to get some counters")
+        Write-Verbose("Failed to get some counters")
     }
 
     foreach ($Result in $AllCounterResults.CounterSamples) {

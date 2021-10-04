@@ -1,0 +1,41 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="DisplayName">Microsoft Visual C++ 2012 x64 Additional Runtime - 11.0.61030</S>
+      <S N="DisplayVersion">11.0.61030</S>
+      <S N="InstallDate">20210608</S>
+      <I32 N="VersionIdentifier">184610406</I32>
+    </MS>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="DisplayName">Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.21005</S>
+      <S N="DisplayVersion">12.0.21005</S>
+      <S N="InstallDate">20210608</S>
+      <I32 N="VersionIdentifier">201347597</I32>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="DisplayName">Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.21005</S>
+      <S N="DisplayVersion">12.0.21005</S>
+      <S N="InstallDate">20210608</S>
+      <I32 N="VersionIdentifier">201347597</I32>
+    </MS>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="DisplayName">Microsoft Visual C++ 2012 x64 Minimum Runtime - 11.0.61030</S>
+      <S N="DisplayVersion">11.0.61030</S>
+      <S N="InstallDate">20210608</S>
+      <I32 N="VersionIdentifier">184610406</I32>
+    </MS>
+  </Obj>
+</Objs>

@@ -1,0 +1,80 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Collections.Hashtable</T>
+      <T>System.Object</T>
+    </TN>
+    <DCT>
+      <En>
+        <S N="Key">1.1</S>
+        <Obj N="Value" RefId="1">
+          <TN RefId="1">
+            <T>System.Management.Automation.PSCustomObject</T>
+            <T>System.Object</T>
+          </TN>
+          <MS>
+            <S N="TLSVersion">1.1</S>
+            <B N="ServerEnabled">true</B>
+            <B N="ClientEnabled">true</B>
+            <B N="ServerDisabledByDefault">false</B>
+            <B N="ClientDisabledByDefault">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">NETv4</S>
+        <Obj N="Value" RefId="2">
+          <TNRef RefId="1" />
+          <MS>
+            <S N="NetVersion">v4.0.30319</S>
+            <B N="SystemDefaultTlsVersions">false</B>
+            <B N="SchUseStrongCrypto">false</B>
+            <B N="WowSystemDefaultTlsVersions">false</B>
+            <B N="WowSchUseStrongCrypto">false</B>
+            <S N="SecurityProtocol">Ssl3, Tls</S>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">1.2</S>
+        <Obj N="Value" RefId="3">
+          <TNRef RefId="1" />
+          <MS>
+            <S N="TLSVersion">1.2</S>
+            <B N="ServerEnabled">true</B>
+            <B N="ClientEnabled">true</B>
+            <B N="ServerDisabledByDefault">false</B>
+            <B N="ClientDisabledByDefault">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">1.0</S>
+        <Obj N="Value" RefId="4">
+          <TNRef RefId="1" />
+          <MS>
+            <S N="TLSVersion">1.0</S>
+            <B N="ServerEnabled">true</B>
+            <B N="ClientEnabled">true</B>
+            <B N="ServerDisabledByDefault">false</B>
+            <B N="ClientDisabledByDefault">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">NETv2</S>
+        <Obj N="Value" RefId="5">
+          <TNRef RefId="1" />
+          <MS>
+            <S N="NetVersion">v2.0.50727</S>
+            <B N="SystemDefaultTlsVersions">false</B>
+            <B N="SchUseStrongCrypto">false</B>
+            <B N="WowSystemDefaultTlsVersions">false</B>
+            <B N="WowSchUseStrongCrypto">false</B>
+            <S N="SecurityProtocol">Ssl3, Tls</S>
+          </MS>
+        </Obj>
+      </En>
+    </DCT>
+  </Obj>
+</Objs>
