@@ -17,3 +17,5 @@ It is best to reboot the server to address these issues. It may take some time a
       - Delete the key
 
 NOTE: With `Component Based Servicing\RebootPending` you need to do the same for `Component Based Servicing\PackagesPending` prior to `RebootPending`
+
+NOTE: Follow the steps in this section carefully. Serious problems might occur if you modify the registry incorrectly. Before you modify it, [back up the registry for restoration](https://support.microsoft.com/en-us/topic/how-to-back-up-and-restore-the-registry-in-windows-855140ad-e318-2a13-2829-d428a2ab0692) in case problems occur.
