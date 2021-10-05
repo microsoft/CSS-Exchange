@@ -3,14 +3,14 @@
 
 . $PSScriptRoot\Get-ProcessorInformation.ps1
 . $PSScriptRoot\Get-ServerType.ps1
-. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 Function Get-HardwareInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $system = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $hardware_obj.MemoryInformation = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile

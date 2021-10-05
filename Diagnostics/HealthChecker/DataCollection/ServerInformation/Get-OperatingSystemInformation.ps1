@@ -14,6 +14,7 @@
 . $PSScriptRoot\Get-ServerOperatingSystemVersion.ps1
 . $PSScriptRoot\Get-Smb1ServerSettings.ps1
 . $PSScriptRoot\Get-TimeZoneInformationRegistrySettings.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
 Function Get-OperatingSystemInformation {
@@ -21,7 +22,7 @@ Function Get-OperatingSystemInformation {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
-    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_OperatingSystem = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
     $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
     $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
