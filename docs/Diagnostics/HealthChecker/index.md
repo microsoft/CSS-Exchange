@@ -1,6 +1,7 @@
 ---
 title: HealthChecker.ps1
 parent: Diagnostics
+has_children: true
 ---
 
 ## HealthChecker.ps1

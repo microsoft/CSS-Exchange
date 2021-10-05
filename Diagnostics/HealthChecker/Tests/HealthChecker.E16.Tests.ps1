@@ -32,13 +32,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2016 CU22"
-            TestObjectMatch "Build Number" "15.1.2375.7"
+            TestObjectMatch "Build Number" "15.01.2375.007"
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
-            $Script:ActiveGrouping.Count | Should -Be 9
+            TestObjectMatch "Internet Web Proxy" "Not Set"
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Operating System Information" {
@@ -49,13 +50,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error"-WriteType "Red"
-            TestObjectMatch "Http Proxy Setting" "<None>"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "None"
             TestObjectMatch "Visual C++ 2012" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
-            $pageFile = GetObject "Page File Size"
-            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile = GetObject "Page File Size 0"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
@@ -126,9 +128,10 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
+            $downlaodDomains = GetObject "CVE-2021-1730"
+            $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
 
             $Script:ActiveGrouping.Count | Should -Be 2
         }

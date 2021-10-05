@@ -35,7 +35,7 @@ Function Invoke-AnalyzerExchangeInformation {
         -AddHtmlOverviewValues $true `
         -HtmlName "Exchange Version"
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.BuildNumber) `
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Build Number" -Details ($exchangeInformation.BuildInformation.ExchangeSetup.FileVersion) `
         -DisplayGroupingKey $keyExchangeInformation
 
     if ($exchangeInformation.BuildInformation.SupportedBuild -eq $false) {
@@ -142,6 +142,12 @@ Function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    $internetProxy = $exchangeInformation.GetExchangeServer.InternetWebProxy
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Internet Web Proxy" `
+        -Details $( if ([string]::IsNullOrEmpty($internetProxy)) { "Not Set" } else { $internetProxy } )`
+        -DisplayGroupingKey $keyExchangeInformation
+
     if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "EWS Internal Bypass URL Set" `
             -Details ("$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779") `
@@ -166,13 +172,14 @@ Function Invoke-AnalyzerExchangeInformation {
 
     Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
+    $getMailboxServer = $exchangeInformation.GetMailboxServer
 
     if (($serverMaintenance.InactiveComponents).Count -eq 0 -and
         ($null -eq $serverMaintenance.GetClusterNode -or
         $serverMaintenance.GetClusterNode.State -eq "Up") -and
-        ($null -eq $serverMaintenance.GetMailboxServer -or
-            ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
-        $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy.ToString() -eq "Unrestricted"))) {
+        ($null -eq $getMailboxServer -or
+            ($getMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
+        $getMailboxServer.DatabaseCopyAutoActivationPolicy.ToString() -eq "Unrestricted"))) {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Exchange Server Maintenance" -Details "Server is not in Maintenance Mode" `
             -DisplayGroupingKey $keyExchangeInformation `
             -DisplayWriteType "Green"
@@ -194,11 +201,11 @@ Function Invoke-AnalyzerExchangeInformation {
                 -DisplayWriteType "Yellow"
         }
 
-        if ($serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
-            $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Blocked") {
+        if ($getMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -or
+            $getMailboxServer.DatabaseCopyAutoActivationPolicy -eq "Blocked") {
             $displayValue = "`r`n`t`tDatabaseCopyActivationDisabledAndMoveNow: {0} --- should be 'false'`r`n`t`tDatabaseCopyAutoActivationPolicy: {1} --- should be 'unrestricted'" -f `
-                $serverMaintenance.GetMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
-            $serverMaintenance.GetMailboxServer.DatabaseCopyAutoActivationPolicy
+                $getMailboxServer.DatabaseCopyActivationDisabledAndMoveNow,
+            $getMailboxServer.DatabaseCopyAutoActivationPolicy
 
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Database Copy Maintenance" -Details $displayValue `
                 -DisplayGroupingKey $keyExchangeInformation `

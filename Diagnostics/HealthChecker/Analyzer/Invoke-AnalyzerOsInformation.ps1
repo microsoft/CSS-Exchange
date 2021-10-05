@@ -94,53 +94,73 @@ Function Invoke-AnalyzerOsInformation {
 
     $displayValue = [string]::Empty
     $displayWriteType = "Yellow"
-    $totalPhysicalMemory = $hardwareInformation.TotalMemory
-    $maxPageSize = $osInformation.PageFile.MaxPageSize
+    $totalPhysicalMemory = [Math]::Round($hardwareInformation.TotalMemory / 1MB)
+    $instanceCount = 0
+    Write-Verbose "Evaluating Page File Information"
     Write-Verbose "Total Memory: $totalPhysicalMemory"
-    Write-Verbose "Page File: $maxPageSize"
-    $testingValue = New-Object PSCustomObject
-    $testingValue | Add-Member -MemberType NoteProperty -Name "TotalPhysicalMemory" -Value $totalPhysicalMemory
-    $testingValue | Add-Member -MemberType NoteProperty -Name "MaxPageSize" -Value $maxPageSize
-    $testingValue | Add-Member -MemberType NoteProperty -Name "MultiPageFile" -Value ($osInformation.PageFile.PageFile.Count -gt 1)
-    $testingValue | Add-Member -MemberType NoteProperty -Name "RecommendedPageFile" -Value 0
-    if ($maxPageSize -eq 0) {
-        $displayValue = "Error: System is set to automatically manage the pagefile size."
-        $displayWriteType = "Red"
-    } elseif ($osInformation.PageFile.PageFile.Count -gt 1) {
-        $displayValue = "Multiple page files detected. `r`n`t`tError: This has been know to cause performance issues please address this."
-        $displayWriteType = "Red"
-    } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) / 4))
-        Write-Verbose "Recommended Page File Size: $recommendedPageFileSize"
-        if ($recommendedPageFileSize -ne $maxPageSize) {
-            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is {1}MB. Recommended is {2}MB" -f $maxPageSize, ([Math]::Round($totalPhysicalMemory / 1MB)), $recommendedPageFileSize
-        } else {
-            $displayValue = "{0}MB" -f $recommendedPageFileSize
-            $displayWriteType = "Grey"
-        }
-    } elseif ($totalPhysicalMemory -ge 34359738368) {
-        #32GB = 1024 * 1024 * 1024 * 32 = 34,359,738,368
-        if ($maxPageSize -eq 32778) {
-            $displayValue = "{0}MB" -f $maxPageSize
-            $displayWriteType = "Grey"
-        } else {
-            $displayValue = "{0}MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://aka.ms/HC-SystemRequirements2016#hardware-requirements-for-exchange-2016" -f $maxPageSize
-        }
-    } else {
-        $testingValue.RecommendedPageFile = ($recommendedPageFileSize = [Math]::Round(($totalPhysicalMemory / 1MB) + 10))
 
-        if ($recommendedPageFileSize -ne $maxPageSize) {
-            $displayValue = "{0}MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be {1}MB" -f $maxPageSize, $recommendedPageFileSize
-        } else {
-            $displayValue = "{0}MB" -f $maxPageSize
-            $displayWriteType = "Grey"
+    foreach ($pageFile in $osInformation.PageFile) {
+
+        $maxPageSize = $pageFile.MaximumSize
+        Write-Verbose "Max Page Size: $maxPageSize"
+        $testingValue = [PSCustomObject]@{
+            TotalPhysicalMemory = $totalPhysicalMemory
+            MaxPageSize         = $maxPageSize
+            MultiPageFile       = $osInformation.PageFile.Count -gt 1
+            RecommendedPageFile = 0
         }
+
+        if ($maxPageSize -eq 0) {
+            $displayValue = "Error: System is set to automatically manage the pagefile size."
+            $displayWriteType = "Red"
+        } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
+            $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
+            $testingValue.RecommendedPageFile = $recommendedPageFile
+            Write-Verbose "Recommended Page File Size: $recommendedPageFile"
+
+            if ($recommendedPageFile -ne $maxPageSize) {
+                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is $totalPhysicalMemory`MB. Recommended is $recommendedPageFile`MB"
+            } else {
+                $displayValue = "$recommendedPageFile`MB"
+                $displayWriteType = "Grey"
+            }
+        } elseif ($totalPhysicalMemory -ge 32768) {
+            if ($maxPageSize -eq 32778) {
+                $displayValue = "$maxPageSize`MB"
+                $displayWriteType = "Grey"
+            } else {
+                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://aka.ms/HC-SystemRequirements2016#hardware-requirements-for-exchange-2016"
+            }
+        } else {
+            $recommendedPageFile = $totalPhysicalMemory + 10
+            $testingValue.RecommendedPageFile
+
+            if ($recommendedPageFile -ne $maxPageSize) {
+                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be $recommendedPageFile`MB"
+            } else {
+                $displayValue = "$maxPageSize`MB"
+                $displayWriteType = "Grey"
+            }
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Page File Size" -Details $displayValue `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType $displayWriteType `
+            -TestingName "Page File Size $instanceCount" `
+            -DisplayTestingValue $testingValue
+
+        $instanceCount++
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Page File Size" -Details $displayValue `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue $testingValue
+    if ($null -ne $osInformation.PageFile -and
+        $osInformation.PageFile.Count -gt 1) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Multiple page files detected. This has been known to cause performance issues, please address this." `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Red" `
+            -TestingName "Multiple Page File Detected." `
+            -DisplayTestingValue $true `
+            -DisplayCustomTabNumber 2
+    }
 
     if ($osInformation.PowerPlan.HighPerformanceSet) {
         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Power Plan" -Details ($osInformation.PowerPlan.PowerPlanSetting) `
@@ -153,16 +173,34 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayWriteType "Red"
     }
 
-    if ($osInformation.NetworkInformation.HttpProxy -eq "<None>") {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details ($osInformation.NetworkInformation.HttpProxy) `
+    $displayWriteType = "Grey"
+    $displayValue = $osInformation.NetworkInformation.HttpProxy.ProxyAddress
+
+    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") {
+        $displayValue = "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues."
+        $displayWriteType = "Yellow"
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
+        -Details $displayValue `
+        -DisplayGroupingKey $keyOSInformation `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $osInformation.NetworkInformation.HttpProxy
+
+    if ($displayWriteType -eq "Yellow") {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy By Pass List" `
+            -Details "$($osInformation.NetworkInformation.HttpProxy.ByPassList)" `
             -DisplayGroupingKey $keyOSInformation `
-            -HtmlDetailsCustomValue "None"
-    } else {
-        $displayValue = "{0} --- Warning this can cause client connectivity issues." -f $osInformation.NetworkInformation.HttpProxy
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" -Details $displayValue `
+            -DisplayWriteType "Yellow"
+    }
+
+    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None" -and
+        $osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy." `
             -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
-            -DisplayTestingValue ($osInformation.NetworkInformation.HttpProxy)
+            -DisplayWriteType "Red" `
+            -TestingName "Proxy Doesn't Match" `
+            -DisplayCustomTabNumber 2
     }
 
     $displayWriteType2012 = "Yellow"
@@ -220,4 +258,23 @@ Function Invoke-AnalyzerOsInformation {
         -DisplayGroupingKey $keyOSInformation `
         -DisplayWriteType $writeType `
         -DisplayTestingValue ($osInformation.ServerPendingReboot.PendingReboot)
+
+    if ($osInformation.ServerPendingReboot.PendingReboot -and
+        $osInformation.ServerPendingReboot.PendingRebootLocations.Count -gt 0) {
+
+        foreach ($line in $osInformation.ServerPendingReboot.PendingRebootLocations) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details $line `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayCustomTabNumber 2 `
+                -TestingName $line `
+                -DisplayWriteType "Yellow"
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-RebootPending" `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Yellow" `
+            -TestingName "Reboot More Information" `
+            -DisplayTestingValue $true `
+            -DisplayCustomTabNumber 2
+    }
 }

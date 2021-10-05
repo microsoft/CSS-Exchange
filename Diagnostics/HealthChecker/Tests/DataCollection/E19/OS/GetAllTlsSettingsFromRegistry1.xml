@@ -15,9 +15,13 @@
           <MS>
             <S N="TLSVersion">1.1</S>
             <B N="ServerEnabled">true</B>
+            <I32 N="ServerEnabledValue">0</I32>
             <B N="ClientEnabled">false</B>
+            <I32 N="ClientEnabledValue">0</I32>
             <B N="ServerDisabledByDefault">true</B>
+            <I32 N="ServerDisabledByDefaultValue">1</I32>
             <B N="ClientDisabledByDefault">true</B>
+            <I32 N="ClientDisabledByDefaultValue">1</I32>
           </MS>
         </Obj>
       </En>
@@ -42,9 +46,13 @@
           <MS>
             <S N="TLSVersion">1.2</S>
             <B N="ServerEnabled">true</B>
+            <I32 N="ServerEnabledValue">1</I32>
             <B N="ClientEnabled">true</B>
+            <I32 N="ClientEnabledValue">1</I32>
             <B N="ServerDisabledByDefault">false</B>
+            <I32 N="ServerDisabledByDefaultValue">0</I32>
             <B N="ClientDisabledByDefault">false</B>
+            <I32 N="ClientDisabledByDefaultValue">0</I32>
           </MS>
         </Obj>
       </En>
@@ -55,9 +63,13 @@
           <MS>
             <S N="TLSVersion">1.0</S>
             <B N="ServerEnabled">false</B>
+            <I32 N="ServerEnabledValue">0</I32>
             <B N="ClientEnabled">false</B>
+            <I32 N="ClientEnabledValue">-1</I32>
             <B N="ServerDisabledByDefault">true</B>
+            <I32 N="ServerDisabledByDefaultValue">1</I32>
             <B N="ClientDisabledByDefault">true</B>
+            <I32 N="ClientDisabledByDefaultValue">1</I32>
           </MS>
         </Obj>
       </En>

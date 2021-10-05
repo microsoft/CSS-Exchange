@@ -56,7 +56,9 @@ Function Get-ExchangeDCCoreRatio {
     }
 
     $ADSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
-    [array]$DomainControllers = (Get-ADForest).Domains | ForEach-Object { Get-ADDomainController -Filter { isGlobalCatalog -eq $true -and Site -eq $ADSite } -Server $_ }
+    [array]$DomainControllers = (Get-ADForest).Domains |
+        ForEach-Object { Get-ADDomainController -Server $_ } |
+        Where-Object { $_.IsGlobalCatalog -eq $true -and $_.Site -eq $ADSite }
 
     [System.Collections.Generic.List[System.Object]]$DCList = New-Object System.Collections.Generic.List[System.Object]
     $DCCoresTotal = 0

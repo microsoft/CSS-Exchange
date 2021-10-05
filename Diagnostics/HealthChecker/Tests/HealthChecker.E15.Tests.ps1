@@ -31,13 +31,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2013 CU23"
-            TestObjectMatch "Build Number" "15.0.1497.2"
+            TestObjectMatch "Build Number" "15.00.1497.002"
             TestObjectMatch "Server Role" "MultiRole"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
-            $Script:ActiveGrouping.Count | Should -Be 11
+            TestObjectMatch "Internet Web Proxy" "Not Set"
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Operating System Information" {
@@ -48,13 +49,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
-            TestObjectMatch "Http Proxy Setting" "<None>"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "None"
             TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
-            $pageFile = GetObject "Page File Size"
-            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile = GetObject "Page File Size 0"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0

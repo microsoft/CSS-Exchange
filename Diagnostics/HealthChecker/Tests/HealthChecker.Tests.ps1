@@ -33,13 +33,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2019 CU11"
-            TestObjectMatch "Build Number" "15.2.986.5"
+            TestObjectMatch "Build Number" "15.02.0986.005"
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
-            $Script:ActiveGrouping.Count | Should -Be 9
+            TestObjectMatch "Internet Web Proxy" "Not Set"
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Operating System Information" {
@@ -50,13 +51,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
-            TestObjectMatch "Http Proxy Setting" "<None>"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "None"
             TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
-            $pageFile = GetObject "Page File Size"
-            $pageFile.TotalPhysicalMemory | Should -Be 6442450944
+            $pageFile = GetObject "Page File Size 0"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
@@ -128,9 +130,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Contains("CVE-2021-1730") | Should -Be $true
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
         }
     }
 
@@ -151,8 +154,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            $pageFile = GetObject "Page File Size"
-            $pageFile.TotalPhysicalMemory | Should -Be 103079215104
+            $pageFile = GetObject "Page File Size 0"
+            $pageFile.TotalPhysicalMemory | Should -Be 98304
         }
 
         It "Display Results - Process/Hardware Information" {
@@ -207,7 +210,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 6
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 8
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
@@ -230,8 +233,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
             Assert-MockCalled Get-ExSetupDetails -Exactly 1
-            #Need to change this as we shouldn't be calling Get-MailboxServer twice
-            Assert-MockCalled Get-MailboxServer -Exactly 2
+            Assert-MockCalled Get-MailboxServer -Exactly 1
             Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
@@ -251,10 +253,22 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettingsFromRegistry { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
+            Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
+            Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
+            Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
 
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Http Proxy Settings" {
+            SetActiveDisplayGrouping "Operating System Information"
+            $httpProxy = GetObject "Http Proxy Setting"
+            $httpProxy.ProxyAddress | Should -Be "proxy.contoso.com:8080"
+            $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
+            $httpProxy.HttpProxyDifference | Should -Be "False"
+            $httpProxy.HttpByPassDifference | Should -Be "False"
         }
 
         It "TCP Keep Alive Time" {
@@ -277,10 +291,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Server Pending Reboot" {
             SetActiveDisplayGrouping "Operating System Information"
             TestObjectMatch "Server Pending Reboot" "True" -WriteType "Yellow"
+            TestObjectMatch "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations" "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations" -WriteType "Yellow"
+            TestObjectMatch "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -WriteType "Yellow"
+            TestObjectMatch "Reboot More Information" "True" -WriteType "Yellow"
         }
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "TLS 1.0 - Client Enabled Value" "-1" -WriteType "Red"
             TestObjectMatch "TLS 1.1 - Mismatch" "True" -WriteType "Red"
             TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" "True" -WriteType "Red"
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
@@ -290,11 +308,21 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
         }
+
+        It "Enabled Domains" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
+            $downloadDomains.ExternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
+            $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
+        }
     }
 
     Context "Checking Scenarios 2" {
         BeforeAll {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
+            Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
+            Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -304,6 +332,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
 
             TestObjectMatch "TCP/IP Settings" 1800000 -WriteType "Green"
+        }
+
+        It "Enabled Domains" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
+            $downloadDomains.ExternalDownloadHostName | Should -Be "Set Correctly."
+            $downloadDomains.InternalDownloadHostName | Should -Be "Not Configured"
         }
     }
 
@@ -348,6 +384,34 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "HighPerformanceSet" {
             TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+    }
+
+    Context "Testing Throws" {
+        BeforeAll {
+            #This causes a RuntimeException because of issue #743 when not fixed
+            Mock Get-MailboxServer { throw "Pester testing" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Verify we still analyze the data from throw Get-MailboxServer" {
+            SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "DAG Name" "Standalone Server"
+        }
+    }
+
+    Context "Failing HC" {
+        It "WMI Critical" {
+
+            $Error.Clear()
+            Mock Get-WmiObjectHandler { return $null }
+            try {
+                Get-HealthCheckerExchangeServer
+            } catch {
+                $_ | Should -Be "Failed to get critical information. Stopping the script. InnerException: "
+            }
         }
     }
 }

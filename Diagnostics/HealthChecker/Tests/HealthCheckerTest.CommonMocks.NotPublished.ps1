@@ -27,7 +27,6 @@ Mock Get-WmiObjectHandler {
 }
 
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Trying to get the System.Environment ProcessorCount" } -MockWith { return 4 }
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -like "Getting * Http Proxy Value" } -MockWith { return "<None>" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Current Time Zone" } -MockWith { return "Pacific Standard Time" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_getexchangemitigations.xml" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Bin Directory" } -MockWith { return "hi" }
@@ -129,6 +128,10 @@ Mock Get-ExchangeUpdates {
 
 Mock Get-ExchangeAdSchemaClass {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Storage-Group.xml"
+}
+
+Mock Get-HttpProxySetting {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting.xml"
 }
 
 # Do nothing
