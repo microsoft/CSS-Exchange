@@ -116,10 +116,10 @@ Function Invoke-AnalyzerOsInformation {
         } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
             $testingValue.RecommendedPageFile = $recommendedPageFile
-            Write-Verbose "Recommended Page File Size: $recommendedPageFileSize"
+            Write-Verbose "Recommended Page File Size: $recommendedPageFile"
 
             if ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is $totalPhysicalMemory`MB. Recommended is $recommendedPageFileSize`MB"
+                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is $totalPhysicalMemory`MB. Recommended is $recommendedPageFile`MB"
             } else {
                 $displayValue = "$recommendedPageFile`MB"
                 $displayWriteType = "Grey"
@@ -132,11 +132,11 @@ Function Invoke-AnalyzerOsInformation {
                 $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://aka.ms/HC-SystemRequirements2016#hardware-requirements-for-exchange-2016"
             }
         } else {
-            $recommendedPageFileSize = $totalPhysicalMemory + 10
+            $recommendedPageFile = $totalPhysicalMemory + 10
             $testingValue.RecommendedPageFile
 
             if ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be $recommendedPageFileSize`MB"
+                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be $recommendedPageFile`MB"
             } else {
                 $displayValue = "$maxPageSize`MB"
                 $displayWriteType = "Grey"
