@@ -401,4 +401,17 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "DAG Name" "Standalone Server"
         }
     }
+
+    Context "Failing HC" {
+        It "WMI Critical" {
+
+            $Error.Clear()
+            Mock Get-WmiObjectHandler { return $null }
+            try {
+                Get-HealthCheckerExchangeServer
+            } catch {
+                $_ | Should -Be "Failed to get critical information. Stopping the script. InnerException: "
+            }
+        }
+    }
 }
