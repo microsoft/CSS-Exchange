@@ -30,7 +30,12 @@ Function Get-ExchangeInformation {
     $buildInformation.ExchangeSetup = Get-ExSetupDetails
 
     if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
-        $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server)
+        try {
+            $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server -ErrorAction Stop)
+        } catch {
+            Write-Verbose "Failed to run Get-MailboxServer"
+            Invoke-CatchActions
+        }
     }
 
     if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
@@ -259,7 +264,7 @@ Function Get-ExchangeInformation {
             }
         } else {
             Write-Verbose "Exchange 2013 is detected. Checking build number..."
-            $buildInformation.FriendlyName = "Exchange 2013"
+            $buildInformation.FriendlyName = "Exchange 2013 "
 
             #Exchange 2013 Information
             if ($buildAndRevision -lt 712.24) {

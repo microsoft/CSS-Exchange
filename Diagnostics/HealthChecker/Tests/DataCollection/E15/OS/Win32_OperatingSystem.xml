@@ -1,0 +1,115 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_OperatingSystem</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_OperatingSystem</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_OperatingSystem</T>
+      <T>System.Management.ManagementObject#CIM_OperatingSystem</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_OperatingSystem=@</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_OperatingSystem</S>
+      <S N="__SUPERCLASS">CIM_OperatingSystem</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_OperatingSystem=@</S>
+      <I32 N="__PROPERTY_COUNT">64</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_OperatingSystem</S>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_OperatingSystem=@</S>
+      <S N="BootDevice">\Device\HarddiskVolume2</S>
+      <S N="BuildNumber">9600</S>
+      <S N="BuildType">Multiprocessor Free</S>
+      <S N="Caption">Microsoft Windows Server 2012 R2 Datacenter</S>
+      <S N="CodeSet">1252</S>
+      <S N="CountryCode">1</S>
+      <S N="CreationClassName">Win32_OperatingSystem</S>
+      <S N="CSCreationClassName">Win32_ComputerSystem</S>
+      <Nil N="CSDVersion" />
+      <S N="CSName">SOLO-E15A</S>
+      <I16 N="CurrentTimeZone">-420</I16>
+      <B N="DataExecutionPrevention_32BitApplications">true</B>
+      <B N="DataExecutionPrevention_Available">true</B>
+      <B N="DataExecutionPrevention_Drivers">true</B>
+      <By N="DataExecutionPrevention_SupportPolicy">3</By>
+      <B N="Debug">false</B>
+      <S N="Description"></S>
+      <B N="Distributed">false</B>
+      <U32 N="EncryptionLevel">256</U32>
+      <By N="ForegroundApplicationBoost">2</By>
+      <U64 N="FreePhysicalMemory">1006284</U64>
+      <U64 N="FreeSpaceInPagingFiles">6992832</U64>
+      <U64 N="FreeVirtualMemory">2905952</U64>
+      <S N="InstallDate">20210608074834.000000-420</S>
+      <Nil N="LargeSystemCache" />
+      <S N="LastBootUpTime">20210928112143.143929-420</S>
+      <S N="LocalDateTime">20211002140039.051000-420</S>
+      <S N="Locale">0409</S>
+      <S N="Manufacturer">Microsoft Corporation</S>
+      <U32 N="MaxNumberOfProcesses">4294967295</U32>
+      <U64 N="MaxProcessMemorySize">137438953344</U64>
+      <Obj N="MUILanguages" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <S>en-US</S>
+        </LST>
+      </Obj>
+      <S N="Name">Microsoft Windows Server 2012 R2 Datacenter|C:\Windows|\Device\Harddisk0\Partition4</S>
+      <U32 N="NumberOfLicensedUsers">0</U32>
+      <U32 N="NumberOfProcesses">105</U32>
+      <U32 N="NumberOfUsers">9</U32>
+      <U32 N="OperatingSystemSKU">8</U32>
+      <S N="Organization"></S>
+      <S N="OSArchitecture">64-bit</S>
+      <U32 N="OSLanguage">1033</U32>
+      <U32 N="OSProductSuite">400</U32>
+      <U16 N="OSType">18</U16>
+      <Nil N="OtherTypeDescription" />
+      <Nil N="PAEEnabled" />
+      <Nil N="PlusProductID" />
+      <Nil N="PlusVersionNumber" />
+      <B N="PortableOperatingSystem">false</B>
+      <B N="Primary">true</B>
+      <U32 N="ProductType">3</U32>
+      <S N="RegisteredUser">Windows User</S>
+      <S N="SerialNumber">00252-80026-26929-AA323</S>
+      <U16 N="ServicePackMajorVersion">0</U16>
+      <U16 N="ServicePackMinorVersion">0</U16>
+      <U64 N="SizeStoredInPagingFiles">10033136</U64>
+      <S N="Status">OK</S>
+      <U32 N="SuiteMask">400</U32>
+      <S N="SystemDevice">\Device\HarddiskVolume4</S>
+      <S N="SystemDirectory">C:\Windows\system32</S>
+      <S N="SystemDrive">C:</S>
+      <Nil N="TotalSwapSpaceSize" />
+      <U64 N="TotalVirtualMemorySize">16323560</U64>
+      <U64 N="TotalVisibleMemorySize">6290424</U64>
+      <S N="Version">6.3.9600</S>
+      <S N="WindowsDirectory">C:\Windows</S>
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+    </MS>
+  </Obj>
+</Objs>

@@ -12,13 +12,6 @@ Function Get-ExchangeServerMaintenanceState {
     $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
 
     try {
-        $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $Script:Server -ErrorAction SilentlyContinue
-    } catch {
-        Write-Verbose "Failed to run Get-MailboxServer"
-        Invoke-CatchActions
-    }
-
-    try {
         $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
     } catch {
         Write-Verbose "Failed to run Get-ClusterNode"
@@ -31,7 +24,7 @@ Function Get-ExchangeServerMaintenanceState {
         if (($null -ne $ComponentsToSkip -and
                 $ComponentsToSkip.Count -ne 0) -and
             $ComponentsToSkip -notcontains $component.Component) {
-            if ($component.State -ne "Active") {
+            if ($component.State.ToString() -ne "Active") {
                 $latestLocalState = $null
                 $latestRemoteState = $null
 

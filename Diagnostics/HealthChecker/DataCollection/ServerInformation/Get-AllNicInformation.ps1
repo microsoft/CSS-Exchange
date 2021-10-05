@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
@@ -13,6 +14,7 @@ Function Get-AllNicInformation {
     )
     begin {
 
+        # Extract for Pester Testing - Start
         Function Get-NicPnpCapabilitiesSetting {
             [CmdletBinding()]
             param(
@@ -22,13 +24,14 @@ Function Get-AllNicInformation {
             begin {
                 $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
                 [int]$i = 0
-                [int]$retryCounter = 0
                 Write-Verbose "Probing started to detect NIC adapter registry path"
-                [int]$retryLimit = 3
             }
             process {
+                $registrySubKey = Get-RemoteRegistrySubKey -MachineName $ComputerName `
+                    -SubKey $nicAdapterBasicPath
+                $optionalKeys = $registrySubKey.GetSubKeyNames() | Where-Object { $_ -like "0*" }
                 do {
-                    $nicAdapterPnPCapabilitiesProbingKey = "$nicAdapterBasicPath\$($i.ToString().PadLeft(4, "0"))"
+                    $nicAdapterPnPCapabilitiesProbingKey = "$nicAdapterBasicPath\$($optionalKeys[$i])"
                     $netCfgInstanceId = Get-RemoteRegistryValue -MachineName $ComputerName `
                         -SubKey $nicAdapterPnPCapabilitiesProbingKey `
                         -GetValue "NetCfgInstanceId" `
@@ -43,17 +46,9 @@ Function Get-AllNicInformation {
                         break
                     } else {
                         Write-Verbose "No matching ComponentId found"
-
-                        if ($null -eq $netCfgInstanceId) {
-                            $retryCounter++
-                            Write-Verbose "Enumeration possibly interrupted. Attempt: $retryCounter/$retryLimit"
-                        } else {
-                            Write-Verbose "Reset the retry counter"
-                            $retryCounter = 0
-                        }
                         $i++
                     }
-                } while ($retryCounter -lt $retryLimit)
+                } while ($i -lt $optionalKeys.Count)
             }
             end {
                 return [PSCustomObject]@{
@@ -62,6 +57,8 @@ Function Get-AllNicInformation {
                 }
             }
         }
+
+        # Extract for Pester Testing - End
 
         Function Get-NetworkConfiguration {
             [CmdletBinding()]

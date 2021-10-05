@@ -36,6 +36,6 @@ Function Invoke-ScriptLogFileLocation {
         exit
     }
 
-    Write-VerboseWriter("Script Executing on Server $env:COMPUTERNAME")
-    Write-VerboseWriter("ToolsOnly: $($Script:ExchangeShellComputer.ToolsOnly) | RemoteShell $($Script:ExchangeShellComputer.RemoteShell)")
+    Write-Verbose("Script Executing on Server $env:COMPUTERNAME")
+    Write-Verbose("ToolsOnly: $($Script:ExchangeShellComputer.ToolsOnly) | RemoteShell $($Script:ExchangeShellComputer.RemoteShell)")
 }

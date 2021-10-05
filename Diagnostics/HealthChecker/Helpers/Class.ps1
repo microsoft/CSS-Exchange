@@ -69,7 +69,7 @@ try {
                 public System.Array InactiveComponents;
                 public object GetServerComponentState;
                 public object GetClusterNode;
-                public object GetMailboxServer;
+                public object GetMailboxServer; //TODO: Remove this
             }
 
             //enum for CU levels of Exchange
@@ -137,9 +137,9 @@ try {
                 public OSBuildInformation BuildInformation = new OSBuildInformation(); // contains build information
                 public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
                 public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
-                public PageFileInformation PageFile;             //stores the page file information
+                public object PageFile;             //stores the page file information
                 public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
-                public ServerPendingReboot ServerPendingReboot = new ServerPendingReboot();// determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at.
+                public object ServerPendingReboot; // determine if server is pending a reboot.
                 public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
                 public Hashtable TLSSettings;            // stores the TLS settings on the server.
                 public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
@@ -149,16 +149,6 @@ try {
                 public bool CredentialGuardEnabled;
                 public OSRegistryValues RegistryValues = new OSRegistryValues();
                 public object Smb1ServerSettings;
-            }
-
-            public class ServerPendingReboot
-            {
-                public bool PendingFileRenameOperations;
-                public object SccmReboot;
-                public bool SccmRebootPending;
-                public bool ComponentBasedServicingRebootPending;
-                public bool AutoUpdatePendingReboot;
-                public bool PendingReboot;
             }
 
             public class OSBuildInformation
@@ -173,7 +163,7 @@ try {
             {
                 public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry
                 public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout.
-                public string HttpProxy;                // holds the setting for HttpProxy if one is set.
+                public object HttpProxy;                // holds the setting for HttpProxy if one is set.
                 public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
                 public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents
                 public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
@@ -187,12 +177,6 @@ try {
                 public bool HighPerformanceSet;      // If the power plan is High Performance
                 public string PowerPlanSetting;      //value for the power plan that is set
                 public object PowerPlan;            //object to store the power plan information
-            }
-
-            public class PageFileInformation
-            {
-                public object PageFile;       //store the information that we got for the page file
-                public double MaxPageSize;    //holds the information of what our page file is set to
             }
 
             public class OSRegistryValues
@@ -349,6 +333,7 @@ try {
             {
                 public string DisplayValue;
                 public string Name;
+                public string TestingName; // Used for pestering testing
                 public int TabNumber;
                 public object TestingValue; //Used for pester testing down the road.
                 public object OutColumns; //used for colorized format table option.

@@ -1,0 +1,185 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetAdapterRssSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetAdapterSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_SettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetAdapterRssSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetAdapterSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetSettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_SettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>MSFT_NetAdapterRssSettingData: MSFT_NetAdapterRssSettingData 'Microsoft Hyper-V Network Adapter' (InstanceID = "{54466675-1AA5-4988-BC27-40B89BF0DCBD}")</ToString>
+    <Props>
+      <S N="Caption">MSFT_NetAdapterRssSettingData 'Microsoft Hyper-V Network Adapter'</S>
+      <S N="Description">Microsoft Hyper-V Network Adapter</S>
+      <S N="ElementName">Microsoft Hyper-V Network Adapter</S>
+      <S N="InstanceID">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+      <S N="InterfaceDescription">Microsoft Hyper-V Network Adapter</S>
+      <S N="Name">Ethernet</S>
+      <U32 N="Source">2</U32>
+      <S N="SystemName">Solo-E15A.Solo.net</S>
+      <U16 N="BaseProcessorGroup">0</U16>
+      <By N="BaseProcessorNumber">0</By>
+      <B N="ClassificationAtDpcSupported">false</B>
+      <B N="ClassificationAtIsrSupported">false</B>
+      <B N="Enabled">false</B>
+      <Nil N="HashKeySize" />
+      <Nil N="IndirectionTable" />
+      <Nil N="IndirectionTableEntryCount" />
+      <Nil N="IPv4HashEnabled" />
+      <Nil N="IPv6ExtensionHashEnabled" />
+      <Nil N="IPv6HashEnabled" />
+      <U16 N="MaxProcessorGroup">0</U16>
+      <By N="MaxProcessorNumber">2</By>
+      <U32 N="MaxProcessors">2</U32>
+      <B N="MsiSupported">false</B>
+      <B N="MsiXEnabled">false</B>
+      <B N="MsiXSupported">false</B>
+      <U16 N="NumaNode">0</U16>
+      <U32 N="NumberOfInterruptMessages">0</U32>
+      <U32 N="NumberOfReceiveQueues">0</U32>
+      <U32 N="Profile">4</U32>
+      <B N="RssOnPortsSupported">true</B>
+      <Obj N="RssProcessorArray" RefId="1">
+        <TN RefId="1">
+          <T>Microsoft.Management.Infrastructure.CimInstance[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <TN RefId="2">
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetAdapter_RssProcessor</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetAdapter_RssProcessor</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>MSFT_NetAdapter_RssProcessor</ToString>
+            <Props>
+              <U16 N="PreferenceIndex">0</U16>
+              <U16 N="ProcessorGroup">0</U16>
+              <By N="ProcessorNumber">0</By>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <Obj N="__ClassMetadata" RefId="3">
+                <TN RefId="3">
+                  <T>System.Collections.ArrayList</T>
+                  <T>System.Object</T>
+                </TN>
+                <LST>
+                  <Obj RefId="4">
+                    <MS>
+                      <S N="ClassName">MSFT_NetAdapter_RssProcessor</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653280072</I32>
+                      <S N="MiXml">&lt;CLASS NAME="MSFT_NetAdapter_RssProcessor"&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;NetAdapterCim&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="PreferenceIndex" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ProcessorGroup" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ProcessorNumber" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="5">
+            <TNRef RefId="2" />
+            <ToString>MSFT_NetAdapter_RssProcessor</ToString>
+            <Props>
+              <U16 N="PreferenceIndex">0</U16>
+              <U16 N="ProcessorGroup">0</U16>
+              <By N="ProcessorNumber">2</By>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <Obj N="__ClassMetadata" RefId="6">
+                <TNRef RefId="3" />
+                <LST>
+                  <Obj RefId="7">
+                    <MS>
+                      <S N="ClassName">MSFT_NetAdapter_RssProcessor</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653280072</I32>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <U32 N="RssProcessorArraySize">2</U32>
+      <Nil N="TcpIPv4HashEnabled" />
+      <B N="TcpIPv4HashSupported">false</B>
+      <Nil N="TcpIPv6ExtensionHashEnabled" />
+      <B N="TcpIPv6ExtensionHashSupported">false</B>
+      <Nil N="TcpIPv6HashEnabled" />
+      <B N="TcpIPv6HashSupported">false</B>
+      <Nil N="ToeplitzHashFunctionEnabled" />
+      <B N="ToeplitzHashFunctionSupported">false</B>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="8">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="9">
+            <MS>
+              <S N="ClassName">CIM_ManagedElement</S>
+              <S N="Namespace">ROOT/StandardCimv2</S>
+              <S N="ServerName">SOLO-E15A</S>
+              <I32 N="Hash">-653294632</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="10">
+            <MS>
+              <S N="ClassName">CIM_SettingData</S>
+              <S N="Namespace">ROOT/StandardCimv2</S>
+              <S N="ServerName">SOLO-E15A</S>
+              <I32 N="Hash">-653287352</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_SettingData" SUPERCLASS="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;687&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;ElementName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Required" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;686&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;InstanceID&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="11">
+            <MS>
+              <S N="ClassName">MSFT_NetSettingData</S>
+              <S N="Namespace">ROOT/StandardCimv2</S>
+              <S N="ServerName">SOLO-E15A</S>
+              <I32 N="Hash">-653292552</I32>
+              <S N="MiXml">&lt;CLASS NAME="MSFT_NetSettingData" SUPERCLASS="CIM_SettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="12">
+            <MS>
+              <S N="ClassName">MSFT_NetAdapterSettingData</S>
+              <S N="Namespace">ROOT/StandardCimv2</S>
+              <S N="ServerName">SOLO-E15A</S>
+              <I32 N="Hash">-653298792</I32>
+              <S N="MiXml">&lt;CLASS NAME="MSFT_NetAdapterSettingData" SUPERCLASS="MSFT_NetSettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="InterfaceDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Source" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemName" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="13">
+            <MS>
+              <S N="ClassName">MSFT_NetAdapterRssSettingData</S>
+              <S N="Namespace">ROOT/StandardCimv2</S>
+              <S N="ServerName">SOLO-E15A</S>
+              <I32 N="Hash">-653282152</I32>
+              <S N="MiXml">&lt;CLASS NAME="MSFT_NetAdapterRssSettingData" SUPERCLASS="MSFT_NetAdapterSettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;NetAdapterCim&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="BaseProcessorGroup" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="BaseProcessorNumber" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ClassificationAtDpcSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ClassificationAtIsrSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Enabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="HashKeySize" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IndirectionTable" TYPE="string" EmbeddedObject="instance" EmbeddedClassName="MSFT_NetAdapter_ProcessorNumber"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter_ProcessorNumber&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IndirectionTableEntryCount" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv4HashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv6ExtensionHashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv6HashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxProcessorGroup" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxProcessorNumber" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxProcessors" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MsiSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MsiXEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MsiXSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NumaNode" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NumberOfInterruptMessages" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NumberOfReceiveQueues" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Profile" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RssOnPortsSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="RssProcessorArray" TYPE="string" EmbeddedObject="instance" EmbeddedClassName="MSFT_NetAdapter_RssProcessor"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter_RssProcessor&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="RssProcessorArraySize" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv4HashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv4HashSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv6ExtensionHashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv6ExtensionHashSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv6HashEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpIPv6HashSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ToeplitzHashFunctionEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ToeplitzHashFunctionSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Enable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="cmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapterRssSettingData&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Disable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="cmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapterRssSettingData&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <S N="ifAlias">Ethernet</S>
+      <S N="InterfaceAlias">Ethernet</S>
+      <S N="ifDesc">Microsoft Hyper-V Network Adapter</S>
+      <S N="Profile">NUMAStatic</S>
+    </MS>
+  </Obj>
+</Objs>

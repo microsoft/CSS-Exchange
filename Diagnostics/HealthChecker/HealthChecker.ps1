@@ -118,22 +118,6 @@ param(
 
 $BuildVersion = ""
 
-$VirtualizationWarning = @"
-Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
-
-    - There is no more than a 1:1 Physical Core to Virtual CPU ratio (no oversubscribing)
-    - If Hyper-Threading is enabled do NOT count Hyper-Threaded cores as physical cores
-    - Do not oversubscribe memory or use dynamic memory allocation
-
-Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.
-
-VMWare recommends a 1:1 ratio.  Their guidance can be found at https://aka.ms/HC-VMwareBP2019.
-Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  https://aka.ms/HC-VMwareLostPackets.
-
-For further details, please review the virtualization recommendations on Microsoft Docs here: https://aka.ms/HC-Virtualization.
-
-"@
-
 $Script:VerboseEnabled = $false
 #this is to set the verbose information to a different color
 if ($PSBoundParameters["Verbose"]) {
@@ -161,13 +145,8 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
 . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
-#TODO: Address this
-. $PSScriptRoot\extern\Write-ScriptMethodHostWriters.ps1
-. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
@@ -313,10 +292,9 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-$($Script:Server)-Debug" `
         -LogDirectory $OutputFilePath `
-        -VerboseEnabled $Script:VerboseEnabled `
-        -EnableDateTime $false `
+        -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     Main
@@ -325,7 +303,7 @@ try {
     if ($Script:VerboseEnabled) {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
     }
-    $Script:Logger.RemoveLatestLogFile()
+    $Script:Logger | Invoke-LoggerInstanceCleanup
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
