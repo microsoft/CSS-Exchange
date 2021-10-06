@@ -18,9 +18,43 @@ function Get-StatisticsJob {
     )
 
     begin {
+        $statistics = New-Object System.Collections.ArrayList
+        $errors = New-Object System.Collections.ArrayList
+        $permanentFailureOccurred = $false
         $retryDelay = [TimeSpan]::FromMinutes(5)
         $WarningPreference = "SilentlyContinue"
+        $Error.Clear()
         Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) -AllowClobber | Out-Null
+        if ($Error.Count -gt 0) {
+            $permanentFailureOccurred = $true
+            foreach ($err in $Error) {
+                $errorReport = @{
+                    TestName       = "Get-Statistics"
+                    ResultType     = "ImportSessionFailure"
+                    Severity       = "Error"
+                    FolderIdentity = ""
+                    FolderEntryId  = ""
+                    ResultData     = $err.ToString()
+                }
+
+                [void]$errors.Add($errorReport)
+            }
+        }
+
+        if (-not $permanentFailureOccurred -and $null -eq (Get-Command Get-PublicFolderStatistics -ErrorAction SilentlyContinue)) {
+            $permanentFailureOccurred = $true
+            $errorReport = @{
+                TestName       = "Get-Statistics"
+                ResultType     = "CommandNotFound"
+                Severity       = "Error"
+                FolderIdentity = ""
+                FolderEntryId  = ""
+                ResultData     = ""
+            }
+
+            [void]$errors.Add($errorReport)
+        }
+
         $startTime = Get-Date
         $progressCount = 0
         $sw = New-Object System.Diagnostics.Stopwatch
@@ -28,12 +62,13 @@ function Get-StatisticsJob {
         $progressParams = @{
             Activity = "Getting public folder statistics"
         }
-
-        $statistics = New-Object System.Collections.ArrayList
-        $errors = New-Object System.Collections.ArrayList
     }
 
     process {
+        if ($permanentFailureOccurred) {
+            return
+        }
+
         $ErrorActionPreference = "Stop" # So our try/catch works
         $statistics = New-Object System.Collections.ArrayList
         foreach ($folder in $Folders) {
@@ -85,6 +120,8 @@ function Get-StatisticsJob {
                         }
 
                         [void]$errors.Add($errorReport)
+
+                        break
                     }
                 }
             }
