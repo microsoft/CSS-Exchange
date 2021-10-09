@@ -95,10 +95,37 @@ function Get-Statistics {
                 $index++
             } while ($jobsAddedThisRound -gt 0)
 
+            $hierarchyMailbox = Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.ToString()
+            $serverWithHierarchy = $hierarchyMailbox.ServerName
+            $retryJobNumber = 1
+
             Wait-QueuedJob | ForEach-Object {
-                $statistics.AddRange($_.Statistics)
-                $errors.AddRange($_.Errors)
+                $finishedJob = $_
+                $statistics.AddRange($finishedJob.Statistics)
+                $errors.AddRange($finishedJob.Errors)
                 Write-Verbose "Retrieved item counts for $($statistics.Count) folders so far. $($errors.Count) errors encountered."
+                if ($finishedJob.PermanentFailure) {
+                    # If a permanent failure occurred, re-queue remaining items on the server that has the writable
+                    # hierarchy, and hope it works there.
+                    Write-Host "Job experienced a permanent failure."
+                    if ($finishedJob.Server -eq $serverWithHierarchy) {
+                        Write-Host "Permanent failure on root mailbox server is not retryable."
+                    } else {
+                        $entryIdsProcessed = New-Object 'System.Collections.HashSet[string]'
+                        $finishedJob.Statistics | ForEach-Object { [void]$entryIdsProcessed.Add($_.EntryId) }
+                        $foldersRemaining = @($finishedJob.Folders | Where-Object { -not $entryIdsProcessed.Contains($_.EntryId) })
+                        if ($foldersRemaining.Count -gt 0) {
+                            Write-Host "$($foldersRemaining.Count) folders remaining in the failed job. Re-queueing for $serverWithHierarchy."
+                            $retryJob = @{
+                                ArgumentList = $serverWithHierarchy, $hierarchyMailbox.Name, $foldersRemaining
+                                Name         = "Statistics Retry Job $($retryJobNumber++)"
+                                ScriptBlock  = ${Function:Get-StatisticsJob}
+                            }
+
+                            Add-JobQueueJob $retryJob
+                        }
+                    }
+                }
             }
         }
     }
