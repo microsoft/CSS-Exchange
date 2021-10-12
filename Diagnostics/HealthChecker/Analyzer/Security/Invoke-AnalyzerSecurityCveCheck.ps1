@@ -139,6 +139,9 @@ Function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "1497.23" `
                 -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "1497.24" `
+                -CVENames "CVE-2021-26427"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -255,6 +258,15 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "2242.12", "2308.14" `
                 -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
         }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "2308.15", "2375.7" `
+                -CVENames "CVE-2021-26427"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "2308.15", "2375.12" `
+                -CVENames "CVE-2021-41350", "CVE-2021-41348", "CVE-2021-34453"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -342,6 +354,15 @@ Function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "858.15", "922.13" `
                 -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
+        }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "922.14", "986.5" `
+                -CVENames "CVE-2021-26427"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "922.14", "986.9" `
+                -CVENames "CVE-2021-41350", "CVE-2021-41348", "CVE-2021-34453"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"

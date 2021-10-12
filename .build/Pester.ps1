@@ -11,6 +11,15 @@ $root = Get-Item "$PSScriptRoot\.."
 $scripts = @(Get-ChildItem -Recurse $root |
         Where-Object { $_.Name -like "*.Tests.ps1" }).FullName
 
+$failPipeline = $false
 foreach ($script in $scripts) {
-    Invoke-Pester -Path $script
+    $result = Invoke-Pester -Path $script -PassThru
+
+    if ($result.Result -eq "Failed") {
+        $failPipeline = $true
+    }
+}
+
+if ($failPipeline) {
+    throw "Failed Pester Testing Results"
 }
