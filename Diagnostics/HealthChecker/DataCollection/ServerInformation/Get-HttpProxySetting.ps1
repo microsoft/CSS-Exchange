@@ -11,12 +11,13 @@ Function Get-HttpProxySetting {
             [Parameter(Mandatory = $true)][string]$RegistryLocation
         )
         $connections = Get-ItemProperty -Path $RegistryLocation
+        $proxyAddress = [string]::Empty
+        $byPassList = [string]::Empty
 
         if (($null -ne $connections) -and
             ($Connections | Get-Member).Name -contains "WinHttpSettings") {
             $onProxy = $true
-            $proxyAddress = [string]::Empty
-            $byPassList = [string]::Empty
+
             foreach ($Byte in $Connections.WinHttpSettings) {
                 if ($onProxy -and
                     $Byte -ge 42) {
@@ -30,14 +31,12 @@ Function Get-HttpProxySetting {
                     $onProxy = $false
                 }
             }
-
-            $Proxy = [PSCustomObject]@{
-                ProxyAddress = $(if ($proxyAddress -eq [string]::Empty) { "None" } else { $proxyAddress })
-                ByPassList   = $byPassList
-            }
         }
 
-        return $Proxy
+        return [PSCustomObject]@{
+            ProxyAddress = $(if ($proxyAddress -eq [string]::Empty) { "None" } else { $proxyAddress })
+            ByPassList   = $byPassList
+        }
     }
 
     $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
