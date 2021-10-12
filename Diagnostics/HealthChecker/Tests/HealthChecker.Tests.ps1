@@ -392,7 +392,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             #This causes a RuntimeException because of issue #743 when not fixed
             Mock Get-MailboxServer { throw "Pester testing" }
             $hc = Get-HealthCheckerExchangeServer
-            $hc | Export-Clixml Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
+            $hc | Export-Clixml $PSScriptRoot\Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
