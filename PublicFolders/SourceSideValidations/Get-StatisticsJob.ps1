@@ -83,6 +83,21 @@ function Get-StatisticsJob {
             }
 
             try {
+                if ([string]::IsNullOrEmpty($folder.EntryId)) {
+                    $folderObject = $folder | Format-List | Out-String
+                    $foldersCollection = $Folders | Format-List | Out-String
+                    $errorDetails = "$folderObject`n`n$foldersCollection"
+                    $errorReport = @{
+                        TestName       = "Get-Statistics"
+                        ResultType     = "NullEntryId"
+                        Severity       = "Error"
+                        FolderIdentity = $folder.Identity
+                        FolderEntryId  = $folder.EntryId
+                        ResultData     = $errorDetails
+                    }
+
+                    [void]$errors.Add($errorReport)
+                }
                 $stats = Get-PublicFolderStatistics $folder.EntryId | Select-Object EntryId, ItemCount, TotalItemSize
 
                 [Int64]$totalItemSize = -1
