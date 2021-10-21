@@ -236,13 +236,9 @@ Function Get-AllNicInformation {
 
                         if ($null -ne $adapterConfiguration.DefaultIPGateway) {
                             $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
-                        } else {
-                            $ipv4Gateway = "No default IPv4 gateway set"
-                        }
-
-                        if ($null -ne $adapterConfiguration.DefaultIPGateway) {
                             $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
                         } else {
+                            $ipv4Gateway = "No default IPv4 gateway set"
                             $ipv6Gateway = "No default IPv6 gateway set"
                         }
 
