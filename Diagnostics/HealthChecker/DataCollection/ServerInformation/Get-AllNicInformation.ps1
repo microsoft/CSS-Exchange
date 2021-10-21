@@ -234,8 +234,13 @@ Function Get-AllNicInformation {
 
                         $ipv6Enabled = ($adapterConfiguration.IPAddress | Where-Object { $_.Contains(":") }).Count -ge 1
 
-                        $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
-                        $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
+                        if ($null -ne $adapterConfiguration.DefaultIPGateway) {
+                            $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
+                            $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
+                        } else {
+                            $ipv4Gateway = "No default IPv4 gateway set"
+                            $ipv6Gateway = "No default IPv6 gateway set"
+                        }
 
                         for ($i = 0; $i -lt $adapterConfiguration.IPAddress.Count; $i++) {
 
