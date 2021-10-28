@@ -66,12 +66,14 @@ function Get-Statistics {
                 $jobsForThisMailbox = New-Object System.Collections.ArrayList
                 for ($i = 0; $i -lt $mailboxBatchCount; $i++) {
                     $batch = $group.Group | Select-Object -First $batchSize -Skip ($batchSize * $i)
-                    $argumentList = $server, $group.Name, $batch
-                    [void]$jobsForThisMailbox.Add(@{
-                            ArgumentList = $argumentList
-                            Name         = "Statistics $($group.Name) Job $($i + 1)"
-                            ScriptBlock  = ${Function:Get-StatisticsJob}
-                        })
+                    if ($batch.Count -gt 0) {
+                        $argumentList = $server, $group.Name, $batch
+                        [void]$jobsForThisMailbox.Add(@{
+                                ArgumentList = $argumentList
+                                Name         = "Statistics $($group.Name) Job $($i + 1)"
+                                ScriptBlock  = ${Function:Get-StatisticsJob}
+                            })
+                    }
                 }
 
                 [void]$jobsToCreate.Add($group.Name, $jobsForThisMailbox)
