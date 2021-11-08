@@ -307,6 +307,10 @@ try {
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
+    if (((Get-Date).DayOfYear % 2) -eq 1) {
+        Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
+        Write-Host
+    }
     RevertProperForegroundColor
 }
 
