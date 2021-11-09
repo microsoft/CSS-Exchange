@@ -144,7 +144,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -CVENames "CVE-2021-26427"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "1497.26" `
-                -CVENames "CVE-2021-42305", "CVE-2021-41349", "CVE-2021-42321"
+                -CVENames "CVE-2021-42305", "CVE-2021-41349"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
