@@ -184,3 +184,7 @@ Function Get-ServerComponentState {
 Function Test-ServiceHealth {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml"
 }
+
+Function Get-SettingOverride {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml"
+}
