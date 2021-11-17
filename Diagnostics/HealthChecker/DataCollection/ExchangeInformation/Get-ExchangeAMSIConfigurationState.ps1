@@ -3,6 +3,8 @@
 
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 Function Get-ExchangeAMSIConfigurationState {
+    [CmdletBinding()]
+    param ()
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
