@@ -11,7 +11,7 @@ Function Get-ExchangeAMSIConfigurationState {
     } process {
         try {
             Write-Verbose "Trying to query AMSI configuration state"
-            $amsiConfiguration = Get-SettingOverride | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") } -ErrorAction Stop
+            $amsiConfiguration = Get-SettingOverride -ErrorAction Stop | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }
 
             if (($null -ne $amsiConfiguration) -and
                 ($amsiConfiguration.Count -eq 1)) {
