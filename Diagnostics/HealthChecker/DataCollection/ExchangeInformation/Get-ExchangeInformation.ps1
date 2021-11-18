@@ -421,10 +421,11 @@ Function Get-ExchangeInformation {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
         }
 
-        if ($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) {
+        if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
             $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState
         } else {
-            Write-Verbose "AMSI Interface is not available on this OS"
+            Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {

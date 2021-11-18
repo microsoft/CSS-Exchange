@@ -8,40 +8,34 @@ Function Get-ExchangeAMSIConfigurationState {
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $amsiState = "Unknown"
+        $amsiOrgWideSetting = $true
+        $amsiConfigurationQuerySuccessful = $false
     } process {
         try {
             Write-Verbose "Trying to query AMSI configuration state"
             $amsiConfiguration = Get-SettingOverride -ErrorAction Stop | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }
+            $amsiConfigurationQuerySuccessful = $true
 
             if (($null -ne $amsiConfiguration) -and
                 ($amsiConfiguration.Count -eq 1)) {
                 Write-Verbose "Setting override detected for AMSI configuration"
-                $amsiConfigurationQuerySuccessful = $true
                 Switch ($amsiConfiguration.Parameters.Split("=")[1]) {
                     ("False") { $amsiState = $false }
                     ("True") { $amsiState = $true }
-                    Default { $amsiState = "Unknown" }
                 }
 
-                if ($null -eq $amsiConfiguration.Server) {
-                    $amsiOrgWideSetting = $true
-                } else {
-                    $amsiOrgWideSetting = $false
-                }
+                $amsiOrgWideSetting = ($null -eq $amsiConfiguration.Server)
             } elseif (($null -ne $amsiConfiguration) -and
                 ($amsiConfiguration.Count -gt 1)) {
                 Write-Verbose "Multiple overrides for the same component and section detected"
                 $amsiState = "Multiple overrides detected"
-                $amsiConfigurationQuerySuccessful = $true
             } else {
                 Write-Verbose "No setting override found that overrides AMSI configuration"
                 $amsiState = $true
-                $amsiConfigurationQuerySuccessful = $true
             }
         } catch {
             Write-Verbose "Unable to query AMSI configuration state"
-            $amsiState = "Unknown"
-            $amsiConfigurationQuerySuccessful = $false
             Invoke-CatchActions
         }
     } end {

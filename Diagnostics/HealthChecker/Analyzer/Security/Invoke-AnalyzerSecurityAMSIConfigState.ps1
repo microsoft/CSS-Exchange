@@ -15,7 +15,6 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
     $osInformation = $HealthServerObject.OSInformation
@@ -30,11 +29,13 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
             ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU10))) -and
         ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
 
+        $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
+        $amsiWriteType = "Yellow"
+
         if ($amsiInformation.QuerySuccessful -eq $true) {
             if ($amsiInformation.Enabled -eq $true) {
                 $amsiWriteType = "Green"
             } elseif ($amsiInformation.Enabled -eq $false) {
-                $amsiWriteType = "Yellow"
                 Switch ($amsiInformation.OrgWideSetting) {
                     ($true) { $additionalAMSIDisplayValue = "Setting applies to all servers of the organization" }
                     ($false) {
@@ -47,11 +48,9 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
                 $additionalAMSIDisplayValue += "`r`n`t`tThis may pose a security risk to your servers"
                 $additionalAMSIDisplayValue += "`r`n`t`tMore Information: https://aka.ms/AMSIExchange"
             } else {
-                $amsiWriteType = "Yellow"
                 $additionalAMSIDisplayValue = "Exchange AMSI integration state is unknown"
             }
         } else {
-            $amsiWriteType = "Yellow"
             $additionalAMSIDisplayValue = "Unable to query Exchange AMSI integration state"
         }
 
