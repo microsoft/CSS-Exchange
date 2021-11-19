@@ -26,5 +26,5 @@ This check verifies if an override exists which disables the AMSI integration wi
 Yes
 
 **Additional resources:**
-
+[Released: June 2021 Quarterly Exchange Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-june-2021-quarterly-exchange-updates/ba-p/2459826)
 [More about AMSI integration with Exchange Server](https://techcommunity.microsoft.com/t5/exchange-team-blog/more-about-amsi-integration-with-exchange-server/ba-p/2572371)
