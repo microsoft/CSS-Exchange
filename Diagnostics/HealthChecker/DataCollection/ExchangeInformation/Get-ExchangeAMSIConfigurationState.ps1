@@ -22,7 +22,7 @@ Function Get-ExchangeAMSIConfigurationState {
                     Default { return $null }
                 }
             } catch {
-                return $null
+                throw
             }
         }
 
