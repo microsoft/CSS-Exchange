@@ -7,6 +7,25 @@ Function Get-ExchangeAMSIConfigurationState {
     param ()
 
     begin {
+        Function Get-AMSIStatusFlag {
+            [CmdletBinding()]
+            [OutputType([bool])]
+            param (
+                [Parameter(Mandatory = $true)]
+                [object]$AMSIParameters
+            )
+
+            try {
+                Switch ($AMSIParameters.Split("=")[1]) {
+                    ("False") { return $false }
+                    ("True") { return $true }
+                    Default { return $null }
+                }
+            } catch {
+                return $null
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $amsiState = "Unknown"
         $amsiOrgWideSetting = $true
@@ -20,16 +39,28 @@ Function Get-ExchangeAMSIConfigurationState {
             if (($null -ne $amsiConfiguration) -and
                 ($amsiConfiguration.Count -eq 1)) {
                 Write-Verbose "Setting override detected for AMSI configuration"
-                Switch ($amsiConfiguration.Parameters.Split("=")[1]) {
-                    ("False") { $amsiState = $false }
-                    ("True") { $amsiState = $true }
-                }
-
+                $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfiguration.Parameters -ErrorAction Stop
                 $amsiOrgWideSetting = ($null -eq $amsiConfiguration.Server)
             } elseif (($null -ne $amsiConfiguration) -and
                 ($amsiConfiguration.Count -gt 1)) {
-                Write-Verbose "Multiple overrides for the same component and section detected"
-                $amsiState = "Multiple overrides detected"
+                Write-Verbose "$($amsiConfiguration.Count) overrides for the same component and section detected"
+                $amsiMultiConfigObject = @()
+                foreach ($amsiConfig in $amsiConfiguration) {
+                    $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfig.Parameters -ErrorAction Stop
+                    $amsiOrgWideSetting = ($null -eq $amsiConfig.Server)
+                    $amsiConfigTempCustomObject = [PSCustomObject]@{
+                        Id              = $amsiConfig.Id
+                        Name            = $amsiConfig.Name
+                        Reason          = $amsiConfig.Reason
+                        Server          = $amsiConfig.Server
+                        ModifiedBy      = $amsiConfig.ModifiedBy
+                        Enabled         = $amsiState
+                        OrgWideSetting  = $amsiOrgWideSetting
+                        QuerySuccessful = $amsiConfigurationQuerySuccessful
+                    }
+
+                    $amsiMultiConfigObject += $amsiConfigTempCustomObject
+                }
             } else {
                 Write-Verbose "No setting override found that overrides AMSI configuration"
                 $amsiState = $true
@@ -39,6 +70,10 @@ Function Get-ExchangeAMSIConfigurationState {
             Invoke-CatchActions
         }
     } end {
+        if ($amsiMultiConfigObject) {
+            return $amsiMultiConfigObject
+        }
+
         return [PSCustomObject]@{
             Id              = $amsiConfiguration.Id
             Name            = $amsiConfiguration.Name
