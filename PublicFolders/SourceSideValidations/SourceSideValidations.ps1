@@ -210,5 +210,8 @@ try {
     Write-Host "SourceSideValidations complete. Total duration" ($endTime - $startTime)
 } finally {
     Write-Host
-    Write-Host "Have feedback? Please visit https://aka.ms/SSVFeedback"
+    Write-Host "Liked the script? Visit " -NoNewline
+    Write-Host "https://aka.ms/SSVFeedback" -ForegroundColor Green -NoNewline
+    Write-Host " to rate the script or provide feedback."
+    Write-Host
 }
