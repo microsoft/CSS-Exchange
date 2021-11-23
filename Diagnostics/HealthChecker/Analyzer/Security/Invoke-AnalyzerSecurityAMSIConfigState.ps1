@@ -31,6 +31,7 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
 
         $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
         $amsiWriteType = "Yellow"
+        $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/AMSIExchange"
 
         if (($amsiInformation.Count -eq 1) -and
             ($amsiInformation.QuerySuccessful -eq $true )) {
@@ -47,8 +48,7 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
                         }
                     }
                 }
-                $additionalAMSIDisplayValue += "`r`n`t`tThis may pose a security risk to your servers"
-                $additionalAMSIDisplayValue += "`r`n`t`tMore Information: https://aka.ms/AMSIExchange"
+                $additionalAMSIDisplayValue += $amsiConfigurationWarning
             } else {
                 $additionalAMSIDisplayValue = "Exchange AMSI integration state is unknown"
             }
@@ -70,6 +70,7 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
                     }
                 }
             }
+            $additionalAMSIDisplayValue += $amsiConfigurationWarning
         } else {
             $additionalAMSIDisplayValue = "Unable to query Exchange AMSI integration state"
         }

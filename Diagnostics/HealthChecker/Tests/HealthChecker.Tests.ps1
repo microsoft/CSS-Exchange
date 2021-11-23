@@ -318,6 +318,18 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.ExternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
             $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
         }
+
+        It "AMSI Override" {
+            $amsiOverride = Get-ExchangeAMSIConfigurationState
+            $amsiOverride.Enabled | Should -Be $false
+            $amsiOverride.OrgWideSetting | Should -Be $true
+            $amsiOverride.QuerySuccessful | Should -Be $true
+        }
+
+        It "AMSI Enabled" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
+        }
     }
 
     Context "Checking Scenarios 2" {

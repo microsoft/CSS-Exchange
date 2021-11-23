@@ -15,6 +15,7 @@ Function Get-ExchangeAMSIConfigurationState {
                 [object]$AMSIParameters
             )
 
+            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             try {
                 Switch ($AMSIParameters.Split("=")[1]) {
                     ("False") { return $false }
@@ -22,6 +23,7 @@ Function Get-ExchangeAMSIConfigurationState {
                     Default { return $null }
                 }
             } catch {
+                Write-Verbose "Ran into an issue when calling Split method. Parameters passed: $AMSIParameters"
                 throw
             }
         }
@@ -40,7 +42,13 @@ Function Get-ExchangeAMSIConfigurationState {
                 Write-Verbose "$($amsiConfiguration.Count) override(s) detected for AMSI configuration"
                 $amsiMultiConfigObject = @()
                 foreach ($amsiConfig in $amsiConfiguration) {
-                    $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfig.Parameters -ErrorAction Stop
+                    try {
+                        $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfig.Parameters -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Unable to process: $($amsiConfig.Parameters) to determine status flags"
+                        $amsiState = "Unknown"
+                        Invoke-CatchActions
+                    }
                     $amsiOrgWideSetting = ($null -eq $amsiConfig.Server)
                     $amsiConfigTempCustomObject = [PSCustomObject]@{
                         Id              = $amsiConfig.Id
