@@ -15,6 +15,9 @@ Function Confirm-ExchangeShell {
         [bool]$LoadExchangeShell = $true,
 
         [Parameter(Mandatory = $false)]
+        [bool]$IgnoreToolsIdentity = $false,
+
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
@@ -23,10 +26,24 @@ Function Confirm-ExchangeShell {
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity | IgnoreToolsIdentity: $IgnoreToolsIdentity"
         $params = @{
             Identity    = $Identity
             ErrorAction = "Stop"
+        }
+
+        $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
+        ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+
+        if ($toolsServer) {
+            Write-Verbose "Tools Server: $env:ComputerName"
+            if ($env:ComputerName -eq $Identity -and
+                $IgnoreToolsIdentity) {
+                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet"
+                $params.Remove("Identity")
+            } else {
+                Write-Verbose "Didn't remove Identity"
+            }
         }
     }
     process {
@@ -94,8 +111,7 @@ Function Confirm-ExchangeShell {
             Build       = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMajor" -ErrorAction SilentlyContinue).MsiBuildMajor)
             Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
             EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
-            ToolsOnly   = $passed -and (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
-            ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+            ToolsOnly   = $passed -and $toolsServer
             RemoteShell = $passed -and (!(Test-Path $setupKey))
         }
 
