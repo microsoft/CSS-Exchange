@@ -36,14 +36,8 @@ Function Get-ExchangeAMSIConfigurationState {
             $amsiConfiguration = Get-SettingOverride -ErrorAction Stop | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }
             $amsiConfigurationQuerySuccessful = $true
 
-            if (($null -ne $amsiConfiguration) -and
-                ($amsiConfiguration.Count -eq 1)) {
-                Write-Verbose "Setting override detected for AMSI configuration"
-                $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfiguration.Parameters -ErrorAction Stop
-                $amsiOrgWideSetting = ($null -eq $amsiConfiguration.Server)
-            } elseif (($null -ne $amsiConfiguration) -and
-                ($amsiConfiguration.Count -gt 1)) {
-                Write-Verbose "$($amsiConfiguration.Count) overrides for the same component and section detected"
+            if ($null -ne $amsiConfiguration) {
+                Write-Verbose "$($amsiConfiguration.Count) override(s) detected for AMSI configuration"
                 $amsiMultiConfigObject = @()
                 foreach ($amsiConfig in $amsiConfiguration) {
                     $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfig.Parameters -ErrorAction Stop
@@ -75,13 +69,7 @@ Function Get-ExchangeAMSIConfigurationState {
         }
 
         return [PSCustomObject]@{
-            Id              = $amsiConfiguration.Id
-            Name            = $amsiConfiguration.Name
-            Reason          = $amsiConfiguration.Reason
-            Server          = $amsiConfiguration.Server
-            ModifiedBy      = $amsiConfiguration.ModifiedBy
             Enabled         = $amsiState
-            OrgWideSetting  = $amsiOrgWideSetting
             QuerySuccessful = $amsiConfigurationQuerySuccessful
         }
     }
