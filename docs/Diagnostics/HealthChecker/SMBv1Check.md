@@ -1,8 +1,4 @@
----
-title: SMBv1 Check
-parent: HealthChecker.ps1
-grand_parent: Diagnostics
----
+# SMBv1 Check
 
 To make sure that your Exchange organization is better protected against the latest threats (for example Emotet, TrickBot or WannaCry to name a few) we recommend disabling SMBv1 if it’s enabled on your Exchange (2013/2016/2019) server.
 

@@ -1,8 +1,4 @@
----
-title: LM Compatibility Level Information Check
-parent: HealthChecker.ps1
-grand_parent: Diagnostics
----
+# LM Compatibility Level Information Check
 
 LAN Manager authentication level setting determines which challenge/response authentication protocol is used for network logons. This choice affects the authentication protocol level that clients use, the session security level that the computers negotiate, and the authentication level that servers accept.
 

@@ -1,4 +1,4 @@
-## Validating Hybrid Modern Authentication setup for Outlook for iOS and Android
+# Validating Hybrid Modern Authentication setup for Outlook for iOS and Android
 
 Download the latest release: [Test-HMAEAS.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-HMAEAS.ps1)
 

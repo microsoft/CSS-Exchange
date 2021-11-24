@@ -1,4 +1,4 @@
-## SimplePerf.ps1
+# SimplePerf
 
 Download the latest release: [SimplePerf.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SimplePerf.ps1)
 

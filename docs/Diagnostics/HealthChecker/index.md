@@ -1,4 +1,4 @@
-## HealthChecker.ps1
+# HealthChecker
 
 Download the latest release: [HealthChecker.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/HealthChecker.ps1)
 
