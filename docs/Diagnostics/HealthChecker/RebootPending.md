@@ -1,8 +1,4 @@
----
-title: Reboot Pending
-parent: HealthChecker.ps1
-grand_parent: Diagnostics
----
+# Reboot Pending
 
 It is best to reboot the server to address these issues. It may take some time after a reboot to have the keys automatically removed. However, if they don't remove automatically, follow these steps to address the issue for the keys that were provided to be a problem.
 

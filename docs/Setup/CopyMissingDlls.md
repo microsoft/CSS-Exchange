@@ -1,4 +1,4 @@
-## CopyMissingDlls.ps1
+# CopyMissingDlls
 
 Download the latest release: [CopyMissingDlls.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/CopyMissingDlls.ps1)
 

@@ -1,4 +1,4 @@
-## Get-SimpleAuditLogReport
+# Get-SimpleAuditLogReport
 
 Download the latest release: [Get-SimpleAuditLogReport.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-SimpleAuditLogReport.ps1)
 

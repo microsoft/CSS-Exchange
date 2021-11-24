@@ -1,4 +1,4 @@
-## SourceSideValidations.ps1
+# SourceSideValidations
 
 Download the latest release: [SourceSideValidations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SourceSideValidations.ps1)
 
