@@ -1,8 +1,3 @@
----
-title: VSSTester.ps1
-parent: Databases
----
-
 ## VSSTester.ps1
 
 Download the latest release: [VSSTester.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/VSSTester.ps1)

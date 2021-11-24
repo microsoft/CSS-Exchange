@@ -1,8 +1,3 @@
----
-title: ExPerfAnalyzer.ps1
-parent: Performance
----
-
 ## ExPerfAnalyzer.ps1
 
 Download the latest release: [ExPerfAnalyzer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfAnalyzer.ps1)

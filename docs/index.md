@@ -1,8 +1,3 @@
----
-title: Home
-nav_order: 1
----
-
 # Microsoft Exchange Server Support Scripts
 
 This project contains scripts for supporting and troubleshooting Microsoft Exchange Server.

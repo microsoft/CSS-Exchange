@@ -1,9 +1,4 @@
----
-title: Clear-MailboxPermission.ps1
-parent: Admin
----
-
-# Clear-MailboxPermission
+## Clear-MailboxPermission
 
 Download the latest release: [Clear-MailboxPermission.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Clear-MailboxPermission.ps1)
 

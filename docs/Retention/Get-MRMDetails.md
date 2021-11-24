@@ -1,8 +1,3 @@
----
-title: Get-MRMDetails.ps1
-parent: Retention
----
-
 ## Get-MRMDetails.ps1
 
 Download the latest release: [Get-MRMDetails.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-MRMDetails.ps1)

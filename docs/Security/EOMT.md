@@ -1,8 +1,3 @@
----
-title: EOMT.ps1
-parent: Security
----
-
 ## Exchange On-premises Mitigation Tool (EOMT)
 
 Download the latest release: [EOMT.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
