@@ -1,15 +1,10 @@
----
-title: SourceSideValidations.ps1
-parent: PublicFolders
----
-
 ## SourceSideValidations.ps1
 
 Download the latest release: [SourceSideValidations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SourceSideValidations.ps1)
 
 This script performs pre-migration public folder checks for Exchange 2013, 2016, and 2019. For Exchange 2010, please use previous script found [here](https://www.microsoft.com/en-us/download/details.aspx?id=100414).
 
-### Syntax
+## Syntax
 
 ```powershell
 SourceSideValidations.ps1
@@ -29,7 +24,7 @@ SourceSideValidations.ps1 -SummarizePreviousResults
   [<CommonParameters>]
 ```
 
-### Output
+## Output
 
 The script will generate the following files. Usually the only one we care about is ValidationResults.csv. The others are purely for saving time on subsequent runs.
 
@@ -40,7 +35,7 @@ Statistics.csv|EntryID, item count, and size of every folder|Running with -Start
 NonIpmSubtree.csv|A subset of properties of all System Folders|Running with -StartFresh $false loads this file instead of retrieving fresh data
 ValidationResults.csv|Information about any issues found. This is file we want to examine to understand any issues found.|The script will display a summary of what it found, and in many cases it will provide an example command that uses input from this file to fix the problem.
 
-### Tests
+## Tests
 
 The script performs the following tests. The ValidationResults.csv can be filtered by ResultType to identify the respective folders.
 
@@ -63,7 +58,7 @@ MailEnabledFolder|OrphanedMPFDisconnected|An Active Directory object exists, but
 FolderName|SpecialCharacters|Folder name contains @, /, or \\.
 Permission|BadPermission|The permission does not refer to a valid entity.
 
-### Usage
+## Usage
 
 Typically, the script should be run with no parameters:
 

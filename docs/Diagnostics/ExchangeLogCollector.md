@@ -1,8 +1,3 @@
----
-title: ExchangeLogCollector.ps1
-parent: Diagnostics
----
-
 ## Exchange Log Collector
 
 Download the latest release: [ExchangeLogCollector.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeLogCollector.ps1)
