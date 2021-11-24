@@ -13,6 +13,7 @@ nav:
     - ExTRA: Diagnostics/ExTRA.md
     - HealthChecker:
       - Diagnostics/HealthChecker/index.md
+      - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
       - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
       - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
       - RebootPending: Diagnostics/HealthChecker/RebootPending.md
