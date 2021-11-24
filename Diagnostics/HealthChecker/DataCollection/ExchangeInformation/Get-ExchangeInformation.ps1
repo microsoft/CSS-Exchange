@@ -9,6 +9,7 @@
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
+. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -418,6 +419,13 @@ Function Get-ExchangeInformation {
             }
         } else {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
+        }
+
+        if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+            $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState
+        } else {
+            Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
