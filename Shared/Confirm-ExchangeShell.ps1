@@ -34,6 +34,7 @@ Function Confirm-ExchangeShell {
             }
             return $false
         }
+        $currentErrors = $Error.Count
         $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
@@ -57,6 +58,8 @@ Function Confirm-ExchangeShell {
                 Write-Verbose "Didn't remove Identity"
             }
         }
+
+        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
     }
     process {
         try {
