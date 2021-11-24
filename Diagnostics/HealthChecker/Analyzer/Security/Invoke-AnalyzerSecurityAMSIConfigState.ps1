@@ -31,7 +31,7 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
 
         $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
         $amsiWriteType = "Yellow"
-        $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/AMSIExchange"
+        $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-AMSIExchange"
 
         if (($amsiInformation.Count -eq 1) -and
             ($amsiInformation.QuerySuccessful -eq $true )) {
