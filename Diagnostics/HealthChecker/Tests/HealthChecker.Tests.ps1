@@ -124,7 +124,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 71
+            $Script:ActiveGrouping.Count | Should -Be 73
         }
 
         It "Display Results - Security Vulnerability" {
@@ -199,6 +199,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
             Mock Get-HybridConfiguration { return $null }
             Mock Get-Service { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+            Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml" }
             Mock Get-ServerComponentState { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml" }
             Mock Test-ServiceHealth { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml" }
 
@@ -239,6 +240,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
             Assert-MockCalled Get-HybridConfiguration -Exactly 1
             Assert-MockCalled Get-Service -Exactly 1
+            Assert-MockCalled Get-SettingOverride -Exactly 1
             Assert-MockCalled Get-ServerComponentState -Exactly 1
             Assert-MockCalled Test-ServiceHealth -Exactly 1
         }
@@ -315,6 +317,18 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
             $downloadDomains.ExternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
             $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
+        }
+
+        It "AMSI Override" {
+            $amsiOverride = Get-ExchangeAMSIConfigurationState
+            $amsiOverride.Enabled | Should -Be $false
+            $amsiOverride.OrgWideSetting | Should -Be $true
+            $amsiOverride.QuerySuccessful | Should -Be $true
+        }
+
+        It "AMSI Enabled" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
         }
     }
 

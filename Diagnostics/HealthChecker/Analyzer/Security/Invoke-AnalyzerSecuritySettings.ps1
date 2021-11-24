@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityAMSIConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityMitigationService.ps1
 Function Invoke-AnalyzerSecuritySettings {
     [CmdletBinding()]
@@ -220,5 +221,6 @@ Function Invoke-AnalyzerSecuritySettings {
     }
 
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
+    Invoke-AnalyzerSecurityAMSIConfigState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
 }
