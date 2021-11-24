@@ -22,6 +22,18 @@ Function Confirm-ExchangeShell {
     )
 
     begin {
+        Function Test-GetExchangeServerCmdletError {
+            param(
+                [Parameter(Mandatory = $true)]
+                [object]$ThisError
+            )
+
+            if ($ThisError.FullyQualifiedErrorId -ne "CommandNotFoundException") {
+                Write-Warning "Failed to find '$Identity' as an Exchange Server."
+                return $true
+            }
+            return $false
+        }
         $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
@@ -56,10 +68,8 @@ Function Confirm-ExchangeShell {
         } catch {
             Write-Verbose "Failed to run Get-ExchangeServer"
             Invoke-CatchActionError $CatchActionFunction
-
-            if (-not ($LoadExchangeShell)) {
-                return
-            }
+            if (Test-GetExchangeServerCmdletError $_) { return }
+            if (-not ($LoadExchangeShell)) { return }
 
             #Test 32 bit process, as we can't see the registry if that is the case.
             if (-not ([System.Environment]::Is64BitProcess)) {
@@ -88,10 +98,16 @@ Function Confirm-ExchangeShell {
                     }
 
                     Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
-                    Get-ExchangeServer @params | Out-Null
-                    $passed = $true
-                    Write-Verbose "Successfully loaded Exchange Management Shell"
-                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+                    try {
+                        Get-ExchangeServer @params | Out-Null
+                        $passed = $true
+                        Write-Verbose "Successfully loaded Exchange Management Shell"
+                        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+                    } catch {
+                        Write-Verbose "Failed to run Get-ExchangeServer again"
+                        Invoke-CatchActionError $CatchActionFunction
+                        if (Test-GetExchangeServerCmdletError $_) { return }
+                    }
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."
                     Invoke-CatchActionError $CatchActionFunction
