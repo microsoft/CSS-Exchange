@@ -5,6 +5,7 @@
 Function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
+        [Parameter(Mandatory = $false)][bool]$IgnoreToolsIdentity = $false,
         [Parameter(Mandatory = $false)][bool]$IncludeServerName = $false
     )
     $endName = "-{0}.txt" -f $dateTimeStringFormat
@@ -22,10 +23,13 @@ Function Invoke-ScriptLogFileLocation {
         return
     }
 
-    $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Script:Server `
+        -IgnoreToolsIdentity $IgnoreToolsIdentity `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if (!($Script:ExchangeShellComputer.ShellLoaded)) {
         Write-Yellow("Failed to load Exchange Shell... stopping script")
+        $Script:Logger.PreventLogCleanup = $true
         exit
     }
 
@@ -33,6 +37,7 @@ Function Invoke-ScriptLogFileLocation {
         $env:COMPUTERNAME -eq $Script:Server -and
         !($LoadBalancingReport)) {
         Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
+        $Script:Logger.PreventLogCleanup = $true
         exit
     }
 
