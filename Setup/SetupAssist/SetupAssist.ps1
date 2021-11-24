@@ -27,20 +27,36 @@ param(
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
 
+Function WriteCatchInfo {
+    Write-Host "$($Error[0].Exception)"
+    Write-Host "$($Error[0].ScriptStackTrace)"
+    $Script:ErrorOccurred = $true
+}
+
 Function RunAllTests {
-    Test-ExchangeADSetupLevel
-    Test-ExecutionPolicy
-    Test-ExchangeServices
-    Test-ComputersContainerExists
-    Test-DomainControllerDnsHostName
-    Test-MissingDirectory
-    Test-MsiCacheFiles
-    Test-PrerequisiteInstalled
-    Test-ReadOnlyDomainControllerLocation
-    Test-OtherWellKnownObjects
-    Test-PendingReboot
-    Test-ValidHomeMDB
-    Test-VirtualDirectoryConfiguration
+    $tests = @("Test-ExchangeADSetupLevel",
+        "Test-ExecutionPolicy",
+        "Test-ExchangeServices",
+        "Test-ComputersContainerExists",
+        "Test-DomainControllerDnsHostName",
+        "Test-MissingDirectory",
+        "Test-MsiCacheFiles",
+        "Test-PrerequisiteInstalled",
+        "Test-ReadOnlyDomainControllerLocation",
+        "Test-OtherWellKnownObjects",
+        "Test-PendingReboot",
+        "Test-ValidHomeMDB",
+        "Test-VirtualDirectoryConfiguration")
+
+    foreach ($test in $tests) {
+        try {
+            Write-Verbose "Working on test $test"
+            & $test
+        } catch {
+            Write-Host "Failed to properly run $test"
+            WriteCatchInfo
+        }
+    }
 }
 
 Function Main {
@@ -103,8 +119,10 @@ try {
 
     Main
 } catch {
-    "$($_.Exception)" | Write-Output
-    "$($_.ScriptStackTrace)" | Write-Output
-    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
+    Write-Host "Failed in Main"
+    WriteCatchInfo
+} finally {
+    if ($Script:ErrorOccurred) {
+        Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
+    }
 }
-
