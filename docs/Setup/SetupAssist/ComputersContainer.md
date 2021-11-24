@@ -1,8 +1,4 @@
----
-title: Computers Container Renamed or Missing
-parent: SetupAssist.ps1
-grand_parent: Setup
----
+# Computers container renamed or missing
 
 When the CN=Computers container has been renamed or removed from the root
 of an Active Directory domain, /PrepareAD will fail for certain

@@ -1,4 +1,4 @@
-## ExTRA.ps1
+# ExTRA
 
 Download the latest release: [ExTRA.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExTRA.ps1)
 
