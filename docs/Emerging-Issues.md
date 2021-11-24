@@ -1,6 +1,6 @@
 ---
-title: Emerging Issues
-nav_order: 2
+hide:
+  - toc
 ---
 
 # Emerging Issues for Exchange On-Premises

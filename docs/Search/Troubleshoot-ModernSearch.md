@@ -1,9 +1,4 @@
----
-title: Troubleshoot-ModernSearch.ps1
-parent: Search
----
-
-# Troubleshoot-ModernSearch.ps1
+## Troubleshoot-ModernSearch.ps1
 
 Download the latest release: [Troubleshoot-ModernSearch.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Troubleshoot-ModernSearch.ps1)
 
