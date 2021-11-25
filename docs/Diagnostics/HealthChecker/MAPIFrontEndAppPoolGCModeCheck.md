@@ -1,4 +1,4 @@
-﻿# MAPI Front End App Pool GC Mode Check
+# MAPI Front End App Pool GC Mode Check
 
 **Description:**
 

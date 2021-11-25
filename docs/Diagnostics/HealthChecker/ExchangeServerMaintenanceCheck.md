@@ -1,4 +1,4 @@
-﻿# Exchange Server Maintenance Check
+# Exchange Server Maintenance Check
 
 **Description:**
 

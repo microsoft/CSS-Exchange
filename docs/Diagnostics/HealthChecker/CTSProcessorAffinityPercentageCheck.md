@@ -1,4 +1,4 @@
-﻿# CTS Processor Affinity Percentage Check
+# CTS Processor Affinity Percentage Check
 
 **Description:**
 
