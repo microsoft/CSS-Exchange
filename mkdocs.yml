@@ -13,13 +13,32 @@ nav:
     - ExTRA: Diagnostics/ExTRA.md
     - HealthChecker:
       - Diagnostics/HealthChecker/index.md
-      - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
-      - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
-      - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
+      - MaintenanceCheck: Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck.md
+      - GCModeCheck: Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck.md
       - RebootPending: Diagnostics/HealthChecker/RebootPending.md
-      - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
+      - CTSProcessorAffinityCheck: Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck.md
+      - CredentialGuardCheck: Diagnostics/HealthChecker/CredentialGuardCheck.md
+      - RPCMinConnectionTimeoutCheck: Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck.md
+      - TCPIPSettingsCheck: Diagnostics/HealthChecker/TCPIPSettingsCheck.md
+      - GeneralHardwareInformation: Diagnostics/HealthChecker/GeneralHardwareInformation.md
+      - HyperThreadingCheck: Diagnostics/HealthChecker/HyperThreadingCheck.md
+      - NumaBiosCheck: Diagnostics/HealthChecker/NumaBiosCheck.md
+      - ProcessorCheck: Diagnostics/HealthChecker/ProcessorCheck.md
+      - IPv6EnabledCheck: Diagnostics/HealthChecker/IPv6EnabledCheck.md
+      - PacketsLossCheck: Diagnostics/HealthChecker/PacketsLossCheck.md
+      - RSSEnabledCheck: Diagnostics/HealthChecker/RSSEnabledCheck.md
+      - SleepyNICCheck: Diagnostics/HealthChecker/SleepyNICCheck.md
+      - NETFrameworkCheck: Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck.md
+      - PagefileCheck: Diagnostics/HealthChecker/PagefileSizeCheck.md
+      - VisualCCheck: Diagnostics/HealthChecker/VisualCRedistributableVersionCheck.md
+      - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
       - TLSConfigurationCheck: Diagnostics/HealthChecker/TLSConfigurationCheck.md
+      - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
+      - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
+      - EEMSCheck: Diagnostics/HealthChecker/EEMSCheck.md
+      - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
       - VulnerabilityCheck: Diagnostics/HealthChecker/VulnerabilityCheck.md
+      - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md

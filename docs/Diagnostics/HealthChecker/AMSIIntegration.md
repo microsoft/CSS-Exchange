@@ -1,3 +1,5 @@
+# AMSI Check
+
 The Windows Antimalware Scan Interface (AMSI) is a versatile standard that allows applications and services to integrate with any antimalware product present on a machine. AMSI is vendor agnostic and designed to allow for the most common malware scanning and protection techniques provided by today's products to be integrated into applications.
 
 It only scans the HTTP protocol, and is not meant to be a replacement to existing server-level or message hygiene protections.
