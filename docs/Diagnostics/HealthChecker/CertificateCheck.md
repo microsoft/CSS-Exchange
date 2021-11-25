@@ -1,6 +1,7 @@
 # Certificate Check
 
 This check retrieves all certificates from the Exchange server by using the `Get-ExchangeCertificate` cmdlet. We display the following information:
+
 - FriendlyName
 - Thumbprint
 - Lifetime in days

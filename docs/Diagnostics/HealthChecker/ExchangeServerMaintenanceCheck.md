@@ -18,3 +18,7 @@ We display a yellow warning `Exchange Server Maintenance` if components in maint
 **Included in HTML Report?**
 
 Yes
+
+**Additional resources:**
+
+[Determine the requestor that changed Server component state](https://docs.microsoft.com/en-us/exchange/troubleshoot/administration/requestor-changed-server-component)
