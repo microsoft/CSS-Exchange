@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Helpers\Get-LocalizedPerformanceCounterNames.ps1
+
 Function Get-CASLoadBalancingReport {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -42,15 +44,29 @@ Function Get-CASLoadBalancingReport {
         Exit
     }
 
-    #Request stats from perfmon for all CAS
+    # Request stats from perfmon for all CAS
+    # We assume that all CAS Servers are using the same OS localization
     $PerformanceCounters = @()
-    $PerformanceCounters += "\Web Service(Default Web Site)\Current Connections"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Autodiscover)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_EWS)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_mapi)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_owa)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Rpc)\Requests Executing"
+    $wsCurrentConnections = Get-LocalizedPerformanceCounterNames -ComputerName $CASServers[0].Fqdn `
+        -PerformanceCounterName "\Web Service\Current Connections"
+    if ($null -ne $wsCurrentConnections) {
+        $PerformanceCounters += ("\{0}(Default Web Site)\{1}" -f $wsCurrentConnections[0], $wsCurrentConnections[1])
+    } else {
+        Write-Verbose "Unable to localize performance counter for \Web Service\Current Connections"
+    }
+
+    $aspNetAppsv4 = Get-LocalizedPerformanceCounterNames -ComputerName $CASServers[0].Fqdn `
+        -PerformanceCounterName "\ASP.NET Apps v4.0.30319\Requests Executing"
+    if ($null -ne $aspNetAppsv4) {
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_Autodiscover)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_EWS)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_mapi)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_owa)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+        $PerformanceCounters += ("\{0}(_LM_W3SVC_1_ROOT_Rpc)\{1}" -f $aspNetAppsv4[0], $aspNetAppsv4[1])
+    } else {
+        Write-Verbose "Unable to localize performance counter for \ASP.NET Apps v4.0.30319\Requests Executing"
+    }
     $currentErrors = $Error.Count
     $AllCounterResults = Get-Counter -ComputerName $CASServers -Counter $PerformanceCounters -ErrorAction SilentlyContinue
 
