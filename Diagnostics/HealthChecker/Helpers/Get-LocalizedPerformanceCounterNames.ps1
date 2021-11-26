@@ -120,7 +120,8 @@ Function Get-LocalizedPerformanceCounterNames {
             Invoke-CatchActions
         }
     } end {
-        if ($perfCounterArray.Count -lt $i) {
+        if (($perfCounterArray.Count -lt $i) -or
+            ($null -eq $perfCounterArray)) {
             Write-Verbose "Unable to find a localized counter name for any counter that was passed"
             Write-Verbose "Passed: $($perfCounterSplit.Count) Localized: $($perfCounterArray.Count)"
             return $null
