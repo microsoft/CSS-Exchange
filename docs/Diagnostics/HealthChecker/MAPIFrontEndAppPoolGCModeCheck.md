@@ -5,6 +5,7 @@
 We validate the Garbage Collection (GC) configuration for `MSExchangeMapiFrontEndAppPool` App Pool if the check is executed against an Exchange 2013 server that is not running the EdgeTransport role.
 
 We check if:
+
 - The server has a total memory of `21474836480 MB` and `gcServer.Enabled` set to `false`\
 In this case we recommend to enable `Server GC`.
 
