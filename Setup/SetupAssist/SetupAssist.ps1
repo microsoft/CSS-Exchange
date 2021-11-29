@@ -24,8 +24,9 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
-. $PSScriptRoot\..\..\Shared\Out-Columns.ps1
-
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\Write-Host.ps1
+. $PSScriptRoot\WriteFunctions.ps1
 
 Function WriteCatchInfo {
     Write-Host "$($Error[0].Exception)"
@@ -96,7 +97,7 @@ Function Main {
             }
             New-TestResult @params
         }
-    $quickResults | Out-Columns -Properties @("TestName", "Result", "Details") -ColorizerFunctions $sbResults
+    $quickResults | Write-OutColumns -Properties @("TestName", "Result", "Details") -ColorizerFunctions $sbResults
 
     Write-Host ""
     Write-Host "-----Results That Didn't Pass-----"
@@ -108,7 +109,7 @@ Function Main {
             Details       = $_.Group.Details
             ReferenceInfo = $_.Group.ReferenceInfo | Select-Object -Unique
         }
-    } | Out-Columns -IndentSpaces 5 -LinesBetweenObjects 2
+    } | Write-OutColumns -IndentSpaces 5 -LinesBetweenObjects 2
 }
 
 try {
@@ -117,12 +118,19 @@ try {
         return
     }
 
+    $Script:Logger = Get-NewLoggerInstance -LogName "SetupAssist-Debug" `
+        -AppendDateTimeToFileName $false `
+        -ErrorAction SilentlyContinue
+    SetWriteHostAction ${Function:Write-DebugLog}
+
     Main
 } catch {
     Write-Host "Failed in Main"
     WriteCatchInfo
 } finally {
     if ($Script:ErrorOccurred) {
-        Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
+        Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing including the SetupAssist-Debug.txt file.")
+    } elseif (-not ($PSBoundParameters["Verbose"])) {
+        $Script:Logger | Invoke-LoggerInstanceCleanup
     }
 }
