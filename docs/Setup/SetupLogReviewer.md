@@ -1,9 +1,4 @@
----
-title: SetupLogReviewer.ps1
-parent: Setup
----
-
-## SetupLogReviewer.ps1
+# SetupLogReviewer
 
 Download the latest release: [SetupLogReviewer.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SetupLogReviewer.ps1)
 

@@ -1,9 +1,4 @@
----
-title: Test-ExchAVExclusions.ps1
-parent: Diagnostics
----
-
-## Test-ExchAVExclusions.ps1
+# Test-ExchAVExclusions
 
 Download the latest release: [Test-ExchAVExclusions.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchAVExclusions.ps1)
 
