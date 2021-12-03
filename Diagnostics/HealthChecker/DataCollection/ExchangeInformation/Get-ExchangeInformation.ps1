@@ -421,6 +421,14 @@ Function Get-ExchangeInformation {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
         }
 
+        try {
+            $exchangeInformation.WildCardAcceptedDomain = Get-AcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
+        } catch {
+            Write-Verbose "Failed to run Get-AcceptedDomain"
+            $exchangeInformation.WildCardAcceptedDomain = "Unknown"
+            Invoke-CatchActions
+        }
+
         if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
             $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState

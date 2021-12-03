@@ -97,4 +97,41 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
                 -DisplayWriteType $writeType
         }
     }
+
+    $displayWriteType = "Grey"
+    $displayValue = "Not Set"
+    $additionalDisplayValue = [string]::Empty
+
+    if ($null -ne $exchangeInformation.WildCardAcceptedDomain) {
+
+        if ($exchangeInformation.WildCardAcceptedDomain -eq "Unknown") {
+            $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
+            $displayWriteType = "Yellow"
+        } else {
+            $displayWriteType = "Red"
+            $domain = $exchangeInformation.WildCardAcceptedDomain
+            $displayValue = "Error --- Accepted Domain `"$($domain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($domain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
+
+            if ($domain.DomainType.ToString() -eq "InternalRelay" -and
+                (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
+                    $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU22) -or
+                ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019 -and
+                $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU11))) {
+
+                $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
+            } elseif ($domain.DomainType.ToString() -eq "InternalRelay") {
+                $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
+            }
+        }
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Open Relay Wild Card Domain" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
+        -DisplayWriteType $displayWriteType
+
+    if ($additionalDisplayValue -ne [string]::Empty) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details $additionalDisplayValue `
+            -DisplayGroupingKey $keyFrequentConfigIssues `
+            -DisplayWriteType "Red"
+    }
 }
