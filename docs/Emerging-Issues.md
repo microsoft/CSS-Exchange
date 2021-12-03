@@ -14,6 +14,13 @@ Following are the known issues after installing [November 2021 Security Updates]
 -|-|-
 Hybrid OWA Redirect is broken after application of November SU for Exchange 2013/2016 and 2019. <BR><BR> Users using Exchange 2016 and 2019 server will see error ":-( Something went wrong. We can't get that information right now. Please try again later. <BR><BR> Exchange 2013 users will see error "External component has thrown an exception." <BR><BR> Some On-Premises environments, that are not using FBA, may also see cross-site OWA redirection fail with similar errors.| After installing November SU, the OWA redirection URL for hybrid users is providing an encoded URL for &., causing the redirect to fail | Use the workarounds provided in  [KB article 5008997](https://support.microsoft.com/en-us/help/5008997) | Email clients might see repeated password prompts after the installation of Windows November Security Update for [CVE-2021-42278](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-42278) is installed on the Domain Controllers.| -- | Please see [KB5008720](https://support.microsoft.com/help/5008720).
 
+## September Cumulative Updates
+Following are the known issues after installing September 2021 Cumulative Updates for Exchange On-Premises servers
+
+**Issue** | **Possible reason** | **Workaround/Solution**
+-|-|-
+After installing the September 2021 CU, the Microsoft Exchange Transport Services will continue to crash. You can see the following message for the 4999 crash event <BR><BR> `Watson report about to be sent for process id: 10072, with parameters: E12IIS, c-RTL-AMD64, 15.02.0986.005, MSExchangeDelivery, M.Exchange.Transport, M.E.T.AcceptedDomainTable..ctor, System.FormatException, 28d7-dumptidset, 15.02.0986.005.` | Having a Wild Card Only (*) Accepted Domain Set on an Internal Relay. This is an open relay and is very bad to have set. | Remove the Accepted Domain that is set to `*` and properly configure an anonymous relay on a receive connector or change to an External Relay. <BR><BR>More Information: [Allow anonymous relay on Exchange servers](https://docs.microsoft.com/en-us/Exchange/mail-flow/connectors/allow-anonymous-relay?view=exchserver-2019)
+
 ## July 2021 Security Update/Cumulative Updates
 Following are the known issues after installing July 2021 Security Updates/Cumulative Updates for Exchange On-Premises servers
 
