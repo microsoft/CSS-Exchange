@@ -188,3 +188,7 @@ Function Test-ServiceHealth {
 Function Get-SettingOverride {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml"
 }
+
+Function Get-AcceptedDomain {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml"
+}

@@ -37,6 +37,11 @@ Function Write-Host {
         }
 
         Microsoft.PowerShell.Utility\Write-Host @params
+
+        if ($null -ne $Script:WriteHostDebugAction -and
+            $null -ne $Object) {
+            &$Script:WriteHostDebugAction $Object
+        }
     }
 }
 
@@ -62,4 +67,8 @@ Function SetProperForegroundColor {
 
 Function RevertProperForegroundColor {
     $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
+}
+
+Function SetWriteHostAction ($DebugAction) {
+    $Script:WriteHostDebugAction = $DebugAction
 }

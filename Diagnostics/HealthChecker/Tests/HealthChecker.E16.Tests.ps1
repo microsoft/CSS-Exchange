@@ -108,8 +108,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
+            TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 6
+            $Script:ActiveGrouping.Count | Should -Be 7
         }
 
         It "Display Results - Security Settings" {
