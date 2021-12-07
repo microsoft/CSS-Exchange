@@ -4,7 +4,7 @@
 
 We show a warning if we weren't able to run `Get-AcceptedDomain` and provide an `unknown` status. If we determine that an Open Relay Domain is set on the environment, we will throw an error in the results and provide which accepted domain ID is set with this. It is recommended to have an anonymous relay and scope down the receive connector for who can use it. Otherwise, you are allowing anybody to use your environment to send mail anywhere.
 
-**NOTE:** After installing the September 2012 CUs for Exchange 2016/2019, you can see crashes occur on your system for the transport services that look like this:
+**NOTE:** After installing the September 2021 CUs for Exchange 2016/2019, you can see crashes occur on your system for the transport services that look like this:
 
 ```
 Log Name:      Application
