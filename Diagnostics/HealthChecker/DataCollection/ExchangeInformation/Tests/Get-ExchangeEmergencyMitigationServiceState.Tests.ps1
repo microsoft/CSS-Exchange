@@ -26,25 +26,27 @@ BeforeAll {
 
 Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
 
+    BeforeAll {
+        Mock Invoke-WebRequest -MockWith { return Import-Clixml $Script:parentPath\Tests\InvokeWebRequestEEMS.xml }
+        Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationRunning.xml } `
+            -ParameterFilter { $ComputerName -eq $Script:Server }
+
+        $Script:customObject = ([PSCustomObject]@{
+                ComputerName       = $Script:Server
+                MitigationsEnabled = $true
+                GetExchangeServer  = [PSCustomObject]@{
+                    InternetWebProxy      = $null
+                    MitigationsEnabled    = $true
+                    MitigationsApplied    = "PING01"
+                    MitigationsBlocked    = $null
+                    DataCollectionEnabled = $true
+                }
+            })
+    }
+
     Context "Exchange Emergency Mitigation Service Default State" {
 
         BeforeAll {
-            Mock Invoke-WebRequest -MockWith { return Import-Clixml $Script:parentPath\Tests\InvokeWebRequestEEMS.xml }
-            Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationRunning.xml } `
-                -ParameterFilter { $ComputerName -eq $Script:Server }
-
-            $customObject = ([PSCustomObject]@{
-                    ComputerName       = $Script:Server
-                    MitigationsEnabled = $true
-                    GetExchangeServer  = [PSCustomObject]@{
-                        InternetWebProxy      = $null
-                        MitigationsEnabled    = $true
-                        MitigationsApplied    = "PING01"
-                        MitigationsBlocked    = $null
-                        DataCollectionEnabled = $true
-                    }
-                })
-
             $Script:results = Get-ExchangeEmergencyMitigationServiceState -RequiredInformation $customObject
         }
 
@@ -76,22 +78,12 @@ Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
     Context "Exchange Emergency Mitigation Service Disabled State" {
 
         BeforeAll {
-            Mock Invoke-WebRequest -MockWith { return Import-Clixml $Script:parentPath\Tests\InvokeWebRequestEEMS.xml }
             Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationDisabled.xml } `
                 -ParameterFilter { $ComputerName -eq $Script:Server }
 
-            $customObject = ([PSCustomObject]@{
-                    ComputerName       = $Script:Server
-                    MitigationsEnabled = $false
-                    GetExchangeServer  = [PSCustomObject]@{
-                        InternetWebProxy      = $null
-                        MitigationsEnabled    = $false
-                        MitigationsApplied    = "PING01"
-                        MitigationsBlocked    = $null
-                        DataCollectionEnabled = $false
-                    }
-                })
-
+            $Script:customObject.MitigationsEnabled = $false
+            $Script:customObject.GetExchangeServer.MitigationsEnabled = $false
+            $Script:customObject.GetExchangeServer.DataCollectionEnabled = $false
             $Script:results = Get-ExchangeEmergencyMitigationServiceState -RequiredInformation $customObject
         }
 
@@ -124,21 +116,8 @@ Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
 
         BeforeAll {
             Mock Invoke-WebRequest -MockWith { return $null }
-            Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationRunning.xml } `
-                -ParameterFilter { $ComputerName -eq $Script:Server }
 
-            $customObject = ([PSCustomObject]@{
-                    ComputerName       = $Script:Server
-                    MitigationsEnabled = $true
-                    GetExchangeServer  = [PSCustomObject]@{
-                        InternetWebProxy      = $null
-                        MitigationsEnabled    = $true
-                        MitigationsApplied    = $null
-                        MitigationsBlocked    = $null
-                        DataCollectionEnabled = $true
-                    }
-                })
-
+            $Script:customObject.GetExchangeServer.MitigationsApplied = $null
             $Script:results = Get-ExchangeEmergencyMitigationServiceState -RequiredInformation $customObject
         }
 
@@ -159,23 +138,11 @@ Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
 
         BeforeAll {
             Mock Invoke-WebRequest -MockWith { return $null }
-            Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigation.xml } `
-                -ParameterFilter { $ComputerName -eq $Script:Server }
 
-            $Script:mitigationsAppliedArray = @("PING01", "M01", "M03")
-            $Script:mitigationsBlockedArray = @("M02")
-            $customObject = ([PSCustomObject]@{
-                    ComputerName       = $Script:Server
-                    MitigationsEnabled = $true
-                    GetExchangeServer  = [PSCustomObject]@{
-                        InternetWebProxy      = $null
-                        MitigationsEnabled    = $true
-                        MitigationsApplied    = $mitigationsAppliedArray
-                        MitigationsBlocked    = $mitigationsBlockedArray
-                        DataCollectionEnabled = $true
-                    }
-                })
-
+            $mitigationsAppliedArray = @("PING01", "M01", "M03")
+            $mitigationsBlockedArray = @("M02")
+            $Script:customObject.GetExchangeServer.MitigationsApplied = $mitigationsAppliedArray
+            $Script:customObject.GetExchangeServer.MitigationsBlocked = $mitigationsBlockedArray
             $Script:results = Get-ExchangeEmergencyMitigationServiceState -RequiredInformation $customObject
         }
 
