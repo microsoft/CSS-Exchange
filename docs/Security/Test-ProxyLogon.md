@@ -1,15 +1,10 @@
----
-title: Test-ProxyLogon.ps1
-parent: Security
----
-
-## Test-ProxyLogon.ps1
+# Test-ProxyLogon.ps1
 
 Download the latest release: [Test-ProxyLogon.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
 Formerly known as Test-Hafnium, this script automates all four of the commands found in the [Hafnium blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/). It also has a progress bar and some performance tweaks to make the CVE-2021-26855 test run much faster.
 
-### Usage
+## Usage
 
 The most typical usage of this script is to check all Exchange servers and save the reports,
 by using the following syntax from Exchange Management Shell:
@@ -28,7 +23,7 @@ To display the results without saving them, pass -DisplayOnly:
 
 `.\Test-ProxyLogon.ps1 -DisplayOnly`
 
-### Frequently Asked Questions
+## Frequently Asked Questions
 
 **The script says it found suspicious files, and it lists a bunch of zip files. What does this mean?**
 

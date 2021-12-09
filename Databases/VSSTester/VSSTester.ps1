@@ -1,4 +1,7 @@
-﻿#################################################################################
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#################################################################################
 # Purpose:
 # This script will allow you to test VSS functionality on Exchange server using DiskShadow.
 # The script will automatically detect active and passive database copies running on the server.
@@ -53,7 +56,7 @@ Function Main {
     Write-Host "****************************************************************************************"
     Write-Host "****************************************************************************************"
 
-    $Script:LocalExchangeShell = Confirm-ExchangeShell
+    $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
 
     if (!$Script:LocalExchangeShell.ShellLoaded) {
         Write-Host "Failed to load Exchange Shell. Stopping the script."

@@ -1,16 +1,29 @@
-﻿Function Get-HardwareInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-    Write-VerboseOutput("Calling: Get-HardwareInformation")
+. $PSScriptRoot\Get-ProcessorInformation.ps1
+. $PSScriptRoot\Get-ServerType.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
+Function Get-HardwareInformation {
+
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $system = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
     $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
+
+    if ($null -eq $hardware_obj.MemoryInformation) {
+        Write-Verbose "Using memory from Win32_ComputerSystem class instead. This may cause memory calculation issues."
+        $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
+    } else {
+        foreach ($memory in $hardware_obj.MemoryInformation) {
+            $hardware_obj.TotalMemory += $memory.Capacity
+        }
+    }
     $hardware_obj.Manufacturer = $system.Manufacturer
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
-    ForEach ($memory in $hardware_obj.MemoryInformation) {
-        $hardware_obj.TotalMemory += $memory.Capacity
-    }
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
     $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -31,6 +44,6 @@
     $hardware_obj.Processor = $processor
     $hardware_obj.Model = $system.Model
 
-    Write-VerboseOutput("Exiting: Get-HardwareInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $hardware_obj
 }

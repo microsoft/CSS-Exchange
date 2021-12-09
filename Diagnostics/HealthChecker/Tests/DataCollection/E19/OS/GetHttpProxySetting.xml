@@ -1,0 +1,28 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="ProxyAddress">None</S>
+      <S N="ByPassList"></S>
+      <B N="HttpProxyDifference">false</B>
+      <B N="HttpByPassDifference">false</B>
+      <Obj N="HttpProxy32" RefId="1">
+        <TNRef RefId="0" />
+        <MS>
+          <S N="ProxyAddress">None</S>
+          <S N="ByPassList"></S>
+        </MS>
+      </Obj>
+      <Obj N="HttpProxy64" RefId="2">
+        <TNRef RefId="0" />
+        <MS>
+          <S N="ProxyAddress">None</S>
+          <S N="ByPassList"></S>
+        </MS>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

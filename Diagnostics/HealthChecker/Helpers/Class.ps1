@@ -1,4 +1,7 @@
-﻿try {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+try {
     #Enums and custom data types
     Add-Type -TypeDefinition @"
     using System;
@@ -12,6 +15,7 @@
                 public OperatingSystemInformation  OSInformation; // OS Version Object Information
                 public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
                 public string HealthCheckerVersion; //To determine the version of the script on the object.
+                public DateTime GenerationTime; //Time stamp of running the script
             }
 
             // ExchangeInformation
@@ -21,8 +25,13 @@
                 public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
                 public object GetMailboxServer;       //Stores the Get-MailboxServer Object
                 public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
+                public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
                 public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+                public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
+                public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
                 public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
+                public object WildCardAcceptedDomain; // for issues with * accepted domain.
+                public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
                 public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
                 public bool MapiHttpEnabled; //Stored from organization config
                 public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
@@ -30,6 +39,7 @@
                 public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
                 public ExchangeServerMaintenance ServerMaintenance;
                 public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
+                public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
                 public Hashtable ApplicationConfigFileStatus = new Hashtable();
             }
 
@@ -61,7 +71,7 @@
                 public System.Array InactiveComponents;
                 public object GetServerComponentState;
                 public object GetClusterNode;
-                public object GetMailboxServer;
+                public object GetMailboxServer; //TODO: Remove this
             }
 
             //enum for CU levels of Exchange
@@ -129,9 +139,9 @@
                 public OSBuildInformation BuildInformation = new OSBuildInformation(); // contains build information
                 public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
                 public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
-                public PageFileInformation PageFile;             //stores the page file information
+                public object PageFile;             //stores the page file information
                 public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
-                public ServerPendingReboot ServerPendingReboot = new ServerPendingReboot();// determines if the server is pending a reboot. TODO: Adjust to contain the registry values that we are looking at.
+                public object ServerPendingReboot; // determine if server is pending a reboot.
                 public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
                 public Hashtable TLSSettings;            // stores the TLS settings on the server.
                 public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
@@ -140,17 +150,7 @@
                 public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
                 public bool CredentialGuardEnabled;
                 public OSRegistryValues RegistryValues = new OSRegistryValues();
-                public Smb1ServerSettings Smb1ServerSettings = new Smb1ServerSettings();
-            }
-
-            public class ServerPendingReboot
-            {
-                public bool PendingFileRenameOperations;
-                public object SccmReboot;
-                public bool SccmRebootPending;
-                public bool ComponentBasedServicingRebootPending;
-                public bool AutoUpdatePendingReboot;
-                public bool PendingReboot;
+                public object Smb1ServerSettings;
             }
 
             public class OSBuildInformation
@@ -165,7 +165,7 @@
             {
                 public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry
                 public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout.
-                public string HttpProxy;                // holds the setting for HttpProxy if one is set.
+                public object HttpProxy;                // holds the setting for HttpProxy if one is set.
                 public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
                 public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents
                 public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
@@ -179,12 +179,6 @@
                 public bool HighPerformanceSet;      // If the power plan is High Performance
                 public string PowerPlanSetting;      //value for the power plan that is set
                 public object PowerPlan;            //object to store the power plan information
-            }
-
-            public class PageFileInformation
-            {
-                public object PageFile;       //store the information that we got for the page file
-                public double MaxPageSize;    //holds the information of what our page file is set to
             }
 
             public class OSRegistryValues
@@ -235,15 +229,6 @@
                 public string Seconds;
             }
 
-            //enum for the dword values of the latest supported VC++ redistributable releases
-            //https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads
-            public enum VCRedistVersion
-            {
-                Unknown = 0,
-                VCRedist2012 = 184610406,
-                VCRedist2013 = 201367256
-            }
-
             public class OSNetFrameworkInformation
             {
                 public NetMajorVersion NetMajorVersion; //NetMajorVersion value
@@ -281,14 +266,6 @@
                 Net4d7d1 = 461308,
                 Net4d7d2 = 461808,
                 Net4d8 = 528040
-            }
-
-            public class Smb1ServerSettings
-            {
-                public object RegistryValue;
-                public object SmbServerConfiguration;
-                public object WindowsFeature;
-                public int Smb1Status;
             }
             // End OperatingSystemInformation
 
@@ -358,8 +335,10 @@
             {
                 public string DisplayValue;
                 public string Name;
+                public string TestingName; // Used for pestering testing
                 public int TabNumber;
                 public object TestingValue; //Used for pester testing down the road.
+                public object OutColumns; //used for colorized format table option.
                 public string WriteType;
 
                 public string Line

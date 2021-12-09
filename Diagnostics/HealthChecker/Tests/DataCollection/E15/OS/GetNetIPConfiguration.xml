@@ -1,0 +1,1089 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>NetIPConfiguration</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>NetIPConfiguration</ToString>
+    <Props>
+      <S N="ComputerName">SOLO-E15A</S>
+      <S N="InterfaceAlias">Ethernet</S>
+      <I32 N="InterfaceIndex">12</I32>
+      <S N="InterfaceDescription">Microsoft Hyper-V Network Adapter</S>
+      <Obj N="NetAdapter" RefId="1">
+        <TN RefId="1">
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetAdapter</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_NetworkPort</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalPort</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalDevice</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_EnabledLogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedSystemElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetAdapter</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_NetworkPort</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalPort</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalDevice</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_EnabledLogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>MSFT_NetAdapter (CreationClassName = "MSFT_NetAdapter", DeviceID = "{54466675-1AA5-4988-BC27-40B89BF0DCBD}", SystemCreationClassName = "CIM_NetworkPort", SystemName = "Solo-E15A.Solo.net")</ToString>
+        <Props>
+          <Nil N="Caption" />
+          <Nil N="Description" />
+          <Nil N="ElementName" />
+          <S N="InstanceID">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+          <Nil N="CommunicationStatus" />
+          <Nil N="DetailedStatus" />
+          <Nil N="HealthState" />
+          <Nil N="InstallDate" />
+          <S N="Name">Ethernet</S>
+          <Nil N="OperatingStatus" />
+          <Nil N="OperationalStatus" />
+          <Nil N="PrimaryStatus" />
+          <Nil N="Status" />
+          <Nil N="StatusDescriptions" />
+          <Nil N="AvailableRequestedStates" />
+          <U16 N="EnabledDefault">2</U16>
+          <U16 N="EnabledState">5</U16>
+          <Nil N="OtherEnabledState" />
+          <U16 N="RequestedState">12</U16>
+          <Nil N="TimeOfLastStateChange" />
+          <U16 N="TransitioningToState">12</U16>
+          <Nil N="AdditionalAvailability" />
+          <Nil N="Availability" />
+          <S N="CreationClassName">MSFT_NetAdapter</S>
+          <S N="DeviceID">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+          <Nil N="ErrorCleared" />
+          <Nil N="ErrorDescription" />
+          <Nil N="IdentifyingDescriptions" />
+          <Nil N="LastErrorCode" />
+          <Nil N="MaxQuiesceTime" />
+          <Nil N="OtherIdentifyingInfo" />
+          <Nil N="PowerManagementCapabilities" />
+          <Nil N="PowerManagementSupported" />
+          <Nil N="PowerOnHours" />
+          <Nil N="StatusInfo" />
+          <S N="SystemCreationClassName">CIM_NetworkPort</S>
+          <S N="SystemName">Solo-E15A.Solo.net</S>
+          <Nil N="TotalPowerOnHours" />
+          <Nil N="MaxSpeed" />
+          <Nil N="OtherPortType" />
+          <Nil N="PortType" />
+          <Nil N="RequestedSpeed" />
+          <U64 N="Speed">10000000000</U64>
+          <Nil N="UsageRestriction" />
+          <U64 N="ActiveMaximumTransmissionUnit">1500</U64>
+          <Nil N="AutoSense" />
+          <Nil N="FullDuplex" />
+          <Nil N="LinkTechnology" />
+          <Obj N="NetworkAddresses" RefId="2">
+            <TN RefId="2">
+              <T>System.String[]</T>
+              <T>System.Array</T>
+              <T>System.Object</T>
+            </TN>
+            <LST>
+              <S>00155D000A98</S>
+            </LST>
+          </Obj>
+          <Nil N="OtherLinkTechnology" />
+          <Nil N="OtherNetworkPortType" />
+          <S N="PermanentAddress">00155D000A98</S>
+          <U16 N="PortNumber">0</U16>
+          <Nil N="SupportedMaximumTransmissionUnit" />
+          <B N="AdminLocked">false</B>
+          <S N="ComponentID">vmbus\{f8615163-df3e-46c5-913f-f2d2f965ed0e}</S>
+          <B N="ConnectorPresent">true</B>
+          <S N="DeviceName">\Device\{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+          <B N="DeviceWakeUpEnable">false</B>
+          <S N="DriverDate">2006-06-21</S>
+          <U64 N="DriverDateData">127953216000000000</U64>
+          <S N="DriverDescription">Microsoft Hyper-V Network Adapter</S>
+          <By N="DriverMajorNdisVersion">6</By>
+          <By N="DriverMinorNdisVersion">40</By>
+          <S N="DriverName">\SystemRoot\system32\DRIVERS\netvsc63.sys</S>
+          <S N="DriverProvider">Microsoft</S>
+          <S N="DriverVersionString">6.3.9600.16384</S>
+          <B N="EndPointInterface">false</B>
+          <B N="HardwareInterface">true</B>
+          <B N="Hidden">false</B>
+          <Obj N="HigherLayerInterfaceIndices" RefId="3">
+            <TN RefId="3">
+              <T>System.UInt32[]</T>
+              <T>System.Array</T>
+              <T>System.Object</T>
+            </TN>
+            <LST>
+              <U32>20</U32>
+            </LST>
+          </Obj>
+          <B N="IMFilter">false</B>
+          <U32 N="InterfaceAdminStatus">1</U32>
+          <S N="InterfaceDescription">Microsoft Hyper-V Network Adapter</S>
+          <S N="InterfaceGuid">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+          <U32 N="InterfaceIndex">12</U32>
+          <S N="InterfaceName">Ethernet_10</S>
+          <U32 N="InterfaceOperationalStatus">1</U32>
+          <U32 N="InterfaceType">6</U32>
+          <B N="iSCSIInterface">false</B>
+          <Nil N="LowerLayerInterfaceIndices" />
+          <U16 N="MajorDriverVersion">6</U16>
+          <U32 N="MediaConnectState">1</U32>
+          <U32 N="MediaDuplexState">0</U32>
+          <U16 N="MinorDriverVersion">0</U16>
+          <U32 N="MtuSize">1500</U32>
+          <U32 N="NdisMedium">0</U32>
+          <U32 N="NdisPhysicalMedium">0</U32>
+          <U64 N="NetLuid">1688850028036096</U64>
+          <U32 N="NetLuidIndex">10</U32>
+          <B N="NotUserRemovable">false</B>
+          <B N="OperationalStatusDownDefaultPortNotAuthenticated">false</B>
+          <B N="OperationalStatusDownInterfacePaused">false</B>
+          <B N="OperationalStatusDownLowPowerState">false</B>
+          <B N="OperationalStatusDownMediaDisconnected">false</B>
+          <S N="PnPDeviceID">VMBUS\{F8615163-DF3E-46C5-913F-F2D2F965ED0E}\{0575D161-5E35-4217-8747-47B168D2524B}</S>
+          <B N="PromiscuousMode">false</B>
+          <U64 N="ReceiveLinkSpeed">10000000000</U64>
+          <U32 N="State">2</U32>
+          <U64 N="TransmitLinkSpeed">10000000000</U64>
+          <B N="Virtual">false</B>
+          <Nil N="VlanID" />
+          <B N="WdmInterface">false</B>
+          <Nil N="PSComputerName" />
+        </Props>
+        <MS>
+          <B N="PSShowComputerName">true</B>
+          <Obj N="__ClassMetadata" RefId="4">
+            <TN RefId="4">
+              <T>System.Collections.ArrayList</T>
+              <T>System.Object</T>
+            </TN>
+            <LST>
+              <Obj RefId="5">
+                <MS>
+                  <S N="ClassName">CIM_ManagedElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654206344</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="6">
+                <MS>
+                  <S N="ClassName">CIM_ManagedSystemElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654201144</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_ManagedSystemElement" SUPERCLASS="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="CommunicationStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DetailedStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.PrimaryStatus&lt;/VALUE&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.HealthState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="HealthState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;25&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstallDate" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|ComponentID|001.5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;1024&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OperatingStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.EnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="OperationalStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ArrayType" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;Indexed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.StatusDescriptions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="PrimaryStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.DetailedStatus&lt;/VALUE&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.HealthState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Status" TYPE="string"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.OperationalStatus&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;OK&lt;/VALUE&gt;&lt;VALUE&gt;Error&lt;/VALUE&gt;&lt;VALUE&gt;Degraded&lt;/VALUE&gt;&lt;VALUE&gt;Unknown&lt;/VALUE&gt;&lt;VALUE&gt;Pred Fail&lt;/VALUE&gt;&lt;VALUE&gt;Starting&lt;/VALUE&gt;&lt;VALUE&gt;Stopping&lt;/VALUE&gt;&lt;VALUE&gt;Service&lt;/VALUE&gt;&lt;VALUE&gt;Stressed&lt;/VALUE&gt;&lt;VALUE&gt;NonRecover&lt;/VALUE&gt;&lt;VALUE&gt;No Contact&lt;/VALUE&gt;&lt;VALUE&gt;Lost Comm&lt;/VALUE&gt;&lt;VALUE&gt;Stopped&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="StatusDescriptions" TYPE="string"&gt;&lt;QUALIFIER NAME="ArrayType" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;Indexed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.OperationalStatus&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="7">
+                <MS>
+                  <S N="ClassName">CIM_LogicalElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654195944</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_LogicalElement" SUPERCLASS="CIM_ManagedSystemElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;56&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;57&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="8">
+                <MS>
+                  <S N="ClassName">CIM_EnabledLogicalElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654190744</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_EnabledLogicalElement" SUPERCLASS="CIM_LogicalElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;374&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;55&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY.ARRAY NAME="AvailableRequestedStates" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;364&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestStateChange&lt;/VALUE&gt;&lt;VALUE&gt;CIM_EnabledLogicalElementCapabilities.RequestedStatesSupported&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;355&lt;/VALUE&gt;&lt;VALUE&gt;357&lt;/VALUE&gt;&lt;VALUE&gt;358&lt;/VALUE&gt;&lt;VALUE&gt;365&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;359&lt;/VALUE&gt;&lt;VALUE&gt;360&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="EnabledDefault" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;361&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;349&lt;/VALUE&gt;&lt;VALUE&gt;350&lt;/VALUE&gt;&lt;VALUE&gt;362&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="EnabledState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;346&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.OtherEnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11..32767&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;50&lt;/VALUE&gt;&lt;VALUE&gt;349&lt;/VALUE&gt;&lt;VALUE&gt;350&lt;/VALUE&gt;&lt;VALUE&gt;51&lt;/VALUE&gt;&lt;VALUE&gt;351&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherEnabledState" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;353&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.EnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RequestedState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;354&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.EnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;355&lt;/VALUE&gt;&lt;VALUE&gt;356&lt;/VALUE&gt;&lt;VALUE&gt;357&lt;/VALUE&gt;&lt;VALUE&gt;358&lt;/VALUE&gt;&lt;VALUE&gt;351&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;359&lt;/VALUE&gt;&lt;VALUE&gt;360&lt;/VALUE&gt;&lt;VALUE&gt;349&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TimeOfLastStateChange" TYPE="datetime"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;363&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TransitioningToState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;366&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestStateChange&lt;/VALUE&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestedState&lt;/VALUE&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.EnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;355&lt;/VALUE&gt;&lt;VALUE&gt;356&lt;/VALUE&gt;&lt;VALUE&gt;357&lt;/VALUE&gt;&lt;VALUE&gt;358&lt;/VALUE&gt;&lt;VALUE&gt;365&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;359&lt;/VALUE&gt;&lt;VALUE&gt;360&lt;/VALUE&gt;&lt;VALUE&gt;349&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="RequestStateChange" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;367&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestedState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;4096&lt;/VALUE&gt;&lt;VALUE&gt;4097&lt;/VALUE&gt;&lt;VALUE&gt;4098&lt;/VALUE&gt;&lt;VALUE&gt;4099&lt;/VALUE&gt;&lt;VALUE&gt;4100..32767&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;326&lt;/VALUE&gt;&lt;VALUE&gt;115&lt;/VALUE&gt;&lt;VALUE&gt;368&lt;/VALUE&gt;&lt;VALUE&gt;369&lt;/VALUE&gt;&lt;VALUE&gt;117&lt;/VALUE&gt;&lt;VALUE&gt;329&lt;/VALUE&gt;&lt;VALUE&gt;330&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;370&lt;/VALUE&gt;&lt;VALUE&gt;332&lt;/VALUE&gt;&lt;VALUE&gt;333&lt;/VALUE&gt;&lt;VALUE&gt;334&lt;/VALUE&gt;&lt;VALUE&gt;335&lt;/VALUE&gt;&lt;VALUE&gt;120&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="RequestedState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;371&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestedState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;355&lt;/VALUE&gt;&lt;VALUE&gt;357&lt;/VALUE&gt;&lt;VALUE&gt;358&lt;/VALUE&gt;&lt;VALUE&gt;365&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;359&lt;/VALUE&gt;&lt;VALUE&gt;360&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="TimeoutPeriod" TYPE="datetime"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;373&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.REFERENCE NAME="Job" REFERENCECLASS="CIM_ConcreteJob"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;372&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.REFERENCE&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="9">
+                <MS>
+                  <S N="ClassName">CIM_LogicalDevice</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653957768</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_LogicalDevice" SUPERCLASS="CIM_EnabledLogicalElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Device&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;374&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY.ARRAY NAME="AdditionalAvailability" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalDevice.Availability&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="Availability" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalDevice.AdditionalAvailability&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="CreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeviceID" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ErrorCleared" TYPE="boolean"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.OperationalStatus&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ErrorDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_DeviceErrorData.ErrorDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IdentifyingDescriptions" TYPE="string"&gt;&lt;QUALIFIER NAME="ArrayType" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;Indexed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalDevice.OtherIdentifyingInfo&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="LastErrorCode" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_DeviceErrorData.LastErrorCode&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxQuiesceTime" TYPE="uint64"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;No value&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="OtherIdentifyingInfo" TYPE="string" ARRAYSIZE="256"&gt;&lt;QUALIFIER NAME="ArrayType" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;Indexed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalDevice.IdentifyingDescriptions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY.ARRAY NAME="PowerManagementCapabilities" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_PowerManagementCapabilities.PowerCapabilities&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="PowerManagementSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_PowerManagementCapabilities&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PowerOnHours" TYPE="uint64"&gt;&lt;QUALIFIER NAME="Counter" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="StatusInfo" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.EnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemCreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;CIM_System.CreationClassName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemName" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;CIM_System.Name&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TotalPowerOnHours" TYPE="uint64"&gt;&lt;QUALIFIER NAME="Counter" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="SetPowerState" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_PowerManagementService.SetPowerState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="PowerState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="Time" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Reset" TYPE="uint32"&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableDevice" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestStateChange&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="Enabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="OnlineDevice" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestStateChange&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="Online" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="QuiesceDevice" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.RequestStateChange&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="Quiesce" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SaveProperties" TYPE="uint32"&gt;&lt;/METHOD&gt;&lt;METHOD NAME="RestoreProperties" TYPE="uint32"&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="10">
+                <MS>
+                  <S N="ClassName">CIM_LogicalPort</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653942168</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_LogicalPort" SUPERCLASS="CIM_LogicalDevice"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Device::Ports&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;374&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="MaxSpeed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;bit / second&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherPortType" TYPE="string"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalPort.PortType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PortType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_NetworkPort.OtherNetworkPortType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3..15999&lt;/VALUE&gt;&lt;VALUE&gt;16000..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RequestedSpeed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalPort.Speed&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;bit / second&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Speed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;bit / second&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="UsageRestriction" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="11">
+                <MS>
+                  <S N="ClassName">CIM_NetworkPort</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653891208</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_NetworkPort" SUPERCLASS="CIM_LogicalPort"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Device::Ports&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;374&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Speed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;bit / second&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;Speed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ActiveMaximumTransmissionUnit" TYPE="uint64"&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;byte&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AutoSense" TYPE="boolean"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="FullDuplex" TYPE="boolean"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="LinkTechnology" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_NetworkPort.OtherLinkTechnology&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="NetworkAddresses" TYPE="string" ARRAYSIZE="64"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="OtherLinkTechnology" TYPE="string"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_NetworkPort.LinkTechnology&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherNetworkPortType" TYPE="string"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_NetworkPort.OtherPortType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LogicalPort.PortType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PermanentAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PortNumber" TYPE="uint16"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SupportedMaximumTransmissionUnit" TYPE="uint64"&gt;&lt;QUALIFIER NAME="PUnit" TYPE="string"&gt;&lt;VALUE&gt;byte&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="12">
+                <MS>
+                  <S N="ClassName">MSFT_NetAdapter</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653872488</I32>
+                  <S N="MiXml">&lt;CLASS NAME="MSFT_NetAdapter" SUPERCLASS="CIM_NetworkPort"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Device::Ports&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;374&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;NetAdapterCim&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AdminLocked" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ComponentID" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConnectorPresent" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeviceName" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeviceWakeUpEnable" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverDate" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverDateData" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverMajorNdisVersion" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverMinorNdisVersion" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverName" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverProvider" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DriverVersionString" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="EndPointInterface" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="HardwareInterface" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Hidden" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="HigherLayerInterfaceIndices" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IMFilter" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceAdminStatus" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceGuid" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceName" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceOperationalStatus" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceType" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="iSCSIInterface" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="LowerLayerInterfaceIndices" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="MajorDriverVersion" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MediaConnectState" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MediaDuplexState" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MinorDriverVersion" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MtuSize" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NdisMedium" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NdisPhysicalMedium" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetLuid" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetLuidIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NotUserRemovable" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OperationalStatusDownDefaultPortNotAuthenticated" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OperationalStatusDownInterfacePaused" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OperationalStatusDownLowPowerState" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OperationalStatusDownMediaDisconnected" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PnPDeviceID" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PromiscuousMode" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ReceiveLinkSpeed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="State" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TransmitLinkSpeed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Virtual" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="VlanID" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WdmInterface" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Enable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Disable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Restart" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Lock" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Unlock" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Rename" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="NewName" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetAdapter&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+            </LST>
+          </Obj>
+          <S N="ifAlias">Ethernet</S>
+          <S N="InterfaceAlias">Ethernet</S>
+          <U32 N="ifIndex">12</U32>
+          <S N="ifDesc">Microsoft Hyper-V Network Adapter</S>
+          <S N="ifName">Ethernet_10</S>
+          <S N="DriverVersion">6.3.9600.16384</S>
+          <S N="LinkLayerAddress">00-15-5D-00-0A-98</S>
+          <S N="MacAddress">00-15-5D-00-0A-98</S>
+          <S N="Status">Up</S>
+          <S N="LinkSpeed">10 Gbps</S>
+          <S N="MediaType">802.3</S>
+          <S N="PhysicalMediaType">Unspecified</S>
+          <S N="AdminStatus">Up</S>
+          <S N="MediaConnectionState">Connected</S>
+          <S N="DriverInformation">Driver Date 2006-06-21 Version 6.3.9600.16384 NDIS 6.40</S>
+          <S N="DriverFileName">netvsc63.sys</S>
+          <S N="NdisVersion">6.40</S>
+          <S N="ifOperStatus">Up</S>
+        </MS>
+      </Obj>
+      <Obj N="NetIPv6Interface" RefId="13">
+        <TN RefId="5">
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetIPInterface</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LANEndpoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ProtocolEndpoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ServiceAccessPoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_EnabledLogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedSystemElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetIPInterface</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LANEndpoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ProtocolEndpoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ServiceAccessPoint</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_EnabledLogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>MSFT_NetIPInterface (Name = ";?55??55;", CreationClassName = "", SystemCreationClassName = "", SystemName = "")</ToString>
+        <Props>
+          <Nil N="Caption" />
+          <Nil N="Description" />
+          <Nil N="ElementName" />
+          <Nil N="InstanceID" />
+          <Nil N="CommunicationStatus" />
+          <Nil N="DetailedStatus" />
+          <Nil N="HealthState" />
+          <Nil N="InstallDate" />
+          <S N="Name">;&lt;55&lt;=55;</S>
+          <Nil N="OperatingStatus" />
+          <Nil N="OperationalStatus" />
+          <Nil N="PrimaryStatus" />
+          <Nil N="Status" />
+          <Nil N="StatusDescriptions" />
+          <Nil N="AvailableRequestedStates" />
+          <U16 N="EnabledDefault">2</U16>
+          <Nil N="EnabledState" />
+          <Nil N="OtherEnabledState" />
+          <U16 N="RequestedState">12</U16>
+          <Nil N="TimeOfLastStateChange" />
+          <U16 N="TransitioningToState">12</U16>
+          <S N="CreationClassName"></S>
+          <S N="SystemCreationClassName"></S>
+          <S N="SystemName"></S>
+          <Nil N="NameFormat" />
+          <Nil N="OtherTypeDescription" />
+          <Nil N="ProtocolIFType" />
+          <Nil N="ProtocolType" />
+          <Nil N="AliasAddresses" />
+          <Nil N="GroupAddresses" />
+          <Nil N="LANID" />
+          <Nil N="LANType" />
+          <Nil N="MACAddress" />
+          <Nil N="MaxDataSize" />
+          <Nil N="OtherLANType" />
+          <U16 N="AddressFamily">23</U16>
+          <By N="AdvertiseDefaultRoute">0</By>
+          <TS N="AdvertisedRouterLifetime">PT30M</TS>
+          <By N="Advertising">0</By>
+          <By N="AutomaticMetric">1</By>
+          <U32 N="BaseReachableTime">30000</U32>
+          <U32 N="CompartmentId">1</U32>
+          <By N="ConnectionState">1</By>
+          <U32 N="CurrentHopLimit">0</U32>
+          <U32 N="DadRetransmitTime">1000</U32>
+          <U32 N="DadTransmits">1</U32>
+          <By N="Dhcp">1</By>
+          <By N="DirectedMacWolPattern">0</By>
+          <By N="EcnMarking">3</By>
+          <By N="ForceArpNdWolPattern">0</By>
+          <By N="Forwarding">0</By>
+          <By N="IgnoreDefaultRoutes">0</By>
+          <S N="InterfaceAlias">Ethernet</S>
+          <U32 N="InterfaceIndex">12</U32>
+          <U32 N="InterfaceMetric">5</U32>
+          <U32 N="IsolationId">0</U32>
+          <U64 N="LowestIfNetLuid">1688850028036096</U64>
+          <By N="ManagedAddressConfiguration">0</By>
+          <By N="NeighborDiscoverySupported">1</By>
+          <By N="NeighborUnreachabilityDetection">1</By>
+          <U32 N="NlMtu">1500</U32>
+          <By N="OtherStatefulConfiguration">0</By>
+          <U32 N="ReachableTime">19500</U32>
+          <U32 N="RetransmitTime">1000</U32>
+          <By N="RouterDiscovery">1</By>
+          <By N="Store">1</By>
+          <By N="WeakHostReceive">0</By>
+          <By N="WeakHostSend">0</By>
+          <Nil N="PSComputerName" />
+        </Props>
+        <MS>
+          <B N="PSShowComputerName">true</B>
+          <Obj N="__ClassMetadata" RefId="14">
+            <TNRef RefId="4" />
+            <LST>
+              <Obj RefId="15">
+                <MS>
+                  <S N="ClassName">CIM_EnabledLogicalElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654190744</I32>
+                </MS>
+              </Obj>
+              <Obj RefId="16">
+                <MS>
+                  <S N="ClassName">CIM_ServiceAccessPoint</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653785128</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_ServiceAccessPoint" SUPERCLASS="CIM_EnabledLogicalElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Service&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;379&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;123&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;375&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;Name&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="CreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;378&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemCreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;376&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;CIM_System.CreationClassName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemName" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;377&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;CIM_System.Name&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="17">
+                <MS>
+                  <S N="ClassName">CIM_ProtocolEndpoint</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653759128</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_ProtocolEndpoint" SUPERCLASS="CIM_ServiceAccessPoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Service&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;647&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;648&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;Description&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;380&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;Name&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="OperationalStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ArrayType" TYPE="string" OVERRIDABLE="false"&gt;&lt;VALUE&gt;Indexed&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ManagedSystemElement.StatusDescriptions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;0x8000..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;OperationalStatus&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;VALUE&gt;22&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;VALUE&gt;24&lt;/VALUE&gt;&lt;VALUE&gt;25&lt;/VALUE&gt;&lt;VALUE&gt;26&lt;/VALUE&gt;&lt;VALUE&gt;27&lt;/VALUE&gt;&lt;VALUE&gt;28&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="EnabledState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;346&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_EnabledLogicalElement.OtherEnabledState&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11..32767&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;347&lt;/VALUE&gt;&lt;VALUE&gt;348&lt;/VALUE&gt;&lt;VALUE&gt;50&lt;/VALUE&gt;&lt;VALUE&gt;349&lt;/VALUE&gt;&lt;VALUE&gt;350&lt;/VALUE&gt;&lt;VALUE&gt;51&lt;/VALUE&gt;&lt;VALUE&gt;351&lt;/VALUE&gt;&lt;VALUE&gt;352&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;EnabledState&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TimeOfLastStateChange" TYPE="datetime"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;363&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;TimeOfLastStateChange&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NameFormat" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;381&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherTypeDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;646&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.ProtocolType&lt;/VALUE&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.ProtocolIFType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ProtocolIFType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;409&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.OtherTypeDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;VALUE&gt;22&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;VALUE&gt;24&lt;/VALUE&gt;&lt;VALUE&gt;25&lt;/VALUE&gt;&lt;VALUE&gt;26&lt;/VALUE&gt;&lt;VALUE&gt;27&lt;/VALUE&gt;&lt;VALUE&gt;28&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;VALUE&gt;31&lt;/VALUE&gt;&lt;VALUE&gt;32&lt;/VALUE&gt;&lt;VALUE&gt;33&lt;/VALUE&gt;&lt;VALUE&gt;34&lt;/VALUE&gt;&lt;VALUE&gt;35&lt;/VALUE&gt;&lt;VALUE&gt;36&lt;/VALUE&gt;&lt;VALUE&gt;37&lt;/VALUE&gt;&lt;VALUE&gt;38&lt;/VALUE&gt;&lt;VALUE&gt;39&lt;/VALUE&gt;&lt;VALUE&gt;40&lt;/VALUE&gt;&lt;VALUE&gt;41&lt;/VALUE&gt;&lt;VALUE&gt;42&lt;/VALUE&gt;&lt;VALUE&gt;43&lt;/VALUE&gt;&lt;VALUE&gt;44&lt;/VALUE&gt;&lt;VALUE&gt;45&lt;/VALUE&gt;&lt;VALUE&gt;46&lt;/VALUE&gt;&lt;VALUE&gt;47&lt;/VALUE&gt;&lt;VALUE&gt;48&lt;/VALUE&gt;&lt;VALUE&gt;49&lt;/VALUE&gt;&lt;VALUE&gt;50&lt;/VALUE&gt;&lt;VALUE&gt;51&lt;/VALUE&gt;&lt;VALUE&gt;52&lt;/VALUE&gt;&lt;VALUE&gt;53&lt;/VALUE&gt;&lt;VALUE&gt;54&lt;/VALUE&gt;&lt;VALUE&gt;55&lt;/VALUE&gt;&lt;VALUE&gt;56&lt;/VALUE&gt;&lt;VALUE&gt;57&lt;/VALUE&gt;&lt;VALUE&gt;58&lt;/VALUE&gt;&lt;VALUE&gt;59&lt;/VALUE&gt;&lt;VALUE&gt;60&lt;/VALUE&gt;&lt;VALUE&gt;61&lt;/VALUE&gt;&lt;VALUE&gt;62&lt;/VALUE&gt;&lt;VALUE&gt;63&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;99&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;101&lt;/VALUE&gt;&lt;VALUE&gt;102&lt;/VALUE&gt;&lt;VALUE&gt;103&lt;/VALUE&gt;&lt;VALUE&gt;104&lt;/VALUE&gt;&lt;VALUE&gt;105&lt;/VALUE&gt;&lt;VALUE&gt;106&lt;/VALUE&gt;&lt;VALUE&gt;107&lt;/VALUE&gt;&lt;VALUE&gt;108&lt;/VALUE&gt;&lt;VALUE&gt;109&lt;/VALUE&gt;&lt;VALUE&gt;110&lt;/VALUE&gt;&lt;VALUE&gt;111&lt;/VALUE&gt;&lt;VALUE&gt;112&lt;/VALUE&gt;&lt;VALUE&gt;113&lt;/VALUE&gt;&lt;VALUE&gt;114&lt;/VALUE&gt;&lt;VALUE&gt;115&lt;/VALUE&gt;&lt;VALUE&gt;116&lt;/VALUE&gt;&lt;VALUE&gt;117&lt;/VALUE&gt;&lt;VALUE&gt;118&lt;/VALUE&gt;&lt;VALUE&gt;119&lt;/VALUE&gt;&lt;VALUE&gt;120&lt;/VALUE&gt;&lt;VALUE&gt;121&lt;/VALUE&gt;&lt;VALUE&gt;122&lt;/VALUE&gt;&lt;VALUE&gt;123&lt;/VALUE&gt;&lt;VALUE&gt;124&lt;/VALUE&gt;&lt;VALUE&gt;125&lt;/VALUE&gt;&lt;VALUE&gt;126&lt;/VALUE&gt;&lt;VALUE&gt;127&lt;/VALUE&gt;&lt;VALUE&gt;128&lt;/VALUE&gt;&lt;VALUE&gt;129&lt;/VALUE&gt;&lt;VALUE&gt;130&lt;/VALUE&gt;&lt;VALUE&gt;131&lt;/VALUE&gt;&lt;VALUE&gt;132&lt;/VALUE&gt;&lt;VALUE&gt;133&lt;/VALUE&gt;&lt;VALUE&gt;134&lt;/VALUE&gt;&lt;VALUE&gt;135&lt;/VALUE&gt;&lt;VALUE&gt;136&lt;/VALUE&gt;&lt;VALUE&gt;137&lt;/VALUE&gt;&lt;VALUE&gt;138&lt;/VALUE&gt;&lt;VALUE&gt;139&lt;/VALUE&gt;&lt;VALUE&gt;140&lt;/VALUE&gt;&lt;VALUE&gt;141&lt;/VALUE&gt;&lt;VALUE&gt;142&lt;/VALUE&gt;&lt;VALUE&gt;143&lt;/VALUE&gt;&lt;VALUE&gt;144&lt;/VALUE&gt;&lt;VALUE&gt;145&lt;/VALUE&gt;&lt;VALUE&gt;146&lt;/VALUE&gt;&lt;VALUE&gt;147&lt;/VALUE&gt;&lt;VALUE&gt;148&lt;/VALUE&gt;&lt;VALUE&gt;149&lt;/VALUE&gt;&lt;VALUE&gt;150&lt;/VALUE&gt;&lt;VALUE&gt;151&lt;/VALUE&gt;&lt;VALUE&gt;152&lt;/VALUE&gt;&lt;VALUE&gt;153&lt;/VALUE&gt;&lt;VALUE&gt;154&lt;/VALUE&gt;&lt;VALUE&gt;155&lt;/VALUE&gt;&lt;VALUE&gt;156&lt;/VALUE&gt;&lt;VALUE&gt;157&lt;/VALUE&gt;&lt;VALUE&gt;158&lt;/VALUE&gt;&lt;VALUE&gt;159&lt;/VALUE&gt;&lt;VALUE&gt;160&lt;/VALUE&gt;&lt;VALUE&gt;161&lt;/VALUE&gt;&lt;VALUE&gt;162&lt;/VALUE&gt;&lt;VALUE&gt;163&lt;/VALUE&gt;&lt;VALUE&gt;164&lt;/VALUE&gt;&lt;VALUE&gt;165&lt;/VALUE&gt;&lt;VALUE&gt;166&lt;/VALUE&gt;&lt;VALUE&gt;167&lt;/VALUE&gt;&lt;VALUE&gt;168&lt;/VALUE&gt;&lt;VALUE&gt;169&lt;/VALUE&gt;&lt;VALUE&gt;170&lt;/VALUE&gt;&lt;VALUE&gt;171&lt;/VALUE&gt;&lt;VALUE&gt;172&lt;/VALUE&gt;&lt;VALUE&gt;173&lt;/VALUE&gt;&lt;VALUE&gt;174&lt;/VALUE&gt;&lt;VALUE&gt;175&lt;/VALUE&gt;&lt;VALUE&gt;176&lt;/VALUE&gt;&lt;VALUE&gt;177&lt;/VALUE&gt;&lt;VALUE&gt;178&lt;/VALUE&gt;&lt;VALUE&gt;179&lt;/VALUE&gt;&lt;VALUE&gt;180&lt;/VALUE&gt;&lt;VALUE&gt;181&lt;/VALUE&gt;&lt;VALUE&gt;182&lt;/VALUE&gt;&lt;VALUE&gt;183&lt;/VALUE&gt;&lt;VALUE&gt;184&lt;/VALUE&gt;&lt;VALUE&gt;185&lt;/VALUE&gt;&lt;VALUE&gt;186&lt;/VALUE&gt;&lt;VALUE&gt;187&lt;/VALUE&gt;&lt;VALUE&gt;188&lt;/VALUE&gt;&lt;VALUE&gt;189&lt;/VALUE&gt;&lt;VALUE&gt;190&lt;/VALUE&gt;&lt;VALUE&gt;191&lt;/VALUE&gt;&lt;VALUE&gt;192&lt;/VALUE&gt;&lt;VALUE&gt;193&lt;/VALUE&gt;&lt;VALUE&gt;194&lt;/VALUE&gt;&lt;VALUE&gt;195&lt;/VALUE&gt;&lt;VALUE&gt;196&lt;/VALUE&gt;&lt;VALUE&gt;197&lt;/VALUE&gt;&lt;VALUE&gt;198&lt;/VALUE&gt;&lt;VALUE&gt;199&lt;/VALUE&gt;&lt;VALUE&gt;200&lt;/VALUE&gt;&lt;VALUE&gt;201&lt;/VALUE&gt;&lt;VALUE&gt;202&lt;/VALUE&gt;&lt;VALUE&gt;203&lt;/VALUE&gt;&lt;VALUE&gt;204&lt;/VALUE&gt;&lt;VALUE&gt;205&lt;/VALUE&gt;&lt;VALUE&gt;206&lt;/VALUE&gt;&lt;VALUE&gt;207&lt;/VALUE&gt;&lt;VALUE&gt;208&lt;/VALUE&gt;&lt;VALUE&gt;209&lt;/VALUE&gt;&lt;VALUE&gt;210&lt;/VALUE&gt;&lt;VALUE&gt;211&lt;/VALUE&gt;&lt;VALUE&gt;212&lt;/VALUE&gt;&lt;VALUE&gt;213&lt;/VALUE&gt;&lt;VALUE&gt;214&lt;/VALUE&gt;&lt;VALUE&gt;215&lt;/VALUE&gt;&lt;VALUE&gt;216&lt;/VALUE&gt;&lt;VALUE&gt;217&lt;/VALUE&gt;&lt;VALUE&gt;218&lt;/VALUE&gt;&lt;VALUE&gt;219&lt;/VALUE&gt;&lt;VALUE&gt;220&lt;/VALUE&gt;&lt;VALUE&gt;221&lt;/VALUE&gt;&lt;VALUE&gt;222&lt;/VALUE&gt;&lt;VALUE&gt;223&lt;/VALUE&gt;&lt;VALUE&gt;224&lt;/VALUE&gt;&lt;VALUE&gt;225..4095&lt;/VALUE&gt;&lt;VALUE&gt;4096&lt;/VALUE&gt;&lt;VALUE&gt;4097&lt;/VALUE&gt;&lt;VALUE&gt;4098&lt;/VALUE&gt;&lt;VALUE&gt;4099&lt;/VALUE&gt;&lt;VALUE&gt;4100&lt;/VALUE&gt;&lt;VALUE&gt;4101&lt;/VALUE&gt;&lt;VALUE&gt;4102&lt;/VALUE&gt;&lt;VALUE&gt;4103&lt;/VALUE&gt;&lt;VALUE&gt;4104&lt;/VALUE&gt;&lt;VALUE&gt;4105&lt;/VALUE&gt;&lt;VALUE&gt;4106&lt;/VALUE&gt;&lt;VALUE&gt;4107&lt;/VALUE&gt;&lt;VALUE&gt;4108&lt;/VALUE&gt;&lt;VALUE&gt;4109&lt;/VALUE&gt;&lt;VALUE&gt;4110&lt;/VALUE&gt;&lt;VALUE&gt;4111&lt;/VALUE&gt;&lt;VALUE&gt;4112&lt;/VALUE&gt;&lt;VALUE&gt;4113&lt;/VALUE&gt;&lt;VALUE&gt;4114&lt;/VALUE&gt;&lt;VALUE&gt;4115&lt;/VALUE&gt;&lt;VALUE&gt;4200&lt;/VALUE&gt;&lt;VALUE&gt;4201&lt;/VALUE&gt;&lt;VALUE&gt;4202&lt;/VALUE&gt;&lt;VALUE&gt;4203&lt;/VALUE&gt;&lt;VALUE&gt;4204&lt;/VALUE&gt;&lt;VALUE&gt;4205&lt;/VALUE&gt;&lt;VALUE&gt;4300&lt;/VALUE&gt;&lt;VALUE&gt;4400&lt;/VALUE&gt;&lt;VALUE&gt;4401&lt;/VALUE&gt;&lt;VALUE&gt;4402&lt;/VALUE&gt;&lt;VALUE&gt;4403&lt;/VALUE&gt;&lt;VALUE&gt;4404&lt;/VALUE&gt;&lt;VALUE&gt;4405&lt;/VALUE&gt;&lt;VALUE&gt;4406&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;410&lt;/VALUE&gt;&lt;VALUE&gt;411&lt;/VALUE&gt;&lt;VALUE&gt;412&lt;/VALUE&gt;&lt;VALUE&gt;413&lt;/VALUE&gt;&lt;VALUE&gt;414&lt;/VALUE&gt;&lt;VALUE&gt;415&lt;/VALUE&gt;&lt;VALUE&gt;416&lt;/VALUE&gt;&lt;VALUE&gt;417&lt;/VALUE&gt;&lt;VALUE&gt;418&lt;/VALUE&gt;&lt;VALUE&gt;419&lt;/VALUE&gt;&lt;VALUE&gt;420&lt;/VALUE&gt;&lt;VALUE&gt;421&lt;/VALUE&gt;&lt;VALUE&gt;422&lt;/VALUE&gt;&lt;VALUE&gt;397&lt;/VALUE&gt;&lt;VALUE&gt;423&lt;/VALUE&gt;&lt;VALUE&gt;424&lt;/VALUE&gt;&lt;VALUE&gt;425&lt;/VALUE&gt;&lt;VALUE&gt;426&lt;/VALUE&gt;&lt;VALUE&gt;427&lt;/VALUE&gt;&lt;VALUE&gt;428&lt;/VALUE&gt;&lt;VALUE&gt;429&lt;/VALUE&gt;&lt;VALUE&gt;430&lt;/VALUE&gt;&lt;VALUE&gt;431&lt;/VALUE&gt;&lt;VALUE&gt;432&lt;/VALUE&gt;&lt;VALUE&gt;433&lt;/VALUE&gt;&lt;VALUE&gt;434&lt;/VALUE&gt;&lt;VALUE&gt;435&lt;/VALUE&gt;&lt;VALUE&gt;436&lt;/VALUE&gt;&lt;VALUE&gt;437&lt;/VALUE&gt;&lt;VALUE&gt;438&lt;/VALUE&gt;&lt;VALUE&gt;394&lt;/VALUE&gt;&lt;VALUE&gt;439&lt;/VALUE&gt;&lt;VALUE&gt;440&lt;/VALUE&gt;&lt;VALUE&gt;441&lt;/VALUE&gt;&lt;VALUE&gt;442&lt;/VALUE&gt;&lt;VALUE&gt;393&lt;/VALUE&gt;&lt;VALUE&gt;443&lt;/VALUE&gt;&lt;VALUE&gt;444&lt;/VALUE&gt;&lt;VALUE&gt;445&lt;/VALUE&gt;&lt;VALUE&gt;446&lt;/VALUE&gt;&lt;VALUE&gt;447&lt;/VALUE&gt;&lt;VALUE&gt;448&lt;/VALUE&gt;&lt;VALUE&gt;449&lt;/VALUE&gt;&lt;VALUE&gt;450&lt;/VALUE&gt;&lt;VALUE&gt;451&lt;/VALUE&gt;&lt;VALUE&gt;452&lt;/VALUE&gt;&lt;VALUE&gt;453&lt;/VALUE&gt;&lt;VALUE&gt;454&lt;/VALUE&gt;&lt;VALUE&gt;455&lt;/VALUE&gt;&lt;VALUE&gt;456&lt;/VALUE&gt;&lt;VALUE&gt;457&lt;/VALUE&gt;&lt;VALUE&gt;458&lt;/VALUE&gt;&lt;VALUE&gt;459&lt;/VALUE&gt;&lt;VALUE&gt;460&lt;/VALUE&gt;&lt;VALUE&gt;399&lt;/VALUE&gt;&lt;VALUE&gt;461&lt;/VALUE&gt;&lt;VALUE&gt;462&lt;/VALUE&gt;&lt;VALUE&gt;463&lt;/VALUE&gt;&lt;VALUE&gt;464&lt;/VALUE&gt;&lt;VALUE&gt;465&lt;/VALUE&gt;&lt;VALUE&gt;466&lt;/VALUE&gt;&lt;VALUE&gt;467&lt;/VALUE&gt;&lt;VALUE&gt;468&lt;/VALUE&gt;&lt;VALUE&gt;469&lt;/VALUE&gt;&lt;VALUE&gt;470&lt;/VALUE&gt;&lt;VALUE&gt;471&lt;/VALUE&gt;&lt;VALUE&gt;472&lt;/VALUE&gt;&lt;VALUE&gt;473&lt;/VALUE&gt;&lt;VALUE&gt;474&lt;/VALUE&gt;&lt;VALUE&gt;475&lt;/VALUE&gt;&lt;VALUE&gt;476&lt;/VALUE&gt;&lt;VALUE&gt;477&lt;/VALUE&gt;&lt;VALUE&gt;478&lt;/VALUE&gt;&lt;VALUE&gt;479&lt;/VALUE&gt;&lt;VALUE&gt;480&lt;/VALUE&gt;&lt;VALUE&gt;481&lt;/VALUE&gt;&lt;VALUE&gt;482&lt;/VALUE&gt;&lt;VALUE&gt;483&lt;/VALUE&gt;&lt;VALUE&gt;484&lt;/VALUE&gt;&lt;VALUE&gt;485&lt;/VALUE&gt;&lt;VALUE&gt;486&lt;/VALUE&gt;&lt;VALUE&gt;487&lt;/VALUE&gt;&lt;VALUE&gt;488&lt;/VALUE&gt;&lt;VALUE&gt;489&lt;/VALUE&gt;&lt;VALUE&gt;490&lt;/VALUE&gt;&lt;VALUE&gt;491&lt;/VALUE&gt;&lt;VALUE&gt;492&lt;/VALUE&gt;&lt;VALUE&gt;493&lt;/VALUE&gt;&lt;VALUE&gt;494&lt;/VALUE&gt;&lt;VALUE&gt;495&lt;/VALUE&gt;&lt;VALUE&gt;496&lt;/VALUE&gt;&lt;VALUE&gt;497&lt;/VALUE&gt;&lt;VALUE&gt;498&lt;/VALUE&gt;&lt;VALUE&gt;499&lt;/VALUE&gt;&lt;VALUE&gt;500&lt;/VALUE&gt;&lt;VALUE&gt;501&lt;/VALUE&gt;&lt;VALUE&gt;502&lt;/VALUE&gt;&lt;VALUE&gt;503&lt;/VALUE&gt;&lt;VALUE&gt;504&lt;/VALUE&gt;&lt;VALUE&gt;505&lt;/VALUE&gt;&lt;VALUE&gt;506&lt;/VALUE&gt;&lt;VALUE&gt;507&lt;/VALUE&gt;&lt;VALUE&gt;508&lt;/VALUE&gt;&lt;VALUE&gt;509&lt;/VALUE&gt;&lt;VALUE&gt;510&lt;/VALUE&gt;&lt;VALUE&gt;511&lt;/VALUE&gt;&lt;VALUE&gt;512&lt;/VALUE&gt;&lt;VALUE&gt;513&lt;/VALUE&gt;&lt;VALUE&gt;514&lt;/VALUE&gt;&lt;VALUE&gt;515&lt;/VALUE&gt;&lt;VALUE&gt;516&lt;/VALUE&gt;&lt;VALUE&gt;517&lt;/VALUE&gt;&lt;VALUE&gt;518&lt;/VALUE&gt;&lt;VALUE&gt;519&lt;/VALUE&gt;&lt;VALUE&gt;520&lt;/VALUE&gt;&lt;VALUE&gt;521&lt;/VALUE&gt;&lt;VALUE&gt;522&lt;/VALUE&gt;&lt;VALUE&gt;523&lt;/VALUE&gt;&lt;VALUE&gt;524&lt;/VALUE&gt;&lt;VALUE&gt;525&lt;/VALUE&gt;&lt;VALUE&gt;526&lt;/VALUE&gt;&lt;VALUE&gt;527&lt;/VALUE&gt;&lt;VALUE&gt;528&lt;/VALUE&gt;&lt;VALUE&gt;529&lt;/VALUE&gt;&lt;VALUE&gt;530&lt;/VALUE&gt;&lt;VALUE&gt;531&lt;/VALUE&gt;&lt;VALUE&gt;532&lt;/VALUE&gt;&lt;VALUE&gt;533&lt;/VALUE&gt;&lt;VALUE&gt;534&lt;/VALUE&gt;&lt;VALUE&gt;535&lt;/VALUE&gt;&lt;VALUE&gt;536&lt;/VALUE&gt;&lt;VALUE&gt;537&lt;/VALUE&gt;&lt;VALUE&gt;538&lt;/VALUE&gt;&lt;VALUE&gt;539&lt;/VALUE&gt;&lt;VALUE&gt;540&lt;/VALUE&gt;&lt;VALUE&gt;541&lt;/VALUE&gt;&lt;VALUE&gt;542&lt;/VALUE&gt;&lt;VALUE&gt;543&lt;/VALUE&gt;&lt;VALUE&gt;544&lt;/VALUE&gt;&lt;VALUE&gt;545&lt;/VALUE&gt;&lt;VALUE&gt;546&lt;/VALUE&gt;&lt;VALUE&gt;547&lt;/VALUE&gt;&lt;VALUE&gt;548&lt;/VALUE&gt;&lt;VALUE&gt;549&lt;/VALUE&gt;&lt;VALUE&gt;550&lt;/VALUE&gt;&lt;VALUE&gt;551&lt;/VALUE&gt;&lt;VALUE&gt;552&lt;/VALUE&gt;&lt;VALUE&gt;553&lt;/VALUE&gt;&lt;VALUE&gt;554&lt;/VALUE&gt;&lt;VALUE&gt;555&lt;/VALUE&gt;&lt;VALUE&gt;556&lt;/VALUE&gt;&lt;VALUE&gt;557&lt;/VALUE&gt;&lt;VALUE&gt;558&lt;/VALUE&gt;&lt;VALUE&gt;559&lt;/VALUE&gt;&lt;VALUE&gt;560&lt;/VALUE&gt;&lt;VALUE&gt;561&lt;/VALUE&gt;&lt;VALUE&gt;562&lt;/VALUE&gt;&lt;VALUE&gt;563&lt;/VALUE&gt;&lt;VALUE&gt;564&lt;/VALUE&gt;&lt;VALUE&gt;565&lt;/VALUE&gt;&lt;VALUE&gt;566&lt;/VALUE&gt;&lt;VALUE&gt;567&lt;/VALUE&gt;&lt;VALUE&gt;568&lt;/VALUE&gt;&lt;VALUE&gt;569&lt;/VALUE&gt;&lt;VALUE&gt;406&lt;/VALUE&gt;&lt;VALUE&gt;570&lt;/VALUE&gt;&lt;VALUE&gt;571&lt;/VALUE&gt;&lt;VALUE&gt;572&lt;/VALUE&gt;&lt;VALUE&gt;573&lt;/VALUE&gt;&lt;VALUE&gt;574&lt;/VALUE&gt;&lt;VALUE&gt;575&lt;/VALUE&gt;&lt;VALUE&gt;576&lt;/VALUE&gt;&lt;VALUE&gt;577&lt;/VALUE&gt;&lt;VALUE&gt;578&lt;/VALUE&gt;&lt;VALUE&gt;579&lt;/VALUE&gt;&lt;VALUE&gt;580&lt;/VALUE&gt;&lt;VALUE&gt;581&lt;/VALUE&gt;&lt;VALUE&gt;582&lt;/VALUE&gt;&lt;VALUE&gt;583&lt;/VALUE&gt;&lt;VALUE&gt;584&lt;/VALUE&gt;&lt;VALUE&gt;585&lt;/VALUE&gt;&lt;VALUE&gt;586&lt;/VALUE&gt;&lt;VALUE&gt;587&lt;/VALUE&gt;&lt;VALUE&gt;588&lt;/VALUE&gt;&lt;VALUE&gt;589&lt;/VALUE&gt;&lt;VALUE&gt;590&lt;/VALUE&gt;&lt;VALUE&gt;591&lt;/VALUE&gt;&lt;VALUE&gt;592&lt;/VALUE&gt;&lt;VALUE&gt;593&lt;/VALUE&gt;&lt;VALUE&gt;594&lt;/VALUE&gt;&lt;VALUE&gt;595&lt;/VALUE&gt;&lt;VALUE&gt;596&lt;/VALUE&gt;&lt;VALUE&gt;597&lt;/VALUE&gt;&lt;VALUE&gt;598&lt;/VALUE&gt;&lt;VALUE&gt;599&lt;/VALUE&gt;&lt;VALUE&gt;600&lt;/VALUE&gt;&lt;VALUE&gt;601&lt;/VALUE&gt;&lt;VALUE&gt;398&lt;/VALUE&gt;&lt;VALUE&gt;602&lt;/VALUE&gt;&lt;VALUE&gt;603&lt;/VALUE&gt;&lt;VALUE&gt;604&lt;/VALUE&gt;&lt;VALUE&gt;605&lt;/VALUE&gt;&lt;VALUE&gt;606&lt;/VALUE&gt;&lt;VALUE&gt;607&lt;/VALUE&gt;&lt;VALUE&gt;608&lt;/VALUE&gt;&lt;VALUE&gt;609&lt;/VALUE&gt;&lt;VALUE&gt;610&lt;/VALUE&gt;&lt;VALUE&gt;611&lt;/VALUE&gt;&lt;VALUE&gt;612&lt;/VALUE&gt;&lt;VALUE&gt;613&lt;/VALUE&gt;&lt;VALUE&gt;614&lt;/VALUE&gt;&lt;VALUE&gt;615&lt;/VALUE&gt;&lt;VALUE&gt;616&lt;/VALUE&gt;&lt;VALUE&gt;617&lt;/VALUE&gt;&lt;VALUE&gt;618&lt;/VALUE&gt;&lt;VALUE&gt;619&lt;/VALUE&gt;&lt;VALUE&gt;620&lt;/VALUE&gt;&lt;VALUE&gt;621&lt;/VALUE&gt;&lt;VALUE&gt;622&lt;/VALUE&gt;&lt;VALUE&gt;623&lt;/VALUE&gt;&lt;VALUE&gt;624&lt;/VALUE&gt;&lt;VALUE&gt;625&lt;/VALUE&gt;&lt;VALUE&gt;626&lt;/VALUE&gt;&lt;VALUE&gt;627&lt;/VALUE&gt;&lt;VALUE&gt;383&lt;/VALUE&gt;&lt;VALUE&gt;384&lt;/VALUE&gt;&lt;VALUE&gt;403&lt;/VALUE&gt;&lt;VALUE&gt;385&lt;/VALUE&gt;&lt;VALUE&gt;387&lt;/VALUE&gt;&lt;VALUE&gt;388&lt;/VALUE&gt;&lt;VALUE&gt;389&lt;/VALUE&gt;&lt;VALUE&gt;390&lt;/VALUE&gt;&lt;VALUE&gt;391&lt;/VALUE&gt;&lt;VALUE&gt;392&lt;/VALUE&gt;&lt;VALUE&gt;401&lt;/VALUE&gt;&lt;VALUE&gt;402&lt;/VALUE&gt;&lt;VALUE&gt;404&lt;/VALUE&gt;&lt;VALUE&gt;405&lt;/VALUE&gt;&lt;VALUE&gt;407&lt;/VALUE&gt;&lt;VALUE&gt;408&lt;/VALUE&gt;&lt;VALUE&gt;628&lt;/VALUE&gt;&lt;VALUE&gt;629&lt;/VALUE&gt;&lt;VALUE&gt;630&lt;/VALUE&gt;&lt;VALUE&gt;631&lt;/VALUE&gt;&lt;VALUE&gt;632&lt;/VALUE&gt;&lt;VALUE&gt;633&lt;/VALUE&gt;&lt;VALUE&gt;634&lt;/VALUE&gt;&lt;VALUE&gt;635&lt;/VALUE&gt;&lt;VALUE&gt;636&lt;/VALUE&gt;&lt;VALUE&gt;637&lt;/VALUE&gt;&lt;VALUE&gt;638&lt;/VALUE&gt;&lt;VALUE&gt;639&lt;/VALUE&gt;&lt;VALUE&gt;640&lt;/VALUE&gt;&lt;VALUE&gt;641&lt;/VALUE&gt;&lt;VALUE&gt;642&lt;/VALUE&gt;&lt;VALUE&gt;643&lt;/VALUE&gt;&lt;VALUE&gt;644&lt;/VALUE&gt;&lt;VALUE&gt;645&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ProtocolType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.ProtocolIFType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;382&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.OtherTypeDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;VALUE&gt;22&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;VALUE&gt;24&lt;/VALUE&gt;&lt;VALUE&gt;25&lt;/VALUE&gt;&lt;VALUE&gt;26&lt;/VALUE&gt;&lt;VALUE&gt;27&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;383&lt;/VALUE&gt;&lt;VALUE&gt;384&lt;/VALUE&gt;&lt;VALUE&gt;385&lt;/VALUE&gt;&lt;VALUE&gt;386&lt;/VALUE&gt;&lt;VALUE&gt;387&lt;/VALUE&gt;&lt;VALUE&gt;388&lt;/VALUE&gt;&lt;VALUE&gt;389&lt;/VALUE&gt;&lt;VALUE&gt;390&lt;/VALUE&gt;&lt;VALUE&gt;391&lt;/VALUE&gt;&lt;VALUE&gt;392&lt;/VALUE&gt;&lt;VALUE&gt;393&lt;/VALUE&gt;&lt;VALUE&gt;394&lt;/VALUE&gt;&lt;VALUE&gt;395&lt;/VALUE&gt;&lt;VALUE&gt;396&lt;/VALUE&gt;&lt;VALUE&gt;397&lt;/VALUE&gt;&lt;VALUE&gt;398&lt;/VALUE&gt;&lt;VALUE&gt;399&lt;/VALUE&gt;&lt;VALUE&gt;400&lt;/VALUE&gt;&lt;VALUE&gt;401&lt;/VALUE&gt;&lt;VALUE&gt;402&lt;/VALUE&gt;&lt;VALUE&gt;403&lt;/VALUE&gt;&lt;VALUE&gt;404&lt;/VALUE&gt;&lt;VALUE&gt;405&lt;/VALUE&gt;&lt;VALUE&gt;406&lt;/VALUE&gt;&lt;VALUE&gt;407&lt;/VALUE&gt;&lt;VALUE&gt;408&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="18">
+                <MS>
+                  <S N="ClassName">CIM_LANEndpoint</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653728968</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_LANEndpoint" SUPERCLASS="CIM_ProtocolEndpoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::ProtocolEndpoints&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;647&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY.ARRAY NAME="AliasAddresses" TYPE="string"&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY.ARRAY NAME="GroupAddresses" TYPE="string"&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="LANID" TYPE="string"&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LANConnectivitySegment.LANID&lt;/VALUE&gt;&lt;VALUE&gt;CIM_LANSegment.LANID&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="LANType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.ProtocolType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LANConnectivitySegment.ConnectivityType&lt;/VALUE&gt;&lt;VALUE&gt;CIM_LANSegment.LANType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MACAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxDataSize" TYPE="uint32"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherLANType" TYPE="string"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.OtherTypeDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_LANConnectivitySegment.OtherTypeDescription&lt;/VALUE&gt;&lt;VALUE&gt;CIM_LANEndpoint.LANType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="19">
+                <MS>
+                  <S N="ClassName">MSFT_NetIPInterface</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653707128</I32>
+                  <S N="MiXml">&lt;CLASS NAME="MSFT_NetIPInterface" SUPERCLASS="CIM_LANEndpoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::ProtocolEndpoints&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;647&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;nettcpip&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AdvertiseDefaultRoute" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AdvertisedRouterLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Advertising" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AutomaticMetric" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="BaseReachableTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="CompartmentId" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConnectionState" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="CurrentHopLimit" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DadRetransmitTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DadTransmits" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Dhcp" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DirectedMacWolPattern" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="EcnMarking" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ForceArpNdWolPattern" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Forwarding" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IgnoreDefaultRoutes" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceMetric" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IsolationId" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="LowestIfNetLuid" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ManagedAddressConfiguration" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NeighborDiscoverySupported" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NeighborUnreachabilityDetection" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NlMtu" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherStatefulConfiguration" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ReachableTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RetransmitTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RouterDiscovery" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;255&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Store" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WeakHostReceive" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WeakHostSend" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+            </LST>
+          </Obj>
+          <U32 N="ifIndex">12</U32>
+          <S N="ifAlias">Ethernet</S>
+          <S N="Store">ActiveStore</S>
+          <S N="AddressFamily">IPv6</S>
+          <S N="Forwarding">Disabled</S>
+          <S N="Advertising">Disabled</S>
+          <S N="NeighborUnreachabilityDetection">Enabled</S>
+          <S N="RouterDiscovery">Enabled</S>
+          <S N="NeighborDiscoverySupported">Yes</S>
+          <S N="ManagedAddressConfiguration">Disabled</S>
+          <S N="OtherStatefulConfiguration">Disabled</S>
+          <S N="WeakHostSend">Disabled</S>
+          <S N="WeakHostReceive">Disabled</S>
+          <S N="IgnoreDefaultRoutes">Disabled</S>
+          <S N="AdvertiseDefaultRoute">Disabled</S>
+          <S N="ForceArpNdWolPattern">Disabled</S>
+          <S N="DirectedMacWolPattern">Disabled</S>
+          <S N="EcnMarking">AppDecide</S>
+          <S N="Dhcp">Enabled</S>
+          <S N="ConnectionState">Connected</S>
+          <S N="AutomaticMetric">Enabled</S>
+        </MS>
+      </Obj>
+      <Obj N="NetIPv4Interface" RefId="20">
+        <TNRef RefId="5" />
+        <ToString>MSFT_NetIPInterface (Name = ";?55?55;", CreationClassName = "", SystemCreationClassName = "", SystemName = "")</ToString>
+        <Props>
+          <Nil N="Caption" />
+          <Nil N="Description" />
+          <Nil N="ElementName" />
+          <Nil N="InstanceID" />
+          <Nil N="CommunicationStatus" />
+          <Nil N="DetailedStatus" />
+          <Nil N="HealthState" />
+          <Nil N="InstallDate" />
+          <S N="Name">;&lt;55&lt;55;</S>
+          <Nil N="OperatingStatus" />
+          <Nil N="OperationalStatus" />
+          <Nil N="PrimaryStatus" />
+          <Nil N="Status" />
+          <Nil N="StatusDescriptions" />
+          <Nil N="AvailableRequestedStates" />
+          <U16 N="EnabledDefault">2</U16>
+          <Nil N="EnabledState" />
+          <Nil N="OtherEnabledState" />
+          <U16 N="RequestedState">12</U16>
+          <Nil N="TimeOfLastStateChange" />
+          <U16 N="TransitioningToState">12</U16>
+          <S N="CreationClassName"></S>
+          <S N="SystemCreationClassName"></S>
+          <S N="SystemName"></S>
+          <Nil N="NameFormat" />
+          <Nil N="OtherTypeDescription" />
+          <Nil N="ProtocolIFType" />
+          <Nil N="ProtocolType" />
+          <Nil N="AliasAddresses" />
+          <Nil N="GroupAddresses" />
+          <Nil N="LANID" />
+          <Nil N="LANType" />
+          <Nil N="MACAddress" />
+          <Nil N="MaxDataSize" />
+          <Nil N="OtherLANType" />
+          <U16 N="AddressFamily">2</U16>
+          <By N="AdvertiseDefaultRoute">0</By>
+          <TS N="AdvertisedRouterLifetime">PT30M</TS>
+          <By N="Advertising">0</By>
+          <By N="AutomaticMetric">1</By>
+          <U32 N="BaseReachableTime">30000</U32>
+          <U32 N="CompartmentId">1</U32>
+          <By N="ConnectionState">1</By>
+          <U32 N="CurrentHopLimit">0</U32>
+          <U32 N="DadRetransmitTime">1000</U32>
+          <U32 N="DadTransmits">3</U32>
+          <By N="Dhcp">0</By>
+          <By N="DirectedMacWolPattern">0</By>
+          <By N="EcnMarking">3</By>
+          <By N="ForceArpNdWolPattern">0</By>
+          <By N="Forwarding">0</By>
+          <By N="IgnoreDefaultRoutes">0</By>
+          <S N="InterfaceAlias">Ethernet</S>
+          <U32 N="InterfaceIndex">12</U32>
+          <U32 N="InterfaceMetric">5</U32>
+          <U32 N="IsolationId">0</U32>
+          <U64 N="LowestIfNetLuid">1688850028036096</U64>
+          <By N="ManagedAddressConfiguration">1</By>
+          <By N="NeighborDiscoverySupported">1</By>
+          <By N="NeighborUnreachabilityDetection">1</By>
+          <U32 N="NlMtu">1500</U32>
+          <By N="OtherStatefulConfiguration">1</By>
+          <U32 N="ReachableTime">16000</U32>
+          <U32 N="RetransmitTime">1000</U32>
+          <By N="RouterDiscovery">2</By>
+          <By N="Store">1</By>
+          <By N="WeakHostReceive">0</By>
+          <By N="WeakHostSend">0</By>
+          <Nil N="PSComputerName" />
+        </Props>
+        <MS>
+          <B N="PSShowComputerName">true</B>
+          <Obj N="__ClassMetadata" RefId="21">
+            <TNRef RefId="4" />
+            <LST>
+              <Obj RefId="22">
+                <MS>
+                  <S N="ClassName">MSFT_NetIPInterface</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653707128</I32>
+                </MS>
+              </Obj>
+            </LST>
+          </Obj>
+          <U32 N="ifIndex">12</U32>
+          <S N="ifAlias">Ethernet</S>
+          <S N="Store">ActiveStore</S>
+          <S N="AddressFamily">IPv4</S>
+          <S N="Forwarding">Disabled</S>
+          <S N="Advertising">Disabled</S>
+          <S N="NeighborUnreachabilityDetection">Enabled</S>
+          <S N="RouterDiscovery">ControlledByDHCP</S>
+          <S N="NeighborDiscoverySupported">Yes</S>
+          <S N="ManagedAddressConfiguration">Enabled</S>
+          <S N="OtherStatefulConfiguration">Enabled</S>
+          <S N="WeakHostSend">Disabled</S>
+          <S N="WeakHostReceive">Disabled</S>
+          <S N="IgnoreDefaultRoutes">Disabled</S>
+          <S N="AdvertiseDefaultRoute">Disabled</S>
+          <S N="ForceArpNdWolPattern">Disabled</S>
+          <S N="DirectedMacWolPattern">Disabled</S>
+          <S N="EcnMarking">AppDecide</S>
+          <S N="Dhcp">Disabled</S>
+          <S N="ConnectionState">Connected</S>
+          <S N="AutomaticMetric">Enabled</S>
+        </MS>
+      </Obj>
+      <Obj N="NetProfile" RefId="23">
+        <TN RefId="6">
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetConnectionProfile</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetSettingData</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_SettingData</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetConnectionProfile</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetSettingData</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_SettingData</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+          <T>Microsoft.Management.Infrastructure.CimInstance</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>MSFT_NetConnectionProfile (InstanceID = "{54466675-1AA5-4988-BC27-40B89BF0DCBD}")</ToString>
+        <Props>
+          <Nil N="Caption" />
+          <Nil N="Description" />
+          <S N="ElementName"></S>
+          <S N="InstanceID">{54466675-1AA5-4988-BC27-40B89BF0DCBD}</S>
+          <S N="InterfaceAlias">Ethernet</S>
+          <U32 N="InterfaceIndex">12</U32>
+          <U32 N="IPv4Connectivity">3</U32>
+          <U32 N="IPv6Connectivity">3</U32>
+          <S N="Name">Solo.net</S>
+          <U32 N="NetworkCategory">2</U32>
+          <Nil N="PSComputerName" />
+        </Props>
+        <MS>
+          <B N="PSShowComputerName">true</B>
+          <Obj N="__ClassMetadata" RefId="24">
+            <TNRef RefId="4" />
+            <LST>
+              <Obj RefId="25">
+                <MS>
+                  <S N="ClassName">CIM_ManagedElement</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-654206344</I32>
+                </MS>
+              </Obj>
+              <Obj RefId="26">
+                <MS>
+                  <S N="ClassName">CIM_SettingData</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653657208</I32>
+                  <S N="MiXml">&lt;CLASS NAME="CIM_SettingData" SUPERCLASS="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;687&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;ElementName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Required" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;686&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;InstanceID&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="27">
+                <MS>
+                  <S N="ClassName">MSFT_NetSettingData</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653669688</I32>
+                  <S N="MiXml">&lt;CLASS NAME="MSFT_NetSettingData" SUPERCLASS="CIM_SettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+              <Obj RefId="28">
+                <MS>
+                  <S N="ClassName">MSFT_NetConnectionProfile</S>
+                  <S N="Namespace">ROOT/StandardCimv2</S>
+                  <S N="ServerName">SOLO-E15A</S>
+                  <I32 N="Hash">-653665528</I32>
+                  <S N="MiXml">&lt;CLASS NAME="MSFT_NetConnectionProfile" SUPERCLASS="MSFT_NetSettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;688&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;NlmCim&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv4Connectivity" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv6Connectivity" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetworkCategory" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                </MS>
+              </Obj>
+            </LST>
+          </Obj>
+          <S N="NetworkCategory">DomainAuthenticated</S>
+          <S N="IPv4Connectivity">LocalNetwork</S>
+          <S N="IPv6Connectivity">LocalNetwork</S>
+        </MS>
+      </Obj>
+      <Obj N="AllIPAddresses" RefId="29">
+        <TN RefId="7">
+          <T>Microsoft.Management.Infrastructure.CimInstance[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="30">
+            <TN RefId="8">
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetIPAddress</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_IPProtocolEndpoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ProtocolEndpoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_EnabledLogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedSystemElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetIPAddress</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_IPProtocolEndpoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ProtocolEndpoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_EnabledLogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>192.168.9.11</ToString>
+            <Props>
+              <Nil N="Caption" />
+              <Nil N="Description" />
+              <Nil N="ElementName" />
+              <Nil N="InstanceID" />
+              <Nil N="CommunicationStatus" />
+              <Nil N="DetailedStatus" />
+              <Nil N="HealthState" />
+              <Nil N="InstallDate" />
+              <S N="Name">;C&lt;8;@B8C8;;55;&lt;55;55;</S>
+              <Nil N="OperatingStatus" />
+              <Nil N="OperationalStatus" />
+              <Nil N="PrimaryStatus" />
+              <Nil N="Status" />
+              <Nil N="StatusDescriptions" />
+              <Nil N="AvailableRequestedStates" />
+              <U16 N="EnabledDefault">2</U16>
+              <Nil N="EnabledState" />
+              <Nil N="OtherEnabledState" />
+              <U16 N="RequestedState">12</U16>
+              <Nil N="TimeOfLastStateChange" />
+              <U16 N="TransitioningToState">12</U16>
+              <S N="CreationClassName"></S>
+              <S N="SystemCreationClassName"></S>
+              <S N="SystemName"></S>
+              <Nil N="NameFormat" />
+              <Nil N="OtherTypeDescription" />
+              <U16 N="ProtocolIFType">4096</U16>
+              <Nil N="ProtocolType" />
+              <Nil N="Address" />
+              <U16 N="AddressOrigin">0</U16>
+              <Nil N="AddressType" />
+              <S N="IPv4Address">192.168.9.11</S>
+              <Nil N="IPv6Address" />
+              <Nil N="IPVersionSupport" />
+              <By N="PrefixLength">24</By>
+              <Nil N="SubnetMask" />
+              <U16 N="AddressFamily">2</U16>
+              <U16 N="AddressState">4</U16>
+              <S N="InterfaceAlias">Ethernet</S>
+              <U32 N="InterfaceIndex">12</U32>
+              <S N="IPAddress">192.168.9.11</S>
+              <TS N="PreferredLifetime">P10675199DT2H48M5.4775807S</TS>
+              <U16 N="PrefixOrigin">1</U16>
+              <B N="SkipAsSource">false</B>
+              <By N="Store">1</By>
+              <U16 N="SuffixOrigin">1</U16>
+              <By N="Type">1</By>
+              <TS N="ValidLifetime">P10675199DT2H48M5.4775807S</TS>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <B N="PSShowComputerName">true</B>
+              <Obj N="__ClassMetadata" RefId="31">
+                <TNRef RefId="4" />
+                <LST>
+                  <Obj RefId="32">
+                    <MS>
+                      <S N="ClassName">CIM_ProtocolEndpoint</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653759128</I32>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="33">
+                    <MS>
+                      <S N="ClassName">CIM_IPProtocolEndpoint</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653650968</I32>
+                      <S N="MiXml">&lt;CLASS NAME="CIM_IPProtocolEndpoint" SUPERCLASS="CIM_ProtocolEndpoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::ProtocolEndpoints&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;647&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="ProtocolIFType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;409&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.OtherTypeDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;225..4095&lt;/VALUE&gt;&lt;VALUE&gt;4096&lt;/VALUE&gt;&lt;VALUE&gt;4097&lt;/VALUE&gt;&lt;VALUE&gt;4098&lt;/VALUE&gt;&lt;VALUE&gt;4301..32767&lt;/VALUE&gt;&lt;VALUE&gt;32768..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;410&lt;/VALUE&gt;&lt;VALUE&gt;411&lt;/VALUE&gt;&lt;VALUE&gt;412&lt;/VALUE&gt;&lt;VALUE&gt;413&lt;/VALUE&gt;&lt;VALUE&gt;414&lt;/VALUE&gt;&lt;VALUE&gt;415&lt;/VALUE&gt;&lt;VALUE&gt;416&lt;/VALUE&gt;&lt;VALUE&gt;417&lt;/VALUE&gt;&lt;VALUE&gt;418&lt;/VALUE&gt;&lt;VALUE&gt;419&lt;/VALUE&gt;&lt;VALUE&gt;420&lt;/VALUE&gt;&lt;VALUE&gt;421&lt;/VALUE&gt;&lt;VALUE&gt;422&lt;/VALUE&gt;&lt;VALUE&gt;397&lt;/VALUE&gt;&lt;VALUE&gt;423&lt;/VALUE&gt;&lt;VALUE&gt;424&lt;/VALUE&gt;&lt;VALUE&gt;425&lt;/VALUE&gt;&lt;VALUE&gt;426&lt;/VALUE&gt;&lt;VALUE&gt;427&lt;/VALUE&gt;&lt;VALUE&gt;428&lt;/VALUE&gt;&lt;VALUE&gt;429&lt;/VALUE&gt;&lt;VALUE&gt;430&lt;/VALUE&gt;&lt;VALUE&gt;431&lt;/VALUE&gt;&lt;VALUE&gt;432&lt;/VALUE&gt;&lt;VALUE&gt;433&lt;/VALUE&gt;&lt;VALUE&gt;434&lt;/VALUE&gt;&lt;VALUE&gt;435&lt;/VALUE&gt;&lt;VALUE&gt;436&lt;/VALUE&gt;&lt;VALUE&gt;437&lt;/VALUE&gt;&lt;VALUE&gt;438&lt;/VALUE&gt;&lt;VALUE&gt;394&lt;/VALUE&gt;&lt;VALUE&gt;439&lt;/VALUE&gt;&lt;VALUE&gt;440&lt;/VALUE&gt;&lt;VALUE&gt;441&lt;/VALUE&gt;&lt;VALUE&gt;442&lt;/VALUE&gt;&lt;VALUE&gt;393&lt;/VALUE&gt;&lt;VALUE&gt;443&lt;/VALUE&gt;&lt;VALUE&gt;444&lt;/VALUE&gt;&lt;VALUE&gt;445&lt;/VALUE&gt;&lt;VALUE&gt;446&lt;/VALUE&gt;&lt;VALUE&gt;447&lt;/VALUE&gt;&lt;VALUE&gt;448&lt;/VALUE&gt;&lt;VALUE&gt;449&lt;/VALUE&gt;&lt;VALUE&gt;450&lt;/VALUE&gt;&lt;VALUE&gt;451&lt;/VALUE&gt;&lt;VALUE&gt;452&lt;/VALUE&gt;&lt;VALUE&gt;453&lt;/VALUE&gt;&lt;VALUE&gt;454&lt;/VALUE&gt;&lt;VALUE&gt;455&lt;/VALUE&gt;&lt;VALUE&gt;456&lt;/VALUE&gt;&lt;VALUE&gt;457&lt;/VALUE&gt;&lt;VALUE&gt;458&lt;/VALUE&gt;&lt;VALUE&gt;459&lt;/VALUE&gt;&lt;VALUE&gt;460&lt;/VALUE&gt;&lt;VALUE&gt;399&lt;/VALUE&gt;&lt;VALUE&gt;461&lt;/VALUE&gt;&lt;VALUE&gt;462&lt;/VALUE&gt;&lt;VALUE&gt;463&lt;/VALUE&gt;&lt;VALUE&gt;464&lt;/VALUE&gt;&lt;VALUE&gt;465&lt;/VALUE&gt;&lt;VALUE&gt;466&lt;/VALUE&gt;&lt;VALUE&gt;467&lt;/VALUE&gt;&lt;VALUE&gt;468&lt;/VALUE&gt;&lt;VALUE&gt;469&lt;/VALUE&gt;&lt;VALUE&gt;470&lt;/VALUE&gt;&lt;VALUE&gt;471&lt;/VALUE&gt;&lt;VALUE&gt;472&lt;/VALUE&gt;&lt;VALUE&gt;473&lt;/VALUE&gt;&lt;VALUE&gt;474&lt;/VALUE&gt;&lt;VALUE&gt;475&lt;/VALUE&gt;&lt;VALUE&gt;476&lt;/VALUE&gt;&lt;VALUE&gt;477&lt;/VALUE&gt;&lt;VALUE&gt;478&lt;/VALUE&gt;&lt;VALUE&gt;479&lt;/VALUE&gt;&lt;VALUE&gt;480&lt;/VALUE&gt;&lt;VALUE&gt;481&lt;/VALUE&gt;&lt;VALUE&gt;482&lt;/VALUE&gt;&lt;VALUE&gt;483&lt;/VALUE&gt;&lt;VALUE&gt;484&lt;/VALUE&gt;&lt;VALUE&gt;485&lt;/VALUE&gt;&lt;VALUE&gt;486&lt;/VALUE&gt;&lt;VALUE&gt;487&lt;/VALUE&gt;&lt;VALUE&gt;488&lt;/VALUE&gt;&lt;VALUE&gt;489&lt;/VALUE&gt;&lt;VALUE&gt;490&lt;/VALUE&gt;&lt;VALUE&gt;491&lt;/VALUE&gt;&lt;VALUE&gt;492&lt;/VALUE&gt;&lt;VALUE&gt;493&lt;/VALUE&gt;&lt;VALUE&gt;494&lt;/VALUE&gt;&lt;VALUE&gt;495&lt;/VALUE&gt;&lt;VALUE&gt;496&lt;/VALUE&gt;&lt;VALUE&gt;497&lt;/VALUE&gt;&lt;VALUE&gt;498&lt;/VALUE&gt;&lt;VALUE&gt;499&lt;/VALUE&gt;&lt;VALUE&gt;500&lt;/VALUE&gt;&lt;VALUE&gt;501&lt;/VALUE&gt;&lt;VALUE&gt;502&lt;/VALUE&gt;&lt;VALUE&gt;503&lt;/VALUE&gt;&lt;VALUE&gt;504&lt;/VALUE&gt;&lt;VALUE&gt;505&lt;/VALUE&gt;&lt;VALUE&gt;506&lt;/VALUE&gt;&lt;VALUE&gt;507&lt;/VALUE&gt;&lt;VALUE&gt;508&lt;/VALUE&gt;&lt;VALUE&gt;509&lt;/VALUE&gt;&lt;VALUE&gt;510&lt;/VALUE&gt;&lt;VALUE&gt;511&lt;/VALUE&gt;&lt;VALUE&gt;512&lt;/VALUE&gt;&lt;VALUE&gt;513&lt;/VALUE&gt;&lt;VALUE&gt;514&lt;/VALUE&gt;&lt;VALUE&gt;515&lt;/VALUE&gt;&lt;VALUE&gt;516&lt;/VALUE&gt;&lt;VALUE&gt;517&lt;/VALUE&gt;&lt;VALUE&gt;518&lt;/VALUE&gt;&lt;VALUE&gt;519&lt;/VALUE&gt;&lt;VALUE&gt;520&lt;/VALUE&gt;&lt;VALUE&gt;521&lt;/VALUE&gt;&lt;VALUE&gt;522&lt;/VALUE&gt;&lt;VALUE&gt;523&lt;/VALUE&gt;&lt;VALUE&gt;524&lt;/VALUE&gt;&lt;VALUE&gt;525&lt;/VALUE&gt;&lt;VALUE&gt;526&lt;/VALUE&gt;&lt;VALUE&gt;527&lt;/VALUE&gt;&lt;VALUE&gt;528&lt;/VALUE&gt;&lt;VALUE&gt;529&lt;/VALUE&gt;&lt;VALUE&gt;530&lt;/VALUE&gt;&lt;VALUE&gt;531&lt;/VALUE&gt;&lt;VALUE&gt;532&lt;/VALUE&gt;&lt;VALUE&gt;533&lt;/VALUE&gt;&lt;VALUE&gt;534&lt;/VALUE&gt;&lt;VALUE&gt;535&lt;/VALUE&gt;&lt;VALUE&gt;536&lt;/VALUE&gt;&lt;VALUE&gt;537&lt;/VALUE&gt;&lt;VALUE&gt;538&lt;/VALUE&gt;&lt;VALUE&gt;539&lt;/VALUE&gt;&lt;VALUE&gt;540&lt;/VALUE&gt;&lt;VALUE&gt;541&lt;/VALUE&gt;&lt;VALUE&gt;542&lt;/VALUE&gt;&lt;VALUE&gt;543&lt;/VALUE&gt;&lt;VALUE&gt;544&lt;/VALUE&gt;&lt;VALUE&gt;545&lt;/VALUE&gt;&lt;VALUE&gt;546&lt;/VALUE&gt;&lt;VALUE&gt;547&lt;/VALUE&gt;&lt;VALUE&gt;548&lt;/VALUE&gt;&lt;VALUE&gt;549&lt;/VALUE&gt;&lt;VALUE&gt;550&lt;/VALUE&gt;&lt;VALUE&gt;551&lt;/VALUE&gt;&lt;VALUE&gt;552&lt;/VALUE&gt;&lt;VALUE&gt;553&lt;/VALUE&gt;&lt;VALUE&gt;554&lt;/VALUE&gt;&lt;VALUE&gt;555&lt;/VALUE&gt;&lt;VALUE&gt;556&lt;/VALUE&gt;&lt;VALUE&gt;557&lt;/VALUE&gt;&lt;VALUE&gt;558&lt;/VALUE&gt;&lt;VALUE&gt;559&lt;/VALUE&gt;&lt;VALUE&gt;560&lt;/VALUE&gt;&lt;VALUE&gt;561&lt;/VALUE&gt;&lt;VALUE&gt;562&lt;/VALUE&gt;&lt;VALUE&gt;563&lt;/VALUE&gt;&lt;VALUE&gt;564&lt;/VALUE&gt;&lt;VALUE&gt;565&lt;/VALUE&gt;&lt;VALUE&gt;566&lt;/VALUE&gt;&lt;VALUE&gt;567&lt;/VALUE&gt;&lt;VALUE&gt;568&lt;/VALUE&gt;&lt;VALUE&gt;569&lt;/VALUE&gt;&lt;VALUE&gt;406&lt;/VALUE&gt;&lt;VALUE&gt;570&lt;/VALUE&gt;&lt;VALUE&gt;571&lt;/VALUE&gt;&lt;VALUE&gt;572&lt;/VALUE&gt;&lt;VALUE&gt;573&lt;/VALUE&gt;&lt;VALUE&gt;574&lt;/VALUE&gt;&lt;VALUE&gt;575&lt;/VALUE&gt;&lt;VALUE&gt;576&lt;/VALUE&gt;&lt;VALUE&gt;577&lt;/VALUE&gt;&lt;VALUE&gt;578&lt;/VALUE&gt;&lt;VALUE&gt;579&lt;/VALUE&gt;&lt;VALUE&gt;580&lt;/VALUE&gt;&lt;VALUE&gt;581&lt;/VALUE&gt;&lt;VALUE&gt;582&lt;/VALUE&gt;&lt;VALUE&gt;583&lt;/VALUE&gt;&lt;VALUE&gt;584&lt;/VALUE&gt;&lt;VALUE&gt;585&lt;/VALUE&gt;&lt;VALUE&gt;586&lt;/VALUE&gt;&lt;VALUE&gt;587&lt;/VALUE&gt;&lt;VALUE&gt;588&lt;/VALUE&gt;&lt;VALUE&gt;589&lt;/VALUE&gt;&lt;VALUE&gt;590&lt;/VALUE&gt;&lt;VALUE&gt;591&lt;/VALUE&gt;&lt;VALUE&gt;592&lt;/VALUE&gt;&lt;VALUE&gt;593&lt;/VALUE&gt;&lt;VALUE&gt;594&lt;/VALUE&gt;&lt;VALUE&gt;595&lt;/VALUE&gt;&lt;VALUE&gt;596&lt;/VALUE&gt;&lt;VALUE&gt;597&lt;/VALUE&gt;&lt;VALUE&gt;598&lt;/VALUE&gt;&lt;VALUE&gt;599&lt;/VALUE&gt;&lt;VALUE&gt;600&lt;/VALUE&gt;&lt;VALUE&gt;601&lt;/VALUE&gt;&lt;VALUE&gt;398&lt;/VALUE&gt;&lt;VALUE&gt;602&lt;/VALUE&gt;&lt;VALUE&gt;603&lt;/VALUE&gt;&lt;VALUE&gt;604&lt;/VALUE&gt;&lt;VALUE&gt;605&lt;/VALUE&gt;&lt;VALUE&gt;606&lt;/VALUE&gt;&lt;VALUE&gt;607&lt;/VALUE&gt;&lt;VALUE&gt;608&lt;/VALUE&gt;&lt;VALUE&gt;609&lt;/VALUE&gt;&lt;VALUE&gt;610&lt;/VALUE&gt;&lt;VALUE&gt;611&lt;/VALUE&gt;&lt;VALUE&gt;612&lt;/VALUE&gt;&lt;VALUE&gt;613&lt;/VALUE&gt;&lt;VALUE&gt;614&lt;/VALUE&gt;&lt;VALUE&gt;615&lt;/VALUE&gt;&lt;VALUE&gt;616&lt;/VALUE&gt;&lt;VALUE&gt;617&lt;/VALUE&gt;&lt;VALUE&gt;618&lt;/VALUE&gt;&lt;VALUE&gt;619&lt;/VALUE&gt;&lt;VALUE&gt;620&lt;/VALUE&gt;&lt;VALUE&gt;621&lt;/VALUE&gt;&lt;VALUE&gt;622&lt;/VALUE&gt;&lt;VALUE&gt;623&lt;/VALUE&gt;&lt;VALUE&gt;624&lt;/VALUE&gt;&lt;VALUE&gt;625&lt;/VALUE&gt;&lt;VALUE&gt;626&lt;/VALUE&gt;&lt;VALUE&gt;627&lt;/VALUE&gt;&lt;VALUE&gt;383&lt;/VALUE&gt;&lt;VALUE&gt;384&lt;/VALUE&gt;&lt;VALUE&gt;403&lt;/VALUE&gt;&lt;VALUE&gt;385&lt;/VALUE&gt;&lt;VALUE&gt;387&lt;/VALUE&gt;&lt;VALUE&gt;388&lt;/VALUE&gt;&lt;VALUE&gt;389&lt;/VALUE&gt;&lt;VALUE&gt;390&lt;/VALUE&gt;&lt;VALUE&gt;391&lt;/VALUE&gt;&lt;VALUE&gt;392&lt;/VALUE&gt;&lt;VALUE&gt;401&lt;/VALUE&gt;&lt;VALUE&gt;402&lt;/VALUE&gt;&lt;VALUE&gt;404&lt;/VALUE&gt;&lt;VALUE&gt;405&lt;/VALUE&gt;&lt;VALUE&gt;407&lt;/VALUE&gt;&lt;VALUE&gt;408&lt;/VALUE&gt;&lt;VALUE&gt;628&lt;/VALUE&gt;&lt;VALUE&gt;629&lt;/VALUE&gt;&lt;VALUE&gt;630&lt;/VALUE&gt;&lt;VALUE&gt;631&lt;/VALUE&gt;&lt;VALUE&gt;632&lt;/VALUE&gt;&lt;VALUE&gt;633&lt;/VALUE&gt;&lt;VALUE&gt;634&lt;/VALUE&gt;&lt;VALUE&gt;635&lt;/VALUE&gt;&lt;VALUE&gt;636&lt;/VALUE&gt;&lt;VALUE&gt;637&lt;/VALUE&gt;&lt;VALUE&gt;638&lt;/VALUE&gt;&lt;VALUE&gt;639&lt;/VALUE&gt;&lt;VALUE&gt;640&lt;/VALUE&gt;&lt;VALUE&gt;641&lt;/VALUE&gt;&lt;VALUE&gt;642&lt;/VALUE&gt;&lt;VALUE&gt;643&lt;/VALUE&gt;&lt;VALUE&gt;644&lt;/VALUE&gt;&lt;VALUE&gt;645&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;ProtocolIFType&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;4096&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Address" TYPE="string"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_IPProtocolEndpoint.IPv4Address&lt;/VALUE&gt;&lt;VALUE&gt;CIM_IPProtocolEndpoint.IPv6Address&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AddressOrigin" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AddressType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;No value&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv4Address" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPv6Address" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPVersionSupport" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Deprecated" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_ProtocolEndpoint.ProtocolIFType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PrefixLength" TYPE="uint8"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SubnetMask" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="34">
+                    <MS>
+                      <S N="ClassName">MSFT_NetIPAddress</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653618728</I32>
+                      <S N="MiXml">&lt;CLASS NAME="MSFT_NetIPAddress" SUPERCLASS="CIM_IPProtocolEndpoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::ProtocolEndpoints&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;647&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;nettcpip&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AddressState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PreferredLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PrefixOrigin" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SkipAsSource" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Store" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SuffixOrigin" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Type" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ValidLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Create" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="static" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="AddressState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="DefaultGateway" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="IPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PassThru" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PolicyStore" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PreferredLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PrefixLength" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PrefixOrigin" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="SkipAsSource" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="SuffixOrigin" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="Type" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="ValidLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.ARRAY NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetIPAddress&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+              <U32 N="ifIndex">12</U32>
+              <S N="PrefixOrigin">Manual</S>
+              <S N="SuffixOrigin">Manual</S>
+              <S N="Type">Unicast</S>
+              <S N="Store">ActiveStore</S>
+              <S N="AddressFamily">IPv4</S>
+              <S N="AddressState">Preferred</S>
+            </MS>
+          </Obj>
+          <Obj RefId="35">
+            <TNRef RefId="8" />
+            <ToString>fe80::a1bd:cc9b:2b79:61fc%12</ToString>
+            <Props>
+              <Nil N="Caption" />
+              <Nil N="Description" />
+              <Nil N="ElementName" />
+              <Nil N="InstanceID" />
+              <Nil N="CommunicationStatus" />
+              <Nil N="DetailedStatus" />
+              <Nil N="HealthState" />
+              <Nil N="InstallDate" />
+              <S N="Name">poB:DDk;lnDmmClD&lt;lACD@;pm/;&lt;55;&lt;55;55;</S>
+              <Nil N="OperatingStatus" />
+              <Nil N="OperationalStatus" />
+              <Nil N="PrimaryStatus" />
+              <Nil N="Status" />
+              <Nil N="StatusDescriptions" />
+              <Nil N="AvailableRequestedStates" />
+              <U16 N="EnabledDefault">2</U16>
+              <Nil N="EnabledState" />
+              <Nil N="OtherEnabledState" />
+              <U16 N="RequestedState">12</U16>
+              <Nil N="TimeOfLastStateChange" />
+              <U16 N="TransitioningToState">12</U16>
+              <S N="CreationClassName"></S>
+              <S N="SystemCreationClassName"></S>
+              <S N="SystemName"></S>
+              <Nil N="NameFormat" />
+              <Nil N="OtherTypeDescription" />
+              <U16 N="ProtocolIFType">4096</U16>
+              <Nil N="ProtocolType" />
+              <Nil N="Address" />
+              <U16 N="AddressOrigin">0</U16>
+              <Nil N="AddressType" />
+              <Nil N="IPv4Address" />
+              <S N="IPv6Address">fe80::a1bd:cc9b:2b79:61fc%12</S>
+              <Nil N="IPVersionSupport" />
+              <By N="PrefixLength">64</By>
+              <Nil N="SubnetMask" />
+              <U16 N="AddressFamily">23</U16>
+              <U16 N="AddressState">4</U16>
+              <S N="InterfaceAlias">Ethernet</S>
+              <U32 N="InterfaceIndex">12</U32>
+              <S N="IPAddress">fe80::a1bd:cc9b:2b79:61fc%12</S>
+              <TS N="PreferredLifetime">P10675199DT2H48M5.4775807S</TS>
+              <U16 N="PrefixOrigin">2</U16>
+              <B N="SkipAsSource">false</B>
+              <By N="Store">1</By>
+              <U16 N="SuffixOrigin">4</U16>
+              <By N="Type">1</By>
+              <TS N="ValidLifetime">P10675199DT2H48M5.4775807S</TS>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <B N="PSShowComputerName">true</B>
+              <Obj N="__ClassMetadata" RefId="36">
+                <TNRef RefId="4" />
+                <LST>
+                  <Obj RefId="37">
+                    <MS>
+                      <S N="ClassName">MSFT_NetIPAddress</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653618728</I32>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+              <U32 N="ifIndex">12</U32>
+              <S N="PrefixOrigin">WellKnown</S>
+              <S N="SuffixOrigin">Link</S>
+              <S N="Type">Unicast</S>
+              <S N="Store">ActiveStore</S>
+              <S N="AddressFamily">IPv6</S>
+              <S N="AddressState">Preferred</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="IPv6Address" RefId="38">
+        <TNRef RefId="7" />
+        <LST />
+      </Obj>
+      <Obj N="IPv6TemporaryAddress" RefId="39">
+        <TNRef RefId="7" />
+        <LST />
+      </Obj>
+      <Obj N="IPv6LinkLocalAddress" RefId="40">
+        <TNRef RefId="7" />
+        <LST>
+          <Ref RefId="35" />
+        </LST>
+      </Obj>
+      <Obj N="IPv4Address" RefId="41">
+        <TNRef RefId="7" />
+        <LST>
+          <Ref RefId="30" />
+        </LST>
+      </Obj>
+      <Nil N="IPv6DefaultGateway" />
+      <Obj N="IPv4DefaultGateway" RefId="42">
+        <TNRef RefId="7" />
+        <LST>
+          <Obj RefId="43">
+            <TN RefId="9">
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_NetRoute</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_NextHopRoute</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_NetRoute</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_NextHopRoute</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>MSFT_NetRoute (InstanceID = ":8:8:8:9:55;?55;C?8;@B8C8;55;")</ToString>
+            <Props>
+              <Nil N="Caption" />
+              <Nil N="Description" />
+              <Nil N="ElementName" />
+              <S N="InstanceID">:8:8:8:9:55;&lt;55;C&lt;8;@B8C8;55;</S>
+              <Nil N="AdminDistance" />
+              <Nil N="DestinationAddress" />
+              <Nil N="IsStatic" />
+              <U16 N="RouteMetric">256</U16>
+              <U16 N="TypeOfRoute">3</U16>
+              <U16 N="AddressFamily">2</U16>
+              <S N="DestinationPrefix">0.0.0.0/0</S>
+              <S N="InterfaceAlias">Ethernet</S>
+              <U32 N="InterfaceIndex">12</U32>
+              <S N="NextHop">192.168.9.1</S>
+              <TS N="PreferredLifetime">P10675199DT2H48M5.4775807S</TS>
+              <U16 N="Protocol">3</U16>
+              <By N="Publish">0</By>
+              <By N="Store">1</By>
+              <TS N="ValidLifetime">P10675199DT2H48M5.4775807S</TS>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <B N="PSShowComputerName">true</B>
+              <Obj N="__ClassMetadata" RefId="44">
+                <TNRef RefId="4" />
+                <LST>
+                  <Obj RefId="45">
+                    <MS>
+                      <S N="ClassName">CIM_ManagedElement</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-654206344</I32>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="46">
+                    <MS>
+                      <S N="ClassName">CIM_NextHopRoute</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653591688</I32>
+                      <S N="MiXml">&lt;CLASS NAME="CIM_NextHopRoute" SUPERCLASS="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::Routes&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;InstanceID&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AdminDistance" TYPE="uint16"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DestinationAddress" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IsStatic" TYPE="boolean"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="RouteMetric" TYPE="uint16"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TypeOfRoute" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="47">
+                    <MS>
+                      <S N="ClassName">MSFT_NetRoute</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653586488</I32>
+                      <S N="MiXml">&lt;CLASS NAME="MSFT_NetRoute" SUPERCLASS="CIM_NextHopRoute"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Network::Routes&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;nettcpip&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DestinationPrefix" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NextHop" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PreferredLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Protocol" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Publish" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Store" TYPE="uint8"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ValidLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Create" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="static" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="DestinationPrefix" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="NextHop" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PassThru" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PolicyStore" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="PreferredLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="Protocol" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="Publish" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="RouteMetric" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="ValidLifetime" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.ARRAY NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;MSFT_NetRoute&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Find" TYPE="uint32"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="static" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="LocalIPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="RemoteIPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.ARRAY NAME="CmdletOutput" TYPE="string"&gt;&lt;QUALIFIER NAME="EmbeddedInstance" TYPE="string"&gt;&lt;VALUE&gt;CIM_ManagedElement&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Out" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+              <U32 N="ifIndex">12</U32>
+              <S N="Publish">No</S>
+              <S N="Protocol">NetMgmt</S>
+              <S N="Store">ActiveStore</S>
+              <S N="AddressFamily">IPv4</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="DNSServer" RefId="48">
+        <TNRef RefId="7" />
+        <LST>
+          <Obj RefId="49">
+            <TN RefId="10">
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/MSFT_DNSClientServerAddress</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_RemoteServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_EnabledLogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_LogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedSystemElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/StandardCimv2/CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#MSFT_DNSClientServerAddress</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_RemoteServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ServiceAccessPoint</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_EnabledLogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+              <T>Microsoft.Management.Infrastructure.CimInstance</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>MSFT_DNSClientServerAddress (Name = "12", CreationClassName = "", SystemCreationClassName = "", SystemName = "23")</ToString>
+            <Props>
+              <Nil N="Caption" />
+              <Nil N="Description" />
+              <S N="ElementName">Ethernet</S>
+              <Nil N="InstanceID" />
+              <Nil N="CommunicationStatus" />
+              <Nil N="DetailedStatus" />
+              <Nil N="HealthState" />
+              <Nil N="InstallDate" />
+              <S N="Name">12</S>
+              <Nil N="OperatingStatus" />
+              <Nil N="OperationalStatus" />
+              <Nil N="PrimaryStatus" />
+              <Nil N="Status" />
+              <Nil N="StatusDescriptions" />
+              <Nil N="AvailableRequestedStates" />
+              <U16 N="EnabledDefault">2</U16>
+              <U16 N="EnabledState">5</U16>
+              <Nil N="OtherEnabledState" />
+              <U16 N="RequestedState">12</U16>
+              <Nil N="TimeOfLastStateChange" />
+              <U16 N="TransitioningToState">12</U16>
+              <S N="CreationClassName"></S>
+              <S N="SystemCreationClassName"></S>
+              <S N="SystemName">23</S>
+              <U16 N="AccessContext">0</U16>
+              <Nil N="AccessInfo" />
+              <Nil N="InfoFormat" />
+              <Nil N="OtherAccessContext" />
+              <Nil N="OtherInfoFormatDescription" />
+              <U16 N="AddressFamily">23</U16>
+              <S N="InterfaceAlias">Ethernet</S>
+              <U32 N="InterfaceIndex">12</U32>
+              <Obj N="ServerAddresses" RefId="50">
+                <TNRef RefId="2" />
+                <LST />
+              </Obj>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <B N="PSShowComputerName">true</B>
+              <Obj N="__ClassMetadata" RefId="51">
+                <TNRef RefId="4" />
+                <LST>
+                  <Obj RefId="52">
+                    <MS>
+                      <S N="ClassName">CIM_ServiceAccessPoint</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653785128</I32>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="53">
+                    <MS>
+                      <S N="ClassName">CIM_RemoteServiceAccessPoint</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653584408</I32>
+                      <S N="MiXml">&lt;CLASS NAME="CIM_RemoteServiceAccessPoint" SUPERCLASS="CIM_ServiceAccessPoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Service&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;744&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true"&gt;&lt;VALUE&gt;745&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AccessContext" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;733&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_RemoteServiceAccessPoint.OtherAccessContext&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;734&lt;/VALUE&gt;&lt;VALUE&gt;735&lt;/VALUE&gt;&lt;VALUE&gt;736&lt;/VALUE&gt;&lt;VALUE&gt;737&lt;/VALUE&gt;&lt;VALUE&gt;738&lt;/VALUE&gt;&lt;VALUE&gt;739&lt;/VALUE&gt;&lt;VALUE&gt;740&lt;/VALUE&gt;&lt;VALUE&gt;741&lt;/VALUE&gt;&lt;VALUE&gt;742&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AccessInfo" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;707&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_RemoteServiceAccessPoint.InfoFormat&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InfoFormat" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;708&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_RemoteServiceAccessPoint.OtherInfoFormatDescription&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;101&lt;/VALUE&gt;&lt;VALUE&gt;102&lt;/VALUE&gt;&lt;VALUE&gt;103&lt;/VALUE&gt;&lt;VALUE&gt;104&lt;/VALUE&gt;&lt;VALUE&gt;200&lt;/VALUE&gt;&lt;VALUE&gt;201&lt;/VALUE&gt;&lt;VALUE&gt;202&lt;/VALUE&gt;&lt;VALUE&gt;203&lt;/VALUE&gt;&lt;VALUE&gt;204&lt;/VALUE&gt;&lt;VALUE&gt;205&lt;/VALUE&gt;&lt;VALUE&gt;206&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;VALUE&gt;32768..65535&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Values" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;652&lt;/VALUE&gt;&lt;VALUE&gt;709&lt;/VALUE&gt;&lt;VALUE&gt;710&lt;/VALUE&gt;&lt;VALUE&gt;711&lt;/VALUE&gt;&lt;VALUE&gt;712&lt;/VALUE&gt;&lt;VALUE&gt;713&lt;/VALUE&gt;&lt;VALUE&gt;714&lt;/VALUE&gt;&lt;VALUE&gt;715&lt;/VALUE&gt;&lt;VALUE&gt;716&lt;/VALUE&gt;&lt;VALUE&gt;717&lt;/VALUE&gt;&lt;VALUE&gt;718&lt;/VALUE&gt;&lt;VALUE&gt;719&lt;/VALUE&gt;&lt;VALUE&gt;720&lt;/VALUE&gt;&lt;VALUE&gt;721&lt;/VALUE&gt;&lt;VALUE&gt;722&lt;/VALUE&gt;&lt;VALUE&gt;723&lt;/VALUE&gt;&lt;VALUE&gt;724&lt;/VALUE&gt;&lt;VALUE&gt;725&lt;/VALUE&gt;&lt;VALUE&gt;726&lt;/VALUE&gt;&lt;VALUE&gt;727&lt;/VALUE&gt;&lt;VALUE&gt;728&lt;/VALUE&gt;&lt;VALUE&gt;729&lt;/VALUE&gt;&lt;VALUE&gt;730&lt;/VALUE&gt;&lt;VALUE&gt;731&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherAccessContext" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;743&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_RemoteServiceAccessPoint.AccessContext&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherInfoFormatDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;732&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ModelCorrespondence" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;CIM_RemoteServiceAccessPoint.InfoFormat&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                  <Obj RefId="54">
+                    <MS>
+                      <S N="ClassName">MSFT_DNSClientServerAddress</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653563608</I32>
+                      <S N="MiXml">&lt;CLASS NAME="MSFT_DNSClientServerAddress" SUPERCLASS="CIM_RemoteServiceAccessPoint"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Service&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;748&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ClassVersion" TYPE="string"&gt;&lt;VALUE&gt;1.0.0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;dnsclientcim&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AddressFamily" TYPE="uint16"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;747&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceAlias" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;656&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;655&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="ServerAddresses" TYPE="string"&gt;&lt;QUALIFIER NAME="Description" TYPE="string"&gt;&lt;VALUE&gt;746&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;/CLASS&gt;</S>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+              <Obj N="Address" RefId="55">
+                <TNRef RefId="2" />
+                <LST />
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="56">
+            <TNRef RefId="10" />
+            <ToString>MSFT_DNSClientServerAddress (Name = "12", CreationClassName = "", SystemCreationClassName = "", SystemName = "2")</ToString>
+            <Props>
+              <Nil N="Caption" />
+              <Nil N="Description" />
+              <S N="ElementName">Ethernet</S>
+              <Nil N="InstanceID" />
+              <Nil N="CommunicationStatus" />
+              <Nil N="DetailedStatus" />
+              <Nil N="HealthState" />
+              <Nil N="InstallDate" />
+              <S N="Name">12</S>
+              <Nil N="OperatingStatus" />
+              <Nil N="OperationalStatus" />
+              <Nil N="PrimaryStatus" />
+              <Nil N="Status" />
+              <Nil N="StatusDescriptions" />
+              <Nil N="AvailableRequestedStates" />
+              <U16 N="EnabledDefault">2</U16>
+              <U16 N="EnabledState">5</U16>
+              <Nil N="OtherEnabledState" />
+              <U16 N="RequestedState">12</U16>
+              <Nil N="TimeOfLastStateChange" />
+              <U16 N="TransitioningToState">12</U16>
+              <S N="CreationClassName"></S>
+              <S N="SystemCreationClassName"></S>
+              <S N="SystemName">2</S>
+              <U16 N="AccessContext">0</U16>
+              <Nil N="AccessInfo" />
+              <Nil N="InfoFormat" />
+              <Nil N="OtherAccessContext" />
+              <Nil N="OtherInfoFormatDescription" />
+              <U16 N="AddressFamily">2</U16>
+              <S N="InterfaceAlias">Ethernet</S>
+              <U32 N="InterfaceIndex">12</U32>
+              <Obj N="ServerAddresses" RefId="57">
+                <TNRef RefId="2" />
+                <LST>
+                  <S>192.168.9.10</S>
+                </LST>
+              </Obj>
+              <Nil N="PSComputerName" />
+            </Props>
+            <MS>
+              <B N="PSShowComputerName">true</B>
+              <Obj N="__ClassMetadata" RefId="58">
+                <TNRef RefId="4" />
+                <LST>
+                  <Obj RefId="59">
+                    <MS>
+                      <S N="ClassName">MSFT_DNSClientServerAddress</S>
+                      <S N="Namespace">ROOT/StandardCimv2</S>
+                      <S N="ServerName">SOLO-E15A</S>
+                      <I32 N="Hash">-653563608</I32>
+                    </MS>
+                  </Obj>
+                </LST>
+              </Obj>
+              <Obj N="Address" RefId="60">
+                <TNRef RefId="2" />
+                <LST>
+                  <S>192.168.9.10</S>
+                </LST>
+              </Obj>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <B N="Detailed">false</B>
+    </Props>
+  </Obj>
+</Objs>

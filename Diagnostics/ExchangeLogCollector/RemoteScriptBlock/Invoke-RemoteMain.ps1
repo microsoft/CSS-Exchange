@@ -1,4 +1,7 @@
-﻿Function Invoke-RemoteMain {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Invoke-RemoteMain {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Required to be used in the current format')]
     [CmdletBinding()]
     param()
@@ -315,6 +318,16 @@
             $PassedInfo.DAGInformation) {
             $cmdsToRun += "Save-FailoverClusterInformation"
         }
+
+        if ($PassedInfo.MitigationService) {
+            $info = ($copyInfo -f ($Script:localExinstall + "\Logging\MitigationService"), ($Script:RootCopyToDirectory + "\Mitigation_Service_Logs"))
+
+            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
+            } else {
+                $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
+            }
+        }
     }
 
     ############################################
@@ -358,14 +371,14 @@
 
         if ($PassedInfo.MessageTrackingLogs -and
             (-not ($Script:localServerObject.Version -eq 15 -and
-                    $Script:localServerObject.CASOnly))) {
+                $Script:localServerObject.CASOnly))) {
             $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.MessageTrackingLogPath), ($Script:RootCopyToDirectory + "\Message_Tracking_Logs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
         if ($PassedInfo.HubProtocolLogs -and
             (-not ($Script:localServerObject.Version -eq 15 -and
-                    $Script:localServerObject.CASOnly))) {
+                $Script:localServerObject.CASOnly))) {
             $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Receive_Protocol_Logs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\Hub_Send_Protocol_Logs"))
@@ -374,14 +387,14 @@
 
         if ($PassedInfo.HubConnectivityLogs -and
             (-not ($Script:localServerObject.Version -eq 15 -and
-                    $Script:localServerObject.CASOnly))) {
+                $Script:localServerObject.CASOnly))) {
             $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.HubLoggingInfo.ConnectivityLogPath), ($Script:RootCopyToDirectory + "\Hub_Connectivity_Logs"))
             $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
         }
 
         if ($PassedInfo.QueueInformation -and
             (-not ($Script:localServerObject.Version -eq 15 -and
-                    $Script:localServerObject.CASOnly))) {
+                $Script:localServerObject.CASOnly))) {
 
             if ($Script:localServerObject.Version -ge 15 -and
                 $null -ne $Script:localServerObject.TransportInfo.HubLoggingInfo.QueueLogPath) {
@@ -412,7 +425,7 @@
 
             if ($PassedInfo.FrontEndConnectivityLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
-                        $Script:localServerObject.MailboxOnly))) {
+                    $Script:localServerObject.MailboxOnly))) {
                 Write-ScriptDebug("Collecting FrontEndConnectivityLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ConnectivityLogPath), ($Script:RootCopyToDirectory + "\FE_Connectivity_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -420,7 +433,7 @@
 
             if ($PassedInfo.FrontEndProtocolLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
-                        $Script:localServerObject.MailboxOnly))) {
+                    $Script:localServerObject.MailboxOnly))) {
                 Write-ScriptDebug("Collecting FrontEndProtocolLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\FE_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -430,7 +443,7 @@
 
             if ($PassedInfo.MailboxConnectivityLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
-                        $Script:localServerObject.CASOnly))) {
+                    $Script:localServerObject.CASOnly))) {
                 Write-ScriptDebug("Collecting MailboxConnectivityLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ConnectivityLogPath + "\Delivery"), ($Script:RootCopyToDirectory + "\MBX_Delivery_Connectivity_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -440,7 +453,7 @@
 
             if ($PassedInfo.MailboxProtocolLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
-                        $Script:localServerObject.CASOnly))) {
+                    $Script:localServerObject.CASOnly))) {
                 Write-ScriptDebug("Collecting MailboxProtocolLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -450,7 +463,7 @@
 
             if ($PassedInfo.MailboxDeliveryThrottlingLogs -and
                 (!($Script:localServerObject.Version -eq 15 -and
-                        $Script:localServerObject.CASOnly))) {
+                    $Script:localServerObject.CASOnly))) {
                 Write-ScriptDebug("Collecting Mailbox Delivery Throttling Logs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxDeliveryThrottlingLogPath), ($Script:RootCopyToDirectory + "\MBX_Delivery_Throttling_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
@@ -516,3 +529,4 @@
         Write-ScriptDebug ("No errors occurred within the script")
     }
 }
+

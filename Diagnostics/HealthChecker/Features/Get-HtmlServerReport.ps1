@@ -1,8 +1,11 @@
-﻿Function Get-HtmlServerReport {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )
-    Write-VerboseOutput("Calling: Get-HtmlServerReport")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $htmlHeader = "<html>
         <style>

@@ -1,9 +1,28 @@
-﻿Function Get-OperatingSystemInformation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-    Write-VerboseOutput("Calling: Get-OperatingSystemInformation")
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
+. $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
+. $PSScriptRoot\Get-AllNicInformation.ps1
+. $PSScriptRoot\Get-CredentialGuardEnabled.ps1
+. $PSScriptRoot\Get-HttpProxySetting.ps1
+. $PSScriptRoot\Get-LmCompatibilityLevelInformation.ps1
+. $PSScriptRoot\Get-PageFileInformation.ps1
+. $PSScriptRoot\Get-ServerOperatingSystemVersion.ps1
+. $PSScriptRoot\Get-Smb1ServerSettings.ps1
+. $PSScriptRoot\Get-TimeZoneInformationRegistrySettings.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
+. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
+Function Get-OperatingSystemInformation {
+
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
-    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_OperatingSystem = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
     $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
     $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
@@ -19,12 +38,12 @@
     if ($null -ne $win32_PowerPlan) {
 
         if ($win32_PowerPlan.InstanceID -eq "Microsoft:PowerPlan\{8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c}") {
-            Write-VerboseOutput("High Performance Power Plan is set to true")
+            Write-Verbose "High Performance Power Plan is set to true"
             $osInformation.PowerPlan.HighPerformanceSet = $true
-        } else { Write-VerboseOutput("High Performance Power Plan is NOT set to true") }
+        } else { Write-Verbose "High Performance Power Plan is NOT set to true" }
         $osInformation.PowerPlan.PowerPlanSetting = $win32_PowerPlan.ElementName
     } else {
-        Write-VerboseOutput("Power Plan Information could not be read")
+        Write-Verbose "Power Plan Information could not be read"
         $osInformation.PowerPlan.PowerPlanSetting = "N/A"
     }
     $osInformation.PowerPlan.PowerPlan = $win32_PowerPlan
@@ -38,9 +57,19 @@
         }
     }
 
-    $osInformation.NetworkInformation.IPv6DisabledComponents = Get-RemoteRegistryValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -GetValue "DisabledComponents" -ValueType "DWord" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.TCPKeepAlive = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -GetValue "KeepAliveTime" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Invoke-RegistryGetValue -RegistryHive "LocalMachine" -MachineName $Script:Server -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" -GetValue "MinimumConnectionTimeout" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.IPv6DisabledComponents = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" `
+        -GetValue "DisabledComponents" `
+        -ValueType "DWord" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.TCPKeepAlive = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" `
+        -GetValue "KeepAliveTime" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Get-RemoteRegistryValue -MachineName $Script:Server `
+        -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" `
+        -GetValue "MinimumConnectionTimeout" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
     $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
@@ -49,13 +78,8 @@
     if ($null -ne $counterSamples) {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
-    $serverReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
-    $osInformation.ServerPendingReboot.PendingFileRenameOperations = $serverReboot.PendingFileRenameOperations
-    $osInformation.ServerPendingReboot.SccmReboot = $serverReboot.SccmReboot
-    $osInformation.ServerPendingReboot.SccmRebootPending = $serverReboot.SccmRebootPending
-    $osInformation.ServerPendingReboot.ComponentBasedServicingRebootPending = $serverReboot.ComponentBasedServicingRebootPending
-    $osInformation.ServerPendingReboot.AutoUpdatePendingReboot = $serverReboot.AutoUpdatePendingReboot
-    $osInformation.ServerPendingReboot.PendingReboot = $serverReboot.PendingReboot
+
+    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
     $timeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TimeZone.DynamicDaylightTimeDisabled = $timeZoneInformation.DynamicDaylightTimeDisabled
     $osInformation.TimeZone.TimeZoneKeyName = $timeZoneInformation.TimeZoneKeyName
@@ -68,25 +92,22 @@
         -ScriptBlockDescription "Getting Current Time Zone" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.VcRedistributable = Get-VisualCRedistributableVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
-    $osInformation.RegistryValues.CurrentVersionUbr = Invoke-RegistryGetValue `
+    $osInformation.RegistryValues.CurrentVersionUbr = Get-RemoteRegistryValue `
         -MachineName $Script:Server `
         -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" `
         -GetValue "UBR" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $osInformation.RegistryValues.LanManServerDisabledCompression = Invoke-RegistryGetValue `
+    $osInformation.RegistryValues.LanManServerDisabledCompression = Get-RemoteRegistryValue `
         -MachineName $Script:Server `
         -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
         -GetValue "DisableCompression" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $getSmb1ServerSettings = Get-Smb1ServerSettings -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.Smb1ServerSettings.SmbServerConfiguration = $getSmb1ServerSettings.SmbServerConfiguration
-    $osInformation.Smb1ServerSettings.WindowsFeature = $getSmb1ServerSettings.WindowsFeature
-    $osInformation.Smb1ServerSettings.Smb1Status = $getSmb1ServerSettings.Smb1Status
+    $osInformation.Smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    Write-VerboseOutput("Exiting: Get-OperatingSystemInformation")
+    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $osInformation
 }

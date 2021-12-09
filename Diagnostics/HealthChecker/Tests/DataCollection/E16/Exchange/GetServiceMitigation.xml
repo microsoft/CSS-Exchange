@@ -1,0 +1,141 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.ServiceProcess.ServiceController</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>MSExchangeMitigation</ToString>
+    <Props>
+      <B N="CanPauseAndContinue">false</B>
+      <B N="CanShutdown">true</B>
+      <B N="CanStop">true</B>
+      <S N="DisplayName">Microsoft Exchange Emergency Mitigation Service</S>
+      <Obj N="DependentServices" RefId="1">
+        <TN RefId="1">
+          <T>System.ServiceProcess.ServiceController[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <S N="MachineName">SOLO-E16A</S>
+      <S N="ServiceName">MSExchangeMitigation</S>
+      <Obj N="ServicesDependedOn" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="3">
+            <TNRef RefId="0" />
+            <ToString>MSExchangeADTopology</ToString>
+            <Props>
+              <B N="CanPauseAndContinue">false</B>
+              <B N="CanShutdown">true</B>
+              <B N="CanStop">true</B>
+              <S N="DisplayName">Microsoft Exchange Active Directory Topology</S>
+              <Obj N="DependentServices" RefId="4">
+                <TNRef RefId="1" />
+                <LST>
+                  <S>MSExchangeUMCR</S>
+                  <S>MSExchangeUM</S>
+                  <S>MSExchangeTransportLogSearch</S>
+                  <S>MSExchangeTransport</S>
+                  <S>MSExchangeThrottling</S>
+                  <S>MSExchangeSubmission</S>
+                  <S>MSExchangeServiceHost</S>
+                  <S>MSExchangeRPC</S>
+                  <S>MSExchangeRepl</S>
+                  <S>MSExchangePOP3BE</S>
+                  <S>MSExchangePop3</S>
+                  <S>MSExchangeNotificationsBroker</S>
+                  <S>MSExchangeMitigation</S>
+                  <S>MSExchangeMailboxReplication</S>
+                  <S>MSExchangeMailboxAssistants</S>
+                  <S>MSExchangeIS</S>
+                  <S>MSExchangeIMAP4BE</S>
+                  <S>MSExchangeImap4</S>
+                  <S>MSExchangeFrontEndTransport</S>
+                  <S>MSExchangeFastSearch</S>
+                  <S>MSExchangeEdgeSync</S>
+                  <S>MSExchangeDelivery</S>
+                  <S>MSExchangeDagMgmt</S>
+                  <S>MSExchangeCompliance</S>
+                  <S>MSExchangeAntispamUpdate</S>
+                  <S>MSComplianceAudit</S>
+                </LST>
+              </Obj>
+              <S N="MachineName">SOLO-E16A</S>
+              <S N="ServiceName">MSExchangeADTopology</S>
+              <Obj N="ServicesDependedOn" RefId="5">
+                <TNRef RefId="1" />
+                <LST>
+                  <S>NetTcpPortSharing</S>
+                </LST>
+              </Obj>
+              <S N="ServiceHandle">SafeServiceHandle</S>
+              <S N="Status">Running</S>
+              <S N="ServiceType">Win32OwnProcess</S>
+              <S N="StartType">Automatic</S>
+              <Nil N="Site" />
+              <Nil N="Container" />
+            </Props>
+            <MS>
+              <S N="Name">MSExchangeADTopology</S>
+              <Ref N="RequiredServices" RefId="5" />
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="ServiceHandle" RefId="6">
+        <TN RefId="2">
+          <T>SafeServiceHandle</T>
+          <T>Microsoft.Win32.SafeHandles.SafeHandleZeroOrMinusOneIsInvalid</T>
+          <T>System.Runtime.InteropServices.SafeHandle</T>
+          <T>System.Runtime.ConstrainedExecution.CriticalFinalizerObject</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>SafeServiceHandle</ToString>
+        <Props>
+          <B N="IsInvalid">false</B>
+          <B N="IsClosed">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Status" RefId="7">
+        <TN RefId="3">
+          <T>System.ServiceProcess.ServiceControllerStatus</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Running</ToString>
+        <I32>4</I32>
+      </Obj>
+      <Obj N="ServiceType" RefId="8">
+        <TN RefId="4">
+          <T>System.ServiceProcess.ServiceType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Win32OwnProcess</ToString>
+        <I32>16</I32>
+      </Obj>
+      <Obj N="StartType" RefId="9">
+        <TN RefId="5">
+          <T>System.ServiceProcess.ServiceStartMode</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Automatic</ToString>
+        <I32>2</I32>
+      </Obj>
+      <Nil N="Site" />
+      <Nil N="Container" />
+    </Props>
+    <MS>
+      <S N="Name">MSExchangeMitigation</S>
+      <Ref N="RequiredServices" RefId="2" />
+    </MS>
+  </Obj>
+</Objs>

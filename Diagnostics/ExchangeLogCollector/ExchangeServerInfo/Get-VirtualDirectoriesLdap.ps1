@@ -1,4 +1,7 @@
-﻿Function Get-VirtualDirectoriesLdap {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-VirtualDirectoriesLdap {
 
     $authTypeEnum = @"
     namespace AuthMethods

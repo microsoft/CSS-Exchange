@@ -1,4 +1,7 @@
-﻿Function Test-RemoteExecutionOfServers {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList
     )

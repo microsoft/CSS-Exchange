@@ -1,4 +1,8 @@
-﻿. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+
 Function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(
@@ -24,7 +28,7 @@ Function Get-RemoteRegistryValue {
     #>
 
     begin {
-        Write-Verbose "Calling: Get-RemoteRegistryValue"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $registryGetValue = $null
     }
     process {
@@ -40,7 +44,8 @@ Function Get-RemoteRegistryValue {
                 $registryGetValue = $regSubKey.GetValue($GetValue)
                 Write-Verbose "Finished running GetValue()"
 
-                if (-not ([System.String]::IsNullOrWhiteSpace($ValueType))) {
+                if ($null -ne $registryGetValue -and
+                    (-not ([System.String]::IsNullOrWhiteSpace($ValueType)))) {
                     Write-Verbose "Validating ValueType $ValueType"
                     $registryValueType = $regSubKey.GetValueKind($GetValue)
                     Write-Verbose "Finished running GetValueKind()"

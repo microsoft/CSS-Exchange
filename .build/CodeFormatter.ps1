@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = '$filesFailed is being used.')]
+[CmdletBinding()]
 param(
     [Switch]
     $Save
@@ -8,7 +11,7 @@ param(
 
 . $PSScriptRoot\Load-Module.ps1
 
-if (-not (Load-Module -Name PSScriptAnalyzer)) {
+if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.20")) {
     throw "PSScriptAnalyzer module could not be loaded"
 }
 
@@ -24,7 +27,7 @@ $filesFailed = $false
 
 # MD files must NOT have a BOM
 Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
-    $encoding = Get-Encoding $_
+    $encoding = Get-PsOneEncoding $_
     if ($encoding.BOM) {
         Write-Warning "MD file has BOM: $($_.FullName)"
         if ($Save) {
@@ -44,7 +47,7 @@ Get-ChildItem -Path $repoRoot -Include *.md -Recurse | ForEach-Object {
 
 foreach ($file in $scriptFiles) {
     # PS1 files must have a BOM
-    $encoding = Get-Encoding $file
+    $encoding = Get-PsOneEncoding $file
     if (-not $encoding.BOM) {
         Write-Warning "File has no BOM: $file"
         if ($Save) {
@@ -52,6 +55,29 @@ foreach ($file in $scriptFiles) {
                 $content = Get-Content $file
                 Set-Content -Path $file -Value $content -Encoding utf8BOM -Force
                 Write-Warning "Saved $file with BOM."
+            } catch {
+                $filesFailed = $true
+                throw
+            }
+        } else {
+            $filesFailed = $true
+        }
+    }
+
+    #Check for compliance
+    $scriptContent = New-Object 'System.Collections.Generic.List[string]'
+    $scriptContent.AddRange([IO.File]::ReadAllLines($file))
+
+    if (-not ($scriptContent[0].Contains("# Copyright (c) Microsoft Corporation.")) -or
+        -not ($scriptContent[1].Contains("# Licensed under the MIT License."))) {
+
+        Write-Warning "File doesn't have header compliance set: $file"
+        if ($Save) {
+            try {
+                $scriptContent.Insert(0, "")
+                $scriptContent.Insert(0, "# Licensed under the MIT License.")
+                $scriptContent.Insert(0, "# Copyright (c) Microsoft Corporation.")
+                Set-Content -Path $file -Value $scriptContent -Encoding utf8BOM
             } catch {
                 $filesFailed = $true
                 throw
@@ -93,10 +119,27 @@ foreach ($file in $scriptFiles) {
         $filesFailed = $true
     }
 
-    $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1
-    if ($null -ne $analyzerResults) {
+    $maxRetries = 5
+
+    for ($i = 0; $i -lt $maxRetries; $i++) {
+
+        try {
+            $analyzerResults = Invoke-ScriptAnalyzer -Path $file -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -ErrorAction Stop
+            if ($null -ne $analyzerResults) {
+                $filesFailed = $true
+                $analyzerResults | Format-Table -AutoSize
+            }
+            break
+        } catch {
+            Write-Warning "Invoke-ScriptAnalyer failed. Error:"
+            $_.Exception | Format-List | Out-Host
+            Write-Warning "Retrying in 5 seconds."
+            Start-Sleep -Seconds 5
+        }
+    }
+
+    if ($i -eq $maxRetries) {
         $filesFailed = $true
-        $analyzerResults | Format-Table -AutoSize
     }
 }
 

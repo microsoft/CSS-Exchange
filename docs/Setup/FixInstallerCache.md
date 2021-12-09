@@ -1,9 +1,4 @@
----
-title: FixInstallerCache.ps1
-parent: Setup
----
-
-## FixInstallerCache.ps1
+# FixInstallerCache
 
 Download the latest release: [FixInstallerCache.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1)
 

@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-FolderInformation.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-FolderInformation.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
 Function Get-MessageIndexState {
     [CmdletBinding()]
@@ -119,8 +122,8 @@ Function Get-MessageIndexState {
 
             $messageList.Add(
                 (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
-                        -BigFunnelPropNameMapping $extPropMapping `
-                        -DisplayName $displayName)
+                    -BigFunnelPropNameMapping $extPropMapping `
+                    -DisplayName $displayName)
             )
         }
     }
@@ -128,3 +131,4 @@ Function Get-MessageIndexState {
         return $messageList
     }
 }
+

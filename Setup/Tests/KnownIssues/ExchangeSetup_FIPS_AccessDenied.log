@@ -1,0 +1,164 @@
+[03/11/2021 11:42:38.0206] [0] **********************************************
+[03/11/2021 11:42:38.0222] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/11/2021 11:42:38.0222] [0] **********************************************
+[03/11/2021 11:42:38.0237] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/11/2021 11:42:38.0237] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/11/2021 11:42:38.0237] [0] Setup version: 15.1.2106.2.
+[03/11/2021 11:42:38.0237] [0] Logged on user: SOLO\Han.
+[03/11/2021 11:42:38.0284] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/11/2021 11:42:38.0284] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/11/2021 11:42:38.0284] [0] Command Line Parameter Name='sourcedir', Value='G:\'.
+[03/11/2021 11:42:39.0173] [0] RuntimeAssembly was started with the following command: '/IAcceptExchangeServerLicenseTerms /Mode:Upgrade /sourcedir:G:"'.
+[03/11/2021 11:42:39.0189] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/11/2021 11:42:39.0189] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/11/2021 11:42:39.0189] [0] Copying Files...
+[03/11/2021 11:42:39.0204] [0] Starting copy from G:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/11/2021 11:42:43.0619] [0] Finished copy from G:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/11/2021 11:42:43.0619] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[03/11/2021 11:42:43.0619] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/11/2021 11:42:48.0221] [0] Setup is choosing the domain controller to use
+[03/11/2021 11:42:48.0782] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Solo.local
+[03/11/2021 11:42:51.0465] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/11/2021 11:42:51.0465] [0] Setup is choosing a global catalog...
+[03/11/2021 11:42:51.0528] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/11/2021 11:42:51.0886] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/11/2021 11:42:51.0886] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/11/2021 11:42:51.0886] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 11:42:51.0902] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 11:42:51.0949] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/11/2021 11:42:52.0261] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 11:42:52.0479] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/11/2021 11:42:52.0479] [0] The following datacenter roles are unpacked:
+[03/11/2021 11:42:52.0495] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/11/2021 11:42:52.0510] [0] The local server has some Exchange files installed.
+[03/11/2021 11:42:52.0541] [0] Server Name=ExSvr1
+[03/11/2021 11:42:52.0573] [0] Setup will use the path 'G:\' for installing Exchange.
+[03/11/2021 11:42:52.0573] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/11/2021 11:42:52.0573] [0] 'BridgeheadRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] 'ClientAccessRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] 'MailboxRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] 'CafeRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] 'FrontendTransportRole' is installed on the server object.
+[03/11/2021 11:42:52.0573] [0] The backup copy of the install path is 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/11/2021 11:42:52.0588] [0] The backup copy of the previously installed version is '15.1.1713.5'.
+[03/11/2021 11:42:52.0588] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/11/2021 11:43:02.0930] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/11/2021 11:43:02.0930] [0] Active Directory Initialization status : 'True'.
+[03/11/2021 11:43:02.0930] [0] Schema Update Required Status : 'False'.
+[03/11/2021 11:43:02.0930] [0] Organization Configuration Update Required Status : 'False'.
+[03/11/2021 11:43:02.0930] [0] Domain Configuration Update Required Status : 'False'.
+[03/11/2021 11:43:02.0930] [0] The locally installed version is 15.1.2106.2.
+[03/11/2021 11:43:02.0930] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/11/2021 11:43:03.0008] [0] Setup is determining what organization-level operations to perform.
+[03/11/2021 11:43:03.0008] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/11/2021 11:43:03.0008] [0] The installed MSI is current for this version of Setup.
+[03/11/2021 11:43:03.0024] [0] RootDataHandler has 1 DataHandlers
+[03/11/2021 11:43:03.0024] [0]      Languages
+[03/11/2021 11:43:03.0024] [0]      Management tools
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Transport service
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Client Access service
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Unified Messaging service
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Mailbox service
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Front End Transport service
+[03/11/2021 11:43:03.0024] [0]      Mailbox role: Client Access Front End service
+[03/11/2021 11:43:03.0040] [0] Validating options for the 7 requested roles
+[03/11/2021 11:43:03.0040] [0] UpgradeModeDataHandler has 11 handlers and 11 work units
+[03/11/2021 11:43:03.0102] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/11/2021 11:43:03.0429] [0] **************
+[03/11/2021 11:43:11.0619] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:12] [Duration:00:00:00]
+[03/11/2021 12:06:22.0052] [2] [WARNING] The following service restart is required for the change(s) to take effect : MSExchangeTransport
+[03/11/2021 12:06:22.0052] [2] Ending processing enable-transportagent
+[03/11/2021 12:06:22.0068] [1] Executing:
+            # Apply XML Transforms to FIPS configuration file if schema changed
+            Write-ExchangeSetupLog -Info "Applying XML Transforms to FIPS configuration";
+
+            $FipsBinPath = [System.IO.Path]::Combine($RoleInstallPath, "FIP-FS\bin");
+            [Reflection.Assembly]::LoadFile([System.IO.Path]::Combine($FipsBinPath, "FSCConfigurationServerInterfaces.dll"));
+            [Reflection.Assembly]::LoadFile([System.IO.Path]::Combine($FipsBinPath, "FSCConfigSupport.dll"));
+
+            $configServer = New-Object Microsoft.FSC.Configuration.ConfigManagerClass;
+            if(! $configServer)
+            {
+              Write-ExchangeSetupLog -Error "Configuration Server object could not be created.";
+            }
+            else
+            {
+              try
+              {
+                $configServer.Upgrade();
+                Write-ExchangeSetupLog -Info "Configuration.xml was upgraded successfully";
+              }
+              catch
+              {
+                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessfull, $_";
+              }
+              # Stop the process if it is still running
+              # We silently continue because if process has already exited, Stop-Process will throw error
+              # Error is non-terminating and so can be suppressed
+              Stop-Process -processname FSCConfigurationServer -Force -ErrorAction SilentlyContinue;
+            }
+
+[03/11/2021 12:06:22.0084] [2] Beginning processing Write-ExchangeSetupLog
+[03/11/2021 12:06:22.0084] [2] Applying XML Transforms to FIPS configuration
+[03/11/2021 12:06:22.0084] [2] Ending processing Write-ExchangeSetupLog
+[03/11/2021 12:06:22.0926] [2] Beginning processing Write-ExchangeSetupLog
+[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [2] Ending processing Write-ExchangeSetupLog
+[03/11/2021 12:06:22.0942] [1] The following 1 error(s) occurred during task execution:
+[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: System.Exception: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/11/2021 12:06:22.0942] [1] [ERROR] The following error was generated when "$error.Clear();
+            # Apply XML Transforms to FIPS configuration file if schema changed
+            Write-ExchangeSetupLog -Info "Applying XML Transforms to FIPS configuration";
+
+            $FipsBinPath = [System.IO.Path]::Combine($RoleInstallPath, "FIP-FS\bin");
+            [Reflection.Assembly]::LoadFile([System.IO.Path]::Combine($FipsBinPath, "FSCConfigurationServerInterfaces.dll"));
+            [Reflection.Assembly]::LoadFile([System.IO.Path]::Combine($FipsBinPath, "FSCConfigSupport.dll"));
+
+            $configServer = New-Object Microsoft.FSC.Configuration.ConfigManagerClass;
+            if(! $configServer)
+            {
+              Write-ExchangeSetupLog -Error "Configuration Server object could not be created.";
+            }
+            else
+            {
+              try
+              {
+                $configServer.Upgrade();
+                Write-ExchangeSetupLog -Info "Configuration.xml was upgraded successfully";
+              }
+              catch
+              {
+                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessfull, $_";
+              }
+              # Stop the process if it is still running
+              # We silently continue because if process has already exited, Stop-Process will throw error
+              # Error is non-terminating and so can be suppressed
+              Stop-Process -processname FSCConfigurationServer -Force -ErrorAction SilentlyContinue;
+            }
+          " was run: "System.Exception: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/11/2021 12:06:22.0942] [1] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [1] [ERROR-REFERENCE] Id=BridgeheadComponent___9FAA17C4-73D7-4E6D-9012-6274971434D5 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/11/2021 12:06:22.0957] [1] Setup is stopping now because of one or more critical errors.
+[03/11/2021 12:06:22.0957] [1] Finished executing component tasks.
+[03/11/2021 12:06:22.0988] [1] Ending processing Install-BridgeheadRole
+[03/11/2021 12:06:23.0020] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/11/2021 12:06:23.0020] [0] CurrentResult launcherbase.maincore:90: 1
+[03/11/2021 12:06:23.0020] [0] CurrentResult console.startmain:52: 1
+[03/11/2021 12:06:23.0020] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/11/2021 12:06:23.0020] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/11/2021 12:06:23.0020] [0] CurrentResult main.run:235: 1
+[03/11/2021 12:06:23.0020] [0] CurrentResult setupbase.maincore:396: 1
+[03/11/2021 12:06:23.0020] [0] End of Setup
+[03/11/2021 12:06:23.0020] [0] **********************************************

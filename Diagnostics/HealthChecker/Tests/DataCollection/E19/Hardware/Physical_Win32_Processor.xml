@@ -1,0 +1,190 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_Processor</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_Processor</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalDevice</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_Processor</T>
+      <T>System.Management.ManagementObject#CIM_Processor</T>
+      <T>System.Management.ManagementObject#CIM_LogicalDevice</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_Processor.DeviceID="CPU0"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_Processor</S>
+      <S N="__SUPERCLASS">CIM_Processor</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_Processor.DeviceID="CPU0"</S>
+      <I32 N="__PROPERTY_COUNT">57</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_Processor</S>
+          <S>CIM_LogicalDevice</S>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_Processor.DeviceID="CPU0"</S>
+      <U16 N="AddressWidth">64</U16>
+      <U16 N="Architecture">9</U16>
+      <S N="AssetTag">To Be Filled By O.E.M.</S>
+      <U16 N="Availability">3</U16>
+      <S N="Caption">Intel64 Family 6 Model 45 Stepping 7</S>
+      <U32 N="Characteristics">4</U32>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <U16 N="CpuStatus">1</U16>
+      <S N="CreationClassName">Win32_Processor</S>
+      <U32 N="CurrentClockSpeed">2201</U32>
+      <U16 N="CurrentVoltage">10</U16>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Intel64 Family 6 Model 45 Stepping 7</S>
+      <S N="DeviceID">CPU0</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <U32 N="ExtClock">100</U32>
+      <U16 N="Family">179</U16>
+      <Nil N="InstallDate" />
+      <U32 N="L2CacheSize">1536</U32>
+      <Nil N="L2CacheSpeed" />
+      <U32 N="L3CacheSize">15360</U32>
+      <U32 N="L3CacheSpeed">0</U32>
+      <Nil N="LastErrorCode" />
+      <U16 N="Level">6</U16>
+      <U16 N="LoadPercentage">2</U16>
+      <S N="Manufacturer">GenuineIntel</S>
+      <U32 N="MaxClockSpeed">2201</U32>
+      <S N="Name">Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz</S>
+      <U32 N="NumberOfCores">6</U32>
+      <U32 N="NumberOfEnabledCore">6</U32>
+      <U32 N="NumberOfLogicalProcessors">12</U32>
+      <Nil N="OtherFamilyDescription" />
+      <S N="PartNumber">To Be Filled By O.E.M.</S>
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <S N="ProcessorId">0000000000000000</S>
+      <U16 N="ProcessorType">3</U16>
+      <U16 N="Revision">11527</U16>
+      <S N="Role">CPU</S>
+      <B N="SecondLevelAddressTranslationExtensions">false</B>
+      <S N="SerialNumber">To Be Filled By O.E.M.</S>
+      <S N="SocketDesignation">Socket-B2 1356</S>
+      <S N="Status">OK</S>
+      <U16 N="StatusInfo">3</U16>
+      <Nil N="Stepping" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">SOLO-E19A</S>
+      <U32 N="ThreadCount">12</U32>
+      <Nil N="UniqueId" />
+      <U16 N="UpgradeMethod">37</U16>
+      <S N="Version"></S>
+      <B N="VirtualizationFirmwareEnabled">false</B>
+      <B N="VMMonitorModeExtensions">false</B>
+      <Nil N="VoltageCaps" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E19A\root\cimv2:Win32_Processor.DeviceID="CPU1"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_Processor</S>
+      <S N="__SUPERCLASS">CIM_Processor</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_Processor.DeviceID="CPU1"</S>
+      <I32 N="__PROPERTY_COUNT">57</I32>
+      <Obj N="__DERIVATION" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_Processor</S>
+          <S>CIM_LogicalDevice</S>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2:Win32_Processor.DeviceID="CPU1"</S>
+      <U16 N="AddressWidth">64</U16>
+      <U16 N="Architecture">9</U16>
+      <S N="AssetTag">To Be Filled By O.E.M.</S>
+      <U16 N="Availability">3</U16>
+      <S N="Caption">Intel64 Family 6 Model 45 Stepping 7</S>
+      <U32 N="Characteristics">4</U32>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <U16 N="CpuStatus">1</U16>
+      <S N="CreationClassName">Win32_Processor</S>
+      <U32 N="CurrentClockSpeed">2201</U32>
+      <U16 N="CurrentVoltage">10</U16>
+      <U16 N="DataWidth">64</U16>
+      <S N="Description">Intel64 Family 6 Model 45 Stepping 7</S>
+      <S N="DeviceID">CPU1</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <U32 N="ExtClock">100</U32>
+      <U16 N="Family">179</U16>
+      <Nil N="InstallDate" />
+      <U32 N="L2CacheSize">1536</U32>
+      <Nil N="L2CacheSpeed" />
+      <U32 N="L3CacheSize">15360</U32>
+      <U32 N="L3CacheSpeed">0</U32>
+      <Nil N="LastErrorCode" />
+      <U16 N="Level">6</U16>
+      <U16 N="LoadPercentage">2</U16>
+      <S N="Manufacturer">GenuineIntel</S>
+      <U32 N="MaxClockSpeed">2201</U32>
+      <S N="Name">Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz</S>
+      <U32 N="NumberOfCores">6</U32>
+      <U32 N="NumberOfEnabledCore">6</U32>
+      <U32 N="NumberOfLogicalProcessors">12</U32>
+      <Nil N="OtherFamilyDescription" />
+      <S N="PartNumber">To Be Filled By O.E.M.</S>
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <S N="ProcessorId">0000000000000000</S>
+      <U16 N="ProcessorType">3</U16>
+      <U16 N="Revision">11527</U16>
+      <S N="Role">CPU</S>
+      <B N="SecondLevelAddressTranslationExtensions">false</B>
+      <S N="SerialNumber">To Be Filled By O.E.M.</S>
+      <S N="SocketDesignation">Socket-B2 1356</S>
+      <S N="Status">OK</S>
+      <U16 N="StatusInfo">3</U16>
+      <Nil N="Stepping" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">SOLO-E19A</S>
+      <U32 N="ThreadCount">12</U32>
+      <Nil N="UniqueId" />
+      <U16 N="UpgradeMethod">37</U16>
+      <S N="Version"></S>
+      <B N="VirtualizationFirmwareEnabled">false</B>
+      <B N="VMMonitorModeExtensions">false</B>
+      <Nil N="VoltageCaps" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+</Objs>

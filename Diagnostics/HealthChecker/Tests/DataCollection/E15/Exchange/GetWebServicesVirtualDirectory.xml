@@ -1,0 +1,280 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ADWebServicesVirtualDirectory</T>
+      <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ADExchangeServiceVirtualDirectory</T>
+      <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ExchangeVirtualDirectory</T>
+      <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ADVirtualDirectory</T>
+      <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ADConfigurationObject</T>
+      <T>Microsoft.Exchange.Data.Directory.ADObject</T>
+      <T>Microsoft.Exchange.Data.Directory.ADRawEntry</T>
+      <T>Microsoft.Exchange.Data.ConfigurableObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>SOLO-E15A\EWS (Default Web Site)</ToString>
+    <Props>
+      <Nil N="CertificateAuthentication" />
+      <Nil N="InternalNLBBypassUrl" />
+      <Obj N="GzipLevel" RefId="1">
+        <TN RefId="1">
+          <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.GzipLevel</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Low</ToString>
+        <I32>1</I32>
+      </Obj>
+      <B N="MRSProxyEnabled">false</B>
+      <S N="Name">EWS (Default Web Site)</S>
+      <Obj N="InternalAuthenticationMethods" RefId="2">
+        <TN RefId="2">
+          <T>Microsoft.Exchange.Data.Directory.ADMultiValuedProperty`1[[Microsoft.Exchange.Data.Directory.SystemConfiguration.AuthenticationMethod, Microsoft.Exchange.Data.Directory, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+          <T>Microsoft.Exchange.Data.MultiValuedProperty`1[[Microsoft.Exchange.Data.Directory.SystemConfiguration.AuthenticationMethod, Microsoft.Exchange.Data.Directory, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+          <T>Microsoft.Exchange.Data.MultiValuedPropertyBase</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="3">
+            <TN RefId="3">
+              <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.AuthenticationMethod</T>
+              <T>System.Enum</T>
+              <T>System.ValueType</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>Ntlm</ToString>
+            <I32>2</I32>
+          </Obj>
+          <Obj RefId="4">
+            <TNRef RefId="3" />
+            <ToString>WindowsIntegrated</ToString>
+            <I32>4</I32>
+          </Obj>
+          <Obj RefId="5">
+            <TNRef RefId="3" />
+            <ToString>WSSecurity</ToString>
+            <I32>7</I32>
+          </Obj>
+          <Obj RefId="6">
+            <TNRef RefId="3" />
+            <ToString>OAuth</ToString>
+            <I32>10</I32>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="ExternalAuthenticationMethods" RefId="7">
+        <TNRef RefId="2" />
+        <LST>
+          <Obj RefId="8">
+            <TNRef RefId="3" />
+            <ToString>Ntlm</ToString>
+            <I32>2</I32>
+          </Obj>
+          <Obj RefId="9">
+            <TNRef RefId="3" />
+            <ToString>WindowsIntegrated</ToString>
+            <I32>4</I32>
+          </Obj>
+          <Obj RefId="10">
+            <TNRef RefId="3" />
+            <ToString>WSSecurity</ToString>
+            <I32>7</I32>
+          </Obj>
+          <Obj RefId="11">
+            <TNRef RefId="3" />
+            <ToString>OAuth</ToString>
+            <I32>10</I32>
+          </Obj>
+        </LST>
+      </Obj>
+      <Nil N="LiveIdNegotiateAuthentication" />
+      <B N="WSSecurityAuthentication">true</B>
+      <B N="LiveIdBasicAuthentication">false</B>
+      <B N="BasicAuthentication">false</B>
+      <B N="DigestAuthentication">false</B>
+      <B N="WindowsAuthentication">true</B>
+      <B N="OAuthAuthentication">true</B>
+      <B N="AdfsAuthentication">false</B>
+      <S N="MetabasePath">IIS://Solo-E15A.Solo.net/W3SVC/1/ROOT/EWS</S>
+      <S N="Path">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\EWS</S>
+      <Obj N="ExtendedProtectionTokenChecking" RefId="12">
+        <TN RefId="4">
+          <T>Microsoft.Exchange.Data.Directory.SystemConfiguration.ExtendedProtectionTokenCheckingMode</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>None</ToString>
+        <I32>0</I32>
+      </Obj>
+      <Obj N="ExtendedProtectionFlags" RefId="13">
+        <TN RefId="5">
+          <T>Microsoft.Exchange.Data.MultiValuedProperty`1[[Microsoft.Exchange.Data.Directory.SystemConfiguration.ExtendedProtectionFlag, Microsoft.Exchange.Data.Directory, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+          <T>Microsoft.Exchange.Data.MultiValuedPropertyBase</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="ExtendedProtectionSPNList" RefId="14">
+        <TN RefId="6">
+          <T>Microsoft.Exchange.Data.MultiValuedProperty`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>Microsoft.Exchange.Data.MultiValuedPropertyBase</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="AdminDisplayVersion" RefId="15">
+        <TN RefId="7">
+          <T>Microsoft.Exchange.Data.ServerVersion</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Version 15.0 (Build 1497.2)</ToString>
+        <Props>
+          <I32 N="Major">15</I32>
+          <I32 N="Minor">0</I32>
+          <I32 N="Build">1497</I32>
+          <I32 N="Revision">2</I32>
+          <Nil N="FilePatchLevelDescription" />
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAFtNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1BQEAAAAlTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuU2VydmVyVmVyc2lvbgIAAAAHdmVyc2lvbhlmaWxlUGF0Y2hMZXZlbERlc2NyaXB0aW9uAwEOU3lzdGVtLlZlcnNpb24CAAAACQMAAAAKBAMAAAAOU3lzdGVtLlZlcnNpb24EAAAABl9NYWpvcgZfTWlub3IGX0J1aWxkCV9SZXZpc2lvbgAAAAAICAgIDwAAAAAAAADZBQAAAgAAAAs=</BA>
+        </MS>
+      </Obj>
+      <Obj N="Server" RefId="16">
+        <TN RefId="8">
+          <T>Microsoft.Exchange.Data.Directory.ADObjectId</T>
+          <T>Microsoft.Exchange.Data.ObjectId</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>SOLO-E15A</ToString>
+        <Props>
+          <Nil N="OrgHierarchyToIgnore" />
+          <B N="IsDeleted">false</B>
+          <S N="Rdn">CN=SOLO-E15A</S>
+          <S N="Parent">Servers</S>
+          <I32 N="Depth">9</I32>
+          <S N="DistinguishedName">CN=SOLO-E15A,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net</S>
+          <B N="IsRelativeDn">false</B>
+          <S N="DomainId">Solo.net</S>
+          <G N="PartitionGuid">00000000-0000-0000-0000-000000000000</G>
+          <S N="PartitionFQDN">Solo.net</S>
+          <G N="ObjectGuid">00000000-0000-0000-0000-000000000000</G>
+          <S N="Name">SOLO-E15A</S>
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUBAAAALE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRE9iamVjdElkCAAAAA1wYXJ0aXRpb25HdWlkDXBhcnRpdGlvbkZxZG4Kb2JqZWN0R3VpZBFkaXN0aW5ndWlzaGVkTmFtZRhzZWN1cml0eUlkZW50aWZpZXJTdHJpbmcFZGVwdGgLdG9TdHJpbmdWYWwZZXhlY3V0aW5nVXNlck9yZ2FuaXphdGlvbgMBAwEBAAEEC1N5c3RlbS5HdWlkC1N5c3RlbS5HdWlkCDBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuT3JnYW5pemF0aW9uSWQCAAAAAgAAAAT9////C1N5c3RlbS5HdWlkCwAAAAJfYQJfYgJfYwJfZAJfZQJfZgJfZwJfaAJfaQJfagJfawAAAAAAAAAAAAAACAcHAgICAgICAgIAAAAAAAAAAAAAAAAAAAAABgQAAAAIU29sby5uZXQB+/////3///8AAAAAAAAAAAAAAAAAAAAABgYAAACwAUNOPVNPTE8tRTE1QSxDTj1TZXJ2ZXJzLENOPUV4Y2hhbmdlIEFkbWluaXN0cmF0aXZlIEdyb3VwIChGWURJQk9IRjIzU1BETFQpLENOPUFkbWluaXN0cmF0aXZlIEdyb3VwcyxDTj1Tb2xvT1JHLENOPU1pY3Jvc29mdCBFeGNoYW5nZSxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLERDPVNvbG8sREM9bmV0CgkAAAAGBwAAAAlTT0xPLUUxNUEKCw==</BA>
+        </MS>
+      </Obj>
+      <URI N="InternalUrl">https://solo-e15a.solo.net/EWS/Exchange.asmx</URI>
+      <Nil N="ExternalUrl" />
+      <S N="AdminDisplayName"></S>
+      <Obj N="ExchangeVersion" RefId="17">
+        <TN RefId="9">
+          <T>Microsoft.Exchange.Data.ExchangeObjectVersion</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>0.10 (14.0.100.0)</ToString>
+        <Props>
+          <S N="NextMajorVersion">1.0 (0.0.0.0)</S>
+          <S N="NextMinorVersion">0.11 (0.0.0.0)</S>
+          <By N="Major">0</By>
+          <By N="Minor">10</By>
+          <S N="ExchangeBuild">14.0.100.0</S>
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAFtNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1BQEAAAAtTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRXhjaGFuZ2VPYmplY3RWZXJzaW9uAwAAAAVNYWpvcgVNaW5vcg1FeGNoYW5nZUJ1aWxkAAAEAgIlTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRXhjaGFuZ2VCdWlsZAIAAAACAAAAAAoF/f///yVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5FeGNoYW5nZUJ1aWxkBAAAAAVNYWpvcgVNaW5vcgVCdWlsZA1CdWlsZFJldmlzaW9uAAAAAAICDg4CAAAADgBkAAAACw==</BA>
+        </MS>
+      </Obj>
+      <S N="DistinguishedName">CN=EWS (Default Web Site),CN=HTTP,CN=Protocols,CN=SOLO-E15A,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net</S>
+      <Obj N="Identity" RefId="18">
+        <TNRef RefId="8" />
+        <ToString>SOLO-E15A\EWS (Default Web Site)</ToString>
+        <Props>
+          <Nil N="OrgHierarchyToIgnore" />
+          <B N="IsDeleted">false</B>
+          <S N="Rdn">CN=EWS (Default Web Site)</S>
+          <S N="Parent">HTTP</S>
+          <I32 N="Depth">12</I32>
+          <S N="DistinguishedName">CN=EWS (Default Web Site),CN=HTTP,CN=Protocols,CN=SOLO-E15A,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net</S>
+          <B N="IsRelativeDn">false</B>
+          <S N="DomainId">Solo.net</S>
+          <G N="PartitionGuid">59ce2f71-eaa2-4ddf-a4fa-f25069d0b324</G>
+          <S N="PartitionFQDN">Solo.net</S>
+          <G N="ObjectGuid">34edc2fc-87a3-41f7-a392-046a3a4c2c7f</G>
+          <S N="Name">EWS (Default Web Site)</S>
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUBAAAALE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRE9iamVjdElkCAAAAA1wYXJ0aXRpb25HdWlkDXBhcnRpdGlvbkZxZG4Kb2JqZWN0R3VpZBFkaXN0aW5ndWlzaGVkTmFtZRhzZWN1cml0eUlkZW50aWZpZXJTdHJpbmcFZGVwdGgLdG9TdHJpbmdWYWwZZXhlY3V0aW5nVXNlck9yZ2FuaXphdGlvbgMBAwEBAAEEC1N5c3RlbS5HdWlkC1N5c3RlbS5HdWlkCDBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuT3JnYW5pemF0aW9uSWQCAAAAAgAAAAT9////C1N5c3RlbS5HdWlkCwAAAAJfYQJfYgJfYwJfZAJfZQJfZgJfZwJfaAJfaQJfagJfawAAAAAAAAAAAAAACAcHAgICAgICAgJxL85ZourfTaT68lBp0LMkBgQAAAAIU29sby5uZXQB+/////3////8wu00o4f3QaOSBGo6TCx/BgYAAADfAUNOPUVXUyAoRGVmYXVsdCBXZWIgU2l0ZSksQ049SFRUUCxDTj1Qcm90b2NvbHMsQ049U09MTy1FMTVBLENOPVNlcnZlcnMsQ049RXhjaGFuZ2UgQWRtaW5pc3RyYXRpdmUgR3JvdXAgKEZZRElCT0hGMjNTUERMVCksQ049QWRtaW5pc3RyYXRpdmUgR3JvdXBzLENOPVNvbG9PUkcsQ049TWljcm9zb2Z0IEV4Y2hhbmdlLENOPVNlcnZpY2VzLENOPUNvbmZpZ3VyYXRpb24sREM9U29sbyxEQz1uZXQKDAAAAAYHAAAAIFNPTE8tRTE1QVxFV1MgKERlZmF1bHQgV2ViIFNpdGUpCQgAAAAFCAAAADBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuT3JnYW5pemF0aW9uSWQEAAAAB29yZ1VuaXQKY29uZmlnVW5pdAtwYXJ0aXRpb25JZB9leHRlcm5hbERpcmVjdG9yeU9yZ2FuaXphdGlvbklkBAQEAyxNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURPYmplY3RJZAIAAAAsTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFET2JqZWN0SWQCAAAALU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5QYXJ0aXRpb25JZAIAAABtU3lzdGVtLk51bGxhYmxlYDFbW1N5c3RlbS5HdWlkLCBtc2NvcmxpYiwgVmVyc2lvbj00LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODldXQIAAAAKCgkJAAAACgUJAAAALU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5QYXJ0aXRpb25JZAIAAAAKZm9yZXN0RlFEThFwYXJ0aXRpb25PYmplY3RJZAEDbVN5c3RlbS5OdWxsYWJsZWAxW1tTeXN0ZW0uR3VpZCwgbXNjb3JsaWIsIFZlcnNpb249NC4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj1iNzdhNWM1NjE5MzRlMDg5XV0CAAAABgoAAAAIU29sby5uZXQKCw==</BA>
+        </MS>
+      </Obj>
+      <G N="Guid">34edc2fc-87a3-41f7-a392-046a3a4c2c7f</G>
+      <Obj N="ObjectCategory" RefId="19">
+        <TNRef RefId="8" />
+        <ToString>Solo.net/Configuration/Schema/ms-Exch-Web-Services-Virtual-Directory</ToString>
+        <Props>
+          <Nil N="OrgHierarchyToIgnore" />
+          <B N="IsDeleted">false</B>
+          <S N="Rdn">CN=ms-Exch-Web-Services-Virtual-Directory</S>
+          <S N="Parent">Solo.net/Configuration/Schema</S>
+          <I32 N="Depth">4</I32>
+          <S N="DistinguishedName">CN=ms-Exch-Web-Services-Virtual-Directory,CN=Schema,CN=Configuration,DC=Solo,DC=net</S>
+          <B N="IsRelativeDn">false</B>
+          <S N="DomainId">Solo.net</S>
+          <G N="PartitionGuid">59ce2f71-eaa2-4ddf-a4fa-f25069d0b324</G>
+          <S N="PartitionFQDN">Solo.net</S>
+          <G N="ObjectGuid">0023babb-b769-433c-b90e-51585ece97aa</G>
+          <S N="Name">ms-Exch-Web-Services-Virtual-Directory</S>
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUBAAAALE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRE9iamVjdElkCAAAAA1wYXJ0aXRpb25HdWlkDXBhcnRpdGlvbkZxZG4Kb2JqZWN0R3VpZBFkaXN0aW5ndWlzaGVkTmFtZRhzZWN1cml0eUlkZW50aWZpZXJTdHJpbmcFZGVwdGgLdG9TdHJpbmdWYWwZZXhlY3V0aW5nVXNlck9yZ2FuaXphdGlvbgMBAwEBAAEEC1N5c3RlbS5HdWlkC1N5c3RlbS5HdWlkCDBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuT3JnYW5pemF0aW9uSWQCAAAAAgAAAAT9////C1N5c3RlbS5HdWlkCwAAAAJfYQJfYgJfYwJfZAJfZQJfZgJfZwJfaAJfaQJfagJfawAAAAAAAAAAAAAACAcHAgICAgICAgJxL85ZourfTaT68lBp0LMkBgQAAAAIU29sby5uZXQB+/////3///+7uiMAabc8Q7kOUVhezpeqBgYAAABTQ049bXMtRXhjaC1XZWItU2VydmljZXMtVmlydHVhbC1EaXJlY3RvcnksQ049U2NoZW1hLENOPUNvbmZpZ3VyYXRpb24sREM9U29sbyxEQz1uZXQKBAAAAAYHAAAARFNvbG8ubmV0L0NvbmZpZ3VyYXRpb24vU2NoZW1hL21zLUV4Y2gtV2ViLVNlcnZpY2VzLVZpcnR1YWwtRGlyZWN0b3J5CQgAAAAFCAAAADBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuT3JnYW5pemF0aW9uSWQEAAAAB29yZ1VuaXQKY29uZmlnVW5pdAtwYXJ0aXRpb25JZB9leHRlcm5hbERpcmVjdG9yeU9yZ2FuaXphdGlvbklkBAQEAyxNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURPYmplY3RJZAIAAAAsTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFET2JqZWN0SWQCAAAALU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5QYXJ0aXRpb25JZAIAAABtU3lzdGVtLk51bGxhYmxlYDFbW1N5c3RlbS5HdWlkLCBtc2NvcmxpYiwgVmVyc2lvbj00LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODldXQIAAAAKCgkJAAAACgUJAAAALU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5QYXJ0aXRpb25JZAIAAAAKZm9yZXN0RlFEThFwYXJ0aXRpb25PYmplY3RJZAEDbVN5c3RlbS5OdWxsYWJsZWAxW1tTeXN0ZW0uR3VpZCwgbXNjb3JsaWIsIFZlcnNpb249NC4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj1iNzdhNWM1NjE5MzRlMDg5XV0CAAAABgoAAAAIU29sby5uZXQKCw==</BA>
+        </MS>
+      </Obj>
+      <Obj N="ObjectClass" RefId="20">
+        <TNRef RefId="6" />
+        <LST>
+          <S>top</S>
+          <S>msExchVirtualDirectory</S>
+          <S>msExchWebServicesVirtualDirectory</S>
+        </LST>
+      </Obj>
+      <DT N="WhenChanged">2021-06-08T09:02:02-07:00</DT>
+      <DT N="WhenCreated">2021-06-08T09:02:02-07:00</DT>
+      <DT N="WhenChangedUTC">2021-06-08T16:02:02Z</DT>
+      <DT N="WhenCreatedUTC">2021-06-08T16:02:02Z</DT>
+      <Obj N="OrganizationId" RefId="21">
+        <TN RefId="10">
+          <T>Microsoft.Exchange.Data.Directory.OrganizationId</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString />
+        <Props>
+          <Nil N="OrganizationalUnit" />
+          <Nil N="ConfigurationUnit" />
+          <S N="IdForEventLog"></S>
+        </Props>
+        <MS>
+          <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUBAAAAME1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5Pcmdhbml6YXRpb25JZAQAAAAHb3JnVW5pdApjb25maWdVbml0C3BhcnRpdGlvbklkH2V4dGVybmFsRGlyZWN0b3J5T3JnYW5pemF0aW9uSWQEBAQDLE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRE9iamVjdElkAgAAACxNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURPYmplY3RJZAIAAAAtTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LlBhcnRpdGlvbklkAgAAAG1TeXN0ZW0uTnVsbGFibGVgMVtbU3lzdGVtLkd1aWQsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAgAAAAoKCgoL</BA>
+        </MS>
+      </Obj>
+      <Ref N="Id" RefId="18" />
+      <S N="OriginatingServer">Solo-DC1.Solo.net</S>
+      <B N="IsValid">true</B>
+      <Obj N="ObjectState" RefId="22">
+        <TN RefId="11">
+          <T>Microsoft.Exchange.Data.ObjectState</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Changed</ToString>
+        <I32>2</I32>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="PSComputerName">solo-e15a.solo.net</S>
+      <G N="RunspaceId">a0950d44-7a4b-4ad7-83da-e9a66d8f8e62</G>
+      <B N="PSShowComputerName">false</B>
+      <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUBAAAAU01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLkFEV2ViU2VydmljZXNWaXJ0dWFsRGlyZWN0b3J5FwAAACo8Q2VydGlmaWNhdGVBdXRoZW50aWNhdGlvbj5rX19CYWNraW5nRmllbGQLcHJvcGVydHlCYWc1QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K2Jhc2ljQXV0aGVudGljYXRpb242QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K2RpZ2VzdEF1dGhlbnRpY2F0aW9uN0FERXhjaGFuZ2VTZXJ2aWNlVmlydHVhbERpcmVjdG9yeSt3aW5kb3dzQXV0aGVudGljYXRpb247QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K2xpdmVJZEJhc2ljQXV0aGVudGljYXRpb246QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K3dzU2VjdXJpdHlBdXRoZW50aWNhdGlvbj9BREV4Y2hhbmdlU2VydmljZVZpcnR1YWxEaXJlY3RvcnkrbGl2ZUlkTmVnb3RpYXRlQXV0aGVudGljYXRpb241QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K29BdXRoQXV0aGVudGljYXRpb240QURFeGNoYW5nZVNlcnZpY2VWaXJ0dWFsRGlyZWN0b3J5K2FkZnNBdXRoZW50aWNhdGlvbi1BREV4Y2hhbmdlU2VydmljZVZpcnR1YWxEaXJlY3RvcnkrcHJvcGVydHlCYWcdRXhjaGFuZ2VWaXJ0dWFsRGlyZWN0b3J5K3BhdGg6RXhjaGFuZ2VWaXJ0dWFsRGlyZWN0b3J5KzxBRFByb3BlcnRpZXNPbmx5PmtfX0JhY2tpbmdGaWVsZCRFeGNoYW5nZVZpcnR1YWxEaXJlY3RvcnkrcHJvcGVydHlCYWceQURWaXJ0dWFsRGlyZWN0b3J5K3Byb3BlcnR5QmFnIUFEQ29uZmlndXJhdGlvbk9iamVjdCtwcm9wZXJ0eUJhZxRBRE9iamVjdCtwcm9wZXJ0eUJhZyxBRFJhd0VudHJ5KzxNc2VydlByb3BlcnR5QmFnPmtfX0JhY2tpbmdGaWVsZCpBRFJhd0VudHJ5KzxNYnhQcm9wZXJ0eUJhZz5rX19CYWNraW5nRmllbGQWQURSYXdFbnRyeStwcm9wZXJ0eUJhZyxDb25maWd1cmFibGVPYmplY3Qrc2VyaWFsaXplckFzc2VtYmx5VmVyc2lvbiZDb25maWd1cmFibGVPYmplY3QraW5zdGFudGlhdGlvbkVycm9ycx5Db25maWd1cmFibGVPYmplY3QrcHJvcGVydHlCYWcDBAMDAwMDAwMDBAEABAQEBAQEBAMDBHBTeXN0ZW0uTnVsbGFibGVgMVtbU3lzdGVtLkJvb2xlYW4sIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnAgAAAA5TeXN0ZW0uQm9vbGVhbg5TeXN0ZW0uQm9vbGVhbg5TeXN0ZW0uQm9vbGVhbg5TeXN0ZW0uQm9vbGVhbg5TeXN0ZW0uQm9vbGVhbnBTeXN0ZW0uTnVsbGFibGVgMVtbU3lzdGVtLkJvb2xlYW4sIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dDlN5c3RlbS5Cb29sZWFuDlN5c3RlbS5Cb29sZWFuL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnAgAAAAEvTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFEUHJvcGVydHlCYWcCAAAAL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnAgAAAC9NaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURQcm9wZXJ0eUJhZwIAAAAvTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFEUHJvcGVydHlCYWcCAAAAL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnAgAAAC9NaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURQcm9wZXJ0eUJhZwIAAAAvTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFEUHJvcGVydHlCYWcCAAAADlN5c3RlbS5WZXJzaW9uqQFTeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5MaXN0YDFbW01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLlZhbGlkYXRpb25FcnJvciwgTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEsIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNV1dL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnAgAAAAIAAAAKCQMAAAAIAQAIAQAIAQEIAQAIAQEKCAEBCAEACQMAAAAGBAAAAEVDOlxQcm9ncmFtIEZpbGVzXE1pY3Jvc29mdFxFeGNoYW5nZSBTZXJ2ZXJcVjE1XEZyb250RW5kXEh0dHBQcm94eVxFV1MACQMAAAAJAwAAAAkDAAAACQMAAAAKCgkDAAAACQYAAAAJBwAAAAkDAAAADAkAAABbTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEsIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQUDAAAAL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5QmFnBQAAABRQcm9wZXJ0eUJhZytyZWFkT25seRtQcm9wZXJ0eUJhZytzdG9yZVZhbHVlc09ubHklUHJvcGVydHlCYWcrc2VyaWFsaXplckFzc2VtYmx5VmVyc2lvbiNQcm9wZXJ0eUJhZytzZXJpYWxpemVkQ3VycmVudFZhbHVlcyRQcm9wZXJ0eUJhZytzZXJpYWxpemVkT3JpZ2luYWxWYWx1ZXMAAAMEBAEBDlN5c3RlbS5WZXJzaW9uL01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLlByb3BlcnR5QmFnK1ZhbHVlUGFpcltdCQAAAC9NaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5Qcm9wZXJ0eUJhZytWYWx1ZVBhaXJbXQkAAAACAAAAAAAJBgAAAAkLAAAACQwAAAAEBgAAAA5TeXN0ZW0uVmVyc2lvbgQAAAAGX01ham9yBl9NaW5vcgZfQnVpbGQJX1JldmlzaW9uAAAAAAgICAgPAAAAAAAAAAAAAAAAAAAABAcAAACpAVN5c3RlbS5Db2xsZWN0aW9ucy5HZW5lcmljLkxpc3RgMVtbTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuVmFsaWRhdGlvbkVycm9yLCBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1XV0DAAAABl9pdGVtcwVfc2l6ZQhfdmVyc2lvbgQAAClNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5WYWxpZGF0aW9uRXJyb3JbXQkAAAAICAkNAAAAAAAAAAAAAAAHCwAAAAABAAAAFgAAAAQtTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuUHJvcGVydHlCYWcrVmFsdWVQYWlyCQAAAAXy////LU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLlByb3BlcnR5QmFnK1ZhbHVlUGFpcgIAAAADS2V5BVZhbHVlBAI2TWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFEUHJvcGVydHlEZWZpbml0aW9uAgAAAAkAAAAJDwAAAAkQAAAAAe/////y////CRIAAAAJEwAAAAHs////8v///wkVAAAABhYAAAApSUlTOi8vU29sby1FMTVBLlNvbG8ubmV0L1czU1ZDLzEvUk9PVC9FV1MB6f////L///8JGAAAAAkZAAAADBsAAABJU3lzdGVtLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OQHm////8v///wkcAAAACR0AAAAB4v////L///8JHwAAAAkgAAAAAd/////y////CSIAAAAJIwAAAAHc////8v///wklAAAACSYAAAAB2f////L///8JKAAAAAkpAAAAAdb////y////CSsAAAAJLAAAAAHT////8v///wkuAAAACS8AAAAB0P////L///8JMQAAAAYyAAAAFkVXUyAoRGVmYXVsdCBXZWIgU2l0ZSkBzf////L///8JNAAAAAk1AAAAAcr////y////CTcAAAAJOAAAAAHH////8v///wk6AAAACTsAAAABxP////L///8JPQAAAAY+AAAAEVNvbG8tREMxLlNvbG8ubmV0AcH////y////CUAAAAAJQQAAAAG+////8v///wlDAAAABkQAAAARMjAyMTA2MDgxNjAyMDIuMFoBu/////L///8JRgAAAAZHAAAAETIwMjEwNjA4MTYwMjAyLjBaAbj////y////CUkAAAAIDRXgq4HrhdlIAbb////y////CUsAAAAIAQABtP////L///8JTQAAAAlOAAAABwwAAAAAAQAAAAcAAAAELU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLlByb3BlcnR5QmFnK1ZhbHVlUGFpcgkAAAABsf////L///8JDwAAAAoBr/////L///8JUgAAAAoBrf////L///8JVAAAAAoBq/////L///8JGAAAAAlXAAAAAaj////y////CR8AAAAJWgAAAAGl////8v///wkiAAAACV0AAAABov////L///8JKAAAAAoHDQAAAAABAAAAAAAAAAQnTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuVmFsaWRhdGlvbkVycm9yCQAAAAUPAAAANk1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5RGVmaW5pdGlvbgoAAAAPbGRhcERpc3BsYXlOYW1lDmZvcm1hdFByb3ZpZGVyDnNoYWRvd1Byb3BlcnR5FnNvZnRMaW5rU2hhZG93UHJvcGVydHkXbXNlcnZQcm9wZXJ0eURlZmluaXRpb24VbWJ4UHJvcGVydHlEZWZpbml0aW9uJlNpbXBsZVByb3ZpZGVyUHJvcGVydHlEZWZpbml0aW9uK2ZsYWdzF1Byb3BlcnR5RGVmaW5pdGlvbituYW1lF1Byb3BlcnR5RGVmaW5pdGlvbit0eXBlOVByb3BlcnR5RGVmaW5pdGlvbityZXF1aXJlZFByb3BlcnR5RGVmaW5pdGlvbnNXaGVuUmVhZGluZwEDBAQEBAABAwMWU3lzdGVtLklGb3JtYXRQcm92aWRlcjZNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURQcm9wZXJ0eURlZmluaXRpb24CAAAANk1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRFByb3BlcnR5RGVmaW5pdGlvbgIAAAA4TWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuU2ltcGxlUHJvdmlkZXJQcm9wZXJ0eURlZmluaXRpb24JAAAAOE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLlNpbXBsZVByb3ZpZGVyUHJvcGVydHlEZWZpbml0aW9uCQAAAAgfU3lzdGVtLlVuaXR5U2VyaWFsaXphdGlvbkhvbGRlcrMBU3lzdGVtLkNvbGxlY3Rpb25zLkdlbmVyaWMuSUNvbGxlY3Rpb25gMVtbTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuUHJvcGVydHlEZWZpbml0aW9uLCBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1XV0CAAAACgoKCgoKAAEAAAZgAAAACUd6aXBMZXZlbAlhAAAACgUQAAAAP01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLkd6aXBMZXZlbAEAAAAHdmFsdWVfXwAIAgAAAAEAAAABEgAAAA8AAAAGYgAAABNtc0V4Y2hNUlNQcm94eUZsYWdzCgoKCgogAAAABmMAAAANTVJTUHJveHlGbGFncwlkAAAACgUTAAAAR01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLk1SU1Byb3h5RmxhZ3NFbnVtAQAAAAd2YWx1ZV9fAAgCAAAAAAAAAAEVAAAADwAAAAZlAAAAEm1zRXhjaE1ldGFiYXNlUGF0aAoKCgoKAAAAAAZmAAAADE1ldGFiYXNlUGF0aAlnAAAACgEYAAAADwAAAAoKCgoKCgIBAAAGaAAAABlFeHRlbmRlZFByb3RlY3Rpb25TUE5MaXN0CWcAAAAKBRkAAACLAU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLk11bHRpVmFsdWVkUHJvcGVydHlgMVtbU3lzdGVtLlN0cmluZywgbXNjb3JsaWIsIFZlcnNpb249NC4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj1iNzdhNWM1NjE5MzRlMDg5XV0MAAAAFHJlYWRPbmx5RXJyb3JNZXNzYWdlCmlzUmVhZE9ubHkRaXNDaGFuZ2VzT25seUNvcHkKd2FzQ2xlYXJlZAdjaGFuZ2VkEnByb3BlcnR5RGVmaW5pdGlvbhlzZXJpYWxpemVyQXNzZW1ibHlWZXJzaW9uGHNlcmlhbGl6ZWRQcm9wZXJ0eVZhbHVlcxVzZXJpYWxpemVkQWRkZWRWYWx1ZXMXc2VyaWFsaXplZFJlbW92ZWRWYWx1ZXMoTXVsdGlWYWx1ZWRQcm9wZXJ0eUJhc2UraXNDb21wbGV0ZWx5UmVhZDNNdWx0aVZhbHVlZFByb3BlcnR5QmFzZSs8VmFsdWVSYW5nZT5rX19CYWNraW5nRmllbGQDAAAAAAQDBQUFAASqAVN5c3RlbS5OdWxsYWJsZWAxW1tNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5Db21tb24uTG9jYWxpemVkU3RyaW5nLCBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5Db21tb24sIFZlcnNpb249MTUuMC4xNDc0LjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNV1dAQEBATZNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURQcm9wZXJ0eURlZmluaXRpb24CAAAADlN5c3RlbS5WZXJzaW9uASBNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5JbnRSYW5nZQkAAAAJAAAACgAAAQEJGAAAAAkGAAAACWwAAAAKCgEKARwAAAAPAAAABm0AAAAWbXNFeGNoSW50ZXJuYWxIb3N0TmFtZQoKCgoKAAAAAAZuAAAAC0ludGVybmFsVXJsCW8AAAAKBR0AAAAKU3lzdGVtLlVyaQEAAAALQWJzb2x1dGVVcmkBGwAAAAZwAAAALGh0dHBzOi8vc29sby1lMTVhLnNvbG8ubmV0L0VXUy9FeGNoYW5nZS5hc214AR8AAAAPAAAABnEAAAAjbXNFeGNoSW50ZXJuYWxBdXRoZW50aWNhdGlvbk1ldGhvZHMKCgoKCgAAAAAGcgAAABlBdXRoZW50aWNhdGlvbk1ldGhvZEZsYWdzCXMAAAAKBSAAAABPTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LlN5c3RlbUNvbmZpZ3VyYXRpb24uQXV0aGVudGljYXRpb25NZXRob2RGbGFncwEAAAAHdmFsdWVfXwAIAgAAAJIEAAABIgAAAA8AAAAGdAAAACNtc0V4Y2hFeHRlcm5hbEF1dGhlbnRpY2F0aW9uTWV0aG9kcwoKCgoKAAAAAAlyAAAACXMAAAAKASMAAAAgAAAAkgQAAAElAAAADwAAAAZ3AAAAEWRpc3Rpbmd1aXNoZWROYW1lCgoKCXgAAAAKEAoAAAZ5AAAAAklkCXoAAAAKBSYAAAAsTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LkFET2JqZWN0SWQIAAAADXBhcnRpdGlvbkd1aWQNcGFydGl0aW9uRnFkbgpvYmplY3RHdWlkEWRpc3Rpbmd1aXNoZWROYW1lGHNlY3VyaXR5SWRlbnRpZmllclN0cmluZwVkZXB0aAt0b1N0cmluZ1ZhbBlleGVjdXRpbmdVc2VyT3JnYW5pemF0aW9uAwEDAQEAAQQLU3lzdGVtLkd1aWQLU3lzdGVtLkd1aWQIME1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5Pcmdhbml6YXRpb25JZAIAAAACAAAABIX///8LU3lzdGVtLkd1aWQLAAAAAl9hAl9iAl9jAl9kAl9lAl9mAl9nAl9oAl9pAl9qAl9rAAAAAAAAAAAAAAAIBwcCAgICAgICAnEvzlmi6t9NpPryUGnQsyQGfAAAAAhTb2xvLm5ldAGD////hf////zC7TSjh/dBo5IEajpMLH8GfgAAAN8BQ049RVdTIChEZWZhdWx0IFdlYiBTaXRlKSxDTj1IVFRQLENOPVByb3RvY29scyxDTj1TT0xPLUUxNUEsQ049U2VydmVycyxDTj1FeGNoYW5nZSBBZG1pbmlzdHJhdGl2ZSBHcm91cCAoRllESUJPSEYyM1NQRExUKSxDTj1BZG1pbmlzdHJhdGl2ZSBHcm91cHMsQ049U29sb09SRyxDTj1NaWNyb3NvZnQgRXhjaGFuZ2UsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1Tb2xvLERDPW5ldAoMAAAABn8AAAAgU09MTy1FMTVBXEVXUyAoRGVmYXVsdCBXZWIgU2l0ZSkJgAAAAAEoAAAADwAAAAoKCgoKCgABAAAGgQAAABNBZG1pbkRpc3BsYXlWZXJzaW9uCYIAAAAKBSkAAAAlTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuU2VydmVyVmVyc2lvbgIAAAAHdmVyc2lvbhlmaWxlUGF0Y2hMZXZlbERlc2NyaXB0aW9uAwEOU3lzdGVtLlZlcnNpb24JAAAACYMAAAAKASsAAAAPAAAABoQAAAALc3lzdGVtRmxhZ3MKCgoKCkAAAAAGhQAAAAtTeXN0ZW1GbGFncwmGAAAACgUsAAAAMU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1GbGFnc0VudW0BAAAAB3ZhbHVlX18ACAIAAAAAAABAAS4AAAAPAAAABocAAAANbXNFeGNoVmVyc2lvbgoKCgoKAAIAAAaIAAAAD0V4Y2hhbmdlVmVyc2lvbgmJAAAACgUvAAAALU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkV4Y2hhbmdlT2JqZWN0VmVyc2lvbgMAAAAFTWFqb3IFTWlub3INRXhjaGFuZ2VCdWlsZAAABAICJU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkV4Y2hhbmdlQnVpbGQJAAAACQAAAAAKBXb///8lTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRXhjaGFuZ2VCdWlsZAQAAAAFTWFqb3IFTWlub3IFQnVpbGQNQnVpbGRSZXZpc2lvbgAAAAACAg4OCQAAAA4AZAAAAAExAAAADwAAAAaLAAAABG5hbWUKCgoKCgACAAAGjAAAAAdSYXdOYW1lCWcAAAAKATQAAAAPAAAABo4AAAAOb2JqZWN0Q2F0ZWdvcnkKCgoKCkAIAAAGjwAAAA5PYmplY3RDYXRlZ29yeQl6AAAACgE1AAAAJgAAAAFv////hf///3Evzlmi6t9NpPryUGnQsyQGkgAAAAhTb2xvLm5ldAFt////hf///7u6IwBptzxDuQ5RWF7Ol6oGlAAAAFNDTj1tcy1FeGNoLVdlYi1TZXJ2aWNlcy1WaXJ0dWFsLURpcmVjdG9yeSxDTj1TY2hlbWEsQ049Q29uZmlndXJhdGlvbixEQz1Tb2xvLERDPW5ldAoEAAAABpUAAABEU29sby5uZXQvQ29uZmlndXJhdGlvbi9TY2hlbWEvbXMtRXhjaC1XZWItU2VydmljZXMtVmlydHVhbC1EaXJlY3RvcnkJgAAAAAE3AAAADwAAAAaXAAAAC29iamVjdENsYXNzCgoKCgoDAAAABpgAAAALT2JqZWN0Q2xhc3MJZwAAAAoMmgAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5Db21tb24sIFZlcnNpb249MTUuMC4xNDc0LjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQE4AAAAGQAAAAVl////Lk1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkNvbW1vbi5Mb2NhbGl6ZWRTdHJpbmcIAAAAB2luc2VydHMIYmFzZU5hbWUMYXNzZW1ibHlOYW1lAmlkCHN0cmluZ0lkF3Nob3dTdHJpbmdJZEluVUlJZkVycm9yHXNob3dBc3Npc3RhbmNlSW5mb0luVUlJZkVycm9yCGZhbGxiYWNrBQEBAQEAAAEBAZoAAAAJnAAAAAadAAAAI01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRhdGFTdHJpbmdzBp4AAABbTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEsIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQafAAAAGkVycm9yUmVhZE9ubHlDYXVzZVByb3BlcnR5BqAAAAAIRXg1Q0I2NTAAAQahAAAANlRoZSBwcm9wZXJ0eSAnezB9JyBpcyByZWFkLW9ubHkgYW5kIGNhbid0IGJlIG1vZGlmaWVkLgEAAAAJNwAAAAkGAAAACaQAAAAKCgEKAToAAAAPAAAACgoKCgoKAAEAAAalAAAAC09iamVjdFN0YXRlCaYAAAAKBTsAAAAjTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuT2JqZWN0U3RhdGUBAAAAB3ZhbHVlX18ACAkAAAACAAAAAT0AAAAPAAAACgoKCgoKAAEAAAanAAAAEU9yaWdpbmF0aW5nU2VydmVyCWcAAAAKAUAAAAAPAAAABqkAAAANY2Fub25pY2FsTmFtZQoKCgoKAwAAAAaqAAAAEFJhd0Nhbm9uaWNhbE5hbWUJZwAAAAoBQQAAABkAAAABVP///2X///8JrQAAAAmdAAAABq8AAABbTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEsIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQmfAAAACaAAAAAAAQmhAAAAAQAAAAlAAAAACQYAAAAJtQAAAAoKAQoBQwAAAA8AAAAGtgAAAAt3aGVuQ3JlYXRlZAoKCgoKAQAAAAa3AAAADldoZW5DcmVhdGVkUmF3CWcAAAAKAUYAAAAPAAAABrkAAAALd2hlbkNoYW5nZWQKCgoKCgEAAAAGugAAAA5XaGVuQ2hhbmdlZFJhdwlnAAAACgFJAAAADwAAAAoKCgoKCgABAAAGvAAAAAtXaGVuUmVhZFVUQwm9AAAACgFLAAAADwAAAAoKCgoKCgABAAAGvgAAAAhJc0NhY2hlZAm/AAAACgFNAAAADwAAAAoKCgoKCgABAAAGwAAAABREaXJlY3RvcnlCYWNrZW5kVHlwZQnBAAAACgVOAAAANk1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5EaXJlY3RvcnlCYWNrZW5kVHlwZQEAAAAHdmFsdWVfXwACAgAAAAEBUgAAAA8AAAAKCgoKCgoAAQAABsIAAAAfRXh0ZW5kZWRQcm90ZWN0aW9uVG9rZW5DaGVja2luZwnDAAAACgFUAAAADwAAAAoKCgoKCgABAAAGxAAAABdFeHRlbmRlZFByb3RlY3Rpb25GbGFncwnFAAAACgFXAAAAGQAAAAE6////Zf///wnHAAAACZ0AAAAGyQAAAFtNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1BsoAAAAfRXJyb3JPcmlnbmFsTXVsdGlWYWx1ZWRQcm9wZXJ0eQbLAAAACEV4QkFFNDA2AAEGzAAAAD9UaGUgb3JpZ2luYWwgdmFsdWUgb2YgJ3swfScgaXMgcmVhZC1vbmx5IGFuZCBjYW4ndCBiZSBtb2RpZmllZC4BAAAACRgAAAAJBgAAAAnPAAAACgoBCgFaAAAAIAAAAJIEAAABXQAAACAAAACSBAAABGEAAAAfU3lzdGVtLlVuaXR5U2VyaWFsaXphdGlvbkhvbGRlcgMAAAAERGF0YQlVbml0eVR5cGUMQXNzZW1ibHlOYW1lAQABCAbQAAAAP01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLkd6aXBMZXZlbAQAAAAG0QAAAGVNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnksIFZlcnNpb249MTUuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49MzFiZjM4NTZhZDM2NGUzNQFkAAAAYQAAAAbSAAAAR01pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLk1SU1Byb3h5RmxhZ3NFbnVtBAAAAAnRAAAAAWcAAABhAAAABtQAAAANU3lzdGVtLlN0cmluZwQAAAAG1QAAAEttc2NvcmxpYiwgVmVyc2lvbj00LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkQbAAAAAAAAAABbwAAAGEAAAAG1gAAAApTeXN0ZW0uVXJpBAAAAAbXAAAASVN5c3RlbSwgVmVyc2lvbj00LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODkBcwAAAGEAAAAG2AAAAE9NaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuU3lzdGVtQ29uZmlndXJhdGlvbi5BdXRoZW50aWNhdGlvbk1ldGhvZEZsYWdzBAAAAAnRAAAABXgAAAA5TWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5Lk1TZXJ2UHJvcGVydHlEZWZpbml0aW9uBAAAACZTaW1wbGVQcm92aWRlclByb3BlcnR5RGVmaW5pdGlvbitmbGFncxdQcm9wZXJ0eURlZmluaXRpb24rbmFtZRdQcm9wZXJ0eURlZmluaXRpb24rdHlwZTlQcm9wZXJ0eURlZmluaXRpb24rcmVxdWlyZWRQcm9wZXJ0eURlZmluaXRpb25zV2hlblJlYWRpbmcAAQMDCB9TeXN0ZW0uVW5pdHlTZXJpYWxpemF0aW9uSG9sZGVyswFTeXN0ZW0uQ29sbGVjdGlvbnMuR2VuZXJpYy5JQ29sbGVjdGlvbmAxW1tNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5Qcm9wZXJ0eURlZmluaXRpb24sIE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLCBWZXJzaW9uPTE1LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPTMxYmYzODU2YWQzNjRlMzVdXQIAAAAEAAAACXkAAAAJegAAAAoBegAAAGEAAAAG3AAAACxNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURPYmplY3RJZAQAAAAJ0QAAAAWAAAAAME1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5Pcmdhbml6YXRpb25JZAQAAAAHb3JnVW5pdApjb25maWdVbml0C3BhcnRpdGlvbklkH2V4dGVybmFsRGlyZWN0b3J5T3JnYW5pemF0aW9uSWQEBAQDLE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5BRE9iamVjdElkAgAAACxNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuQURPYmplY3RJZAIAAAAtTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LlBhcnRpdGlvbklkAgAAAG1TeXN0ZW0uTnVsbGFibGVgMVtbU3lzdGVtLkd1aWQsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dAgAAAAoKCd4AAAAKAYIAAABhAAAABt8AAAAlTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuU2VydmVyVmVyc2lvbgQAAAAG4AAAAFtNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1AYMAAAAGAAAADwAAAAAAAADZBQAAAgAAAAGGAAAAYQAAAAbhAAAAMU1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1GbGFnc0VudW0EAAAACdEAAAABiQAAAGEAAAAG4wAAAC1NaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5FeGNoYW5nZU9iamVjdFZlcnNpb24EAAAACeAAAAAQnAAAAAEAAAAG5QAAAAtPYmplY3RDbGFzcxCkAAAAAwAAAAbmAAAAA3RvcAbnAAAAFm1zRXhjaFZpcnR1YWxEaXJlY3RvcnkG6AAAACFtc0V4Y2hXZWJTZXJ2aWNlc1ZpcnR1YWxEaXJlY3RvcnkBpgAAAGEAAAAG6QAAACNNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5PYmplY3RTdGF0ZQQAAAAJ4AAAABCtAAAAAQAAAAbrAAAAEFJhd0Nhbm9uaWNhbE5hbWUQtQAAAAEAAAAG7AAAALgBU29sby5uZXQvQ29uZmlndXJhdGlvbi9TZXJ2aWNlcy9NaWNyb3NvZnQgRXhjaGFuZ2UvU29sb09SRy9BZG1pbmlzdHJhdGl2ZSBHcm91cHMvRXhjaGFuZ2UgQWRtaW5pc3RyYXRpdmUgR3JvdXAgKEZZRElCT0hGMjNTUERMVCkvU2VydmVycy9TT0xPLUUxNUEvUHJvdG9jb2xzL0hUVFAvRVdTIChEZWZhdWx0IFdlYiBTaXRlKQG9AAAAYQAAAAbtAAAAcVN5c3RlbS5OdWxsYWJsZWAxW1tTeXN0ZW0uRGF0ZVRpbWUsIG1zY29ybGliLCBWZXJzaW9uPTQuMC4wLjAsIEN1bHR1cmU9bmV1dHJhbCwgUHVibGljS2V5VG9rZW49Yjc3YTVjNTYxOTM0ZTA4OV1dBAAAAAnVAAAAAb8AAABhAAAABu8AAAAOU3lzdGVtLkJvb2xlYW4EAAAACdUAAAABwQAAAGEAAAAG8QAAADZNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuRGlyZWN0b3J5QmFja2VuZFR5cGUEAAAACdEAAAABwwAAAGEAAAAG8wAAAFlNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YS5EaXJlY3RvcnkuU3lzdGVtQ29uZmlndXJhdGlvbi5FeHRlbmRlZFByb3RlY3Rpb25Ub2tlbkNoZWNraW5nTW9kZQQAAAAJ0QAAAAHFAAAAYQAAAAb1AAAATE1pY3Jvc29mdC5FeGNoYW5nZS5EYXRhLkRpcmVjdG9yeS5TeXN0ZW1Db25maWd1cmF0aW9uLkV4dGVuZGVkUHJvdGVjdGlvbkZsYWcEAAAACdEAAAAQxwAAAAEAAAAG9wAAABlFeHRlbmRlZFByb3RlY3Rpb25TUE5MaXN0EM8AAAAAAAAABd4AAAAtTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuRGlyZWN0b3J5LlBhcnRpdGlvbklkAgAAAApmb3Jlc3RGUUROEXBhcnRpdGlvbk9iamVjdElkAQNtU3lzdGVtLk51bGxhYmxlYDFbW1N5c3RlbS5HdWlkLCBtc2NvcmxpYiwgVmVyc2lvbj00LjAuMC4wLCBDdWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWI3N2E1YzU2MTkzNGUwODldXQIAAAAG+AAAAAhTb2xvLm5ldAoL</BA>
+    </MS>
+  </Obj>
+</Objs>

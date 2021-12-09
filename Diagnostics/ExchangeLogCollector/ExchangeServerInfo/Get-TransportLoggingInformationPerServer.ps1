@@ -1,4 +1,7 @@
-﻿Function Get-TransportLoggingInformationPerServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-TransportLoggingInformationPerServer {
     param(
         [string]$Server,
         [int]$Version,

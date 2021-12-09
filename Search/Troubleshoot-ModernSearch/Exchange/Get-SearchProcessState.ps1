@@ -1,4 +1,8 @@
-﻿Function Get-SearchProcessState {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-SearchProcessState {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Cmdlet required')]
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME

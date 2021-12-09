@@ -1,6 +1,9 @@
-﻿BeforeAll {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
-    $scriptName = "Get-ServerPendingReboot.ps1"
+    $scriptName = "Get-ServerRebootPending.ps1"
 
     . "$parent\$scriptName"
 

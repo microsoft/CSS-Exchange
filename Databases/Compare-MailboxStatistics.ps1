@@ -1,4 +1,7 @@
-﻿# This script compares two sets of mailbox statistics from the same database and highlights mailbox growth
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# This script compares two sets of mailbox statistics from the same database and highlights mailbox growth
 # that occurred between the two snapshots.
 #
 # For a growing database, a typical approach would be to start by exporting the statistics for the database:

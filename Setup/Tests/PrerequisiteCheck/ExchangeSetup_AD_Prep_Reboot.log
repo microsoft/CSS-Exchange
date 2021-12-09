@@ -28,9 +28,9 @@
 [03/06/2021 15:15:11.0150] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
 [03/06/2021 15:15:11.0176] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
 [03/06/2021 15:15:11.0332] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
-[03/06/2021 15:15:11.0336] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
-[03/06/2021 15:15:11.0338] [0] The following datacenter roles are unpacked: 
-[03/06/2021 15:15:11.0341] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/06/2021 15:15:11.0336] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/06/2021 15:15:11.0338] [0] The following datacenter roles are unpacked:
+[03/06/2021 15:15:11.0341] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
 [03/06/2021 15:15:11.0345] [0] The local server has some Exchange files installed.
 [03/06/2021 15:15:11.0353] [0] Server Name=ExSvr1
 [03/06/2021 15:15:11.0363] [0] Setup will use the path 'E:\' for installing Exchange.
@@ -73,322 +73,325 @@
 [03/06/2021 15:15:18.0669] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Skywalker.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:9] [Duration:00:00:00.0020016]
 [03/06/2021 15:15:18.0052] [1] Evaluated [Rule:PendingRebootWindowsComponents] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:65] [Duration:00:00:00.0080064]
 [12/19/2020 06:31:52.0838] [1] Evaluated [Setting:SiteName] [HasException:False] [Value:"Default-First-Site-Name"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:00.0009992]
-[03/06/2021 15:15:24.0221] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0221] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0221] [1] User specified parameters:  -ProcessId:'732'
 [03/06/2021 15:15:24.0221] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0230] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0230] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0230] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0230] [1] User specified parameters:  -ProcessId:'19196'
 [03/06/2021 15:15:24.0230] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0242] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0243] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0243] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0243] [1] User specified parameters:  -ProcessId:'20808'
 [03/06/2021 15:15:24.0243] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0252] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0252] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0252] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0252] [1] User specified parameters:  -ProcessId:'1164'
 [03/06/2021 15:15:24.0252] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0261] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0262] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0262] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0262] [1] User specified parameters:  -ProcessId:'15244'
 [03/06/2021 15:15:24.0262] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0271] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0272] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0272] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0272] [1] User specified parameters:  -ProcessId:'20240'
 [03/06/2021 15:15:24.0272] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0297] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0298] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0298] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0298] [1] User specified parameters:  -ProcessId:'2456'
 [03/06/2021 15:15:24.0298] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0308] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0309] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0309] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0309] [1] User specified parameters:  -ProcessId:'0'
 [03/06/2021 15:15:24.0309] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0314] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0315] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0315] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0315] [1] User specified parameters:  -ProcessId:'2832'
 [03/06/2021 15:15:24.0315] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0326] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0327] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0327] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0327] [1] User specified parameters:  -ProcessId:'4592'
 [03/06/2021 15:15:24.0327] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0338] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0338] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0338] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0339] [1] User specified parameters:  -ProcessId:'584'
 [03/06/2021 15:15:24.0339] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0349] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0349] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0349] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0350] [1] User specified parameters:  -ProcessId:'868'
 [03/06/2021 15:15:24.0350] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0360] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0360] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0360] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0361] [1] User specified parameters:  -ProcessId:'2604'
 [03/06/2021 15:15:24.0361] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0373] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0374] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0374] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0374] [1] User specified parameters:  -ProcessId:'4344'
 [03/06/2021 15:15:24.0374] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0387] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0388] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0388] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0388] [1] User specified parameters:  -ProcessId:'2420'
 [03/06/2021 15:15:24.0388] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0403] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0404] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0404] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0404] [1] User specified parameters:  -ProcessId:'4556'
 [03/06/2021 15:15:24.0404] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0413] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0414] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0414] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0414] [1] User specified parameters:  -ProcessId:'20664'
 [03/06/2021 15:15:24.0414] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0425] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0426] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0426] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0426] [1] User specified parameters:  -ProcessId:'4228'
 [03/06/2021 15:15:24.0426] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0438] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0439] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0439] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0439] [1] User specified parameters:  -ProcessId:'4456'
 [03/06/2021 15:15:24.0439] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0452] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0453] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0453] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0453] [1] User specified parameters:  -ProcessId:'5256'
 [03/06/2021 15:15:24.0453] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0463] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0464] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0464] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0464] [1] User specified parameters:  -ProcessId:'2480'
 [03/06/2021 15:15:24.0464] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0474] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0474] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0474] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0474] [1] User specified parameters:  -ProcessId:'3840'
 [03/06/2021 15:15:24.0474] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0483] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0484] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0484] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0484] [1] User specified parameters:  -ProcessId:'2572'
 [03/06/2021 15:15:24.0484] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0495] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0496] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0496] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0496] [1] User specified parameters:  -ProcessId:'16392'
 [03/06/2021 15:15:24.0496] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0504] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0505] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0505] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0505] [1] User specified parameters:  -ProcessId:'2620'
 [03/06/2021 15:15:24.0505] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0521] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0522] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0522] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0522] [1] User specified parameters:  -ProcessId:'2532'
 [03/06/2021 15:15:24.0522] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0530] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0531] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0531] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0531] [1] User specified parameters:  -ProcessId:'19404'
 [03/06/2021 15:15:24.0531] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0544] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0546] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0546] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0546] [1] User specified parameters:  -ProcessId:'19612'
 [03/06/2021 15:15:24.0546] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0556] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0556] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0556] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0556] [1] User specified parameters:  -ProcessId:'20164'
 [03/06/2021 15:15:24.0556] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0564] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0564] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0564] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0564] [1] User specified parameters:  -ProcessId:'19644'
 [03/06/2021 15:15:24.0564] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0575] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0576] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0576] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0576] [1] User specified parameters:  -ProcessId:'20912'
 [03/06/2021 15:15:24.0576] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0586] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0586] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0586] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0586] [1] User specified parameters:  -ProcessId:'492'
 [03/06/2021 15:15:24.0586] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0620] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0620] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0620] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0621] [1] User specified parameters:  -ProcessId:'860'
 [03/06/2021 15:15:24.0621] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0630] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0631] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0631] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0631] [1] User specified parameters:  -ProcessId:'20228'
 [03/06/2021 15:15:24.0631] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0649] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0650] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0650] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0650] [1] User specified parameters:  -ProcessId:'19740'
 [03/06/2021 15:15:24.0650] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0664] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0664] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0664] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0664] [1] User specified parameters:  -ProcessId:'444'
 [03/06/2021 15:15:24.0664] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0673] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0674] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0674] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0674] [1] User specified parameters:  -ProcessId:'2520'
 [03/06/2021 15:15:24.0674] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0683] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0684] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0684] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0684] [1] User specified parameters:  -ProcessId:'3936'
 [03/06/2021 15:15:24.0684] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0705] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0706] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0706] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0706] [1] User specified parameters:  -ProcessId:'2656'
 [03/06/2021 15:15:24.0707] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0718] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0719] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0719] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0719] [1] User specified parameters:  -ProcessId:'12820'
 [03/06/2021 15:15:24.0719] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0728] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0728] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0728] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0728] [1] User specified parameters:  -ProcessId:'13204'
 [03/06/2021 15:15:24.0728] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0737] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0738] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0738] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0738] [1] User specified parameters:  -ProcessId:'2136'
 [03/06/2021 15:15:24.0738] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0754] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0756] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0756] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0756] [1] User specified parameters:  -ProcessId:'8'
 [03/06/2021 15:15:24.0756] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0778] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0779] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0779] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0779] [1] User specified parameters:  -ProcessId:'116'
 [03/06/2021 15:15:24.0779] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0793] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0793] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0793] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0794] [1] User specified parameters:  -ProcessId:'616'
 [03/06/2021 15:15:24.0794] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0804] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0805] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0805] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0805] [1] User specified parameters:  -ProcessId:'632'
 [03/06/2021 15:15:24.0805] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0816] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0816] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0816] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0816] [1] User specified parameters:  -ProcessId:'856'
 [03/06/2021 15:15:24.0816] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0828] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0828] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0828] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0828] [1] User specified parameters:  -ProcessId:'968'
 [03/06/2021 15:15:24.0828] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0841] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0842] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0842] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0842] [1] User specified parameters:  -ProcessId:'1076'
 [03/06/2021 15:15:24.0842] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0854] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0855] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0855] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0855] [1] User specified parameters:  -ProcessId:'1280'
 [03/06/2021 15:15:24.0855] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0877] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0878] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0878] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0878] [1] User specified parameters:  -ProcessId:'1288'
 [03/06/2021 15:15:24.0878] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0888] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0889] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0889] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0889] [1] User specified parameters:  -ProcessId:'1444'
 [03/06/2021 15:15:24.0889] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0897] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0897] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0897] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0898] [1] User specified parameters:  -ProcessId:'2380'
 [03/06/2021 15:15:24.0898] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0906] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0907] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0907] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0907] [1] User specified parameters:  -ProcessId:'2404'
 [03/06/2021 15:15:24.0907] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0916] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0917] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0917] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0917] [1] User specified parameters:  -ProcessId:'2436'
 [03/06/2021 15:15:24.0917] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0927] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0927] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0927] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0927] [1] User specified parameters:  -ProcessId:'2472'
 [03/06/2021 15:15:24.0927] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0938] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0938] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0938] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0938] [1] User specified parameters:  -ProcessId:'2564'
 [03/06/2021 15:15:24.0938] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0948] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0949] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0949] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0949] [1] User specified parameters:  -ProcessId:'4508'
 [03/06/2021 15:15:24.0949] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0957] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0957] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0957] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0958] [1] User specified parameters:  -ProcessId:'11016'
 [03/06/2021 15:15:24.0958] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0967] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0968] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0968] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0968] [1] User specified parameters:  -ProcessId:'19760'
 [03/06/2021 15:15:24.0968] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0978] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0979] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0979] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0979] [1] User specified parameters:  -ProcessId:'4'
 [03/06/2021 15:15:24.0979] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0989] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:24.0990] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:24.0990] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:24.0990] [1] User specified parameters:  -ProcessId:'20312'
 [03/06/2021 15:15:24.0990] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:24.0999] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0000] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0000] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0000] [1] User specified parameters:  -ProcessId:'20404'
 [03/06/2021 15:15:25.0000] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0009] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0010] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0010] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0010] [1] User specified parameters:  -ProcessId:'19004'
 [03/06/2021 15:15:25.0010] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0018] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0018] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0018] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0018] [1] User specified parameters:  -ProcessId:'19808'
 [03/06/2021 15:15:25.0018] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0027] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0028] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0028] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0028] [1] User specified parameters:  -ProcessId:'2704'
 [03/06/2021 15:15:25.0028] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0036] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0036] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0036] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0036] [1] User specified parameters:  -ProcessId:'14760'
 [03/06/2021 15:15:25.0036] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0044] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0045] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0045] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0045] [1] User specified parameters:  -ProcessId:'19156'
 [03/06/2021 15:15:25.0045] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0054] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0054] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0054] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0055] [1] User specified parameters:  -ProcessId:'5708'
 [03/06/2021 15:15:25.0055] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0065] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0066] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0066] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0066] [1] User specified parameters:  -ProcessId:'3348'
 [03/06/2021 15:15:25.0066] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0076] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0077] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0077] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0077] [1] User specified parameters:  -ProcessId:'4348'
 [03/06/2021 15:15:25.0077] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0089] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0089] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0089] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0090] [1] User specified parameters:  -ProcessId:'4360'
 [03/06/2021 15:15:25.0090] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0100] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0101] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0101] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0101] [1] User specified parameters:  -ProcessId:'2464'
 [03/06/2021 15:15:25.0101] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0111] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0112] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0112] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0112] [1] User specified parameters:  -ProcessId:'724'
 [03/06/2021 15:15:25.0112] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0121] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0122] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0122] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0122] [1] User specified parameters:  -ProcessId:'808'
 [03/06/2021 15:15:25.0122] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0129] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0132] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0132] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0132] [1] User specified parameters:  -ProcessId:'16116'
 [03/06/2021 15:15:25.0132] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0139] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0140] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0140] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0140] [1] User specified parameters:  -ProcessId:'6628'
 [03/06/2021 15:15:25.0140] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0148] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0149] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0149] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0149] [1] User specified parameters:  -ProcessId:'516'
 [03/06/2021 15:15:25.0149] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0159] [1] Ending processing Get-ProcessModule
-[03/06/2021 15:15:25.0160] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0160] [1] Active Directory session settings for 'Get-ProcessModule' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0160] [1] User specified parameters:  -ProcessId:'2912'
 [03/06/2021 15:15:25.0160] [1] Beginning processing Get-ProcessModule
 [03/06/2021 15:15:25.0177] [1] Ending processing Get-ProcessModule
+[03/05/2021 17:10:10.0276] [1] Evaluated [Rule:RemoteRegException] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:35] [Duration:00:00:22.2862107]
+[09/28/2021 16:18:47.0757] [1] Evaluated [Rule:IISURLRewriteNotInstalled] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0019989]
+[03/06/2021 22:00:06.0231] [1] Evaluated [Rule:MSDTCStopped] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:21] [Duration:00:00:01.6709877]
 [03/06/2021 15:15:25.0182] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (powershell)"] [ParentValue:"<NULL>"] [Thread:69] [Duration:00:00:06.7414209]
 [03/06/2021 15:15:25.0183] [1] Evaluated [Setting:OpenProcesses] [HasException:False] [Value:"System.Diagnostics.Process (svchost)"] [ParentValue:"<NULL>"] [Thread:68] [Duration:00:00:00]
 [03/06/2021 15:15:25.0183] [1] Finished [Setting:OpenProcesses] [Duration:00:00:06.7424217]
@@ -403,7 +406,7 @@
 [03/06/2021 15:15:25.0192] [1] Finished [Setting:OpenProcessesOnUpgrade] [Duration:00:00:06.7464265]
 [03/06/2021 15:15:25.0193] [1] Evaluated [Rule:ProcessNeedsToBeClosedOnUpgrade] [HasException:False] [Value:"True"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:01.5032105]
 [03/06/2021 15:15:25.0193] [1] Finished [Rule:ProcessNeedsToBeClosedOnUpgrade] [Duration:00:00:01.5032105]
-[03/06/2021 15:15:25.0205] [1] Active Directory session settings for 'Get-UMService' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0205] [1] Active Directory session settings for 'Get-UMService' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0206] [1] User specified parameters:  -Identity:'ExSvr1'
 [03/06/2021 15:15:25.0206] [1] Beginning processing Get-UMService
 [03/06/2021 15:15:25.0212] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
@@ -415,8 +418,8 @@
 [03/06/2021 15:15:25.0366] [1] Finished [Setting:CmdletGetUMServerResult] [Duration:00:00:06.8425014]
 [03/06/2021 15:15:25.0368] [1] Finished [Setting:LanguageInUMServer] [Duration:00:00:06.8425014]
 [03/06/2021 15:15:25.0368] [1] Finished [Rule:AdditionalUMLangPackExists] [Duration:00:00:06.7083932]
-[03/06/2021 15:15:25.0389] [1] Active Directory session settings for 'Get-OrganizationConfig' are: View Entire Forest: 'True', 
-[03/06/2021 15:15:25.0390] [1] User specified parameters: 
+[03/06/2021 15:15:25.0389] [1] Active Directory session settings for 'Get-OrganizationConfig' are: View Entire Forest: 'True',
+[03/06/2021 15:15:25.0390] [1] User specified parameters:
 [03/06/2021 15:15:25.0390] [1] Beginning processing Get-OrganizationConfig
 [03/06/2021 15:15:25.0392] [1] Searching objects of type "ADOrganizationConfig" with filter "$null", scope "SubTree" under the root "$null".
 [03/06/2021 15:15:25.0400] [1] Request filter in Get Task: (&(|(objectCategory=msExchOrganizationContainer)(objectCategory=msExchConfigurationUnitContainer))(|(&(msExchVersion<=3377699720527872)(!(msExchVersion=3377699720527872)))(!(msExchVersion=*)))).
@@ -428,7 +431,7 @@
 [03/06/2021 15:15:25.0696] [1] Started [Rule:VC2013RedistDependencyRequirement] [Parent:RootAnalysisMember] [RuleType:Error]
 [03/06/2021 15:15:25.0697] [1] Started [Setting:VCRedist2013Installed] [Parent:RootAnalysisMember] [ValueType:Boolean]
 [03/06/2021 15:15:25.0698] [1] Started [Setting:FileVersionMsvcr120] [Parent:RootAnalysisMember] [ValueType:Version]
-[03/06/2021 15:15:25.0719] [1] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:25.0719] [1] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True',
 [03/06/2021 15:15:25.0720] [1] User specified parameters:  -Identity:'ExSvr1'
 [03/06/2021 15:15:25.0720] [1] Beginning processing get-ExchangeServer
 [03/06/2021 15:15:25.0722] [1] Searching objects "ExSvr1" of type "Server" under the root "$null".
@@ -506,7 +509,7 @@
 [03/06/2021 15:15:26.0009] [0] Beginning processing Write-ExchangeSetupLog
 [03/06/2021 15:15:26.0011] [0] Trying to restore server state.
 [03/06/2021 15:15:26.0012] [0] Ending processing Write-ExchangeSetupLog
-[03/06/2021 15:15:26.0014] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:26.0014] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True',
 [03/06/2021 15:15:26.0014] [0] User specified parameters:  -ErrorAction:'SilentlyContinue' -Identity:'ExSvr1'
 [03/06/2021 15:15:26.0014] [0] Beginning processing get-ExchangeServer
 [03/06/2021 15:15:26.0015] [0] Searching objects "ExSvr1" of type "Server" under the root "$null".
@@ -514,7 +517,7 @@
 [03/06/2021 15:15:26.0068] [0] Previous operation run on domain controller 'DC2.Skywalker.Child.Solo.local'.
 [03/06/2021 15:15:26.0068] [0] Preparing to output objects. The maximum size of the result set is "Unlimited".
 [03/06/2021 15:15:26.0099] [0] Ending processing get-ExchangeServer
-[03/06/2021 15:15:26.0109] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:26.0109] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True',
 [03/06/2021 15:15:26.0109] [0] User specified parameters:  -Component:'Monitoring' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
 [03/06/2021 15:15:26.0109] [0] Beginning processing Set-ServerComponentState
 [03/06/2021 15:15:26.0678] [0] Calling ADSession.GetSharedConfigDC()
@@ -531,7 +534,7 @@ Save Completed for Server Object ExSvr1.Skywalker.Child.Solo.local
 [03/06/2021 15:15:27.0058] [0] Beginning processing Write-ExchangeSetupLog
 [03/06/2021 15:15:27.0058] [0] Restoring server state. Monitoring has been set to Active.
 [03/06/2021 15:15:27.0058] [0] Ending processing Write-ExchangeSetupLog
-[03/06/2021 15:15:27.0059] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:27.0059] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True',
 [03/06/2021 15:15:27.0059] [0] User specified parameters:  -Component:'RecoveryActionsEnabled' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
 [03/06/2021 15:15:27.0059] [0] Beginning processing Set-ServerComponentState
 [03/06/2021 15:15:27.0088] [0] Calling ADSession.GetSharedConfigDC()
@@ -548,7 +551,7 @@ Save Completed for Server Object ExSvr1.Skywalker.Child.Solo.local
 [03/06/2021 15:15:27.0146] [0] Beginning processing Write-ExchangeSetupLog
 [03/06/2021 15:15:27.0146] [0] Restoring server state.  RecoveryActionsEnabled has been set to Active.
 [03/06/2021 15:15:27.0146] [0] Ending processing Write-ExchangeSetupLog
-[03/06/2021 15:15:27.0146] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True', 
+[03/06/2021 15:15:27.0146] [0] Active Directory session settings for 'Set-ServerComponentState' are: View Entire Forest: 'True',
 [03/06/2021 15:15:27.0147] [0] User specified parameters:  -Component:'ServerWideOffline' -Requester:'Functional' -State:'Active' -Identity:'ExSvr1'
 [03/06/2021 15:15:27.0147] [0] Beginning processing Set-ServerComponentState
 [03/06/2021 15:15:27.0175] [0] Calling ADSession.GetSharedConfigDC()

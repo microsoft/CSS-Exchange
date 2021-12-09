@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .SYNOPSIS
     Simple performance log collector for Exchange.
 .DESCRIPTION
@@ -67,7 +70,7 @@ param (
 )
 
 begin {
-    function Start-SimplePerf {
+    function StartSimplePerf {
         param (
             [Parameter(Mandatory = $true, Position = 0)]
             [string]
@@ -86,11 +89,11 @@ begin {
             $OutputFolder,
 
             [Parameter(Mandatory = $true, Position = 4)]
-            [switch]
+            [bool]
             $IncludeThread,
 
             [Parameter(Mandatory = $true, Position = 5)]
-            [switch]
+            [bool]
             $Circular
         )
 
@@ -163,7 +166,7 @@ begin {
         logman start "SimplePerf"
     }
 
-    function Stop-SimplePerf {
+    function StopSimplePerf {
         Write-Host "$($env:COMPUTERNAME): Stopping SimplePerf."
         logman stop "SimplePerf"
     }
@@ -186,16 +189,16 @@ end {
     if ($computerTargets.Length -gt 0) {
         foreach ($computer in $computerTargets) {
             if ($Start) {
-                Invoke-Command -ComputerName $computer -ScriptBlock ${function:Start-SimplePerf} -ArgumentList $Duration, $Interval, $MaximumSizeInMB, $OutputFolder, $IncludeThread, $Circular
+                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $Duration, $Interval, $MaximumSizeInMB, $OutputFolder, $IncludeThread, $Circular
             } elseif ($Stop) {
-                Invoke-Command -ComputerName $computer -ScriptBlock ${function:Stop-SimplePerf}
+                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StopSimplePerf}
             }
         }
     } else {
         if ($Start) {
-            Start-SimplePerf $Duration $Interval $MaximumSizeInMB $OutputFolder $IncludeThread $Circular
+            StartSimplePerf -Duration $Duration -Interval $Interval -MaximumSizeInMB $MaximumSizeInMB -OutputFolder $OutputFolder -IncludeThread $IncludeThread -Circular $Circular
         } else {
-            Stop-SimplePerf
+            StopSimplePerf
         }
     }
 }

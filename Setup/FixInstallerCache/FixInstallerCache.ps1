@@ -1,4 +1,6 @@
-﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters are being used')]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 [CmdletBinding(DefaultParameterSetName = "CopyFromCu")]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "CopyFromCu")]
@@ -11,17 +13,7 @@ param(
 
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
-
-#TODO: Change to Write-Output and get rid of Write-Host with ForegroundColors
-Function Receive-Output {
-    param(
-        [string]$ForegroundColor = "Gray"
-    )
-    process {
-        Write-Host $_ -ForegroundColor $ForegroundColor
-        $_ | Out-File -FilePath $scriptLogging -Append
-    }
-}
+. $PSScriptRoot\WriteFunctions.ps1
 
 Function MainIsoCopy {
     $installedVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction SilentlyContinue).PostSetupVersion
@@ -38,9 +30,9 @@ Function MainIsoCopy {
     $cuExchangeFileInfo = Get-FileInformation -File $cuExchangeMsi
 
     if (!($cuExchangeFileInfo.Subject.Contains($installedVersion))) {
-        "Failed to find the correct version of the ISO" | Receive-Output -ForegroundColor Red
-        "Looking for version $installedVersion" | Receive-Output -ForegroundColor Red
-        "Found Version $($cuExchangeFileInfo.Subject.Substring($cuExchangeFileInfo.Subject.LastIndexOf("v")+1))" | Receive-Output -ForegroundColor Red
+        Write-Host "Failed to find the correct version of the ISO" -ForegroundColor Red
+        Write-Host "Looking for version $installedVersion" -ForegroundColor Red
+        Write-Host "Found Version $($cuExchangeFileInfo.Subject.Substring($cuExchangeFileInfo.Subject.LastIndexOf("v")+1))" -ForegroundColor Red
         Start-Sleep 1
         Write-Error "Failed to find correct ISO version"
         exit
@@ -49,7 +41,7 @@ Function MainIsoCopy {
     $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
     $missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
     $currentMissingPackages = $missingPackages.Count
-    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Receive-Output
+    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Write-Host
     $packagesInIso = Get-ChildItem -Recurse $CurrentCuRootDirectory |
         Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
         ForEach-Object { return Get-FileInformation -File $_.FullName }
@@ -59,30 +51,30 @@ Function MainIsoCopy {
         $fileFound = $packagesInIso | Where-Object { $_.RevisionNumber -eq $missingMsi.RevisionNumber }
 
         if ($null -eq $fileFound) {
-            "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Receive-Output
+            "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Write-Host
         } elseif ($fileFound.Count -gt 1) {
-            "Found more than 1 MSI file that matched our revision number." | Receive-Output
+            "Found more than 1 MSI file that matched our revision number." | Write-Host
             $hashes = $fileFound |
                 ForEach-Object { Get-FileHash $_.FilePath } |
                 Group-Object Hash
             if ($hashes.Count -eq 1) {
-                "All files have the same hash value. $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Receive-Output
+                "All files have the same hash value. $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Write-Host
                 $fileFound = $fileFound[0]
-                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Receive-Output
+                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
                 Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
                 $fixedFiles++
             } else {
-                "Not all found files had the same hash" | Receive-Output
-                $fileFound | ForEach-Object { "$($fileFound.FilePath) - $($fileFound.RevisionNumber)" | Receive-Output }
+                "Not all found files had the same hash" | Write-Host
+                $fileFound | ForEach-Object { "$($fileFound.FilePath) - $($fileFound.RevisionNumber)" | Write-Host }
             }
         } else {
-            "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Receive-Output
+            "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
             Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
             $fixedFiles++
         }
     }
 
-    "Fixed $fixedFiles out of $currentMissingPackages" | Receive-Output
+    "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
 }
 
 Function MainMachineCopy {
@@ -91,9 +83,9 @@ Function MainMachineCopy {
     [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
     $currentMissingPackages = $missingPackages.Count
 
-    "Current Missing Files" | Receive-Output
+    "Current Missing Files" | Write-Host
     #Fix later, figure out how to log this better.
-    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Receive-Output
+    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Write-Host
 
     $runAgain = $false
 
@@ -122,11 +114,11 @@ Function MainMachineCopy {
             $fileFound = $remoteFiles | Where-Object { $_.RevisionNumber -eq $missingMsi.RevisionNumber }
 
             if ($null -eq $fileFound) {
-                "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber)" | Receive-Output
+                "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber)" | Write-Host
             } elseif ($fileFound.Count -gt 1) {
-                Write-Host "Found more than 1 MSI file that matched our revision number." | Receive-Output
+                Write-Host "Found more than 1 MSI file that matched our revision number." | Write-Host
             } else {
-                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Receive-Output
+                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
                 Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
                 $fixedFiles++
             }
@@ -134,25 +126,26 @@ Function MainMachineCopy {
         $runAgain = $true
     }
 
-    "Fixed $fixedFiles out of $currentMissingPackages" | Receive-Output
+    "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
 }
 
 Function Main {
 
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
+        Write-Host "Starting Fix Installer Cache from CU ISO."
         MainIsoCopy
         return
     } else {
+        Write-Host "Starting Fix Installer Cache from machine."
         MainMachineCopy
         return
     }
 }
 
 try {
-    $Script:scriptLogging = ".\InstallerCacheLogger.log"
     Main
 } catch {
-    Receive-Output "$($_.Exception)"
-    Receive-Output "$($_.ScriptStackTrace)"
+    Write-Host "$($_.Exception)"
+    Write-Host "$($_.ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:scriptLogging)'")
 }

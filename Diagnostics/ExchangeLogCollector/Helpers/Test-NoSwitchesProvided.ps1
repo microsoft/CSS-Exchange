@@ -1,4 +1,7 @@
-﻿Function Test-NoSwitchesProvided {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or
@@ -24,7 +27,8 @@
         $OABLogs -or
         $PowerShellLogs -or
         $WindowsSecurityLogs -or
-        $ExchangeServerInformation
+        $ExchangeServerInformation -or
+        $MitigationService
     ) {
         return
     } else {

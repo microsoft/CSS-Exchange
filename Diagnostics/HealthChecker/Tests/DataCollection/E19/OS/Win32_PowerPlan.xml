@@ -1,0 +1,48 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\power\Win32_PowerPlan</T>
+      <T>System.Management.ManagementObject#root\cimv2\power\CIM_SettingData</T>
+      <T>System.Management.ManagementObject#root\cimv2\power\CIM_ManagedElement</T>
+      <T>System.Management.ManagementObject#Win32_PowerPlan</T>
+      <T>System.Management.ManagementObject#CIM_SettingData</T>
+      <T>System.Management.ManagementObject#CIM_ManagedElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E19A\root\cimv2\power:Win32_PowerPlan.InstanceID="Microsoft:PowerPlan\\{381b4222-f694-41f0-9685-ff5bb260df2e}"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PowerPlan</S>
+      <S N="__SUPERCLASS">CIM_SettingData</S>
+      <S N="__DYNASTY">CIM_ManagedElement</S>
+      <S N="__RELPATH">Win32_PowerPlan.InstanceID="Microsoft:PowerPlan\\{381b4222-f694-41f0-9685-ff5bb260df2e}"</S>
+      <I32 N="__PROPERTY_COUNT">5</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_SettingData</S>
+          <S>CIM_ManagedElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E19A</S>
+      <S N="__NAMESPACE">root\cimv2\power</S>
+      <S N="__PATH">\\SOLO-E19A\root\cimv2\power:Win32_PowerPlan.InstanceID="Microsoft:PowerPlan\\{381b4222-f694-41f0-9685-ff5bb260df2e}"</S>
+      <Nil N="Caption" />
+      <S N="Description">Automatically balances performance with energy consumption on capable hardware.</S>
+      <S N="ElementName">Balanced</S>
+      <S N="InstanceID">Microsoft:PowerPlan\{381b4222-f694-41f0-9685-ff5bb260df2e}</S>
+      <B N="IsActive">true</B>
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E19A</S>
+    </MS>
+  </Obj>
+</Objs>

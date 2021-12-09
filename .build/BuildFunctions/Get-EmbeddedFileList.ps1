@@ -1,4 +1,7 @@
-﻿. $PSScriptRoot\Get-EmbeddedFile.ps1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+. $PSScriptRoot\Get-EmbeddedFile.ps1
 
 <#
 .SYNOPSIS
@@ -8,7 +11,6 @@
 function Get-EmbeddedFileList {
     [CmdletBinding()]
     [OutputType([string[]])]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'FilesAlreadyAdded', Justification = 'Incorrect rule result')]
     param (
         [Parameter()]
         [string]

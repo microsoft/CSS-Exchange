@@ -1,6 +1,14 @@
-﻿Function Get-HealthCheckerExchangeServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-    Write-VerboseOutput("Calling: Get-HealthCheckerExchangeServer")
+. $PSScriptRoot\Get-ExchangeInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-HardwareInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-OperatingSystemInformation.ps1
+. $PSScriptRoot\..\ServerInformation\Get-DotNetDllFileVersions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
+Function Get-HealthCheckerExchangeServer {
+
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer
     $HealthExSvrObj.ServerName = $Script:Server
@@ -20,6 +28,7 @@
         }
     }
     $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
-    Write-VerboseOutput("Finished building health Exchange Server Object for server: " + $Script:Server)
+    $HealthExSvrObj.GenerationTime = [datetime]::Now
+    Write-Verbose "Finished building health Exchange Server Object for server: $Script:Server"
     return $HealthExSvrObj
 }

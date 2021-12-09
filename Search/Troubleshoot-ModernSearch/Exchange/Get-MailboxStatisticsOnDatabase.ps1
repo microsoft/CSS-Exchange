@@ -1,4 +1,7 @@
-﻿Function Get-MailboxStatisticsOnDatabase {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-MailboxStatisticsOnDatabase {
     [CmdletBinding()]
     param(
         [string[]]$MailboxDatabase
@@ -15,7 +18,7 @@
                     if ($_.DisplayName -notlike "SystemMailbox*" -and
                         $_.DisplayName -notlike "*HealthMailbox-*" -and
                         $_.MailboxTypeDetail.ToString() -ne "ArbitrationMailbox" -and
-                        $_.DisconnectReason -eq $null) {
+                        $null -eq $_.DisconnectReason) {
 
                         $totalMailboxItems = $_.ItemCount + $_.AssociatedItemCount + $_.DeletedItemCount
                         $totalBigFunnelItems = $_.BigFunnelIndexedCount + $_.BigFunnelPartiallyIndexedCount + $_.BigFunnelNotIndexedCount + `

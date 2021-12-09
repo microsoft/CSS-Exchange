@@ -1,6 +1,9 @@
-﻿Function Get-CASLoadBalancingReport {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-    Write-VerboseOutput("Calling: Get-CASLoadBalancingReport")
+Function Get-CASLoadBalancingReport {
+
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     #Connection and requests per server and client type values
     $CASConnectionStats = @{}
     $TotalCASConnectionCount = 0
@@ -58,7 +61,7 @@
             $i++
         }
 
-        Write-VerboseWriter("Failed to get some counters")
+        Write-Verbose("Failed to get some counters")
     }
 
     foreach ($Result in $AllCounterResults.CounterSamples) {

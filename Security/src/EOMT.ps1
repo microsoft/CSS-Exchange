@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
     .SYNOPSIS
         This script contains mitigations to help address the following vulnerabilities.
             CVE-2021-26855
@@ -42,7 +45,6 @@
         https://aka.ms/privacy
 #>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Invalid rule result')]
 [Cmdletbinding()]
 param (
     [switch]$RunFullScan,

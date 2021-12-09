@@ -1,0 +1,2799 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Collections.Hashtable</T>
+      <T>System.Object</T>
+    </TN>
+    <DCT>
+      <En>
+        <S N="Key">MSExchangeOWAAppPool</S>
+        <Obj N="Value" RefId="1">
+          <TN RefId="1">
+            <T>System.Management.Automation.PSCustomObject</T>
+            <T>System.Object</T>
+          </TN>
+          <MS>
+            <Obj N="ConfigContent" RefId="2">
+              <TN RefId="2">
+                <T>System.Object[]</T>
+                <T>System.Array</T>
+                <T>System.Object</T>
+              </TN>
+              <LST>
+                <Obj RefId="3">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Obj N="PSDrive" RefId="4">
+                      <TN RefId="3">
+                        <T>System.Management.Automation.PSDriveInfo</T>
+                        <T>System.Object</T>
+                      </TN>
+                      <ToString>C</ToString>
+                      <Props>
+                        <S N="CurrentLocation">Users\Han\Desktop\HCData</S>
+                        <S N="Name">C</S>
+                        <Obj N="Provider" RefId="5">
+                          <TN RefId="4">
+                            <T>System.Management.Automation.ProviderInfo</T>
+                            <T>System.Object</T>
+                          </TN>
+                          <ToString>Microsoft.PowerShell.Core\FileSystem</ToString>
+                          <Props>
+                            <S N="ImplementingType">Microsoft.PowerShell.Commands.FileSystemProvider</S>
+                            <S N="HelpFile">System.Management.Automation.dll-Help.xml</S>
+                            <S N="Name">FileSystem</S>
+                            <S N="PSSnapIn">Microsoft.PowerShell.Core</S>
+                            <S N="ModuleName">Microsoft.PowerShell.Core</S>
+                            <Nil N="Module" />
+                            <S N="Description"></S>
+                            <S N="Capabilities">Filter, ShouldProcess, Credentials</S>
+                            <S N="Home">C:\Users\Han</S>
+                            <Obj N="Drives" RefId="6">
+                              <TN RefId="5">
+                                <T>System.Collections.ObjectModel.Collection`1[[System.Management.Automation.PSDriveInfo, System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+                                <T>System.Object</T>
+                              </TN>
+                              <LST>
+                                <Ref RefId="4" />
+                              </LST>
+                            </Obj>
+                          </Props>
+                        </Obj>
+                        <S N="Root">C:\</S>
+                        <S N="Description"></S>
+                        <Obj N="Credential" RefId="7">
+                          <TN RefId="6">
+                            <T>System.Management.Automation.PSCredential</T>
+                            <T>System.Object</T>
+                          </TN>
+                          <ToString>System.Management.Automation.PSCredential</ToString>
+                          <Props>
+                            <Nil N="UserName" />
+                            <Nil N="Password" />
+                          </Props>
+                        </Obj>
+                        <Nil N="DisplayRoot" />
+                      </Props>
+                      <MS>
+                        <U64 N="Used">66565894144</U64>
+                        <U64 N="Free">69244616704</U64>
+                      </MS>
+                    </Obj>
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="8">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="9">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="10">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="11">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="12">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="13">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="14">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeOWAAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="15">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="16">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="17">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="18">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">14.00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="19">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeOWAAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeECPAppPool</S>
+        <Obj N="Value" RefId="20">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="21">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="22">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="23">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="24">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="25">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="26">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="27">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="28">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="29">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeECPAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="30">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="31">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="32">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="33">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">14.00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="34">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeECPAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeMapiAddressBookAppPool</S>
+        <Obj N="Value" RefId="35">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="36">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="37">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="38">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="39">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="40">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="41">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="42">
+                  <S>  &lt;system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="43">
+                  <S>    &lt;applicationPool percentCpuLimit="0"/&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">7</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="44">
+                  <S>  &lt;/system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">8</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="45">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">9</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="46">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="47">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeMapiAddressBookAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiAddressBookAppPool_CLRConfig.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="48">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="49">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">false</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">65535</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="50">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="51">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="52">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeMapiAddressBookAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeRpcProxyFrontEndAppPool</S>
+        <Obj N="Value" RefId="53">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="54">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="55">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="56">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="57">
+                  <S>  &lt;system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="58">
+                  <S>    &lt;applicationPool percentCpuLimit="0"/&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="59">
+                  <S>  &lt;/system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="60">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="61">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="62">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeRpcProxyFrontEndAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyFrontEndAppPool_CLRConfig.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="63">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="64">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:00:05</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">65535</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="65">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="66">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">true</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="67">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeRpcProxyFrontEndAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">true</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangePowerShellAppPool</S>
+        <Obj N="Value" RefId="68">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="69">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="70">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="71">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="72">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="73">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="74">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="75">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="76">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="77">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangePowerShellAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="78">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="79">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="80">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="81">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="82">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangePowerShellAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangePowerShellFrontEndAppPool</S>
+        <Obj N="Value" RefId="83">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="84">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="85">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="86">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="87">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="88">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="89">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="90">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="91">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="92">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangePowerShellFrontEndAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="93">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="94">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="95">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="96">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="97">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangePowerShellFrontEndAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeMapiFrontEndAppPool</S>
+        <Obj N="Value" RefId="98">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="99">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="100">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="101">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="102">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="103">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="104">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="105">
+                  <S>  &lt;system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="106">
+                  <S>    &lt;applicationPool percentCpuLimit="0"/&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">7</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="107">
+                  <S>  &lt;/system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">8</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="108">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">9</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="109">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="110">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeMapiFrontEndAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="111">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="112">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:00:05</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">65535</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="113">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="114">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">true</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="115">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeMapiFrontEndAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeMapiMailboxAppPool</S>
+        <Obj N="Value" RefId="116">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="117">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="118">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="119">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="120">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="121">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="122">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="123">
+                  <S>  &lt;system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="124">
+                  <S>    &lt;applicationPool percentCpuLimit="0"/&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">7</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="125">
+                  <S>  &lt;/system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">8</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="126">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">9</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="127">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="128">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeMapiMailboxAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeMapiMailboxAppPool_CLRConfig.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="129">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="130">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">false</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">65535</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="131">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="132">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="133">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeMapiMailboxAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeOABAppPool</S>
+        <Obj N="Value" RefId="134">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="135">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="136">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="137">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="138">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="139">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="140">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="141">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="142">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="143">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeOABAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="144">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="145">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="146">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="147">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="148">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeOABAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangePushNotificationsAppPool</S>
+        <Obj N="Value" RefId="149">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="150">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="151">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="152">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="153">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="154">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="155">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="156">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="157">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="158">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangePushNotificationsAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="159">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="160">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="161">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="162">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="163">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangePushNotificationsAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeOWACalendarAppPool</S>
+        <Obj N="Value" RefId="164">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="165">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="166">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="167">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="168">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="169">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="170">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="171">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="172">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="173">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeOWACalendarAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="174">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="175">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">10</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="176">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="177">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="178">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeOWACalendarAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeAutodiscoverAppPool</S>
+        <Obj N="Value" RefId="179">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="180">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="181">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="182">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="183">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="184">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="185">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="186">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="187">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="188">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeAutodiscoverAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="189">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="190">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="191">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="192">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="193">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeAutodiscoverAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeServicesAppPool</S>
+        <Obj N="Value" RefId="194">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="195">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="196">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="197">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="198">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="199">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="200">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="201">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="202">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="203">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeServicesAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="204">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="205">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="206">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="207">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="208">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeServicesAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeSyncAppPool</S>
+        <Obj N="Value" RefId="209">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="210">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="211">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="212">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="213">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="214">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="215">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="216">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="217">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="218">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeSyncAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\GenericAppPoolConfigWithGCServerEnabledFalse.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="219">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="220">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:01:30</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">1000</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="221">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="222">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="223">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeSyncAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">MSExchangeRpcProxyAppPool</S>
+        <Obj N="Value" RefId="224">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="ConfigContent" RefId="225">
+              <TNRef RefId="2" />
+              <LST>
+                <Obj RefId="226">
+                  <S>&lt;?xml version="1.0" encoding="utf-8" ?&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">1</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="227">
+                  <S>&lt;configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">2</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="228">
+                  <S>  &lt;runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">3</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="229">
+                  <S>    &lt;gcServer enabled="false" /&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">4</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="230">
+                  <S>  &lt;/runtime&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">5</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="231">
+                  <S>  &lt;system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">6</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="232">
+                  <S>    &lt;applicationPool percentCpuLimit="0"/&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">7</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="233">
+                  <S>  &lt;/system.web&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">8</I64>
+                  </MS>
+                </Obj>
+                <Obj RefId="234">
+                  <S>&lt;/configuration&gt;</S>
+                  <MS>
+                    <S N="PSPath">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="PSParentPath">C:\Program Files\Microsoft\Exchange Server\V15\bin</S>
+                    <S N="PSChildName">MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <Ref N="PSDrive" RefId="4" />
+                    <Ref N="PSProvider" RefId="5" />
+                    <I64 N="ReadCount">9</I64>
+                  </MS>
+                </Obj>
+              </LST>
+            </Obj>
+            <Obj N="AppSettings" RefId="235">
+              <TNRef RefId="1" />
+              <MS>
+                <S N="PipelineMode">Integrated</S>
+                <Obj N="add" RefId="236">
+                  <TNRef RefId="1" />
+                  <MS>
+                    <S N="autoStart">true</S>
+                    <S N="managedRuntimeLoader"></S>
+                    <S N="managedPipelineMode">Integrated</S>
+                    <S N="name">MSExchangeRpcProxyAppPool</S>
+                    <S N="CLRConfigFile">C:\Program Files\Microsoft\Exchange Server\V15\bin\MSExchangeRpcProxyAppPool_CLRConfig.config</S>
+                    <S N="passAnonymousToken">true</S>
+                    <Obj N="failure" RefId="237">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="rapidFailProtectionMaxCrashes">5</S>
+                        <S N="autoShutdownExe"></S>
+                        <S N="loadBalancerCapabilities">HttpLevel</S>
+                        <S N="rapidFailProtectionInterval">00:05:00</S>
+                        <S N="orphanActionExe"></S>
+                        <S N="rapidFailProtection">false</S>
+                        <S N="orphanWorkerProcess">false</S>
+                        <S N="orphanActionParams"></S>
+                        <S N="autoShutdownParams"></S>
+                      </MS>
+                    </Obj>
+                    <Obj N="processModel" RefId="238">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="maxProcesses">1</S>
+                        <S N="loadUserProfile">true</S>
+                        <S N="userName"></S>
+                        <S N="manualGroupMembership">false</S>
+                        <S N="identityType">LocalSystem</S>
+                        <S N="idleTimeout">00:00:00</S>
+                        <S N="setProfileEnvironment">true</S>
+                        <S N="idleTimeoutAction">Terminate</S>
+                        <S N="pingInterval">00:00:30</S>
+                        <S N="logEventOnProcessModel">IdleTimeout</S>
+                        <S N="password"></S>
+                        <S N="startupTimeLimit">00:01:30</S>
+                        <S N="pingResponseTime">00:01:30</S>
+                        <S N="shutdownTimeLimit">00:00:05</S>
+                        <S N="logonType">LogonBatch</S>
+                        <S N="pingingEnabled">false</S>
+                      </MS>
+                    </Obj>
+                    <S N="queueLength">65535</S>
+                    <S N="managedRuntimeVersion">v4.0</S>
+                    <Obj N="recycling" RefId="239">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <Obj N="periodicRestart" RefId="240">
+                          <TNRef RefId="1" />
+                          <MS>
+                            <S N="privateMemory">0</S>
+                            <S N="time">00:00:00</S>
+                            <S N="memory">0</S>
+                            <S N="requests">0</S>
+                            <Nil N="schedule" />
+                          </MS>
+                        </Obj>
+                        <S N="logEventOnRecycle">Time, Memory, PrivateMemory</S>
+                        <S N="disallowRotationOnConfigChange">false</S>
+                        <S N="disallowOverlappingRotation">true</S>
+                      </MS>
+                    </Obj>
+                    <S N="enableConfigurationOverride">true</S>
+                    <S N="startMode">OnDemand</S>
+                    <Obj N="cpu" RefId="241">
+                      <TNRef RefId="1" />
+                      <MS>
+                        <S N="numaNodeAssignment">MostAvailableMemory</S>
+                        <S N="smpProcessorAffinityMask">4294967295</S>
+                        <S N="resetInterval">00:05:00</S>
+                        <S N="numaNodeAffinityMode">Soft</S>
+                        <S N="smpProcessorAffinityMask2">4294967295</S>
+                        <S N="smpAffinitized">false</S>
+                        <S N="limit">0</S>
+                        <S N="processorGroup">0</S>
+                        <S N="action">NoAction</S>
+                      </MS>
+                    </Obj>
+                    <S N="enable32BitAppOnWin64">false</S>
+                  </MS>
+                </Obj>
+                <S N="RuntimeVersion">v4.0</S>
+                <S N="APPPOOL.NAME">MSExchangeRpcProxyAppPool</S>
+                <S N="state">Started</S>
+              </MS>
+            </Obj>
+            <B N="GCUnknown">false</B>
+            <B N="GCServerEnabled">false</B>
+          </MS>
+        </Obj>
+      </En>
+    </DCT>
+  </Obj>
+</Objs>

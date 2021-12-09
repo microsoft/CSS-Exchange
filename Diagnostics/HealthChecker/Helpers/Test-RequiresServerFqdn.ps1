@@ -1,23 +1,26 @@
-﻿Function Test-RequiresServerFqdn {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-    Write-VerboseOutput("Calling: Test-RequiresServerFqdn")
+Function Test-RequiresServerFqdn {
+
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $tempServerName = ($Script:Server).Split(".")
 
     if ($tempServerName[0] -eq $env:COMPUTERNAME) {
-        Write-VerboseOutput("Executed against the local machine. No need to pass '-ComputerName' parameter.")
+        Write-Verbose "Executed against the local machine. No need to pass '-ComputerName' parameter."
         return
     } else {
         try {
             $Script:ServerFQDN = (Get-ExchangeServer $Script:Server -ErrorAction Stop).FQDN
         } catch {
             Invoke-CatchActions
-            Write-VerboseOutput("Unable to query Fqdn via 'Get-ExchangeServer'")
+            Write-Verbose "Unable to query Fqdn via 'Get-ExchangeServer'"
         }
     }
 
     try {
         Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
-        Write-VerboseOutput("Connected successfully using: {0}." -f $Script:Server)
+        Write-Verbose "Connected successfully using: $($Script:Server)."
     } catch {
         Invoke-CatchActions
         if ($tempServerName.Count -gt 1) {
@@ -28,7 +31,7 @@
 
         try {
             Invoke-Command -ComputerName $Script:Server -ScriptBlock { Get-Date | Out-Null } -ErrorAction Stop
-            Write-VerboseOutput("Fallback to: {0} Connection was successfully established." -f $Script:Server)
+            Write-Verbose "Fallback to: $($Script:Server) Connection was successfully established."
         } catch {
             Write-Red("Failed to run against: {0}. Please try to run the script locally on: {0} for results. " -f $Script:Server)
             exit

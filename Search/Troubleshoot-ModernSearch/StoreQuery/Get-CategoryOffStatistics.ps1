@@ -1,4 +1,7 @@
-﻿Function Get-CategoryOffStatistics {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-CategoryOffStatistics {
     [CmdletBinding()]
     param(
         [object]$MailboxStatistics

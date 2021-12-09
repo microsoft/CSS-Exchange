@@ -1,8 +1,11 @@
-﻿Function Write-ResultsToScreen {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-ResultsToScreen {
     param(
         [Hashtable]$ResultsToWrite
     )
-    Write-VerboseOutput("Calling: Write-ResultsToScreen")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $indexOrderGroupingToKey = @{}
 
     foreach ($keyGrouping in $ResultsToWrite.Keys) {
@@ -12,10 +15,10 @@
     $sortedIndexOrderGroupingToKey = $indexOrderGroupingToKey.Keys | Sort-Object
 
     foreach ($key in $sortedIndexOrderGroupingToKey) {
-        Write-VerboseOutput("Working on Key: {0}" -f $key)
+        Write-Verbose "Working on Key: $key"
         $keyGrouping = $indexOrderGroupingToKey[$key]
-        Write-VerboseOutput("Working on Key Group: {0}" -f $keyGrouping.Name)
-        Write-VerboseOutput("Total lines to write: {0}" -f ($ResultsToWrite[$keyGrouping].Count))
+        Write-Verbose "Working on Key Group: $($keyGrouping.Name)"
+        Write-Verbose "Total lines to write: $($ResultsToWrite[$keyGrouping].Count)"
 
         if ($keyGrouping.DisplayGroupName) {
             Write-Grey($keyGrouping.Name)
@@ -37,6 +40,7 @@
                 "Yellow" { Write-Yellow($writeValue) }
                 "Green" { Write-Green($writeValue) }
                 "Red" { Write-Red($writeValue) }
+                "OutColumns" { Write-OutColumns($line.OutColumns) }
             }
         }
 

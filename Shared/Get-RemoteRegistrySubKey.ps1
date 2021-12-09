@@ -1,4 +1,7 @@
-﻿Function Get-RemoteRegistrySubKey {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-RemoteRegistrySubKey {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",
@@ -7,7 +10,7 @@
         [scriptblock]$CatchActionFunction
     )
     begin {
-        Write-Verbose "Calling: Get-RemoteRegistrySubKey"
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Attempting to open the Base Key $RegistryHive on Machine $MachineName"
         $regKey = $null
     }

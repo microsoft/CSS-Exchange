@@ -1,4 +1,7 @@
-﻿Function Test-PossibleCommonScenarios {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Test-PossibleCommonScenarios {
 
     #all possible logs
     if ($AllPossibleLogs) {
@@ -30,6 +33,7 @@
         $Script:CollectFailoverMetrics = $true
         $Script:ConnectivityLogs = $true
         $Script:ProtocolLogs = $true
+        $Script:MitigationService = $true
     }
 
     if ($DefaultTransportLogging) {

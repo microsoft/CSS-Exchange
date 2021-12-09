@@ -1,5 +1,9 @@
-﻿#By doing it this way and looking at the registry, we get msp files as well. (Security Updates)
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#By doing it this way and looking at the registry, we get msp files as well. (Security Updates)
 #Vs doing Get-CimInstance -ClassName Win32_Product
+. $PSScriptRoot\Get-FileInformation.ps1
 Function Get-InstallerPackages {
     [CmdletBinding()]
     param(
@@ -27,10 +31,10 @@ Function Get-InstallerPackages {
                     try {
                         $revisionGuid = Get-GuidProductCodeFromString -GuidString ($item.GetValue("PackageCode"))
                     } catch {
-                        "Failed to get the Revision Guid $($item.FullName)" | Receive-Output
+                        "Failed to get the Revision Guid $($item.FullName)" | Write-Host
                     }
                 } else {
-                    "Failed to find $productRegKey in order to get the revisionGuid value" | Receive-Output
+                    "Failed to find $productRegKey in order to get the revisionGuid value" | Write-Host
                 }
             }
 

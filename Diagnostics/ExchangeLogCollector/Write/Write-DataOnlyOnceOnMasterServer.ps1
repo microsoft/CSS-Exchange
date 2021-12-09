@@ -1,4 +1,7 @@
-﻿Function Write-DataOnlyOnceOnMasterServer {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
     Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnMasterServer")
@@ -28,6 +31,12 @@
         New-Folder -NewFolder $create -IncludeDisplayCreate $true
         $saveLocation = $create + "\Send_Connectors"
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation -AddServerName $false
+    }
+
+    if ($TransportConfig) {
+        $target = $RootCopyToDirectory + "\TransportConfig"
+        $data = Get-TransportConfig
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
     }
 
     if ($Error.Count -ne 0) {
