@@ -125,20 +125,56 @@ Function Get-SetupLogReviewer {
         [string]$SetupLog
     )
 
-    $validSetupLog = Select-String "Starting Microsoft Exchange Server \d\d\d\d Setup" $SetupLog | Select-Object -Last 1
+    Function GetDateTimeFromLine {
+        param(
+            [string]$line
+        )
+        return [DateTime]::Parse(
+            $line.Substring(1,
+                $line.IndexOf("]") - 1),
+            [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
+    }
+
+    $contextLength = 30
+    $validSetupLog = Select-String "Starting Microsoft Exchange Server \d\d\d\d Setup" $SetupLog -Context 0, $contextLength
 
     if ($null -eq $validSetupLog) {
         throw "Failed to provide valid Exchange Setup Log"
     }
 
-    $setupBuildNumber = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
-    $runDate = [DateTime]::Parse(
-        $SetupBuildNumber.Line.Substring(1,
-            $SetupBuildNumber.Line.IndexOf("]") - 1),
-        [System.Globalization.DateTimeFormatInfo]::InvariantInfo
-    )
-    $setupBuildNumber = $setupBuildNumber.Matches.Groups[1].Value
+    $temp = $validSetupLog | Select-Object -Last 1
+
+    if ($temp.Context.PostContext.Count -eq $contextLength) {
+        Write-Verbose "Found enough lines in the log to be good to work with."
+        $validSetupLog = $temp
+    } else {
+        $temp = $validSetupLog | Select-Object -Last 2
+        if ($temp.Count -ne 2) {
+            Write-Warning "Might not have enough data to properly determine what is wrong and script might fail out."
+            $validSetupLog = $temp[-1]
+        } else {
+            $lastAttemptDateTime = GetDateTimeFromLine $temp[1].Line
+            $previousAttemptDateTime = GetDateTimeFromLine $temp[0].Line
+
+            if ($lastAttemptDateTime.AddDays(-30) -lt $previousAttemptDateTime) {
+                Write-Warning "The last setup attempt doesn't appear to be enough data. Going to try the previous setup attempt to look at."
+                $validSetupLog = $temp[0]
+            } else {
+                Write-Warning "The last setup attempt doesn't appear to be enough data. However, the previous setup attempt is over 30 days old. Continuing with the last attempt..."
+                $validSetupLog = $temp[1]
+            }
+        }
+    }
+
+    $runDate = GetDateTimeFromLine $validSetupLog.Line
+    $setupBuildNumberSls = Select-String "Setup version: (.+)\." $SetupLog | Select-Object -Last 1
+    $setupBuildNumber = $setupBuildNumberSls.Matches.Groups[1].Value
     $currentLogOnUser = Select-String "Logged on user: (.+)." $SetupLog | Select-Object -Last 1
+
+    if ($currentLogOnUser.LineNumber -lt $validSetupLog.LineNumber -or
+        $setupBuildNumberSls.LineNumber -lt $validSetupLog.LineNumber) {
+        Write-Warning "The Setup Version or Logged On User line isn't greater than the current last setup run. Results might not be accurate."
+    }
 
     $logReviewer = [PSCustomObject]@{
         SetupLog         = $SetupLog
