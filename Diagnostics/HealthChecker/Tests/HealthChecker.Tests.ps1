@@ -338,6 +338,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
         }
+
+        It "EEMS Enabled And OCS Reachable" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
+            TestObjectMatch "Windows service" "Running"
+            TestObjectMatch "Pattern service" "200 - Reachable"
+            TestObjectMatch "Telemetry enabled" "False"
+        }
     }
 
     Context "Checking Scenarios 2" {
