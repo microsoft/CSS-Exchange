@@ -53,6 +53,7 @@ try {
                 public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
                 public string ReleaseDate;      // Exchange release date for which the CU they are currently on
                 public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
+                public object KnownIssuesBuild; //Stores if server is running a build with known issues
                 public object ExchangeSetup;    //Stores the Get-Command ExSetup object
                 public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
                 public bool March2021SUInstalled;    //True if March 2021 SU is installed

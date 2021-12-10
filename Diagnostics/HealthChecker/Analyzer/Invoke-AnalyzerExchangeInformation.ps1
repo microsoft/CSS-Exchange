@@ -79,6 +79,19 @@ Function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    if (($null -ne $exchangeInformation.BuildInformation.KnownIssuesBuild) -and
+    ($exchangeInformation.BuildInformation.KnownIssuesBuild.BuildWithIssues -eq $true)) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Known Issue Detected") `
+            -Details ("True") `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType "Yellow"
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details ("This build has known issues and was replaced by new update package. `r`n`t`tSee: {0}" -f $exchangeInformation.BuildInformation.KnownIssuesBuild.IssueKB) `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Yellow"
+    }
+
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Server Role" -Details ($exchangeInformation.BuildInformation.ServerRole) `
         -DisplayGroupingKey $keyExchangeInformation `
         -AddHtmlOverviewValues $true
