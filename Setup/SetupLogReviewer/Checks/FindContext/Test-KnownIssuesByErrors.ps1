@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
 . $PSScriptRoot\..\ErrorContext\Test-FailedSearchFoundation.ps1
+. $PSScriptRoot\..\ErrorContext\Test-InstallFromBin.ps1
 . $PSScriptRoot\..\ErrorContext\Test-ExceptionADOperationFailedAlreadyExist.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingDirectory.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MissingHomeMdb.ps1
@@ -63,7 +64,8 @@ Function Test-KnownIssuesByErrors {
             "Test-MissingHomeMdb",
             "Test-MountDatabaseFailure",
             "Test-MSExchangeSecurityGroupsContainerDeleted",
-            "Test-VirtualDirectoryFailure"
+            "Test-VirtualDirectoryFailure",
+            "Test-InstallFromBin"
         )
 
         if ($Script:ReturnNow) {

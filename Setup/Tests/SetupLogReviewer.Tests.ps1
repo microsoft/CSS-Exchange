@@ -445,5 +445,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Missing homeMdb on critical mailbox. Run SetupAssist.ps1 to find all problem mailboxes that needs to be addressed." }
         }
+
+        It "Install from bin" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_InstallFromBin.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.Management.Automation.CommandNotFoundException: The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1'*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run Setup again, but when using powershell.exe you MUST USE '.\' prior to setup.exe." }
+        }
     }
 }
