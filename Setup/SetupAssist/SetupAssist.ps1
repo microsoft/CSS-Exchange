@@ -13,6 +13,7 @@ param(
 
 . $PSScriptRoot\Checks\Domain\Test-ComputersContainerExists.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainControllerDnsHostName.ps1
+. $PSScriptRoot\Checks\Domain\Test-DomainMultiActiveSyncVirtualDirectories.ps1
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
 . $PSScriptRoot\Checks\Domain\Test-OtherWellKnownObjects.ps1
 . $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
@@ -40,6 +41,7 @@ Function RunAllTests {
         "Test-ExchangeServices",
         "Test-ComputersContainerExists",
         "Test-DomainControllerDnsHostName",
+        "Test-DomainMultiActiveSyncVirtualDirectories",
         "Test-MissingDirectory",
         "Test-MsiCacheFiles",
         "Test-PrerequisiteInstalled",
