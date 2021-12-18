@@ -16,7 +16,7 @@ function Test-ScriptVersion {
         $AutoUpdate,
         [Parameter(Mandatory = $false)]
         [string]
-        $VersionCheckUri
+        $VersionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
     )
 
     function Confirm-ProxyServer {
@@ -112,11 +112,6 @@ function Test-ScriptVersion {
 
     $BuildVersion = ""
     try {
-        if ($null -eq $VersionCheckUri) {
-            $versionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
-        } else {
-            $versionsUrl = $VersionCheckUri
-        }
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         if (Confirm-ProxyServer -TargetUri "https://github.com") {
             $webClient = New-Object System.Net.WebClient
