@@ -380,6 +380,18 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Check access rights to this location OR use PROCMON to determine why this is occurring." }
         }
+
+        It "Multiple Active Sync Virtual Directories" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Multi_EAS_Vdirs.log"
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Cannot convert 'System.Object*' to the type 'Microsoft.Exchange.Configuration.Tasks.VirtualDirectoryIdParameter' required by parameter 'Identity'*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Remove the secondary virtual directory that is custom on the server." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*NOTE: You should only return one value when running the following cmdlet on the server:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Get-ActiveSyncVirtualDirectory -Server `$env:ComputerName" }
+        }
     }
 
     Context "Error Context" {
