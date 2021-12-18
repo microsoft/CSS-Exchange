@@ -54,8 +54,17 @@ Function Invoke-SetupLogReviewer {
     if (-not ([string]::IsNullOrEmpty($setupLogReviewer.LocalBuildNumber))) {
         Write-Host "Current Exchange Build: $($setupLogReviewer.LocalBuildNumber)"
 
-        if ($setupLogReviewer.LocalBuildNumber -eq $setupLogReviewer.SetupBuildNumber) {
-            Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor "Red"
+        try {
+            $localBuild = New-Object System.Version $setupLogReviewer.LocalBuildNumber -ErrorAction Stop
+            $setupBuild = New-Object System.Version $setupLogReviewer.SetupBuildNumber -ErrorAction Stop
+
+            if ($localBuild -eq $setupBuild -or
+                ($localBuild.Minor -eq $setupBuild.Minor -and
+                $localBuild.Build -eq $setupBuild.Build)) {
+                Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor "Red"
+            }
+        } catch {
+            Write-Verbose "Failed to convert to System.Version"
         }
     }
 

@@ -380,6 +380,18 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Check access rights to this location OR use PROCMON to determine why this is occurring." }
         }
+
+        It "Multiple Active Sync Virtual Directories" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Multi_EAS_Vdirs.log"
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Cannot convert 'System.Object*' to the type 'Microsoft.Exchange.Configuration.Tasks.VirtualDirectoryIdParameter' required by parameter 'Identity'*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Remove the secondary virtual directory that is custom on the server." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*NOTE: You should only return one value when running the following cmdlet on the server:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Get-ActiveSyncVirtualDirectory -Server `$env:ComputerName" }
+        }
     }
 
     Context "Error Context" {
@@ -444,6 +456,14 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -eq "[03/07/2021 16:22:39.0469] [2] [ERROR] Database is mandatory on UserMailbox." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Missing homeMdb on critical mailbox. Run SetupAssist.ps1 to find all problem mailboxes that needs to be addressed." }
+        }
+
+        It "Install from bin" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_InstallFromBin.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*was run: `"System.Management.Automation.CommandNotFoundException: The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1'*" -and $ForegroundColor -eq "Yellow" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run Setup again, but when using powershell.exe you MUST USE '.\' prior to setup.exe." }
         }
     }
 }
