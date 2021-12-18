@@ -118,7 +118,7 @@ function Test-ScriptVersion {
             $webClient.Headers.Add("User-Agent", "PowerShell")
             $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
         }
-        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $versionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
+        $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest $VersionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
         $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
         if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
             if ($AutoUpdate) {
