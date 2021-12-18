@@ -230,7 +230,7 @@ Function Main {
 
     if ($ScriptUpdateOnly) {
         Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
-        switch (Test-ScriptVersion -AutoUpdate) {
+        switch (Test-ScriptVersion -AutoUpdate -VersionCheckUri "https://aka.ms/HC-VersionsUrl") {
             ($true) { Write-Green("Script was successfully updated.") }
             ($false) { Write-Yellow("No update of the script performed.") }
             default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
@@ -242,7 +242,7 @@ Function Main {
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
-        (Test-ScriptVersion -AutoUpdate)) {
+        (Test-ScriptVersion -AutoUpdate -VersionCheckUri "https://aka.ms/HC-VersionsUrl")) {
         Write-Yellow "Script was updated. Please rerun the command."
         return
     } else {
