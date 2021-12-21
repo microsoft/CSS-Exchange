@@ -3,12 +3,6 @@
 
 [CmdletBinding()]
 param()
-BeforeAll {
-    . $PSScriptRoot\..\..\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1
-    . $PSScriptRoot\..\Helpers\Class.ps1
-    $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
-    $Script:PesterExtract = "# Extract for Pester Testing - Start"
-}
 
 Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
