@@ -8,7 +8,6 @@ Function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
         [ref]$AnalyzeResults,
 
         [Parameter(Mandatory = $true)]
