@@ -6,9 +6,8 @@
 param()
 
 BeforeAll {
-    . $PSScriptRoot\..\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1
     $Script:parentPath = [IO.Path]::Combine((Split-Path -Parent $PSScriptRoot), "SetupAssist")
-    $Script:PesterExtract = "# Extract for Pester Testing - Start"
+    . $PSScriptRoot\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
 }
 
 Describe "Testing SetupAssist" {
@@ -16,24 +15,8 @@ Describe "Testing SetupAssist" {
     BeforeAll {
 
         #Load the functions
-        $internalFunctions = New-Object 'System.Collections.Generic.List[string]'
-        $scriptContent = Get-ExpandedScriptContent -File "$Script:parentPath\Checks\Domain\Test-ExchangeADSetupLevel.ps1"
-        $startIndex = $scriptContent.Trim().IndexOf($Script:PesterExtract)
-        for ($i = $startIndex + 1; $i -lt $scriptContent.Count; $i++) {
-            if ($scriptContent[$i].Trim().Contains($Script:PesterExtract.Replace("Start", "End"))) {
-                $endIndex = $i
-                break
-            }
-            $internalFunctions.Add($scriptContent[$i])
-        }
-
-        $scriptContent.RemoveRange($startIndex, $endIndex - $startIndex)
-        $scriptContentString = [string]::Empty
-        $internalFunctionsString = [string]::Empty
-        $scriptContent | ForEach-Object { $scriptContentString += "$($_)`n" }
-        $internalFunctions | ForEach-Object { $internalFunctionsString += "$($_)`n" }
-        Invoke-Expression $scriptContentString
-        Invoke-Expression $internalFunctionsString
+        $scriptContent = Get-PesterScriptContent -FilePath "$Script:parentPath\Checks\Domain\Test-ExchangeADSetupLevel.ps1"
+        Invoke-Expression $scriptContent
     }
 
     Context "Test-ExchangeADSetupLevel Function Test" {

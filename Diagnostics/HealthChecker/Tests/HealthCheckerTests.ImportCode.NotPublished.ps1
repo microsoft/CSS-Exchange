@@ -6,30 +6,15 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Pester testing file')]
 [CmdletBinding()]
 param()
+$Script:parentPath = (Split-Path -Parent $PSScriptRoot)
+. $PSScriptRoot\..\Helpers\Class.ps1
+. $PSScriptRoot\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
+$scriptContent = Get-PesterScriptContent -FilePath @(
+    "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1",
+    "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
+)
 
-$scriptContent = Get-ExpandedScriptContent -File "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1"
-$scriptContentString = [string]::Empty
-$scriptContent | ForEach-Object { $scriptContentString += "$($_)`n" }
-Invoke-Expression $scriptContentString
-
-$internalFunctions = New-Object 'System.Collections.Generic.List[string]'
-$scriptContent = Get-ExpandedScriptContent -File "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
-$startIndex = $scriptContent.Trim().IndexOf($Script:PesterExtract)
-for ($i = $startIndex + 1; $i -lt $scriptContent.Count; $i++) {
-    if ($scriptContent[$i].Trim().Contains($Script:PesterExtract.Replace("Start", "End"))) {
-        $endIndex = $i
-        break
-    }
-    $internalFunctions.Add($scriptContent[$i])
-}
-
-$scriptContent.RemoveRange($startIndex, $endIndex - $startIndex)
-$scriptContentString = [string]::Empty
-$internalFunctionsString = [string]::Empty
-$scriptContent | ForEach-Object { $scriptContentString += "$($_)`n" }
-$internalFunctions | ForEach-Object { $internalFunctionsString += "$($_)`n" }
-Invoke-Expression $scriptContentString
-Invoke-Expression $internalFunctionsString
+Invoke-Expression $scriptContent
 
 Function SetActiveDisplayGrouping {
     [CmdletBinding()]

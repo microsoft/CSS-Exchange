@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\Invoke-AnalyzerKnownBuildIssues.ps1
 Function Invoke-AnalyzerExchangeInformation {
     [CmdletBinding()]
     param(
@@ -78,6 +79,10 @@ Function Invoke-AnalyzerExchangeInformation {
                 -AddHtmlDetailRow $false
         }
     }
+
+    Invoke-AnalyzerKnownBuildIssues -AnalyzeResults $AnalyzeResults `
+        -DisplayGroupingKey $keyExchangeInformation `
+        -CurrentBuild $exchangeInformation.BuildInformation.ExchangeSetup.FileVersion
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Server Role" -Details ($exchangeInformation.BuildInformation.ServerRole) `
         -DisplayGroupingKey $keyExchangeInformation `
