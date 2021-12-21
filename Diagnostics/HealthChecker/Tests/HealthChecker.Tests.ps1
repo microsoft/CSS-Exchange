@@ -5,12 +5,6 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Pester testing file')]
 [CmdletBinding()]
 param()
-BeforeAll {
-    . $PSScriptRoot\..\..\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1
-    . $PSScriptRoot\..\Helpers\Class.ps1
-    $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
-    $Script:PesterExtract = "# Extract for Pester Testing - Start"
-}
 
 Describe "Testing Health Checker by Mock Data Imports" {
 
@@ -327,16 +321,17 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
         }
 
-        It "AMSI Override" {
-            $amsiOverride = Get-ExchangeAMSIConfigurationState
-            $amsiOverride.Enabled | Should -Be $false
-            $amsiOverride.OrgWideSetting | Should -Be $true
-            $amsiOverride.QuerySuccessful | Should -Be $true
-        }
-
         It "AMSI Enabled" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
+        }
+
+        It "EEMS Enabled And OCS Reachable" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "Exchange Emergency Mitigation Service" "Enabled" -WriteType "Green"
+            TestObjectMatch "Windows service" "Running"
+            TestObjectMatch "Pattern service" "200 - Reachable"
+            TestObjectMatch "Telemetry enabled" "False"
         }
     }
 

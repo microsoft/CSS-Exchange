@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
-Function Test-OtherWellKnownObjects {
+Function Test-DomainOtherWellKnownObjects {
     $rootDSE = [ADSI]("LDAP://RootDSE")
     $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
     $exchangeContainer = [ADSI]("LDAP://" + $exchangeContainerPath)

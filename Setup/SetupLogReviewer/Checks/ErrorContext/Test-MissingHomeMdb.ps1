@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
+. $PSScriptRoot\..\Test-SetupAssist.ps1
 Function Test-MissingHomeMdb {
     [CmdletBinding()]
     param(
@@ -19,9 +20,16 @@ Function Test-MissingHomeMdb {
         if ($null -ne $databaseMandatory) {
             Write-Verbose "Found missing homeMdb value"
             $databaseMandatory.Line | Select-Object -First 1 | New-ErrorContext
-            New-ActionPlan @(
-                "Missing homeMdb on critical mailbox. Run SetupAssist.ps1 to find all problem mailboxes that needs to be addressed."
-            )
+
+            if ((Test-SetupAssist)) {
+                New-ActionPlan @(
+                    "Address all the problem mailboxes in the 'Valid Home MDB' test above."
+                )
+            } else {
+                New-ActionPlan @(
+                    "Missing homeMdb on critical mailbox. Run SetupAssist.ps1 to find all problem mailboxes that needs to be addressed."
+                )
+            }
         }
     }
 }

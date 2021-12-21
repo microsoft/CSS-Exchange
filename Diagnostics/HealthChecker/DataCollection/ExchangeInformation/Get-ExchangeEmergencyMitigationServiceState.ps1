@@ -41,8 +41,15 @@ Function Get-ExchangeEmergencyMitigationServiceState {
                 -CatchActionFunction $CatchActionFunction `
                 -ScriptBlock {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+                    if ($null -ne $args[0]) {
+                    Write-Verbose "Proxy Server detected. Going to use: $($args[0])"
+                    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($args[0])
+                    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                    [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
+                }; `
                     Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/getexchangemitigations" -UseBasicParsing
-            }
+            } `
+                -ArgumentList $exchangeServerConfiguration.InternetWebProxy
         }
     }
     end {
