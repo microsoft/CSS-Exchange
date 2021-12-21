@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
+. $PSScriptRoot\..\Test-SetupAssist.ps1
 Function Test-OtherWellKnownObjects {
     param(
         [Parameter(ValueFromPipeline = $true)]
@@ -17,10 +18,17 @@ Function Test-OtherWellKnownObjects {
         if ($null -ne $errorLine) {
 
             $errorLine.Line | New-ErrorContext
-            New-ActionPlan @(
-                "Option 1: Restore the objects that were deleted.",
-                "Option 2: Run the SetupAssist.ps1 script to address the deleted objects type"
-            )
+            if ((Test-SetupAssist)) {
+                New-ActionPlan @(
+                    "Look at the action plan from 'Other Well Known Objects' test above."
+                )
+            } else {
+                New-ActionPlan @(
+                    "Option 1: Restore the objects that were deleted.",
+                    "Option 2: Run the SetupAssist.ps1 script to address the deleted objects type"
+                )
+            }
+
             return
         }
         Write-Verbose "OtherWellKnownObjects didn't find anything"
