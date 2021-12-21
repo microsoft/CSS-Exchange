@@ -19,6 +19,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+    # Extract for Pester Testing - Start
     Function GetVersionFromString {
         param(
             [object]$VersionString
@@ -58,6 +59,8 @@ Function Invoke-AnalyzerKnownBuildIssues {
     }
 
     Function TestOnKnownBuildIssue {
+        [CmdletBinding()]
+        [OutputType("System.Boolean")]
         param(
             [object]$IssueBuildInformation,
             [version]$CurrentBuild
@@ -90,6 +93,8 @@ Function Invoke-AnalyzerKnownBuildIssues {
 
         return $false
     }
+
+    # Extract for Pester Testing - End
 
     Function TestForKnownBuildIssues {
         param(
