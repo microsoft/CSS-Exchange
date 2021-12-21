@@ -65,7 +65,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
             [object]$IssueBuildInformation,
             [version]$CurrentBuild
         )
-        $knownIssue = GetVersionFromString $issue.BuildNumber
+        $knownIssue = GetVersionFromString $IssueBuildInformation.BuildNumber
         Write-Verbose "Testing Known Issue Build $knownIssue"
 
         if ($null -eq $knownIssue -or
@@ -81,7 +81,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         Write-Verbose "Testing against possible resolved build number $resolvedBuild"
         $buildBound = $IssueBuildInformation.BuildBound
         $withinBuildBoundRange = $CurrentBuild.Build -eq $knownIssue.Build
-        $fixNeeded = $fixValueNull -or $CurrentBuild -le $resolvedBuild
+        $fixNeeded = $fixValueNull -or $CurrentBuild -lt $resolvedBuild
         Write-Verbose "BuildBound: $buildBound | WithinBuildBoundRage: $withinBuildBoundRange | FixNeeded: $fixNeeded"
         if ($CurrentBuild -ge $knownIssue) {
             if ($buildBound) {
