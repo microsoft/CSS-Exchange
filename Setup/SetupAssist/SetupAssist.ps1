@@ -15,7 +15,7 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-DomainControllerDnsHostName.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainMultiActiveSyncVirtualDirectories.ps1
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
-. $PSScriptRoot\Checks\Domain\Test-OtherWellKnownObjects.ps1
+. $PSScriptRoot\Checks\Domain\Test-DomainOtherWellKnownObjects.ps1
 . $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
 . $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
@@ -46,7 +46,7 @@ Function RunAllTests {
         "Test-MsiCacheFiles",
         "Test-PrerequisiteInstalled",
         "Test-ReadOnlyDomainControllerLocation",
-        "Test-OtherWellKnownObjects",
+        "Test-DomainOtherWellKnownObjects",
         "Test-PendingReboot",
         "Test-ValidHomeMDB",
         "Test-VirtualDirectoryConfiguration")
