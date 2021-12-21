@@ -15,7 +15,7 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-DomainControllerDnsHostName.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainMultiActiveSyncVirtualDirectories.ps1
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
-. $PSScriptRoot\Checks\Domain\Test-OtherWellKnownObjects.ps1
+. $PSScriptRoot\Checks\Domain\Test-DomainOtherWellKnownObjects.ps1
 . $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
 . $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
@@ -25,6 +25,7 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
+. $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
@@ -46,7 +47,7 @@ Function RunAllTests {
         "Test-MsiCacheFiles",
         "Test-PrerequisiteInstalled",
         "Test-ReadOnlyDomainControllerLocation",
-        "Test-OtherWellKnownObjects",
+        "Test-DomainOtherWellKnownObjects",
         "Test-PendingReboot",
         "Test-ValidHomeMDB",
         "Test-VirtualDirectoryConfiguration")
@@ -81,7 +82,6 @@ Function Main {
         }
     }
 
-    #TODO: Add check for log reviewer check that was there
     $quickResults = $results | Group-Object TestName |
         ForEach-Object {
             $result = $_.Group.Result | Where-Object { $_ -ne "Passed" } | Select-Object -First 1
@@ -112,6 +112,17 @@ Function Main {
             ReferenceInfo = $_.Group.ReferenceInfo | Select-Object -Unique
         }
     } | Write-OutColumns -IndentSpaces 5 -LinesBetweenObjects 2
+
+    Write-Host ""
+    Write-Host "Setup Log Reviewer Results"
+    Write-Host "--------------------------"
+    Write-Host ""
+    $setupLog = "C:\ExchangeSetupLogs\ExchangeSetup.log"
+    if ((Test-Path $setupLog)) {
+        Invoke-SetupLogReviewer -SetupLog $SetupLog
+    } else {
+        Write-Host "No Exchange Setup Log to test against"
+    }
 }
 
 try {

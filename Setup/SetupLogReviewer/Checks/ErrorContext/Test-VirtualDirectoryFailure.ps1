@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
+. $PSScriptRoot\..\Test-SetupAssist.ps1
 Function Test-VirtualDirectoryFailure {
     [CmdletBinding()]
     param(
@@ -46,9 +47,15 @@ Function Test-VirtualDirectoryFailure {
             $errorContext |
                 New-ErrorContext
 
-            New-ActionPlan @(
-                "Run SetupAssist on the server and address the issues it calls out with the virtual directories."
-            )
+            if ((Test-SetupAssist)) {
+                New-ActionPlan @(
+                    "Look at the action plan from 'Virtual Directory Configuration' test from above."
+                )
+            } else {
+                New-ActionPlan @(
+                    "Run SetupAssist on the server and address the issues it calls out with the virtual directories."
+                )
+            }
         }
     }
 }
