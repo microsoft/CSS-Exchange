@@ -27,6 +27,8 @@ Function log {
     $PSobject | Add-Member -NotePropertyName "Status" -NotePropertyValue $CurrentStatus
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeCheckslogging.csv -NoTypeInformation -Append
 }
+
+#Add MFA Auth, new condition , Solution steps , feeback form at the end
 Function Connect2EXO {
     param(
         [Parameter(Mandatory = $true)]
