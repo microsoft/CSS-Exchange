@@ -318,6 +318,30 @@ Function Debugownerscount {
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
+Function Fixownergroupcreationvalidity {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$restrictedowners,
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$GroupsCreationWhitelistedgroup
+    )
+    try {
+        foreach ($restrictedowner in $restrictedowners) {
+            Write-Host "Adding $restrictedowner membership to $GroupsCreationWhitelistedgroup group...." -ForegroundColor Yellow
+            "Adding $($restrictedowner) membership to $GroupsCreationWhitelistedgroup group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Add-DistributionGroupMember -Member $restrictedowner -Identity $GroupsCreationWhitelistedgroup -ErrorAction stop -Confirm:$false
+            Write-Host "Added $restrictedowner membership to $GroupsCreationWhitelistedgroup group!" -ForegroundColor Yellow
+            "Added $restrictedowner membership to $GroupsCreationWhitelistedgroup group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        }
+        $CurrentDescription = "Adding restrictedowner(s) to GroupsCreationWhitelistedgroup"
+        $CurrentStatus = "Success"
+        log -Function "Add restrictedowner(s) to GroupsCreationWhitelistedgroup" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    } catch {
+        $CurrentDescription = "Adding restrictedowner(s) to GroupsCreationWhitelistedgroup"
+        $CurrentStatus = "Failure"
+        log -Function "Add restrictedowner(s) to GroupsCreationWhitelistedgroup" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    }
+}
 #Check for GroupsCreationEnabled if Enabled and validate that all owners are members inside Whitelistedgroup
 Function debugownergroupcreationvalidity {
     param(
@@ -341,7 +365,6 @@ Function debugownergroupcreationvalidity {
                 $faultyowners=@()
                 foreach ($owner in $owners) {
                     if ($members.name -notcontains $owner) {
-                        #write down the faulty owner
                         $faultyowners=$faultyowners+$owner
                     }
                 }
@@ -357,7 +380,11 @@ Function debugownergroupcreationvalidity {
                 $faultyowners
                 "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
                 "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                $faultyowners | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                $faultyowners | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted group $GroupsCreationWhitelistedId "
+                if ($fix.tolower() -eq "Y") {
+                    Fixownergroupcreationvalidity($faultyowners, $GroupsCreationWhitelistedId)
+                }
             }
         }
     } catch {
