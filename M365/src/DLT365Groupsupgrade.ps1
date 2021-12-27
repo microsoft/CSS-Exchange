@@ -207,6 +207,55 @@ Function Debugownerscount {
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
+#Check for GroupsCreationEnabled if Enabled and validate that all owners are members inside Whitelistedgroup
+Function debugownergroupcreationvalidity {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$Distgroup
+    )
+    $owners = $Distgroup.ManagedBy
+    try {
+        $Orgconfig=Get-OrganizationConfig -ErrorAction stop
+        $CurrentDescription = "Retrieving organization configuration"
+        $CurrentStatus = "Success"
+        log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        $GroupsCreationEnabled=$Orgconfig.GroupsCreationEnabled
+        $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
+        if ($GroupsCreationEnabled.ToLower().ToString() -eq "false") {
+            try {
+                $members=Get-DistributionGroupMember $GroupsCreationWhitelistedId -ErrorAction  stop
+                $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
+                $CurrentStatus = "Success"
+                log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+                $faultyowners=@()
+                foreach ($owner in $owners) {
+                    if ($members.name -notcontains $owner) {
+                        #write down the faulty owner
+                        $faultyowners=$faultyowners+$owner
+                    }
+                }
+            } catch {
+                $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
+                $CurrentStatus = "Failure"
+                log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+            }
+            if ($faultyowners.Count -ge 1) {
+                $script:Conditionsfailed++
+                Write-Host "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups" -ForegroundColor Red
+                Write-Host "Restricted Owners:" -BackgroundColor Yellow -ForegroundColor Black
+                $faultyowners
+                "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                $faultyowners | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            }
+        }
+    } catch {
+        $CurrentDescription = "Retrieving organization configuration"
+        $CurrentStatus = "Failure"
+        log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+    }
+}
+
 #Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
 Function Debugownersstatus {
     param(
@@ -415,6 +464,7 @@ Debuggroupnesting($dg)
 DebugmembersrecipientTypes($dg)
 Debugownerscount($dg)
 Debugownersstatus($dg)
+debugownergroupcreationvalidity($dg)
 Debugsenderrestriction($dg)
 Debuggrouprecipienttype($dg)
 Debugforwardingforsharedmbxs($dg)
