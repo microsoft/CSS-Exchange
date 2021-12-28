@@ -200,6 +200,7 @@ Function Debuggroupnesting {
     )
     $ParentDGroups = @()
     try {
+        Write-Host "Retrieving all distribution groups in Exchange online, please wait...." -ForegroundColor Yellow
         $alldgs = Get-DistributionGroup -ResultSize unlimited -ErrorAction Stop
         $CurrentDescription = "Retrieving All DGs in the EXO directory"
         $CurrentStatus = "Success"
@@ -209,21 +210,34 @@ Function Debuggroupnesting {
         $CurrentStatus = "Failure"
         log -Function "Retrieve All DGs" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
+    $DGcounter=0
     foreach ($parentdg in $alldgs) {
         try {
             $Pmembers = Get-DistributionGroupMember $($parentdg.Guid.ToString()) -ErrorAction Stop
+            if ($alldgs.count -ge 2) {
+                $DGcounter++
+                $percent=[Int32]($DGcounter/$alldgs.count*100)
+                Write-Progress -Activity "Querying Distribution Groups"  -PercentComplete $percent -Status "Processing $DGcounter/$($alldgs.count)group"
+            }
         } catch {
             $CurrentDescription = "Retrieving: $parentdg members"
             $CurrentStatus = "Failure"
             log -Function "Retrieve Distribution Group membership" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
         }
-
+        $DGmembercounter=0
         foreach ($member in $Pmembers) {
             if ($member.Guid.Guid.ToString() -like $Distgroup.Guid.Guid.ToString()) {
                 $ParentDGroups += $parentdg
             }
+            if ($Pmembers.count -ge 2) {
+                $DGmembercounter++
+                $childpercent=[Int32]($DGmembercounter/$Pmembers.count*100)
+                Write-Progress -Activity "Querying Group Members" -Id 1 -PercentComplete $childpercent -Status "Processing $DGmembercounter/$($Pmembers.count) member"
+            }
         }
     }
+    Write-Progress -Activity "Querying Group Members" -Completed -Id 1
+    Write-Progress -Activity "Querying Distribution Groups" -Completed
     if ($ParentDGroups.Count -ge 1) {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because it is a child group of another parent group" -ForegroundColor Red
@@ -271,6 +285,7 @@ Function Debugmembersrecipienttypes {
     )
 
     try {
+        Write-Host "Retrieving $($Distgroup.PrimarySmtpAddress) members, please wait...." -ForegroundColor Yellow
         $members = Get-DistributionGroupMember $($Distgroup.Guid.ToString()) -ErrorAction stop
         $CurrentDescription = "Retrieving: $Distgroup.PrimarySmtpAddress members"
         $CurrentStatus = "Success"
@@ -318,6 +333,7 @@ Function Debugownerscount {
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
+#Fix group creation enabled condition
 Function Fixownergroupcreationvalidity {
     param(
         [Parameter(Mandatory = $true)]
@@ -358,6 +374,7 @@ Function debugownergroupcreationvalidity {
         $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
         if ($GroupsCreationEnabled.ToLower().ToString() -eq "false") {
             try {
+                Write-Host "Retrieving $GroupsCreationWhitelistedId group members, please wait...." -ForegroundColor Yellow
                 $members=Get-DistributionGroupMember $GroupsCreationWhitelistedId -ErrorAction  stop
                 $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
                 $CurrentStatus = "Success"
@@ -393,7 +410,33 @@ Function debugownergroupcreationvalidity {
         log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
     }
 }
-
+#Fix owner non-supported recipient condition
+Function Fixownersstatus {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$nonsupportedowners,
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$Distgroup
+    )
+    try {
+        $owners = $Distgroup.ManagedBy
+        foreach ($nonsupportedowner in $nonsupportedowners) {
+            Write-Host "Removing $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group...." -ForegroundColor Yellow
+            "Removing $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $owners.remove($($nonsupportedowner.name))
+            Set-DistributionGroup -Identity $Distgroup.guid.guid -ManagedBy $owners -ErrorAction stop -Confirm:$false
+            Write-Host "Removed $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group!" -ForegroundColor Yellow
+            "Removed $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        }
+        $CurrentDescription = "Removing nonsupportedowner(s) from the group"
+        $CurrentStatus = "Success"
+        log -Function "Remove nonsupportedowner(s) from the group" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    } catch {
+        $CurrentDescription = "Removing nonsupportedowner(s) from the group"
+        $CurrentStatus = "Failure"
+        log -Function "Remove nonsupportedowner(s) from the group" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    }
+}
 #Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
 Function Debugownersstatus {
     param(
@@ -429,7 +472,44 @@ Function Debugownersstatus {
             "Non-supported Owner(s) found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $ConditionDGownerswithoutMBX | Format-Table -AutoSize -Wrap Name, GUID, RecipientTypeDetails | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $script:Conditionsfailed++
+            #fix will occur if we still have supported owners to avoid zero owner condition
+            if ($owners.Count -gt $ConditionDGownerswithoutMBX.Count) {
+                $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing non-supported RecipientTypeDetails owner(s)"
+                if ($fix.tolower() -eq "Y") {
+                    Fixownersstatus($ConditionDGownerswithoutMBX, $Distgroup)
+                }
+            }
         }
+    }
+}
+#Fix senderrestriction condition
+Function Fixsenderrestriction {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$senderrestrictionDLs,
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$Distgroup
+    )
+    try {
+        foreach ($senderrestrictionDL in $senderrestrictionDLs) {
+            Write-Host "Removing DL sender restriction from $($senderrestrictionDL.Alias) group...." -ForegroundColor Yellow
+            "Removing DL sender restriction from $($senderrestrictionDL.Alias) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $group=Get-DistributionGroup $senderrestrictionDL.guid.guid -ErrorAction stop
+            $DlAcceptMessagesOnlyFromSendersOrMembers=$group.AcceptMessagesOnlyFromSendersOrMembers
+            $DlAcceptMessagesOnlyFromDLMembers=$group.AcceptMessagesOnlyFromDLMembers
+            $DlAcceptMessagesOnlyFromDLMembers.remove($($Distgroup.Alias))
+            $DlAcceptMessagesOnlyFromSendersOrMembers.remove($($Distgroup.Alias))
+            Set-DistributionGroup -Identity $senderrestrictionDL.guid.guid -AcceptMessagesOnlyFromSendersOrMembers $DlAcceptMessagesOnlyFromSendersOrMembers -AcceptMessagesOnlyFromDLMembers $DlAcceptMessagesOnlyFromDLMembers -ErrorAction stop -Confirm:$false
+            Write-Host "Removed DL sender restriction from $($senderrestrictionDL.Alias) group!" -ForegroundColor Yellow
+            "Removed DL sender restriction from $($senderrestrictionDL.Alias) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        }
+        $CurrentDescription = "Removing DL sender restriction from other Dls"
+        $CurrentStatus = "Success"
+        log -Function "Remove DL sender restriction from other Dls" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    } catch {
+        $CurrentDescription = "Removing DL sender restriction from other Dls"
+        $CurrentStatus = "Failure"
+        log -Function "Remove DL sender restriction from other Dls" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL
@@ -439,14 +519,21 @@ Function Debugsenderrestriction {
         [PScustomobject]$Distgroup
     )
     $ConditionDGSender = @()
+    $DGcounterloop=0
     [int]$SenderRestrictionCount = 0
     foreach ($alldg in $alldgs) {
+        if ($alldgs.count -ge 2) {
+            $DGcounterloop++
+            $perc=[Int32]($DGcounterloop/$alldgs.count*100)
+            Write-Progress -Activity "Validating Distribution Groups Sender Restriction"  -PercentComplete $perc -Status "Processing $DGcounterloop/$($alldgs.count)group"
+        }
         if ($alldg.AcceptMessagesOnlyFromSendersOrMembers -match $Distgroup.Name -or $alldg.AcceptMessagesOnlyFromDLMembers -match $Distgroup.Name ) {
 
             $ConditionDGSender = $ConditionDGSender + $alldg
             $SenderRestrictionCount++
         }
     }
+    Write-Progress -Activity "Validating Distribution Groups Sender Restriction" -Completed
     if ($SenderRestrictionCount -ge 1) {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL" -ForegroundColor Red
@@ -455,6 +542,10 @@ Function Debugsenderrestriction {
         "Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Distribution group(s) with sender restriction:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $ConditionDGSender | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from sender restriction in another DL(s)"
+        if ($fix.tolower() -eq "Y") {
+            Fixsenderrestriction($ConditionDGSender, $Distgroup)
+        }
     }
 }
 #Check if Distribution Group can't be upgraded because Distribution lists which were converted to RoomLists or isn't a security group nor Dynamic DG
@@ -471,6 +562,36 @@ Function Debuggrouprecipienttype {
         "Distribution Group RecipientTypeDetails is: " + $Distgroup.RecipientTypeDetails | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
+#Fix forwarding address condition
+Function Fixforwardingforsharedmbxs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$SharedMbxes,
+        [Parameter(Mandatory = $true)]
+        [PScustomobject]$Distgroup
+    )
+    try {
+        foreach ($SharedMbx in $SharedMbxes) {
+            Write-Host "Removing DL from forwarding address of $($SharedMbx.Alias) shared mailbox...." -ForegroundColor Yellow
+            "Removing DL from forwarding address of $($SharedMbx.Alias) shared mailbox...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $SharedmbxDl=Get-Mailbox $SharedMbx.guid.guid -ErrorAction stop
+            $DlforwardingAddress=$SharedmbxDl.forwardingAddress
+            $DlforwardingSmtpAddress=$SharedmbxDl.forwardingSmtpAddress
+            $DlforwardingAddress.remove($($Distgroup.Alias))
+            $DlforwardingSmtpAddress.remove($($Distgroup.PrimarySmtpAddress))
+            Set-Mailbox -Identity $SharedMbx.guid.guid -ForwardingAddress $DlforwardingAddress -ForwardingSmtpAddress $DlforwardingSmtpAddress -ErrorAction stop -Confirm:$false
+            Write-Host "Removed DL from forwarding address of $($SharedMbx.Alias) shared mailbox!" -ForegroundColor Yellow
+            "Removed DL from forwarding address of $($SharedMbx.Alias) shared mailbox!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        }
+        $CurrentDescription = "Removing DL from forwarding address of shared mailbox(es)"
+        $CurrentStatus = "Success"
+        log -Function "Remove DL from forwarding address of shared mailbox(es)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    } catch {
+        $CurrentDescription = "Removing DL from forwarding address of shared mailbox(es)"
+        $CurrentStatus = "Failure"
+        log -Function "Remove DL from forwarding address of shared mailbox(es)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+    }
+}
 #Check if Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox
 Function Debugforwardingforsharedmbxs {
     param(
@@ -479,6 +600,7 @@ Function Debugforwardingforsharedmbxs {
     )
     $Conditionfwdmbx = @()
     try {
+        Write-Host "Retrieving all shared mailboxes in Exchange online, please wait...." -ForegroundColor Yellow
         $sharedMBXs = Get-Mailbox -ResultSize unlimited -RecipientTypeDetails sharedmailbox -ErrorAction stop
         $CurrentDescription = "Retrieving All Shared MBXs in the EXO directory"
         $CurrentStatus = "Success"
@@ -489,12 +611,16 @@ Function Debugforwardingforsharedmbxs {
         write-log -Function "Retrieve Shared Mailboxes" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
     $counter = 0
+    $Sharedcounter=0
     foreach ($sharedMBX in $sharedMBXs) {
         if ($sharedMBX.ForwardingAddress -match $Distgroup.name -or $sharedMBX.ForwardingSmtpAddress -match $Distgroup.PrimarySmtpAddress) {
             $Conditionfwdmbx = $Conditionfwdmbx + $sharedMBX
             $counter++
+            $percent=[Int32]($Sharedcounter/$sharedMBXs.count*100)
+            Write-Progress -Activity "Querying Shared Mailboxes"  -PercentComplete $percent -Status "Processing $Sharedcounter/$($sharedMBXs.count) Mailboxes"
         }
     }
+    Write-Progress -Activity "Querying Shared Mailboxes" -Completed
     if ($counter -ge 1) {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox" -ForegroundColor Red
@@ -503,6 +629,10 @@ Function Debugforwardingforsharedmbxs {
         "Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Shared Mailbox(es):" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $Conditionfwdmbx | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from forwarding address in shared mailbox(es)"
+        if ($fix.tolower() -eq "Y") {
+            Fixforwardingforsharedmbxs($Conditionfwdmbx, $Distgroup)
+        }
     }
 }
 #Check for duplicate Alias,PrimarySmtpAddress,Name,DisplayName on EXO objects
@@ -512,6 +642,7 @@ Function Debugduplicateobjects {
         [PScustomobject]$Distgroup
     )
     try {
+        Write-Host "Querying across Exchange online recipients for duplicate objects with $($Distgroup.PrimarySmtpAddress) group, please wait..." -ForegroundColor Yellow
         $dupAlias = Get-Recipient -IncludeSoftDeletedRecipients -Identity $Distgroup.alias -ResultSize unlimited -ErrorAction stop
         $dupAddress = Get-Recipient -IncludeSoftDeletedRecipients -ResultSize unlimited -Identity $Distgroup.PrimarySmtpAddress -ErrorAction stop
         $dupDisplayName = Get-Recipient -IncludeSoftDeletedRecipients -ResultSize unlimited -Identity $Distgroup.DisplayName -ErrorAction stop
