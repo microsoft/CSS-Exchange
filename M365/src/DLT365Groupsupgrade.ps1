@@ -741,6 +741,9 @@ if ($Conditionsfailed -eq 0) {
     Write-Host "All checks passed please proceed to upgrade the distribution group" -ForegroundColor Green
     "All checks passed please proceed to upgrade the distribution group" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 }
+#Ask for feedback
+Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://forms.office.com/r/a9CSid6SWg." -ForegroundColor Cyan
+"Please rate the script experience & tell us what you liked or what we can do better over https://forms.office.com/r/a9CSid6SWg." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 
 # End of the Diag
 Write-Host "`nlog file was exported in the following location: $ExportPath" -ForegroundColor Yellow
