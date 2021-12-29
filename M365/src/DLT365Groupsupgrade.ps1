@@ -567,8 +567,11 @@ Function Fixforwardingforsharedmbxs {
             $SharedmbxDl=Get-Mailbox $SharedMbx.guid.guid -ErrorAction stop
             $DlforwardingAddress=$SharedmbxDl.forwardingAddress
             $DlforwardingSmtpAddress=$SharedmbxDl.forwardingSmtpAddress
-            $DlforwardingAddress.remove($($dg.Name))
-            $DlforwardingSmtpAddress.remove($($dg.PrimarySmtpAddress))
+            if ($DlforwardingAddress -eq $dg.Name) {
+                $DlforwardingAddress=$null
+            } elseif ($DlforwardingSmtpAddress -eq $dg.PrimarySmtpAddress) {
+                $DlforwardingSmtpAddress=$null
+            }
             Set-Mailbox -Identity $SharedMbx.guid.guid -ForwardingAddress $DlforwardingAddress -ForwardingSmtpAddress $DlforwardingSmtpAddress -ErrorAction stop -Confirm:$false
             Write-Host "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" -ForegroundColor Yellow
             "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
