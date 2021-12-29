@@ -170,17 +170,15 @@ Function Debugmatchingeap {
 Function Fixgroupnesting {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$ParentDGroups,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
+        [PScustomobject]$ParentDGroups
     )
     try {
         foreach ($ParentDGroup in $ParentDGroups) {
-            Write-Host "Removing DL membership from $($ParentDGroup.DisplayName)...." -ForegroundColor Yellow
-            "Removing DL membership from $($ParentDGroup.DisplayName)...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Remove-DistributionGroupMember -Member $Distgroup.guid.guid  -Identity $ParentDGroup.guid.guid -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL membership from $($ParentDGroup.DisplayName)!" -ForegroundColor Yellow
-            "Removed DL membership from $($ParentDGroup.DisplayName)!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removing DL membership from $($ParentDGroup.DisplayName) group...." -ForegroundColor Yellow
+            "Removing DL membership from $($ParentDGroup.DisplayName) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Remove-DistributionGroupMember -Member $dg.guid.guid  -Identity $ParentDGroup.guid.guid -ErrorAction stop -Confirm:$false
+            Write-Host "Removed DL membership from $($ParentDGroup.DisplayName) group!" -ForegroundColor Yellow
+            "Removed DL membership from $($ParentDGroup.DisplayName) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Removing DL membership from Parent DG(s)"
         $CurrentStatus = "Success"
@@ -248,7 +246,7 @@ Function Debuggroupnesting {
         $ParentDGroups | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from Parent DL(s)"
         if ($fix.tolower() -eq "Y") {
-            Fixmatchingeap($ParentDGroups, $Distgroup)
+            Fixgroupnesting($ParentDGroups)
         }
     }
 }
@@ -256,17 +254,15 @@ Function Debuggroupnesting {
 Function Fixunsupportedmembersrecipienttypes {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$NonsupportedMbrs,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
+        [PScustomobject]$NonsupportedMbrs
     )
     try {
         foreach ($NonsupportedMbr in $NonsupportedMbrs) {
             Write-Host "Removing $($NonsupportedMbr.DisplayName) from DL membership...." -ForegroundColor Yellow
             "Removing $($NonsupportedMbr.DisplayName) from DL membership...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Remove-DistributionGroupMember -Member $NonsupportedMbr.guid.guid -Identity $Distgroup.guid.guid -ErrorAction stop -Confirm:$false
+            Remove-DistributionGroupMember -Member $NonsupportedMbr.guid.guid -Identity $dg.guid.guid -ErrorAction stop -Confirm:$false
             Write-Host "Removed $($NonsupportedMbr.DisplayName) from DL membership!" -ForegroundColor Yellow
-            "Removed DL membership from $($ParentDGroup.DisplayName)!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            "Removed $($NonsupportedMbr.DisplayName) from DL membership!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Removing nonsupportedmember(s) from DL"
         $CurrentStatus = "Success"
@@ -316,7 +312,7 @@ Function Debugmembersrecipienttypes {
         $matchingMbr | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing NonSupportedMemberTypes from the DL"
         if ($fix.tolower() -eq "Y") {
-            Fixunsupportedmembersrecipienttypes($matchingMbr, $Distgroup)
+            Fixunsupportedmembersrecipienttypes($matchingMbr)
         }
     }
 }
@@ -414,19 +410,17 @@ Function debugownergroupcreationvalidity {
 Function Fixownersstatus {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$nonsupportedowners,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
+        [PScustomobject]$nonsupportedowners
     )
     try {
-        $owners = $Distgroup.ManagedBy
+        $owners = $dg.ManagedBy
         foreach ($nonsupportedowner in $nonsupportedowners) {
-            Write-Host "Removing $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group...." -ForegroundColor Yellow
-            "Removing $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removing $($nonsupportedowner.name) ownership from $($dg.displayname) group...." -ForegroundColor Yellow
+            "Removing $($nonsupportedowner.name) ownership from $($dg.displayname) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $owners.remove($($nonsupportedowner.name))
-            Set-DistributionGroup -Identity $Distgroup.guid.guid -ManagedBy $owners -ErrorAction stop -Confirm:$false
-            Write-Host "Removed $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group!" -ForegroundColor Yellow
-            "Removed $($nonsupportedowner.name) ownership from $($Distgroup.displayname) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Set-DistributionGroup -Identity $dg.guid.guid -ManagedBy $owners -ErrorAction stop -Confirm:$false
+            Write-Host "Removed $($nonsupportedowner.name) ownership from $($dg.displayname) group!" -ForegroundColor Yellow
+            "Removed $($nonsupportedowner.name) ownership from $($dg.displayname) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Removing nonsupportedowner(s) from the group"
         $CurrentStatus = "Success"
@@ -476,7 +470,7 @@ Function Debugownersstatus {
             if ($owners.Count -gt $ConditionDGownerswithoutMBX.Count) {
                 $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing non-supported RecipientTypeDetails owner(s)"
                 if ($fix.tolower() -eq "Y") {
-                    Fixownersstatus($ConditionDGownerswithoutMBX, $Distgroup)
+                    Fixownersstatus($ConditionDGownerswithoutMBX)
                 }
             }
         }
@@ -486,22 +480,20 @@ Function Debugownersstatus {
 Function Fixsenderrestriction {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$senderrestrictionDLs,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
+        [PScustomobject]$senderrestrictionDLs
     )
     try {
         foreach ($senderrestrictionDL in $senderrestrictionDLs) {
-            Write-Host "Removing DL sender restriction from $($senderrestrictionDL.Alias) group...." -ForegroundColor Yellow
-            "Removing DL sender restriction from $($senderrestrictionDL.Alias) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removing DL sender restriction from $($senderrestrictionDL.Name) group...." -ForegroundColor Yellow
+            "Removing DL sender restriction from $($senderrestrictionDL.Name) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $group=Get-DistributionGroup $senderrestrictionDL.guid.guid -ErrorAction stop
             $DlAcceptMessagesOnlyFromSendersOrMembers=$group.AcceptMessagesOnlyFromSendersOrMembers
             $DlAcceptMessagesOnlyFromDLMembers=$group.AcceptMessagesOnlyFromDLMembers
-            $DlAcceptMessagesOnlyFromDLMembers.remove($($Distgroup.Alias))
-            $DlAcceptMessagesOnlyFromSendersOrMembers.remove($($Distgroup.Alias))
+            $DlAcceptMessagesOnlyFromDLMembers.remove($($dg.Name))
+            $DlAcceptMessagesOnlyFromSendersOrMembers.remove($($dg.Name))
             Set-DistributionGroup -Identity $senderrestrictionDL.guid.guid -AcceptMessagesOnlyFromSendersOrMembers $DlAcceptMessagesOnlyFromSendersOrMembers -AcceptMessagesOnlyFromDLMembers $DlAcceptMessagesOnlyFromDLMembers -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL sender restriction from $($senderrestrictionDL.Alias) group!" -ForegroundColor Yellow
-            "Removed DL sender restriction from $($senderrestrictionDL.Alias) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removed DL sender restriction from $($senderrestrictionDL.Name) group!" -ForegroundColor Yellow
+            "Removed DL sender restriction from $($senderrestrictionDL.Name) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Removing DL sender restriction from other Dls"
         $CurrentStatus = "Success"
@@ -544,7 +536,7 @@ Function Debugsenderrestriction {
         $ConditionDGSender | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from sender restriction in another DL(s)"
         if ($fix.tolower() -eq "Y") {
-            Fixsenderrestriction($ConditionDGSender, $Distgroup)
+            Fixsenderrestriction($ConditionDGSender)
         }
     }
 }
@@ -566,22 +558,20 @@ Function Debuggrouprecipienttype {
 Function Fixforwardingforsharedmbxs {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$SharedMbxes,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
+        [PScustomobject]$SharedMbxes
     )
     try {
         foreach ($SharedMbx in $SharedMbxes) {
-            Write-Host "Removing DL from forwarding address of $($SharedMbx.Alias) shared mailbox...." -ForegroundColor Yellow
-            "Removing DL from forwarding address of $($SharedMbx.Alias) shared mailbox...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." -ForegroundColor Yellow
+            "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $SharedmbxDl=Get-Mailbox $SharedMbx.guid.guid -ErrorAction stop
             $DlforwardingAddress=$SharedmbxDl.forwardingAddress
             $DlforwardingSmtpAddress=$SharedmbxDl.forwardingSmtpAddress
-            $DlforwardingAddress.remove($($Distgroup.Alias))
-            $DlforwardingSmtpAddress.remove($($Distgroup.PrimarySmtpAddress))
+            $DlforwardingAddress.remove($($dg.Name))
+            $DlforwardingSmtpAddress.remove($($dg.PrimarySmtpAddress))
             Set-Mailbox -Identity $SharedMbx.guid.guid -ForwardingAddress $DlforwardingAddress -ForwardingSmtpAddress $DlforwardingSmtpAddress -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL from forwarding address of $($SharedMbx.Alias) shared mailbox!" -ForegroundColor Yellow
-            "Removed DL from forwarding address of $($SharedMbx.Alias) shared mailbox!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" -ForegroundColor Yellow
+            "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Removing DL from forwarding address of shared mailbox(es)"
         $CurrentStatus = "Success"
@@ -631,7 +621,7 @@ Function Debugforwardingforsharedmbxs {
         $Conditionfwdmbx | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from forwarding address in shared mailbox(es)"
         if ($fix.tolower() -eq "Y") {
-            Fixforwardingforsharedmbxs($Conditionfwdmbx, $Distgroup)
+            Fixforwardingforsharedmbxs($Conditionfwdmbx)
         }
     }
 }
