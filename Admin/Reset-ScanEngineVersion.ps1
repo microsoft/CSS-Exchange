@@ -4,7 +4,9 @@
 #Requires -Version 3
 
 [CmdletBinding()]
-param ()
+param (
+    [switch]$Force
+)
 
 begin {
     #region Remoting Scriptblock
@@ -72,6 +74,22 @@ begin {
             } while ($null -ne $transfer)
         }
         #endregion Functions
+
+        Add-PSSnapin -Name Microsoft.Exchange.Management.Powershell.E2010
+        $hasMailboxRole = (Get-ExchangeServer ($env:COMPUTERNAME)).ServerRole -like "*Mailbox*"
+        if ((-not $Force) -and (-not $hasMailboxRole)) {
+            Write-Host "$($env:COMPUTERNAME) This server does not have the Mailbox role. Add -Force to proceed anyway."
+            return
+        }
+
+        Add-PSSnapin -Name Microsoft.Forefront.Filtering.Management.PowerShell
+        $engineInfo = Get-EngineUpdateInformation
+        Write-Host "$($env:COMPUTERNAME) UpdateVersion: $($engineInfo.UpdateVersion)"
+        $isImpacted = $engineInfo.UpdateVersion -like "22*"
+        if ((-not $Force) -and (-not $isImpacted)) {
+            Write-Host "$($env:COMPUTERNAME) This server is not impacted. Add -Force to proceed anyway."
+            return
+        }
 
         StopServicesAndProcesses
         RemoveMicrosoftFolder
