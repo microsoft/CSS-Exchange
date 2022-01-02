@@ -3,8 +3,10 @@
 
 #Requires -Version 3
 
-[CmdletBinding()]
-param ()
+[CmdLetBinding()]
+param(
+    [switch]$DontEnableAntiMalwareScanning
+)
 
 begin {
     #region Remoting Scriptblock
@@ -71,6 +73,20 @@ begin {
                 }
             } while ($null -ne $transfer)
         }
+
+        function EnableAntiMalwareScanning {
+            $installPath = Get-ExchangeInstallPath
+            if (-not $DontEnableAntiMalwareScanning -and $null -ne $installPath) {
+                $response = Read-Host "Would you like to enable malware scanning now? (Y/n)"
+                if ($response -eq "" -or $response -eq "y") {
+                    Write-Host "$($env:COMPUTERNAME) Enabling Anti Malware Agent..."
+                    $enableScanningScriptPath = Join-Path $installPath "Scripts\Enable-AntiMalwareScanning.ps1"
+                    & $enableScanningScriptPath
+                    Write-Host "$($env:COMPUTERNAME) Starting MSExchangeTransport service..."
+                    Restart-Service MSExchangeTransport
+                }
+            }
+        }
         #endregion Functions
 
         StopServicesAndProcesses
@@ -79,6 +95,7 @@ begin {
         StartServices
         StartEngineUpdate
         WaitForDownload
+        EnableAntiMalwareScanning
     }
     #endregion Remoting Scriptblock
 }
