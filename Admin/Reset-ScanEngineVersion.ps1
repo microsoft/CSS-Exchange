@@ -17,7 +17,7 @@ begin {
         }
 
         function StopServicesAndProcesses {
-            Write-Host "$($env:COMPUTERNAME) Stopping services..."
+            Write-Host "$($env:COMPUTERNAME) Stopping MSExchangeTransport, FMS, and updateservice..."
             Stop-Service FMS -Force
             $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
             if ($null -ne $updateservice) {
