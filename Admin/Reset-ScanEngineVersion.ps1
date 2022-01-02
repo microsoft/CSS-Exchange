@@ -23,6 +23,8 @@ begin {
             if ($null -ne $updateservice) {
                 $updateservice | Stop-Process -Force
             }
+
+            Start-Sleep -Seconds 2
         }
 
         function RemoveMicrosoftFolder {
