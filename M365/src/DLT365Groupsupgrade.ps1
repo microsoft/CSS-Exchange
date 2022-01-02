@@ -569,7 +569,8 @@ Function Fixforwardingforsharedmbxs {
             $DlforwardingSmtpAddress=$SharedmbxDl.forwardingSmtpAddress
             if ($DlforwardingAddress -eq $dg.Name) {
                 $DlforwardingAddress=$null
-            } elseif ($DlforwardingSmtpAddress -eq $dg.PrimarySmtpAddress) {
+            }
+            if ($DlforwardingSmtpAddress -eq $dg.PrimarySmtpAddress) {
                 $DlforwardingSmtpAddress=$null
             }
             Set-Mailbox -Identity $SharedMbx.guid.guid -ForwardingAddress $DlforwardingAddress -ForwardingSmtpAddress $DlforwardingSmtpAddress -ErrorAction stop -Confirm:$false
