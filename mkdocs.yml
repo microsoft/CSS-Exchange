@@ -5,6 +5,7 @@ nav:
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
+    - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - Test-AMSI: Admin/Test-AMSI.md
   - Databases:
     - VSSTester: Databases/VSSTester.md
