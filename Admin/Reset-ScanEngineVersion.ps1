@@ -77,7 +77,7 @@ begin {
         function EnableAntiMalwareScanning {
             $installPath = Get-ExchangeInstallPath
             if (-not $DontEnableAntiMalwareScanning -and $null -ne $installPath) {
-                $response = Read-Host "Would you like to enable malware scanning now? (Y/n)"
+                $response = Read-Host "$($env:COMPUTERNAME) Would you like to enable malware scanning now? (Y/n)"
                 if ($response -eq "" -or $response -eq "y") {
                     Write-Host "$($env:COMPUTERNAME) Enabling Anti Malware Agent..."
                     $enableScanningScriptPath = Join-Path $installPath "Scripts\Enable-AntiMalwareScanning.ps1"
