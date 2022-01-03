@@ -60,12 +60,14 @@ begin {
         }
 
         function WaitForDownload {
+            $percentComplete = 0
             do {
                 Start-Sleep -Seconds 1
                 $transfer = Get-BitsTransfer -AllUsers | Where-Object { $_.DisplayName -like "Forefront_FPS*" }
                 if ($null -ne $transfer) {
-                    $percentComplete = 0
-                    if ($transfer.BytesTotal.GetType() -eq [Int64] -and
+                    if ($null -ne $transfer.BytesTotal -and
+                        $null -ne $transfer.BytesTransferred -and
+                        $transfer.BytesTotal.GetType() -eq [Int64] -and
                         $transfer.BytesTransferred.GetType() -eq [Int64] -and
                         $transfer.BytesTotal -gt 0) {
                         $percentComplete = ($transfer.BytesTransferred * 100 / $transfer.BytesTotal)
