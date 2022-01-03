@@ -22,9 +22,15 @@ begin {
             $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
             if ($null -ne $updateservice) {
                 $updateservice | Stop-Process -Force
+                Start-Sleep -Seconds 2
+                $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
+                if ($null -ne $updateservice) {
+                    Write-Warning "$($env:COMPUTERNAME) Could not end process updateservice.exe. Please end this process and rerun the script."
+                    return $false
+                }
             }
 
-            Start-Sleep -Seconds 2
+            return $true
         }
 
         function RemoveMicrosoftFolder {
@@ -95,7 +101,11 @@ begin {
             return
         }
 
-        StopServicesAndProcesses
+        $succeeded = StopServicesAndProcesses
+        if (-not $succeeded) {
+            return
+        }
+
         RemoveMicrosoftFolder
         EmptyMetadataFolder
         StartServices
