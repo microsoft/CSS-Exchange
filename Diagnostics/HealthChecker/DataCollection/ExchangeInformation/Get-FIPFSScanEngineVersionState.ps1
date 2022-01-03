@@ -5,7 +5,7 @@
 
 Function Get-FIPFSScanEngineVersionState {
     [CmdletBinding()]
-    [OutputType("System.Bool")]
+    [OutputType("System.Object")]
     param (
         [Parameter(Mandatory = $true)]
         [string]
