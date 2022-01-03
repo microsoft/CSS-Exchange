@@ -5,12 +5,16 @@
 
 [CmdletBinding()]
 param (
-    [switch]$Force
+    [switch]$Force,
+
+    [string]$EngineUpdatePath
 )
 
 begin {
     #region Remoting Scriptblock
     $scriptBlock = {
+        param($EngineUpdatePath)
+
         #region Functions
         function Get-ExchangeInstallPath {
             return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
@@ -58,11 +62,20 @@ begin {
         }
 
         function StartEngineUpdate {
+            param($EngineUpdatePath)
+
             Write-Host "$($env:COMPUTERNAME) Starting engine update..."
             $installPath = Get-ExchangeInstallPath
             $updateScriptPath = Join-Path $installPath "Scripts\Update-MalwareFilteringServer.ps1"
             $fqdn = [System.Net.Dns]::GetHostEntry([string]"localhost").HostName
-            & $updateScriptPath $fqdn
+            $p = @{
+                Identity = $fqdn
+            }
+            if (-not [string]::IsNullOrEmpty($EngineUpdatePath)) {
+                $p.EngineUpdatePath = $EngineUpdatePath
+            }
+
+            & $updateScriptPath @p
         }
 
         function WaitForDownload {
@@ -109,11 +122,11 @@ begin {
         RemoveMicrosoftFolder
         EmptyMetadataFolder
         StartServices
-        StartEngineUpdate
+        StartEngineUpdate -EngineUpdatePath $EngineUpdatePath
         WaitForDownload
     }
     #endregion Remoting Scriptblock
 }
 process {
-    Invoke-Command -ScriptBlock $scriptBlock
+    Invoke-Command -ScriptBlock $scriptBlock -ArgumentList $EngineUpdatePath
 }
