@@ -23,11 +23,14 @@ Function Get-FIPFSScanEngineVersionState {
             )
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+            try {
+                $exSetupPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction Stop).MsiInstallPath
+            } catch {
+                $exSetupPath = $env:ExchangeInstallPath
+            }
+            $getItem = Get-Item -Path (Join-Path $exSetupPath $ExchangeSubDir)
 
-            $finalPathToQuery = Join-Path $env:ExchangeInstallPath $ExchangeSubDir
-            $getItem = Get-Item -Path $finalPathToQuery
-
-            $returnObject = ([PSCustomObject]@{
+            return ([PSCustomObject]@{
                     GetItem          = $getItem
                     LastWriteTimeUtc = $getItem.LastWriteTimeUtc
                     VersionInfo      = ([PSCustomObject]@{
@@ -38,8 +41,6 @@ Function Get-FIPFSScanEngineVersionState {
                             FilePrivatePart = $getItem.VersionInfo.FilePrivatePart
                         })
                 })
-
-            return $returnObject
         }
         function TestPipeline2Version {
             param (
