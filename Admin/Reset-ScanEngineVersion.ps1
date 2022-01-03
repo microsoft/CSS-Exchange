@@ -4,7 +4,9 @@
 #Requires -Version 3
 
 [CmdletBinding()]
-param ()
+param (
+    [switch]$Force
+)
 
 begin {
     #region Remoting Scriptblock
@@ -15,12 +17,20 @@ begin {
         }
 
         function StopServicesAndProcesses {
-            Write-Host "$($env:COMPUTERNAME) Stopping services..."
+            Write-Host "$($env:COMPUTERNAME) Stopping MSExchangeTransport, FMS, and updateservice..."
             Stop-Service FMS -Force
             $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
             if ($null -ne $updateservice) {
                 $updateservice | Stop-Process -Force
+                Start-Sleep -Seconds 2
+                $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
+                if ($null -ne $updateservice) {
+                    Write-Warning "$($env:COMPUTERNAME) Could not end process updateservice.exe. Please end this process and rerun the script."
+                    return $false
+                }
             }
+
+            return $true
         }
 
         function RemoveMicrosoftFolder {
@@ -56,12 +66,14 @@ begin {
         }
 
         function WaitForDownload {
+            $percentComplete = 0
             do {
                 Start-Sleep -Seconds 1
                 $transfer = Get-BitsTransfer -AllUsers | Where-Object { $_.DisplayName -like "Forefront_FPS*" }
                 if ($null -ne $transfer) {
-                    $percentComplete = 0
-                    if ($transfer.BytesTotal.GetType() -eq [Int64] -and
+                    if ($null -ne $transfer.BytesTotal -and
+                        $null -ne $transfer.BytesTransferred -and
+                        $transfer.BytesTotal.GetType() -eq [Int64] -and
                         $transfer.BytesTransferred.GetType() -eq [Int64] -and
                         $transfer.BytesTotal -gt 0) {
                         $percentComplete = ($transfer.BytesTransferred * 100 / $transfer.BytesTotal)
@@ -73,7 +85,27 @@ begin {
         }
         #endregion Functions
 
-        StopServicesAndProcesses
+        Add-PSSnapin -Name Microsoft.Exchange.Management.Powershell.E2010
+        $hasMailboxRole = (Get-ExchangeServer ($env:COMPUTERNAME)).ServerRole -like "*Mailbox*"
+        if ((-not $Force) -and (-not $hasMailboxRole)) {
+            Write-Host "$($env:COMPUTERNAME) This server does not have the Mailbox role. Add -Force to proceed anyway."
+            return
+        }
+
+        Add-PSSnapin -Name Microsoft.Forefront.Filtering.Management.PowerShell
+        $engineInfo = Get-EngineUpdateInformation
+        Write-Host "$($env:COMPUTERNAME) UpdateVersion: $($engineInfo.UpdateVersion)"
+        $isImpacted = $engineInfo.UpdateVersion -like "22*"
+        if ((-not $Force) -and (-not $isImpacted)) {
+            Write-Host "$($env:COMPUTERNAME) This server is not impacted. Add -Force to proceed anyway."
+            return
+        }
+
+        $succeeded = StopServicesAndProcesses
+        if (-not $succeeded) {
+            return
+        }
+
         RemoveMicrosoftFolder
         EmptyMetadataFolder
         StartServices
