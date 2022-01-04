@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 
 Function Get-FIPFSScanEngineVersionState {
     [CmdletBinding()]
@@ -9,10 +10,7 @@ Function Get-FIPFSScanEngineVersionState {
     param (
         [Parameter(Mandatory = $true)]
         [string]
-        $ComputerName,
-        [Parameter(Mandatory = $false)]
-        [scriptblock]
-        $CatchActionFunction
+        $ComputerName
     )
 
     begin {
@@ -28,6 +26,7 @@ Function Get-FIPFSScanEngineVersionState {
             try {
                 $exSetupPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction Stop).MsiInstallPath
             } catch {
+                Invoke-CatchActions
                 $exSetupPath = $env:ExchangeInstallPath
             }
 
@@ -47,8 +46,7 @@ Function Get-FIPFSScanEngineVersionState {
 
         function GetHighestScanEngineVersionNumber {
             param (
-                [string]$ComputerName,
-                [scriptblock]$CatchActionFunction
+                [string]$ComputerName
             )
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -57,7 +55,7 @@ Function Get-FIPFSScanEngineVersionState {
                 $scanEngineVersions = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
                     -ScriptBlock ${Function:GetFolderFromExchangeInstallPath} `
                     -ArgumentList ("FIP-FS\Data\Engines\amd64\Microsoft\Bin") `
-                    -CatchActionFunction $CatchActionFunction
+                    -CatchActionFunction ${Function:Invoke-CatchActions}
 
                 if ($null -ne $scanEngineVersions) {
                     [Int64]$highestScanEngineVersion = ($scanEngineVersions.Name | Measure-Object -Maximum).Maximum
@@ -66,7 +64,7 @@ Function Get-FIPFSScanEngineVersionState {
                 }
             } catch {
                 Write-Verbose "Error occured while processing FIP-FS scan engine version(s)"
-                & $CatchActionFunction
+                Invoke-CatchActions
             }
             return $highestScanEngineVersion
         }
@@ -74,8 +72,7 @@ Function Get-FIPFSScanEngineVersionState {
         $isAffectedByFIPFSUpdateIssue = $false
         try {
 
-            $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName `
-                -CatchActionFunction $CatchActionFunction
+            $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName
 
             if ($null -eq $highestScanEngineVersionNumber) {
                 Write-Verbose "No scan engine version found on the computer - no further testings required"
@@ -88,7 +85,7 @@ Function Get-FIPFSScanEngineVersionState {
         } catch {
             Write-Verbose "Failed to check for the FIP-FS update issue"
             $isAffectedByFIPFSUpdateIssue = $null
-            & $CatchActionFunction
+            Invoke-CatchActions
         }
     } end {
         return $isAffectedByFIPFSUpdateIssue

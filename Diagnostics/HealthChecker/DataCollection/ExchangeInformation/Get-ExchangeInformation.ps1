@@ -476,8 +476,7 @@ Function Get-ExchangeInformation {
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
             Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
-            $buildInformation.AffectedByFIPFSUpdateIssue = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $buildInformation.AffectedByFIPFSUpdateIssue = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         } else {
             Write-Verbose "This Exchange server role is not affected by the pattern issue - skipping check"
             $buildInformation.AffectedByFIPFSUpdateIssue = $false

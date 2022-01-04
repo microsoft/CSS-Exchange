@@ -21,8 +21,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Invalid Pattern Detected" {
         BeforeAll {
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         }
 
         It "System Affected By Transport Queue Issue" {
@@ -33,8 +32,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
     Context "Valid Pattern Detected" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemValidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         }
 
         It "System NOT Affected By Transport Queue Issue" {
@@ -45,8 +43,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
     Context "No Pattern Detected" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return $null }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         }
 
         It "System NOT Affected By Transport Queue / Pattern Download Issue" {
