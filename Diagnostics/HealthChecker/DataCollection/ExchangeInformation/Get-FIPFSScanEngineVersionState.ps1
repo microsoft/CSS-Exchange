@@ -63,7 +63,7 @@ Function Get-FIPFSScanEngineVersionState {
                     Write-Verbose "No FIP-FS scan engine version(s) detected"
                 }
             } catch {
-                Write-Verbose "Error occured while processing FIP-FS scan engine version(s)"
+                Write-Verbose "Error occurred while processing FIP-FS scan engine version(s)"
                 Invoke-CatchActions
             }
             return $highestScanEngineVersion
