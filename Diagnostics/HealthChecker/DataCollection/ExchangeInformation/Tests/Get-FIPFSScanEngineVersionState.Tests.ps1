@@ -14,9 +14,6 @@ BeforeAll {
         param()
     }
 
-    Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetItemPipeline2Dll.xml } `
-        -ParameterFilter { $ArgumentList -eq "FIP-FS\Bin\pipeline2.dll" }
-
     Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemInvalidPattern.xml }
 }
 
@@ -53,33 +50,6 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         }
 
         It "System NOT Affected By Transport Queue / Pattern Download Issue" {
-            $results | Should -Be $false
-        }
-    }
-
-    Context "Invalid Pattern Detected On E15 Or Fixed E16/19" {
-        BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\E15GetItemPipeline2Dll.xml } `
-                -ParameterFilter { $ArgumentList -eq "FIP-FS\Bin\pipeline2.dll" }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
-        }
-
-        It "System Affected By Pattern Download Issue" {
-            $results | Should -Be $true
-        }
-    }
-
-    Context "Valid Pattern Detected On E15 Or Fixed E16/19" {
-        BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\E15GetItemPipeline2Dll.xml } `
-                -ParameterFilter { $ArgumentList -eq "FIP-FS\Bin\pipeline2.dll" }
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemValidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
-        }
-
-        It "System NOT Affected By Pattern Download Issue" {
             $results | Should -Be $false
         }
     }
