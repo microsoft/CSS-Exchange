@@ -13,14 +13,13 @@ BeforeAll {
     Function Invoke-CatchActions {
         param()
     }
-
-    Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemInvalidPattern.xml }
 }
 
 Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Invalid Pattern Detected" {
         BeforeAll {
+            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemInvalidPattern.xml }
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         }
 
@@ -40,14 +39,29 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         }
     }
 
-    Context "No Pattern Detected" {
+    Context "No FIP-FS scan engines - return null back from GetFolderFromExchangeInstallPath" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return $null }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
+            Mock Write-Verbose {}
         }
 
-        It "System NOT Affected By Transport Queue / Pattern Download Issue" {
-            $results | Should -Be $false
+        It "Result return null" {
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
+            $results | Should -Be $null
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected" }
+        }
+    }
+
+    Context "No FIP-FS scan engine directory - return failed object from GetFolderFromExchangeInstallPath" {
+        BeforeAll {
+            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\GetChildItemFailed.xml }
+            Mock Write-Verbose {}
+        }
+
+        It "Results return null back" {
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
+            $results | Should -Be $null
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Failed to find the scan engine directory" }
         }
     }
 }
