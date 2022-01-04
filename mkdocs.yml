@@ -41,6 +41,7 @@ nav:
       - VulnerabilityCheck: Diagnostics/HealthChecker/VulnerabilityCheck.md
       - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
+      - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
