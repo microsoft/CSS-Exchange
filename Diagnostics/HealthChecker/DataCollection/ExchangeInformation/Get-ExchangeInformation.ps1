@@ -10,6 +10,7 @@
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
+. $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -472,6 +473,15 @@ Function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
+        if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
+            Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
+            $buildInformation.AffectedByFIPFSUpdateIssue = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
+        } else {
+            Write-Verbose "This Exchange server role is not affected by the pattern issue - skipping check"
+            $buildInformation.AffectedByFIPFSUpdateIssue = $false
+        }
+
         $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Get-RemoteRegistryValue -MachineName $Script:Server `
             -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
             -GetValue "CtsProcessorAffinityPercentage" `
@@ -505,4 +515,3 @@ Function Get-ExchangeInformation {
     Write-Verbose "Exiting: Get-ExchangeInformation"
     return $exchangeInformation
 }
-
