@@ -119,7 +119,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 73
+            $Script:ActiveGrouping.Count | Should -Be 75
         }
 
         It "Display Results - Security Vulnerability" {
@@ -141,7 +141,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -199,7 +198,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerComponentState { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml" }
             Mock Test-ServiceHealth { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
 
             $Error.Clear()
             Get-HealthCheckerExchangeServer | Out-Null
@@ -259,7 +257,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
 
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
@@ -345,7 +342,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -379,7 +375,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -419,7 +414,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
         BeforeAll {
             #This causes a RuntimeException because of issue #743 when not fixed
             Mock Get-MailboxServer { throw "Pester testing" }
-            Mock Get-FIPFSScanEngineVersionState { return $true }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc

@@ -16,7 +16,7 @@ This check validates if the problematic signature file has already downloaded an
 - Exchange 2016 & Exchange 2019
     - We validate the product version of `pipeline2.dll`
     - If `pipeline2.dll` is known to be faulty, we perform further testings by checking if a folder `2201010000` or greater exists under `ExchangeInstallPath\FIP-FS\Data\Engines\amd64\Microsoft\Bin`
-    - If both conditions are true, we point out that the scan engine should be reset
+    - If `pipeline2.dll` is known to be safe, we perform testings by checking if a folder between `2201010000` and `2202010000` exists. If that's the case, we point out that the scan engine should be reset to make sure that upcoming pattern updates will be applied
 
 Please follow the instructions in the references below to reset the scan engine.
 

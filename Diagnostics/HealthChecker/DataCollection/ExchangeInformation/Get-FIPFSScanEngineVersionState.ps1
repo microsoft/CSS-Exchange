@@ -19,7 +19,9 @@ Function Get-FIPFSScanEngineVersionState {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         function GetItemFromExchangeInstallPath {
             param(
-                [string]$ExchangeSubDir
+                [Parameter(Mandatory = $true)]
+                [string]
+                $ExchangeSubItem
             )
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -28,19 +30,33 @@ Function Get-FIPFSScanEngineVersionState {
             } catch {
                 $exSetupPath = $env:ExchangeInstallPath
             }
-            $getItem = Get-Item -Path (Join-Path $exSetupPath $ExchangeSubDir)
 
-            return ([PSCustomObject]@{
-                    GetItem          = $getItem
-                    LastWriteTimeUtc = $getItem.LastWriteTimeUtc
-                    VersionInfo      = ([PSCustomObject]@{
-                            ProductVersion  = $getItem.VersionInfo.ProductVersion.ToString()
-                            FileMajorPart   = $getItem.VersionInfo.FileMajorPart
-                            FileMinorPart   = $getItem.VersionInfo.FileMinorPart
-                            FileBuildPart   = $getItem.VersionInfo.FileBuildPart
-                            FilePrivatePart = $getItem.VersionInfo.FilePrivatePart
+            $finalPath = Join-Path $exSetupPath $ExchangeSubItem
+
+            if ($ExchangeSubItem -notmatch '\.[a-zA-Z0-9]+$') {
+                $getDir = Get-ChildItem -Path $finalPath -Attributes Directory
+                if ($null -ne $getDir) {
+                    return ([PSCustomObject]@{
+                            Name             = $getDir.Name
+                            LastWriteTimeUtc = $getDir.LastWriteTimeUtc
                         })
-                })
+                }
+                return $null
+            } else {
+                $getItem = Get-Item -Path $finalPath
+
+                return ([PSCustomObject]@{
+                        GetItem          = $getItem
+                        LastWriteTimeUtc = $getItem.LastWriteTimeUtc
+                        VersionInfo      = ([PSCustomObject]@{
+                                ProductVersion  = $getItem.VersionInfo.ProductVersion
+                                FileMajorPart   = $getItem.VersionInfo.FileMajorPart
+                                FileMinorPart   = $getItem.VersionInfo.FileMinorPart
+                                FileBuildPart   = $getItem.VersionInfo.FileBuildPart
+                                FilePrivatePart = $getItem.VersionInfo.FilePrivatePart
+                            })
+                    })
+            }
         }
         function TestPipeline2Version {
             param (
@@ -58,10 +74,7 @@ Function Get-FIPFSScanEngineVersionState {
             if ($null -ne $pipeline2FileInfo) {
                 Write-Verbose "Testing pipeline2.dll version: $($pipeline2FileInfo.VersionInfo.ProductVersion)"
 
-                $pipeline2ReturnObject = ([PSCustomObject]@{
-                        isE15    = $false
-                        Affected = $false
-                    })
+                $isPipeline2Affected = $false
 
                 try {
                     [int]$fileMajor = $pipeline2FileInfo.VersionInfo.FileMajorPart
@@ -72,9 +85,9 @@ Function Get-FIPFSScanEngineVersionState {
                     if ($fileMajor -eq 15) {
 
                         switch ($fileMinor) {
-                            0 { $pipeline2ReturnObject.isE15 = $true }
-                            1 { $pipeline2ReturnObject.Affected = (($fileBuild -le 2375) -and ($filePrivate -le 17)) }
-                            2 { $pipeline2ReturnObject.Affected = (($fileBuild -le 986) -and ($filePrivate -le 14)) }
+                            0 { Write-Verbose "Exchange 2013 pipeline2.dll is safe to use" }
+                            1 { $isPipeline2Affected = (($fileBuild -le 2375) -and ($filePrivate -le 17)) }
+                            2 { $isPipeline2Affected = (($fileBuild -le 986) -and ($filePrivate -le 14)) }
                             Default { Write-Verbose "Unexpected minor passed to the switch statement" }
                         }
                     } else {
@@ -85,7 +98,7 @@ Function Get-FIPFSScanEngineVersionState {
                     & $CatchActionFunction
                 }
             }
-            return $pipeline2ReturnObject
+            return $isPipeline2Affected
         }
 
         function GetHighestScanEngineVersionNumber {
@@ -98,7 +111,8 @@ Function Get-FIPFSScanEngineVersionState {
 
             try {
                 $scanEngineVersions = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
-                    -ScriptBlock { Get-ChildItem -Path (Join-Path $env:ExchangeInstallPath "FIP-FS\Data\Engines\amd64\Microsoft\Bin") -Attributes Directory } `
+                    -ScriptBlock ${Function:GetItemFromExchangeInstallPath} `
+                    -ArgumentList ("FIP-FS\Data\Engines\amd64\Microsoft\Bin") `
                     -CatchActionFunction $CatchActionFunction
 
                 if ($null -ne $scanEngineVersions) {
@@ -115,27 +129,32 @@ Function Get-FIPFSScanEngineVersionState {
     } process {
         $isAffectedByFIPFSUpdateIssue = $false
         try {
-            $pipeline2 = TestPipeline2Version -ComputerName $ComputerName `
+            $pipeline2Affected = TestPipeline2Version -ComputerName $ComputerName `
                 -CatchActionFunction $CatchActionFunction
 
-            if ($pipeline2.Affected -or
-                $pipeline2.isE15) {
-                $highesScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName `
-                    -CatchActionFunction $CatchActionFunction
-                if (($null -ne $highesScanEngineVersionNumber) -and
-                    ($highesScanEngineVersionNumber -ge 2201010000)) {
-                    if ($pipeline2.isE15) {
-                        Write-Verbose "This Exchange 2013 server has applied FIP-FS update pattern with an invalid version number"
-                        Write-Verbose "Scan engine: $highesScanEngineVersionNumber"
-                    } else {
-                        Write-Verbose "Scan engine: $highesScanEngineVersionNumber will cause transport queue issues"
-                    }
+            $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName `
+                -CatchActionFunction $CatchActionFunction
+
+            if ($null -eq $highestScanEngineVersionNumber) {
+                Write-Verbose "No scan engine found on the computer - no further testings required"
+            } elseif ($pipeline2Affected) {
+                if ($highestScanEngineVersionNumber -ge 2201010000) {
+                    Write-Verbose "Scan engine: $highestScanEngineVersionNumber will cause transport queue issues"
                     $isAffectedByFIPFSUpdateIssue = $true
                 } else {
-                    Write-Verbose "Scan engine: $highesScanEngineVersionNumber is safe to use"
+                    Write-Verbose "Scan engine: $highestScanEngineVersionNumber is safe to use"
+                }
+            } elseif ($pipeline2Affected -eq $false) {
+                if (($highestScanEngineVersionNumber -ge 2202010000) -or
+                    ($highestScanEngineVersionNumber -lt 2201010000)) {
+                    Write-Verbose "Scan engine: $highestScanEngineVersionNumber is safe to use"
+                } else {
+                    Write-Verbose "This Exchange server has applied FIP-FS update pattern with an invalid version number"
+                    Write-Verbose "Scan engine: $highestScanEngineVersionNumber"
+                    $isAffectedByFIPFSUpdateIssue = $true
                 }
             } else {
-                Write-Verbose "The current Exchange server version is not affected by the FIP-FS update issue"
+                Write-Verbose "Unexpected scenario detected - logic re-work required"
             }
         } catch {
             Write-Verbose "Failed to check for the FIP-FS update issue"
