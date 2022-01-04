@@ -1,0 +1,165 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.IO.DirectoryInfo</T>
+      <T>System.IO.FileSystemInfo</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>2112330001</ToString>
+    <Props>
+      <S N="Name">2112330001</S>
+      <S N="FullName">C:\Program Files\Microsoft\Exchange Server\V15\FIP-FS\Data\Engines\amd64\Microsoft\Bin\2112330001</S>
+      <Obj N="Parent" RefId="1">
+        <TNRef RefId="0" />
+        <ToString>Bin</ToString>
+        <Props>
+          <S N="Name">Bin</S>
+          <S N="FullName">C:\Program Files\Microsoft\Exchange Server\V15\FIP-FS\Data\Engines\amd64\Microsoft\Bin</S>
+          <S N="Parent">Microsoft</S>
+          <B N="Exists">true</B>
+          <S N="Root">C:\</S>
+          <S N="Extension"></S>
+          <DT N="CreationTime">2022-01-02T05:07:23.3301656-08:00</DT>
+          <DT N="CreationTimeUtc">2022-01-02T13:07:23.3301656Z</DT>
+          <DT N="LastAccessTime">2022-01-02T05:31:34.9168534-08:00</DT>
+          <DT N="LastAccessTimeUtc">2022-01-02T13:31:34.9168534Z</DT>
+          <DT N="LastWriteTime">2022-01-02T05:31:34.9168534-08:00</DT>
+          <DT N="LastWriteTimeUtc">2022-01-02T13:31:34.9168534Z</DT>
+          <S N="Attributes">Directory</S>
+        </Props>
+        <MS>
+          <S N="Mode">d-----</S>
+          <S N="BaseName">Bin</S>
+          <Obj N="Target" RefId="2">
+            <TN RefId="1">
+              <T>System.Collections.Generic.List`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+              <T>System.Object</T>
+            </TN>
+            <LST />
+          </Obj>
+          <Nil N="LinkType" />
+        </MS>
+      </Obj>
+      <B N="Exists">true</B>
+      <Obj N="Root" RefId="3">
+        <TNRef RefId="0" />
+        <ToString>C:\</ToString>
+        <Props>
+          <S N="Name">C:\</S>
+          <S N="FullName">C:\</S>
+          <Nil N="Parent" />
+          <B N="Exists">true</B>
+          <S N="Root">C:\</S>
+          <S N="Extension"></S>
+          <DT N="CreationTime">2016-07-15T23:04:24.614482-07:00</DT>
+          <DT N="CreationTimeUtc">2016-07-16T06:04:24.614482Z</DT>
+          <DT N="LastAccessTime">2022-01-02T04:12:26.5959989-08:00</DT>
+          <DT N="LastAccessTimeUtc">2022-01-02T12:12:26.5959989Z</DT>
+          <DT N="LastWriteTime">2022-01-02T04:12:26.5959989-08:00</DT>
+          <DT N="LastWriteTimeUtc">2022-01-02T12:12:26.5959989Z</DT>
+          <S N="Attributes">Hidden, System, Directory</S>
+        </Props>
+        <MS>
+          <S N="Mode">d--hs-</S>
+          <S N="BaseName">C:\</S>
+          <Obj N="Target" RefId="4">
+            <TNRef RefId="1" />
+            <LST />
+          </Obj>
+          <Nil N="LinkType" />
+        </MS>
+      </Obj>
+      <S N="Extension"></S>
+      <DT N="CreationTime">2022-01-02T05:07:23.4721642-08:00</DT>
+      <DT N="CreationTimeUtc">2022-01-02T13:07:23.4721642Z</DT>
+      <DT N="LastAccessTime">2022-01-02T05:32:14.3171769-08:00</DT>
+      <DT N="LastAccessTimeUtc">2022-01-02T13:32:14.3171769Z</DT>
+      <DT N="LastWriteTime">2022-01-02T05:32:14.3171769-08:00</DT>
+      <DT N="LastWriteTimeUtc">2022-01-02T13:32:14.3171769Z</DT>
+      <Obj N="Attributes" RefId="5">
+        <TN RefId="2">
+          <T>System.IO.FileAttributes</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Directory</ToString>
+        <I32>16</I32>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="PSPath">Microsoft.PowerShell.Core\FileSystem::C:\Program Files\Microsoft\Exchange Server\V15\FIP-FS\Data\Engines\amd64\Microsoft\Bin\2112330001</S>
+      <S N="PSParentPath">Microsoft.PowerShell.Core\FileSystem::C:\Program Files\Microsoft\Exchange Server\V15\FIP-FS\Data\Engines\amd64\Microsoft\Bin</S>
+      <S N="PSChildName">2112330001</S>
+      <Obj N="PSDrive" RefId="6">
+        <TN RefId="3">
+          <T>System.Management.Automation.PSDriveInfo</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>C</ToString>
+        <Props>
+          <S N="CurrentLocation">Users\Administrator\Desktop\hc</S>
+          <S N="Name">C</S>
+          <Obj N="Provider" RefId="7">
+            <TN RefId="4">
+              <T>System.Management.Automation.ProviderInfo</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>Microsoft.PowerShell.Core\FileSystem</ToString>
+            <Props>
+              <S N="ImplementingType">Microsoft.PowerShell.Commands.FileSystemProvider</S>
+              <S N="HelpFile">System.Management.Automation.dll-Help.xml</S>
+              <S N="Name">FileSystem</S>
+              <S N="PSSnapIn">Microsoft.PowerShell.Core</S>
+              <S N="ModuleName">Microsoft.PowerShell.Core</S>
+              <Nil N="Module" />
+              <S N="Description"></S>
+              <S N="Capabilities">Filter, ShouldProcess, Credentials</S>
+              <S N="Home">C:\Users\Administrator</S>
+              <Obj N="Drives" RefId="8">
+                <TN RefId="5">
+                  <T>System.Collections.ObjectModel.Collection`1[[System.Management.Automation.PSDriveInfo, System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+                  <T>System.Object</T>
+                </TN>
+                <LST>
+                  <Ref RefId="6" />
+                  <S>D</S>
+                  <S>E</S>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <S N="Root">C:\</S>
+          <S N="Description"></S>
+          <Nil N="MaximumSize" />
+          <Obj N="Credential" RefId="9">
+            <TN RefId="6">
+              <T>System.Management.Automation.PSCredential</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>System.Management.Automation.PSCredential</ToString>
+            <Props>
+              <Nil N="UserName" />
+              <Nil N="Password" />
+            </Props>
+          </Obj>
+          <Nil N="DisplayRoot" />
+        </Props>
+        <MS>
+          <U64 N="Used">111266910208</U64>
+          <U64 N="Free">156573999104</U64>
+        </MS>
+      </Obj>
+      <Ref N="PSProvider" RefId="7" />
+      <B N="PSIsContainer">true</B>
+      <S N="Mode">d-----</S>
+      <S N="BaseName">2112330001</S>
+      <Obj N="Target" RefId="10">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Nil N="LinkType" />
+    </MS>
+  </Obj>
+</Objs>

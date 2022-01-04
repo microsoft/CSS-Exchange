@@ -223,4 +223,19 @@ Function Invoke-AnalyzerSecuritySettings {
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityAMSIConfigState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
+
+    if ($HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details $true `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType "Red"
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-FIPFSUpdateIssue" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType "Red" `
+            -DisplayCustomTabNumber 2
+    } elseif ($null -eq $HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details "Unknown" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayWriteType "Yellow"
+    }
 }
