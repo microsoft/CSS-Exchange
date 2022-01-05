@@ -28,7 +28,7 @@ Function log {
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeCheckslogging.csv -NoTypeInformation -Append
 }
 
-#Add Solution steps , feeback form at the end
+
 Function Connect2EXO {
     try {
         #Validate EXO V2 is installed
