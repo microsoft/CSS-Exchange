@@ -234,8 +234,8 @@ Function Invoke-AnalyzerSecuritySettings {
             -DisplayWriteType "Red" `
             -DisplayCustomTabNumber 2
     } elseif ($null -eq $HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details "Unknown" `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent." `
             -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Yellow"
+            -DisplayWriteType "Red"
     }
 }
