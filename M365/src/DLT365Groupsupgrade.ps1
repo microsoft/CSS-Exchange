@@ -561,6 +561,7 @@ Function Fixforwardingforsharedmbxs {
         [PScustomobject]$SharedMbxes
     )
     try {
+        #
         foreach ($SharedMbx in $SharedMbxes) {
             Write-Host "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." -ForegroundColor Yellow
             "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
