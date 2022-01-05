@@ -48,7 +48,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         It "Result return null" {
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
             $results | Should -Be $null
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected" }
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null" }
         }
     }
 
