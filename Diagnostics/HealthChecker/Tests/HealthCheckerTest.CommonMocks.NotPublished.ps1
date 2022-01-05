@@ -134,6 +134,10 @@ Mock Get-HttpProxySetting {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting.xml"
 }
 
+Mock Get-FIPFSScanEngineVersionState {
+    return $true
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 

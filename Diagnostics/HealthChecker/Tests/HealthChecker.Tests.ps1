@@ -119,7 +119,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 73
+            $Script:ActiveGrouping.Count | Should -Be 75
         }
 
         It "Display Results - Security Vulnerability" {
@@ -240,6 +240,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ServerComponentState -Exactly 1
             Assert-MockCalled Test-ServiceHealth -Exactly 1
             Assert-MockCalled Get-AcceptedDomain -Exactly 1
+            Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1
         }
     }
 
