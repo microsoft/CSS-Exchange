@@ -63,18 +63,17 @@ Function Get-FIPFSScanEngineVersionState {
                 if ($null -ne $scanEngineVersions) {
                     if ($scanEngineVersions.Failed) {
                         Write-Verbose "Failed to find the scan engine directory"
-                        return $null
                     } else {
-                        [Int64]$highestScanEngineVersion = ($scanEngineVersions.Name | Measure-Object -Maximum).Maximum
+                        return [Int64]($scanEngineVersions.Name | Measure-Object -Maximum).Maximum
                     }
                 } else {
-                    Write-Verbose "No FIP-FS scan engine version(s) detected"
+                    Write-Verbose "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null"
                 }
             } catch {
                 Write-Verbose "Error occurred while processing FIP-FS scan engine version(s)"
                 Invoke-CatchActions
             }
-            return $highestScanEngineVersion
+            return $null
         }
     } process {
         $isAffectedByFIPFSUpdateIssue = $false
