@@ -49,6 +49,14 @@ Function Invoke-AnalyzerSecurityMitigationService {
                 -DisplayGroupingKey $DisplayGroupingKey `
                 -DisplayWriteType $eemsWriteType
 
+            if ($eemsWriteType -ne "Green") {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-EEMS" `
+                    -DisplayGroupingKey $DisplayGroupingKey `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType $eemsWriteType `
+                    -AddHtmlDetailRow $false
+            }
+
             $eemsWinSrvWriteType = "Yellow"
             if (-not([String]::IsNullOrEmpty($mitigationService.MitigationWinServiceState))) {
                 if ($mitigationService.MitigationWinServiceState -eq "Running") {
