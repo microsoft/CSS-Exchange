@@ -50,7 +50,7 @@ Function Connect2EXO {
             $CurrentDescription = "Installing & Importing EXO V2 powershell module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing EXO V2 powershell module" -CurrentDescription $CurrentDescription
-            Connect-ExchangeOnline -Credential $UserCredential -ErrorAction Stop
+            Connect-ExchangeOnline -ErrorAction Stop
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
@@ -62,6 +62,41 @@ Function Connect2EXO {
         break
     }
 }
+
+Function Connect2MSODS {
+    try {
+        #Validate MSOnline  is installed
+        if ((Get-Module | Where-Object { $_.Name -like "MSOnline" }).count -eq 1) {
+            Import-Module MSOnline -ErrorAction stop -Force
+            $CurrentDescription = "Importing MSOnline Module"
+            $CurrentStatus = "Success"
+            log -CurrentStatus $CurrentStatus -Function "Importing MSOnline Module" -CurrentDescription $CurrentDescription
+            Connect-MsolService -ErrorAction Stop
+            $CurrentDescription = "Connecting to MSOnline"
+            $CurrentStatus = "Success"
+            log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
+            Write-Host "Connected to MSOnline successfully" -ForegroundColor Cyan
+        } else {
+            #log failure and try to install EXO V2 module then Connect to EXO
+            Write-Host "MSOnline Powershell Module is missing `n Trying to install the module" -ForegroundColor Red
+            Install-Module -Name MSOnline -Force -ErrorAction Stop -Scope CurrentUser
+            Import-Module MSOnline -ErrorAction stop -Force -Scope Local
+            $CurrentDescription = "Installing & Importing MSOnline powershell module"
+            $CurrentStatus = "Success"
+            log -CurrentStatus $CurrentStatus -Function "Installing & Importing MSOnline powershell module" -CurrentDescription $CurrentDescription
+            Connect-MsolService -ErrorAction Stop
+            $CurrentDescription = "Connecting to MSOnline"
+            $CurrentStatus = "Success"
+            log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
+        }
+    } catch {
+        $CurrentDescription = "Connecting to MSOnline please check if MSOnline Powershell Module is installed & imported"
+        $CurrentStatus = "Failure"
+        log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
+        break
+    }
+}
+
 #Fix the Member*Restriction condition
 Function Fixmemberrestriction {
     param(
@@ -333,17 +368,18 @@ Function Debugownerscount {
 Function Fixownergroupcreationvalidity {
     param(
         [Parameter(Mandatory = $true)]
-        [PScustomobject]$restrictedowners,
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$GroupsCreationWhitelistedgroup
+        [PScustomobject]$restrictedowners
     )
     try {
+        $Orgconfig=Get-OrganizationConfig -ErrorAction stop
+        $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
         foreach ($restrictedowner in $restrictedowners) {
-            Write-Host "Adding $restrictedowner membership to $GroupsCreationWhitelistedgroup group...." -ForegroundColor Yellow
-            "Adding $($restrictedowner) membership to $GroupsCreationWhitelistedgroup group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Add-DistributionGroupMember -Member $restrictedowner -Identity $GroupsCreationWhitelistedgroup -ErrorAction stop -Confirm:$false
-            Write-Host "Added $restrictedowner membership to $GroupsCreationWhitelistedgroup group!" -ForegroundColor Yellow
-            "Added $restrictedowner membership to $GroupsCreationWhitelistedgroup group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            Write-Host "Adding $restrictedowner membership to $GroupsCreationWhitelistedId group...." -ForegroundColor Yellow
+            "Adding $($restrictedowner) membership to $GroupsCreationWhitelistedId group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+            $Userid=(Get-MsolUser -SearchString $restrictedowner -ErrorAction Stop).ObjectId
+            Add-MsolGroupMember -GroupMemberObjectId $Userid.Guid -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction stop
+            Write-Host "Added $restrictedowner $Userid membership to $GroupsCreationWhitelistedId group!" -ForegroundColor Yellow
+            "Added $restrictedowner $Userid membership to $GroupsCreationWhitelistedId group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
         $CurrentDescription = "Adding restrictedowner(s) to GroupsCreationWhitelistedgroup"
         $CurrentStatus = "Success"
@@ -368,35 +404,42 @@ Function debugownergroupcreationvalidity {
         log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
         $GroupsCreationEnabled=$Orgconfig.GroupsCreationEnabled
         $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
-        if ($GroupsCreationEnabled.ToLower().ToString() -eq "false") {
-            try {
-                Write-Host "Retrieving $GroupsCreationWhitelistedId group members, please wait...." -ForegroundColor Yellow
-                $members=Get-DistributionGroupMember $GroupsCreationWhitelistedId -ErrorAction  stop
-                $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
-                $CurrentStatus = "Success"
-                log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-                $faultyowners=@()
-                foreach ($owner in $owners) {
-                    if ($members.name -notcontains $owner) {
-                        $faultyowners=$faultyowners+$owner
+        if ($owners.Count -le 100 -and $owners.Count -ge 1) {
+            if ($GroupsCreationEnabled.ToString() -eq "false") {
+                try {
+                    Write-Host "Retrieving $GroupsCreationWhitelistedId group members, please wait...." -ForegroundColor Yellow
+                    Connect2MSODS
+                    $members=Get-MsolGroupMember -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction  stop
+                    $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
+                    $CurrentStatus = "Success"
+                    log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+                    $faultyowners=@()
+                    foreach ($owner in $owners) {
+                        $owner1=get-recipient $owner -erroraction stop
+                        $Rectype=$owner1.RecipientTypeDetails
+                        if ($Rectype -eq "UserMailbox" -or $Rectype -eq "MailUser") {
+                            if ($members.objectid.guid -notcontains $owner1.ExternalDirectoryObjectId) {
+                                $faultyowners=$faultyowners+$owner
+                            }
+                        }
                     }
+                } catch {
+                    $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
+                    $CurrentStatus = "Failure"
+                    log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
                 }
-            } catch {
-                $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
-                $CurrentStatus = "Failure"
-                log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-            }
-            if ($faultyowners.Count -ge 1) {
-                $script:Conditionsfailed++
-                Write-Host "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups" -ForegroundColor Red
-                Write-Host "Restricted Owners:" -BackgroundColor Yellow -ForegroundColor Black
-                $faultyowners
-                "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                $faultyowners | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted group $GroupsCreationWhitelistedId "
-                if ($fix.tolower() -eq "Y") {
-                    Fixownergroupcreationvalidity($faultyowners, $GroupsCreationWhitelistedId)
+                if ($faultyowners.Count -ge 1) {
+                    $script:Conditionsfailed++
+                    Write-Host "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups" -ForegroundColor Red
+                    Write-Host "Restricted Owners:" -BackgroundColor Yellow -ForegroundColor Black
+                    $faultyowners
+                    "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                    "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                    $faultyowners | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+                    $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted group $GroupsCreationWhitelistedId "
+                    if ($fix.tolower() -eq "Y") {
+                        Fixownergroupcreationvalidity($faultyowners)
+                    }
                 }
             }
         }
@@ -691,6 +734,7 @@ $Sessioncheck = Get-PSSession | Where-Object { $_.Name -like "*Exchangeonline*" 
 if ($null -eq $Sessioncheck) {
     Connect2EXO
 }
+
 
 #Getting the DG SMTP
 $dgsmtp = Read-Host "Please enter email address of the Distribution Group"
