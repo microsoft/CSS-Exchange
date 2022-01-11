@@ -1,24 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Helpers\PerformanceCountersFunctions.ps1
 Function Get-CASLoadBalancingReport {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    #Connection and requests per server and client type values
-    $CASConnectionStats = @{}
-    $TotalCASConnectionCount = 0
-    $AutoDStats = @{}
-    $TotalAutoDRequests = 0
-    $EWSStats = @{}
-    $TotalEWSRequests = 0
-    $MapiHttpStats = @{}
-    $TotalMapiHttpRequests = 0
-    $EASStats = @{}
-    $TotalEASRequests = 0
-    $OWAStats = @{}
-    $TotalOWARequests = 0
-    $RpcHttpStats = @{}
-    $TotalRpcHttpRequests = 0
     $CASServers = @()
 
     if ($null -ne $CasServerList) {
@@ -42,17 +28,37 @@ Function Get-CASLoadBalancingReport {
         Exit
     }
 
+    Function DisplayKeyMatching {
+        param(
+            [string]$CounterValue,
+            [string]$DisplayValue
+        )
+        return [PSCustomObject]@{
+            Counter = $CounterValue
+            Display = $DisplayValue
+        }
+    }
+
     #Request stats from perfmon for all CAS
-    $PerformanceCounters = @()
-    $PerformanceCounters += "\Web Service(Default Web Site)\Current Connections"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Autodiscover)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_EWS)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_mapi)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_owa)\Requests Executing"
-    $PerformanceCounters += "\ASP.NET Apps v4.0.30319(_LM_W3SVC_1_ROOT_Rpc)\Requests Executing"
+    $displayKeys = @{
+        1 = DisplayKeyMatching "Default Web Site" "Load Distribution"
+        2 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Autodiscover" "AutoDiscover"
+        3 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_EWS" "EWS"
+        4 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_mapi" "MapiHttp"
+        5 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync" "EAS"
+        6 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_owa" "OWA"
+        7 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Rpc" "RpcHttp"
+    }
+    $perServerStats = @{}
+    $totalStats = @{}
+
     $currentErrors = $Error.Count
-    $AllCounterResults = Get-Counter -ComputerName $CASServers -Counter $PerformanceCounters -ErrorAction SilentlyContinue
+    $counterSamples = Get-LocalizedCounterSamples -MachineName $CASServers -Counter @(
+        "\Web Service(*)\Current Connections",
+        "\ASP.NET Apps v4.0.30319(*)\Requests Executing"
+    ) `
+        -CustomErrorAction "SilentlyContinue"
+
 
     if ($currentErrors -ne $Error.Count) {
         $i = 0
@@ -64,110 +70,44 @@ Function Get-CASLoadBalancingReport {
         Write-Verbose("Failed to get some counters")
     }
 
-    foreach ($Result in $AllCounterResults.CounterSamples) {
-        $CasName = ($Result.Path).Split("\\", [System.StringSplitOptions]::RemoveEmptyEntries)[0]
-        $ResultCookedValue = $Result.CookedValue
+    foreach ($counterSample in $counterSamples) {
+        $counterObject = Get-CounterFullNameToCounterObject -FullCounterName $counterSample.Path
 
-        if ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[0]) {
-            #Total connections
-            $CASConnectionStats.Add($CasName, $ResultCookedValue)
-            $TotalCASConnectionCount += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[1]) {
-            #AutoD requests
-            $AutoDStats.Add($CasName, $ResultCookedValue)
-            $TotalAutoDRequests += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[2]) {
-            #EWS requests
-            $EWSStats.Add($CasName, $ResultCookedValue)
-            $TotalEWSRequests += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[3]) {
-            #MapiHttp requests
-            $MapiHttpStats.Add($CasName, $ResultCookedValue)
-            $TotalMapiHttpRequests += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[4]) {
-            #EAS requests
-            $EASStats.Add($CasName, $ResultCookedValue)
-            $TotalEASRequests += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[5]) {
-            #OWA requests
-            $OWAStats.Add($CasName, $ResultCookedValue)
-            $TotalOWARequests += $ResultCookedValue
-        } elseif ($Result.Path -like "*{0}*{1}" -f $CasName, $PerformanceCounters[6]) {
-            #RPCHTTP requests
-            $RpcHttpStats.Add($CasName, $ResultCookedValue)
-            $TotalRpcHttpRequests += $ResultCookedValue
+        if (-not ($perServerStats.ContainsKey($counterObject.ServerName))) {
+            $perServerStats.Add($counterObject.ServerName, @{})
+        }
+
+        if (-not ($perServerStats[$counterObject.ServerName].ContainsKey($counterObject.InstanceName))) {
+            $perServerStats[$counterObject.ServerName].Add($counterObject.InstanceName, $counterSample.CookedValue)
+        } else {
+            Write-Verbose "This shouldn't occur...."
+            $perServerStats[$counterObject.ServerName][$counterObject.InstanceName] += $counterSample.CookedValue
+        }
+
+        if (-not ($totalStats.ContainsKey($counterObject.InstanceName))) {
+            $totalStats.Add($counterObject.InstanceName, 0)
+        }
+
+        $totalStats[$counterObject.InstanceName] += $counterSample.CookedValue
+    }
+
+    $keyOrders = $displayKeys.Keys | Sort-Object
+
+    foreach ($key in $keyOrders) {
+        $currentDisplayKey = $displayKeys[$key]
+        $totalRequests = $totalStats[$currentDisplayKey.Counter]
+
+        if ($totalRequests -le 0) { continue }
+
+        Write-Grey ""
+        Write-Grey "Current $($currentDisplayKey.Display) Per Server"
+        Write-Grey "Total Requests: $totalRequests"
+
+        foreach ($serverKey in $perServerStats.Keys) {
+            if ($perServerStats.ContainsKey($serverKey)) {
+                $serverValue = $perServerStats[$serverKey][$currentDisplayKey.Counter]
+                Write-Grey "$serverKey : $serverValue Connections = $([math]::Round((([int]$serverValue / $totalRequests) * 100)))% Distribution"
+            }
         }
     }
-
-
-    #Report the results for connection count
-    Write-Grey("")
-    Write-Grey("Connection Load Distribution Per Server")
-    Write-Grey("Total Connections: {0}" -f $TotalCASConnectionCount)
-    #Calculate percentage of connection load
-    $CASConnectionStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-        Write-Grey($_.Key + ": " + $_.Value + " Connections = " + [math]::Round((([int]$_.Value / $TotalCASConnectionCount) * 100)) + "% Distribution")
-    }
-
-    #Same for each client type.  These are request numbers not connection numbers.
-    #AutoD
-    if ($TotalAutoDRequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current AutoDiscover Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalAutoDRequests)
-        $AutoDStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalAutoDRequests) * 100)) + "% Distribution")
-        }
-    }
-
-    #EWS
-    if ($TotalEWSRequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current EWS Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalEWSRequests)
-        $EWSStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalEWSRequests) * 100)) + "% Distribution")
-        }
-    }
-
-    #MapiHttp
-    if ($TotalMapiHttpRequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current MapiHttp Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalMapiHttpRequests)
-        $MapiHttpStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalMapiHttpRequests) * 100)) + "% Distribution")
-        }
-    }
-
-    #EAS
-    if ($TotalEASRequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current EAS Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalEASRequests)
-        $EASStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalEASRequests) * 100)) + "% Distribution")
-        }
-    }
-
-    #OWA
-    if ($TotalOWARequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current OWA Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalOWARequests)
-        $OWAStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalOWARequests) * 100)) + "% Distribution")
-        }
-    }
-
-    #RpcHttp
-    if ($TotalRpcHttpRequests -gt 0) {
-        Write-Grey("")
-        Write-Grey("Current RpcHttp Requests Per Server")
-        Write-Grey("Total Requests: {0}" -f $TotalRpcHttpRequests)
-        $RpcHttpStats.GetEnumerator() | Sort-Object -Descending | ForEach-Object {
-            Write-Grey($_.Key + ": " + $_.Value + " Requests = " + [math]::Round((([int]$_.Value / $TotalRpcHttpRequests) * 100)) + "% Distribution")
-        }
-    }
-    Write-Grey("")
 }
