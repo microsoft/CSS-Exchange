@@ -1,7 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-Clear-Host
 #Create working folder on the logged user desktop
 $ts = Get-Date -Format yyyyMMdd_HHmmss
 $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgradeChecks_$ts"
@@ -27,8 +25,6 @@ Function log {
     $PSobject | Add-Member -NotePropertyName "Status" -NotePropertyValue $CurrentStatus
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeCheckslogging.csv -NoTypeInformation -Append
 }
-
-
 Function Connect2EXO {
     try {
         #Validate EXO V2 is installed
@@ -37,6 +33,7 @@ Function Connect2EXO {
             $CurrentDescription = "Importing EXO V2 Module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing EXO V2 Module" -CurrentDescription $CurrentDescription
+            Write-Host "Connecting to EXO V2"
             Connect-ExchangeOnline -ErrorAction Stop
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
@@ -50,10 +47,12 @@ Function Connect2EXO {
             $CurrentDescription = "Installing & Importing EXO V2 powershell module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing EXO V2 powershell module" -CurrentDescription $CurrentDescription
+            Write-Host "Connecting to EXO V2"
             Connect-ExchangeOnline -ErrorAction Stop
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
+            Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
         }
     } catch {
         $CurrentDescription = "Connecting to EXO V2 please check if ExchangeOnlineManagement Powershell Module is installed & imported"
@@ -62,7 +61,6 @@ Function Connect2EXO {
         break
     }
 }
-
 Function Connect2MSODS {
     try {
         #Validate MSOnline  is installed
@@ -71,6 +69,7 @@ Function Connect2MSODS {
             $CurrentDescription = "Importing MSOnline Module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing MSOnline Module" -CurrentDescription $CurrentDescription
+            Write-Host "Connecting to MSOnline"
             Connect-MsolService -ErrorAction Stop
             $CurrentDescription = "Connecting to MSOnline"
             $CurrentStatus = "Success"
@@ -84,34 +83,18 @@ Function Connect2MSODS {
             $CurrentDescription = "Installing & Importing MSOnline powershell module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing MSOnline powershell module" -CurrentDescription $CurrentDescription
+            Write-Host "Connecting to MSOnline"
             Connect-MsolService -ErrorAction Stop
             $CurrentDescription = "Connecting to MSOnline"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
+            Write-Host "Connected to MSOnline successfully" -ForegroundColor Cyan
         }
     } catch {
         $CurrentDescription = "Connecting to MSOnline please check if MSOnline Powershell Module is installed & imported"
         $CurrentStatus = "Failure"
         log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
         break
-    }
-}
-
-#Fix the Member*Restriction condition
-Function Fixmemberrestriction {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
-    )
-    try {
-        Set-DistributionGroup $Distgroup.Guid.Guid -MemberJoinRestriction Open -MemberDepartRestriction Open -ErrorAction stop
-        $CurrentDescription = "Setting Member*Restriction to Open"
-        $CurrentStatus = "Success"
-        log -Function "Set Member*Restriction to Open" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Setting Member*Restriction to Open"
-        $CurrentStatus = "Failure"
-        log -Function "Set Member*Restriction to Open" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
 }
 #Check if Distribution Group can't be upgraded because Member*Restriction is set to "Closed"
@@ -126,18 +109,11 @@ Function Debugmemberrestriction {
     if ($MemberDepartRestriction -eq "closed" -or $MemberJoinRestriction -eq "closed") {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!" -ForegroundColor Red
-        "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with fixing DL Member*Restriction"
-        if ($fix.tolower() -eq "Y") {
-            Write-Host "Setting Member*Restriction to Open" -ForegroundColor Yellow
-            "Setting Member*Restriction to Open" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Fixmemberrestriction($dg)
-            Write-Host "Member*Restriction is set to Open!" -ForegroundColor Yellow
-            "Member*Restriction is set to Open!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
+        "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+        Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with fixing DL Member*Restriction & set DL MemberJoin/DepartRestriction to Open!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with fixing DL Member*Restriction & set DL MemberJoin/DepartRestriction to Open!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
-
 #Check if Distribution Group can't be upgraded because it is DirSynced
 Function Debugdirsync {
     param(
@@ -147,33 +123,8 @@ Function Debugdirsync {
     $IsDirSynced = $Distgroup.IsDirSynced
     if ($IsDirSynced -eq $true) {
         $script:Conditionsfailed++
-        Write-Host "Distribution Group can't be upgraded because it's synchronized from on-premises!" -ForegroundColor Red
-        "Distribution Group can't be upgraded because it's synchronized from on-premises!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-    }
-}
-
-
-#Fix matching EAP condition
-Function Fixmatchingeap {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$nonmatchingEaps
-    )
-    try {
-        foreach ($nonmatchingEap in $nonmatchingEaps) {
-            Write-Host "Removing $($nonmatchingEap.name)...." -ForegroundColor Yellow
-            "Removing $($nonmatchingEap.name)...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Remove-EmailAddressPolicy -Identity $nonmatchingEap.guid.guid -ErrorAction stop -Confirm:$false
-            Write-Host "Removed $($nonmatchingEap.name)!" -ForegroundColor Yellow
-            "Removed $($nonmatchingEap.name)!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing Non-matching EAP(s)"
-        $CurrentStatus = "Success"
-        log -Function "Remove Non-matching EAP(s)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing Non-matching EAP(s)"
-        $CurrentStatus = "Failure"
-        log -Function "Remove Non-matching EAP(s)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+        Write-Host "Distribution Group can't be upgraded because it's synchronized from on-premises!`n" -ForegroundColor Red
+        "Distribution Group can't be upgraded because it's synchronized from on-premises!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check if Distribution Group can't be upgraded because EmailAddressPolicyViolated
@@ -194,37 +145,11 @@ Function Debugmatchingeap {
             "Distribution Group can't be upgraded because Admin has applied Group Email Address Policy for the groups on the organization e.g. DL PrimarySmtpAddress @Contoso.com while the EAP EnabledPrimarySMTPAddressTemplate is @contoso.com OR DL PrimarySmtpAddress @contoso.com however there's an EAP with EnabledPrimarySMTPAddressTemplate set to @fabrikam.com" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             "Group Email Address Policy found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             $matchingEap | Format-Table name, recipientfilter, Guid, enabledemailaddresstemplates | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL non-matching EmailAddressPolicy"
-            if ($fix.tolower() -eq "Y") {
-                Fixmatchingeap($matchingEap)
-            }
+            Write-Host "FIX --> Please follow the following article https://aka.ms/removeeap to proceed with removing non-matching EmailAddressPolicy!`n" -ForegroundColor Green
+            "FIX --> Please follow the following article https://aka.ms/removeeap to proceed with removing non-matching EmailAddressPolicy!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         }
     }
 }
-#Fix group nesting condition
-Function Fixgroupnesting {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$ParentDGroups
-    )
-    try {
-        foreach ($ParentDGroup in $ParentDGroups) {
-            Write-Host "Removing DL membership from $($ParentDGroup.DisplayName) group...." -ForegroundColor Yellow
-            "Removing DL membership from $($ParentDGroup.DisplayName) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Remove-DistributionGroupMember -Member $dg.guid.guid  -Identity $ParentDGroup.guid.guid -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL membership from $($ParentDGroup.DisplayName) group!" -ForegroundColor Yellow
-            "Removed DL membership from $($ParentDGroup.DisplayName) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing DL membership from Parent DG(s)"
-        $CurrentStatus = "Success"
-        log -Function "Remove DL membership from Parent DG(s)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing DL membership from Parent DG(s)"
-        $CurrentStatus = "Failure"
-        log -Function "Remove DL membership from Parent DG(s)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    }
-}
-
 #Check if Distribution Group can't be upgraded because DlHasParentGroups
 Function Debuggroupnesting {
     param(
@@ -279,33 +204,8 @@ Function Debuggroupnesting {
         "Distribution Group can't be upgraded because it is a child group of another parent group"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Parent Groups found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $ParentDGroups | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from Parent DL(s)"
-        if ($fix.tolower() -eq "Y") {
-            Fixgroupnesting($ParentDGroups)
-        }
-    }
-}
-#Fix group DlHasNonSupportedMemberTypes condition
-Function Fixunsupportedmembersrecipienttypes {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$NonsupportedMbrs
-    )
-    try {
-        foreach ($NonsupportedMbr in $NonsupportedMbrs) {
-            Write-Host "Removing $($NonsupportedMbr.DisplayName) from DL membership...." -ForegroundColor Yellow
-            "Removing $($NonsupportedMbr.DisplayName) from DL membership...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            Remove-DistributionGroupMember -Member $NonsupportedMbr.guid.guid -Identity $dg.guid.guid -ErrorAction stop -Confirm:$false
-            Write-Host "Removed $($NonsupportedMbr.DisplayName) from DL membership!" -ForegroundColor Yellow
-            "Removed $($NonsupportedMbr.DisplayName) from DL membership!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing nonsupportedmember(s) from DL"
-        $CurrentStatus = "Success"
-        log -Function "Remove nonsupportedmember(s) from DL" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing nonsupportedmember(s) from DL"
-        $CurrentStatus = "Failure"
-        log -Function "Remove nonsupportedmember(s) from DL" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+        Write-Host "FIX --> Please follow the following article https://aka.ms/RemoveDGmember to proceed with removing DL membership from Parent DL(s)!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/RemoveDGmember to proceed with removing DL membership from Parent DL(s)!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check if Distribution Group can't be upgraded because DlHasNonSupportedMemberTypes with RecipientTypeDetails other than UserMailbox, SharedMailbox, TeamMailbox, MailUser
@@ -345,10 +245,8 @@ Function Debugmembersrecipienttypes {
         "Distribution Group can't be upgraded because DL contains member RecipientTypeDetails other than UserMailbox, SharedMailbox, TeamMailbox, MailUser" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Non-supported members found:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $matchingMbr | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing NonSupportedMemberTypes from the DL"
-        if ($fix.tolower() -eq "Y") {
-            Fixunsupportedmembersrecipienttypes($matchingMbr)
-        }
+        Write-Host "FIX --> Please follow the following article https://aka.ms/RemoveDGmember to proceed with removing NonSupportedMemberTypes membership from the DL!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/RemoveDGmember to proceed with removing NonSupportedMemberTypes membership from the DL!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check if Distribution Group can't be upgraded because it has more than 100 owners or it has no owner
@@ -362,32 +260,8 @@ Function Debugownerscount {
         $script:Conditionsfailed++
         Write-Host "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" -ForegroundColor Red
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-    }
-}
-#Fix group creation enabled condition
-Function Fixownergroupcreationvalidity {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$restrictedowners
-    )
-    try {
-        $Orgconfig=Get-OrganizationConfig -ErrorAction stop
-        $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
-        foreach ($restrictedowner in $restrictedowners) {
-            Write-Host "Adding $restrictedowner membership to $GroupsCreationWhitelistedId group...." -ForegroundColor Yellow
-            "Adding $($restrictedowner) membership to $GroupsCreationWhitelistedId group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            $Userid=(Get-MsolUser -SearchString $restrictedowner -ErrorAction Stop).ObjectId
-            Add-MsolGroupMember -GroupMemberObjectId $Userid.Guid -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction stop
-            Write-Host "Added $restrictedowner $Userid membership to $GroupsCreationWhitelistedId group!" -ForegroundColor Yellow
-            "Added $restrictedowner $Userid membership to $GroupsCreationWhitelistedId group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Adding restrictedowner(s) to GroupsCreationWhitelistedgroup"
-        $CurrentStatus = "Success"
-        log -Function "Add restrictedowner(s) to GroupsCreationWhitelistedgroup" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Adding restrictedowner(s) to GroupsCreationWhitelistedgroup"
-        $CurrentStatus = "Failure"
-        log -Function "Add restrictedowner(s) to GroupsCreationWhitelistedgroup" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
+        Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to adjust owners(ManagedBy) count!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to adjust owners(ManagedBy) count!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check for GroupsCreationEnabled if Enabled and validate that all owners are members inside Whitelistedgroup
@@ -407,7 +281,7 @@ Function debugownergroupcreationvalidity {
         if ($owners.Count -le 100 -and $owners.Count -ge 1) {
             if ($GroupsCreationEnabled.ToString() -eq "false") {
                 try {
-                    Write-Host "Retrieving $GroupsCreationWhitelistedId group members, please wait...." -ForegroundColor Yellow
+                    Write-Host "Retrieving GroupsCreationWhitelistedId $GroupsCreationWhitelistedId security group members, please wait...." -ForegroundColor Yellow
                     Connect2MSODS
                     $members=Get-MsolGroupMember -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction  stop
                     $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
@@ -433,13 +307,12 @@ Function debugownergroupcreationvalidity {
                     Write-Host "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups" -ForegroundColor Red
                     Write-Host "Restricted Owners:" -BackgroundColor Yellow -ForegroundColor Black
                     $faultyowners
+                    Write-Host
                     "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
                     "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
                     $faultyowners | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                    $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted group $GroupsCreationWhitelistedId "
-                    if ($fix.tolower() -eq "Y") {
-                        Fixownergroupcreationvalidity($faultyowners)
-                    }
+                    Write-Host "FIX --> Please follow the following article https://aka.ms/Addmsolgroupmember to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted security group with ObjectID $GroupsCreationWhitelistedId!`n" -ForegroundColor Green
+                    "`nFIX --> Please follow the following article https://aka.ms/Addmsolgroupmember to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted security group with ObjectID $GroupsCreationWhitelistedId!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
                 }
             }
         }
@@ -447,31 +320,6 @@ Function debugownergroupcreationvalidity {
         $CurrentDescription = "Retrieving organization configuration"
         $CurrentStatus = "Failure"
         log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-    }
-}
-#Fix owner non-supported recipient condition
-Function Fixownersstatus {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$nonsupportedowners
-    )
-    try {
-        $owners = $dg.ManagedBy
-        foreach ($nonsupportedowner in $nonsupportedowners) {
-            Write-Host "Removing $($nonsupportedowner.name) ownership from $($dg.displayname) group...." -ForegroundColor Yellow
-            "Removing $($nonsupportedowner.name) ownership from $($dg.displayname) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            $owners.remove($($nonsupportedowner.name))
-            Set-DistributionGroup -Identity $dg.guid.guid -ManagedBy $owners -ErrorAction stop -Confirm:$false
-            Write-Host "Removed $($nonsupportedowner.name) ownership from $($dg.displayname) group!" -ForegroundColor Yellow
-            "Removed $($nonsupportedowner.name) ownership from $($dg.displayname) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing nonsupportedowner(s) from the group"
-        $CurrentStatus = "Success"
-        log -Function "Remove nonsupportedowner(s) from the group" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing nonsupportedowner(s) from the group"
-        $CurrentStatus = "Failure"
-        log -Function "Remove nonsupportedowner(s) from the group" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
@@ -511,40 +359,10 @@ Function Debugownersstatus {
             $script:Conditionsfailed++
             #fix will occur if we still have supported owners to avoid zero owner condition
             if ($owners.Count -gt $ConditionDGownerswithoutMBX.Count) {
-                $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing non-supported RecipientTypeDetails owner(s)"
-                if ($fix.tolower() -eq "Y") {
-                    Fixownersstatus($ConditionDGownerswithoutMBX)
-                }
+                Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with removing non-supported RecipientTypeDetails owner(ManagedBy)!`n" -ForegroundColor Green
+                "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with removing non-supported RecipientTypeDetails owner(ManagedBy)!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
             }
         }
-    }
-}
-#Fix senderrestriction condition
-Function Fixsenderrestriction {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$senderrestrictionDLs
-    )
-    try {
-        foreach ($senderrestrictionDL in $senderrestrictionDLs) {
-            Write-Host "Removing DL sender restriction from $($senderrestrictionDL.Name) group...." -ForegroundColor Yellow
-            "Removing DL sender restriction from $($senderrestrictionDL.Name) group...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            $group=Get-DistributionGroup $senderrestrictionDL.guid.guid -ErrorAction stop
-            $DlAcceptMessagesOnlyFromSendersOrMembers=$group.AcceptMessagesOnlyFromSendersOrMembers
-            $DlAcceptMessagesOnlyFromDLMembers=$group.AcceptMessagesOnlyFromDLMembers
-            $DlAcceptMessagesOnlyFromDLMembers.remove($($dg.Name))
-            $DlAcceptMessagesOnlyFromSendersOrMembers.remove($($dg.Name))
-            Set-DistributionGroup -Identity $senderrestrictionDL.guid.guid -AcceptMessagesOnlyFromSendersOrMembers $DlAcceptMessagesOnlyFromSendersOrMembers -AcceptMessagesOnlyFromDLMembers $DlAcceptMessagesOnlyFromDLMembers -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL sender restriction from $($senderrestrictionDL.Name) group!" -ForegroundColor Yellow
-            "Removed DL sender restriction from $($senderrestrictionDL.Name) group!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing DL sender restriction from other Dls"
-        $CurrentStatus = "Success"
-        log -Function "Remove DL sender restriction from other Dls" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing DL sender restriction from other Dls"
-        $CurrentStatus = "Failure"
-        log -Function "Remove DL sender restriction from other Dls" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL
@@ -577,10 +395,8 @@ Function Debugsenderrestriction {
         "Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Distribution group(s) with sender restriction:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $ConditionDGSender | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from sender restriction in another DL(s)"
-        if ($fix.tolower() -eq "Y") {
-            Fixsenderrestriction($ConditionDGSender)
-        }
+        Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with removing DL from AcceptMessagesOnlyFromSendersOrMembers/AcceptMessagesOnlyFromDLMembers restriction in another DL(s)!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with removing DL from AcceptMessagesOnlyFromSendersOrMembers/AcceptMessagesOnlyFromDLMembers restriction in another DL(s)!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check if Distribution Group can't be upgraded because Distribution lists which were converted to RoomLists or isn't a security group nor Dynamic DG
@@ -595,39 +411,6 @@ Function Debuggrouprecipienttype {
         Write-Host "Distribution Group RecipientTypeDetails is: " $Distgroup.RecipientTypeDetails
         "Distribution Group can't be upgraded because it was converted to RoomList or is found to be a security group or Dynamic distribution group" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Distribution Group RecipientTypeDetails is: " + $Distgroup.RecipientTypeDetails | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-    }
-}
-#Fix forwarding address condition
-Function Fixforwardingforsharedmbxs {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$SharedMbxes
-    )
-    try {
-        #
-        foreach ($SharedMbx in $SharedMbxes) {
-            Write-Host "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." -ForegroundColor Yellow
-            "Removing DL from forwarding address of $($SharedMbx.Name) shared mailbox...." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-            $SharedmbxDl=Get-Mailbox $SharedMbx.guid.guid -ErrorAction stop
-            $DlforwardingAddress=$SharedmbxDl.forwardingAddress
-            $DlforwardingSmtpAddress=$SharedmbxDl.forwardingSmtpAddress
-            if ($DlforwardingAddress -eq $dg.Name) {
-                $DlforwardingAddress=$null
-            }
-            if ($DlforwardingSmtpAddress -eq $dg.PrimarySmtpAddress) {
-                $DlforwardingSmtpAddress=$null
-            }
-            Set-Mailbox -Identity $SharedMbx.guid.guid -ForwardingAddress $DlforwardingAddress -ForwardingSmtpAddress $DlforwardingSmtpAddress -ErrorAction stop -Confirm:$false
-            Write-Host "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" -ForegroundColor Yellow
-            "Removed DL from forwarding address of $($SharedMbx.Name) shared mailbox!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        }
-        $CurrentDescription = "Removing DL from forwarding address of shared mailbox(es)"
-        $CurrentStatus = "Success"
-        log -Function "Remove DL from forwarding address of shared mailbox(es)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
-    } catch {
-        $CurrentDescription = "Removing DL from forwarding address of shared mailbox(es)"
-        $CurrentStatus = "Failure"
-        log -Function "Remove DL from forwarding address of shared mailbox(es)" -CurrentDescription $CurrentDescription -CurrentStatus $CurrentStatus
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox
@@ -667,10 +450,8 @@ Function Debugforwardingforsharedmbxs {
         "Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         "Shared Mailbox(es):" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         $Conditionfwdmbx | Format-Table -AutoSize DisplayName, Alias, GUID, RecipientTypeDetails, PrimarySmtpAddress | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        $fix=Read-Host "please enter Y(Yes) or N(No) to proceed with removing DL from forwarding address in shared mailbox(es)"
-        if ($fix.tolower() -eq "Y") {
-            Fixforwardingforsharedmbxs($Conditionfwdmbx)
-        }
+        Write-Host "FIX --> Please follow the following article https://aka.ms/Setmailbox to proceed with removing DL from ForwardingAddress/ForwardingSmtpAddress in shared mailbox(es)!`n" -ForegroundColor Green
+        "FIX --> Please follow the following article https://aka.ms/Setmailbox to proceed with removing DL from ForwardingAddress/ForwardingSmtpAddress in shared mailbox(es)!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
     }
 }
 #Check for duplicate Alias,PrimarySmtpAddress,Name,DisplayName on EXO objects
@@ -748,14 +529,14 @@ try {
     $CurrentDescription = "Retrieving Distribution Group from EXO Directory"
     $CurrentStatus = "Failure"
     log -CurrentStatus $CurrentStatus -Function "Retrieving Distribution Group from EXO Directory" -CurrentDescription $CurrentDescription
-    Write-Host "You entered an incorrect smtp, the script is quitting!" -ForegroundColor Red
+    Write-Host "You entered an incorrect smtp, the script is quitting!`n" -ForegroundColor Red
     Break
 }
 
 
 #Intro with group name
 [String]$article = "https://aka.ms/DlToM365GroupUpgrade"
-[string]$Description = "This script illustrates Distribution to O365 Group migration eligibility checks taken place over group SMTP: " + $dgsmtp + ", migration BLOCKERS will be reported down!,please ensure to mitigate them"
+[string]$Description = "This script illustrates Distribution to O365 Group migration eligibility checks taken place over group SMTP: " + $dgsmtp + ", migration BLOCKERS will be reported down!`n,please ensure to mitigate them"
 $Description = $Description + ",for more informtion please check: $article`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
@@ -781,8 +562,8 @@ if ($Conditionsfailed -eq 0) {
     "All checks passed please proceed to upgrade the distribution group" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 }
 #Ask for feedback
-Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://forms.office.com/r/a9CSid6SWg." -ForegroundColor Cyan
-"Please rate the script experience & tell us what you liked or what we can do better over https://forms.office.com/r/a9CSid6SWg." | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
+Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/DTGFeedback!" -ForegroundColor Cyan
+"Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/DTGFeedback!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 
 # End of the Diag
 Write-Host "`nlog file was exported in the following location: $ExportPath" -ForegroundColor Yellow
