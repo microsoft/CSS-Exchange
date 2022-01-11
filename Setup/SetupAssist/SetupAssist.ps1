@@ -31,6 +31,8 @@ param(
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
+$BuildVersion = ""
+
 Function WriteCatchInfo {
     Write-Host "$($Error[0].Exception)"
     Write-Host "$($Error[0].ScriptStackTrace)"
@@ -141,6 +143,8 @@ try {
         Write-Host "Script was updated. Please rerun the script."
         return
     }
+
+    Write-Host "Setup Assist Version $BuildVersion"
 
     Main
 } catch {
