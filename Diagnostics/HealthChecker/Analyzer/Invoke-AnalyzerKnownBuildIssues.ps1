@@ -152,11 +152,11 @@ Function Invoke-AnalyzerKnownBuildIssues {
         Write-Verbose "Working on November 2021 Security Updates - OWA redirection"
         TestForKnownBuildIssues -CurrentVersion $currentVersion `
             -KnownBuildIssuesToFixes @(
-            (GetKnownIssueBuildInformation "15.2.986.14" $null),
-            (GetKnownIssueBuildInformation "15.2.922.19" $null),
-            (GetKnownIssueBuildInformation "15.1.2375.17" $null),
-            (GetKnownIssueBuildInformation "15.1.2308.20" $null),
-            (GetKnownIssueBuildInformation "15.0.1497.26" $null)
+            (GetKnownIssueBuildInformation "15.2.986.14" "15.2.986.15"),
+            (GetKnownIssueBuildInformation "15.2.922.19" "15.2.922.20"),
+            (GetKnownIssueBuildInformation "15.1.2375.17" "15.1.2375.18"),
+            (GetKnownIssueBuildInformation "15.1.2308.20" "15.1.2308.21"),
+            (GetKnownIssueBuildInformation "15.0.1497.26" "15.0.1497.28")
         ) `
             -InformationUrl (GetKnownIssueInformation `
                 "OWA redirection doesn't work after installing November 2021 security updates for Exchange Server 2019, 2016, or 2013" `
