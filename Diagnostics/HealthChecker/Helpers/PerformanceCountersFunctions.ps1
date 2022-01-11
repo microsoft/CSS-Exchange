@@ -160,6 +160,7 @@ Function Get-CounterFullNameToCounterObject {
 
     # Supported Scenarios
     # \\adt-e2k13aio1\logicaldisk(harddiskvolume1)\avg. disk sec/read
+    # \\adt-e2k13aio1\\logicaldisk(harddiskvolume1)\avg. disk sec/read
     # \logicaldisk(harddiskvolume1)\avg. disk sec/read
     if (-not ($FullCounterName.StartsWith("\"))) {
         throw "Full Counter Name Should start with '\'"
@@ -178,10 +179,15 @@ Function Get-CounterFullNameToCounterObject {
         $instanceName = $FullCounterName.Substring($endOfCounterObjectIndex + 1, ($FullCounterName.IndexOf(")") - $endOfCounterObjectIndex - 1))
     }
 
+    $doubleSlash = 0
+    if (($FullCounterName.IndexOf("\\", 2) -ne -1)) {
+        $doubleSlash = 1
+    }
+
     return [PSCustomObject]@{
         FullName     = $FullCounterName
         ServerName   = $serverName
-        ObjectName   = ($FullCounterName.Substring($endOfServerIndex + 1, $endOfCounterObjectIndex - $endOfServerIndex - 1))
+        ObjectName   = ($FullCounterName.Substring($endOfServerIndex + 1 + $doubleSlash, $endOfCounterObjectIndex - $endOfServerIndex - 1 - $doubleSlash))
         InstanceName = $instanceName
         CounterName  = $FullCounterName.Substring($startOfCounterIndex)
     }
