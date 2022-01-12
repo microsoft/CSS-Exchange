@@ -33,7 +33,7 @@ Function Connect2EXO {
             $CurrentDescription = "Importing EXO V2 Module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing EXO V2 Module" -CurrentDescription $CurrentDescription
-            Write-Host "Connecting to EXO V2"
+            Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
             Connect-ExchangeOnline -ErrorAction Stop
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
@@ -47,7 +47,7 @@ Function Connect2EXO {
             $CurrentDescription = "Installing & Importing EXO V2 powershell module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing EXO V2 powershell module" -CurrentDescription $CurrentDescription
-            Write-Host "Connecting to EXO V2"
+            Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
             Connect-ExchangeOnline -ErrorAction Stop
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
@@ -69,7 +69,7 @@ Function Connect2MSODS {
             $CurrentDescription = "Importing MSOnline Module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing MSOnline Module" -CurrentDescription $CurrentDescription
-            Write-Host "Connecting to MSOnline"
+            Write-Warning "Connecting to MsolService, please enter Global administrator credentials when prompted!"
             Connect-MsolService -ErrorAction Stop
             $CurrentDescription = "Connecting to MSOnline"
             $CurrentStatus = "Success"
@@ -83,7 +83,7 @@ Function Connect2MSODS {
             $CurrentDescription = "Installing & Importing MSOnline powershell module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing MSOnline powershell module" -CurrentDescription $CurrentDescription
-            Write-Host "Connecting to MSOnline"
+            Write-Warning "Connecting to MsolService, please enter Global administrator credentials when prompted!"
             Connect-MsolService -ErrorAction Stop
             $CurrentDescription = "Connecting to MSOnline"
             $CurrentStatus = "Success"
@@ -158,7 +158,7 @@ Function Debuggroupnesting {
     )
     $ParentDGroups = @()
     try {
-        Write-Host "Retrieving all distribution groups in Exchange online, please wait...." -ForegroundColor Yellow
+        Write-Warning "Retrieving all distribution groups in Exchange online to validate Dl for nested Dl condition, please wait...."
         $alldgs = Get-DistributionGroup -ResultSize unlimited -ErrorAction Stop
         $CurrentDescription = "Retrieving All DGs in the EXO directory"
         $CurrentStatus = "Success"
@@ -216,7 +216,7 @@ Function Debugmembersrecipienttypes {
     )
 
     try {
-        Write-Host "Retrieving $($Distgroup.PrimarySmtpAddress) members, please wait...." -ForegroundColor Yellow
+        Write-Warning "Retrieving $($Distgroup.PrimarySmtpAddress) group members to validate DlHasNonSupportedMemberTypes condition, please wait...."
         $members = Get-DistributionGroupMember $($Distgroup.Guid.ToString()) -ErrorAction stop
         $CurrentDescription = "Retrieving: $Distgroup.PrimarySmtpAddress members"
         $CurrentStatus = "Success"
@@ -281,7 +281,7 @@ Function debugownergroupcreationvalidity {
         if ($owners.Count -le 100 -and $owners.Count -ge 1) {
             if ($GroupsCreationEnabled.ToString() -eq "false") {
                 try {
-                    Write-Host "Retrieving GroupsCreationWhitelistedId $GroupsCreationWhitelistedId security group members, please wait...." -ForegroundColor Yellow
+                    Write-Warning "Groups creation is Disabled, Retrieving GroupsCreationWhitelistedId $GroupsCreationWhitelistedId security group members to validate if owner(s) is eligible for groups creation, please wait...."
                     Connect2MSODS
                     $members=Get-MsolGroupMember -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction  stop
                     $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
@@ -421,7 +421,7 @@ Function Debugforwardingforsharedmbxs {
     )
     $Conditionfwdmbx = @()
     try {
-        Write-Host "Retrieving all shared mailboxes in Exchange online, please wait...." -ForegroundColor Yellow
+        Write-Warning "Retrieving all shared mailboxes in Exchange online to validate if Dl is configured as a forwarding address for a Shared Mailbox, please wait...."
         $sharedMBXs = Get-Mailbox -ResultSize unlimited -RecipientTypeDetails sharedmailbox -ErrorAction stop
         $CurrentDescription = "Retrieving All Shared MBXs in the EXO directory"
         $CurrentStatus = "Success"
@@ -461,7 +461,7 @@ Function Debugduplicateobjects {
         [PScustomobject]$Distgroup
     )
     try {
-        Write-Host "Querying across Exchange online recipients for duplicate objects with $($Distgroup.PrimarySmtpAddress) group, please wait..." -ForegroundColor Yellow
+        Write-Warning "Querying across Exchange online recipients for duplicate objects with $($Distgroup.PrimarySmtpAddress) group, please wait..."
         $dupAlias = Get-Recipient -IncludeSoftDeletedRecipients -Identity $Distgroup.alias -ResultSize unlimited -ErrorAction stop
         $dupAddress = Get-Recipient -IncludeSoftDeletedRecipients -ResultSize unlimited -Identity $Distgroup.PrimarySmtpAddress -ErrorAction stop
         $dupDisplayName = Get-Recipient -IncludeSoftDeletedRecipients -ResultSize unlimited -Identity $Distgroup.DisplayName -ErrorAction stop
