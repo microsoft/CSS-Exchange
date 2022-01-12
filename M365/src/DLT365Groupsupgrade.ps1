@@ -182,11 +182,11 @@ Function Debugmembersrecipienttypes {
     try {
         Write-Warning "Retrieving $($Distgroup.PrimarySmtpAddress) group members to validate DlHasNonSupportedMemberTypes condition, please wait...."
         $members = Get-DistributionGroupMember $($Distgroup.Guid.ToString()) -ErrorAction stop
-        $CurrentDescription = "Retrieving: $Distgroup.PrimarySmtpAddress members"
+        $CurrentDescription = "Retrieving: $($Distgroup.PrimarySmtpAddress) members"
         $CurrentStatus = "Success"
         log -Function "Retrieve Distribution Group membership" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
     } catch {
-        $CurrentDescription = "Retrieving: $Distgroup.PrimarySmtpAddress members"
+        $CurrentDescription = "Retrieving: $($Distgroup.PrimarySmtpAddress) members"
         $CurrentStatus = "Failure"
         log -Function "Retrieve Distribution Group membership" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
     }
