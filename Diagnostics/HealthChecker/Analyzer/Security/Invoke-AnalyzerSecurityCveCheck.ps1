@@ -147,7 +147,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -CVENames "CVE-2021-42305", "CVE-2021-41349"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "1497.28" `
-                -CVENames "CVE-2022-21845", "CVE-2022-21846", "CVE-2022-21969"
+                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -277,7 +277,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -CVENames "CVE-2021-42305", "CVE-2021-41349", "CVE-2021-42321"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "2308.21", "2375.18" `
-                -CVENames "CVE-2022-21845", "CVE-2022-21846", "CVE-2022-21969"
+                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
@@ -380,7 +380,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -CVENames "CVE-2021-42305", "CVE-2021-41349", "CVE-2021-42321"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "922.20", "986.15" `
-                -CVENames "CVE-2022-21845", "CVE-2022-21846", "CVE-2022-21969"
+                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"
