@@ -240,7 +240,7 @@ Function Invoke-AnalyzerOsInformation {
             $displayWriteType2013 -eq "Yellow")) -or
         $displayWriteType2012 -eq "Yellow") {
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributeable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow"
