@@ -61,42 +61,6 @@ Function Connect2EXO {
         break
     }
 }
-Function Connect2MSODS {
-    try {
-        #Validate MSOnline  is installed
-        if ((Get-Module | Where-Object { $_.Name -like "MSOnline" }).count -eq 1) {
-            Import-Module MSOnline -ErrorAction stop -Force
-            $CurrentDescription = "Importing MSOnline Module"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Importing MSOnline Module" -CurrentDescription $CurrentDescription
-            Write-Warning "Connecting to MsolService, please enter Global administrator credentials when prompted!"
-            Connect-MsolService -ErrorAction Stop
-            $CurrentDescription = "Connecting to MSOnline"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
-            Write-Host "Connected to MSOnline successfully" -ForegroundColor Cyan
-        } else {
-            #log failure and try to install EXO V2 module then Connect to EXO
-            Write-Host "MSOnline Powershell Module is missing `n Trying to install the module" -ForegroundColor Red
-            Install-Module -Name MSOnline -Force -ErrorAction Stop -Scope CurrentUser
-            Import-Module MSOnline -ErrorAction stop -Force -Scope Local
-            $CurrentDescription = "Installing & Importing MSOnline powershell module"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Installing & Importing MSOnline powershell module" -CurrentDescription $CurrentDescription
-            Write-Warning "Connecting to MsolService, please enter Global administrator credentials when prompted!"
-            Connect-MsolService -ErrorAction Stop
-            $CurrentDescription = "Connecting to MSOnline"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
-            Write-Host "Connected to MSOnline successfully" -ForegroundColor Cyan
-        }
-    } catch {
-        $CurrentDescription = "Connecting to MSOnline please check if MSOnline Powershell Module is installed & imported"
-        $CurrentStatus = "Failure"
-        log -CurrentStatus $CurrentStatus -Function "Connecting to MSOnline" -CurrentDescription $CurrentDescription
-        break
-    }
-}
 #Check if Distribution Group can't be upgraded because Member*Restriction is set to "Closed"
 Function Debugmemberrestriction {
     param(
@@ -262,64 +226,6 @@ Function Debugownerscount {
         "Distribution Group can't be upgraded because it has more than 100 owners or it has no owners" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
         Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to adjust owners(ManagedBy) count!`n" -ForegroundColor Green
         "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to adjust owners(ManagedBy) count!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-    }
-}
-#Check for GroupsCreationEnabled if Enabled and validate that all owners are members inside Whitelistedgroup
-Function debugownergroupcreationvalidity {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PScustomobject]$Distgroup
-    )
-    $owners = $Distgroup.ManagedBy
-    try {
-        $Orgconfig=Get-OrganizationConfig -ErrorAction stop
-        $CurrentDescription = "Retrieving organization configuration"
-        $CurrentStatus = "Success"
-        log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-        $GroupsCreationEnabled=$Orgconfig.GroupsCreationEnabled
-        $GroupsCreationWhitelistedId=$Orgconfig.GroupsCreationWhitelistedId
-        if ($owners.Count -le 100 -and $owners.Count -ge 1) {
-            if ($GroupsCreationEnabled.ToString() -eq "false") {
-                try {
-                    Write-Warning "Groups creation is Disabled, Retrieving GroupsCreationWhitelistedId $GroupsCreationWhitelistedId security group members to validate if owner(s) is eligible for groups creation, please wait...."
-                    Connect2MSODS
-                    $members=Get-MsolGroupMember -GroupObjectId $GroupsCreationWhitelistedId -ErrorAction  stop
-                    $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
-                    $CurrentStatus = "Success"
-                    log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-                    $faultyowners=@()
-                    foreach ($owner in $owners) {
-                        $owner1=get-recipient $owner -erroraction stop
-                        $Rectype=$owner1.RecipientTypeDetails
-                        if ($Rectype -eq "UserMailbox" -or $Rectype -eq "MailUser") {
-                            if ($members.objectid.guid -notcontains $owner1.ExternalDirectoryObjectId) {
-                                $faultyowners=$faultyowners+$owner
-                            }
-                        }
-                    }
-                } catch {
-                    $CurrentDescription = "Retrieving GroupsCreationWhitelistedId members"
-                    $CurrentStatus = "Failure"
-                    log -Function "Retrieve GroupsCreationWhitelistedId members" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
-                }
-                if ($faultyowners.Count -ge 1) {
-                    $script:Conditionsfailed++
-                    Write-Host "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups" -ForegroundColor Red
-                    Write-Host "Restricted Owners:" -BackgroundColor Yellow -ForegroundColor Black
-                    $faultyowners
-                    Write-Host
-                    "Distribution Group can't be upgraded because some or all the owners are restricted from creating groups"  | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                    "Restricted Owners:" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                    $faultyowners | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                    Write-Host "FIX --> Please follow the following article https://aka.ms/Addmsolgroupmember to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted security group with ObjectID $GroupsCreationWhitelistedId!`n" -ForegroundColor Green
-                    "`nFIX --> Please follow the following article https://aka.ms/Addmsolgroupmember to proceed with adding restricted owner(s) membership to GroupsCreationWhitelisted security group with ObjectID $GroupsCreationWhitelistedId!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-                }
-            }
-        }
-    } catch {
-        $CurrentDescription = "Retrieving organization configuration"
-        $CurrentStatus = "Failure"
-        log -Function "Retrieve organization configuration" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
