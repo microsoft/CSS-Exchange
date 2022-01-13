@@ -16,7 +16,10 @@ param(
 
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 
+$BuildVersion = ""
+
 try {
+    Write-Host "Setup Log Reviewer Version: $BuildVersion"
     Invoke-SetupLogReviewer -SetupLog $SetupLog -DelegatedSetup:$DelegatedSetup
 } catch {
     "$($Error[0].Exception)" | Write-Output
