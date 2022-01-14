@@ -74,6 +74,11 @@ function Test-VirtualDirectoryConfiguration {
             return
         }
 
+        if ($null -eq $httpProtocol) {
+            New-TestResult @resultParams -Result "Failed" -Details "Failed to find HTTP protocol object."
+            return
+        }
+
         $vdirsInDirectory = $httpProtocol.GetDirectoryEntry().Children
 
         $appHostConfig = New-Object Xml
