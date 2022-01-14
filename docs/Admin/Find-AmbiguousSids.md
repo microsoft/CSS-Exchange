@@ -1,4 +1,4 @@
-﻿# Find-AmbiguousSids
+# Find-AmbiguousSids
 
 Download the latest release: [Find-AmbiguousSids.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Find-AmbiguousSids.ps1)
 

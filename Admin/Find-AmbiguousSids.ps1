@@ -1,4 +1,7 @@
-﻿[CmdletBinding()]
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+[CmdletBinding()]
 param (
     [string]
     $GCName = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().FindGlobalCatalog().Name,
