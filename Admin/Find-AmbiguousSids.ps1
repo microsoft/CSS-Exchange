@@ -47,6 +47,7 @@ begin {
 
     $filter = "(|(objectSid=*)(sidHistory=*)(msExchMasterAccountSid=*))"
     $pageSize = 100
+    Write-Host "Using GC $GCName"
     $ldapConn = New-Object System.DirectoryServices.Protocols.LdapConnection("$($GCName):3268")
     $searchReq = New-Object System.DirectoryServices.Protocols.SearchRequest("", $filter, "Subtree", $null)
     $prc = New-Object System.DirectoryServices.Protocols.PageResultRequestControl($pageSize);
