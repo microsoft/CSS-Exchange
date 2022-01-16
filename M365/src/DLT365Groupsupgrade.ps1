@@ -422,7 +422,6 @@ if ($null -eq $Sessioncheck) {
     Connect2EXO
 }
 
-
 #Getting the DG SMTP
 $dgsmtp = Read-Host "Please enter email address of the Distribution Group"
 $dgsmtp = $dgsmtp.ToLower().ToString()
@@ -439,7 +438,6 @@ try {
     Break
 }
 
-
 #Intro with group name
 [String]$article = "https://aka.ms/DlToM365GroupUpgrade"
 [string]$Description = "This script illustrates Distribution to O365 Group migration eligibility checks taken place over group SMTP: " + $dgsmtp + ", migration BLOCKERS will be reported down!`n,please ensure to mitigate them"
@@ -447,9 +445,7 @@ $Description = $Description + ",for more informtion please check: $article`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 
-
 #Main Function
-
 DebugMemberRestriction($dg)
 DebugDirSync($dg)
 Debugmatchingeap($dg)
