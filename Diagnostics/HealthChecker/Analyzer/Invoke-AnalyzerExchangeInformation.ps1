@@ -68,7 +68,7 @@ Function Invoke-AnalyzerExchangeInformation {
     }
 
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Exchange IU or Security Hotfix Detected.") `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Exchange IU or Security Hotfix Detected") `
             -DisplayGroupingKey $keyExchangeInformation `
             -AddHtmlDetailRow $true
 
