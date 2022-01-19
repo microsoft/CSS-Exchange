@@ -73,10 +73,11 @@ Function Invoke-AnalyzerExchangeInformation {
             -AddHtmlDetailRow $false
 
         foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details $kb `
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Installed Hotfix" `
+                -Details $kb `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -AddHtmlDetailRow $false
+                -AddHtmlDetailRow $true
         }
     }
 
