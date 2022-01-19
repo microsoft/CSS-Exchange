@@ -68,15 +68,15 @@ Function Invoke-AnalyzerExchangeInformation {
     }
 
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Exchange IU or Security Hotfix Detected.") `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Exchange IU or Security Hotfix Detected") `
             -DisplayGroupingKey $keyExchangeInformation `
-            -AddHtmlDetailRow $false
+            -AddHtmlDetailRow $true
 
         foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details $kb `
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2 `
-                -AddHtmlDetailRow $false
+                -AddHtmlDetailRow $true
         }
     }
 
