@@ -27,8 +27,11 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
+
+$BuildVersion = ""
 
 Function WriteCatchInfo {
     Write-Host "$($Error[0].Exception)"
@@ -135,6 +138,13 @@ try {
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
     SetWriteHostAction ${Function:Write-DebugLog}
+
+    if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/SA-VersionsUrl")) {
+        Write-Host "Script was updated. Please rerun the script."
+        return
+    }
+
+    Write-Host "Setup Assist Version $BuildVersion"
 
     Main
 } catch {

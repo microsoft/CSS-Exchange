@@ -474,7 +474,8 @@ Function Get-ExchangeInformation {
         }
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)) {
             Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
             $buildInformation.AffectedByFIPFSUpdateIssue = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
         } else {
