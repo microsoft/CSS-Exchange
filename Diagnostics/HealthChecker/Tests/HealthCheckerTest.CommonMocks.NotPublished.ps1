@@ -86,7 +86,7 @@ Mock Get-HotFix {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHotFix.xml"
 }
 
-Mock Get-CounterSamples {
+Mock Get-LocalizedCounterSamples {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetCounterSamples.xml"
 }
 
