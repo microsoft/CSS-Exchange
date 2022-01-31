@@ -78,7 +78,7 @@ Function Invoke-AnalyzerHardwareInformation {
         $logicalValue -gt 48) {
         $displayWriteTypeLogic = "Red"
 
-        if ($logicalValue -gt $physicalValue) {
+        if ($logicalValue -ge $physicalValue) {
             $physicalValueDisplay = "$physicalValue - Error"
             $displayWriteTypePhysical = "Red"
         }
