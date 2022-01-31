@@ -216,7 +216,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-DnsClient -Exactly 1
             Assert-MockCalled Get-NetAdapterRss -Exactly 1
             Assert-MockCalled Get-HotFix -Exactly 1
-            Assert-MockCalled Get-CounterSamples -Exactly 1
+            Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
             Assert-MockCalled Get-TimeZoneInformationRegistrySettings -Exactly 1
             Assert-MockCalled Get-AllTlsSettingsFromRegistry -Exactly 1
@@ -386,11 +386,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
         }
 
         It "Number of Physical Cores" {
-            TestObjectMatch "Number of Physical Cores" 48 -WriteType "Yellow"
+            TestObjectMatch "Number of Physical Cores" 48 -WriteType "Green"
         }
 
         It "Number of Logical Cores" {
-            TestObjectMatch "Number of Logical Cores" 96 -WriteType "Yellow"
+            TestObjectMatch "Number of Logical Cores" "96 - Error" -WriteType "Red"
         }
 
         It "Hyper-Threading" {

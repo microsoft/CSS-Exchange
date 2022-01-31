@@ -16,7 +16,7 @@
 . $PSScriptRoot\Get-TimeZoneInformationRegistrySettings.ps1
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-. $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
+. $PSScriptRoot\..\..\Helpers\PerformanceCountersFunctions.ps1
 Function Get-OperatingSystemInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -73,7 +73,7 @@ Function Get-OperatingSystemInformation {
     $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
     $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
-    $counterSamples = (Get-CounterSamples -MachineNames $Script:Server -Counters "\Network Interface(*)\Packets Received Discarded")
+    $counterSamples = (Get-LocalizedCounterSamples -MachineName $Script:Server -Counter "\Network Interface(*)\Packets Received Discarded")
 
     if ($null -ne $counterSamples) {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples

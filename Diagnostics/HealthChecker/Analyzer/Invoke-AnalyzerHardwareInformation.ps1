@@ -69,21 +69,32 @@ Function Invoke-AnalyzerHardwareInformation {
 
     $physicalValue = $hardwareInformation.Processor.NumberOfPhysicalCores
     $logicalValue = $hardwareInformation.Processor.NumberOfLogicalCores
-    $displayWriteType = "Green"
+    $physicalValueDisplay = $physicalValue
+    $logicalValueDisplay = $logicalValue
+    $displayWriteTypeLogic = $displayWriteTypePhysical = "Green"
 
     if (($logicalValue -gt 24 -and
             $exchangeInformation.BuildInformation.MajorVersion -lt [HealthChecker.ExchangeMajorVersion]::Exchange2019) -or
         $logicalValue -gt 48) {
-        $displayWriteType = "Yellow"
+        $displayWriteTypeLogic = "Red"
+
+        if (($physicalValue -gt 24 -and
+                $exchangeInformation.BuildInformation.MajorVersion -lt [HealthChecker.ExchangeMajorVersion]::Exchange2019) -or
+            $physicalValue -gt 48) {
+            $physicalValueDisplay = "$physicalValue - Error"
+            $displayWriteTypePhysical = "Red"
+        }
+
+        $logicalValueDisplay = "$logicalValue - Error"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Physical Cores" -Details $physicalValue `
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Physical Cores" -Details $physicalValueDisplay `
         -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteType
+        -DisplayWriteType $displayWriteTypePhysical
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Logical Cores" -Details $logicalValue `
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Logical Cores" -Details $logicalValueDisplay `
         -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteType `
+        -DisplayWriteType $displayWriteTypeLogic `
         -AddHtmlOverviewValues $true
 
     $displayValue = "Disabled"

@@ -131,4 +131,21 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $Script:ActiveGrouping.Count | Should -Be 11
         }
     }
+
+    Context "Testing Scenario 1 - Exchange 2016" {
+        BeforeAll {
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\HyperV_Win32_Processor1.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Display Results - Process/Hardware Information" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+            TestObjectMatch "Number of Physical Cores" "48 - Error" -WriteType "Red"
+            TestObjectMatch "Number of Logical Cores" "48 - Error" -WriteType "Red"
+        }
+    }
 }
