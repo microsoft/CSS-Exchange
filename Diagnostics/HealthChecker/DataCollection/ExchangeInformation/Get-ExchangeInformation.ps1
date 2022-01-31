@@ -58,60 +58,60 @@ Function Get-ExchangeInformation {
     #Exchange 2013 or greater
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework
-        $buildAndRevision = $buildVersionInfo.BuildVersion
-        Write-Verbose "The build and revision number: $buildAndRevision"
+        [System.Version]$adminDisplayVersionFullBuildNumber = $buildInformation.BuildNumber
+        Write-Verbose "The AdminDisplayVersion build number is: $adminDisplayVersionFullBuildNumber"
         #Build Numbers: https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             Write-Verbose "Exchange 2019 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2019 "
 
             #Exchange 2019 Information
-            if ($buildAndRevision -lt 330.5) {
+            if ($adminDisplayVersionFullBuildNumber -lt 15.2.330.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::RTM
                 $buildInformation.FriendlyName += "RTM"
                 $buildInformation.ReleaseDate = "10/22/2018"
-            } elseif ($buildAndRevision -lt 397.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.397.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
                 $buildInformation.FriendlyName += "CU1"
                 $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($buildAndRevision -lt 464.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.464.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
                 $buildInformation.FriendlyName += "CU2"
                 $buildInformation.ReleaseDate = "06/18/2019"
-            } elseif ($buildAndRevision -lt 529.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.529.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
                 $buildInformation.FriendlyName += "CU3"
                 $buildInformation.ReleaseDate = "09/17/2019"
-            } elseif ($buildAndRevision -lt 595.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.595.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
                 $buildInformation.FriendlyName += "CU4"
                 $buildInformation.ReleaseDate = "12/17/2019"
-            } elseif ($buildAndRevision -lt 659.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.659.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
                 $buildInformation.FriendlyName += "CU5"
                 $buildInformation.ReleaseDate = "03/17/2020"
-            } elseif ($buildAndRevision -lt 721.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.721.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
                 $buildInformation.FriendlyName += "CU6"
                 $buildInformation.ReleaseDate = "06/16/2020"
-            } elseif ($buildAndRevision -lt 792.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.792.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
                 $buildInformation.FriendlyName += "CU7"
                 $buildInformation.ReleaseDate = "09/15/2020"
-            } elseif ($buildAndRevision -lt 858.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.858.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
                 $buildInformation.FriendlyName += "CU8"
                 $buildInformation.ReleaseDate = "12/15/2020"
-            } elseif ($buildAndRevision -lt 922.7) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.922.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "03/16/2021"
-            } elseif ($buildAndRevision -lt 986.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.2.986.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
                 $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 986.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -ge 15.2.986.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "09/28/2021"
@@ -134,92 +134,92 @@ Function Get-ExchangeInformation {
             $buildInformation.FriendlyName = "Exchange 2016 "
 
             #Exchange 2016 Information
-            if ($buildAndRevision -lt 466.34) {
+            if ($adminDisplayVersionFullBuildNumber -lt 15.1.466.34) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
                 $buildInformation.FriendlyName += "CU1"
                 $buildInformation.ReleaseDate = "03/15/2016"
-            } elseif ($buildAndRevision -lt 544.27) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.544.27) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
                 $buildInformation.FriendlyName += "CU2"
                 $buildInformation.ReleaseDate = "06/21/2016"
-            } elseif ($buildAndRevision -lt 669.32) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.669.32) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
                 $buildInformation.FriendlyName += "CU3"
                 $buildInformation.ReleaseDate = "09/20/2016"
-            } elseif ($buildAndRevision -lt 845.34) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.845.34) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
                 $buildInformation.FriendlyName += "CU4"
                 $buildInformation.ReleaseDate = "12/13/2016"
-            } elseif ($buildAndRevision -lt 1034.26) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1034.26) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
                 $buildInformation.FriendlyName += "CU5"
                 $buildInformation.ReleaseDate = "03/21/2017"
-            } elseif ($buildAndRevision -lt 1261.35) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1261.35) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
                 $buildInformation.FriendlyName += "CU6"
                 $buildInformation.ReleaseDate = "06/24/2017"
-            } elseif ($buildAndRevision -lt 1415.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1415.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
                 $buildInformation.FriendlyName += "CU7"
                 $buildInformation.ReleaseDate = "09/16/2017"
-            } elseif ($buildAndRevision -lt 1466.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1466.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
                 $buildInformation.FriendlyName += "CU8"
                 $buildInformation.ReleaseDate = "12/19/2017"
-            } elseif ($buildAndRevision -lt 1531.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1531.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "03/20/2018"
-            } elseif ($buildAndRevision -lt 1591.10) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1591.10) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/19/2018"
-            } elseif ($buildAndRevision -lt 1713.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1713.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "10/16/2018"
-            } elseif ($buildAndRevision -lt 1779.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1779.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
                 $buildInformation.FriendlyName += "CU12"
                 $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($buildAndRevision -lt 1847.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1847.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU13
                 $buildInformation.FriendlyName += "CU13"
                 $buildInformation.ReleaseDate = "06/18/2019"
-            } elseif ($buildAndRevision -lt 1913.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1913.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU14
                 $buildInformation.FriendlyName += "CU14"
                 $buildInformation.ReleaseDate = "09/17/2019"
-            } elseif ($buildAndRevision -lt 1979.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.1979.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU15
                 $buildInformation.FriendlyName += "CU15"
                 $buildInformation.ReleaseDate = "12/17/2019"
-            } elseif ($buildAndRevision -lt 2044.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2044.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU16
                 $buildInformation.FriendlyName += "CU16"
                 $buildInformation.ReleaseDate = "03/17/2020"
-            } elseif ($buildAndRevision -lt 2106.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2106.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17
                 $buildInformation.FriendlyName += "CU17"
                 $buildInformation.ReleaseDate = "06/16/2020"
-            } elseif ($buildAndRevision -lt 2176.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2176.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18
                 $buildInformation.FriendlyName += "CU18"
                 $buildInformation.ReleaseDate = "09/15/2020"
-            } elseif ($buildAndRevision -lt 2242.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2242.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19
                 $buildInformation.FriendlyName += "CU19"
                 $buildInformation.ReleaseDate = "12/15/2020"
-            } elseif ($buildAndRevision -lt 2308.8) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2308.8) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
                 $buildInformation.FriendlyName += "CU20"
                 $buildInformation.ReleaseDate = "03/16/2021"
-            } elseif ($buildAndRevision -lt 2375.7) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.1.2375.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
                 $buildInformation.SupportedBuild = $true
-            } elseif ($buildAndRevision -ge 2375.7) {
+            } elseif ($adminDisplayVersionFullBuildNumber -ge 15.1.2375.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
                 $buildInformation.FriendlyName += "CU22"
                 $buildInformation.ReleaseDate = "09/28/2021"
@@ -269,95 +269,95 @@ Function Get-ExchangeInformation {
             $buildInformation.FriendlyName = "Exchange 2013 "
 
             #Exchange 2013 Information
-            if ($buildAndRevision -lt 712.24) {
+            if ($adminDisplayVersionFullBuildNumber -lt 15.0.712.24) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
                 $buildInformation.FriendlyName += "CU1"
                 $buildInformation.ReleaseDate = "04/02/2013"
-            } elseif ($buildAndRevision -lt 775.38) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.775.38) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
                 $buildInformation.FriendlyName += "CU2"
                 $buildInformation.ReleaseDate = "07/09/2013"
-            } elseif ($buildAndRevision -lt 847.32) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.847.32) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
                 $buildInformation.FriendlyName += "CU3"
                 $buildInformation.ReleaseDate = "11/25/2013"
-            } elseif ($buildAndRevision -lt 913.22) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.913.22) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
                 $buildInformation.FriendlyName += "CU4"
                 $buildInformation.ReleaseDate = "02/25/2014"
-            } elseif ($buildAndRevision -lt 995.29) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.995.29) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
                 $buildInformation.FriendlyName += "CU5"
                 $buildInformation.ReleaseDate = "05/27/2014"
-            } elseif ($buildAndRevision -lt 1044.25) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1044.25) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
                 $buildInformation.FriendlyName += "CU6"
                 $buildInformation.ReleaseDate = "08/26/2014"
-            } elseif ($buildAndRevision -lt 1076.9) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1076.9) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
                 $buildInformation.FriendlyName += "CU7"
                 $buildInformation.ReleaseDate = "12/09/2014"
-            } elseif ($buildAndRevision -lt 1104.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1104.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
                 $buildInformation.FriendlyName += "CU8"
                 $buildInformation.ReleaseDate = "03/17/2015"
-            } elseif ($buildAndRevision -lt 1130.7) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1130.7) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
                 $buildInformation.FriendlyName += "CU9"
                 $buildInformation.ReleaseDate = "06/17/2015"
-            } elseif ($buildAndRevision -lt 1156.6) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1156.6) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "09/15/2015"
-            } elseif ($buildAndRevision -lt 1178.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1178.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "12/15/2015"
-            } elseif ($buildAndRevision -lt 1210.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1210.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
                 $buildInformation.FriendlyName += "CU12"
                 $buildInformation.ReleaseDate = "03/15/2016"
-            } elseif ($buildAndRevision -lt 1236.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1236.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU13
                 $buildInformation.FriendlyName += "CU13"
                 $buildInformation.ReleaseDate = "06/21/2016"
-            } elseif ($buildAndRevision -lt 1263.5) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1263.5) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU14
                 $buildInformation.FriendlyName += "CU14"
                 $buildInformation.ReleaseDate = "09/20/2016"
-            } elseif ($buildAndRevision -lt 1293.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1293.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU15
                 $buildInformation.FriendlyName += "CU15"
                 $buildInformation.ReleaseDate = "12/13/2016"
-            } elseif ($buildAndRevision -lt 1320.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1320.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU16
                 $buildInformation.FriendlyName += "CU16"
                 $buildInformation.ReleaseDate = "03/21/2017"
-            } elseif ($buildAndRevision -lt 1347.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1347.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17
                 $buildInformation.FriendlyName += "CU17"
                 $buildInformation.ReleaseDate = "06/24/2017"
-            } elseif ($buildAndRevision -lt 1365.1) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1365.1) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18
                 $buildInformation.FriendlyName += "CU18"
                 $buildInformation.ReleaseDate = "09/16/2017"
-            } elseif ($buildAndRevision -lt 1367.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1367.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19
                 $buildInformation.FriendlyName += "CU19"
                 $buildInformation.ReleaseDate = "12/19/2017"
-            } elseif ($buildAndRevision -lt 1395.4) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1395.4) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
                 $buildInformation.FriendlyName += "CU20"
                 $buildInformation.ReleaseDate = "03/20/2018"
-            } elseif ($buildAndRevision -lt 1473.3) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1473.3) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/19/2018"
-            } elseif ($buildAndRevision -lt 1497.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt 15.0.1497.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
                 $buildInformation.FriendlyName += "CU22"
                 $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($buildAndRevision -ge 1497.2) {
+            } elseif ($adminDisplayVersionFullBuildNumber -ge 15.0.1497.2) {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
                 $buildInformation.FriendlyName += "CU23"
                 $buildInformation.ReleaseDate = "06/18/2019"
