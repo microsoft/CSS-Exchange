@@ -386,11 +386,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
         }
 
         It "Number of Physical Cores" {
-            TestObjectMatch "Number of Physical Cores" 48 -WriteType "Yellow"
+            TestObjectMatch "Number of Physical Cores" 48 -WriteType "Green"
         }
 
         It "Number of Logical Cores" {
-            TestObjectMatch "Number of Logical Cores" 96 -WriteType "Yellow"
+            TestObjectMatch "Number of Logical Cores" "96 - Error" -WriteType "Red"
         }
 
         It "Hyper-Threading" {
