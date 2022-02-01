@@ -1,0 +1,19 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Exchange.Data.ServerVersion</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Version 15.2 (Build 986.5)</ToString>
+    <Props>
+      <I32 N="Major">15</I32>
+      <I32 N="Minor">2</I32>
+      <I32 N="Build">986</I32>
+      <I32 N="Revision">5</I32>
+      <Nil N="FilePatchLevelDescription" />
+    </Props>
+    <MS>
+      <BA N="SerializationData">AAEAAAD/////AQAAAAAAAAAMAgAAAFtNaWNyb3NvZnQuRXhjaGFuZ2UuRGF0YSwgVmVyc2lvbj0xNS4wLjAuMCwgQ3VsdHVyZT1uZXV0cmFsLCBQdWJsaWNLZXlUb2tlbj0zMWJmMzg1NmFkMzY0ZTM1BQEAAAAlTWljcm9zb2Z0LkV4Y2hhbmdlLkRhdGEuU2VydmVyVmVyc2lvbgIAAAAHdmVyc2lvbhlmaWxlUGF0Y2hMZXZlbERlc2NyaXB0aW9uAwEOU3lzdGVtLlZlcnNpb24CAAAACQMAAAAKBAMAAAAOU3lzdGVtLlZlcnNpb24EAAAABl9NYWpvcgZfTWlub3IGX0J1aWxkCV9SZXZpc2lvbgAAAAAICAgIDwAAAAIAAADaAwAABQAAAAs=</BA>
+    </MS>
+  </Obj>
+</Objs>
