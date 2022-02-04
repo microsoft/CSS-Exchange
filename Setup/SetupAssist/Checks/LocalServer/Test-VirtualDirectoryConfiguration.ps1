@@ -130,13 +130,7 @@ function Test-VirtualDirectoryConfiguration {
 
                 $expectedIISObjectsPresent | ForEach-Object {
                     $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@name = '$siteName']/application[@path = '$_']")
-
-                    if ($null -ne $nodeToRemove -and
-                        $null -ne $nodeToRemove.ParentNode ) {
-                        $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
-                    } else {
-                        Write-Verbose "Failed to find the node to remove in the appHostConfig for site '$siteName' and path '$_'"
-                    }
+                    $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
 
                     if ($null -ne $adObject) {
                         New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
