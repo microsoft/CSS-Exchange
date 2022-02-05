@@ -56,6 +56,7 @@ Param (
     [bool]$CollectAllLogsBasedOnDaysWorth = $true,
     [switch]$DatabaseFailoverIssue,
     [int]$DaysWorth = 3,
+    [int]$HoursWorth = 0,
     [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),

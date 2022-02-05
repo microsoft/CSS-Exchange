@@ -28,8 +28,7 @@ Function Copy-LogsBasedOnTime {
         Start-Sleep 1
     }
 
-    $date = (Get-Date).AddDays(0 - $PassedInfo.DaysWorth)
-    $copyFromDate = "$($Date.Month)/$($Date.Day)/$($Date.Year)"
+    $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
     Write-ScriptDebug("Copy From Date: {0}" -f $copyFromDate)
     $skipCopy = $false
     if (!(Test-Path $LogPath)) {
