@@ -63,8 +63,8 @@ Function Save-WindowsEventLogs {
             $PassedInfo.AppSysLogsToXml) {
             try {
                 Write-ScriptDebug("starting to collect event logs and saving out to xml files.")
-                Save-DataInfoToFile -DataIn (Get-EventLog Application -After ([DateTime]::Now.AddDays(-$PassedInfo.DaysWorth))) -SaveToLocation ("{0}\Application" -f $saveLocation) -SaveTextFile $false
-                Save-DataInfoToFile -DataIn (Get-EventLog System -After ([DateTime]::Now.AddDays(-$PassedInfo.DaysWorth))) -SaveToLocation ("{0}\System" -f $saveLocation) -SaveTextFile $false
+                Save-DataInfoToFile -DataIn (Get-EventLog Application -After ([DateTime]::Now - $PassedInfo.TimeSpan)) -SaveToLocation ("{0}\Application" -f $saveLocation) -SaveTextFile $false
+                Save-DataInfoToFile -DataIn (Get-EventLog System -After ([DateTime]::Now - $PassedInfo.TimeSpan)) -SaveToLocation ("{0}\System" -f $saveLocation) -SaveTextFile $false
                 Write-ScriptDebug("end of collecting event logs and saving out to xml files.")
             } catch {
                 Write-ScriptDebug("Error occurred while trying to export out the Application and System logs to xml")
