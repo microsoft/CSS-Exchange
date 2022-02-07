@@ -53,7 +53,8 @@ Param (
     [switch]$WindowsSecurityLogs,
     [switch]$AcceptEULA,
     [switch]$AllPossibleLogs,
-    [bool]$CollectAllLogsBasedOnDaysWorth = $true,
+    [Alias("CollectAllLogsBasedOnDaysWorth")]
+    [bool]$CollectAllLogsBasedOnLogAge = $true,
     [switch]$ConnectivityLogs,
     [switch]$DatabaseFailoverIssue,
     [Parameter(ParameterSetName = "Worth")]
