@@ -57,7 +57,7 @@ Function Get-ArgumentList {
     $obj | Add-Member -Name DefaultTransportLogging -MemberType NoteProperty -Value $DefaultTransportLogging
     $obj | Add-Member -Name ServerInformation -MemberType NoteProperty -Value $ServerInformation
     $obj | Add-Member -Name CollectAllLogsBasedOnDaysWorth -MemberType NoteProperty -Value $CollectAllLogsBasedOnDaysWorth
-    $obj | Add-Member -Name TimeSpan -MemberType NoteProperty -Value (New-TimeSpan -Days $DaysWorth -Hours $HoursWorth)
+    $obj | Add-Member -Name TimeSpan -MemberType NoteProperty -Value $LogAge
     $obj | Add-Member -Name IISLogs -MemberType NoteProperty -Value $IISLogs
     $obj | Add-Member -Name AnyTransportSwitchesEnabled -MemberType NoteProperty -Value $script:AnyTransportSwitchesEnabled
     $obj | Add-Member -Name HostExeServerName -MemberType NoteProperty -Value ($env:COMPUTERNAME)
