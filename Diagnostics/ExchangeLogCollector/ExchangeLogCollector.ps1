@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = "LogAge")]
 Param (
     [string]$FilePath = "C:\MS_Logs_Collection",
     [array]$Servers = @($env:COMPUTERNAME),
@@ -53,14 +53,19 @@ Param (
     [switch]$WindowsSecurityLogs,
     [switch]$AcceptEULA,
     [switch]$AllPossibleLogs,
-    [bool]$CollectAllLogsBasedOnDaysWorth = $true,
+    [Alias("CollectAllLogsBasedOnDaysWorth")]
+    [bool]$CollectAllLogsBasedOnLogAge = $true,
+    [switch]$ConnectivityLogs,
     [switch]$DatabaseFailoverIssue,
+    [Parameter(ParameterSetName = "Worth")]
     [int]$DaysWorth = 3,
+    [Parameter(ParameterSetName = "Worth")]
     [int]$HoursWorth = 0,
     [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
-    [switch]$ConnectivityLogs,
+    [Parameter(ParameterSetName = "LogAge")]
+    [timespan]$LogAge = "3.00:00:00",
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
@@ -74,6 +79,8 @@ $BuildVersion = ""
 $Script:VerboseEnabled = $false
 
 if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
+
+if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth }
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
