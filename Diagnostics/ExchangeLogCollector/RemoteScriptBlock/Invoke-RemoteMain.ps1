@@ -45,7 +45,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\EWS"), ($Script:RootCopyToDirectory + "\EWS_BE_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += ("Copy-LogsBasedOnTime {0}" -f $info)
                 } else {
                     $cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)
@@ -55,7 +55,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Ews"), ($Script:RootCopyToDirectory + "\EWS_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += ("Copy-LogsBasedOnTime {0}" -f $info)
                 } else {
                     $cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)
@@ -68,7 +68,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\RPC Client Access"), ($Script:RootCopyToDirectory + "\RCA_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -78,7 +78,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\RpcHttp"), ($Script:RootCopyToDirectory + "\RCA_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -88,7 +88,7 @@ Function Invoke-RemoteMain {
             if (-not($Script:localServerObject.Edge)) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\RpcHttp"), ($Script:RootCopyToDirectory + "\RPC_Http_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -99,7 +99,7 @@ Function Invoke-RemoteMain {
         if ($Script:localServerObject.CAS -and $PassedInfo.EASLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Eas"), ($Script:RootCopyToDirectory + "\EAS_Proxy_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -111,7 +111,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\Autodiscover"), ($Script:RootCopyToDirectory + "\AutoD_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -121,7 +121,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Autodiscover"), ($Script:RootCopyToDirectory + "\AutoD_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -134,7 +134,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\OWA"), ($Script:RootCopyToDirectory + "\OWA_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -144,7 +144,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\OwaCalendar"), ($Script:RootCopyToDirectory + "\OWA_Proxy_Calendar_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -152,7 +152,7 @@ Function Invoke-RemoteMain {
 
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Owa"), ($Script:RootCopyToDirectory + "\OWA_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -163,7 +163,7 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.ADDriverLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "Logging\ADDriver"), ($Script:RootCopyToDirectory + "\AD_Driver_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -175,7 +175,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox -and $Script:localServerObject.Version -eq 15) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\MAPI Client Access"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -183,7 +183,7 @@ Function Invoke-RemoteMain {
             } elseif ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\MapiHttp\Mailbox"), ($Script:RootCopyToDirectory + "\MAPI_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -193,7 +193,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Mapi"), ($Script:RootCopyToDirectory + "\MAPI_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -206,7 +206,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.Mailbox) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\ECP"), ($Script:RootCopyToDirectory + "\ECP_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -216,7 +216,7 @@ Function Invoke-RemoteMain {
             if ($Script:localServerObject.CAS) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\HttpProxy\Ecp"), ($Script:RootCopyToDirectory + "\ECP_Proxy_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -273,7 +273,7 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.OABLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\HttpProxy\OAB"), ($Script:RootCopyToDirectory + "\OAB_Proxy_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -281,7 +281,7 @@ Function Invoke-RemoteMain {
 
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\OABGeneratorLog"), ($Script:RootCopyToDirectory + "\OAB_Generation_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -289,7 +289,7 @@ Function Invoke-RemoteMain {
 
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\OABGeneratorSimpleLog"), ($Script:RootCopyToDirectory + "\OAB_Generation_Simple_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -297,7 +297,7 @@ Function Invoke-RemoteMain {
 
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\MAPI AddressBook Service"), ($Script:RootCopyToDirectory + "\MAPI_AddressBook_Service_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -307,7 +307,7 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.PowerShellLogs) {
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\HttpProxy\PowerShell"), ($Script:RootCopyToDirectory + "\PowerShell_Proxy_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -322,7 +322,7 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.MitigationService) {
             $info = ($copyInfo -f ($Script:localExinstall + "\Logging\MitigationService"), ($Script:RootCopyToDirectory + "\Mitigation_Service_Logs"))
 
-            if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+            if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             } else {
                 $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -342,7 +342,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.RPCLogs) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\RPC Client Access"), ($Script:RootCopyToDirectory + "\RCA_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 } else {
                     $cmdsToRun += "Copy-FullLogFullPathRecurse {0}" -f $info
@@ -352,7 +352,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.EWSLogs) {
                 $info = ($copyInfo -f ($Script:localExinstall + "Logging\EWS"), ($Script:RootCopyToDirectory + "\EWS_BE_Logs"))
 
-                if ($PassedInfo.CollectAllLogsBasedOnDaysWorth) {
+                if ($PassedInfo.CollectAllLogsBasedOnLogAge) {
                     $cmdsToRun += ("Copy-LogsBasedOnTime {0}" -f $info)
                 } else {
                     $cmdsToRun += ("Copy-FullLogFullPathRecurse {0}" -f $info)
