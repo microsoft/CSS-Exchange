@@ -107,7 +107,7 @@ function Test-VirtualDirectoryConfiguration {
             foreach ($expectedPath in $expectedVdir.Paths) {
                 $iisObject = $iisSite.application | Where-Object { $_.Path -eq $expectedPath }
                 if ($null -ne $iisObject) {
-                    $expectedIISObjectsPresent += $expectedPath
+                    $expectedIISObjectsPresent += $iisObject.Path
                 } else {
                     $expectedIISObjectsMissing += $expectedPath
                 }
