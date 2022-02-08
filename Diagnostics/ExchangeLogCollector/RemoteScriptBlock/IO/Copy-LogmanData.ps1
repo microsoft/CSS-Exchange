@@ -21,9 +21,7 @@ Function Copy-LogmanData {
         $wildExt = "*" + $objLogman.Ext
         $filterDate = $objLogman.StartDate
 
-        $date = (Get-Date).AddDays(0 - $PassedInfo.DaysWorth)
-        $copyFromDate = "$($Date.Month)/$($Date.Day)/$($Date.Year)"
-
+        $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
         Write-ScriptDebug("Copy From Date: {0}" -f $filterDate)
 
         if ([DateTime]$filterDate -lt [DateTime]$copyFromDate) {

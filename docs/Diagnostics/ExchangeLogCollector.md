@@ -53,6 +53,12 @@ This cmdlet will collect all relevant data regarding IIS Logs (within the last 3
 .\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 ```
 
+This cmdlet will collect all relevant data regarding Message Tracking Logs and Protocol Logs for the past 3 hours from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"
+
+```
+.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -ProtocolLogs -LogAge "03:00:00"
+```
+
 ## Parameters
 
 Parameter | Description |
@@ -61,7 +67,7 @@ FilePath | The Location of where you would like the data to be copied over to. T
 Servers | An array of servers that you would like to collect data from.
 ADDriverLogs | Enable to collect AD Driver Logs. Location: `V15\Logging\ADDriver`
 AppSysLogs | Collects the Windows Event Application, System, and MSExchange Management Logs. Default value `$true`
-AppSysLogsToXml | Collects the Windows Event Application and System and saves them out to XML. The date range only is from the time the script run and the value set on `DaysWorth`. Default value: `$true`
+AppSysLogsToXml | Collects the Windows Event Application and System and saves them out to XML. The time range only is from the time the script run and the value set on `LogAge`. Default value: `$true`
 AutoDLogs | Enable to collect AutoDiscover Logs. Location: `V15\Logging\Autodiscover` and `V15\Logging\HttpProxy\Autodiscover`
 CollectFailoverMetrics | Enable to run the `CollectOverMetrics.ps1` script against the DAG. Only able to be run on an Exchange tools box or an Exchange Server.
 DAGInformation | Enable to collect the DAG Information from all different DAGs that are in the list of servers.
@@ -79,7 +85,7 @@ GetVdirs | Enable to collect the Virtual Directories of the environment.
 HighAvailabilityLogs | Enable to collect High Availability Logs. Windows Event Logs like: `Microsoft-Exchange-HighAvailability`, `Microsoft-Exchange-MailboxDatabaseFailureItems`, and `Microsoft-Windows-FailoverClustering`
 HubConnectivityLogs | Enable to collect the Hub connectivity logging. Location: `(Get-TransportService $server).ConnectivityLogPath`
 HubProtocolLogs | Enable to collect the protocol logging. Location: `(Get-TransportService $server).ReceiveProtocolLogPath` and `(Get-TransportService $server).SendProtocolLogPath`
-IISLogs | Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: `C:\inetpub\logs\LogFiles\W3SVC1`, `C:\inetpub\logs\LogFiles\W3SVC1`, and `C:\Windows\System32\LogFiles\HTTPERR`. Only able to collect on DaysWorth.
+IISLogs | Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: `C:\inetpub\logs\LogFiles\W3SVC1`, `C:\inetpub\logs\LogFiles\W3SVC1`, and `C:\Windows\System32\LogFiles\HTTPERR`. Only able to collect on `LogAge`.
 ImapLogs | Enable to collect IMAP logging. Location: `(Get-ImapSettings -Server $server).LogFileLocation`
 MailboxConnectivityLogs | Enable to collect the connectivity logging on the mailbox server. Location: `(Get-MailboxTransportService $server).ConnectivityLogPath`
 MailboxDeliveryThrottlingLogs | Enable to collect the mailbox delivery throttling logs on the server. Location: `(Get-MailboxTransportService $server).MailboxDeliveryThrottlingLogPath`
@@ -103,13 +109,15 @@ TransportConfig | Enable to collect the Transport Configuration files from the S
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\Winevt\Logs\Security.evtx'`
 AcceptEULA | Enable to accept the conditions of the script and not get prompted.
 AllPossibleLogs | Enables the collection of all default logging collection on the Server.
-CollectAllLogsBasedOnDaysWorth | Boolean to determine if you collect all the logs based off day's worth or all the logs in that directory. Default value `$true`
+CollectAllLogsBasedOnLogAge | Boolean to determine if you collect all the logs based off the log's age or all the logs in that directory. Default value `$true`
+ConnectivityLogs | Enables the following switches and their logs to be collected: `FrontEndConnectivityLogs`, `HubConnectivityLogs`, and `MailboxConnectivityLogs`
 DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInformation`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInformation`.
-DaysWorth | The number of days to go back from today for log collection. Default value: 3
+DaysWorth | The number of days to go back to be included int the time span for log collection. Default value: 3
+HoursWorth | The number of hours to go back to be included in the time span for the log collection. Default Value 0.
 DisableConfigImport | Enable to not import the `ExchangeLogCollector.ps1.json` file if it exists.
 ExmonLogmanName | A list of names that we want to collect for Exmon data. The default name is `Exmon_Trace`.
 ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz` and `ExPerfwiz`. (For both styles of Experfwiz)
-ConnectivityLogs | Enables the following switches and their logs to be collected: `FrontEndConnectivityLogs`, `HubConnectivityLogs`, and `MailboxConnectivityLogs`
+LogAge | A Time Span value to use instead of the DaysWorth and HoursWorth parameters. Default Value: 3.00:00:00
 OutlookConnectivityIssues | Enables the following switches and their logs to be collected: `AutoDLogs`, `DailyPerformanceLogs`, `EWSLogs`, `Experfwiz`, `IISLogs`, `MAPILogs`, `RPCLogs`, and `ServerInformation`
 PerformanceIssues | Enables the following switches and their logs to be collected: `DailyPerformanceLogs`, `Experfwiz`, and `ManagedAvailabilityLogs`
 PerformanceMailflowIssues | Enables the following switches and their logs to be collected: `DailyPerformanceLogs`, `Experfwiz`, `MessageTrackingLogs`, `QueueInformation`, and `TransportConfig`
