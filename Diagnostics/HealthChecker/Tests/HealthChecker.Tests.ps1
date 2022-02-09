@@ -51,13 +51,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
-            $pageFile = GetObject "Page File Size 0"
+            $pageFile = GetObject "PageFile Size 0"
             $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
-            $pageFile.RecommendedPageFile | Should -Be 0
+            $pageFile.RecommendedPageFile | Should -Be 1536
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Process/Hardware Information" {
@@ -149,7 +149,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            $pageFile = GetObject "Page File Size 0"
+            $pageFile = GetObject "PageFile Size 0"
             $pageFile.TotalPhysicalMemory | Should -Be 98304
         }
 

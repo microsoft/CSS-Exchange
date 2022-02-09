@@ -96,13 +96,13 @@ Function Invoke-AnalyzerOsInformation {
     $displayWriteType = "Yellow"
     $totalPhysicalMemory = [Math]::Round($hardwareInformation.TotalMemory / 1MB)
     $instanceCount = 0
-    Write-Verbose "Evaluating Page File Information"
+    Write-Verbose "Evaluating PageFile Information"
     Write-Verbose "Total Memory: $totalPhysicalMemory"
 
     foreach ($pageFile in $osInformation.PageFile) {
 
         $maxPageSize = $pageFile.MaximumSize
-        Write-Verbose "Max Page Size: $maxPageSize"
+        Write-Verbose "Max PageFile Size: $maxPageSize"
         $testingValue = [PSCustomObject]@{
             TotalPhysicalMemory = $totalPhysicalMemory
             MaxPageSize         = $maxPageSize
@@ -111,15 +111,24 @@ Function Invoke-AnalyzerOsInformation {
         }
 
         if ($maxPageSize -eq 0) {
-            $displayValue = "Error: System is set to automatically manage the pagefile size."
+            Write-Verbose "Unconfigured PageFile detected"
+            $displayValue = "Error: System is set to automatically manage the PageFile size."
             $displayWriteType = "Red"
-        } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
+        }
+
+        $pageFileAdditionalDisplayValue = $null
+
+        if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
             $testingValue.RecommendedPageFile = $recommendedPageFile
-            Write-Verbose "Recommended Page File Size: $recommendedPageFile"
+            Write-Verbose "Recommended PageFile Size: $recommendedPageFile"
 
-            if ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to 25% of the Total System Memory which is $totalPhysicalMemory`MB. Recommended is $recommendedPageFile`MB"
+            $recommendedPageFileWording2019 = "On Exchange 2019, the recommended PageFile size is 25% ({0}MB) of the Total System Memory ({1}MB).`r`n`t`tMore information: https://aka.ms/HC-PageFile"
+            if ($maxPageSize -eq 0) {
+                $pageFileAdditionalDisplayValue = ($recommendedPageFileWording2019 -f $recommendedPageFile, $totalPhysicalMemory)
+            } elseif ($recommendedPageFile -ne $maxPageSize) {
+                $displayValue = "$maxPageSize`MB"
+                $pageFileAdditionalDisplayValue = ("Warning: $recommendedPageFileWording2019" -f $recommendedPageFile, $totalPhysicalMemory)
             } else {
                 $displayValue = "$recommendedPageFile`MB"
                 $displayWriteType = "Grey"
@@ -129,35 +138,44 @@ Function Invoke-AnalyzerOsInformation {
                 $displayValue = "$maxPageSize`MB"
                 $displayWriteType = "Grey"
             } else {
-                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Pagefile should be capped at 32778MB for 32GB plus 10MB - Article: https://aka.ms/HC-SystemRequirements2016#hardware-requirements-for-exchange-2016"
+                $displayValue = "$maxPageSize`MB"
+                $pageFileAdditionalDisplayValue = "Warning: PageFile should be capped at 32778MB for 32GB plus 10MB.`r`n`t`tMore information: https://aka.ms/HC-PageFile"
             }
         } else {
             $recommendedPageFile = $totalPhysicalMemory + 10
             $testingValue.RecommendedPageFile
 
             if ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB `r`n`t`tWarning: Page File is not set to Total System Memory plus 10MB which should be $recommendedPageFile`MB"
+                $displayValue = "$maxPageSize`MB"
+                $pageFileAdditionalDisplayValue = "Warning: PageFile is not set to Total System Memory plus 10MB which should be $recommendedPageFile`MB.`r`n`t`tMore information: https://aka.ms/HC-PageFile"
             } else {
                 $displayValue = "$maxPageSize`MB"
                 $displayWriteType = "Grey"
             }
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Page File Size" -Details $displayValue `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "PageFile Size" -Details $displayValue `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType $displayWriteType `
-            -TestingName "Page File Size $instanceCount" `
+            -TestingName "PageFile Size $instanceCount" `
             -DisplayTestingValue $testingValue
+
+        if ($null -ne $pageFileAdditionalDisplayValue) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details $pageFileAdditionalDisplayValue `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayWriteType $displayWriteType `
+                -DisplayCustomTabNumber 2
+        }
 
         $instanceCount++
     }
 
     if ($null -ne $osInformation.PageFile -and
         $osInformation.PageFile.Count -gt 1) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Multiple page files detected. This has been known to cause performance issues, please address this." `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Multiple PageFiles detected. This has been known to cause performance issues, please address this." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Red" `
-            -TestingName "Multiple Page File Detected." `
+            -TestingName "Multiple PageFile Detected." `
             -DisplayTestingValue $true `
             -DisplayCustomTabNumber 2
     }
