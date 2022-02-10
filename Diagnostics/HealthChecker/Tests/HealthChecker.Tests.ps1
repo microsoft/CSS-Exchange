@@ -57,7 +57,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 1536
 
-            $Script:ActiveGrouping.Count | Should -Be 13
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Process/Hardware Information" {

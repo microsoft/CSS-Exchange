@@ -56,7 +56,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
 
-            $Script:ActiveGrouping.Count | Should -Be 13
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Process/Hardware Information" {

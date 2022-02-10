@@ -101,67 +101,82 @@ Function Invoke-AnalyzerOsInformation {
 
     foreach ($pageFile in $osInformation.PageFile) {
 
-        $maxPageSize = $pageFile.MaximumSize
-        Write-Verbose "Max PageFile Size: $maxPageSize"
-        $testingValue = [PSCustomObject]@{
+        $pageFileDisplayLayout = "'{0}' Size: '{1}MB'"
+        $pageFileAdditionalDisplayValue = $null
+
+        Write-Verbose "Max PageFile Size: $($pageFile.MaximumSize)"
+        $pageFileObj = [PSCustomObject]@{
+            Name                = $pageFile.Name
             TotalPhysicalMemory = $totalPhysicalMemory
-            MaxPageSize         = $maxPageSize
-            MultiPageFile       = $osInformation.PageFile.Count -gt 1
+            MaxPageSize         = $pageFile.MaximumSize
+            MultiPageFile       = (($osInformation.PageFile).Count -gt 1)
             RecommendedPageFile = 0
         }
 
-        if ($maxPageSize -eq 0) {
+        if ($pageFileObj.MaxPageSize -eq 0) {
             Write-Verbose "Unconfigured PageFile detected"
-            $displayValue = "Error: System is set to automatically manage the PageFile size."
+            $displayValue = ($pageFileDisplayLayout -f "Error -- System-managed", $pageFileObj.MaxPageSize)
             $displayWriteType = "Red"
         }
 
-        $pageFileAdditionalDisplayValue = $null
-
         if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
-            $testingValue.RecommendedPageFile = $recommendedPageFile
-            Write-Verbose "Recommended PageFile Size: $recommendedPageFile"
+            $pageFileObj.RecommendedPageFile = $recommendedPageFile
+            Write-Verbose "System is running Exchange 2019. Recommended PageFile Size: $recommendedPageFile"
 
-            $recommendedPageFileWording2019 = "On Exchange 2019, the recommended PageFile size is 25% ({0}MB) of the Total System Memory ({1}MB).`r`n`t`tMore information: https://aka.ms/HC-PageFile"
-            if ($maxPageSize -eq 0) {
+            $recommendedPageFileWording2019 = "On Exchange 2019, the recommended PageFile size is 25% ({0}MB) of the total system memory ({1}MB)."
+            if ($pageFileObj.MaxPageSize -eq 0) {
                 $pageFileAdditionalDisplayValue = ($recommendedPageFileWording2019 -f $recommendedPageFile, $totalPhysicalMemory)
-            } elseif ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB"
+            } elseif ($recommendedPageFile -ne $pageFileObj.MaxPageSize) {
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
                 $pageFileAdditionalDisplayValue = ("Warning: $recommendedPageFileWording2019" -f $recommendedPageFile, $totalPhysicalMemory)
             } else {
-                $displayValue = "$recommendedPageFile`MB"
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $recommendedPageFile)
                 $displayWriteType = "Grey"
             }
         } elseif ($totalPhysicalMemory -ge 32768) {
-            if ($maxPageSize -eq 32778) {
-                $displayValue = "$maxPageSize`MB"
+            Write-Verbose "System is not running Exchange 2019 and has more than 32GB memory. Recommended PageFile Size: 32778MB"
+
+            $recommendedPageFileWording32GBPlus = "PageFile should be capped at 32778MB for 32GB plus 10MB."
+            if ($pageFileObj.MaxPageSize -eq 0) {
+                $pageFileAdditionalDisplayValue = $recommendedPageFileWording32GBPlus
+            } elseif ($pageFileObj.MaxPageSize -eq 32778) {
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
                 $displayWriteType = "Grey"
             } else {
-                $displayValue = "$maxPageSize`MB"
-                $pageFileAdditionalDisplayValue = "Warning: PageFile should be capped at 32778MB for 32GB plus 10MB.`r`n`t`tMore information: https://aka.ms/HC-PageFile"
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
+                $pageFileAdditionalDisplayValue = "Warning: $recommendedPageFileWording32GBPlus"
             }
         } else {
             $recommendedPageFile = $totalPhysicalMemory + 10
-            $testingValue.RecommendedPageFile
+            $pageFileObj.RecommendedPageFile
+            Write-Verbose "System is not running Exchange 2019 and has less than 32GB of memory. Recommended PageFile Size: $recommendedPageFile"
 
-            if ($recommendedPageFile -ne $maxPageSize) {
-                $displayValue = "$maxPageSize`MB"
-                $pageFileAdditionalDisplayValue = "Warning: PageFile is not set to Total System Memory plus 10MB which should be $recommendedPageFile`MB.`r`n`t`tMore information: https://aka.ms/HC-PageFile"
+            $recommendedPageFileWordingBelow32GB = "PageFile is not set to total system memory plus 10MB which should be {0}MB."
+            if ($pageFileObj.MaxPageSize -eq 0) {
+                $pageFileAdditionalDisplayValue = ($recommendedPageFileWordingBelow32GB -f $recommendedPageFile)
+            } elseif ($recommendedPageFile -ne $pageFileObj.MaxPageSize) {
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
+                $pageFileAdditionalDisplayValue = ("Warning: $recommendedPageFileWordingBelow32GB" -f $recommendedPageFile)
             } else {
-                $displayValue = "$maxPageSize`MB"
+                $displayValue = ($pageFileDisplayLayout -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
                 $displayWriteType = "Grey"
             }
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "PageFile Size" -Details $displayValue `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "PageFile" -Details $displayValue `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType $displayWriteType `
             -TestingName "PageFile Size $instanceCount" `
-            -DisplayTestingValue $testingValue
+            -DisplayTestingValue $pageFileObj
 
         if ($null -ne $pageFileAdditionalDisplayValue) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Details $pageFileAdditionalDisplayValue `
+                -DisplayGroupingKey $keyOSInformation `
+                -DisplayWriteType $displayWriteType `
+                -DisplayCustomTabNumber 2
+
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details "More information: https://aka.ms/HC-PageFile" `
                 -DisplayGroupingKey $keyOSInformation `
                 -DisplayWriteType $displayWriteType `
                 -DisplayCustomTabNumber 2
