@@ -196,7 +196,7 @@ Function Invoke-AnalyzerOsInformation {
         $AnalyzeResults | Add-AnalyzedResultInformation -Details "`r`n`t`tError: Multiple PageFiles detected. This has been known to cause performance issues, please address this." `
             -DisplayGroupingKey $keyOSInformation `
             -DisplayWriteType "Red" `
-            -TestingName "Multiple PageFile Detected." `
+            -TestingName "Multiple PageFile Detected" `
             -DisplayTestingValue $true `
             -DisplayCustomTabNumber 2
     }

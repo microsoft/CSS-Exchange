@@ -414,6 +414,124 @@ Describe "Testing Health Checker by Mock Data Imports" {
         }
     }
 
+    Context "Checking PageFile Scenarios" {
+
+        It "PageFile Configured As Expected" {
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Well_Scenario_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetActiveDisplayGrouping "Operating System Information"
+            $pageFile = GetObject "PageFile Size 0"
+            $pageFile.Name | Should -Be "c:\pagefile.sys"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
+            $pageFile.MaxPageSize | Should -Be 1536
+            $pageFile.MultiPageFile | Should -Be $false
+            $pageFile.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be $null
+        }
+
+        It "PageFile Oversized" {
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileOverSized.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_OverSized_Scenario_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetActiveDisplayGrouping "Operating System Information"
+            $pageFile = GetObject "PageFile Size 0"
+            $pageFile.Name | Should -Be "c:\pagefile.sys"
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
+            $pageFile.MaxPageSize | Should -Be 2025
+            $pageFile.MultiPageFile | Should -Be $false
+            $pageFile.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Warning: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+        }
+
+        It "PageFile System-managed" {
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileSystemManaged.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_SystemManaged_Scenario_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetActiveDisplayGrouping "Operating System Information"
+            $pageFile = GetObject "PageFile Size 0"
+            $pageFile.Name | Should -Be ""
+            $pageFile.TotalPhysicalMemory | Should -Be 6144
+            $pageFile.MaxPageSize | Should -Be 0
+            $pageFile.MultiPageFile | Should -Be $false
+            $pageFile.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Error: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+        }
+
+        It "PageFiles One System Managed, One Static" {
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneSystemManaged.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetActiveDisplayGrouping "Operating System Information"
+            $pageFile1 = GetObject "PageFile Size 0"
+            $pageFile1.Name | Should -Be "c:\pagefile.sys"
+            $pageFile1.TotalPhysicalMemory | Should -Be 6144
+            $pageFile1.MaxPageSize | Should -Be 1536
+            $pageFile1.MultiPageFile | Should -Be $true
+            $pageFile1.RecommendedPageFile | Should -Be 1536
+
+            $pageFile2 = GetObject "PageFile Size 1"
+            $pageFile2.Name | Should -Be "d:\pagefile.sys"
+            $pageFile2.TotalPhysicalMemory | Should -Be 6144
+            $pageFile2.MaxPageSize | Should -Be 0
+            $pageFile2.MultiPageFile | Should -Be $true
+            $pageFile2.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Error: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+
+            $multiPageFileWarning = GetObject "Multiple PageFile Detected"
+            $multiPageFileWarning | Should -Be $true
+        }
+
+        It "PageFiles One Correct, One OverSized" {
+            Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneOverSized.xml" }
+            $hc = Get-HealthCheckerExchangeServer
+            $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
+            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetActiveDisplayGrouping "Operating System Information"
+            $pageFile1 = GetObject "PageFile Size 0"
+            $pageFile1.Name | Should -Be "c:\pagefile.sys"
+            $pageFile1.TotalPhysicalMemory | Should -Be 6144
+            $pageFile1.MaxPageSize | Should -Be 1536
+            $pageFile1.MultiPageFile | Should -Be $true
+            $pageFile1.RecommendedPageFile | Should -Be 1536
+
+            $pageFile2 = GetObject "PageFile Size 1"
+            $pageFile2.Name | Should -Be "d:\pagefile.sys"
+            $pageFile2.TotalPhysicalMemory | Should -Be 6144
+            $pageFile2.MaxPageSize | Should -Be 2024
+            $pageFile2.MultiPageFile | Should -Be $true
+            $pageFile2.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Warning: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+
+            $multiPageFileWarning = GetObject "Multiple PageFile Detected"
+            $multiPageFileWarning | Should -Be $true
+        }
+    }
+
     Context "Testing Throws" {
         BeforeAll {
             #This causes a RuntimeException because of issue #743 when not fixed
