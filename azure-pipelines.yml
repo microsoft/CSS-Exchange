@@ -19,6 +19,7 @@ steps:
     cd .\.build
     .\CodeFormatter.ps1
   displayName: "Code Formatting Script"
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
 
 - pwsh: |
     cd .\.build
