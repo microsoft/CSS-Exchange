@@ -140,7 +140,6 @@ Function Invoke-AnalyzerOsInformation {
             } elseif ($recommendedPageFile -ne $pageFileObj.MaxPageSize) {
                 $pageFileAdditionalDisplayValue = ("Warning: $recommendedPageFileWording2019" -f $recommendedPageFile, $totalPhysicalMemory)
             } else {
-                $displayValue = ($pageFileDisplayTemplate -f $pageFileObj.Name, $recommendedPageFile)
                 $displayWriteType = "Grey"
             }
         } elseif ($totalPhysicalMemory -ge 32768) {
@@ -156,7 +155,6 @@ Function Invoke-AnalyzerOsInformation {
             }
         } else {
             $recommendedPageFile = $totalPhysicalMemory + 10
-            $pageFileObj.RecommendedPageFile
             Write-Verbose "System is not running Exchange 2019 and has less than 32GB of memory. Recommended PageFile Size: $recommendedPageFile"
 
             $recommendedPageFileWordingBelow32GB = "PageFile is not set to total system memory plus 10MB which should be {0}MB."
