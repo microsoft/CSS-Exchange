@@ -52,10 +52,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Server Pending Reboot" $false
 
             $pageFile = GetObject "PageFile Size 0"
+            $pageFile.Name | Should -Be ""
             $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 1536
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Error: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
 
             $Script:ActiveGrouping.Count | Should -Be 14
         }

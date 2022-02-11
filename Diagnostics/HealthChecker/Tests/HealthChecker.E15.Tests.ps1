@@ -50,10 +50,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Server Pending Reboot" $false
 
             $pageFile = GetObject "PageFile Size 0"
+            $pageFile.Name | Should -Be ""
             $pageFile.TotalPhysicalMemory | Should -Be 6144
             $pageFile.MaxPageSize | Should -Be 0
             $pageFile.MultiPageFile | Should -Be $false
             $pageFile.RecommendedPageFile | Should -Be 0
+
+            $pageFileAdditional = GetObject "PageFile Additional Information"
+            $pageFileAdditional | Should -Be "Error: PageFile is not set to total system memory plus 10MB which should be 6154MB."
 
             $Script:ActiveGrouping.Count | Should -Be 14
         }
