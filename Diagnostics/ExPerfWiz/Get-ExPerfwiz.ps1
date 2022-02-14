@@ -51,7 +51,7 @@ Function Get-ExPerfwiz {
     )
 
     if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPefwiz.log); return }
-    
+
     Write-Logfile -string ("Getting ExPerfwiz: " + $server)
 
     # If no name was provided then we need to return all collectors logman finds
@@ -133,7 +133,6 @@ Function Get-ExPerfwiz {
                 'Sample Interval' { $sampleInterval = (($linesplit[1].split(" "))[0]) }
                 Default {}
             }
-
         }
 
         $logmanObject = New-Object PSObject -Property @{
@@ -154,7 +153,7 @@ Function Get-ExPerfwiz {
             Append         = $append
             Circular       = $circular
             OverWrite      = $overwrite
-            SampleInterval = $sampleInterval 
+            SampleInterval = $sampleInterval
         }
 
         # Add customer PS Object type for use with formatting files
