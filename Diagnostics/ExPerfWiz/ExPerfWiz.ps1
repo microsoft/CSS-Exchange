@@ -338,13 +338,7 @@ $xml131619 = @"
 </EventsFileName>
 </DataManager>
 </DataCollectorSet>
-"@
-
-# Create the XML file needed for setting up default counters
-$xml131619 | Out-File Exch_13_16_19_Full.xml
-
-# dot load the script to load all of the methods
-. (Join-Path $MyInvocation.MyCommand.Path "experfwiz.ps1")<DataCollectorSet>
+"<DataCollectorSet>
 <Status>0</Status>
 <Duration>0</Duration>
 <Description>ExPerfwiz Exchange 2013/16/19 Full</Description>
@@ -650,9 +644,3 @@ $xml131619 | Out-File Exch_13_16_19_Full.xml
 </DataManager>
 </DataCollectorSet>
 "@
-
-# Create the XML file needed for setting up default counters
-$xml131619 | Out-File Exch_13_16_19_Full.xml
-
-# dot load the script to load all of the methods
-. experfwiz.ps1
