@@ -134,7 +134,6 @@ Function Get-ExPerfwiz {
                 Default {}
             }
 
-            
         }
 
         $logmanObject = New-Object PSObject -Property @{
@@ -165,4 +164,5 @@ Function Get-ExPerfwiz {
         $logmanObject
     }
 }
+
 
