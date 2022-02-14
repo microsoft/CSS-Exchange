@@ -35,7 +35,7 @@ Function Set-ExPerfwiz {
     It will start at this time EVERY day until removed.
 
     .PARAMETER Quiet
-    Suppress output 
+    Suppress output
 
 	.OUTPUTS
      Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
@@ -43,7 +43,7 @@ Function Set-ExPerfwiz {
 	.EXAMPLE
     Set the default data collector set to start at 1pm on the local server.
 
-    Set-Experfwiz -StartTime 13:00:00 
+    Set-Experfwiz -StartTime 13:00:00
 
     .EXAMPLE
     Set the duration to 4 hours and the interval to 1 second on a remove server
@@ -52,8 +52,8 @@ Function Set-ExPerfwiz {
 
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
-    param (        
-        [Parameter(ValueFromPipelineByPropertyName)]    
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]
         $Name = "Exchange_Perfwiz",
 
@@ -74,7 +74,7 @@ Function Set-ExPerfwiz {
 
         [switch]
         $Quiet
-        
+
     )
 
     Process {
@@ -87,7 +87,7 @@ Function Set-ExPerfwiz {
 
         # If a duration is passed process the change
         if ($PSBoundParameters.ContainsKey("Duration")) { $logmancmd = $logmancmd + " -rf " + [string]$Duration.TotalSeconds }
-        
+
         # if Interval is passed set the new interval
         if ($PSBoundParameters.ContainsKey("Interval")) { $logmancmd = $logmancmd + " -si " + $Interval }
 
@@ -99,7 +99,7 @@ Function Set-ExPerfwiz {
             # -b <M/d/yyyy h:mm:ss[AM|PM]>  Begin the data collector at specified time.
             $logmancmd = $logmancmd + " -b " + (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring()
         }
-        
+
         Write-Logfile -string "Updating experfwiz $name on $server"
         Write-Logfile $logmancmd
 

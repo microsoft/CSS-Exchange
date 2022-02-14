@@ -36,7 +36,7 @@ Function Stop-ExPerfwiz {
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
-        [Parameter(ValueFromPipelineByPropertyName)]    
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]
         $Name = "Exchange_Perfwiz",
 
@@ -56,12 +56,12 @@ Function Stop-ExPerfwiz {
         If ($logman | Select-String "Error:") {
             # if we are not running already then just move on
             if ($logman | Select-String "is not running") {
-                Write-LogFile "Collector Not Running"                
+                Write-LogFile "Collector Not Running"
             } else {
                 Write-Logfile "[ERROR] - Unable to Stop Collector"
                 Write-Logfile $logman
-                Throw $logman                
-            }            
+                Throw $logman
+            }
         } else {
             Write-Logfile "ExPerfwiz Stopped"
         }

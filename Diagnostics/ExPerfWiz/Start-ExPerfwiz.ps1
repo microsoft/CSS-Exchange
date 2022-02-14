@@ -35,8 +35,8 @@ Function Start-ExPerfwiz {
 
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
-    param (        
-        [Parameter(ValueFromPipelineByPropertyName)]    
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]
         $Name = "Exchange_Perfwiz",
 
@@ -54,7 +54,7 @@ Function Start-ExPerfwiz {
             # Start the experfwiz counter set
             if ($PSCmdlet.ShouldProcess("$Server\$Name", "Staring ExPerfwiz Data Collection")) {
                 [string]$logman = logman start -name $Name -s $Server
-            }            
+            }
 
             # We know "unable to create the specified log file" can be worked around by incrementing the size and trying again
             # so incrementing the size and trying again.
@@ -76,7 +76,7 @@ Function Start-ExPerfwiz {
             } else {
                 Write-Logfile "[ERROR] - Unable to Start Collector"
                 Write-Logfile $logman
-                Throw $logman        
+                Throw $logman
             }
         } else {
             Write-Logfile "ExPerfwiz Started"

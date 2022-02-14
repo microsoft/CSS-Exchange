@@ -38,7 +38,7 @@ Function Remove-ExPerfwiz {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param (
 
-        [Parameter(ValueFromPipelineByPropertyName)]    
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]
         $Name = "Exchange_Perfwiz",
 
