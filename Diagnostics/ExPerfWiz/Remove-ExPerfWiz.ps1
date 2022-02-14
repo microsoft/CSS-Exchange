@@ -1,4 +1,7 @@
-﻿Function Remove-ExPerfwiz {
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Remove-ExPerfwiz {
     <#
 
     .SYNOPSIS
@@ -53,14 +56,13 @@
         }
 
         # Check if we have an error and throw and error if needed.
-        If ([string]::isnullorempty(($logman | select-string "Error:"))) {
+        If ([string]::isnullorempty(($logman | Select-String "Error:"))) {
             Write-Logfile "ExPerfwiz removed"
-        }
-        else {
+        } else {
             Write-Logfile "[ERROR] - Unable to remove Collector"
             Write-Logfile $logman
             Throw $logman
         }
     }
-
 }
+

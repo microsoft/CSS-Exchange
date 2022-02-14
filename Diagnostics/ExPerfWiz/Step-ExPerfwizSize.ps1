@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 Function Step-ExPerfwizSize {
     <#
 
@@ -51,10 +54,10 @@ Function Step-ExPerfwizSize {
 
     # If we find an error throw
     # Otherwise nothing
-    if ($logman | select-string "Error:") {      
+    if ($logman | Select-String "Error:") {      
         Write-Logfile -string "[ERROR] - Problem stepping perfwize size:"
         Write-Logfile -string $logman
         Throw $logman
-    }
-    else {}
+    } else {}
 }
+

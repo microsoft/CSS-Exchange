@@ -1,4 +1,7 @@
-﻿Function Start-ExPerfwiz {
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Start-ExPerfwiz {
     <#
 
     .SYNOPSIS
@@ -55,31 +58,29 @@
 
             # We know "unable to create the specified log file" can be worked around by incrementing the size and trying again
             # so incrementing the size and trying again.
-            if ($logman | select-string "Unable to create the specified log file") {
+            if ($logman | Select-String "Unable to create the specified log file") {
                 Write-Warning "Starting Experfwiz Failed ... Incrementing size and trying again. [Attempt $i/3]"
                 Write-Logfile "Retrying Start-Experfwiz"
                 Step-ExPerfwizSize -Name $Name -Server $Server
                 $i++
                 $repeat = $true
-            }
-            else { $repeat = $false }
+            } else { $repeat = $false }
             # Repeat up to three times
         } while ($repeat -and ($i -lt 3))
 
         # If we have an error then we need to throw else continue
-        If ($logman | select-string "Error:") {
+        If ($logman | Select-String "Error:") {
             # Don't throw an error if the collector is already started
-            if ($logman | select-string "administrator has refused the request") {
+            if ($logman | Select-String "administrator has refused the request") {
                 Write-Logfile "Collector already Started"
-            }
-            else {
+            } else {
                 Write-Logfile "[ERROR] - Unable to Start Collector"
                 Write-Logfile $logman
                 Throw $logman        
             }
-        }
-        else {
+        } else {
             Write-Logfile "ExPerfwiz Started"
         }
     }
 }
+

@@ -1,4 +1,7 @@
-﻿Function Stop-ExPerfwiz {
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Stop-ExPerfwiz {
     <#
 
     .SYNOPSIS
@@ -50,19 +53,18 @@
         }
 
         # Check if we have an error and throw and error if needed.
-        If ($logman | select-string "Error:") {
+        If ($logman | Select-String "Error:") {
             # if we are not running already then just move on
-            if ($logman | select-string "is not running") {
+            if ($logman | Select-String "is not running") {
                 Write-LogFile "Collector Not Running"                
-            }
-            else {
+            } else {
                 Write-Logfile "[ERROR] - Unable to Stop Collector"
                 Write-Logfile $logman
                 Throw $logman                
             }            
-        }
-        else {
+        } else {
             Write-Logfile "ExPerfwiz Stopped"
         }
     }
 }
+

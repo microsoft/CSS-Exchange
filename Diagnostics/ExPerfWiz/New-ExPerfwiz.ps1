@@ -1,4 +1,7 @@
-﻿Function New-ExPerfwiz {
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function New-ExPerfwiz {
     <#
 
     .SYNOPSIS
@@ -149,22 +152,18 @@
 
     Process {
 
-        # Build path to templates
-        $templatePath = join-path (split-path (Get-Module experfwiz | Sort-Object -Property Version -Descending)[0].path -Parent) Templates
-
         # If no template provided then we use the default one
-        While ([string]::IsNullOrEmpty($Template)) {
+        If ([string]::IsNullOrEmpty($Template)) {
             Write-Logfile "Using default template"
 
-            # Put the selected xml into template
-            $Template = join-path $templatePath "Exch_13_16_19_Full.xml"
+            # Put the default xml into template
+            $Template = Join-Path $MyInvocation.MyCommand.Path "Exch_13_16_19_Full.xml"
         }
 
         # Test the template path and log it as good or throw an error
         If (Test-Path $Template) {
             Write-Logfile -string ("Using Template:" + $Template)
-        }
-        Else {
+        } Else {
             Throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
         }
 
@@ -211,14 +210,13 @@
         if ($PSBoundParameters.ContainsKey("starttime")) {
             $XML.DataCollectorSet.SchedulesEnabled = "1"
             # Set the schedule date and time to reflect the values in the scheduled task
-            $XML.DataCollectorSet.Schedule.StartDate = (Get-date -Format MM\/dd\/yyyy).tostring()
+            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Format MM\/dd\/yyyy).tostring()
             $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 2100 -Format MM\/dd\/yyyy).tostring()
-            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date $StartTime -Format HH:mm).tostring()        
-        }
-        else {
+            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date $StartTime -Format HH:mm).tostring()
+        } else {
             $XML.DataCollectorSet.SchedulesEnabled = "0"
             # Since not schedule we are going to set the date / time to 1900
-            $XML.DataCollectorSet.Schedule.StartDate = (Get-date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).tostring()
+            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).tostring()
             $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).tostring()
             $XML.DataCollectorSet.Schedule.StartTime = (Get-Date -Hour 12 -Minute 0 -Format HH:mm ).tostring()
         }
@@ -234,9 +232,7 @@
 
             # Add the XML element
             $XML.DataCollectorSet.PerformanceCounterDataCollector.AppendChild($threadCounter)
-
-        }
-        else {}
+        } else {}
 
         # Write the XML to disk
         $xmlfile = Join-Path $env:TEMP ExPerfwiz.xml
@@ -245,12 +241,12 @@
         Write-Logfile -string ("Importing Collector Set " + $xmlfile + " for " + $server)
 
         # Taking a proactive approach on possible conflicts with creating the collector
-        $currentcollector = get-experfwiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
+        $currentcollector = Get-ExPerfwiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
 
         # Check the status of the collectors and take the correct action
         switch ($currentcollector.status) {
             Running {
-                Write-LogFile "Running Duplicate Found"                
+                Write-LogFile "Running Duplicate Found"
                 if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stop Running Collector Set and Replace")) {
                     Stop-ExPerfwiz -Name $Name -Server $Server
                 }
@@ -263,7 +259,7 @@
             Default {
                 Write-Logfile "No Comflicts Found"
             }
-        }        
+        }
 
         # Import the XML with our configuration
         [string]$logman = logman import -xml $xmlfile -name $Name -s $server
@@ -271,29 +267,27 @@
         # Check if we have an error and throw if needed
         if ($null -eq ($logman | Select-String "Error:")) {
             Write-LogFile "Collector Successfully Created"
-        }
-        else {
+        } else {
             Throw $logman
         }
-        
+
         ## Implement Start time
         # Scenarios supported:
         # 1) Start Perfmon at time X daily run for time outlined in rest of settings
         # 2) Setup perfmon without scheduled start time
         if ($PSBoundParameters.ContainsKey("starttime")) {
-            Set-Experfwiz -name $Name -server $server -starttime $startTime -quiet
-        }
-        else {
+            Set-ExPerfwiz -Name $Name -Server $server -StartTime $startTime -Quiet
+        } else {
             Write-Logfile -string "No Start time provided"
         }
 
         # Need to start the counter set if asked to do so
         If ($StartOnCreate) {
-            Start-ExPerfwiz -server $Server -Name $Name
-        }
-        else {}
-    
+            Start-ExPerfwiz -Server $Server -Name $Name
+        } else {}
+
         # Display back the newly created object
         Get-ExPerfwiz -Name $Name -Server $Server
     }
 }
+

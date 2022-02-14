@@ -1,4 +1,7 @@
-﻿Function Get-ExPerfwiz {
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+Function Get-ExPerfwiz {
     <#
 
     .SYNOPSIS
@@ -47,7 +50,7 @@
 
     )
 
-    if ($ShowLog) { Notepad (Join-path $env:LOCALAPPDATA ExPefwiz.log); return }
+    if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPefwiz.log); return }
     
     Write-Logfile -string ("Getting ExPerfwiz: " + $server)
 
@@ -57,7 +60,7 @@
         # Returns all found collector sets
         $logmanAll = logman query -s $server
 
-        If (!([string]::isnullorempty(($logmanAll | select-string "Error:")))) {
+        If (!([string]::isnullorempty(($logmanAll | Select-String "Error:")))) {
             throw $logmanAll[-1]
         }
 
@@ -65,13 +68,12 @@
         $i = -3
         [array]$perfLogNames = $null
 
-        While (!($logmanAll[$i] | select-string "---")) {
+        While (!($logmanAll[$i] | Select-String "---")) {
 
             # pull the first 40 characters then trim and trailing spaces
             [array]$perfLogNames += $logmanAll[$i].substring(0, 40).trimend()
             $i--
         }
-
     }
     # If a name was provided put just that into the array
     else {
@@ -84,7 +86,7 @@
         $logman = logman query $collectorname -s $Server
 
         # Quick error check
-        If (!([string]::isnullorempty(($logman | select-string "Error:")))) {
+        If (!([string]::isnullorempty(($logman | Select-String "Error:")))) {
             throw $logman[-1]
         }
 
@@ -110,10 +112,9 @@
                     if ($linesplit[1].contains("%")) {
                         $rootPath = $linesplit[1]
                         $outputPath = $linesplit[1]
-                    }
-                    else {
-                        $rootPath = (Resolve-path ($linesplit[1] + ":" + $linesplit[2]))
-                        $outputPath = (Join-path (($linesplit[1] + ":" + $linesplit[2])) ($env:ComputerName + "_" + $name))
+                    } else {
+                        $rootPath = (Resolve-Path ($linesplit[1] + ":" + $linesplit[2]))
+                        $outputPath = (Join-Path (($linesplit[1] + ":" + $linesplit[2])) ($env:ComputerName + "_" + $name))
                     }
                 }
                 'Segment' { $segment = $linesplit[1] }
@@ -134,7 +135,6 @@
             }
 
             
-
         }
 
         $logmanObject = New-Object PSObject -Property @{
@@ -165,3 +165,4 @@
         $logmanObject
     }
 }
+

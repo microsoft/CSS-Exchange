@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 Function Set-ExPerfwiz {
     <#
 
@@ -106,10 +109,9 @@ Function Set-ExPerfwiz {
         }
 
         # Check if we generated and error on update
-        If ($null -eq ($logman | select-string "Error:")) {
+        If ($null -eq ($logman | Select-String "Error:")) {
             Write-Logfile "Update Successful"
-        }
-        else {
+        } else {
             Write-Logfile -string "[ERROR] - Problem updating perfwiz:"
             Write-Logfile -string $logman
             Throw $logman
@@ -118,7 +120,7 @@ Function Set-ExPerfwiz {
     End {
         # Return the new object and values
         if ($quiet) {}
-        else { Get-ExPerfwiz -name $name -Server $server }
+        else { Get-ExPerfwiz -Name $name -Server $server }
     }
-
 }
+
