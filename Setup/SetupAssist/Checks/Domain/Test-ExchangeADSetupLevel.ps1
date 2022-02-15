@@ -10,31 +10,32 @@ Function Test-ExchangeADSetupLevel {
         param(
             [string]$ExchangeVersion
         )
-        $netDom = netdom query fsmo
+        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         $params = @{
             TestName = "Prepare AD Requirements"
             Result   = "Failed"
         }
 
-        if ($null -eq $netDom) {
-            New-TestResult @params -Details "Failed to query FSMO Role"
+        if ($null -eq $forest) {
+            New-TestResult @params -Details "Failed to get current forest"
             return
         }
 
-        $schemaMaster = ($netDom | Select-String "Schema master (.+)").Matches.Groups[1].Value.Trim()
-        $smSite = nltest /server:$schemaMaster /dsgetsite
+        if ($null -eq $forest.SchemaRoleOwner) {
+            New-TestResult @params -Details "Failed to get schema master role owner"
+            return
+        }
 
-        if ($smSite[-1] -eq "The command completed successfully") {
-            $smSite = $smSite[0]
-        } else {
+        $schemaMaster = $forest.SchemaRoleOwner.Name
+        $smSite = $forest.SchemaRoleOwner.SiteName
+
+        if ($null -eq $smSite) {
             $smSite = "Failed to get correct site"
         }
 
-        $localSite = nltest /dsgetsite
-
-        if ($localSite[-1] -eq "The command completed successfully") {
-            $localSite = $localSite[0]
-        } else {
+        try {
+            $localSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
+        } catch {
             $localSite = "Failed to get correct site"
         }
 
