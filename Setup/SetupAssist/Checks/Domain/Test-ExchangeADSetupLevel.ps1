@@ -27,19 +27,15 @@ Function Test-ExchangeADSetupLevel {
         }
 
         $schemaMaster = $forest.SchemaRoleOwner.Name
-        $smSite = nltest /server:$schemaMaster /dsgetsite
+        $smSite = $forest.SchemaRoleOwner.SiteName
 
-        if ($smSite[-1] -eq "The command completed successfully") {
-            $smSite = $smSite[0]
-        } else {
+        if ($null -eq $smSite) {
             $smSite = "Failed to get correct site"
         }
 
-        $localSite = nltest /dsgetsite
+        $localSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
 
-        if ($localSite[-1] -eq "The command completed successfully") {
-            $localSite = $localSite[0]
-        } else {
+        if ($null -eq $localSite) {
             $localSite = "Failed to get correct site"
         }
 
