@@ -33,9 +33,9 @@ Function Test-ExchangeADSetupLevel {
             $smSite = "Failed to get correct site"
         }
 
-        $localSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
-
-        if ($null -eq $localSite) {
+        try {
+            $localSite = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name
+        } catch {
             $localSite = "Failed to get correct site"
         }
 
