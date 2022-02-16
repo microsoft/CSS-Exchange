@@ -58,13 +58,13 @@ Function Set-ExPerfwiz {
         $Name = "Exchange_Perfwiz",
 
         [timespan]
-        $Duration,
+        $Duration = [timespan]::Parse('8:00:00'),
 
         [int]
-        $Interval,
+        $Interval = 5,
 
         [int]
-        $MaxSize,
+        $MaxSize = 1024,
 
         [string]
         $Server = $env:ComputerName,
@@ -79,33 +79,11 @@ Function Set-ExPerfwiz {
 
     Process {
 
-        # Build the logman command based on the inputs
-        $logmancmd = $null
-
-        # Base command
-        $logmancmd = "logman update -name " + $Name + " -s " + $Server
-
-        # If a duration is passed process the change
-        if ($PSBoundParameters.ContainsKey("Duration")) { $logmancmd = $logmancmd + " -rf " + [string]$Duration.TotalSeconds }
-
-        # if Interval is passed set the new interval
-        if ($PSBoundParameters.ContainsKey("Interval")) { $logmancmd = $logmancmd + " -si " + $Interval }
-
-        # If maxsize is passed set max size
-        if ($PSBoundParameters.ContainsKey("maxsize")) { $logmancmd = $logmancmd + " -max " + $MaxSize }
-
-        # If StartTime is passed set the start time
-        if ($PSBoundParameters.ContainsKey("starttime")) {
-            # -b <M/d/yyyy h:mm:ss[AM|PM]>  Begin the data collector at specified time.
-            $logmancmd = $logmancmd + " -b " + (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring()
-        }
-
         Write-Logfile -string "Updating experfwiz $name on $server"
-        Write-Logfile $logmancmd
 
-        # Import the XML with our configuration
+        # Update the collector
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
-            [string]$logman = Invoke-Expression $logmancmd
+            [string]$logman = logman update -name $Name -s $Server -rf [string]$Duration.TotalSeconds -si $Interval -max $MaxSize
         }
 
         # Check if we generated and error on update
