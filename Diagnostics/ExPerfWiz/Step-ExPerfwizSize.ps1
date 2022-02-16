@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Step-ExPerfwizSize {
+Function global:Step-ExPerfwizSize {
     <#
 
     .SYNOPSIS

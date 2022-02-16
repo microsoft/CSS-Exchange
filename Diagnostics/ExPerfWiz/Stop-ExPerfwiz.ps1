@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Stop-ExPerfwiz {
+Function global:Stop-ExPerfwiz {
     <#
 
     .SYNOPSIS

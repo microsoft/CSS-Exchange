@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Set-ExPerfwiz {
+Function global:Set-ExPerfwiz {
     <#
 
     .SYNOPSIS
