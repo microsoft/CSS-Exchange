@@ -20,14 +20,14 @@ Testing Example
 #>
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\Get-Experfwiz.ps1
-. $PSScriptRoot\New-ExPerfwiz.ps1
-. $PSScriptRoot\Remove-Experfwiz.ps1
-. $PSScriptRoot\Remove-Experfwiz.ps1
-. $PSScriptRoot\Set-Experfwiz.ps1
-. $PSScriptRoot\Start-Experfwiz.ps1
-. $PSScriptRoot\Step-ExperfwizSize.ps1
-. $PSScriptRoot\Stop-ExPerfwiz.ps1
+. $PSScriptRoot\Get-ExPerfWiz.ps1
+. $PSScriptRoot\New-ExPerfWiz.ps1
+. $PSScriptRoot\Remove-ExperfWiz.ps1
+. $PSScriptRoot\Remove-ExperfWiz.ps1
+. $PSScriptRoot\Set-ExPerfWiz.ps1
+. $PSScriptRoot\Start-ExPerfWiz.ps1
+. $PSScriptRoot\Step-ExPerfWizSize.ps1
+. $PSScriptRoot\Stop-ExPerfWiz.ps1
 
 ## Main ##
 
