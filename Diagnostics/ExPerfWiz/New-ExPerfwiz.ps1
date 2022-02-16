@@ -157,7 +157,7 @@ Function global:New-ExPerfwiz {
             Write-Logfile "Using default template"
 
             # Put the default xml into template
-            $Template = Join-Path $MyInvocation.MyCommand.Path "Exch_13_16_19_Full.xml"
+            $Template = Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml"
         }
 
         # Test the template path and log it as good or throw an error

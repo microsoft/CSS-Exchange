@@ -644,3 +644,27 @@ $xml131619 = @"
 </DataManager>
 </DataCollectorSet>
 "@
+
+# Create the template file
+$xml131619 | Out-File -FolderPath (Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml")
+
+# Create prompt body
+$title = "Default ExPerfWiz"
+$message = "Create the default ExPerfWiz on this server?"
+
+# Create answers
+$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Creates the default Perfwiz: 5s Interval; 8 Hour Run time; C:\EXPerfWiz Path"
+$no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Returns to a prompt."
+
+
+# Create ChoiceDescription with answers
+$options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
+
+# Show prompt and save user's answer to variable
+$response = $host.UI.PromptForChoice($title, $message, $options, 0)
+
+# Perform action based on answer
+switch ($response) {
+    0 { New-ExPerfwiz -FolderPath C:\EXPerfWiz } # Yes
+    1 { Break } # No
+}
