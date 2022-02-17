@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Remove-ExPerfwiz {
+Function global:Remove-ExPerfWiz {
     <#
 
     .SYNOPSIS

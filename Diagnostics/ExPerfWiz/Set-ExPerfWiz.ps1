@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Set-ExPerfwiz {
+Function global:Set-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -58,13 +58,13 @@ Function global:Set-ExPerfwiz {
         $Name = "Exchange_Perfwiz",
 
         [timespan]
-        $Duration = [timespan]::Parse('8:00:00'),
+        $Duration,
 
         [int]
-        $Interval = 5,
+        $Interval,
 
         [int]
-        $MaxSize = 1024,
+        $MaxSize,
 
         [string]
         $Server = $env:ComputerName,
@@ -76,6 +76,24 @@ Function global:Set-ExPerfwiz {
         $Quiet
 
     )
+    begin {
+        # Get the existing experfwiz object so that we can maintain settings
+        $settings = Get-ExPerfwiz -Name $Name -Server $Server
+
+        # If a duration is passed process the change
+        if (!($PSBoundParameters.ContainsKey("Duration"))) { $Duration = [timespan]$settings.Duration }
+
+        # if Interval is passed set the new interval
+        if (!($PSBoundParameters.ContainsKey("Interval"))) { $Interval = $settings.SampleInterval }
+
+        # If maxsize is passed set max size
+        if (!($PSBoundParameters.ContainsKey("maxsize"))) { $MaxSize = $settings.MaxSize }
+
+        # If StartTime is passed set the start time
+        if (!($PSBoundParameters.ContainsKey("starttime"))) { $StartTime = (Get-Date ($settings.StartDate + " " + $settings.starttime) -Format 'M/d/yyyy HH:mm:ss').tostring }
+        else { $StartTime = (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring() }
+    }
+
 
     Process {
 
@@ -83,7 +101,7 @@ Function global:Set-ExPerfwiz {
 
         # Update the collector
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
-            [string]$logman = logman update -name $Name -s $Server -rf $Duration.TotalSeconds -si $Interval -max $MaxSize
+            [string]$logman = logman update -name $Name -s $Server -rf $Duration.TotalSeconds -si $Interval -max $MaxSize -b $StartTime
         }
 
         # Check if we generated and error on update
