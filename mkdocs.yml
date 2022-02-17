@@ -77,6 +77,9 @@ theme:
   name: 'material'
   features:
     - navigation.indexes
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
 repo_url: https://github.com/microsoft/CSS-Exchange
 edit_uri: edit/main/docs/
 site_url: https://microsoft.github.io/CSS-Exchange
