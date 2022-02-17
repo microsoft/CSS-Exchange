@@ -45,7 +45,7 @@ Function global:Start-ExPerfwiz {
     )
 
     Process {
-        Write-Logfile -string ("Starting ExPerfwiz: " + $Server)
+        Write-LogSimpleLogFile -string ("Starting ExPerfwiz: " + $Server)
 
         # Check if we have an error and throw and error if needed.
         $i = 0
@@ -60,7 +60,7 @@ Function global:Start-ExPerfwiz {
             # so incrementing the size and trying again.
             if ($logman | Select-String "Unable to create the specified log file") {
                 Write-Warning "Starting Experfwiz Failed ... Incrementing size and trying again. [Attempt $i/3]"
-                Write-Logfile "Retrying Start-Experfwiz"
+                Write-LogSimpleLogFile "Retrying Start-Experfwiz"
                 Step-ExPerfwizSize -Name $Name -Server $Server
                 $i++
                 $repeat = $true
@@ -72,14 +72,14 @@ Function global:Start-ExPerfwiz {
         If ($logman | Select-String "Error:") {
             # Don't throw an error if the collector is already started
             if ($logman | Select-String "administrator has refused the request") {
-                Write-Logfile "Collector already Started"
+                Write-LogSimpleLogFile "Collector already Started"
             } else {
-                Write-Logfile "[ERROR] - Unable to Start Collector"
-                Write-Logfile $logman
+                Write-LogSimpleLogFile "[ERROR] - Unable to Start Collector"
+                Write-LogSimpleLogFile $logman
                 Throw $logman
             }
         } else {
-            Write-Logfile "ExPerfwiz Started"
+            Write-LogSimpleLogFile "ExPerfwiz Started"
         }
     }
 }

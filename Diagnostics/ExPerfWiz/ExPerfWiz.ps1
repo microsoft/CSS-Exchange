@@ -22,8 +22,7 @@ Testing Example
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\Get-ExPerfWiz.ps1
 . $PSScriptRoot\New-ExPerfWiz.ps1
-. $PSScriptRoot\Remove-ExperfWiz.ps1
-. $PSScriptRoot\Remove-ExperfWiz.ps1
+. $PSScriptRoot\Remove-ExPerfWiz.ps1
 . $PSScriptRoot\Set-ExPerfWiz.ps1
 . $PSScriptRoot\Start-ExPerfWiz.ps1
 . $PSScriptRoot\Step-ExPerfWizSize.ps1
@@ -646,7 +645,7 @@ $xml131619 = @"
 "@
 
 # Create the template file
-$xml131619 | Out-File -FolderPath (Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml")
+$xml131619 | Out-File -FilePath (Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml")
 
 # Create prompt body
 $title = "Default ExPerfWiz"

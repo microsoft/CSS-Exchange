@@ -154,7 +154,7 @@ Function global:New-ExPerfwiz {
 
         # If no template provided then we use the default one
         If ([string]::IsNullOrEmpty($Template)) {
-            Write-Logfile "Using default template"
+            Write-LogSimpleLogFile "Using default template"
 
             # Put the default xml into template
             $Template = Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml"
@@ -162,7 +162,7 @@ Function global:New-ExPerfwiz {
 
         # Test the template path and log it as good or throw an error
         If (Test-Path $Template) {
-            Write-Logfile -string ("Using Template:" + $Template)
+            Write-LogSimpleLogFile -string ("Using Template:" + $Template)
         } Else {
             Throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
         }
@@ -224,7 +224,7 @@ Function global:New-ExPerfwiz {
         # If -threads is specified we need to add it to the counter set
         If ($Threads) {
 
-            Write-Logfile -string "Adding threads to counter set"
+            Write-LogSimpleLogFile -string "Adding threads to counter set"
 
             # Create and set the XML element
             $threadCounter = $XML.CreateElement("Counter")
@@ -236,9 +236,9 @@ Function global:New-ExPerfwiz {
 
         # Write the XML to disk
         $xmlfile = Join-Path $env:TEMP ExPerfwiz.xml
-        Write-Logfile -string ("Writing Configuration to: " + $xmlfile)
+        Write-LogSimpleLogFile -string ("Writing Configuration to: " + $xmlfile)
         $XML.Save($xmlfile)
-        Write-Logfile -string ("Importing Collector Set " + $xmlfile + " for " + $server)
+        Write-LogSimpleLogFile -string ("Importing Collector Set " + $xmlfile + " for " + $server)
 
         # Taking a proactive approach on possible conflicts with creating the collector
         $currentcollector = Get-ExPerfwiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
@@ -246,18 +246,18 @@ Function global:New-ExPerfwiz {
         # Check the status of the collectors and take the correct action
         switch ($currentcollector.status) {
             Running {
-                Write-LogFile "Running Duplicate Found"
+                Write-LogSimpleLogFile "Running Duplicate Found"
                 if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stop Running Collector Set and Replace")) {
                     Stop-ExPerfwiz -Name $Name -Server $Server
                 }
                 Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
             }
             Stopped {
-                Write-LogFile "Duplicate Found"
+                Write-LogSimpleLogFile "Duplicate Found"
                 #Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
             }
             Default {
-                Write-Logfile "No Comflicts Found"
+                Write-LogSimpleLogFile "No Comflicts Found"
             }
         }
 
@@ -266,7 +266,7 @@ Function global:New-ExPerfwiz {
 
         # Check if we have an error and throw if needed
         if ($null -eq ($logman | Select-String "Error:")) {
-            Write-LogFile "Collector Successfully Created"
+            Write-LogSimpleLogFile "Collector Successfully Created"
         } else {
             Throw $logman
         }
@@ -278,7 +278,7 @@ Function global:New-ExPerfwiz {
         if ($PSBoundParameters.ContainsKey("starttime")) {
             Set-ExPerfwiz -Name $Name -Server $server -StartTime $startTime -Quiet
         } else {
-            Write-Logfile -string "No Start time provided"
+            Write-LogSimpleLogFile -string "No Start time provided"
         }
 
         # Need to start the counter set if asked to do so
