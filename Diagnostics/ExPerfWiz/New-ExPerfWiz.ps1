@@ -147,7 +147,6 @@ Function global:New-ExPerfwiz {
 
     Begin {
         # Check for new version of Experfwiz
-        Get-ExperfwizUpdate
     }
 
     Process {
