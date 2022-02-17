@@ -24,7 +24,7 @@ Function global:Get-ExPerfwiz {
     Shows the experfwiz log file on the server
 
 	.OUTPUTS
-    Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+    Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
     .EXAMPLE
     Get info on the default collector set
@@ -50,9 +50,9 @@ Function global:Get-ExPerfwiz {
 
     )
 
-    if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPefwiz.log); return }
+    if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPerfWiz.log); return }
 
-    Write-SimpleLogFile -string ("Getting ExPerfwiz: " + $server) -Name "ExPefwiz.log"
+    Write-SimpleLogFile -string ("Getting ExPerfwiz: " + $server) -Name "ExPerfWiz.log"
 
     # If no name was provided then we need to return all collectors logman finds
     if ([string]::IsNullOrEmpty($Name)) {

@@ -21,7 +21,7 @@ Function global:Remove-ExPerfwiz {
     Default LocalHost
 
     .OUTPUTS
-    Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+    Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
     .EXAMPLE
     Remove a collector set on the local machine
@@ -48,7 +48,7 @@ Function global:Remove-ExPerfwiz {
 
     Process {
 
-        Write-SimpleLogFile -string ("Removing Experfwiz for: " + $server) -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string ("Removing Experfwiz for: " + $server) -Name "ExPerfWiz.log"
 
         # Remove the experfwiz counter set
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Removing Performance Monitor Data Collector")) {
@@ -57,10 +57,10 @@ Function global:Remove-ExPerfwiz {
 
         # Check if we have an error and throw and error if needed.
         If ([string]::isnullorempty(($logman | Select-String "Error:"))) {
-            Write-SimpleLogFile "ExPerfwiz removed" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "ExPerfwiz removed" -Name "ExPerfWiz.log"
         } else {
-            Write-SimpleLogFile "[ERROR] - Unable to remove Collector" -Name "ExPefwiz.log"
-            Write-SimpleLogFile $logman -Name "ExPefwiz.log"
+            Write-SimpleLogFile "[ERROR] - Unable to remove Collector" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
             Throw $logman
         }
     }

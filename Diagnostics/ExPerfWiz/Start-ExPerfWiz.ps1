@@ -21,7 +21,7 @@ Function global:Start-ExPerfwiz {
     Default LocalHost
 
 	.OUTPUTS
-     Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+     Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
 	.EXAMPLE
     Start the default data collector set on this server.
@@ -45,7 +45,7 @@ Function global:Start-ExPerfwiz {
     )
 
     Process {
-        Write-SimpleLogFile -string ("Starting ExPerfwiz: " + $Server) -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string ("Starting ExPerfwiz: " + $Server) -Name "ExPerfWiz.log"
 
         # Check if we have an error and throw and error if needed.
         $i = 0
@@ -60,7 +60,7 @@ Function global:Start-ExPerfwiz {
             # so incrementing the size and trying again.
             if ($logman | Select-String "Unable to create the specified log file") {
                 Write-Warning "Starting Experfwiz Failed ... Incrementing size and trying again. [Attempt $i/3]"
-                Write-SimpleLogFile "Retrying Start-Experfwiz" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "Retrying Start-Experfwiz" -Name "ExPerfWiz.log"
                 Step-ExPerfwizSize -Name $Name -Server $Server
                 $i++
                 $repeat = $true
@@ -72,14 +72,14 @@ Function global:Start-ExPerfwiz {
         If ($logman | Select-String "Error:") {
             # Don't throw an error if the collector is already started
             if ($logman | Select-String "administrator has refused the request") {
-                Write-SimpleLogFile "Collector already Started" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "Collector already Started" -Name "ExPerfWiz.log"
             } else {
-                Write-SimpleLogFile "[ERROR] - Unable to Start Collector" -Name "ExPefwiz.log"
-                Write-SimpleLogFile $logman -Name "ExPefwiz.log"
+                Write-SimpleLogFile "[ERROR] - Unable to Start Collector" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
                 Throw $logman
             }
         } else {
-            Write-SimpleLogFile "ExPerfwiz Started" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "ExPerfwiz Started" -Name "ExPerfWiz.log"
         }
     }
 }

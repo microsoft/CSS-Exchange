@@ -21,7 +21,7 @@ Function global:Stop-ExPerfwiz {
     Default LocalHost
 
 	.OUTPUTS
-    Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+    Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
     .EXAMPLE
     Stop the default data collector set on the local server
@@ -45,7 +45,7 @@ Function global:Stop-ExPerfwiz {
     )
 
     Process {
-        Write-SimpleLogFile -string ("Stopping ExPerfwiz: " + $server + "\" + $Name) -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string ("Stopping ExPerfwiz: " + $server + "\" + $Name) -Name "ExPerfWiz.log"
 
         # Remove the experfwiz counter set
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stopping ExPerfwiz Data Collection")) {
@@ -56,14 +56,14 @@ Function global:Stop-ExPerfwiz {
         If ($logman | Select-String "Error:") {
             # if we are not running already then just move on
             if ($logman | Select-String "is not running") {
-                Write-SimpleLogFile "Collector Not Running" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "Collector Not Running" -Name "ExPerfWiz.log"
             } else {
-                Write-SimpleLogFile "[ERROR] - Unable to Stop Collector" -Name "ExPefwiz.log"
-                Write-SimpleLogFile $logman -Name "ExPefwiz.log"
+                Write-SimpleLogFile "[ERROR] - Unable to Stop Collector" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
                 Throw $logman
             }
         } else {
-            Write-SimpleLogFile "ExPerfwiz Stopped" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "ExPerfwiz Stopped" -Name "ExPerfWiz.log"
         }
     }
 }

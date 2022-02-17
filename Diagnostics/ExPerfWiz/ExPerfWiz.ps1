@@ -646,7 +646,7 @@ $xml131619 = @"
 "@
 
 # Create the template file
-$xml131619 | Out-File -FilePath (Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml")
+$xml131619 | Out-File -FilePath (Join-Path $env:LOCALAPPDATA "Exch_13_16_19_Full.xml")
 
 # Create prompt body
 $title = "Default ExPerfWiz"

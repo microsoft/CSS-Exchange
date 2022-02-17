@@ -75,7 +75,7 @@ Function global:New-ExPerfwiz {
     .OUTPUTS
     Creates a data collector set in Perfmon based on the provided XML file
 
-    Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+    Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
     .EXAMPLE
     Create a standard ExPerfwiz data collector for troubleshooting performane issues on the local machine.
@@ -153,15 +153,15 @@ Function global:New-ExPerfwiz {
 
         # If no template provided then we use the default one
         If ([string]::IsNullOrEmpty($Template)) {
-            Write-SimpleLogFile "Using default template" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "Using default template" -Name "ExPerfWiz.log"
 
             # Put the default xml into template
-            $Template = Join-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) "Exch_13_16_19_Full.xml"
+            $Template = Join-Path $env:LOCALAPPDATA "Exch_13_16_19_Full.xml"
         }
 
         # Test the template path and log it as good or throw an error
         If (Test-Path $Template) {
-            Write-SimpleLogFile -string ("Using Template:" + $Template) -Name "ExPefwiz.log"
+            Write-SimpleLogFile -string ("Using Template:" + $Template) -Name "ExPerfWiz.log"
         } Else {
             Throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
         }
@@ -223,7 +223,7 @@ Function global:New-ExPerfwiz {
         # If -threads is specified we need to add it to the counter set
         If ($Threads) {
 
-            Write-SimpleLogFile -string "Adding threads to counter set" -Name "ExPefwiz.log"
+            Write-SimpleLogFile -string "Adding threads to counter set" -Name "ExPerfWiz.log"
 
             # Create and set the XML element
             $threadCounter = $XML.CreateElement("Counter")
@@ -235,9 +235,9 @@ Function global:New-ExPerfwiz {
 
         # Write the XML to disk
         $xmlfile = Join-Path $env:TEMP ExPerfwiz.xml
-        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlfile) -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlfile) -Name "ExPerfWiz.log"
         $XML.Save($xmlfile)
-        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlfile + " for " + $server) -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlfile + " for " + $server) -Name "ExPerfWiz.log"
 
         # Taking a proactive approach on possible conflicts with creating the collector
         $currentcollector = Get-ExPerfwiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
@@ -245,18 +245,18 @@ Function global:New-ExPerfwiz {
         # Check the status of the collectors and take the correct action
         switch ($currentcollector.status) {
             Running {
-                Write-SimpleLogFile "Running Duplicate Found" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "Running Duplicate Found" -Name "ExPerfWiz.log"
                 if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stop Running Collector Set and Replace")) {
                     Stop-ExPerfwiz -Name $Name -Server $Server
                 }
                 Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
             }
             Stopped {
-                Write-SimpleLogFile "Duplicate Found" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "Duplicate Found" -Name "ExPerfWiz.log"
                 #Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
             }
             Default {
-                Write-SimpleLogFile "No Comflicts Found" -Name "ExPefwiz.log"
+                Write-SimpleLogFile "No Comflicts Found" -Name "ExPerfWiz.log"
             }
         }
 
@@ -265,7 +265,7 @@ Function global:New-ExPerfwiz {
 
         # Check if we have an error and throw if needed
         if ($null -eq ($logman | Select-String "Error:")) {
-            Write-SimpleLogFile "Collector Successfully Created" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "Collector Successfully Created" -Name "ExPerfWiz.log"
         } else {
             Throw $logman
         }
@@ -277,7 +277,7 @@ Function global:New-ExPerfwiz {
         if ($PSBoundParameters.ContainsKey("starttime")) {
             Set-ExPerfwiz -Name $Name -Server $server -StartTime $startTime -Quiet
         } else {
-            Write-SimpleLogFile -string "No Start time provided" -Name "ExPefwiz.log"
+            Write-SimpleLogFile -string "No Start time provided" -Name "ExPerfWiz.log"
         }
 
         # Need to start the counter set if asked to do so

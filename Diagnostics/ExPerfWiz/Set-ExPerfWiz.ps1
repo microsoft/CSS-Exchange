@@ -38,7 +38,7 @@ Function global:Set-ExPerfwiz {
     Suppress output
 
 	.OUTPUTS
-     Logs all activity into $env:LOCALAPPDATA\ExPefwiz.log file
+     Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
 	.EXAMPLE
     Set the default data collector set to start at 1pm on the local server.
@@ -79,7 +79,7 @@ Function global:Set-ExPerfwiz {
 
     Process {
 
-        Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPefwiz.log"
+        Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPerfWiz.log"
 
         # Update the collector
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
@@ -88,10 +88,10 @@ Function global:Set-ExPerfwiz {
 
         # Check if we generated and error on update
         If ($null -eq ($logman | Select-String "Error:")) {
-            Write-SimpleLogFile "Update Successful" -Name "ExPefwiz.log"
+            Write-SimpleLogFile "Update Successful" -Name "ExPerfWiz.log"
         } else {
-            Write-SimpleLogFile -string "[ERROR] - Problem updating perfwiz:" -Name "ExPefwiz.log"
-            Write-SimpleLogFile -string $logman -Name "ExPefwiz.log"
+            Write-SimpleLogFile -string "[ERROR] - Problem updating perfwiz:" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile -string $logman -Name "ExPerfWiz.log"
             Throw $logman
         }
     }
