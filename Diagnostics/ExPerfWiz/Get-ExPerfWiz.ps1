@@ -113,7 +113,7 @@ Function global:Get-ExPerfwiz {
                         $rootPath = $linesplit[1]
                         $outputPath = $linesplit[1]
                     } else {
-                        $rootPath = (Resolve-Path ($linesplit[1] + ":" + $linesplit[2]))
+                        $rootPath = (Join-Path ($linesplit[1] + ":" + $linesplit[2]))
                         $outputPath = (Join-Path (($linesplit[1] + ":" + $linesplit[2])) ($env:ComputerName + "_" + $name))
                     }
                 }

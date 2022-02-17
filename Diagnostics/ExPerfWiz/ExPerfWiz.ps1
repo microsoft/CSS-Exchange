@@ -342,7 +342,21 @@ $xml131619 = @"
 
 # Confirm that we are an administrator
 if (Confirm-Administrator) {}
-else { Write-Error "Please run as Administrator" }
+else { Write-Error "Please run as Administrator" -ErrorAction Stop }
+
+Function global:Convert-OnOffBool {
+    [cmdletbinding()]
+    [OutputType([bool])]
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string]$tocompare
+    )
+
+    switch ($tocompare) {
+        On { return $true }
+        Default { return $false }
+    }
+}
 
 # Create the template file
 $xml131619 | Out-File -FilePath (Join-Path $env:LOCALAPPDATA "Exch_13_16_19_Full.xml") -Encoding utf8
