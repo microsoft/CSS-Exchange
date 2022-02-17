@@ -87,10 +87,10 @@ Function global:Set-ExPerfWiz {
         if (!($PSBoundParameters.ContainsKey("Interval"))) { $Interval = $settings.SampleInterval }
 
         # If maxsize is passed set max size
-        if (!($PSBoundParameters.ContainsKey("maxsize"))) { $MaxSize = $settings.MaxSize }
+        if (!($PSBoundParameters.ContainsKey("MaxSize"))) { $MaxSize = $settings.MaxSize }
 
         # If StartTime is passed set the start time
-        if (!($PSBoundParameters.ContainsKey("starttime"))) { $StartTime = (Get-Date ($settings.StartDate + " " + $settings.starttime) -Format 'M/d/yyyy HH:mm:ss').tostring }
+        if (!($PSBoundParameters.ContainsKey("StartTime"))) { $StartTime = (Get-Date ($settings.startdate + " " + $settings.starttime) -Format 'M/d/yyyy HH:mm:ss').tostring() }
         else { $StartTime = (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring() }
     }
 
