@@ -83,7 +83,7 @@ Function global:Set-ExPerfwiz {
 
         # Update the collector
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
-            [string]$logman = logman update -name $Name -s $Server -rf [string]$Duration.TotalSeconds -si $Interval -max $MaxSize
+            [string]$logman = logman update -name $Name -s $Server -rf $Duration.TotalSeconds -si $Interval -max $MaxSize
         }
 
         # Check if we generated and error on update
