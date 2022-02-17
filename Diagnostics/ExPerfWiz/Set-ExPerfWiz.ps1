@@ -79,7 +79,7 @@ Function global:Set-ExPerfwiz {
 
     Process {
 
-        Write-LogSimpleLogFile -string "Updating experfwiz $name on $server"
+        Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPefwiz.log"
 
         # Update the collector
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
@@ -88,10 +88,10 @@ Function global:Set-ExPerfwiz {
 
         # Check if we generated and error on update
         If ($null -eq ($logman | Select-String "Error:")) {
-            Write-LogSimpleLogFile "Update Successful"
+            Write-SimpleLogFile "Update Successful" -Name "ExPefwiz.log"
         } else {
-            Write-LogSimpleLogFile -string "[ERROR] - Problem updating perfwiz:"
-            Write-LogSimpleLogFile -string $logman
+            Write-SimpleLogFile -string "[ERROR] - Problem updating perfwiz:" -Name "ExPefwiz.log"
+            Write-SimpleLogFile -string $logman -Name "ExPefwiz.log"
             Throw $logman
         }
     }
