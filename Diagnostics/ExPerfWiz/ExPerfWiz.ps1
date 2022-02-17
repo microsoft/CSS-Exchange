@@ -19,6 +19,7 @@ Testing Example
 
 #>
 
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\Get-ExPerfWiz.ps1
 . $PSScriptRoot\New-ExPerfWiz.ps1
 . $PSScriptRoot\Remove-ExPerfWiz.ps1
@@ -338,6 +339,10 @@ $xml131619 = @"
 </DataManager>
 </DataCollectorSet>
 "@
+
+# Confirm that we are an administrator
+if (Confirm-Administrator) {}
+else { Write-Error "Please run as Administrator" }
 
 # Create the template file
 $xml131619 | Out-File -FilePath (Join-Path $env:LOCALAPPDATA "Exch_13_16_19_Full.xml") -Encoding utf8
