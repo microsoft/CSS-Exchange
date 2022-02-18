@@ -57,8 +57,12 @@ param (
     $OutputFolder = "C:\SimplePerf\",
 
     [Parameter(ParameterSetName = "Start")]
-    [switch]
-    $IncludeThread,
+    [string[]]
+    $IncludeCounters,
+
+    [Parameter(ParameterSetName = "Start")]
+    [string[]]
+    $ExcludeCounters,
 
     [Parameter(ParameterSetName = "Start")]
     [switch]
@@ -89,10 +93,14 @@ begin {
             $OutputFolder,
 
             [Parameter(Mandatory = $true, Position = 4)]
-            [bool]
-            $IncludeThread,
+            [string[]]
+            $IncludeCounters,
 
             [Parameter(Mandatory = $true, Position = 5)]
+            [string[]]
+            $ExcludeCounters,
+
+            [Parameter(Mandatory = $true, Position = 6)]
             [bool]
             $Circular
         )
@@ -135,11 +143,15 @@ begin {
             "^VM Processor"
         )
 
-        if ($IncludeThread) {
-            $defaultIncludeList += "^Thread"
+        $includeList = $defaultIncludeList
+
+        if ($null -ne $IncludeCounters) {
+            $includeList += $IncludeCounters
         }
 
-        $countersFiltered = $defaultIncludeList | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -match $regexString } }
+        $countersFiltered = $includeList | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -match $regexString } }
+
+        $countersFiltered = $ExcludeCounters | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -notmatch $regexString } }
 
         $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_.CounterSetName + $(if ($_.CounterSetType -eq "MultiInstance") { "(*)" } else { "" }) + "\*") }
 
@@ -189,14 +201,14 @@ end {
     if ($computerTargets.Length -gt 0) {
         foreach ($computer in $computerTargets) {
             if ($Start) {
-                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $Duration, $Interval, $MaximumSizeInMB, $OutputFolder, $IncludeThread, $Circular
+                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $Duration, $Interval, $MaximumSizeInMB, $OutputFolder, $IncludeCounters, $ExcludeCounters, $Circular
             } elseif ($Stop) {
                 Invoke-Command -ComputerName $computer -ScriptBlock ${function:StopSimplePerf}
             }
         }
     } else {
         if ($Start) {
-            StartSimplePerf -Duration $Duration -Interval $Interval -MaximumSizeInMB $MaximumSizeInMB -OutputFolder $OutputFolder -IncludeThread $IncludeThread -Circular $Circular
+            StartSimplePerf -Duration $Duration -Interval $Interval -MaximumSizeInMB $MaximumSizeInMB -OutputFolder $OutputFolder -IncludeCounters $IncludeCounters -ExcludeCounters $ExcludeCounters -Circular $Circular
         } else {
             StopSimplePerf
         }
