@@ -58,11 +58,11 @@ param (
 
     [Parameter(ParameterSetName = "Start")]
     [string[]]
-    $IncludeCounters,
+    $IncludeCounters = @(),
 
     [Parameter(ParameterSetName = "Start")]
     [string[]]
-    $ExcludeCounters,
+    $ExcludeCounters = @(),
 
     [Parameter(ParameterSetName = "Start")]
     [switch]
@@ -93,10 +93,12 @@ begin {
             $OutputFolder,
 
             [Parameter(Mandatory = $true, Position = 4)]
+            [AllowEmptyCollection()]
             [string[]]
             $IncludeCounters,
 
             [Parameter(Mandatory = $true, Position = 5)]
+            [AllowEmptyCollection()]
             [string[]]
             $ExcludeCounters,
 
@@ -116,44 +118,148 @@ begin {
             }
         }
 
-        $counters = (Get-Counter -ListSet * | Sort-Object CounterSetName)
+        $counters = (Get-Counter -ListSet *).Counter | Sort-Object
 
         $defaultIncludeList = @(
-            "^.NET CLR .+",
-            "^APP_POOL_WAS",
-            "^ASP.NET.+",
-            "^HTTP Service Request Queues",
-            "^LogicalDisk",
-            "^Memory",
-            "^MSExchange.+",
-            "^Microsoft Exchange .+",
-            "^Netlogon",
-            "^Network Interface",
-            "^Paging File",
-            "^PhysicalDisk",
-            "^Process",
-            "^RPC/HTTP .+",
-            "^Server",
-            "^System",
-            "^TCPv.",
-            "^W3SVC_W3WP",
-            "^WAS_W3WP",
-            "^Web Service",
-            "^VM Memory",
-            "^VM Processor"
+            "\.NET CLR Exceptions",
+            "\.NET CLR Memory",
+            "\.NET CLR Loading",
+            "\.NET CLR LocksAndThreads(*)\Contention Rate / sec",
+            "\APP_POOL_WAS",
+            "\ASP.NET\",
+            "\ASP.NET Applications",
+            "\ASP.NET Apps v4.0",
+            "\ASP.NET v4.0",
+            "\HTTP Service Request Queues",
+            "\LogicalDisk",
+            "\Memory\",
+            "\MSExchange",
+            "\Microsoft Exchange",
+            "\Netlogon",
+            "\Network Interface",
+            "\Paging File",
+            "\PhysicalDisk",
+            "\Process",
+            "\RPC/HTTP Proxy",
+            "\Server\",
+            "\System\Context Switches/sec",
+            "\System\Processor Queue Length",
+            "\TCPv4",
+            "\TCPv6",
+            "\W3SVC_W3WP",
+            "\WAS_W3WP",
+            "\Web Service",
+            "\VM Memory",
+            "\VM Processor"
         )
 
-        $includeList = $defaultIncludeList
+        $defaultExcludeList = @(
+            "\MSExchange AD Forest Performance",
+            "\MSExchange AD Performance",
+            "\MSExchange AdfsAuth",
+            "\MSExchange CertificateAuthentication",
+            "\MSExchange Cfm Submission",
+            "\MSExchange ConsumerEasAuthentication",
+            "\MSExchange Content Classification",
+            "\MSExchange Database ==> Databases",
+            "\MSExchange Delivery ClientSubmissionAuthInBackendFailures",
+            "\MSExchange Delivery ControlFlow",
+            "\MSExchange Delivery Extensibility Runtimes",
+            "\MSExchange Delivery HttpReceive",
+            "\MSExchange Delivery SmtpErrors",
+            "\MSExchange Delivery SmtpReceivePerformance",
+            "\MSExchange Delivery SmtpResponseCode",
+            "\MSExchange Distributed Store",
+            "\MSExchange DlpPolicyTips",
+            "\MSExchange DxStore Server",
+            "\MSExchange Dynamic Attachment Time-Based Assistant",
+            "\MSExchange FBL",
+            "\MSExchange File Extraction",
+            "\MSExchange GoLocal",
+            "\MSExchange Http ",
+            "\MSExchange Hygiene Scan Engine",
+            "\MSExchange IIS Return Code",
+            "\MSExchange Infoworker Configuration Cache",
+            "\MSExchange Item Assistants",
+            "\MSExchange LAM Event",
+            "\MSExchange Mailbox Load Balancing",
+            "\MSExchange Meeting Series Message Ordering",
+            "\MSExchange MultiMailboxSearch",
+            "\MSExchange Notifications Broker",
+            "\MSExchange Owa Configuration Cache",
+            "\MSExchange Protocol Command Availability",
+            "\MSExchange Realtime Analytics Job",
+            "\MSExchange Routing",
+            "\MSExchange RPC Entry Points",
+            "\MSExchange Shared",
+            "\MSExchange Submission Extensibility Runtimes",
+            "\MSExchange Submission service",
+            "\MSExchange Submission SmtpErrors",
+            "\MSExchange Submission Store Driver Direct Delivery",
+            "\MSExchange Supervisory Review",
+            "\MSExchange Task Distribution",
+            "\MSExchange Unified",
+            "\MSExchange Weve Message",
+            "\MSExchangeCAR",
+            "\MSExchangeDelivery Throttling",
+            "\MSExchangeFrontEndTransport Extensibility Runtimes",
+            "\MSExchangeFrontEndTransport SmtpErrors",
+            "\MSExchangeFrontEndTransport SmtpReceivePerformance",
+            "\MSExchangeFrontEndTransport SmtpResponseCode",
+            "\MSExchangeTransport CatProcessor",
+            "\MSExchangeTransport CFM",
+            "\MSExchangeTransport Configuration\",
+            "\MSExchangeTransport ControlFlow",
+            "\MSExchangeTransport DSApiClient",
+            "\MSExchangeTransport E2E Latency SLA",
+            "\MSExchangeTransport Extensibility Runtimes",
+            "\MSExchangeTransport HTTP",
+            "\MSExchangeTransport MessageDepot",
+            "\MSExchangeTransport Poison Messages",
+            "\MSExchangeTransport Processing Scheduler",
+            "\MSExchangeTransport Queued Recipients By Traffic Type",
+            "\MSExchangeTransport Queues Cfm",
+            "\MSExchangeTransport Replication",
+            "\MSExchangeTransport Request Broker",
+            "\MSExchangeTransport ResourceThrottling",
+            "\MSExchangeTransport SmtpErrors",
+            "\MSExchangeTransport SmtpReceivePerformance",
+            "\MSExchangeTransport SmtpResponseCode",
+            "\MSExchangeTransport Storage RESTAPI"
+        )
 
-        if ($null -ne $IncludeCounters) {
-            $includeList += $IncludeCounters
+        # Include everything from the default list.
+        $countersFiltered = $defaultIncludeList | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } }
+
+        # Apply the default exclusions.
+        $countersFiltered = $countersFiltered | Where-Object {
+            foreach ($excludeString in $defaultExcludeList) {
+                if ($_ -like "*$($excludeString)*") {
+                    return $false
+                }
+            }
+
+            return $true
         }
 
-        $countersFiltered = $includeList | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -match $regexString } }
+        # Now add any user-specified inclusions. This is done after the default exclusions so that the user can override the default exclusions.
+        $countersFiltered += ($IncludeCounters | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } })
 
-        $countersFiltered = $ExcludeCounters | ForEach-Object { $regexString = $_; $counters | Where-Object { $_.CounterSetName -notmatch $regexString } }
+        # Remove duplicates
+        $countersFiltered = $countersFiltered | Select-Object -Unique
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_.CounterSetName + $(if ($_.CounterSetType -eq "MultiInstance") { "(*)" } else { "" }) + "\*") }
+        # Now apply the user-specified exclusions, which override everything else.
+        $countersFiltered = $countersFiltered | Where-Object {
+            foreach ($excludeString in $ExcludeCounters) {
+                if ($_ -like "*$($excludeString)*") {
+                    return $false
+                }
+            }
+
+            return $true
+        }
+
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) }
 
         $counterFile = (Join-Path $env:TEMP "counters.txt")
 
