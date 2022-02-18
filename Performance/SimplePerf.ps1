@@ -232,38 +232,33 @@ begin {
 
         Write-Host "$($env:COMPUTERNAME): Applying filters."
 
-        # Include everything from the default list.
-        $countersFiltered = $defaultIncludeList | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } }
+        $countersFiltered = New-Object 'System.Collections.Generic.HashSet[string]'
 
-        # Apply the default exclusions.
-        $countersFiltered = $countersFiltered | Where-Object {
-            foreach ($excludeString in $defaultExcludeList) {
-                if ($_ -like "*$($excludeString)*") {
-                    return $false
+        # Include everything from the default list.
+        foreach ($counter in $counters) {
+            foreach ($simpleMatchString in $defaultIncludeList) {
+                if ($counter.StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                    [void]$countersFiltered.Add($counter)
                 }
             }
+        }
 
-            return $true
+        # Apply the default exclusions.
+        foreach ($excludeString in $defaultExcludeList) {
+            [void]$countersFiltered.RemoveWhere({ param($c) $c.StartsWith($excludeString, "OrdinalIgnoreCase") })
         }
 
         # Now add any user-specified inclusions. This is done after the default exclusions so that the user can override the default exclusions.
-        $countersFiltered += ($IncludeCounters | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } })
-
-        # Remove duplicates
-        $countersFiltered = $countersFiltered | Select-Object -Unique
-
-        # Now apply the user-specified exclusions, which override everything else.
-        $countersFiltered = $countersFiltered | Where-Object {
-            foreach ($excludeString in $ExcludeCounters) {
-                if ($_ -like "*$($excludeString)*") {
-                    return $false
-                }
-            }
-
-            return $true
+        foreach ($simpleMatchString in $IncludeCounters) {
+            $counters -like "$($simpleMatchString)*" | ForEach-Object { [void]$countersFiltered.Add($_) }
         }
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) }
+        # Now apply the user-specified exclusions, which override everything else.
+        foreach ($excludeString in $ExcludeCounters) {
+            [void]$countersFiltered.RemoveWhere({ param($c) $c.StartsWith($excludeString, "OrdinalIgnoreCase") })
+        }
+
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) } | Sort-Object
 
         $counterFile = (Join-Path $env:TEMP "counters.txt")
 
