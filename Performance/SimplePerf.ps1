@@ -118,6 +118,8 @@ begin {
             }
         }
 
+        Write-Host "$($env:COMPUTERNAME): Getting list of counters."
+
         $counters = (Get-Counter -ListSet *).Counter | Sort-Object
 
         $defaultIncludeList = @(
@@ -227,6 +229,8 @@ begin {
             "\MSExchangeTransport SmtpResponseCode",
             "\MSExchangeTransport Storage RESTAPI"
         )
+
+        Write-Host "$($env:COMPUTERNAME): Applying filters."
 
         # Include everything from the default list.
         $countersFiltered = $defaultIncludeList | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } }
