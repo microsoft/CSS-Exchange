@@ -3,19 +3,26 @@
 
 <#
 .SYNOPSIS
-    Simple performance log collector for Exchange.
+    Simple performance log collector.
 .DESCRIPTION
-    SimplePerf is a performance log collector for Exchange with the primary
-    goal being simplicity. There are very few options and only two valid
-    commands, -Start and -Stop.
+    SimplePerf is a performance log collector with the primary
+    goal being simplicity.
 .EXAMPLE
     PS C:\> .\SimplePerf.ps1 -Start
-    Starts a non-circular data collector that will run for 8 hours, with a
-    5-second interval, and a max file size of 1 GB, saving the logs to C:\SimplePerf.
+    Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 8 hours, has a
+    5-second interval, has a max file size of 1 GB, and saves the logs to C:\SimplePerf.
+.EXAMPLE
+    PS C:\> .\SimplePerf.ps1 -Start -IncludeCounters "\Thread"
+    Starts a collector using Exchange counter defaults plus all \Thread counters. The collector is non-circular,
+    will run for 8 hours, has a 5-second interval, has a max file size of 1 GB, and saves the logs to C:\SimplePerf.
 .EXAMPLE
     PS C:\> .\SimplePerf.sp1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputPath C:\PerfLogs
-    Starts a non-circular data collector that will run for 2 hours, with a
-    30-second interval, a max file size of 512 MB, saving the logs to C:\PerfLogs.
+    Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
+    30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
+.EXAMPLE
+    PS C:\> .\SimplePerf.sp1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputPath C:\PerfLogs
+    Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
+    30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
 .EXAMPLE
     PS C:\> .\SimplePerf.ps1 -Stop
     Stops a running SimplePerf.
