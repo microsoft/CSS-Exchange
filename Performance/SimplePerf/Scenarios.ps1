@@ -1,4 +1,7 @@
-﻿function GetScenarioDefaults {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function GetScenarioDefaults {
     [CmdletBinding()]
     param (
         [Parameter(ParameterSetName = "Include")]
