@@ -124,10 +124,7 @@ begin {
             "\.NET CLR Loading",
             "\.NET CLR LocksAndThreads(*)\Contention Rate / sec",
             "\APP_POOL_WAS",
-            "\ASP.NET\",
-            "\ASP.NET Applications",
-            "\ASP.NET Apps v4.0",
-            "\ASP.NET v4.0",
+            "\ASP.NET",
             "\HTTP Service Request Queues",
             "\LogicalDisk",
             "\Memory\",
@@ -152,6 +149,7 @@ begin {
         )
 
         [string[]]$defaultExcludeList = @(
+            "\ASP.NET State Service",
             "\MSExchange AD Forest Performance",
             "\MSExchange AD Performance",
             "\MSExchange AdfsAuth",
