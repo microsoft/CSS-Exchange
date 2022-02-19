@@ -118,11 +118,7 @@ begin {
             }
         }
 
-        Write-Host "$($env:COMPUTERNAME): Getting list of counters."
-
-        $counters = (Get-Counter -ListSet *).Counter | Sort-Object
-
-        $defaultIncludeList = @(
+        [string[]]$defaultIncludeList = @(
             "\.NET CLR Exceptions",
             "\.NET CLR Memory",
             "\.NET CLR Loading",
@@ -155,7 +151,7 @@ begin {
             "\VM Processor"
         )
 
-        $defaultExcludeList = @(
+        [string[]]$defaultExcludeList = @(
             "\MSExchange AD Forest Performance",
             "\MSExchange AD Performance",
             "\MSExchange AdfsAuth",
@@ -230,9 +226,54 @@ begin {
             "\MSExchangeTransport Storage RESTAPI"
         )
 
+        Write-Host "$($env:COMPUTERNAME): Getting list of counters."
+
+        $counters = New-Object 'System.Collections.Generic.List[string]'
+        $counters.AddRange([string[]](Get-Counter -ListSet *).Counter)
+
         Write-Host "$($env:COMPUTERNAME): Applying filters."
 
+        # METHOD 1
+        $sw = New-Object System.Diagnostics.Stopwatch
+        $sw.Start()
+
+        # Include everything from the default list.
+        $countersFiltered = $defaultIncludeList | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } }
+
+        # Apply the default exclusions.
+        $countersFiltered = $countersFiltered | Where-Object {
+            foreach ($excludeString in $defaultExcludeList) {
+                if ($_ -like "*$($excludeString)*") {
+                    return $false
+                }
+            }
+
+            return $true
+        }
+
+        # Now add any user-specified inclusions. This is done after the default exclusions so that the user can override the default exclusions.
+        $countersFiltered += ($IncludeCounters | ForEach-Object { $simpleMatchString = $_; $counters | Where-Object { $_ -like "*$($simpleMatchString)*" } })
+
+        # Remove duplicates
+        $countersFiltered = $countersFiltered | Select-Object -Unique
+
+        # Now apply the user-specified exclusions, which override everything else.
+        $countersFiltered = $countersFiltered | Where-Object {
+            foreach ($excludeString in $ExcludeCounters) {
+                if ($_ -like "*$($excludeString)*") {
+                    return $false
+                }
+            }
+
+            return $true
+        }
+
+        $sw.Stop()
+        Write-Host "Method 1: $($sw.ElapsedMilliseconds) Filter result: $($countersFiltered.Count)"
+
+        # METHOD 2
         $countersFiltered = New-Object 'System.Collections.Generic.HashSet[string]'
+        $sw.Restart()
 
         # Include everything from the default list.
         foreach ($counter in $counters) {
@@ -258,7 +299,71 @@ begin {
             [void]$countersFiltered.RemoveWhere({ param($c) $c.StartsWith($excludeString, "OrdinalIgnoreCase") })
         }
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) } | Sort-Object
+        $sw.Stop()
+        Write-Host "Method 2: $($sw.ElapsedMilliseconds) Filter result: $($countersFiltered.Count)"
+
+        ##########################################
+        # METHOD 3
+        $countersFiltered = New-Object 'System.Collections.Generic.HashSet[string]'
+        $sw.Restart()
+
+        for ($i = 0; $i -lt $counters.Count; $i++) {
+            $userExclude = $false
+            foreach ($simpleMatchString in $ExcludeCounters) {
+                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                    $userExclude = $true
+                    break
+                }
+            }
+
+            if ($userExclude) {
+                continue
+            }
+
+            $userInclude = $false
+            foreach ($simpleMatchString in $IncludeCounters) {
+                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                    $userInclude = $true
+                    break
+                }
+            }
+
+            if ($userInclude) {
+                [void]$countersFiltered.Add($counters[$i])
+            }
+
+            $defaultExclude = $false
+            foreach ($simpleMatchString in $defaultExcludeList) {
+                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                    $defaultExclude = $true
+                    break
+                }
+            }
+
+            if ($defaultExclude) {
+                continue
+            }
+
+            $defaultInclude = $false
+            foreach ($simpleMatchString in $defaultIncludeList) {
+                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                    $defaultInclude = $true
+                    break
+                }
+            }
+
+            if ($defaultInclude) {
+                [void]$countersFiltered.Add($counters[$i])
+            }
+        }
+
+        $sw.Stop()
+        Write-Host "Method 3: $($sw.ElapsedMilliseconds) Filter result: $($countersFiltered.Count)"
+        #########################################################
+
+        return
+
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) }
 
         $counterFile = (Join-Path $env:TEMP "counters.txt")
 
