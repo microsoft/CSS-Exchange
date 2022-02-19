@@ -57,6 +57,11 @@ param (
     $OutputFolder = "C:\SimplePerf\",
 
     [Parameter(ParameterSetName = "Start")]
+    [ValidateSet("None", "Exchange")]
+    [string]
+    $Scenario = "Exchange",
+
+    [Parameter(ParameterSetName = "Start")]
     [string[]]
     $IncludeCounters = @(),
 
@@ -74,6 +79,8 @@ param (
 )
 
 begin {
+    . $PSScriptRoot\Scenarios.ps1
+
     function StartSimplePerf {
         param (
             [Parameter(Mandatory = $true, Position = 0)]
@@ -95,14 +102,24 @@ begin {
             [Parameter(Mandatory = $true, Position = 4)]
             [AllowEmptyCollection()]
             [string[]]
-            $IncludeCounters,
+            $ScenarioIncludeList,
 
             [Parameter(Mandatory = $true, Position = 5)]
             [AllowEmptyCollection()]
             [string[]]
-            $ExcludeCounters,
+            $ScenarioExcludeList,
 
             [Parameter(Mandatory = $true, Position = 6)]
+            [AllowEmptyCollection()]
+            [string[]]
+            $IncludeCounters,
+
+            [Parameter(Mandatory = $true, Position = 7)]
+            [AllowEmptyCollection()]
+            [string[]]
+            $ExcludeCounters,
+
+            [Parameter(Mandatory = $true, Position = 8)]
             [bool]
             $Circular
         )
@@ -117,112 +134,6 @@ begin {
                 logman delete "SimplePerf"
             }
         }
-
-        [string[]]$defaultIncludeList = @(
-            "\.NET CLR Exceptions",
-            "\.NET CLR Memory",
-            "\.NET CLR Loading",
-            "\.NET CLR LocksAndThreads(*)\Contention Rate / sec",
-            "\APP_POOL_WAS",
-            "\ASP.NET",
-            "\HTTP Service Request Queues",
-            "\LogicalDisk",
-            "\Memory\",
-            "\MSExchange",
-            "\Microsoft Exchange",
-            "\Netlogon",
-            "\Network Interface",
-            "\Paging File",
-            "\PhysicalDisk",
-            "\Process",
-            "\RPC/HTTP Proxy",
-            "\Server\",
-            "\System\Context Switches/sec",
-            "\System\Processor Queue Length",
-            "\TCPv4",
-            "\TCPv6",
-            "\W3SVC_W3WP",
-            "\WAS_W3WP",
-            "\Web Service",
-            "\VM Memory",
-            "\VM Processor"
-        )
-
-        [string[]]$defaultExcludeList = @(
-            "\ASP.NET State Service",
-            "\MSExchange AD Forest Performance",
-            "\MSExchange AD Performance",
-            "\MSExchange AdfsAuth",
-            "\MSExchange CertificateAuthentication",
-            "\MSExchange Cfm Submission",
-            "\MSExchange ConsumerEasAuthentication",
-            "\MSExchange Content Classification",
-            "\MSExchange Database ==> Databases",
-            "\MSExchange Delivery ClientSubmissionAuthInBackendFailures",
-            "\MSExchange Delivery ControlFlow",
-            "\MSExchange Delivery Extensibility Runtimes",
-            "\MSExchange Delivery HttpReceive",
-            "\MSExchange Delivery SmtpErrors",
-            "\MSExchange Delivery SmtpReceivePerformance",
-            "\MSExchange Delivery SmtpResponseCode",
-            "\MSExchange Distributed Store",
-            "\MSExchange DlpPolicyTips",
-            "\MSExchange DxStore Server",
-            "\MSExchange Dynamic Attachment Time-Based Assistant",
-            "\MSExchange FBL",
-            "\MSExchange File Extraction",
-            "\MSExchange GoLocal",
-            "\MSExchange Http ",
-            "\MSExchange Hygiene Scan Engine",
-            "\MSExchange IIS Return Code",
-            "\MSExchange Infoworker Configuration Cache",
-            "\MSExchange Item Assistants",
-            "\MSExchange LAM Event",
-            "\MSExchange Mailbox Load Balancing",
-            "\MSExchange Meeting Series Message Ordering",
-            "\MSExchange MultiMailboxSearch",
-            "\MSExchange Notifications Broker",
-            "\MSExchange Owa Configuration Cache",
-            "\MSExchange Protocol Command Availability",
-            "\MSExchange Realtime Analytics Job",
-            "\MSExchange Routing",
-            "\MSExchange RPC Entry Points",
-            "\MSExchange Shared",
-            "\MSExchange Submission Extensibility Runtimes",
-            "\MSExchange Submission service",
-            "\MSExchange Submission SmtpErrors",
-            "\MSExchange Submission Store Driver Direct Delivery",
-            "\MSExchange Supervisory Review",
-            "\MSExchange Task Distribution",
-            "\MSExchange Unified",
-            "\MSExchange Weve Message",
-            "\MSExchangeCAR",
-            "\MSExchangeDelivery Throttling",
-            "\MSExchangeFrontEndTransport Extensibility Runtimes",
-            "\MSExchangeFrontEndTransport SmtpErrors",
-            "\MSExchangeFrontEndTransport SmtpReceivePerformance",
-            "\MSExchangeFrontEndTransport SmtpResponseCode",
-            "\MSExchangeTransport CatProcessor",
-            "\MSExchangeTransport CFM",
-            "\MSExchangeTransport Configuration\",
-            "\MSExchangeTransport ControlFlow",
-            "\MSExchangeTransport DSApiClient",
-            "\MSExchangeTransport E2E Latency SLA",
-            "\MSExchangeTransport Extensibility Runtimes",
-            "\MSExchangeTransport HTTP",
-            "\MSExchangeTransport MessageDepot",
-            "\MSExchangeTransport Poison Messages",
-            "\MSExchangeTransport Processing Scheduler",
-            "\MSExchangeTransport Queued Recipients By Traffic Type",
-            "\MSExchangeTransport Queues Cfm",
-            "\MSExchangeTransport Replication",
-            "\MSExchangeTransport Request Broker",
-            "\MSExchangeTransport ResourceThrottling",
-            "\MSExchangeTransport SmtpErrors",
-            "\MSExchangeTransport SmtpReceivePerformance",
-            "\MSExchangeTransport SmtpResponseCode",
-            "\MSExchangeTransport Storage RESTAPI"
-        )
 
         Write-Host "$($env:COMPUTERNAME): Getting list of counters."
 
@@ -262,7 +173,7 @@ begin {
                 }
 
                 $defaultExclude = $false
-                foreach ($simpleMatchString in $defaultExcludeList) {
+                foreach ($simpleMatchString in $ScenarioExcludeList) {
                     if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
                         $defaultExclude = $true
                         break
@@ -274,7 +185,7 @@ begin {
                 }
 
                 $defaultInclude = $false
-                foreach ($simpleMatchString in $defaultIncludeList) {
+                foreach ($simpleMatchString in $ScenarioIncludeList) {
                     if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
                         $defaultInclude = $true
                         break
@@ -342,17 +253,29 @@ end {
         return
     }
 
+    $argumentList = @(
+        $Duration,
+        $Interval,
+        $MaximumSizeInMB,
+        $OutputFolder,
+        $(if ($null -ne $Scenario -and $Scenario -ne "None") { GetScenarioDefaults -Scenario $Scenario -Include } else { @() }),
+        $(if ($null -ne $Scenario -and $Scenario -ne "None") { GetScenarioDefaults -Scenario $Scenario -Exclude } else { @() }),
+        $IncludeCounters,
+        $ExcludeCounters,
+        $Circular
+    )
+
     if ($computerTargets.Length -gt 0) {
         foreach ($computer in $computerTargets) {
             if ($Start) {
-                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $Duration, $Interval, $MaximumSizeInMB, $OutputFolder, $IncludeCounters, $ExcludeCounters, $Circular
+                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $argumentList
             } elseif ($Stop) {
                 Invoke-Command -ComputerName $computer -ScriptBlock ${function:StopSimplePerf}
             }
         }
     } else {
         if ($Start) {
-            StartSimplePerf -Duration $Duration -Interval $Interval -MaximumSizeInMB $MaximumSizeInMB -OutputFolder $OutputFolder -IncludeCounters $IncludeCounters -ExcludeCounters $ExcludeCounters -Circular $Circular
+            StartSimplePerf @argumentList
         } else {
             StopSimplePerf
         }
