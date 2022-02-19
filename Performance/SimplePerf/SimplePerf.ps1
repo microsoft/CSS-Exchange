@@ -75,7 +75,12 @@ param (
 
     [Parameter(ParameterSetName = "Stop")]
     [switch]
-    $Stop
+    $Stop,
+
+    [Parameter(ParameterSetName = "Start", ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "Stop", ValueFromPipeline = $true)]
+    [string]
+    $CollectorName = ""
 )
 
 begin {
@@ -121,17 +126,22 @@ begin {
 
             [Parameter(Mandatory = $true, Position = 8)]
             [bool]
-            $Circular
+            $Circular,
+
+            [Parameter(Mandatory = $true, Position = 9)]
+            [AllowEmptyString()]
+            [string]
+            $CollectorName
         )
 
-        $statusMatch = logman | Select-String "SimplePerf.*(Running|Stopped)"
+        $statusMatch = logman | Select-String "SimplePerf$($CollectorName)\s+Counter\s+(Running|Stopped)"
         if ($null -ne $statusMatch) {
             if ($statusMatch.Matches.Groups[1].Value -eq "Running") {
-                Write-Host "$($env:COMPUTERNAME): SimplePerf is already running."
+                Write-Host "$($env:COMPUTERNAME): SimplePerf$($CollectorName) is already running."
                 return
             } else {
-                Write-Host "$($env:COMPUTERNAME): Removing existing SimplePerf collector."
-                logman delete "SimplePerf"
+                Write-Host "$($env:COMPUTERNAME): Removing existing SimplePerf$($CollectorName) collector."
+                logman delete "SimplePerf$($CollectorName)"
             }
         }
 
@@ -215,32 +225,32 @@ begin {
 
         $counterFullNames | ForEach-Object { Write-Verbose $_ }
 
-        $counterFile = (Join-Path $env:TEMP "counters.txt")
+        $counterFile = (Join-Path $env:TEMP "SimplePerf$($CollectorName)-counters.txt")
 
         $counterFullNames | Out-File $counterFile
 
         $OutputFolder = Join-Path $OutputFolder ([DateTime]::Now.ToString("yyMMddhhmmss"))
 
-        Write-Host "$($env:COMPUTERNAME): Creating SimplePerf collector, writing to $OutputFolder."
+        Write-Host "$($env:COMPUTERNAME): Creating SimplePerf$($CollectorName) collector, writing to $OutputFolder."
 
         [IO.Directory]::CreateDirectory($OutputFolder) | Out-Null
 
-        $OutputFile = "SimplePerf-" + $env:COMPUTERNAME + ".blg"
+        $OutputFile = "SimplePerf$($CollectorName)-" + $env:COMPUTERNAME + ".blg"
 
         if ($Circular) {
-            logman create counter -n "SimplePerf" -cf $counterFile -rf $Duration -si $Interval -max $MaximumSizeInMB -o (Join-Path $OutputFolder $OutputFile) -f bincirc
+            logman create counter -n "SimplePerf$($CollectorName)" -cf $counterFile -rf $Duration -si $Interval -max $MaximumSizeInMB -o (Join-Path $OutputFolder $OutputFile) -f bincirc
         } else {
-            logman create counter -n "SimplePerf" -cf $counterFile -rf $Duration -si $Interval -max $MaximumSizeInMB -o (Join-Path $OutputFolder $OutputFile) -f bin -cnf 0
+            logman create counter -n "SimplePerf$($CollectorName)" -cf $counterFile -rf $Duration -si $Interval -max $MaximumSizeInMB -o (Join-Path $OutputFolder $OutputFile) -f bin -cnf 0
         }
 
-        Write-Host "$($env:COMPUTERNAME): Starting SimplePerf collector."
+        Write-Host "$($env:COMPUTERNAME): Starting SimplePerf$($CollectorName) collector."
 
-        logman start "SimplePerf"
+        logman start "SimplePerf$($CollectorName)"
     }
 
     function StopSimplePerf {
-        Write-Host "$($env:COMPUTERNAME): Stopping SimplePerf."
-        logman stop "SimplePerf"
+        Write-Host "$($env:COMPUTERNAME): Stopping SimplePerf$($CollectorName)."
+        logman stop "SimplePerf$($CollectorName)"
     }
 
     $computerTargets = New-Object System.Collections.ArrayList
@@ -272,7 +282,8 @@ end {
         @(GetScenarioDefaults -Scenario $Scenario -Exclude),
         $IncludeCounters,
         $ExcludeCounters,
-        $Circular
+        $Circular,
+        $CollectorName
     )
 
     if ($computerTargets.Length -gt 0) {
