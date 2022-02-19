@@ -19,8 +19,8 @@
     begin {
         $scenarios = @{
             None     = @{
-                Include = New-Object string[] 0
-                Exclude = New-Object string[] 0
+                Include = @()
+                Exclude = @()
             }
 
             Exchange = @{
