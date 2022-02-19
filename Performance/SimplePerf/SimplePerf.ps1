@@ -229,7 +229,7 @@ begin {
 
         $counterFullNames | Out-File $counterFile
 
-        $OutputFolder = Join-Path $OutputFolder ([DateTime]::Now.ToString("yyMMddhhmmss"))
+        $OutputFolder = Join-Path $OutputFolder ("$($CollectorName)$([DateTime]::Now.ToString("yyMMddhhmmss"))")
 
         Write-Host "$($env:COMPUTERNAME): Creating SimplePerf$($CollectorName) collector, writing to $OutputFolder."
 
