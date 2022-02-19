@@ -3,7 +3,7 @@
     param (
         [Parameter(ParameterSetName = "Include")]
         [Parameter(ParameterSetName = "Exclude")]
-        [ValidateSet("Exchange")]
+        [ValidateSet("None", "Exchange")]
         [string]
         $Scenario,
 
@@ -18,6 +18,11 @@
 
     begin {
         $scenarios = @{
+            None     = @{
+                Include = New-Object string[] 0
+                Exclude = New-Object string[] 0
+            }
+
             Exchange = @{
                 Include = @(
                     "\.NET CLR Exceptions",

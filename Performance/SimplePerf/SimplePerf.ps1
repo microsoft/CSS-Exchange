@@ -206,6 +206,11 @@ begin {
             }
         }
 
+        if ($countersFiltered.Count -lt 1) {
+            Write-Host "Filters resulted in 0 counters to collect."
+            return
+        }
+
         $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost" + $_) }
 
         $counterFullNames | ForEach-Object { Write-Verbose $_ }
@@ -253,13 +258,18 @@ end {
         return
     }
 
+    if ($Scenario -eq "None" -and $IncludeCounters.Count -eq 0) {
+        Write-Host "-IncludeCounters is required when Scenario is None."
+        return
+    }
+
     $argumentList = @(
         $Duration,
         $Interval,
         $MaximumSizeInMB,
         $OutputFolder,
-        $(if ($null -ne $Scenario -and $Scenario -ne "None") { GetScenarioDefaults -Scenario $Scenario -Include } else { @() }),
-        $(if ($null -ne $Scenario -and $Scenario -ne "None") { GetScenarioDefaults -Scenario $Scenario -Exclude } else { @() }),
+        @(GetScenarioDefaults -Scenario $Scenario -Include),
+        @(GetScenarioDefaults -Scenario $Scenario -Exclude),
         $IncludeCounters,
         $ExcludeCounters,
         $Circular
