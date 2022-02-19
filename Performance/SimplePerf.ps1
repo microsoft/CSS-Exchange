@@ -226,63 +226,78 @@ begin {
 
         Write-Host "$($env:COMPUTERNAME): Getting list of counters."
 
-        $counters = (Get-Counter -ListSet *).Counter
+        $counterSets = Get-Counter -ListSet * | Sort-Object CounterSetName
 
         Write-Host "$($env:COMPUTERNAME): Applying filters."
 
         $countersFiltered = New-Object 'System.Collections.Generic.HashSet[string]'
 
-        for ($i = 0; $i -lt $counters.Count; $i++) {
-            $userExclude = $false
-            foreach ($simpleMatchString in $ExcludeCounters) {
-                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
-                    $userExclude = $true
-                    break
+        foreach ($set in $counterSets) {
+            $counters = $set.Counter
+            $matchingCounters = New-Object 'System.Collections.Generic.HashSet[string]'
+
+            for ($i = 0; $i -lt $counters.Count; $i++) {
+                $userExclude = $false
+                foreach ($simpleMatchString in $ExcludeCounters) {
+                    if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                        $userExclude = $true
+                        break
+                    }
+                }
+
+                if ($userExclude) {
+                    continue
+                }
+
+                $userInclude = $false
+                foreach ($simpleMatchString in $IncludeCounters) {
+                    if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                        $userInclude = $true
+                        break
+                    }
+                }
+
+                if ($userInclude) {
+                    [void]$matchingCounters.Add($counters[$i])
+                }
+
+                $defaultExclude = $false
+                foreach ($simpleMatchString in $defaultExcludeList) {
+                    if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                        $defaultExclude = $true
+                        break
+                    }
+                }
+
+                if ($defaultExclude) {
+                    continue
+                }
+
+                $defaultInclude = $false
+                foreach ($simpleMatchString in $defaultIncludeList) {
+                    if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
+                        $defaultInclude = $true
+                        break
+                    }
+                }
+
+                if ($defaultInclude) {
+                    [void]$matchingCounters.Add($counters[$i])
                 }
             }
 
-            if ($userExclude) {
-                continue
-            }
-
-            $userInclude = $false
-            foreach ($simpleMatchString in $IncludeCounters) {
-                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
-                    $userInclude = $true
-                    break
+            if ($matchingCounters.Count -gt 0) {
+                if ($matchingCounters.Count -eq $set.Counter.Count) {
+                    [void]$countersFiltered.Add("\" + $set.CounterSetName + $(if ($set.CounterSetType -eq "MultiInstance") { "(*)" } else { "" }) + "\*")
+                } else {
+                    $countersFiltered.UnionWith($matchingCounters)
                 }
-            }
-
-            if ($userInclude) {
-                [void]$countersFiltered.Add($counters[$i])
-            }
-
-            $defaultExclude = $false
-            foreach ($simpleMatchString in $defaultExcludeList) {
-                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
-                    $defaultExclude = $true
-                    break
-                }
-            }
-
-            if ($defaultExclude) {
-                continue
-            }
-
-            $defaultInclude = $false
-            foreach ($simpleMatchString in $defaultIncludeList) {
-                if ($counters[$i].StartsWith($simpleMatchString, "OrdinalIgnoreCase")) {
-                    $defaultInclude = $true
-                    break
-                }
-            }
-
-            if ($defaultInclude) {
-                [void]$countersFiltered.Add($counters[$i])
             }
         }
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost\" + $_) }
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost" + $_) }
+
+        $counterFullNames | ForEach-Object { Write-Verbose $_ }
 
         $counterFile = (Join-Path $env:TEMP "counters.txt")
 
