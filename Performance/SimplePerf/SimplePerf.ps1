@@ -93,6 +93,8 @@ param (
 begin {
     . $PSScriptRoot\Scenarios.ps1
 
+    . $PSScriptRoot\GetCountersWithTranslations.ps1
+
     function StartSimplePerf {
         param (
             [Parameter(Mandatory = $true, Position = 0)]
@@ -154,14 +156,14 @@ begin {
 
         Write-Host "$($env:COMPUTERNAME): Getting list of counters."
 
-        $counterSets = Get-Counter -ListSet * | Sort-Object CounterSetName
+        $counterSets = GetCountersWithTranslations
 
         Write-Host "$($env:COMPUTERNAME): Applying filters."
 
         $countersFiltered = New-Object 'System.Collections.Generic.HashSet[string]'
 
         foreach ($set in $counterSets) {
-            $counters = $set.Counter
+            $counters = $set.CounterEnglish
             $matchingCounters = New-Object 'System.Collections.Generic.HashSet[string]'
 
             for ($i = 0; $i -lt $counters.Count; $i++) {
@@ -186,7 +188,7 @@ begin {
                 }
 
                 if ($userInclude) {
-                    [void]$matchingCounters.Add($counters[$i])
+                    [void]$matchingCounters.Add($set.Counter[$i])
                 }
 
                 $defaultExclude = $false
@@ -210,7 +212,7 @@ begin {
                 }
 
                 if ($defaultInclude) {
-                    [void]$matchingCounters.Add($counters[$i])
+                    [void]$matchingCounters.Add($set.Counter[$i])
                 }
             }
 
