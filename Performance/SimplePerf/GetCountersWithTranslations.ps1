@@ -1,4 +1,7 @@
-﻿<#
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
 .SYNOPSIS
     Returns the same objects as Get-Counter -ListSet *, but with two additional members.
     CounterSetEnglishName is the en-US name of the CounterSet.
