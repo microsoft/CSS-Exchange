@@ -50,7 +50,23 @@ Starts a SimplePerf with the default options on the three named servers.
 ```
 Stops a running SimplePerf on the three named servers.
 
-## Advanced Usage
+## Using Named Collectors
+
+It is possible to run several SimplePerf collectors on the same computer at the same time by providing the **-CollectorName** parameter. For example:
+
+```powershell
+.\SimplePerf -Start -Interval 60 -CollectorName "Minute"
+.\SimplePerf -Start -Interval 5 -CollectorName "FiveSeconds"
+```
+
+When using collector names, the same name must be provided to the **-Stop** command:
+
+```powershell
+.\SimplePerf -Stop -CollectorName "Minute"
+.\SimplePerf -Stop -CollectorName "FiveSeconds"
+```
+
+## Counter Name Filters
 
 The counters collected by SimplePerf can be controlled with a combination of three parameters: **-Scenario**, **-IncludeCounters**, and **-ExcludeCounters**.
 
@@ -87,3 +103,11 @@ However, if we tell it to Include "\Thread" but exclude "\Thread(*)\Priority", w
 This filtering mechanism makes it easy to customize the counter set with minimal text. To check the result of your counter filters, add the **-Verbose** switch, or check the counters txt file in $env:TEMP.
 
 Note that the resulting set can only show counters that exist on the local machine. For instance, you won't see any Exchange counters in the Verbose output if the script is not running on an Exchange Server.
+
+## Language Support
+
+SimplePerf works regardless of the current language. It does this by translating the provided counter filters to whatever the current server language happens to be. This means that counter names must always be provided in English, even when the current language is not English.
+
+For example, here is the same command from the earlier example running on a server where Spanish is the current language:
+
+![Verbose SimplePerf Screenshot](SimplePerf4.png)
