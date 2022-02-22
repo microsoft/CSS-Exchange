@@ -269,6 +269,12 @@ begin {
     }
 
     function StopSimplePerf {
+        [CmdletBinding()]
+        param (
+            [Parameter(Position = 0)]
+            [string]
+            $CollectorName = ""
+        )
         Write-Host "$($env:COMPUTERNAME): Stopping SimplePerf$($CollectorName)."
         logman stop "SimplePerf$($CollectorName)"
     }
@@ -312,14 +318,14 @@ end {
             if ($Start) {
                 Invoke-Command -ComputerName $computer -ScriptBlock ${function:StartSimplePerf} -ArgumentList $argumentList
             } elseif ($Stop) {
-                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StopSimplePerf}
+                Invoke-Command -ComputerName $computer -ScriptBlock ${function:StopSimplePerf} -ArgumentList $CollectorName
             }
         }
     } else {
         if ($Start) {
             StartSimplePerf @argumentList
         } else {
-            StopSimplePerf
+            StopSimplePerf -CollectorName $CollectorName
         }
     }
 }
