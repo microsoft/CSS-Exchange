@@ -93,8 +93,6 @@ param (
 begin {
     . $PSScriptRoot\Scenarios.ps1
 
-    . $PSScriptRoot\GetCountersWithTranslations.ps1
-
     function StartSimplePerf {
         param (
             [Parameter(Mandatory = $true, Position = 0)]
@@ -142,6 +140,8 @@ begin {
             [string]
             $CollectorName
         )
+
+        . $PSScriptRoot\GetCountersWithTranslations.ps1
 
         $dcsc = New-Object -ComObject Pla.DataCollectorSetCollection
         $dcsc.GetDataCollectorSets($null, $null)
