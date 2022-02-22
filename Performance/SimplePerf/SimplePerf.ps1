@@ -143,15 +143,19 @@ begin {
             $CollectorName
         )
 
-        $statusMatch = logman | Select-String "SimplePerf$($CollectorName)\s+Counter\s+(Running|Stopped)"
-        if ($null -ne $statusMatch) {
-            if ($statusMatch.Matches.Groups[1].Value -eq "Running") {
+        $dcsc = New-Object -ComObject Pla.DataCollectorSetCollection
+        $dcsc.GetDataCollectorSets($null, $null)
+        $existingSimplePerf = $dcsc | Where-Object { $_.name -eq "SimplePerf$($CollectorName)" }
+        if ($null -ne $existingSimplePerf) {
+            if ($existingSimplePerf.Status -eq 1) {
                 Write-Host "$($env:COMPUTERNAME): SimplePerf$($CollectorName) is already running."
                 return
             } else {
                 Write-Host "$($env:COMPUTERNAME): Removing existing SimplePerf$($CollectorName) collector."
-                logman delete "SimplePerf$($CollectorName)"
+                $existingSimplePerf.Delete()
             }
+
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($dcsc) | Out-Null
         }
 
         Write-Host "$($env:COMPUTERNAME): Getting list of counters."
