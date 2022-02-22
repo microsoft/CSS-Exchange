@@ -138,7 +138,11 @@ begin {
             [Parameter(Mandatory = $true, Position = 9)]
             [AllowEmptyString()]
             [string]
-            $CollectorName
+            $CollectorName,
+
+            [Parameter(Mandatory = $true, Position = 10)]
+            [bool]
+            $DisplayFilterResults
         )
 
         . $PSScriptRoot\GetCountersWithTranslations.ps1
@@ -236,7 +240,10 @@ begin {
 
         $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost" + $_) }
 
-        $counterFullNames | ForEach-Object { Write-Verbose $_ }
+        if ($DisplayFilterResults) {
+            Write-Host "$($env:COMPUTERNAME): The following counters matched the specified filters:"
+            $counterFullNames | ForEach-Object { Write-Host "$($env:COMPUTERNAME): $_" }
+        }
 
         $counterFile = (Join-Path $env:TEMP "SimplePerf$($CollectorName)-counters.txt")
 
@@ -296,7 +303,8 @@ end {
         $IncludeCounters,
         $ExcludeCounters,
         $Circular,
-        $CollectorName
+        $CollectorName,
+        $($VerbosePreference -ne 'SilentlyContinue')
     )
 
     if ($computerTargets.Length -gt 0) {
