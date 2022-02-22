@@ -162,3 +162,9 @@ if (Test-Path $outputPath) {
     Write-Host
     Write-Host "The collector can also be started and stopped from Perfmon."
 }
+
+if ($MyInvocation.InvocationName -eq "&") {
+    # This was most likely run with right-click on the script.
+    # Pause so the user can read the output.
+    Read-Host "Hit Enter to exit"
+}
