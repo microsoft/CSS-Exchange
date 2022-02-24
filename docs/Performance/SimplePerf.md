@@ -19,13 +19,13 @@ Starts a collector using Exchange counter defaults plus all \Thread counters. Th
 will run for 8 hours, has a 5-second interval, has a max file size of 1 GB, and saves the logs to C:\SimplePerf.
 
 ```powershell
-.\SimplePerf.sp1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputPath C:\PerfLogs
+.\SimplePerf.ps1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputFolder C:\PerfLogs
 ```
 Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
 30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
 
 ```powershell
-.\SimplePerf.sp1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputPath C:\PerfLogs
+.\SimplePerf.ps1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputFolder C:\PerfLogs
 ```
 Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
 30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
