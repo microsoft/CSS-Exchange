@@ -76,7 +76,7 @@ steps:
 - pwsh: |
     cd .\.build
     .\BuildScriptVersions.ps1
-  displayName: "Build final ScriptVersions.txt file containing file hashes"
+  displayName: "Build ScriptVersions.txt"
 
 - pwsh: |
     Get-Content dist\ScriptVersions.txt
