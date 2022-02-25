@@ -128,16 +128,6 @@ $scriptFiles | ForEach-Object {
     }
 }
 
-# Generate version text for release description
-
-$versionFile = "$distFolder\ScriptVersions.txt"
-New-Item -Path $versionFile -ItemType File | Out-Null
-"Script | Version" | Out-File $versionFile -Append
-"-------|--------" | Out-File $versionFile -Append
-foreach ($script in $scriptVersions) {
-    "$($script.File) | $($script.Version)" | Out-File $versionFile -Append
-}
-
 # Generate version CSV for script version checks
 
 $scriptVersions | Export-Csv -Path "$distFolder\ScriptVersions.csv" -NoTypeInformation
