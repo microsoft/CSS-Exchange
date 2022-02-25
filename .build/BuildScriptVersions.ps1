@@ -27,7 +27,7 @@ if (Test-Path -Path $scriptVersionsCsv) {
         Write-Host ("File: '{0}' Version: '{1}' Hash: '{2}' added" -f $script.File, $script.Version, $sha256Hash)
     }
 
-    $versionsFileCSV | Export-Csv -Path $scriptVersionsCsv
+    $versionsFileCSV | Export-Csv -Path $scriptVersionsCsv -NoTypeInformation
 } else {
     # Skip re-creation if ScriptVersions.csv doesn't exist
     Write-Host ("File: '{0}' not found. Skipping 'ScriptVersions.txt' re-creation" -f $scriptVersionsCsv)
