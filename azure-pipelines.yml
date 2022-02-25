@@ -84,6 +84,11 @@ steps:
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
 
+- pwsh: |
+    cd .\.build
+    .\BuildScriptVersions.ps1
+  displayName: "Build final ScriptVersions.txt file containing file hashes"
+
 - task: GitHubRelease@0
   displayName: 'Create GitHub Release - Draft'
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
