@@ -116,7 +116,7 @@ DaysWorth | The number of days to go back to be included int the time span for l
 HoursWorth | The number of hours to go back to be included in the time span for the log collection. Default Value 0.
 DisableConfigImport | Enable to not import the `ExchangeLogCollector.ps1.json` file if it exists.
 ExmonLogmanName | A list of names that we want to collect for Exmon data. The default name is `Exmon_Trace`.
-ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz` and `ExPerfwiz`. (For both styles of Experfwiz)
+ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz`, `ExPerfwiz`, and `SimplePerf`. (For both styles of Experfwiz)
 LogAge | A Time Span value to use instead of the DaysWorth and HoursWorth parameters. Default Value: 3.00:00:00
 OutlookConnectivityIssues | Enables the following switches and their logs to be collected: `AutoDLogs`, `DailyPerformanceLogs`, `EWSLogs`, `Experfwiz`, `IISLogs`, `MAPILogs`, `RPCLogs`, and `ServerInformation`
 PerformanceIssues | Enables the following switches and their logs to be collected: `DailyPerformanceLogs`, `Experfwiz`, and `ManagedAvailabilityLogs`

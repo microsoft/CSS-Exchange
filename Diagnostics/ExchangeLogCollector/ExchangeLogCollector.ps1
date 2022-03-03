@@ -63,7 +63,7 @@ Param (
     [int]$HoursWorth = 0,
     [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
-    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
+    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz", "SimplePerf"),
     [Parameter(ParameterSetName = "LogAge")]
     [timespan]$LogAge = "3.00:00:00",
     [switch]$OutlookConnectivityIssues,
