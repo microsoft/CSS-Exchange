@@ -46,7 +46,8 @@ function Get-Statistics {
 
                 [Int64]$totalItemSize = -1
                 if ($_.TotalItemSize.ToString() -match "\(([\d|,|.]+) bytes\)") {
-                    $totalItemSize = [Int64]::Parse($Matches[1], "AllowThousands")
+                    $numberString = $Matches[1] -replace "\D", ""
+                    $totalItemSize = [Int64]::Parse($numberString)
                 }
 
                 [PSCustomObject]@{

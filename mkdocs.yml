@@ -5,6 +5,7 @@ nav:
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
+    - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - Test-AMSI: Admin/Test-AMSI.md
@@ -77,6 +78,9 @@ theme:
   name: 'material'
   features:
     - navigation.indexes
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
 repo_url: https://github.com/microsoft/CSS-Exchange
 edit_uri: edit/main/docs/
 site_url: https://microsoft.github.io/CSS-Exchange
