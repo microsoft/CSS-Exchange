@@ -49,6 +49,7 @@ nav:
   - M365:
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
   - Performance:
+    - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
