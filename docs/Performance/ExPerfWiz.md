@@ -1,5 +1,5 @@
 # About ExPerfWiz
-ExPerfWiz is a PowerShell based script to help automate the collection of performance data on Exchange 2013, 2016 and 2019 servers.  Supported operating systems are Windows 2008, 2008 R2, 2012, 2012 R2, 2016 and 2019 Core and Standard.
+ExPerfWiz is a PowerShell based script to help automate the collection of performance data on Exchange 2013, 2016 and 2019 servers.  Supported operating systems are Windows 2012, 2012 R2, 2016 and 2019 Core and Standard.
 
 # Initial Run
 Run .\ExPerfWiz.ps1 from an elevated shell.
