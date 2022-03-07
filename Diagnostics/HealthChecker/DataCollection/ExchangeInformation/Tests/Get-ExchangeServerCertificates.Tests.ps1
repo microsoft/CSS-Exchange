@@ -43,7 +43,6 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[0].SignatureHashAlgorithm | Should -Be "sha1"
             $results[0].SignatureHashAlgorithmSecure | Should -Be 1
             $results[0].IsSanCertificate | Should -Be $false
-            $results[0].LifetimeInDays | Should -Be 1590
             $results[0].PublicKeySize | Should -Be 2048
         }
 
@@ -56,7 +55,6 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[1].SignatureHashAlgorithmSecure | Should -Be 1
             $results[1].IsSanCertificate | Should -Be $true
             ($results[1].Namespaces).Count | Should -Be 2
-            $results[1].LifetimeInDays | Should -Be 1616
             $results[1].PublicKeySize | Should -Be 2048
         }
 
