@@ -240,10 +240,8 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayCustomTabNumber 2
     }
 
-    $displayWriteType2012 = "Yellow"
-    $displayWriteType2013 = "Yellow"
-    $displayValue2012 = "Unknown"
-    $displayValue2013 = "Unknown"
+    $displayWriteType2012 = $displayWriteType2013 = "Red"
+    $displayValue2012 = $displayValue2013 = $defaultValue = "Error --- Unknown"
 
     if ($null -ne $osInformation.VcRedistributable) {
 
@@ -252,6 +250,7 @@ Function Invoke-AnalyzerOsInformation {
             $displayValue2012 = "$((Get-VisualCRedistributableInfo 2012).VersionNumber) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayValue2012 = "Redistributable is outdated"
+            $displayWriteType2012 = "Yellow"
         }
 
         if (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $osInformation.VcRedistributable) {
@@ -259,6 +258,7 @@ Function Invoke-AnalyzerOsInformation {
             $displayValue2013 = "$((Get-VisualCRedistributableInfo 2013).VersionNumber) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayValue2013 = "Redistributable is outdated"
+            $displayWriteType2013 = "Yellow"
         }
     }
 
@@ -281,6 +281,16 @@ Function Invoke-AnalyzerOsInformation {
             -DisplayGroupingKey $keyOSInformation `
             -DisplayCustomTabNumber 2 `
             -DisplayWriteType "Yellow"
+    }
+
+    if ($defaultValue -eq $displayValue2012 -or
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+        $displayValue2013 -eq $defaultValue)) {
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "ERROR: Unable to find one of the Visual C++ Redistributable Packages. This can cause a wide range of issues on the server.`r`n`t`tPlease install the missing package as soon as possible. Latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC" `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Red"
     }
 
     $displayValue = "False"
