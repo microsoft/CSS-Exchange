@@ -208,7 +208,7 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
-## http-vuln-cve2021-26855.nse]
+## http-vuln-cve2021-26855.nse
 
 ### NOTE: This file is obsolete and is no longer maintained. Please use EOMT.ps1 instead.
 
