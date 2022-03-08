@@ -1,8 +1,8 @@
 Script|More Info|Download
 -|-|-
 EOMT | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchange-on-premises-mitigation-tool-eomt) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
-ExchangeMitigations.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchangemitigationsps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
-http-vuln-cve2021-26855.nse | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#http-vuln-cve2021-26855nse) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
+ExchangeMitigations.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#exchangemitigationsps1) | Obsolete
+http-vuln-cve2021-26855.nse | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#http-vuln-cve2021-26855nse) | Obsolete
 Test-ProxyLogon.ps1 | [More Info](https://github.com/microsoft/CSS-Exchange/tree/main/Security#test-proxylogonps1) | [Download](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ProxyLogon.ps1)
 
 # Security scripts
@@ -159,7 +159,14 @@ is present. As a result, it is often easier to simply run the Get-EventLog comma
 [blog post](https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/),
 rather than using Test-ProxyLogon.
 
-## [ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
+## ExchangeMitigations.ps1
+
+### NOTE: This script is obsolete and is no longer maintained. Please use EOMT.ps1 instead.
+
+The final release can be downloaded here:
+
+[Download ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/download/v22.03.03.2154/ExchangeMitigations.ps1)
+
 This script contains 4 mitigations to help address the following vulnerabilities:
 
 * CVE-2021-26855
@@ -181,10 +188,6 @@ For systems running IIS 8.5 and lower KB2999226 must be installed. Please review
 
 Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
-Download the latest release here:
-
-[Download ExchangeMitigations.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1)
-
 To apply all mitigations with MSI install
 
 `.\ExchangeMitigations.ps1 -FullPathToMSI "FullPathToMSI" -WebSiteNames "Default Web Site" -ApplyAllMitigations`
@@ -205,11 +208,13 @@ To rollback multiple or specific mitigations
 
 `.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation`
 
-## [http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
+## http-vuln-cve2021-26855.nse]
+
+### NOTE: This file is obsolete and is no longer maintained. Please use EOMT.ps1 instead.
+
+The final release can be downloaded here:
+
+[Download http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/download/v22.03.03.2154/http-vuln-cve2021-26855.nse)
 
 This file is for use with nmap. It detects whether the specified URL is vulnerable to the Exchange Server SSRF Vulnerability (CVE-2021-26855).
 For usage information, please read the top of the file.
-
-Download the latest release here:
-
-[Download http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/latest/download/http-vuln-cve2021-26855.nse)
