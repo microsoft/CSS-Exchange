@@ -84,23 +84,23 @@ if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Day
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
-. .\extern\Enter-YesNoLoopAction.ps1
-. .\extern\Import-ScriptConfigFile.ps1
-. .\extern\Start-JobManager.ps1
-. .\ExchangeServerInfo\Get-DAGInformation.ps1
-. .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. .\ExchangeServerInfo\Get-ServerObjects.ps1
-. .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
-. .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
-. .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Write-DataOnlyOnceOnMasterServer.ps1
-. .\Write\Write-LargeDataObjectsOnMachine.ps1
-. .\Helpers\Get-ArgumentList.ps1
-. .\Helpers\Invoke-ServerRootZipAndCopy.ps1
-. .\Helpers\Test-DiskSpace.ps1
-. .\Helpers\Test-NoSwitchesProvided.ps1
-. .\Helpers\Test-PossibleCommonScenarios.ps1
-. .\Helpers\Test-RemoteExecutionOfServers.ps1
+. $PSScriptRoot\extern\Enter-YesNoLoopAction.ps1
+. $PSScriptRoot\extern\Import-ScriptConfigFile.ps1
+. $PSScriptRoot\extern\Start-JobManager.ps1
+. $PSScriptRoot\ExchangeServerInfo\Get-DAGInformation.ps1
+. $PSScriptRoot\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
+. $PSScriptRoot\ExchangeServerInfo\Get-ServerObjects.ps1
+. $PSScriptRoot\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
+. $PSScriptRoot\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
+. $PSScriptRoot\Write\Get-WritersToAddToScriptBlock.ps1
+. $PSScriptRoot\Write\Write-DataOnlyOnceOnMasterServer.ps1
+. $PSScriptRoot\Write\Write-LargeDataObjectsOnMachine.ps1
+. $PSScriptRoot\Helpers\Get-ArgumentList.ps1
+. $PSScriptRoot\Helpers\Invoke-ServerRootZipAndCopy.ps1
+. $PSScriptRoot\Helpers\Test-DiskSpace.ps1
+. $PSScriptRoot\Helpers\Test-NoSwitchesProvided.ps1
+. $PSScriptRoot\Helpers\Test-PossibleCommonScenarios.ps1
+. $PSScriptRoot\Helpers\Test-RemoteExecutionOfServers.ps1
 
 Function Invoke-RemoteFunctions {
     param(
@@ -109,45 +109,45 @@ Function Invoke-RemoteFunctions {
 
     . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
     . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
+    . $PSScriptRoot\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-    . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
-    . .\RemoteScriptBlock\Get-ClusterNodeFileVersions.ps1
-    . .\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
-    . .\RemoteScriptBlock\Get-FreeSpace.ps1
-    . .\RemoteScriptBlock\Get-ItemsSize.ps1
-    . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
-    . .\RemoteScriptBlock\Get-IISLogDirectory.ps1
-    . .\RemoteScriptBlock\Test-CommandExists.ps1
-    . .\RemoteScriptBlock\Test-FreeSpace.ps1
-    . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
-    . .\RemoteScriptBlock\IO\Compress-Folder.ps1
-    . .\RemoteScriptBlock\IO\Copy-BulkItems.ps1
-    . .\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
-    . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
-    . .\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
-    . .\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-    . .\RemoteScriptBlock\IO\New-Folder.ps1
-    . .\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
-    . .\RemoteScriptBlock\IO\Save-DataToFile.ps1
-    . .\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
-    . .\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
-    . .\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
-    . .\RemoteScriptBlock\IO\Save-ServerInfoData.ps1
-    . .\RemoteScriptBlock\IO\Save-WindowsEventLogs.ps1
-    . .\RemoteScriptBlock\IO\Write-DebugLog.ps1
-    . .\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
-    . .\RemoteScriptBlock\IO\Write-ScriptHost.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanData.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanExt.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanObject.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanRootPath.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanStartDate.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanStatus.ps1
-    . .\RemoteScriptBlock\Logman\Start-Logman.ps1
-    . .\RemoteScriptBlock\Logman\Stop-Logman.ps1
-    . .\RemoteScriptBlock\Invoke-RemoteMain.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Add-ServerNameToFileName.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-ClusterNodeFileVersions.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-FreeSpace.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-ItemsSize.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-IISLogDirectory.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Test-CommandExists.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Test-FreeSpace.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Compress-Folder.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Copy-BulkItems.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Copy-LogmanData.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\New-Folder.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-DataToFile.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-ServerInfoData.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Save-WindowsEventLogs.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Write-DebugLog.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptHost.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanData.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanExt.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanObject.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanRootPath.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanStartDate.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanStatus.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Start-Logman.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Logman\Stop-Logman.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
     try {
         $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
