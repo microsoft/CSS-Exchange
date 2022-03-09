@@ -107,30 +107,30 @@ Function Invoke-RemoteFunctions {
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
 
-    . .\RemoteScriptBlock\extern\Compress-Folder.ps1
-    . .\RemoteScriptBlock\extern\Get-ClusterNodeFileVersions.ps1
-    . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
-    . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
-    . .\RemoteScriptBlock\extern\New-Folder.ps1
     . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
-    . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
     . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
     . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
     . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
+    . .\RemoteScriptBlock\Get-ClusterNodeFileVersions.ps1
+    . .\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
+    . .\RemoteScriptBlock\Get-FreeSpace.ps1
     . .\RemoteScriptBlock\Get-ItemsSize.ps1
     . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
     . .\RemoteScriptBlock\Get-IISLogDirectory.ps1
     . .\RemoteScriptBlock\Test-CommandExists.ps1
     . .\RemoteScriptBlock\Test-FreeSpace.ps1
     . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
+    . .\RemoteScriptBlock\IO\Compress-Folder.ps1
     . .\RemoteScriptBlock\IO\Copy-BulkItems.ps1
     . .\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
     . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
     . .\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
     . .\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
+    . .\RemoteScriptBlock\IO\New-Folder.ps1
     . .\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
+    . .\RemoteScriptBlock\IO\Save-DataToFile.ps1
     . .\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
     . .\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
     . .\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
