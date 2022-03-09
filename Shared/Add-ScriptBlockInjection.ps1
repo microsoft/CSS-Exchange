@@ -28,7 +28,7 @@ Function Add-ScriptBlockInjection {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             $scriptBlockInjectLines = @()
             $scriptBlockFinalized = [string]::Empty
-            $adjustedScriptBlock = $ScriptBlock
+            $adjustedScriptBlock = $PrimaryScriptBlock
             $injectedLinesHandledInBeginBlock = $false
             $adjustInject = $false
 
@@ -63,20 +63,20 @@ Function Add-ScriptBlockInjection {
             # Here you need to find the ParamBlock and add it to the inject lines to be at the top of the script block.
             # Then you need to recreate the adjustedScriptBlock to be where the ParamBlock ended.
 
-            if ($null -ne $ScriptBlock.Ast.ParamBlock) {
+            if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock) {
                 Write-Verbose "Ast ParamBlock detected"
-                $adjustLocation = $ScriptBlock.Ast
-            } elseif ($null -ne $ScriptBlock.Ast.Body.ParamBlock) {
+                $adjustLocation = $PrimaryScriptBlock.Ast
+            } elseif ($null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
                 Write-Verbose "Ast Body ParamBlock detected"
-                $adjustLocation = $ScriptBlock.Ast.Body
+                $adjustLocation = $PrimaryScriptBlock.Ast.Body
             }
 
-            $adjustInject = $null -ne $ScriptBlock.Ast.ParamBlock -or $null -ne $ScriptBlock.Ast.Body.ParamBlock
+            $adjustInject = $null -ne $PrimaryScriptBlock.Ast.ParamBlock -or $null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock
 
             if ($adjustInject) {
                 $scriptBlockInjectLines += $adjustLocation.ParamBlock.ToString()
                 $startIndex = $adjustLocation.ParamBlock.Extent.EndOffSet - $adjustLocation.Extent.StartOffset
-                $adjustedScriptBlock = [scriptblock]::Create($ScriptBlock.ToString().Substring($startIndex))
+                $adjustedScriptBlock = [scriptblock]::Create($PrimaryScriptBlock.ToString().Substring($startIndex))
             }
 
             # Inject the script blocks and using parameters in the begin block when required.
