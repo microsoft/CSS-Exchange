@@ -89,7 +89,6 @@ if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Day
 . $PSScriptRoot\ExchangeServerInfo\Get-ServerObjects.ps1
 . $PSScriptRoot\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
 . $PSScriptRoot\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
-. $PSScriptRoot\Write\Get-WritersToAddToScriptBlock.ps1
 . $PSScriptRoot\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . $PSScriptRoot\Write\Write-LargeDataObjectsOnMachine.ps1
 . $PSScriptRoot\Helpers\Enter-YesNoLoopAction.ps1

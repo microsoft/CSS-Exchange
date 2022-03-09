@@ -28,7 +28,7 @@ Function Invoke-ServerRootZipAndCopy {
             -VerboseFunctionCaller $Script:VerboseFunctionCaller
 
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
-        $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+        $compressFolderString = (${Function:Compress-Folder}).ToString()
         Write-ScriptDebug("Creating script block")
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
 
@@ -39,17 +39,12 @@ Function Invoke-ServerRootZipAndCopy {
             $folder = "{0}{1}" -f $Script:RootFilePath, $serverName
             $serverArgListZipFolder += [PSCustomObject]@{
                 ServerName   = $serverName
-                ArgumentList = [PSCustomObject]@{
-                    Folder                = $folder
-                    IncludeMonthDay       = $true
-                    IncludeDisplayZipping = $true
-                }
+                ArgumentList = @($folder, $true, $true)
             }
         }
 
         Write-ScriptDebug("Calling Compress-Folder")
         Start-JobManager -ServersWithArguments $serverArgListZipFolder -ScriptBlock $compressFolderScriptBlock `
-            -DisplayReceiveJobInCorrectFunction $true `
             -JobBatchName "Zipping up the data for Invoke-ServerRootZipAndCopy"
 
         $LogPaths = Invoke-Command -ComputerName $serverNames -ScriptBlock {

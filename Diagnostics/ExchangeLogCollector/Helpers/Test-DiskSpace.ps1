@@ -44,19 +44,18 @@ Function Test-DiskSpace {
 
     $serverArgs = @()
     foreach ($server in $Servers) {
-        $obj = New-Object PSCustomObject
-        $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value $server
-        $obj | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $Path
-        $serverArgs += $obj
+        $serverArgs += [PSCustomObject]@{
+            ServerName   = $server
+            ArgumentList = $Path
+        }
     }
 
     Write-ScriptDebug("Getting Get-FreeSpace string to create Script Block")
-    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString()
     Write-ScriptDebug("Creating Script Block")
     $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
     $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
         -NeedReturnData $true `
-        -DisplayReceiveJobInCorrectFunction $true `
         -JobBatchName "Getting the free space for test disk space"
     $passedServers = @()
     foreach ($server in $Servers) {

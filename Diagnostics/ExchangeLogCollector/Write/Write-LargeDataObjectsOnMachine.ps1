@@ -16,11 +16,15 @@ Function Write-LargeDataObjectsOnMachine {
     #Collect the Exchange Data that resides on their own machine.
     Function Invoke-ExchangeResideDataCollectionWrite {
         param(
-            [Parameter(Mandatory = $true)][object]$PassedInfo
+            [Parameter(Mandatory = $true, Position = 1)]
+            [string]$SaveToLocation,
+
+            [Parameter(Mandatory = $true, Position = 2)]
+            [string]$InstallDirectory
         )
 
-        $location = $PassedInfo.SaveToLocation
-        $exchBin = "{0}\Bin" -f $PassedInfo.InstallDirectory
+        $location = $SaveToLocation
+        $exchBin = "{0}\Bin" -f $InstallDirectory
         $configFiles = Get-ChildItem $exchBin | Where-Object { $_.Name -like "*.config" }
         $copyTo = "{0}\Config" -f $location
         $configFiles | ForEach-Object { Copy-Item $_.VersionInfo.FileName $copyTo }
@@ -355,12 +359,12 @@ Function Write-LargeDataObjectsOnMachine {
 
             #Setup all the Script blocks that we are going to use.
             Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
-            $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+            $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString()
             Write-ScriptDebug("Creating Script Block")
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
             Write-ScriptDebug("Getting New-Folder string to create Script Block")
-            $newFolderString = (${Function:New-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
+            $newFolderString = (${Function:New-Folder}).ToString()
             Write-ScriptDebug("Creating script block")
             $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
 
@@ -375,29 +379,22 @@ Function Write-LargeDataObjectsOnMachine {
 
                 $serverArgListExchangeInstallDirectory += [PSCustomObject]@{
                     ServerName   = $serverName
-                    ArgumentList = $true
+                    ArgumentList = $null
                 }
 
                 $serverArgListDirectoriesToCreate += [PSCustomObject]@{
                     ServerName   = $serverName
-                    ArgumentList = [PSCustomObject]@{
-                        NewFolders = (@(
-                                ("{0}{1}\Exchange_Server_Data\Config" -f $Script:RootFilePath, $serverName),
-                                ("{0}{1}\Exchange_Server_Data\WebAppPools" -f $Script:RootFilePath, $serverName)
-                            ))
-                    }
+                    ArgumentList = @(@("$Script:RootFilePath$serverName\Exchange_Server_Data\Config", "$Script:RootFilePath$serverName\Exchange_Server_Data\WebAppPools"), $false)
                 }
             }
 
             Write-ScriptDebug ("Calling job for Get Exchange Install Directory")
             $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
                 -NeedReturnData $true `
-                -DisplayReceiveJobInCorrectFunction $true `
                 -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
 
             Write-ScriptDebug("Calling job for folder creation")
             Start-JobManager -ServersWithArguments $serverArgListDirectoriesToCreate -ScriptBlock $newFolderScriptBlock `
-                -DisplayReceiveJobInCorrectFunction $true `
                 -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine"
 
             #Now do the rest of the actions
@@ -407,10 +404,7 @@ Function Write-LargeDataObjectsOnMachine {
                 $saveToLocation = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $serverName
                 $serverArgListExchangeResideData += [PSCustomObject]@{
                     ServerName   = $serverName
-                    ArgumentList = [PSCustomObject]@{
-                        SaveToLocation   = $saveToLocation
-                        InstallDirectory = $serverInstallDirectories[$serverName]
-                    }
+                    ArgumentList = @($saveToLocation, $serverInstallDirectories[$serverName])
                 }
 
                 #Write out the Exchange object data locally as a temp and copy it over to the remote server
@@ -451,13 +445,13 @@ Function Write-LargeDataObjectsOnMachine {
             New-Folder -NewFolders $createFolders -IncludeDisplayCreate $true
             Write-ExchangeObjectDataLocal -Location $location -ServerData $exchangeServerData
 
-            $passInfo = [PSCustomObject]@{
+            $passInfo = @{
                 SaveToLocation   = $location
                 InstallDirectory = $ExInstall
             }
 
             Write-ScriptDebug("Writing out the Exchange data")
-            Invoke-ExchangeResideDataCollectionWrite -PassedInfo $passInfo
+            Invoke-ExchangeResideDataCollectionWrite @passInfo
         }
     }
 }
