@@ -1,69 +1,36 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Start-JobManager/Start-JobManager.ps1
-#v21.01.22.2234
 Function Start-JobManager {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer Start here')]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)][array]$ServersWithArguments,
-        [Parameter(Mandatory = $true)][scriptblock]$ScriptBlock,
-        [Parameter(Mandatory = $false)][string]$JobBatchName,
-        [Parameter(Mandatory = $false)][bool]$DisplayReceiveJob = $true,
-        [Parameter(Mandatory = $false)][bool]$DisplayReceiveJobInVerboseFunction,
-        [Parameter(Mandatory = $false)][bool]$DisplayReceiveJobInCorrectFunction,
-        [Parameter(Mandatory = $false)][bool]$NeedReturnData = $false
+        [Parameter(Mandatory = $true)]
+        [object[]]$ServersWithArguments,
+
+        [Parameter(Mandatory = $true)]
+        [scriptblock]$ScriptBlock,
+
+        [string]$JobBatchName,
+
+        [bool]$DisplayReceiveJob = $true,
+
+        [bool]$NeedReturnData = $false,
+
+        [scriptblock]$RemotePipelineHandler
     )
-    #Function Version #v21.01.22.2234
-    <#
+    <# It needs to be this way incase of different arguments being passed to different machines
         [array]ServersWithArguments
             [string]ServerName
             [object]ArgumentList #customized for your scriptblock
     #>
 
-    Function Write-ReceiveJobData {
-        param(
-            [Parameter(Mandatory = $true)][array]$ReceiveJobData
-        )
-        $returnJob = [string]::Empty
-        foreach ($job in $ReceiveJobData) {
-            if ($job["Verbose"]) {
-                Write-VerboseWriter($job["Verbose"])
-            } elseif ($job["Host"]) {
-                Write-HostWriter($job["Host"])
-            } elseif ($job["ReturnObject"]) {
-                $returnJob = $job["ReturnObject"]
-            } else {
-                Write-VerboseWriter("Unable to determine the key for the return type.")
-            }
-        }
-        return $returnJob
-    }
-
-    Function Start-Jobs {
-        Write-VerboseWriter("Calling Start-Jobs")
-        foreach ($serverObject in $ServersWithArguments) {
-            $server = $serverObject.ServerName
-            $argumentList = $serverObject.ArgumentList
-            Write-VerboseWriter("Starting job on server {0}" -f $server)
-            Invoke-Command -ComputerName $server -ScriptBlock $ScriptBlock -ArgumentList $argumentList -AsJob -JobName $server | Out-Null
-        }
-    }
-
-    Function Confirm-JobsPending {
-        $jobs = Get-Job
-        if ($null -ne $jobs) {
-            return $true
-        }
-        return $false
-    }
-
     Function Wait-JobsCompleted {
-        Write-VerboseWriter("Calling Wait-JobsCompleted")
+        Write-Verbose "Calling Wait-JobsCompleted"
         [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
+        # Data returned is a Hash Table that matches to the Server the Script Block ran against
         $returnData = @{}
-        while (Confirm-JobsPending) {
+        do {
             $completedJobs = Get-Job | Where-Object { $_.State -ne "Running" }
             if ($null -eq $completedJobs) {
                 Start-Sleep 1
@@ -71,35 +38,34 @@ Function Start-JobManager {
             }
 
             foreach ($job in $completedJobs) {
-                $receiveJobNull = $false
                 $jobName = $job.Name
-                Write-VerboseWriter("Job {0} received. State: {1} | HasMoreData: {2}" -f $job.Name, $job.State, $job.HasMoreData)
+                Write-Verbose "Job $($job.Name) received. State: $($job.State) | HasMoreData: $($job.HasMoreData)"
                 if ($NeedReturnData -eq $false -and $DisplayReceiveJob -eq $false -and $job.HasMoreData -eq $true) {
-                    Write-VerboseWriter("This job has data and you provided you didn't want to return it or display it.")
+                    Write-Verbose "This job has data and you provided you didn't want to return it or display it."
                 }
                 $receiveJob = Receive-Job $job
                 Remove-Job $job
                 if ($null -eq $receiveJob) {
-                    $receiveJobNull = $True
-                    Write-VerboseWriter("Job {0} didn't have any receive job data" -f $jobName)
+                    Write-Verbose "Job $jobName didn't have any receive job data"
                 }
-                if ($DisplayReceiveJobInVerboseFunction -and (-not($receiveJobNull))) {
-                    Write-VerboseWriter("[JobName: {0}] : {1}" -f $jobName, $receiveJob)
-                } elseif ($DisplayReceiveJobInCorrectFunction -and (-not ($receiveJobNull))) {
-                    $returnJobData = Write-ReceiveJobData -ReceiveJobData $receiveJob
+
+                # If more things are added to the pipeline than just the desired result (like custom Write-Verbose data to the pipeline)
+                # The caller needs to handle this by having a custom scriptblock to process the data
+                # Then return the desired result back
+                if ($null -ne $RemotePipelineHandler -and $receiveJob) {
+                    $returnJobData = & $RemotePipelineHandler $receiveJob
                     if ($null -ne $returnJobData) {
                         $returnData.Add($jobName, $returnJobData)
+                    } else {
+                        Write-Verbose "Nothing came back from the RemotePipelineHandler"
                     }
-                } elseif ($DisplayReceiveJob -and (-not($receiveJobNull))) {
-                    Write-HostWriter $receiveJob
-                }
-                if ($NeedReturnData -and (-not($DisplayReceiveJobInCorrectFunction))) {
-                    $returnData.Add($job.Name, $receiveJob)
+                } elseif ($NeedReturnData) {
+                    $returnData.Add($jobName, $receiveJob)
                 }
             }
-        }
+        } while ($true -eq (Get-Job))
         $timer.Stop()
-        Write-VerboseWriter("Waiting for jobs to complete took {0} seconds" -f $timer.Elapsed.TotalSeconds)
+        Write-Verbose "Waiting for jobs to complete took $($timer.Elapsed.TotalSeconds) seconds"
         if ($NeedReturnData) {
             return $returnData
         }
@@ -107,16 +73,19 @@ Function Start-JobManager {
     }
 
     [System.Diagnostics.Stopwatch]$timerMain = [System.Diagnostics.Stopwatch]::StartNew()
-    Write-VerboseWriter("Calling Start-JobManager")
-    Write-VerboseWriter("Passed: [bool]DisplayReceiveJob: {0} | [string]JobBatchName: {1} | [bool]DisplayReceiveJobInVerboseFunction: {2} | [bool]NeedReturnData:{3}" -f $DisplayReceiveJob,
-        $JobBatchName,
-        $DisplayReceiveJobInVerboseFunction,
-        $NeedReturnData)
+    Write-Verbose "Calling Start-JobManager"
+    Write-Verbose "Passed: [bool]DisplayReceiveJob: $DisplayReceiveJob | [string]JobBatchName: $JobBatchName | [bool]NeedReturnData:$NeedReturnData"
 
-    Start-Jobs
+    foreach ($serverObject in $ServersWithArguments) {
+        $server = $serverObject.ServerName
+        $argumentList = $serverObject.ArgumentList
+        Write-Verbose "Starting job on server $server"
+        Invoke-Command -ComputerName $server -ScriptBlock $ScriptBlock -ArgumentList $argumentList -AsJob -JobName $server | Out-Null
+    }
+
     $data = Wait-JobsCompleted
     $timerMain.Stop()
-    Write-VerboseWriter("Exiting: Start-JobManager | Time in Start-JobManager: {0} seconds" -f $timerMain.Elapsed.TotalSeconds)
+    Write-Verbose "Exiting: Start-JobManager | Time in Start-JobManager: $($timerMain.Elapsed.TotalSeconds) seconds"
     if ($NeedReturnData) {
         return $data
     }
