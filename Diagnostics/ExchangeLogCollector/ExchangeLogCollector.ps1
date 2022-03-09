@@ -115,8 +115,6 @@ Function Invoke-RemoteFunctions {
     . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
     . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
     . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnHostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnVerboseWriter.ps1
     . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1

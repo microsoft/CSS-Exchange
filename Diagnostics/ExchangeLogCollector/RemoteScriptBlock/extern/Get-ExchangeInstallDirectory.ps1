@@ -1,35 +1,24 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ExchangeInformation/Get-ExchangeInstallDirectory/Get-ExchangeInstallDirectory.ps1
-#v21.01.22.2234
 Function Get-ExchangeInstallDirectory {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Different types returned')]
     [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)][bool]$InvokeCommandReturnWriteArray
-    )
-    #Function Version #v21.01.22.2234
+    param()
 
-    $stringArray = @()
-    Write-InvokeCommandReturnVerboseWriter("Calling: Get-ExchangeInstallDirectory")
-    Write-InvokeCommandReturnVerboseWriter("Passed: [bool]InvokeCommandReturnWriteArray: {0}" -f $InvokeCommandReturnWriteArray)
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $installDirectory = [string]::Empty
     if (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup') {
-        Write-InvokeCommandReturnVerboseWriter("Detected v14")
+        Write-Verbose "Detected v14"
         $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v14\Setup).MsiInstallPath
     } elseif (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup') {
-        Write-InvokeCommandReturnVerboseWriter("Detected v15")
+        Write-Verbose "Detected v15"
         $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
     } else {
-        Write-InvokeCommandReturnHostWriter -WriteString ("Something went wrong trying to find Exchange Install path on this server: {0}" -f $env:COMPUTERNAME)
+        Write-Host "Something went wrong trying to find Exchange Install path on this server: $env:COMPUTERNAME"
     }
-    Write-InvokeCommandReturnVerboseWriter("Returning: {0}" -f $installDirectory)
-    if ($InvokeCommandReturnWriteArray) {
-        $hashTable = @{"ReturnObject" = $installDirectory }
-        $stringArray += $hashTable
-        return $stringArray
-    }
+
+    Write-Verbose "Returning: $installDirectory"
+
     return $installDirectory
 }

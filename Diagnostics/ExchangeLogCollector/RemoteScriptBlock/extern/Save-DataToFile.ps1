@@ -1,8 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/Common/Save-DataToFile/Save-DataToFile.ps1
-#v21.01.22.2234
 Function Save-DataToFile {
     [CmdletBinding()]
     param(
@@ -12,14 +10,9 @@ Function Save-DataToFile {
         [Parameter(Mandatory = $false)][bool]$SaveTextFile = $true,
         [Parameter(Mandatory = $false)][bool]$SaveXMLFile = $true
     )
-    #Function Version #v21.01.22.2234
 
-    Write-VerboseWriter("Calling: Save-DataToFile")
-    Write-VerboseWriter("Passed: [string]SaveToLocation: {0} | [bool]FormatList: {1} | [bool]SaveTextFile: {2} | [bool]SaveXMLFile: {3}" -f $SaveToLocation,
-        $FormatList,
-        $SaveTextFile,
-        $SaveXMLFile)
-
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    Write-Verbose "Passed: [string]SaveToLocation: $SaveToLocation | [bool]FormatList: $FormatList | [bool]SaveTextFile: $SaveTextFile | [bool]SaveXMLFile: $SaveXMLFile"
     $xmlSaveLocation = "{0}.xml" -f $SaveToLocation
     $txtSaveLocation = "{0}.txt" -f $SaveToLocation
 
@@ -36,7 +29,7 @@ Function Save-DataToFile {
             }
         }
     } else {
-        Write-VerboseWriter("DataIn was an empty string. Not going to save anything.")
+        Write-Verbose("DataIn was an empty string. Not going to save anything.")
     }
-    Write-VerboseWriter("Returning from Save-DataToFile")
+    Write-Verbose ("Returning from Save-DataToFile")
 }
