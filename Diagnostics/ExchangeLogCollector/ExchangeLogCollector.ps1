@@ -84,9 +84,6 @@ if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Day
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
-. $PSScriptRoot\extern\Enter-YesNoLoopAction.ps1
-. $PSScriptRoot\extern\Import-ScriptConfigFile.ps1
-. $PSScriptRoot\extern\Start-JobManager.ps1
 . $PSScriptRoot\ExchangeServerInfo\Get-DAGInformation.ps1
 . $PSScriptRoot\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
 . $PSScriptRoot\ExchangeServerInfo\Get-ServerObjects.ps1
@@ -95,8 +92,11 @@ if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Day
 . $PSScriptRoot\Write\Get-WritersToAddToScriptBlock.ps1
 . $PSScriptRoot\Write\Write-DataOnlyOnceOnMasterServer.ps1
 . $PSScriptRoot\Write\Write-LargeDataObjectsOnMachine.ps1
+. $PSScriptRoot\Helpers\Enter-YesNoLoopAction.ps1
 . $PSScriptRoot\Helpers\Get-ArgumentList.ps1
+. $PSScriptRoot\Helpers\Import-ScriptConfigFile.ps1
 . $PSScriptRoot\Helpers\Invoke-ServerRootZipAndCopy.ps1
+. $PSScriptRoot\Helpers\Start-JobManager.ps1
 . $PSScriptRoot\Helpers\Test-DiskSpace.ps1
 . $PSScriptRoot\Helpers\Test-NoSwitchesProvided.ps1
 . $PSScriptRoot\Helpers\Test-PossibleCommonScenarios.ps1
