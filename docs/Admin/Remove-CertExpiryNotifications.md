@@ -40,6 +40,10 @@ Or, the script can be run with -Confirm:$false to skip the prompts:
 
 ![Example output](Remove-CertExpiryNotifications3.png)
 
+After the script has run successfully, it should report that there are no messages present in the folder:
+
+![Example output](Remove-CertExpiryNotifications4.png)
+
 ## Common errors
 
 ```powershell
