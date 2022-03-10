@@ -23,9 +23,7 @@ Function Invoke-ServerRootZipAndCopy {
 
     if ($RemoteExecute) {
         $Script:ErrorsFromStartOfCopy = $Error.Count
-        $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-ZipAndCopy-Debug" `
-            -HostFunctionCaller $Script:HostFunctionCaller `
-            -VerboseFunctionCaller $Script:VerboseFunctionCaller
+        $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-ZipAndCopy-Debug" -LogDirectory $Script:RootFilePath
 
         Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString()

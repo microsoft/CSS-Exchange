@@ -6,6 +6,6 @@ Function Write-DebugLog($message) {
     if ($null -ne $message -and
         ![string]::IsNullOrEmpty($message) -and
         $null -ne $Script:Logger) {
-        $Script:Logger.WriteToFileOnly($message)
+        $Script:Logger = $Script:Logger | Write-LoggerInstance $message
     }
 }

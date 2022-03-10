@@ -10,7 +10,7 @@ Function Invoke-ZipFolder {
 
     if ($ZipItAll) {
         Write-ScriptDebug("Disabling Logger before zipping up the directory")
-        $Script:Logger.DisableLogger()
+        $Script:Logger.LoggerDisabled = $true
         Compress-Folder -Folder $Folder -IncludeMonthDay $true
     } else {
         $compressedLocation = Compress-Folder -Folder $Folder -ReturnCompressedLocation $AddCompressedSize

@@ -106,7 +106,7 @@ Function Invoke-RemoteFunctions {
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
 
-    . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
+    . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
     . $PSScriptRoot\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
     . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
@@ -154,9 +154,7 @@ Function Invoke-RemoteFunctions {
 
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
-            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootCopyToDirectory -LogName ("ExchangeLogCollector-Instance-Debug") `
-                -HostFunctionCaller $Script:HostFunctionCaller `
-                -VerboseFunctionCaller $Script:VerboseFunctionCaller
+            $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Instance-Debug" -LogDirectory $Script:RootCopyToDirectory
             Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
@@ -306,15 +304,13 @@ try {
         }
     }
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
-        -HostFunctionCaller $Script:HostFunctionCaller `
-        -VerboseFunctionCaller $Script:VerboseFunctionCaller
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
 
     Main
 } finally {
 
     if ($Script:VerboseEnabled -or
         ($Error.Count -ne $Script:ErrorsFromStartOfCopy)) {
-        $Script:Logger.RemoveLatestLogFile()
+        #$Script:Logger.RemoveLatestLogFile()
     }
 }
