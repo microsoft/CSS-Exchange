@@ -7,7 +7,15 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
-## [Email Stuck in Transport Queues](https://techcommunity.microsoft.com/t5/exchange-team-blog/email-stuck-in-transport-queues/ba-p/3049447)
+**Updated on 3/10/2022**
+
+**Issue** |**Possible reason**| **Workaround/Solution**
+-|-|-
+After installing [March 2022 Security Update For Exchange Server 2013, 2016, 2019](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2022-exchange-server-security-updates/ba-p/3247586), the Microsoft Exchange Service Host service may crash repeatedly with Event ID 7031 in system log and Event ID 4999 in application log. <BR><BR>  Event ID 4999 <BR> Watson report about to be sent for process id: 4564, with parameters: E12IIS, c-RTL-AMD64, 15.01.2375.024, M.Exchange.ServiceHost, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.LoadType, M.E.Diagnostics.BlockedDeserializeTypeException, c0e9-dumptidset, 15.01.2375.024.| The issue can occur if there are any expired certificates present on or any certificates nearing expiry on the server| •	Replace any expired certificate on the system <BR> •	Renew any certificate that expires in <= 30 days
+
+## Old Issues
+
+### [Email Stuck in Transport Queues](https://techcommunity.microsoft.com/t5/exchange-team-blog/email-stuck-in-transport-queues/ba-p/3049447)
 **Issue** | **Possible reason** | **Workaround/Solution**
 -|-|-
 You may observe emails building up in the transport queues of Exchange Server 2016 and Exchange Server 2019. The issue does not impact Exchange 2013 servers.<BR><BR>Following events may be noticed in the application log:<BR><BR> Log Name: Application<BR>Source: FIPFS<BR>Logged: 1/1/2022 1:03:42 AM <BR> Event ID: 5300 <BR> Level: Error <BR>Computer: server1.contoso.com<BR>Description: The FIP-FS "Microsoft" Scan Engine failed to load. PID: 23092, Error Code: 0x80004005.<BR>Error Description: Can't convert "2201010001" to long. <BR><BR> Log Name: Application <BR> Source: FIPFS <BR> Logged: 1/1/2022 11:47:16 AM <BR> Event ID: 1106 <BR> Level: Error <BR> Computer: server1.contoso.com <BR> Description: The FIP-FS Scan Process failed initialization. Error: 0x80004005. Error Details: Unspecified error. | The problem relates to a date check failure with the change of the new year and it not a failure of the AV engine itself. This is not an issue with malware scanning or the malware engine, and it is not a security-related issue. The version checking performed against the signature file is causing the malware engine to crash, resulting in messages being stuck in transport queues. | Run [this script](https://aka.ms/ResetScanEngineVersion) on each Exchange server in your organization. You can run this script on multiple servers in parallel. Check [this article](https://techcommunity.microsoft.com/t5/exchange-team-blog/email-stuck-in-transport-queues/ba-p/3049447) for detailed steps.
@@ -15,21 +23,21 @@ You may observe emails building up in the transport queues of Exchange Server 20
 
 
 
-## November 2021 Security Update
+### November 2021 Security Update
 Following are the known issues after installing [November 2021 Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2021-exchange-server-security-updates/ba-p/2933169) for Exchange On-Premises servers
 
 **Issue** | **Possible reason** | **Workaround/Solution**
 -|-|-
 Hybrid OWA Redirect is broken after application of November SU for Exchange 2013/2016 and 2019. <BR><BR> Users using Exchange 2016 and 2019 server will see error ":-( Something went wrong. We can't get that information right now. Please try again later. <BR><BR> Exchange 2013 users will see error "External component has thrown an exception." <BR><BR> Some On-Premises environments, that are not using FBA, may also see cross-site OWA redirection fail with similar errors.| After installing November SU, the OWA redirection URL for hybrid users is providing an encoded URL for &., causing the redirect to fail |**Update 1/12/2022** <BR><BR> The OWA redirection issue is fixed in [January 2022 security updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2022-exchange-server-security-updates/ba-p/3050699). Please install the relevant update to fix the issue. <BR> <BR> Alternatively, you can also use the workarounds provided in  [KB article 5008997](https://support.microsoft.com/en-us/help/5008997) | Email clients might see repeated password prompts after the installation of Windows November Security Update for [CVE-2021-42278](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-42278) is installed on the Domain Controllers.| -- | Please see [KB5008720](https://support.microsoft.com/help/5008720).
 
-## September Cumulative Updates
+### September Cumulative Updates
 Following are the known issues after installing September 2021 Cumulative Updates for Exchange On-Premises servers
 
 **Issue** | **Possible reason** | **Workaround/Solution**
 -|-|-
 After installing the September 2021 CU, the Microsoft Exchange Transport Services will continue to crash. You can see the following message for the 4999 crash event <BR><BR> `Watson report about to be sent for process id: 10072, with parameters: E12IIS, c-RTL-AMD64, 15.02.0986.005, MSExchangeDelivery, M.Exchange.Transport, M.E.T.AcceptedDomainTable..ctor, System.FormatException, 28d7-dumptidset, 15.02.0986.005.` | Having a Wild Card Only (*) Accepted Domain Set on an Internal Relay. This is an open relay and is very bad to have set. | Remove the Accepted Domain that is set to `*` and properly configure an anonymous relay on a receive connector or change to an External Relay. <BR><BR>More Information: [Allow anonymous relay on Exchange servers](https://docs.microsoft.com/en-us/Exchange/mail-flow/connectors/allow-anonymous-relay?view=exchserver-2019)
 
-## July 2021 Security Update/Cumulative Updates
+### July 2021 Security Update/Cumulative Updates
 Following are the known issues after installing July 2021 Security Updates/Cumulative Updates for Exchange On-Premises servers
 
 **Issue** | **Possible reason** | **Workaround/Solution**

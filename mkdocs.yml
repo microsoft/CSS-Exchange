@@ -7,6 +7,7 @@ nav:
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
+    - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - Test-AMSI: Admin/Test-AMSI.md
   - Databases:
