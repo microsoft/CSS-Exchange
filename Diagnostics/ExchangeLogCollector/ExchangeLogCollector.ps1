@@ -107,10 +107,6 @@ Function Invoke-RemoteFunctions {
     )
 
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-    . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
-    . $PSScriptRoot\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
-    . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-    . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
     . $PSScriptRoot\RemoteScriptBlock\Add-ServerNameToFileName.ps1
     . $PSScriptRoot\RemoteScriptBlock\Get-ClusterNodeFileVersions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
