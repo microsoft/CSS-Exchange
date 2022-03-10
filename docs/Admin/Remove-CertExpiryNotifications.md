@@ -4,6 +4,8 @@ Download the latest release: [Remove-CertExpiryNotifications.ps1](https://github
 
 This script deletes all AsyncOperationNotification items from the Exchange SystemMailbox that contains them. This corrects the BlockedDeserializeTypeException error described in Emerging Issues.
 
+NOTE: This script only supports Exchange 2016 and Exchange 2019. It will not work on Exchange 2013.
+
 ## Usage
 
 The user running the script must be granted full access to the arbitration mailbox prior to running the script. That can be accomplished with this command:
