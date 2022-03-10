@@ -25,13 +25,13 @@ if ($null -eq $mailbox) {
     return
 }
 
-$inboxChildFolders = Invoke-RestMethod -Uri "https://$Server/api/v2.0/Users('$mailbox')/mailfolders/inbox/childfolders" @invokeParameters
-if ($null -eq $inboxChildFolders) {
+$mailFolders = Invoke-RestMethod -Uri "https://$Server/api/v2.0/Users('$mailbox')/mailfolders" @invokeParameters
+if ($null -eq $mailFolders -or $mailFolders.value.Count -eq 0) {
     Write-Host "Could not get inbox child folders or there were no folders found."
     return
 }
 
-$asyncOperationNotificationFolder = $inboxChildFolders.value | Where-Object { $_.DisplayName -eq "AsyncOperationNotification" }
+$asyncOperationNotificationFolder = $mailFolders.value | Where-Object { $_.DisplayName -eq "AsyncOperationNotification" }
 if ($null -eq $asyncOperationNotificationFolder) {
     Write-Host "AsyncOperationNotification folder not found."
     return
