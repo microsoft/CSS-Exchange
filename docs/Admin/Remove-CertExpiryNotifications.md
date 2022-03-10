@@ -6,6 +6,16 @@ This script deletes all AsyncOperationNotification items from the Exchange Syste
 
 NOTE: This script only supports Exchange 2016 and Exchange 2019. It will not work on Exchange 2013.
 
+## Syntax
+
+```powershell
+Remove-CertExpiryNotifications.ps1
+  [[-Server] <string>]
+  [[-Credential] <pscredential>]
+  [-WhatIf]
+  [-Confirm]
+```
+
 ## Usage
 
 The user running the script must be granted full access to the arbitration mailbox prior to running the script. That can be accomplished with this command:
@@ -14,7 +24,7 @@ The user running the script must be granted full access to the arbitration mailb
 Get-Mailbox -Arbitration "SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}" | Add-MailboxPermission -User SomeAdmin -AccessRights FullAccess
 ```
 
-Next, the same user that was granted access should run the script from Exchange Management Shell. Start by running the script with -WhatIf.
+Next, the same user that was granted access should run the script from Exchange Management Shell. Start by running the script with -WhatIf. Optionally, the -Credential switch can be provided. Otherwise, the current user will be used.
 
 ```powershell
 .\Remove-CertExpiryNotifications.ps1 -Server exch1.contoso.com -WhatIf
@@ -45,6 +55,12 @@ Or, the script can be run with -Confirm:$false to skip the prompts:
 After the script has run successfully, it should report that there are no messages present in the folder:
 
 ![Example output](Remove-CertExpiryNotifications4.png)
+
+Finally, remember to remove the permission that was granted to the user:
+
+```powershell
+Get-Mailbox -Arbitration "SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}" | Remove-MailboxPermission -User SomeAdmin -AccessRights FullAccess
+```
 
 ## Common errors
 
