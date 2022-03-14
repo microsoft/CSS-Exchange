@@ -3,9 +3,9 @@
 
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
 param (
-    [Parameter()]
+    [Parameter(Mandatory = $true)]
     [string]
-    $Server = $env:COMPUTERNAME,
+    $Server,
 
     [Parameter()]
     [System.Management.Automation.PSCredential]
