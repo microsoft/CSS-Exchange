@@ -93,6 +93,8 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Verbose.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
+. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
 try {
@@ -246,6 +248,10 @@ Function Main {
 }
 
 try {
+    if (-not (Confirm-Administrator)) {
+        Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
+        exit
+    }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
     Write-ScriptOutput "Build Version: $BuildVersion" -Diagnostic
