@@ -47,7 +47,13 @@ if ($null -eq $mailbox) {
     return
 }
 
-$mailFolders = Invoke-RestMethod -Uri "https://$Server/api/v2.0/Users('$mailbox')/mailfolders" @invokeParameters
+try {
+    $mailFolders = Invoke-RestMethod -Uri "https://$Server/api/v2.0/Users('$mailbox')/mailfolders" @invokeParameters
+} catch {
+    Write-Host "Error connecting to Exchange. Please check the docs for common errors: https://aka.ms/RemoveCertExpiryNotifications"
+    throw
+}
+
 if ($null -eq $mailFolders -or $mailFolders.value.Count -eq 0) {
     Write-Host "Could not get inbox child folders or there were no folders found."
     return
