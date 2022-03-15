@@ -10,13 +10,15 @@ NOTE: This script only supports Exchange 2016 and Exchange 2019. It will not wor
 
 ```powershell
 Remove-CertExpiryNotifications.ps1
-  [[-Server] <string>]
+  [-Server <string>]
   [[-Credential] <pscredential>]
   [-WhatIf]
   [-Confirm]
 ```
 
 ## Usage
+
+NOTE: If an error occurs please see [Common Errors](#common-errors).
 
 The user running the script must be granted full access to the arbitration mailbox prior to running the script. That can be accomplished with this command:
 
@@ -68,7 +70,7 @@ Get-Mailbox -Arbitration "SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}" |
 Invoke-RestMethod : The underlying connection was closed: An unexpected error occurred on a send.
 ```
 
-"Unexpected error occurred on a send" usually means that the certificate at the server specified in the -Server parameter is not valid. In other words, navigating to `https://the.server.you.specified/owa` must not return a certificate error. If it does, the script will fail.
+"Unexpected error occurred on a send" usually means that the name in the certificate on the target server does not match what was specified in the -Server parameter. In other words, navigating to `https://the.server.you.specified/owa` must not return a certificate error. If it does, the script will fail. The specified server must be the name in the certificate bound to IIS.
 
 ```powershell
 Invoke-RestMethod : The remote server returned an error: (401) Unauthorized.
