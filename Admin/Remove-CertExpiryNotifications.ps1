@@ -1,6 +1,28 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.SYNOPSIS
+    Removes certificate expiry notification emails.
+.DESCRIPTION
+    Removes certificate expiry notification emails from the arbitration mailbox in an Exchange organization.
+    The user must have access to the SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9} arbitration mailbox
+    in order to run this script. See the docs for more information.
+
+    Common errors are also described in the docs. Please see the docs for more information.
+.EXAMPLE
+    PS C:\> .\Remove-CertExpiryNotifications.ps1 -Server exch1.contoso.com -WhatIf
+
+    For more examples, please see the docs.
+.PARAMETER Server
+    The Exchange server to connect to. Note this must be the name in the certificate,
+    or a TLS failure will occur.
+.PARAMETER Credential
+    The credentials to use to connect to the Exchange server. If not provided, the
+    current logged in user will be used.
+.LINK
+    https://aka.ms/RemoveCertExpiryNotifications
+#>
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
 param (
     [Parameter(Mandatory = $true)]
