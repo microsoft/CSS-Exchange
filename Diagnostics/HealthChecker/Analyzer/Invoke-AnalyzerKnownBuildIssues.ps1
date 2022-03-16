@@ -173,7 +173,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         ) `
             -InformationUrl (GetKnownIssueInformation `
                 "Exchange Service Host service fails after installing March 2022 security update (KB5013118)" `
-                "https://support.microsoft.com/topic/exchange-service-host-service-fails-after-installing-march-2022-security-update-kb5013118-1cf2ecaf-2e87-4c42-b541-6adc47e01a5d")
+                "https://support.microsoft.com/kb/5013118")
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
