@@ -2,7 +2,7 @@
 
 Download the latest release: [Remove-CertExpiryNotifications.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Remove-CertExpiryNotifications.ps1)
 
-This script deletes all AsyncOperationNotification items from the Exchange SystemMailbox that contains them. This corrects the BlockedDeserializeTypeException error described in Emerging Issues.
+This script deletes all AsyncOperationNotification items from the Exchange SystemMailbox that contains them. This corrects the BlockedDeserializeTypeException error described in [KB5013118](https://support.microsoft.com/en-gb/topic/exchange-service-host-service-fails-after-installing-march-2022-security-update-kb5013118-1cf2ecaf-2e87-4c42-b541-6adc47e01a5d).
 
 NOTE: This script only supports Exchange 2016 and Exchange 2019. It will not work on Exchange 2013.
 
