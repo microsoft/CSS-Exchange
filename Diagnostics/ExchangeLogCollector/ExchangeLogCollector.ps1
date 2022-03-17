@@ -145,8 +145,6 @@ Function Invoke-RemoteFunctions {
     . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
     try {
-        $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
-        $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
 
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
