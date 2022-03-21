@@ -161,6 +161,19 @@ Function Invoke-AnalyzerKnownBuildIssues {
             -InformationUrl (GetKnownIssueInformation `
                 "OWA redirection doesn't work after installing November 2021 security updates for Exchange Server 2019, 2016, or 2013" `
                 "https://support.microsoft.com/help/5008997")
+
+        Write-Verbose "Working on March 2022 Security Updates - MSExchangeServiceHost service may crash"
+        TestForKnownBuildIssues -CurrentVersion $currentVersion `
+            -KnownBuildIssuesToFixes @(
+            (GetKnownIssueBuildInformation "15.2.986.22" $null),
+            (GetKnownIssueBuildInformation "15.2.922.27" $null),
+            (GetKnownIssueBuildInformation "15.1.2375.24" $null),
+            (GetKnownIssueBuildInformation "15.1.2308.27" $null),
+            (GetKnownIssueBuildInformation "15.0.1497.33" $null)
+        ) `
+            -InformationUrl (GetKnownIssueInformation `
+                "Exchange Service Host service fails after installing March 2022 security update (KB5013118)" `
+                "https://support.microsoft.com/kb/5013118")
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions

@@ -5,7 +5,7 @@
 Function Test-ValidHomeMDB {
     $testName = "Valid Home MDB"
     $rootDSE = [ADSI]("LDAP://RootDSE")
-    $container = [ADSI]("LDAP://$($rootDSE.rootDomainNamingContext)")
+    $container = [ADSI]("GC://$($rootDSE.dnsHostName)")
     $arbitration = 0x800000
     $discovery = 0x20000000
     $publicFolder = 0x1000000000
