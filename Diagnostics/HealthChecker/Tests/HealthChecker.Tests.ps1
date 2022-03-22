@@ -347,6 +347,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
+            Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -368,6 +369,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.DownloadDomainsEnabled | Should -Be "True"
             $downloadDomains.ExternalDownloadHostName | Should -Be "Set Correctly."
             $downloadDomains.InternalDownloadHostName | Should -Be "Not Configured"
+        }
+
+        It "No Register in DNS" {
+            SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
+            TestObjectMatch "No NIC Registered In DNS" "Error: This will cause server to crash and odd mail flow issues. Exchange Depends on the primary NIC to have the setting Registered In DNS set." -WriteType "Red"
         }
     }
 
