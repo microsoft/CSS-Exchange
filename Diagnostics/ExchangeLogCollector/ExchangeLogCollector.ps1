@@ -134,6 +134,7 @@ Function Invoke-RemoteFunctions {
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-DebugLog.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptHost.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Write-Verbose.ps1
     . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanData.ps1
     . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanExt.ps1
     . $PSScriptRoot\RemoteScriptBlock\Logman\Get-LogmanObject.ps1
@@ -149,6 +150,7 @@ Function Invoke-RemoteFunctions {
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
             $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Instance-Debug" -LogDirectory $Script:RootCopyToDirectory
+            SetWriteVerboseAction ${Function:Write-DebugLog}
             Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
@@ -299,6 +301,7 @@ try {
     }
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
+    SetWriteVerboseAction ${Function:Write-DebugLog}
 
     Main
 } finally {
