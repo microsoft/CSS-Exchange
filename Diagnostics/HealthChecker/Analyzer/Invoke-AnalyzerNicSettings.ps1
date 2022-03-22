@@ -263,4 +263,14 @@ Function Invoke-AnalyzerNicSettings {
             -DisplayWriteType $displayWriteType `
             -DisplayCustomTabNumber 1
     }
+
+    $noDNSRegistered = ($osInformation.NetworkInformation.NetworkAdapters | Where-Object { $_.RegisteredInDns -eq $true }).Count -eq 0
+
+    if ($noDNSRegistered) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "No NIC Registered In DNS" `
+            -Details "Error: This will cause server to crash and odd mail flow issues. Exchange Depends on the primary NIC to have the setting Registered In DNS set." `
+            -DisplayGroupingKey $keyNICSettings `
+            -DisplayWriteType "Red" `
+            -DisplayCustomTabNumber 1
+    }
 }
