@@ -47,7 +47,8 @@ Function Add-ScriptBlockInjection {
             if ($null -ne $IncludeScriptBlock) {
                 $lines = @()
                 $IncludeScriptBlock | ForEach-Object {
-                    $lines += $_.Ast.Parent.ToString() + [System.Environment]::NewLine
+                    $lines += "Function $($_.Ast.Name) { $([System.Environment]::NewLine)"
+                    $lines += "$($_.ToString().Trim()) $([System.Environment]::NewLine) } $([System.Environment]::NewLine)"
                 }
                 $scriptBlockIncludeLines = $lines -join [System.Environment]::NewLine
             } else {
