@@ -53,7 +53,9 @@ Function Start-JobManager {
                 # The caller needs to handle this by having a custom scriptblock to process the data
                 # Then return the desired result back
                 if ($null -ne $RemotePipelineHandler -and $receiveJob) {
+                    Write-Verbose "Starting to call RemotePipelineHandler"
                     $returnJobData = & $RemotePipelineHandler $receiveJob
+                    Write-Verbose "Finished RemotePipelineHandler"
                     if ($null -ne $returnJobData) {
                         $returnData.Add($jobName, $returnJobData)
                     } else {
