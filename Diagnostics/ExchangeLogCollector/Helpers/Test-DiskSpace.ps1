@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\PipelineFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Add-ScriptBlockInjection.ps1
 Function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
@@ -51,12 +53,16 @@ Function Test-DiskSpace {
     }
 
     Write-ScriptDebug("Getting Get-FreeSpace string to create Script Block")
-    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString()
+    SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
+    $getFreeSpaceString = Add-ScriptBlockInjection -PrimaryScriptBlock ${Function:Get-FreeSpace} `
+        -IncludeScriptBlock @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject}) `
+        -IncludeUsingParameter "WriteRemoteVerboseDebugAction"
     Write-ScriptDebug("Creating Script Block")
     $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
     $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
         -NeedReturnData $true `
-        -JobBatchName "Getting the free space for test disk space"
+        -JobBatchName "Getting the free space for test disk space" `
+        -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
     $passedServers = @()
     foreach ($server in $Servers) {
 

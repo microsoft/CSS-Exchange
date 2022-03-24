@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Helpers\PipelineFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Add-ScriptBlockInjection.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
@@ -357,14 +359,22 @@ Function Write-LargeDataObjectsOnMachine {
                 Write out the Exchange Server Object Data and copy them over to the correct server
             #>
 
+            # Set remote version action to be able to return objects on the pipeline to log and handle them.
+            SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
+            $scriptBlockInjectParams = @{
+                IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
+                IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
+            }
             #Setup all the Script blocks that we are going to use.
             Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
-            $getExchangeInstallDirectoryString = (${Function:Get-ExchangeInstallDirectory}).ToString()
+            $getExchangeInstallDirectoryString = Add-ScriptBlockInjection @scriptBlockInjectParams `
+                -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory}
             Write-ScriptDebug("Creating Script Block")
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
             Write-ScriptDebug("Getting New-Folder string to create Script Block")
-            $newFolderString = (${Function:New-Folder}).ToString()
+            $newFolderString = Add-ScriptBlockInjection @scriptBlockInjectParams `
+                -PrimaryScriptBlock ${Function:New-Folder}
             Write-ScriptDebug("Creating script block")
             $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
 
@@ -389,13 +399,16 @@ Function Write-LargeDataObjectsOnMachine {
             }
 
             Write-ScriptDebug ("Calling job for Get Exchange Install Directory")
-            $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
+            $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory `
+                -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
                 -NeedReturnData $true `
-                -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
+                -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine" `
+                -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
 
             Write-ScriptDebug("Calling job for folder creation")
             Start-JobManager -ServersWithArguments $serverArgListDirectoriesToCreate -ScriptBlock $newFolderScriptBlock `
-                -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine"
+                -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine" `
+                -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
 
             #Now do the rest of the actions
             foreach ($serverData in $exchangeServerData) {
