@@ -27,6 +27,7 @@ using System.Collections;
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
             public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
+            public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
             public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
             public object WildCardAcceptedDomain; // for issues with * accepted domain.
             public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface

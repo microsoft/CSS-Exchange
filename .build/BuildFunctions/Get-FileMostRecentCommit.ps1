@@ -24,6 +24,6 @@ function Get-FileMostRecentCommit {
         return $commitTime
     } catch {
         Write-Error "Failed to get commit time for file $File"
-        throw
+        #throw
     }
 }

@@ -150,5 +150,64 @@ Function Invoke-AnalyzerHybridInformation {
                 -DisplayGroupingKey $keyHybridInformation `
                 -DisplayCustomTabNumber 2
         }
+
+        if ($null -ne $exchangeInformation.ExchangeConnectors) {
+            foreach ($connector in $exchangeInformation.ExchangeConnectors) {
+                $cloudConnectorWriteType = "Yellow"
+                if (($connector.TransportRole -ne "HubTransport") -and
+                    ($connector.CloudEnabled -eq $true)) {
+
+                    if (($connector.CertificateMatchDetected) -and
+                        ($connector.GoodTlsCertificateSyntax)) {
+                        $cloudConnectorWriteType = "Green"
+                    }
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Name" -Details $connector.Name `
+                        -DisplayGroupingKey $keyHybridInformation
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud mailflow enabled" -Details $connector.CloudEnabled `
+                        -DisplayGroupingKey $keyHybridInformation
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Type" -Details $connector.ConnectorType `
+                        -DisplayGroupingKey $keyHybridInformation
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Tls Certificate Name" -Details $connector.TlsCertificateName `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayWriteType $cloudConnectorWriteType
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate present on server" -Details $connector.CertificateMatchDetected `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayWriteType $cloudConnectorWriteType
+
+                    if ($connector.CertificateMatchDetected -eq $false) {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls certificate was not found on the server. This may cause mail flow issues." `
+                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayWriteType $cloudConnectorWriteType `
+                            -DisplayCustomTabNumber 2
+                    } else {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
+                            -DisplayGroupingKey $keyHybridInformation `
+
+                        foreach ($thumbprint in $connector.CertificateThumbprint) {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayCustomTabNumber 2
+                        }
+                    }
+
+                    if (($connector.GoodTlsCertificateSyntax -eq $false) -or
+                        ($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid")) {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Bad Tls Certificate Name Syntax" -Details "True" `
+                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayWriteType $cloudConnectorWriteType
+
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The recommended syntax is: '<I>X.500Issuer<S>X.500Subject'" `
+                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayWriteType $cloudConnectorWriteType `
+                            -DisplayCustomTabNumber 2
+                    }
+                }
+            }
+        }
     }
 }

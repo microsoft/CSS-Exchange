@@ -8,6 +8,7 @@
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
@@ -445,6 +446,11 @@ Function Get-ExchangeInformation {
                 Write-Yellow "Failed to run Get-HybridConfiguration"
                 Invoke-CatchActions
             }
+
+            Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
+            $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
+                -ComputerName $Script:Server `
+                -CertificateObject $exchangeInformation.ExchangeCertificates
         }
 
         $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
