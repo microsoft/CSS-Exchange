@@ -269,7 +269,7 @@ Function Write-LargeDataObjectsOnMachine {
                 New-Folder -NewFolders $reportPath
 
                 try {
-                    Write-ScriptHost("Attempting to run CollectOverMetrics.ps1 against $($_.Name)")
+                    Write-Host "Attempting to run CollectOverMetrics.ps1 against $($_.Name)"
                     &"$Script:localExInstall\Scripts\CollectOverMetrics.ps1" -DatabaseAvailabilityGroup $_.Name `
                         -IncludeExtendedEvents `
                         -GenerateHtmlReport `
@@ -306,9 +306,9 @@ Function Write-LargeDataObjectsOnMachine {
         $dagNameGroup.Count -eq 0) {
         Write-Verbose("No DAGs were found. Didn't run CollectOverMetrics.ps1")
     } elseif ($Script:EdgeRoleDetected) {
-        Write-ScriptHost("Unable to run CollectOverMetrics.ps1 script from an edge server") -ForegroundColor Yellow
+        Write-Host "Unable to run CollectOverMetrics.ps1 script from an edge server" -ForegroundColor Yellow
     } elseif ($CollectFailoverMetrics) {
-        Write-ScriptHost("Unable to run CollectOverMetrics.ps1 script from a remote shell session not on an Exchange Server or Tools box.") -ForegroundColor Yellow
+        Write-Host "Unable to run CollectOverMetrics.ps1 script from a remote shell session not on an Exchange Server or Tools box." -ForegroundColor Yellow
     }
 
     if ($ExchangeServerInformation) {

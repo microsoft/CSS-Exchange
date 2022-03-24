@@ -113,7 +113,7 @@ Function Invoke-RemoteFunctions {
             Write-Verbose("Loading common functions")
         }
     } catch {
-        Write-ScriptHost -WriteString ("An error occurred in Invoke-RemoteFunctions") -ForegroundColor "Red"
+        Write-Host "An error occurred in Invoke-RemoteFunctions" -ForegroundColor "Red"
         Invoke-CatchBlockActions
         #This is a bad place to catch the error that just occurred
         #Being that there is a try catch block around each command that we run now, we should never hit an issue here unless it is is prior to that.
@@ -170,21 +170,21 @@ Function Main {
 "@ -f $BuildVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
 
     Clear-Host
-    Write-ScriptHost -WriteString $display -ShowServer $false
+    Write-Host $display
 
     if (-not($AcceptEULA)) {
         Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
     }
 
     if (-not (Confirm-Administrator)) {
-        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
+        Write-Host "Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." -ForegroundColor "Yellow"
         exit
     }
 
     $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
 
     if (!($Script:LocalExchangeShell.ShellLoaded)) {
-        Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false
+        Write-Host "It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit."
         exit
     }
 
@@ -195,7 +195,7 @@ Function Main {
     if ($Script:LocalExchangeShell.EdgeServer) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
         #Because it isn't a domain joined computer, we can't use remote execution
-        Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"
+        Write-Host "Determined that we are on an Edge Server, we can only use locally collection for this role." -ForegroundColor "Yellow"
         $Script:EdgeRoleDetected = $true
         $Servers = @($env:COMPUTERNAME)
     }
@@ -229,12 +229,12 @@ Function Main {
     } else {
 
         if ($null -eq (Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
-            Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally. We can't continue with the data collection") -ForegroundColor "Yellow"
+            Write-Host "Failed to have enough space available locally. We can't continue with the data collection" -ForegroundColor "Yellow"
             exit
         }
         if (-not($Script:EdgeRoleDetected)) {
-            Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
-            Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
+            Write-Host "Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers parameter with a list of Exchange Server names" -ForegroundColor "Yellow"
+            Write-Host "Going to collect the data locally"
         }
         $Script:ArgumentList = (Get-ArgumentList -Servers $env:COMPUTERNAME)
         Invoke-RemoteFunctions -PassedInfo $Script:ArgumentList
@@ -243,7 +243,7 @@ Function Main {
         Invoke-ServerRootZipAndCopy -RemoteExecute $false
     }
 
-    Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false
+    Write-Host "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com."
 }
 #Need to do this here otherwise can't find the script path
 $configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
@@ -264,7 +264,7 @@ try {
         try {
             Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
         } catch {
-            Write-ScriptHost "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
+            Write-Host "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
             Invoke-CatchBlockActions
             Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
         }
@@ -272,6 +272,7 @@ try {
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
     SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteHostAction ${Function:Write-DebugLog}
 
     Main
 } finally {

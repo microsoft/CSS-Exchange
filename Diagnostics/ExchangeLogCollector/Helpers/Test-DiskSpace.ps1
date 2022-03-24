@@ -14,7 +14,7 @@ Function Test-DiskSpace {
     )
     Write-Verbose("Function Enter: Test-DiskSpace")
     Write-Verbose("Passed: [string]Path: {0} | [int]CheckSize: {1}" -f $Path, $CheckSize)
-    Write-ScriptHost -WriteString ("Checking the free space on the servers before collecting the data...") -ShowServer $false
+    Write-Host "Checking the free space on the servers before collecting the data..."
     if (-not ($Path.EndsWith("\"))) {
         $Path = "{0}\" -f $Path
     }
@@ -29,10 +29,10 @@ Function Test-DiskSpace {
         Write-Verbose("Passed: [string]Server: {0} | [int]FreeSpace: {1} | [int]CheckSize: {2}" -f $Server, $FreeSpace, $CheckSize)
 
         if ($FreeSpace -gt $CheckSize) {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have more than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false
+            Write-Host "[Server: $Server] : We have more than $CheckSize GB of free space."
             return $true
         } else {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have less than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false
+            Write-Host "[Server: $Server] : We have less than $CheckSize GB of free space."
             return $false
         }
     }
@@ -76,14 +76,14 @@ Function Test-DiskSpace {
     }
 
     if ($passedServers.Count -eq 0) {
-        Write-ScriptHost -WriteString("Looks like all the servers didn't pass the disk space check.") -ShowServer $false
-        Write-ScriptHost -WriteString("Because there are no servers left, we will stop the script.") -ShowServer $false
+        Write-Host "Looks like all the servers didn't pass the disk space check."
+        Write-Host "Because there are no servers left, we will stop the script."
         exit
     } elseif ($passedServers.Count -ne $Servers.Count) {
-        Write-ScriptHost -WriteString ("Looks like all the servers didn't pass the disk space check.") -ShowServer $false
-        Write-ScriptHost -WriteString ("We will only collect data from these servers: ") -ShowServer $false
+        Write-Host "Looks like all the servers didn't pass the disk space check."
+        Write-Host "We will only collect data from these servers: "
         foreach ($svr in $passedServers) {
-            Write-ScriptHost -ShowServer $false -WriteString ("{0}" -f $svr)
+            Write-Host $svr
         }
         Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction { exit }
     }

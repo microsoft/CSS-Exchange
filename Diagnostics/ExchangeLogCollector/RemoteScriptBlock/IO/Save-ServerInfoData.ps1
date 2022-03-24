@@ -12,7 +12,7 @@ Function Save-ServerInfoData {
 
     #Get MSInfo from server
     msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
-    Write-ScriptHost -WriteString ("Waiting for msinfo32.exe process to end before moving on...") -ForegroundColor "Yellow"
+    Write-Host "Waiting for msinfo32.exe process to end before moving on..." -ForegroundColor "Yellow"
     while ((Get-Process | Where-Object { $_.ProcessName -eq "msinfo32" }).ProcessName -eq "msinfo32") {
         Start-Sleep 5;
     }

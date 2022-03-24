@@ -16,11 +16,11 @@ Function Invoke-ServerRootZipAndCopy {
         }
 
     Function Write-CollectFilesFromLocation {
-        Write-ScriptHost -ShowServer $false -WriteString (" ")
-        Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
+        Write-Host ""
+        Write-Host "Please collect the following files from these servers and upload them: "
         $LogPaths |
             ForEach-Object {
-                Write-ScriptHost -ShowServer $false -WriteString ("Server: {0} Path: {1}" -f $_.ServerName, $_.ZipFolder)
+                Write-Host "Server: $($_.ServerName) Path: $($_.ZipFolder)"
             }
     }
 
@@ -73,23 +73,23 @@ Function Invoke-ServerRootZipAndCopy {
             $totalSizeGB = $totalSizeToCopyOver / 1GB
 
             if ($freeSpace -gt ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) {
-                Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
-                Write-ScriptHost -ShowServer $true -WriteString ("FreeSpace: {0} TestSize: {1} Path: {2}" -f $freeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
-                Write-ScriptHost -ShowServer $false -WriteString (" ")
-                Write-ScriptHost -ShowServer $false -WriteString ("Copying over the data may take some time depending on the network")
+                Write-Host "Looks like we have enough free space at the path to copy over the data"
+                Write-Host "FreeSpace: $freeSpace TestSize: $(($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) Path: $RootPath"
+                Write-Host ""
+                Write-Host "Copying over the data may take some time depending on the network"
 
                 $LogPaths |
                     ForEach-Object {
                         if ($_.ServerName -ne $env:COMPUTERNAME) {
                             $remoteCopyLocation = "\\{0}\{1}" -f $_.ServerName, ($_.ZipFolder.Replace(":", "$"))
-                            Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Copying File {1}...." -f $_.ServerName, $remoteCopyLocation)
+                            Write-Host "[$($_.ServerName)] : Copying File $remoteCopyLocation...."
                             Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
-                            Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Done copying file" -f $_.ServerName)
+                            Write-Host "[$($_.ServerName)] : Done copying file"
                         }
                     }
             } else {
-                Write-ScriptHost -ShowServer $true -WriteString("Looks like we don't have enough free space to copy over the data") -ForegroundColor "Yellow"
-                Write-ScriptHost -ShowServer $true -WriteString("FreeSpace: {0} TestSize: {1} Path: {2}" -f $FreeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
+                Write-Host "Looks like we don't have enough free space to copy over the data" -ForegroundColor "Yellow"
+                Write-Host "FreeSpace: $FreeSpace TestSize: $(($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) Path: $RootPath"
                 Write-CollectFilesFromLocation
             }
         } else {

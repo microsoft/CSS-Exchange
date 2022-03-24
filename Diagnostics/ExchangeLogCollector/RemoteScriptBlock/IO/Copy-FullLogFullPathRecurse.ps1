@@ -31,11 +31,11 @@ Function Copy-FullLogFullPathRecurse {
                 New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
             }
         } else {
-            Write-ScriptHost("No data at path '{0}'. Unable to copy this data." -f $LogPath)
+            Write-Host "No data at path '$LogPath'. Unable to copy this data."
             New-Item -Path ("{0}\NoDataDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
         }
     } else {
-        Write-ScriptHost("No Folder at {0}. Unable to copy this data." -f $LogPath)
+        Write-Host "No Folder at $LogPath. Unable to copy this data."
         New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
     }
     Write-Verbose("Function Exit: Copy-FullLogFullPathRecurse")

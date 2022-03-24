@@ -17,7 +17,7 @@ Function Get-ServerObjects {
 
         $sobj = Get-ExchangeBasicServerObject -ServerName $svr
         if ($sobj -eq $true) {
-            Write-ScriptHost -WriteString ("Removing Server {0} from the list" -f $svr) -ForegroundColor "Red" -ShowServer $false
+            Write-Host "Removing Server $svr from the list" -ForegroundColor "Red"
             continue
         } else {
             $validServersList += $svr
@@ -50,7 +50,7 @@ Function Get-ServerObjects {
 
     if (($null -eq $svrsObject) -or
         ($svrsObject.Count -eq 0)) {
-        Write-ScriptHost -WriteString ("Something wrong happened in Get-ServerObjects stopping script") -ShowServer $false -ForegroundColor "Red"
+        Write-Host "Something wrong happened in Get-ServerObjects stopping script" -ForegroundColor "Red"
         exit
     }
     #Set the valid servers

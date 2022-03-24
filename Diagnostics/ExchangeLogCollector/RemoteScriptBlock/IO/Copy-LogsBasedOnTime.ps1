@@ -23,7 +23,7 @@ Function Copy-LogsBasedOnTime {
             [Parameter(Mandatory = $true)][string]$CopyFromLocation,
             [Parameter(Mandatory = $true)][string]$CopyToLocation
         )
-        Write-ScriptHost -WriteString ("It doesn't look like you have any data in this location {0}." -f $CopyFromLocation) -ForegroundColor "Yellow"
+        Write-Host "It doesn't look like you have any data in this location $CopyFromLocation." -ForegroundColor "Yellow"
         #Going to place a file in this location so we know what happened
         $tempFile = $CopyToLocation + "\NoFilesDetected.txt"
         New-Item $tempFile -ItemType File -Value $LogPath | Out-Null

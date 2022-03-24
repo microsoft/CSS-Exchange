@@ -37,8 +37,8 @@ Function Test-FreeSpace {
         $passed = $freeSpace -gt ($addSize = $Script:AdditionalFreeSpaceCushionGB + ($currentSizeCopy / 1GB))
 
         if (!($passed)) {
-            Write-ScriptHost("Free space on the drive has appear to be used up past recommended thresholds. Going to stop this execution of the script. If you feel this is an Error, please notify ExToolsFeedback@microsoft.com") -ShowServer $true -ForegroundColor "Red"
-            Write-ScriptHost("FilePath: {0} | FreeSpace: {1} | Looking for: {2}" -f $Script:RootCopyToDirectory, $freeSpace, ($freeSpace + $addSize)) -ShowServer $true -ForegroundColor "Red"
+            Write-Host "Free space on the drive has appear to be used up past recommended thresholds. Going to stop this execution of the script. If you feel this is an Error, please notify ExToolsFeedback@microsoft.com" -ForegroundColor "Red"
+            Write-Host "FilePath: $($Script:RootCopyToDirectory) | FreeSpace: $freeSpace | Looking for: $(($freeSpace + $addSize))" -ForegroundColor "Red"
             return $passed
         }
     }

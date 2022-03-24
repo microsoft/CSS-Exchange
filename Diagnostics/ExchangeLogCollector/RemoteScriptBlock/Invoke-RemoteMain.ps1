@@ -29,7 +29,7 @@ Function Invoke-RemoteMain {
 
     if ($null -eq $Script:localServerObject -or
         $Script:localServerObject.ServerName -ne $env:COMPUTERNAME) {
-        Write-ScriptHost -WriteString ("Something went wrong trying to find the correct Server Object for this server. Stopping this instance of execution.")
+        Write-Host "Something went wrong trying to find the correct Server Object for this server. Stopping this instance of execution."
         exit
     }
 

@@ -71,7 +71,7 @@ Function Get-TransportLoggingInformationPerServer {
         $hubObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
         $transportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
     } else {
-        Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
+        Write-Host "trying to determine transport information for server $Server and wasn't able to determine the correct version type"
         return
     }
 
