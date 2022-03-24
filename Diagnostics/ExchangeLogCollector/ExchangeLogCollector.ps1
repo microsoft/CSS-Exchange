@@ -88,13 +88,14 @@ Function Invoke-RemoteFunctions {
     )
 
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\Write-Host.ps1
     . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-    . $PSScriptRoot\RemoteScriptBlock\IO\Write-DebugLog.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptHost.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-Verbose.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\WriteFunctions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
     try {
@@ -102,6 +103,9 @@ Function Invoke-RemoteFunctions {
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
             $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Instance-Debug" -LogDirectory $Script:RootCopyToDirectory
+            SetWriteHostManipulateObjectAction ${Function:Get-ManipulateWriteHostValue}
+            SetWriteVerboseManipulateMessageAction ${Function:Get-ManipulateWriteVerboseValue}
+            SetWriteHostAction ${Function:Write-DebugLog}
             SetWriteVerboseAction ${Function:Write-DebugLog}
             Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
