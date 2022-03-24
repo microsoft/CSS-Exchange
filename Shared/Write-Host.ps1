@@ -12,6 +12,11 @@ Function Write-Host {
     )
     process {
         $consoleHost = $host.Name -eq "ConsoleHost"
+
+        if ($null -ne $Script:WriteHostManipulateObjectAction) {
+            $Object = & $Script:WriteHostManipulateObjectAction $Object
+        }
+
         $params = @{
             Object    = $Object
             NoNewLine = $NoNewLine
@@ -69,4 +74,8 @@ Function RevertProperForegroundColor {
 
 Function SetWriteHostAction ($DebugAction) {
     $Script:WriteHostDebugAction = $DebugAction
+}
+
+Function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+    $Script:WriteHostManipulateObjectAction = $ManipulateObject
 }
