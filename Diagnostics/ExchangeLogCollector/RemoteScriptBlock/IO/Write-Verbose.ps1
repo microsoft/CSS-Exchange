@@ -11,6 +11,10 @@ Function Write-Verbose {
 
     process {
 
+        if ($null -ne $Script:WriteVerboseManipulateMessageAction) {
+            $Message = & $Script:WriteVerboseManipulateMessageAction $Message
+        }
+
         Microsoft.PowerShell.Utility\Write-Verbose $Message
 
         if ($null -ne $Script:WriteVerboseDebugAction) {
@@ -31,4 +35,8 @@ Function SetWriteVerboseAction ($DebugAction) {
 
 Function SetWriteRemoteVerboseAction ($DebugAction) {
     $Script:WriteRemoteVerboseDebugAction = $DebugAction
+}
+
+Function SetWriteVerboseManipulateMessageAction ($DebugAction) {
+    $Script:WriteVerboseManipulateMessageAction = $DebugAction
 }
