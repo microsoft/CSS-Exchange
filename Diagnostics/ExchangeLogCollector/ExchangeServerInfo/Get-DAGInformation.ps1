@@ -9,14 +9,14 @@ Function Get-DAGInformation {
     try {
         $dag = Get-DatabaseAvailabilityGroup $DAGName -Status -ErrorAction Stop
     } catch {
-        Write-ScriptDebug("Failed to run Get-DatabaseAvailabilityGroup on $DAGName")
+        Write-Verbose("Failed to run Get-DatabaseAvailabilityGroup on $DAGName")
         Invoke-CatchBlockActions
     }
 
     try {
         $dagNetwork = Get-DatabaseAvailabilityGroupNetwork $DAGName -ErrorAction Stop
     } catch {
-        Write-ScriptDebug("Failed to run Get-DatabaseAvailabilityGroupNetwork on $DAGName")
+        Write-Verbose("Failed to run Get-DatabaseAvailabilityGroupNetwork on $DAGName")
         Invoke-CatchBlockActions
     }
 

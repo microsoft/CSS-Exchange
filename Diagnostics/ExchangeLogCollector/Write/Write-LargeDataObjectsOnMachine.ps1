@@ -15,7 +15,7 @@
 #To handle this, we export the data locally and copy the data over the correct server.
 Function Write-LargeDataObjectsOnMachine {
 
-    Write-ScriptDebug("Function Enter Write-LargeDataObjectsOnMachine")
+    Write-Verbose("Function Enter Write-LargeDataObjectsOnMachine")
 
     [array]$serverNames = $Script:ArgumentList.ServerObjects |
         ForEach-Object {
@@ -231,11 +231,11 @@ Function Write-LargeDataObjectsOnMachine {
         $dagWriteInformation |
             ForEach-Object {
                 $location = "{0}{1}" -f $Script:RootFilePath, $_.ServerName
-                Write-ScriptDebug("Location of the data should be at: $location")
+                Write-Verbose("Location of the data should be at: $location")
                 $remoteLocation = "\\{0}\{1}" -f $_.ServerName, $location.Replace(":", "$")
-                Write-ScriptDebug("Remote Copy Location: $remoteLocation")
+                Write-Verbose("Remote Copy Location: $remoteLocation")
                 $rootTempLocation = "{0}{1}\{2}_Exchange_DAG_Information\" -f $localServerTempLocation, $_.ServerName, $_.DAGInfo.Name
-                Write-ScriptDebug("Local Root Temp Location: $rootTempLocation")
+                Write-Verbose("Local Root Temp Location: $rootTempLocation")
                 New-Folder -NewFolders $rootTempLocation
                 $_ | Add-Member -MemberType NoteProperty -Name RootSaveToLocation -Value $rootTempLocation
                 Write-DatabaseAvailabilityGroupDataLocal -DAGWriteInfo $_
@@ -244,7 +244,7 @@ Function Write-LargeDataObjectsOnMachine {
                 try {
                     Copy-Item $zipCopyLocation $remoteLocation
                 } catch {
-                    Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                    Write-Verbose("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
                     Invoke-CatchBlockActions
                 }
             }
@@ -275,7 +275,7 @@ Function Write-LargeDataObjectsOnMachine {
                         -GenerateHtmlReport `
                         -ReportPath $reportPath
                 } catch {
-                    Write-ScriptDebug("Failed to collect failover metrics")
+                    Write-Verbose("Failed to collect failover metrics")
                     Invoke-CatchBlockActions
                     $failed = $true
                 }
@@ -285,26 +285,26 @@ Function Write-LargeDataObjectsOnMachine {
                     $_.Group |
                         ForEach-Object {
                             $location = "{0}{1}" -f $Script:RootFilePath, $_.ServerName
-                            Write-ScriptDebug("Location of the data should be at: $location")
+                            Write-Verbose("Location of the data should be at: $location")
                             $remoteLocation = "\\{0}\{1}" -f $_.ServerName, $location.Replace(":", "$")
-                            Write-ScriptDebug("Remote Copy Location: $remoteLocation")
+                            Write-Verbose("Remote Copy Location: $remoteLocation")
 
                             try {
                                 Copy-Item $zipCopyLocation $remoteLocation
                             } catch {
-                                Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                                Write-Verbose("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
                                 Invoke-CatchBlockActions
                             }
                         }
                     } else {
-                        Write-ScriptDebug("Not compressing or copying over this folder.")
+                        Write-Verbose("Not compressing or copying over this folder.")
                     }
                 }
 
         Remove-Item $localServerTempLocation -Recurse -Force
     } elseif ($null -eq $dagNameGroup -or
         $dagNameGroup.Count -eq 0) {
-        Write-ScriptDebug("No DAGs were found. Didn't run CollectOverMetrics.ps1")
+        Write-Verbose("No DAGs were found. Didn't run CollectOverMetrics.ps1")
     } elseif ($Script:EdgeRoleDetected) {
         Write-ScriptHost("Unable to run CollectOverMetrics.ps1 script from an edge server") -ForegroundColor Yellow
     } elseif ($CollectFailoverMetrics) {
@@ -373,16 +373,16 @@ Function Write-LargeDataObjectsOnMachine {
                 IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
             }
             #Setup all the Script blocks that we are going to use.
-            Write-ScriptDebug("Getting Get-ExchangeInstallDirectory string to create Script Block")
+            Write-Verbose("Getting Get-ExchangeInstallDirectory string to create Script Block")
             $getExchangeInstallDirectoryString = Add-ScriptBlockInjection @scriptBlockInjectParams `
                 -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory}
-            Write-ScriptDebug("Creating Script Block")
+            Write-Verbose("Creating Script Block")
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
-            Write-ScriptDebug("Getting New-Folder string to create Script Block")
+            Write-Verbose("Getting New-Folder string to create Script Block")
             $newFolderString = Add-ScriptBlockInjection @scriptBlockInjectParams `
                 -PrimaryScriptBlock ${Function:New-Folder}
-            Write-ScriptDebug("Creating script block")
+            Write-Verbose("Creating script block")
             $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
 
             $serverArgListExchangeInstallDirectory = @()
@@ -405,14 +405,14 @@ Function Write-LargeDataObjectsOnMachine {
                 }
             }
 
-            Write-ScriptDebug ("Calling job for Get Exchange Install Directory")
+            Write-Verbose ("Calling job for Get Exchange Install Directory")
             $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory `
                 -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
                 -NeedReturnData $true `
                 -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine" `
                 -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
 
-            Write-ScriptDebug("Calling job for folder creation")
+            Write-Verbose("Calling job for folder creation")
             Start-JobManager -ServersWithArguments $serverArgListDirectoriesToCreate -ScriptBlock $newFolderScriptBlock `
                 -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine" `
                 -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
@@ -429,11 +429,11 @@ Function Write-LargeDataObjectsOnMachine {
 
                 #Write out the Exchange object data locally as a temp and copy it over to the remote server
                 $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $serverName
-                Write-ScriptDebug("Location of data should be at: {0}" -f $location)
+                Write-Verbose("Location of data should be at: {0}" -f $location)
                 $remoteLocation = "\\{0}\{1}" -f $serverName, $location.Replace(":", "$")
-                Write-ScriptDebug("Remote Copy Location: {0}" -f $remoteLocation)
+                Write-Verbose("Remote Copy Location: {0}" -f $remoteLocation)
                 $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $serverName
-                Write-ScriptDebug("Local Root Temp Location: {0}" -f $rootTempLocation)
+                Write-Verbose("Local Root Temp Location: {0}" -f $rootTempLocation)
                 #Create the temp location and write out the data
                 New-Folder -NewFolders $rootTempLocation
                 Write-ExchangeObjectDataLocal -ServerData $serverData -Location $rootTempLocation
@@ -442,7 +442,7 @@ Function Write-LargeDataObjectsOnMachine {
                         try {
                             Copy-Item $_.VersionInfo.FileName $remoteLocation
                         } catch {
-                            Write-ScriptDebug("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
+                            Write-Verbose("Failed to copy data to $remoteLocation. This is likely due to file sharing permissions.")
                             Invoke-CatchBlockActions
                         }
                     }
@@ -451,7 +451,7 @@ Function Write-LargeDataObjectsOnMachine {
             #Remove the temp data location right away
             Remove-Item $localServerTempLocation -Force -Recurse
 
-            Write-ScriptDebug("Calling Invoke-ExchangeResideDataCollectionWrite")
+            Write-Verbose("Calling Invoke-ExchangeResideDataCollectionWrite")
             Start-JobManager -ServersWithArguments $serverArgListExchangeResideData -ScriptBlock ${Function:Invoke-ExchangeResideDataCollectionWrite} `
                 -DisplayReceiveJob $false `
                 -JobBatchName "Write the data for Write-LargeDataObjectsOnMachine"
@@ -470,7 +470,7 @@ Function Write-LargeDataObjectsOnMachine {
                 InstallDirectory = $ExInstall
             }
 
-            Write-ScriptDebug("Writing out the Exchange data")
+            Write-Verbose("Writing out the Exchange data")
             Invoke-ExchangeResideDataCollectionWrite @passInfo
         }
     }

@@ -24,11 +24,11 @@ Function Copy-LogmanData {
         $filterDate = $objLogman.StartDate
 
         $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
-        Write-ScriptDebug("Copy From Date: {0}" -f $filterDate)
+        Write-Verbose("Copy From Date: {0}" -f $filterDate)
 
         if ([DateTime]$filterDate -lt [DateTime]$copyFromDate) {
             $filterDate = $copyFromDate
-            Write-ScriptDebug("Updating Copy From Date to: '{0}'" -f $filterDate)
+            Write-Verbose("Updating Copy From Date to: '{0}'" -f $filterDate)
         }
 
         $childItems = Get-ChildItem $strDirectory -Recurse | Where-Object { ($_.Name -like $wildExt) -and ($_.CreationTime -ge $filterDate) }

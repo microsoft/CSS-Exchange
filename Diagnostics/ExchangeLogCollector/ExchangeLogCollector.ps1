@@ -107,20 +107,20 @@ Function Invoke-RemoteFunctions {
             SetWriteVerboseManipulateMessageAction ${Function:Get-ManipulateWriteVerboseValue}
             SetWriteHostAction ${Function:Write-DebugLog}
             SetWriteVerboseAction ${Function:Write-DebugLog}
-            Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
+            Write-Verbose("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
-            Write-ScriptDebug("Loading common functions")
+            Write-Verbose("Loading common functions")
         }
     } catch {
         Write-ScriptHost -WriteString ("An error occurred in Invoke-RemoteFunctions") -ForegroundColor "Red"
         Invoke-CatchBlockActions
         #This is a bad place to catch the error that just occurred
         #Being that there is a try catch block around each command that we run now, we should never hit an issue here unless it is is prior to that.
-        Write-ScriptDebug "Critical Failure occurred."
+        Write-Verbose "Critical Failure occurred."
     } finally {
-        Write-ScriptDebug("Exiting: Invoke-RemoteFunctions")
-        Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
+        Write-Verbose("Exiting: Invoke-RemoteFunctions")
+        Write-Verbose("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
             $Script:TotalBytesSizeCompressed,
             $Script:AdditionalFreeSpaceCushionGB,
             $Script:CurrentFreeSpaceGB,

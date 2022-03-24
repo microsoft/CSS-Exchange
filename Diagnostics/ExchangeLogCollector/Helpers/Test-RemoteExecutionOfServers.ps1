@@ -7,7 +7,7 @@ Function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList
     )
-    Write-ScriptDebug("Function Enter: Test-RemoteExecutionOfServers")
+    Write-Verbose("Function Enter: Test-RemoteExecutionOfServers")
     Write-ScriptHost -WriteString "Checking to see if the servers are up in this list:" -ShowServer $false
     $ServerList | ForEach-Object { Write-ScriptHost -WriteString $_ -ShowServer $false }
     #Going to just use Invoke-Command to see if the servers are up. As ICMP might be disabled in the environment.
@@ -60,6 +60,6 @@ Function Test-RemoteExecutionOfServers {
         }
     }
 
-    Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")
+    Write-Verbose("Function Exit: Test-RemoteExecutionOfServers")
     return $validServers
 }

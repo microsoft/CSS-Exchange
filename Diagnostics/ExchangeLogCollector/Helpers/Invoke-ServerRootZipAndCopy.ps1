@@ -28,9 +28,9 @@ Function Invoke-ServerRootZipAndCopy {
         $Script:ErrorsFromStartOfCopy = $Error.Count
         $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-ZipAndCopy-Debug" -LogDirectory $Script:RootFilePath
 
-        Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
+        Write-Verbose("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString()
-        Write-ScriptDebug("Creating script block")
+        Write-Verbose("Creating script block")
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
 
         $serverArgListZipFolder = @()
@@ -44,7 +44,7 @@ Function Invoke-ServerRootZipAndCopy {
             }
         }
 
-        Write-ScriptDebug("Calling Compress-Folder")
+        Write-Verbose("Calling Compress-Folder")
         Start-JobManager -ServersWithArguments $serverArgListZipFolder -ScriptBlock $compressFolderScriptBlock `
             -JobBatchName "Zipping up the data for Invoke-ServerRootZipAndCopy"
 

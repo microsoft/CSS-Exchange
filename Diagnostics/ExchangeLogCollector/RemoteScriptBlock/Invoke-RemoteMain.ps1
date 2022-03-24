@@ -17,7 +17,7 @@ Function Invoke-RemoteMain {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Required to be used in the current format')]
     [CmdletBinding()]
     param()
-    Write-ScriptDebug("Function Enter: Remote-Main")
+    Write-Verbose("Function Enter: Remote-Main")
 
     foreach ($server in $PassedInfo.ServerObjects) {
 
@@ -50,7 +50,7 @@ Function Invoke-RemoteMain {
     $copyInfo = "-LogPath '{0}' -CopyToThisLocation '{1}'"
 
     if ($Script:localServerObject.Version -ge 15) {
-        Write-ScriptDebug("Server Version greater than 15")
+        Write-Verbose("Server Version greater than 15")
 
         if ($PassedInfo.EWSLogs) {
 
@@ -266,10 +266,10 @@ Function Invoke-RemoteMain {
 
                 if (!$logmanRootPath.ToString().Contains($copyFrom)) {
                     $copyFrom = $logmanRootPath.ToString().Replace("Root Path:", "").Trim()
-                    Write-ScriptDebug "Changing the location to get the daily performance logs to '$copyFrom'"
+                    Write-Verbose "Changing the location to get the daily performance logs to '$copyFrom'"
                 }
             } catch {
-                Write-ScriptDebug "Couldn't get logman info to verify Daily Performance Logs location"
+                Write-Verbose "Couldn't get logman info to verify Daily Performance Logs location"
                 Invoke-CatchBlockActions
             }
 
@@ -438,7 +438,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.FrontEndConnectivityLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.MailboxOnly))) {
-                Write-ScriptDebug("Collecting FrontEndConnectivityLogs")
+                Write-Verbose("Collecting FrontEndConnectivityLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ConnectivityLogPath), ($Script:RootCopyToDirectory + "\FE_Connectivity_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
@@ -446,7 +446,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.FrontEndProtocolLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.MailboxOnly))) {
-                Write-ScriptDebug("Collecting FrontEndProtocolLogs")
+                Write-Verbose("Collecting FrontEndProtocolLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\FE_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.FELoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\FE_Send_Protocol_Logs"))
@@ -456,7 +456,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.MailboxConnectivityLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
-                Write-ScriptDebug("Collecting MailboxConnectivityLogs")
+                Write-Verbose("Collecting MailboxConnectivityLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ConnectivityLogPath + "\Delivery"), ($Script:RootCopyToDirectory + "\MBX_Delivery_Connectivity_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ConnectivityLogPath + "\Submission"), ($Script:RootCopyToDirectory + "\MBX_Submission_Connectivity_Logs"))
@@ -466,7 +466,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.MailboxProtocolLogs -and
                 (-not ($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
-                Write-ScriptDebug("Collecting MailboxProtocolLogs")
+                Write-Verbose("Collecting MailboxProtocolLogs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.ReceiveProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Receive_Protocol_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.SendProtocolLogPath), ($Script:RootCopyToDirectory + "\MBX_Send_Protocol_Logs"))
@@ -476,7 +476,7 @@ Function Invoke-RemoteMain {
             if ($PassedInfo.MailboxDeliveryThrottlingLogs -and
                 (!($Script:localServerObject.Version -eq 15 -and
                     $Script:localServerObject.CASOnly))) {
-                Write-ScriptDebug("Collecting Mailbox Delivery Throttling Logs")
+                Write-Verbose("Collecting Mailbox Delivery Throttling Logs")
                 $info = ($copyInfo -f ($Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxDeliveryThrottlingLogPath), ($Script:RootCopyToDirectory + "\MBX_Delivery_Throttling_Logs"))
                 $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
             }
@@ -484,13 +484,13 @@ Function Invoke-RemoteMain {
     }
 
     if ($PassedInfo.ImapLogs) {
-        Write-ScriptDebug("Collecting IMAP Logs")
+        Write-Verbose("Collecting IMAP Logs")
         $info = ($copyInfo -f ($Script:localServerObject.ImapLogsLocation), ($Script:RootCopyToDirectory + "\Imap_Logs"))
         $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
 
     if ($PassedInfo.PopLogs) {
-        Write-ScriptDebug("Collecting POP Logs")
+        Write-Verbose("Collecting POP Logs")
         $info = ($copyInfo -f ($Script:localServerObject.PopLogsLocation), ($Script:RootCopyToDirectory + "\Pop_Logs"))
         $cmdsToRun += "Copy-LogsBasedOnTime {0}" -f $info
     }
@@ -524,12 +524,12 @@ Function Invoke-RemoteMain {
 
     #Execute the cmds
     foreach ($cmd in $cmdsToRun) {
-        Write-ScriptDebug("cmd: {0}" -f $cmd)
+        Write-Verbose("cmd: {0}" -f $cmd)
 
         try {
             Invoke-Expression $cmd -ErrorAction Stop
         } catch {
-            Write-ScriptDebug("Failed to finish running command: $cmd")
+            Write-Verbose("Failed to finish running command: $cmd")
             Invoke-CatchBlockActions
         }
     }
@@ -538,7 +538,7 @@ Function Invoke-RemoteMain {
         Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$Script:RootCopyToDirectory\AllErrors")
         Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$Script:RootCopyToDirectory\HandledErrors")
     } else {
-        Write-ScriptDebug ("No errors occurred within the script")
+        Write-Verbose ("No errors occurred within the script")
     }
 }
 

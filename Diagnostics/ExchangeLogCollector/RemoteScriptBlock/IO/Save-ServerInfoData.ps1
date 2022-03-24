@@ -6,7 +6,7 @@
 . $PSScriptRoot\..\Add-ServerNameToFileName.ps1
 . $PSScriptRoot\..\Test-CommandExists.ps1
 Function Save-ServerInfoData {
-    Write-ScriptDebug("Function Enter: Save-ServerInfoData")
+    Write-Verbose("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
     New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
 
@@ -22,7 +22,7 @@ Function Save-ServerInfoData {
     try {
         $tlsSettings += Get-ChildItem "HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols" -Recurse | Where-Object { $_.Name -like "*TLS*" } -ErrorAction stop
     } catch {
-        Write-ScriptDebug("Failed to get child items of 'HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols'")
+        Write-Verbose("Failed to get child items of 'HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols'")
         Invoke-CatchBlockActions
     }
     try {
@@ -30,7 +30,7 @@ Function Save-ServerInfoData {
         $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Microsoft") -ErrorAction stop
         $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Wow6432Node\Microsoft") -ErrorAction stop
     } catch {
-        Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        Write-Verbose("Failed to get child items of '{0}'" -f $currentKey)
         Invoke-CatchBlockActions
     }
     try {
@@ -38,7 +38,7 @@ Function Save-ServerInfoData {
         $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Microsoft") -ErrorAction stop
         $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Wow6432Node\Microsoft") -ErrorAction stop
     } catch {
-        Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
+        Write-Verbose("Failed to get child items of '{0}'" -f $currentKey)
         Invoke-CatchBlockActions
     }
     Save-DataInfoToFile -DataIn $tlsSettings -SaveToLocation ("{0}\TLS_RegistrySettings" -f $copyTo) -FormatList $false
@@ -81,7 +81,7 @@ Function Save-ServerInfoData {
         try {
             $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse -ErrorAction Stop
         } catch {
-            Write-ScriptDebug("Failed to get child item on HKLM:\SOFTWARE\Microsoft\Exchange\")
+            Write-Verbose("Failed to get child item on HKLM:\SOFTWARE\Microsoft\Exchange\")
             Invoke-CatchBlockActions
         }
         $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
@@ -95,21 +95,21 @@ Function Save-ServerInfoData {
     if (Test-CommandExists -command "Get-Volume") {
         Save-DataInfoToFile -DataIn (Get-Volume) -SaveToLocation ("{0}\Volume" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Volume isn't a valid command")
+        Write-Verbose("Get-Volume isn't a valid command")
     }
 
     if (Test-CommandExists -command "Get-Disk") {
         Save-DataInfoToFile -DataIn (Get-Disk) -SaveToLocation ("{0}\Disk" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Disk isn't a valid command")
+        Write-Verbose("Get-Disk isn't a valid command")
     }
 
     if (Test-CommandExists -command "Get-Partition") {
         Save-DataInfoToFile -DataIn (Get-Partition) -SaveToLocation ("{0}\Partition" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Partition isn't a valid command")
+        Write-Verbose("Get-Partition isn't a valid command")
     }
 
     Invoke-ZipFolder -Folder $copyTo
-    Write-ScriptDebug("Function Exit: Save-ServerInfoData")
+    Write-Verbose("Function Exit: Save-ServerInfoData")
 }

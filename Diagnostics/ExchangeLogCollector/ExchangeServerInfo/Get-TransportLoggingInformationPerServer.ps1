@@ -9,8 +9,8 @@ Function Get-TransportLoggingInformationPerServer {
         [bool]$CASOnly,
         [bool]$MailboxOnly
     )
-    Write-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
-    Write-ScriptDebug("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
+    Write-Verbose("Function Enter: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
     $transportLoggingObject = New-Object PSCustomObject
 
     if ($Version -ge 15) {
@@ -75,6 +75,6 @@ Function Get-TransportLoggingInformationPerServer {
         return
     }
 
-    Write-ScriptDebug("Function Exit: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Function Exit: Get-TransportLoggingInformationPerServer")
     return $transportLoggingObject
 }

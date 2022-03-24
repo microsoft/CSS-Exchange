@@ -9,8 +9,8 @@ Function Get-ExchangeBasicServerObject {
         [Parameter(Mandatory = $true)][string]$ServerName,
         [Parameter(Mandatory = $false)][bool]$AddGetServerProperty = $false
     )
-    Write-ScriptDebug("Function Enter: $($MyInvocation.MyCommand)")
-    Write-ScriptDebug("Passed: [string]ServerName: {0}" -f $ServerName)
+    Write-Verbose("Function Enter: $($MyInvocation.MyCommand)")
+    Write-Verbose("Passed: [string]ServerName: {0}" -f $ServerName)
     try {
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop
     } catch {
@@ -21,7 +21,7 @@ Function Get-ExchangeBasicServerObject {
 
     $exchAdminDisplayVersion = $getExchangeServer.AdminDisplayVersion
     $exchServerRole = $getExchangeServer.ServerRole
-    Write-ScriptDebug("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
+    Write-Verbose("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
     $buildVersionInformation = Get-ExchangeBuildVersionInformation $exchAdminDisplayVersion
 
     if ($buildVersionInformation.Major -eq 15) {
@@ -64,7 +64,7 @@ Function Get-ExchangeBasicServerObject {
         ExchangeServer = $exchangeServer
     }
 
-    Write-ScriptDebug("Mailbox: {0} | CAS: {1} | Hub: {2} | CASOnly: {3} | MailboxOnly: {4} | Edge: {5} | DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8} | DAGName: {9}" -f $exchServerObject.Mailbox,
+    Write-Verbose("Mailbox: {0} | CAS: {1} | Hub: {2} | CASOnly: {3} | MailboxOnly: {4} | Edge: {5} | DAGMember {6} | Version: {7} | AnyTransportSwitchesEnabled: {8} | DAGName: {9}" -f $exchServerObject.Mailbox,
         $exchServerObject.CAS,
         $exchServerObject.Hub,
         $exchServerObject.CASOnly,

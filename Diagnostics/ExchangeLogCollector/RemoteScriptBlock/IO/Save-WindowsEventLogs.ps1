@@ -5,7 +5,7 @@
 . $PSScriptRoot\Save-DataInfoToFile.ps1
 Function Save-WindowsEventLogs {
 
-    Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")
+    Write-Verbose("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
     $SaveLogs = @{}
     $rootLogPath = "$env:SystemRoot\System32\Winevt\Logs"
@@ -15,7 +15,7 @@ Function Save-WindowsEventLogs {
         }
 
     if ($PassedInfo.AppSysLogs) {
-        Write-ScriptDebug("Adding Application and System Logs")
+        Write-Verbose("Adding Application and System Logs")
         $logs = @()
         $logs += "$rootLogPath\Application.evtx"
         $logs += "$rootLogPath\System.evtx"
@@ -30,7 +30,7 @@ Function Save-WindowsEventLogs {
     }
 
     if ($PassedInfo.ManagedAvailabilityLogs) {
-        Write-ScriptDebug("Adding Managed Availability Logs")
+        Write-Verbose("Adding Managed Availability Logs")
 
         $logs = $allLogPaths | Where-Object { $_.Contains("Microsoft-Exchange-ActiveMonitoring") }
         $SaveLogs.Add("Microsoft-Exchange-ActiveMonitoring", $Logs)
@@ -40,7 +40,7 @@ Function Save-WindowsEventLogs {
     }
 
     if ($PassedInfo.HighAvailabilityLogs) {
-        Write-ScriptDebug("Adding High Availability Logs")
+        Write-Verbose("Adding High Availability Logs")
 
         $logs = $allLogPaths | Where-Object { $_.Contains("Microsoft-Exchange-HighAvailability") }
         $SaveLogs.Add("Microsoft-Exchange-HighAvailability", $Logs)
@@ -53,7 +53,7 @@ Function Save-WindowsEventLogs {
     }
 
     foreach ($directory in $SaveLogs.Keys) {
-        Write-ScriptDebug("Working on directory: {0}" -f $directory)
+        Write-Verbose("Working on directory: {0}" -f $directory)
 
         $logs = $SaveLogs[$directory]
         $saveLocation = "$baseSaveLocation\$directory"
@@ -64,12 +64,12 @@ Function Save-WindowsEventLogs {
         if ($directory -eq "Windows-Logs" -and
             $PassedInfo.AppSysLogsToXml) {
             try {
-                Write-ScriptDebug("starting to collect event logs and saving out to xml files.")
+                Write-Verbose("starting to collect event logs and saving out to xml files.")
                 Save-DataInfoToFile -DataIn (Get-EventLog Application -After ([DateTime]::Now - $PassedInfo.TimeSpan)) -SaveToLocation ("{0}\Application" -f $saveLocation) -SaveTextFile $false
                 Save-DataInfoToFile -DataIn (Get-EventLog System -After ([DateTime]::Now - $PassedInfo.TimeSpan)) -SaveToLocation ("{0}\System" -f $saveLocation) -SaveTextFile $false
-                Write-ScriptDebug("end of collecting event logs and saving out to xml files.")
+                Write-Verbose("end of collecting event logs and saving out to xml files.")
             } catch {
-                Write-ScriptDebug("Error occurred while trying to export out the Application and System logs to xml")
+                Write-Verbose("Error occurred while trying to export out the Application and System logs to xml")
                 Invoke-CatchBlockActions
             }
         }

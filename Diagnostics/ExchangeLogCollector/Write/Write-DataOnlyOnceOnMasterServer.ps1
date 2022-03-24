@@ -7,8 +7,8 @@
 Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
-    Write-ScriptDebug("Enter Function: Write-DataOnlyOnceOnMasterServer")
-    Write-ScriptDebug("Writing only once data")
+    Write-Verbose("Enter Function: Write-DataOnlyOnceOnMasterServer")
+    Write-Verbose("Writing only once data")
 
     if (!$Script:MasterServer.ToUpper().Contains($env:COMPUTERNAME.ToUpper())) {
         $serverName = Invoke-Command -ComputerName $Script:MasterServer -ScriptBlock { return $env:COMPUTERNAME }
@@ -46,8 +46,8 @@ Function Write-DataOnlyOnceOnMasterServer {
         Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$RootCopyToDirectory\AllErrors")
         Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$RootCopyToDirectory\HandledErrors")
     } else {
-        Write-ScriptDebug ("No errors occurred within the script")
+        Write-Verbose ("No errors occurred within the script")
     }
 
-    Write-ScriptDebug("Exiting Function: Write-DataOnlyOnceOnMasterServer")
+    Write-Verbose("Exiting Function: Write-DataOnlyOnceOnMasterServer")
 }

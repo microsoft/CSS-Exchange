@@ -8,12 +8,12 @@ Function Get-ServerObjects {
         [Parameter(Mandatory = $true)][Array]$ValidServers
     )
 
-    Write-ScriptDebug ("Function Enter: Get-ServerObjects")
-    Write-ScriptDebug ("Passed: {0} number of Servers" -f $ValidServers.Count)
+    Write-Verbose ("Function Enter: Get-ServerObjects")
+    Write-Verbose ("Passed: {0} number of Servers" -f $ValidServers.Count)
     $svrsObject = @()
     $validServersList = @()
     foreach ($svr in $ValidServers) {
-        Write-ScriptDebug ("Working on Server {0}" -f $svr)
+        Write-Verbose ("Working on Server {0}" -f $svr)
 
         $sobj = Get-ExchangeBasicServerObject -ServerName $svr
         if ($sobj -eq $true) {
@@ -55,6 +55,6 @@ Function Get-ServerObjects {
     }
     #Set the valid servers
     $Script:ValidServers = $validServersList
-    Write-ScriptDebug("Function Exit: Get-ServerObjects")
+    Write-Verbose("Function Exit: Get-ServerObjects")
     Return $svrsObject
 }
