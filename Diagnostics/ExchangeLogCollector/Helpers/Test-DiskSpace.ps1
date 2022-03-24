@@ -1,7 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
 . $PSScriptRoot\PipelineFunctions.ps1
+. $PSScriptRoot\Start-JobManager.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
 . $PSScriptRoot\..\..\..\Shared\Add-ScriptBlockInjection.ps1
 Function Test-DiskSpace {
     param(

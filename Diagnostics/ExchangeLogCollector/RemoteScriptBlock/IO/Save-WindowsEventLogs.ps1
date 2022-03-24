@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Copy-BulkItems.ps1
+. $PSScriptRoot\Save-DataInfoToFile.ps1
 Function Save-WindowsEventLogs {
 
     Write-ScriptDebug("Function Enter: Save-WindowsEventLogs")

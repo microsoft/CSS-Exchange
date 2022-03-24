@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\New-Folder.ps1
+. $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
+. $PSScriptRoot\..\Test-FreeSpace.ps1
 Function Copy-FullLogFullPathRecurse {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,

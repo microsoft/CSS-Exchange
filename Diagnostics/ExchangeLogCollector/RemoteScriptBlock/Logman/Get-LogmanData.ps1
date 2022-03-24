@@ -1,6 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-LogmanObject.ps1
+. $PSScriptRoot\Start-Logman.ps1
+. $PSScriptRoot\Stop-Logman.ps1
+. $PSScriptRoot\..\IO\Copy-LogmanData.ps1
 Function Get-LogmanData {
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,

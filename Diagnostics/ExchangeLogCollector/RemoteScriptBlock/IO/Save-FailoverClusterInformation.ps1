@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\New-Folder.ps1
+. $PSScriptRoot\Save-DataInfoToFile.ps1
+. $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
 Function Save-FailoverClusterInformation {
     Write-ScriptDebug("Function Enter: Save-FailoverClusterInformation")

@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Test-CommandExists.ps1
 Function Get-IISLogDirectory {
     Write-ScriptDebug("Function Enter: Get-IISLogDirectory")
 

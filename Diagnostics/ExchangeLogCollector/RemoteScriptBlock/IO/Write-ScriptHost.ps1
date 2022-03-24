@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Write-DebugLog.ps1
 Function Write-ScriptHost {
     param(
         [Parameter(Mandatory = $true)][string]$WriteString,

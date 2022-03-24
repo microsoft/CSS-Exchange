@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
+. $PSScriptRoot\Test-DiskSpace.ps1
 Function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList

@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\New-Folder.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
 Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()

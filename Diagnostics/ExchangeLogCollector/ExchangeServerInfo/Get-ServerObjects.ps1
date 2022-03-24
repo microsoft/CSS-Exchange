@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeBasicServerObject.ps1
+. $PSScriptRoot\Get-TransportLoggingInformationPerServer.ps1
 Function Get-ServerObjects {
     param(
         [Parameter(Mandatory = $true)][Array]$ValidServers

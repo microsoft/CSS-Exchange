@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-FreeSpace.ps1
+. $PSScriptRoot\Get-ItemsSize.ps1
 Function Test-FreeSpace {
     param(
         [Parameter(Mandatory = $false)][array]$FilePaths

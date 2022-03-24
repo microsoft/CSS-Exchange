@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Write-DebugLog.ps1
 Function Write-ScriptDebug {
     param(
         [Parameter(Mandatory = $true)]$WriteString

@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Copy-BulkItems.ps1
+. $PSScriptRoot\New-Folder.ps1
 Function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $false)][string]$LogPath,

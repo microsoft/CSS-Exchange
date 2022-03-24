@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Save-DataToFile.ps1
+. $PSScriptRoot\..\Add-ServerNameToFileName.ps1
 Function Save-DataInfoToFile {
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,

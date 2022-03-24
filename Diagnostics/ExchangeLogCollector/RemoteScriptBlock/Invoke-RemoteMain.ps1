@@ -1,6 +1,18 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeInstallDirectory.ps1
+. $PSScriptRoot\Get-FreeSpace.ps1
+. $PSScriptRoot\Get-IISLogDirectory.ps1
+. $PSScriptRoot\IO\Copy-BulkItems.ps1
+. $PSScriptRoot\IO\Copy-FullLogFullPathRecurse.ps1
+. $PSScriptRoot\IO\Copy-LogsBasedOnTime.ps1
+. $PSScriptRoot\IO\Save-DataInfoToFile.ps1
+. $PSScriptRoot\IO\Save-FailoverClusterInformation.ps1
+. $PSScriptRoot\IO\Save-LogmanExmonData.ps1
+. $PSScriptRoot\IO\Save-LogmanExperfwizData.ps1
+. $PSScriptRoot\IO\Save-ServerInfoData.ps1
+. $PSScriptRoot\IO\Save-WindowsEventLogs.ps1
 Function Invoke-RemoteMain {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Required to be used in the current format')]
     [CmdletBinding()]

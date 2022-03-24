@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Start-JobManager.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 #This function is to handle all root zipping capabilities and copying of the data over.
 Function Invoke-ServerRootZipAndCopy {
     param(

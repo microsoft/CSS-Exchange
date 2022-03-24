@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
 Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or

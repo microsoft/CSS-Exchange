@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ItemsSize.ps1
+. $PSScriptRoot\IO\Compress-Folder.ps1
 Function Invoke-ZipFolder {
     param(
         [string]$Folder,

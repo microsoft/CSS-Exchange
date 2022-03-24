@@ -1,7 +1,14 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\ExchangeServerInfo\Get-DAGInformation.ps1
+. $PSScriptRoot\..\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
 . $PSScriptRoot\..\Helpers\PipelineFunctions.ps1
+. $PSScriptRoot\..\Helpers\Start-JobManager.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\New-Folder.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 . $PSScriptRoot\..\..\..\Shared\Add-ScriptBlockInjection.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
