@@ -203,6 +203,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerComponentState { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml" }
             Mock Test-ServiceHealth { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml" }
+            Mock Get-ReceiveConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml" }
+            Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
 
             $Error.Clear()
             Get-HealthCheckerExchangeServer | Out-Null
@@ -246,6 +248,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Test-ServiceHealth -Exactly 1
             Assert-MockCalled Get-AcceptedDomain -Exactly 1
             Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1
+            Assert-MockCalled Get-ReceiveConnector -Exactly 1
+            Assert-MockCalled Get-SendConnector -Exactly 1
         }
     }
 
