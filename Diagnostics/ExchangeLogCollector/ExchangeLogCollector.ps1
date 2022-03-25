@@ -76,9 +76,7 @@ Param (
 
 $BuildVersion = ""
 
-$Script:VerboseEnabled = $false
-
-if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
+if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
 if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth }
 
@@ -105,6 +103,11 @@ Function Invoke-RemoteFunctions {
             SetWriteVerboseManipulateMessageAction ${Function:Get-ManipulateWriteVerboseValue}
             SetWriteHostAction ${Function:Write-DebugLog}
             SetWriteVerboseAction ${Function:Write-DebugLog}
+
+            if ($PassedInfo.ScriptDebug) {
+                $Script:VerbosePreference = "Continue"
+            }
+
             Write-Verbose("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
