@@ -162,20 +162,20 @@ Function Invoke-AnalyzerHybridInformation {
                         $cloudConnectorWriteType = "Green"
                     }
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Name" -Details $connector.Name `
-                        -DisplayGroupingKey $keyHybridInformation
-
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud mailflow enabled" -Details $connector.CloudEnabled `
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Name" -Details $connector.Name `
                         -DisplayGroupingKey $keyHybridInformation
 
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Type" -Details $connector.ConnectorType `
                         -DisplayGroupingKey $keyHybridInformation
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Tls Certificate Name" -Details $connector.TlsCertificateName `
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud Enabled" -Details $connector.CloudEnabled `
+                        -DisplayGroupingKey $keyHybridInformation
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $connector.TlsCertificateName `
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $cloudConnectorWriteType
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate present on server" -Details $connector.CertificateMatchDetected `
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateMatchDetected `
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $cloudConnectorWriteType
 
@@ -186,18 +186,34 @@ Function Invoke-AnalyzerHybridInformation {
                             -DisplayCustomTabNumber 2
                     } else {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
-                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayGroupingKey $keyHybridInformation
 
                         foreach ($thumbprint in $connector.CertificateThumbprint) {
                             $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayCustomTabNumber 2
                         }
+
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
+                            -DisplayGroupingKey $keyHybridInformation
+
+                        foreach ($certificateLifetime in $connector.CertificateLifetimeInDays) {
+                            switch ($certificateLifetime) {
+                                ($_ -ge 60) { $certificateLifetimeWriteType = "Green" }
+                                ($_ -ge 30) { $certificateLifetimeWriteType = "Yellow" }
+                                Default { $certificateLifetimeWriteType = "Red" }
+                            }
+
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details $certificateLifetime `
+                                -DisplayCustomTabNumber $keyHybridInformation `
+                                -DisplayWriteType $certificateLifetimeWriteType `
+                                -DisplayCustomTabNumber 2
+                        }
                     }
 
                     if (($connector.GoodTlsCertificateSyntax -eq $false) -or
                         ($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid")) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Bad Tls Certificate Name Syntax" -Details "True" `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType
 

@@ -9,7 +9,7 @@ Function Get-ExchangeConnectors {
         [Parameter(Mandatory = $true)]
         [string]
         $ComputerName,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object]
         $CertificateObject
     )
@@ -28,18 +28,19 @@ Function Get-ExchangeConnectors {
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             $exchangeFactoryConnectorReturnObject = [PSCustomObject]@{
-                Identity                 = $ConnectorObject.Identity
-                Name                     = $ConnectorObject.Name
-                Enabled                  = $ConnectorObject.Enabled
-                CloudEnabled             = $false
-                ConnectorType            = "N/A"
-                TransportRole            = "N/A"
-                CertificateMatchDetected = $false
-                GoodTlsCertificateSyntax = $false
-                TlsCertificateNameStatus = "N/A"
-                TlsCertificateSet        = $false
-                TlsCertificateName       = "N/A"
-                CertificateThumbprint    = "N/A"
+                Identity                  = $ConnectorObject.Identity
+                Name                      = $ConnectorObject.Name
+                Enabled                   = $ConnectorObject.Enabled
+                CloudEnabled              = $false
+                ConnectorType             = "N/A"
+                TransportRole             = "N/A"
+                CertificateMatchDetected  = $false
+                GoodTlsCertificateSyntax  = $false
+                TlsCertificateNameStatus  = "N/A"
+                TlsCertificateSet         = $false
+                TlsCertificateName        = "N/A"
+                CertificateThumbprint     = "N/A"
+                CertificateLifetimeInDays = 0
             }
 
             Write-Verbose ("Creating object for Exchange connector: '{0}'" -f $ConnectorObject.Identity)
@@ -150,12 +151,14 @@ Function Get-ExchangeConnectors {
 
                             $certificateMatches = 0
                             $certificateThumbprintArray = @()
+                            $certificateLifetimeArray = @()
                             foreach ($certificate in $CertificateObject) {
                                 if (($certificate.Issuer -eq $connectorTlsCertificateNormalizedObject.Issuer) -and
                                     ($certificate.Subject -eq $connectorTlsCertificateNormalizedObject.Subject)) {
                                     Write-Verbose ("Certificate: '{0}' matches Connectors: '{1}' TlsCertificateName: '{2}'" -f $certificate.Thumbprint, $connectorObject.Identity, $connectorObject.TlsCertificateName)
                                     $connectorObject.CertificateMatchDetected = $true
                                     $connectorObject.TlsCertificateNameStatus = "TlsCertificateMatch"
+                                    $certificateLifetimeArray = $certificateLifetimeArray + $($certificate.LifetimeInDays)
                                     $certificateThumbprintArray = $certificateThumbprintArray + $($certificate.Thumbprint)
 
                                     $certificateMatches++
@@ -167,6 +170,7 @@ Function Get-ExchangeConnectors {
                                 $connectorObject.TlsCertificateNameStatus = "TlsCertificateNotFound"
                             } else {
                                 Write-Verbose ("We found: '{0}' matching certificates on the server" -f $certificateMatches)
+                                $connectorObject.CertificateLifetimeInDays = $certificateLifetimeArray
                                 $connectorObject.CertificateThumbprint = $certificateThumbprintArray
                             }
                         }
@@ -195,12 +199,14 @@ Function Get-ExchangeConnectors {
                 $connectorCustomObject += ExchangeConnectorObjectFactory -ConnectorObject $sendConnector
             }
 
-            if ($null -ne $connectorCustomObject) {
+            if (($null -ne $connectorCustomObject) -and
+                ($null -ne $CertificateObject)) {
                 $connectorReturnObject = FindMatchingExchangeCertificate `
                     -CertificateObject $CertificateObject `
                     -ConnectorCustomObject $connectorCustomObject
             } else {
                 Write-Verbose "No connector object which can be processed was returned"
+                $connectorReturnObject = $connectorCustomObject
             }
         } catch {
             Write-Verbose "Hit an exception while processing the Exchange Send-/Receive Connectors"
