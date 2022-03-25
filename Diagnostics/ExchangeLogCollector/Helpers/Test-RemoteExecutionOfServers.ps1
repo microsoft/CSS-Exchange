@@ -18,7 +18,7 @@ Function Test-RemoteExecutionOfServers {
     foreach ($server in $ServerList) {
 
         try {
-            Write-Host "Checking Server $server....." -NoNewLine
+            Write-Host "Checking Server $server....." -NoNewline
             Invoke-Command -ComputerName $server -ScriptBlock { Get-Process | Out-Null } -ErrorAction Stop
             #if that doesn't fail, we should be okay to add it to the working list
             Write-Host "Passed" -ForegroundColor "Green"
