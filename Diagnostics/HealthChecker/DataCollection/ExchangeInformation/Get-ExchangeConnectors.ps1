@@ -39,6 +39,7 @@ Function Get-ExchangeConnectors {
                 TlsCertificateNameStatus  = "N/A"
                 TlsCertificateSet         = $false
                 TlsCertificateName        = "N/A"
+                TlsAuthLevel              = "N/A"
                 CertificateThumbprint     = "N/A"
                 CertificateLifetimeInDays = 0
             }
@@ -55,6 +56,9 @@ Function Get-ExchangeConnectors {
                 Write-Verbose "Exchange SendConnector detected"
                 $exchangeFactoryConnectorReturnObject.ConnectorType = "Send"
                 $exchangeFactoryConnectorReturnObject.CloudEnabled = $ConnectorObject.CloudServicesMailEnabled
+                if ($null -ne $ConnectorObject.TlsAuthLevel) {
+                    $exchangeFactoryConnectorReturnObject.TlsAuthLevel = $ConnectorObject.TlsAuthLevel
+                }
             }
 
             if ($null -ne $ConnectorObject.TlsCertificateName) {

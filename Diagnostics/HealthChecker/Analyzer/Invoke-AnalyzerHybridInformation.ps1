@@ -165,11 +165,20 @@ Function Invoke-AnalyzerHybridInformation {
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Name" -Details $connector.Name `
                         -DisplayGroupingKey $keyHybridInformation
 
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Enabled" -Details $connector.Enabled `
+                        -DisplayGroupingKey $keyHybridInformation
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud Mail Enabled" -Details $connector.CloudEnabled `
+                        -DisplayGroupingKey $keyHybridInformation
+
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Type" -Details $connector.ConnectorType `
                         -DisplayGroupingKey $keyHybridInformation
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud Enabled" -Details $connector.CloudEnabled `
-                        -DisplayGroupingKey $keyHybridInformation
+                    if (($connector.ConnectorType -eq "Send") -and
+                        ($connector.TlsAuthLevel -ne "N/A")) {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
+                            -DisplayGroupingKey $keyHybridInformation
+                    }
 
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $connector.TlsCertificateName `
                         -DisplayGroupingKey $keyHybridInformation `
@@ -211,8 +220,9 @@ Function Invoke-AnalyzerHybridInformation {
                         }
                     }
 
-                    if (($connector.GoodTlsCertificateSyntax -eq $false) -or
-                        ($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid")) {
+                    if (($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
+                        (($connector.GoodTlsCertificateSyntax -eq $false) -and
+                            ($connector.TlsCertificateName -ne "N/A"))) {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType
