@@ -199,8 +199,8 @@ Function Invoke-AnalyzerHybridInformation {
 
                         foreach ($certificateLifetime in $connector.CertificateLifetimeInDays) {
                             switch ($certificateLifetime) {
-                                ($_ -ge 60) { $certificateLifetimeWriteType = "Green" }
-                                ($_ -ge 30) { $certificateLifetimeWriteType = "Yellow" }
+                                { $_ -ge 60 } { $certificateLifetimeWriteType = "Green" }
+                                { $_ -ge 30 } { $certificateLifetimeWriteType = "Yellow" }
                                 Default { $certificateLifetimeWriteType = "Red" }
                             }
 
