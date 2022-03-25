@@ -92,8 +92,6 @@ Function Invoke-RemoteFunctions {
     . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-    . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
-    . $PSScriptRoot\RemoteScriptBlock\IO\Write-ScriptHost.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-Verbose.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\WriteFunctions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
