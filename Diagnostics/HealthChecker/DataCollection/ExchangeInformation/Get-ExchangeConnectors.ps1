@@ -28,20 +28,19 @@ Function Get-ExchangeConnectors {
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             $exchangeFactoryConnectorReturnObject = [PSCustomObject]@{
-                Identity                  = $ConnectorObject.Identity
-                Name                      = $ConnectorObject.Name
-                Enabled                   = $ConnectorObject.Enabled
-                CloudEnabled              = $false
-                ConnectorType             = "N/A"
-                TransportRole             = "N/A"
-                CertificateMatchDetected  = $false
-                GoodTlsCertificateSyntax  = $false
-                TlsCertificateNameStatus  = "N/A"
-                TlsCertificateSet         = $false
-                TlsCertificateName        = "N/A"
-                TlsAuthLevel              = "N/A"
-                CertificateThumbprint     = "N/A"
-                CertificateLifetimeInDays = 0
+                Identity                 = $ConnectorObject.Identity
+                Name                     = $ConnectorObject.Name
+                Enabled                  = $ConnectorObject.Enabled
+                CloudEnabled             = $false
+                ConnectorType            = "N/A"
+                TransportRole            = "N/A"
+                CertificateMatchDetected = $false
+                GoodTlsCertificateSyntax = $false
+                TlsCertificateName       = "N/A"
+                TlsCertificateNameStatus = "N/A"
+                TlsCertificateSet        = $false
+                TlsAuthLevel             = "N/A"
+                CertificateInformation   = $null
             }
 
             Write-Verbose ("Creating object for Exchange connector: '{0}'" -f $ConnectorObject.Identity)
@@ -154,16 +153,14 @@ Function Get-ExchangeConnectors {
                             }
 
                             $certificateMatches = 0
-                            $certificateThumbprintArray = @()
-                            $certificateLifetimeArray = @()
+                            $certificateInformation = @{}
                             foreach ($certificate in $CertificateObject) {
                                 if (($certificate.Issuer -eq $connectorTlsCertificateNormalizedObject.Issuer) -and
                                     ($certificate.Subject -eq $connectorTlsCertificateNormalizedObject.Subject)) {
                                     Write-Verbose ("Certificate: '{0}' matches Connectors: '{1}' TlsCertificateName: '{2}'" -f $certificate.Thumbprint, $connectorObject.Identity, $connectorObject.TlsCertificateName)
                                     $connectorObject.CertificateMatchDetected = $true
                                     $connectorObject.TlsCertificateNameStatus = "TlsCertificateMatch"
-                                    $certificateLifetimeArray = $certificateLifetimeArray + $($certificate.LifetimeInDays)
-                                    $certificateThumbprintArray = $certificateThumbprintArray + $($certificate.Thumbprint)
+                                    $certificateInformation.Add($certificate.Thumbprint, $certificate.LifetimeInDays)
 
                                     $certificateMatches++
                                 }
@@ -174,8 +171,7 @@ Function Get-ExchangeConnectors {
                                 $connectorObject.TlsCertificateNameStatus = "TlsCertificateNotFound"
                             } else {
                                 Write-Verbose ("We found: '{0}' matching certificates on the server" -f $certificateMatches)
-                                $connectorObject.CertificateLifetimeInDays = $certificateLifetimeArray
-                                $connectorObject.CertificateThumbprint = $certificateThumbprintArray
+                                $connectorObject.CertificateInformation = $certificateInformation
                             }
                         }
                     }

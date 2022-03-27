@@ -157,6 +157,10 @@ Function Invoke-AnalyzerHybridInformation {
                 if (($connector.TransportRole -ne "HubTransport") -and
                     ($connector.CloudEnabled -eq $true)) {
 
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Details "`r" `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -AddHtmlDetailRow $false
+
                     if (($connector.CertificateMatchDetected) -and
                         ($connector.GoodTlsCertificateSyntax)) {
                         $cloudConnectorWriteType = "Green"
@@ -197,7 +201,7 @@ Function Invoke-AnalyzerHybridInformation {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
                             -DisplayGroupingKey $keyHybridInformation
 
-                        foreach ($thumbprint in $connector.CertificateThumbprint) {
+                        foreach ($thumbprint in $($connector.CertificateInformation).keys) {
                             $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayCustomTabNumber 2
@@ -206,14 +210,14 @@ Function Invoke-AnalyzerHybridInformation {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
                             -DisplayGroupingKey $keyHybridInformation
 
-                        foreach ($certificateLifetime in $connector.CertificateLifetimeInDays) {
-                            switch ($certificateLifetime) {
+                        foreach ($thumbprint in $($connector.CertificateInformation).keys) {
+                            switch ($($connector.CertificateInformation)[$thumbprint]) {
                                 { $_ -ge 60 } { $certificateLifetimeWriteType = "Green"; break }
                                 { $_ -ge 30 } { $certificateLifetimeWriteType = "Yellow"; break }
                                 Default { $certificateLifetimeWriteType = "Red" }
                             }
 
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details $certificateLifetime `
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateInformation)[$thumbprint] `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayWriteType $certificateLifetimeWriteType `
                                 -DisplayCustomTabNumber 2
