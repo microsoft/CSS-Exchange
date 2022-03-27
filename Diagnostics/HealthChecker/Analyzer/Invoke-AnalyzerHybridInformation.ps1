@@ -198,7 +198,7 @@ Function Invoke-AnalyzerHybridInformation {
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2
                     } elseif ($connector.CertificateMatchDetected -eq $false) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls certificate was not found on the server. This may cause mail flow issues." `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server. This may cause mail flow issues." `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2
