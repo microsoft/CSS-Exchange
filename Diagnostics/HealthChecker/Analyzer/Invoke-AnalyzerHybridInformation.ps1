@@ -179,12 +179,17 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayGroupingKey $keyHybridInformation
 
                     if (($connector.ConnectorType -eq "Send") -and
-                        ($connector.TlsAuthLevel -ne "N/A")) {
+                        ($null -ne $connector.TlsAuthLevel)) {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
                             -DisplayGroupingKey $keyHybridInformation
                     }
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $connector.TlsCertificateName `
+                    $cloudConnectorTlsCertificateName = "Not set"
+                    if ($null -ne $connector.TlsCertificateName) {
+                        $cloudConnectorTlsCertificateName = $connector.TlsCertificateName
+                    }
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $cloudConnectorTlsCertificateName `
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $cloudConnectorWriteType
 
@@ -193,7 +198,7 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayWriteType $cloudConnectorWriteType
 
                     if ($connector.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector. This will cause mail flow issues." `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector. This will cause mail flow issues in hybrid scenarios." `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2
@@ -231,12 +236,12 @@ Function Invoke-AnalyzerHybridInformation {
 
                     if (($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
                         (($connector.GoodTlsCertificateSyntax -eq $false) -and
-                            ($connector.TlsCertificateName -ne "N/A"))) {
+                            ($null -ne $connector.TlsCertificateName))) {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The recommended syntax is: '<I>X.500Issuer<S>X.500Subject'" `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2

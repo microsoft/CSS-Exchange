@@ -32,14 +32,14 @@ Function Get-ExchangeConnectors {
                 Name                     = $ConnectorObject.Name
                 Enabled                  = $ConnectorObject.Enabled
                 CloudEnabled             = $false
-                ConnectorType            = "N/A"
-                TransportRole            = "N/A"
+                ConnectorType            = $null
+                TransportRole            = $null
                 CertificateMatchDetected = $false
                 GoodTlsCertificateSyntax = $false
-                TlsCertificateName       = "N/A"
-                TlsCertificateNameStatus = "N/A"
+                TlsCertificateName       = $null
+                TlsCertificateNameStatus = $null
                 TlsCertificateSet        = $false
-                TlsAuthLevel             = "N/A"
+                TlsAuthLevel             = $null
                 CertificateInformation   = $null
             }
 
@@ -140,7 +140,7 @@ Function Get-ExchangeConnectors {
                 Write-Verbose ("{0} connector object(s) was/were passed to process" -f $ConnectorCustomObject.Count)
                 foreach ($connectorObject in $ConnectorCustomObject) {
 
-                    if ($ConnectorObject.TlsCertificateName -ne "N/A") {
+                    if ($null -ne $ConnectorObject.TlsCertificateName) {
                         $connectorTlsCertificateNormalizedObject = NormalizeTlsCertificateName `
                             -TlsCertificateName $ConnectorObject.TlsCertificateName
 

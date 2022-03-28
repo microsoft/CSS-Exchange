@@ -200,7 +200,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         It "Cloud Mail Receive Connector Has Empty TlsCertificateName" {
             $cloudConnectors[0].ConnectorType | Should -Be "Receive"
             $cloudConnectors[0].CertificateInformation | Should -Be $null
-            $cloudConnectors[0].TlsCertificateName | Should -Be "N/A"
+            $cloudConnectors[0].TlsCertificateName | Should -Be $null
             $cloudConnectors[0].TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
             $cloudConnectors[0].GoodTlsCertificateSyntax | Should -Be $false
         }
