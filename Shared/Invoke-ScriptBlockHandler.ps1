@@ -72,7 +72,6 @@ Function Invoke-ScriptBlockHandler {
                 }
             }
         } catch {
-            Write-Debug "Caught error in $($MyInvocation.MyCommand)"
             Write-Verbose "Failed to run $($MyInvocation.MyCommand)"
             Invoke-CatchActionError $CatchActionFunction
         }
