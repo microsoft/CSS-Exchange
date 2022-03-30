@@ -169,8 +169,14 @@ Function Invoke-AnalyzerHybridInformation {
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Name" -Details $connector.Name `
                         -DisplayGroupingKey $keyHybridInformation
 
+                    $cloudConnectorEnabledWriteType = "Gray"
+                    if ($connector.Enabled -eq $false) {
+                        $cloudConnectorEnabledWriteType = "Yellow"
+                    }
+
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Enabled" -Details $connector.Enabled `
-                        -DisplayGroupingKey $keyHybridInformation
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayWriteType $cloudConnectorEnabledWriteType
 
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud Mail Enabled" -Details $connector.CloudEnabled `
                         -DisplayGroupingKey $keyHybridInformation
@@ -233,6 +239,18 @@ Function Invoke-AnalyzerHybridInformation {
                                 -DisplayCustomTabNumber 2
                         }
                     }
+
+                    $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
+                    if (($connector.TlsCertificateSet) -and
+                        (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
+                        ($connector.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
+                        $connectorCertificateMatchesHybridCertificate = $true
+                        $connectorCertificateMatchesHybridCertificateWritingType = "Green"
+                    }
+
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Matches Hybrid Certificate" -Details $connectorCertificateMatchesHybridCertificate `
+                        -DisplayGroupingKey $keyHybridInformation `
+                        -DisplayWriteType $connectorCertificateMatchesHybridCertificateWritingType
 
                     if (($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
                         (($connector.GoodTlsCertificateSyntax -eq $false) -and
