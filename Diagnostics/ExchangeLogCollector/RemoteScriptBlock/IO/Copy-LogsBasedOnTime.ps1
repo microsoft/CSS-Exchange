@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Copy-BulkItems.ps1
-. $PSScriptRoot\New-Folder.ps1
 Function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $false)][string]$LogPath,
@@ -16,7 +15,7 @@ Function Copy-LogsBasedOnTime {
         return
     }
 
-    New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
 
     Function NoFilesInLocation {
         param(
@@ -66,7 +65,7 @@ Function Copy-LogsBasedOnTime {
             foreach ($dir in $directories) {
                 $newLogPath = $dir.FullName
                 $newCopyToThisLocation = "{0}\{1}" -f $CopyToThisLocation, $dir.Name
-                New-Folder -NewFolder $newCopyToThisLocation -IncludeDisplayCreate $true
+                New-Item -ItemType Directory -Path $newCopyToThisLocation -Force | Out-Null
                 $files = Get-ChildItem $newLogPath | Sort-Object LastWriteTime -Descending | Where-Object { $_.LastWriteTime -ge $copyFromDate -and $_.Mode -notlike "d*" }
 
                 if ($null -eq $files) {
