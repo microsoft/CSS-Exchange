@@ -239,6 +239,9 @@ Function Main {
         }
         $Script:ArgumentList = (Get-ArgumentList -Servers $env:COMPUTERNAME)
         Invoke-RemoteFunctions -PassedInfo $Script:ArgumentList
+        # Don't manipulate the host object when running locally after the Invoke-RemoteFunctions to
+        # make it the same as when having multiple servers executing the script against.
+        SetWriteHostManipulateObjectAction $null
         Write-DataOnlyOnceOnMasterServer
         Write-LargeDataObjectsOnMachine
         Invoke-ServerRootZipAndCopy -RemoteExecute $false
