@@ -24,7 +24,7 @@ Function Invoke-PipelineHandler {
     process {
         foreach ($instance in $Object) {
             if ($instance.Type -eq "Verbose") {
-                Write-Verbose $instance.Object
+                Write-Verbose "$($instance.PSComputerName) - $($instance.Object)"
             } elseif ($instance.Type -eq "Host") {
                 Write-Host $instance.Object
             } else {
