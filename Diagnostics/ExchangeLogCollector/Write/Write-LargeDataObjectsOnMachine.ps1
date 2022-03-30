@@ -8,6 +8,7 @@
 . $PSScriptRoot\..\Helpers\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\New-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
@@ -375,13 +376,15 @@ Function Write-LargeDataObjectsOnMachine {
             #Setup all the Script blocks that we are going to use.
             Write-Verbose("Getting Get-ExchangeInstallDirectory string to create Script Block")
             $getExchangeInstallDirectoryString = Add-ScriptBlockInjection @scriptBlockInjectParams `
-                -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory}
+                -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory} `
+                -CatchActionFunction ${Function:Invoke-CatchBlockActions}
             Write-Verbose("Creating Script Block")
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
             Write-Verbose("Getting New-Folder string to create Script Block")
             $newFolderString = Add-ScriptBlockInjection @scriptBlockInjectParams `
-                -PrimaryScriptBlock ${Function:New-Folder}
+                -PrimaryScriptBlock ${Function:New-Folder} `
+                -CatchActionFunction ${Function:Invoke-CatchBlockActions}
             Write-Verbose("Creating script block")
             $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
 
