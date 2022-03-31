@@ -381,8 +381,7 @@ Function Write-LargeDataObjectsOnMachine {
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
             Write-Verbose("New-Item create Script Block")
-            # need to have a blank param to be able to pass an array of 2 folders.
-            $newFolderScriptBlock = { param($path, $blank) New-Item -ItemType Directory -Path $path -Force | Out-Null }
+            $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }
 
             $serverArgListExchangeInstallDirectory = @()
             $serverArgListDirectoriesToCreate = @()
@@ -398,9 +397,10 @@ Function Write-LargeDataObjectsOnMachine {
                     ArgumentList = $null
                 }
 
+                # Use , prior to the array to make sure it doesn't unwrap
                 $serverArgListDirectoriesToCreate += [PSCustomObject]@{
                     ServerName   = $serverName
-                    ArgumentList = @(@("$Script:RootFilePath$serverName\Exchange_Server_Data\Config", "$Script:RootFilePath$serverName\Exchange_Server_Data\WebAppPools"), $false)
+                    ArgumentList = (, @("$Script:RootFilePath$serverName\Exchange_Server_Data\Config", "$Script:RootFilePath$serverName\Exchange_Server_Data\WebAppPools"))
                 }
             }
 
