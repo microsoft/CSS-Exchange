@@ -9,7 +9,6 @@
 . $PSScriptRoot\..\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-. $PSScriptRoot\..\RemoteScriptBlock\IO\New-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
@@ -184,7 +183,7 @@ Function Write-LargeDataObjectsOnMachine {
         $rootSaveToLocation = $DAGWriteInfo.RootSaveToLocation
         $mailboxDatabaseSaveToLocation = "{0}\MailboxDatabase\" -f $rootSaveToLocation
         $copyStatusSaveToLocation = "{0}\MailboxDatabaseCopyStatus\" -f $rootSaveToLocation
-        New-Folder -NewFolders @($mailboxDatabaseSaveToLocation, $copyStatusSaveToLocation)
+        New-Item -ItemType Directory -Path @($mailboxDatabaseSaveToLocation, $copyStatusSaveToLocation) -Force | Out-Null
         Save-DataToFile -DataIn $DAGWriteInfo.DAGInfo -SaveToLocation ("{0}{1}_DatabaseAvailabilityGroup" -f $rootSaveToLocation, $dagName)
         Save-DataToFile -DataIn $DAGWriteInfo.DAGNetworkInfo -SaveToLocation ("{0}{1}_DatabaseAvailabilityGroupNetwork" -f $rootSaveToLocation, $dagName)
         Save-DataToFile -DataIn $DAGWriteInfo.MailboxDatabaseCopyStatusServer -SaveToLocation ("{0}{1}_MailboxDatabaseCopyStatus" -f $copyStatusSaveToLocation, $serverName)
@@ -237,7 +236,7 @@ Function Write-LargeDataObjectsOnMachine {
                 Write-Verbose("Remote Copy Location: $remoteLocation")
                 $rootTempLocation = "{0}{1}\{2}_Exchange_DAG_Information\" -f $localServerTempLocation, $_.ServerName, $_.DAGInfo.Name
                 Write-Verbose("Local Root Temp Location: $rootTempLocation")
-                New-Folder -NewFolders $rootTempLocation
+                New-Item -ItemType Directory -Path $rootTempLocation -Force | Out-Null
                 $_ | Add-Member -MemberType NoteProperty -Name RootSaveToLocation -Value $rootTempLocation
                 Write-DatabaseAvailabilityGroupDataLocal -DAGWriteInfo $_
 
@@ -267,7 +266,7 @@ Function Write-LargeDataObjectsOnMachine {
             ForEach-Object {
                 $failed = $false
                 $reportPath = "{0}\{1}_FailoverMetrics" -f $localServerTempLocation, $_.Name
-                New-Folder -NewFolders $reportPath
+                New-Item -ItemType Directory -Path $reportPath -Force | Out-Null
 
                 try {
                     Write-Host "Attempting to run CollectOverMetrics.ps1 against $($_.Name)"
@@ -381,12 +380,8 @@ Function Write-LargeDataObjectsOnMachine {
             Write-Verbose("Creating Script Block")
             $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
 
-            Write-Verbose("Getting New-Folder string to create Script Block")
-            $newFolderString = Add-ScriptBlockInjection @scriptBlockInjectParams `
-                -PrimaryScriptBlock ${Function:New-Folder} `
-                -CatchActionFunction ${Function:Invoke-CatchBlockActions}
-            Write-Verbose("Creating script block")
-            $newFolderScriptBlock = [scriptblock]::Create($newFolderString)
+            Write-Verbose("New-Item create Script Block")
+            $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }
 
             $serverArgListExchangeInstallDirectory = @()
             $serverArgListDirectoriesToCreate = @()
@@ -402,9 +397,10 @@ Function Write-LargeDataObjectsOnMachine {
                     ArgumentList = $null
                 }
 
+                # Use , prior to the array to make sure it doesn't unwrap
                 $serverArgListDirectoriesToCreate += [PSCustomObject]@{
                     ServerName   = $serverName
-                    ArgumentList = @(@("$Script:RootFilePath$serverName\Exchange_Server_Data\Config", "$Script:RootFilePath$serverName\Exchange_Server_Data\WebAppPools"), $false)
+                    ArgumentList = (, @("$Script:RootFilePath$serverName\Exchange_Server_Data\Config", "$Script:RootFilePath$serverName\Exchange_Server_Data\WebAppPools"))
                 }
             }
 
@@ -438,7 +434,7 @@ Function Write-LargeDataObjectsOnMachine {
                 $rootTempLocation = "{0}{1}" -f $localServerTempLocation, $serverName
                 Write-Verbose("Local Root Temp Location: {0}" -f $rootTempLocation)
                 #Create the temp location and write out the data
-                New-Folder -NewFolders $rootTempLocation
+                New-Item -ItemType Directory -Path $rootTempLocation -Force | Out-Null
                 Write-ExchangeObjectDataLocal -ServerData $serverData -Location $rootTempLocation
                 Get-ChildItem $rootTempLocation |
                     ForEach-Object {
@@ -465,7 +461,7 @@ Function Write-LargeDataObjectsOnMachine {
             }
             $location = "{0}{1}\Exchange_Server_Data" -f $Script:RootFilePath, $exchangeServerData.ServerName
             [array]$createFolders = @(("{0}\Config" -f $location), ("{0}\WebAppPools" -f $location))
-            New-Folder -NewFolders $createFolders -IncludeDisplayCreate $true
+            New-Item -ItemType Directory -Path $createFolders -Force | Out-Null
             Write-ExchangeObjectDataLocal -Location $location -ServerData $exchangeServerData
 
             $passInfo = @{

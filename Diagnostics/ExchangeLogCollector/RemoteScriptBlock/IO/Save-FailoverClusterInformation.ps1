@@ -1,14 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-Folder.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
 . $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
 Function Save-FailoverClusterInformation {
     Write-Verbose("Function Enter: Save-FailoverClusterInformation")
     $copyTo = "$Script:RootCopyToDirectory\Cluster_Information"
-    New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
 
     try {
         Save-DataInfoToFile -DataIn (Get-Cluster -ErrorAction Stop) -SaveToLocation "$copyTo\GetCluster"

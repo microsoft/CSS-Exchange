@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
-. $PSScriptRoot\..\RemoteScriptBlock\IO\New-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
 Function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
@@ -31,7 +30,7 @@ Function Write-DataOnlyOnceOnMasterServer {
 
     if ($SendConnectors) {
         $create = $RootCopyToDirectory + "\Connectors"
-        New-Folder -NewFolder $create -IncludeDisplayCreate $true
+        New-Item -ItemType Directory -Path $create -Force | Out-Null
         $saveLocation = $create + "\Send_Connectors"
         Save-DataInfoToFile -dataIn (Get-SendConnector) -SaveToLocation $saveLocation -AddServerName $false
     }

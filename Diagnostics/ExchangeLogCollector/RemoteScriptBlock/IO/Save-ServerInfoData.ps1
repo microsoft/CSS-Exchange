@@ -1,14 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-Folder.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
 . $PSScriptRoot\..\Add-ServerNameToFileName.ps1
 . $PSScriptRoot\..\Test-CommandExists.ps1
 Function Save-ServerInfoData {
     Write-Verbose("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
-    New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
 
     #Get MSInfo from server
     msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))

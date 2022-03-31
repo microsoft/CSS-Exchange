@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-Folder.ps1
 . $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
 . $PSScriptRoot\..\Test-FreeSpace.ps1
 Function Copy-FullLogFullPathRecurse {
@@ -11,7 +10,7 @@ Function Copy-FullLogFullPathRecurse {
     )
     Write-Verbose("Function Enter: Copy-FullLogFullPathRecurse")
     Write-Verbose("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-    New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
     if (Test-Path $LogPath) {
         $childItems = Get-ChildItem $LogPath -Recurse
         $items = @()

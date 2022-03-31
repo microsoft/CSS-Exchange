@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\New-Folder.ps1
 . $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
 . $PSScriptRoot\..\Test-FreeSpace.ps1
 Function Copy-BulkItems {
@@ -9,9 +8,8 @@ Function Copy-BulkItems {
         [string]$CopyToLocation,
         [Array]$ItemsToCopyLocation
     )
-    if (-not(Test-Path $CopyToLocation)) {
-        New-Folder -NewFolder $CopyToLocation -IncludeDisplayCreate $true
-    }
+
+    New-Item -ItemType Directory -Path $CopyToLocation -Force | Out-Null
 
     if (Test-FreeSpace -FilePaths $ItemsToCopyLocation) {
         foreach ($item in $ItemsToCopyLocation) {

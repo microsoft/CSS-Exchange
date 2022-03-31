@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Copy-BulkItems.ps1
-. $PSScriptRoot\New-Folder.ps1
 Function Copy-LogmanData {
     param(
         [Parameter(Mandatory = $true)]$ObjLogman
@@ -18,7 +17,7 @@ Function Copy-LogmanData {
 
     $strDirectory = $ObjLogman.RootPath
     $copyTo = $Script:RootCopyToDirectory + "\" + $folderName
-    New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
     if (Test-Path $strDirectory) {
         $wildExt = "*" + $objLogman.Ext
         $filterDate = $objLogman.StartDate
