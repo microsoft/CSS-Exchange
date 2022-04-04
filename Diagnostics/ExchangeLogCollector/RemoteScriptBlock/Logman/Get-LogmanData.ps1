@@ -1,6 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-LogmanObject.ps1
+. $PSScriptRoot\Start-Logman.ps1
+. $PSScriptRoot\Stop-Logman.ps1
+. $PSScriptRoot\..\IO\Copy-LogmanData.ps1
 Function Get-LogmanData {
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,
@@ -11,32 +15,32 @@ Function Get-LogmanData {
     if ($null -ne $objLogman) {
         switch ($objLogman.Status) {
             "Running" {
-                Write-ScriptHost -WriteString ("Looks like logman {0} is running...." -f $LogmanName)
-                Write-ScriptHost -WriteString ("Going to stop {0} to prevent corruption...." -f $LogmanName)
+                Write-Host "Looks like logman $LogmanName is running...."
+                Write-Host "Going to stop $LogmanName to prevent corruption...."
                 Stop-Logman -LogmanName $LogmanName -ServerName $ServerName
                 Copy-LogmanData -ObjLogman $objLogman
-                Write-ScriptHost -WriteString ("Starting Logman {0} again for you...." -f $LogmanName)
+                Write-Host "Starting Logman $LogmanName again for you...."
                 Start-Logman -LogmanName $LogmanName -ServerName $ServerName
-                Write-ScriptHost -WriteString ("Done starting Logman {0} for you" -f $LogmanName)
+                Write-Host "Done starting Logman $LogmanName for you"
                 break
             }
             "Stopped" {
-                Write-ScriptHost -WriteString ("Doesn't look like Logman {0} is running, so not going to stop it..." -f $LogmanName)
+                Write-Host "Doesn't look like Logman $LogmanName is running, so not going to stop it..."
                 Copy-LogmanData -ObjLogman $objLogman
                 break
             }
             Default {
-                Write-ScriptHost -WriteString  ("Don't know what the status of Logman '{0}' is in" -f $LogmanName)
-                Write-ScriptHost -WriteString  ("This is the status: {0}" -f $objLogman.Status)
-                Write-ScriptHost -WriteString ("Going to try stop it just in case...")
+                Write-Host "Don't know what the status of Logman '$LogmanName' is in"
+                Write-Host "This is the status: $($objLogman.Status)"
+                Write-Host "Going to try stop it just in case..."
                 Stop-Logman -LogmanName $LogmanName -ServerName $ServerName
                 Copy-LogmanData -ObjLogman $objLogman
-                Write-ScriptHost -WriteString ("Not going to start it back up again....")
-                Write-ScriptHost -WriteString ("Please start this logman '{0}' if you need to...." -f $LogmanName) -ForegroundColor "Yellow"
+                Write-Host "Not going to start it back up again...."
+                Write-Host "Please start this logman '$LogmanName' if you need to...." -ForegroundColor "Yellow"
                 break
             }
         }
     } else {
-        Write-ScriptHost -WriteString ("Can't find {0} on {1} ..... Moving on." -f $LogmanName, $ServerName)
+        Write-Host "Can't find $LogmanName on $ServerName ..... Moving on."
     }
 }

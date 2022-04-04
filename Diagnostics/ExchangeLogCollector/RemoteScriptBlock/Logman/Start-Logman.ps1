@@ -7,6 +7,6 @@ Function Start-Logman {
         [Parameter(Mandatory = $true)][string]$LogmanName,
         [Parameter(Mandatory = $true)][string]$ServerName
     )
-    Write-ScriptHost -WriteString ("Starting Data Collection {0} on server {1}" -f $LogmanName, $ServerName)
+    Write-Host "Starting Data Collection $LogmanName on server $ServerName"
     logman start -s $ServerName $LogmanName
 }

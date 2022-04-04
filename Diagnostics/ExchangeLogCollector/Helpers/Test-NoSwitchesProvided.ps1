@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
 Function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
@@ -32,7 +33,7 @@ Function Test-NoSwitchesProvided {
     ) {
         return
     } else {
-        Write-ScriptHost -WriteString "`r`nWARNING: Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs." -ShowServer $false -ForegroundColor "Yellow"
+        Write-Host "`r`nWARNING: Doesn't look like any parameters were provided, are you sure you are running the correct command? This is ONLY going to collect the Application and System Logs." -ForegroundColor "Yellow"
         Enter-YesNoLoopAction -Question "Would you like to continue?" -YesAction { Write-Host "Okay moving on..." } -NoAction { exit }
     }
 }

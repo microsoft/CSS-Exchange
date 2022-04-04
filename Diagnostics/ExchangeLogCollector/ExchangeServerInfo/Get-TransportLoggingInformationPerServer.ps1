@@ -9,8 +9,8 @@ Function Get-TransportLoggingInformationPerServer {
         [bool]$CASOnly,
         [bool]$MailboxOnly
     )
-    Write-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
-    Write-ScriptDebug("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
+    Write-Verbose("Function Enter: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
     $transportLoggingObject = New-Object PSCustomObject
 
     if ($Version -ge 15) {
@@ -71,10 +71,10 @@ Function Get-TransportLoggingInformationPerServer {
         $hubObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
         $transportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
     } else {
-        Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
+        Write-Host "trying to determine transport information for server $Server and wasn't able to determine the correct version type"
         return
     }
 
-    Write-ScriptDebug("Function Exit: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Function Exit: Get-TransportLoggingInformationPerServer")
     return $transportLoggingObject
 }

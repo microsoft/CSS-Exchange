@@ -31,7 +31,7 @@ Function Get-VirtualDirectoriesLdap {
     }
 "@
 
-    Write-ScriptHost -WriteString "Collecting Virtual Directory Information..." -ShowServer $false
+    Write-Host "Collecting Virtual Directory Information..."
     Add-Type -TypeDefinition $authTypeEnum -Language CSharp
 
     $objRootDSE = [ADSI]"LDAP://rootDSE"
