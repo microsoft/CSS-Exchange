@@ -240,6 +240,7 @@ Function Invoke-AnalyzerHybridInformation {
                         }
                     }
 
+                    $connectorCertificateMatchesHybridCertificate = $false
                     $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
                     if (($connector.TlsCertificateSet) -and
                         (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
