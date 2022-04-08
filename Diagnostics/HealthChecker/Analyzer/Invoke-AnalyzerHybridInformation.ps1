@@ -23,7 +23,7 @@ Function Invoke-AnalyzerHybridInformation {
     if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $null -ne $exchangeInformation.GetHybridConfiguration) {
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Organization Hybrid enabled" -Details "True" `
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Organization Hybrid Enabled" -Details "True" `
             -DisplayGroupingKey $keyHybridInformation
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost))) {
@@ -195,10 +195,33 @@ Function Invoke-AnalyzerHybridInformation {
                                 $addressSpacesContainsWildcard = $true
                             }
                         }
+
                         if (($smartHostsPointToExo -eq $false) -or
                             ($addressSpacesContainsWildcard -eq $false)) {
+
+                            $tlsAuthLevelWriteType = "Gray"
+                            if ($connector.TlsAuthLevel -eq "DomainValidation") {
+                                # DomainValidation: In addition to channel encryption and certificate validation,
+                                # the Send connector also verifies that the FQDN of the target certificate matches
+                                # the domain specified in the TlsDomain parameter. If no domain is specified in the TlsDomain parameter,
+                                # the FQDN on the certificate is compared with the recipient's domain.
+                                $tlsAuthLevelWriteType = "Green"
+                                if ($null -eq $connector.TlsDomain) {
+                                    $tlsAuthLevelWriteType = "Yellow"
+                                    $tlsAuthLevelAdditionalInfo = "'TlsDomain' is empty which means that the FQDN of the certificate is compared with the recipient's domain.`r`n`t`tMore information: https://aka.ms/HC-HybridConnector"
+                                }
+                            }
+
                             $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
-                                -DisplayGroupingKey $keyHybridInformation
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $tlsAuthLevelWriteType
+
+                            if ($null -ne $tlsAuthLevelAdditionalInfo) {
+                                $AnalyzeResults | Add-AnalyzedResultInformation -Details $tlsAuthLevelAdditionalInfo `
+                                    -DisplayGroupingKey $keyHybridInformation `
+                                    -DisplayWriteType $tlsAuthLevelWriteType `
+                                    -DisplayCustomTabNumber 2
+                            }
                         }
                     }
 
@@ -270,12 +293,12 @@ Function Invoke-AnalyzerHybridInformation {
                             -DisplayWriteType $cloudConnectorWriteType
 
                         if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no 'TlsCertificateName' configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayWriteType $cloudConnectorWriteType `
                                 -DisplayCustomTabNumber 2
                         } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured 'TlsCertificateName' was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayWriteType $cloudConnectorWriteType `
                                 -DisplayCustomTabNumber 2
