@@ -34,13 +34,17 @@ Function Get-ExchangeConnectors {
                 CloudEnabled       = $false
                 ConnectorType      = $null
                 TransportRole      = $null
+                SmartHosts         = $null
+                AddressSpaces      = $null
+                RequireTLS         = $false
+                TlsAuthLevel       = $null
+                TlsDomain          = $null
                 CertificateDetails = [PSCustomObject]@{
                     CertificateMatchDetected = $false
                     GoodTlsCertificateSyntax = $false
                     TlsCertificateName       = $null
                     TlsCertificateNameStatus = $null
                     TlsCertificateSet        = $false
-                    TlsAuthLevel             = $null
                     CertificateLifetimeInfo  = $null
                 }
             }
@@ -57,8 +61,17 @@ Function Get-ExchangeConnectors {
                 Write-Verbose "Exchange SendConnector detected"
                 $exchangeFactoryConnectorReturnObject.ConnectorType = "Send"
                 $exchangeFactoryConnectorReturnObject.CloudEnabled = $ConnectorObject.CloudServicesMailEnabled
+                $exchangeFactoryConnectorReturnObject.TlsDomain = $ConnectorObject.TlsDomain
                 if ($null -ne $ConnectorObject.TlsAuthLevel) {
-                    $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsAuthLevel = $ConnectorObject.TlsAuthLevel
+                    $exchangeFactoryConnectorReturnObject.TlsAuthLevel = $ConnectorObject.TlsAuthLevel
+                }
+
+                if ($null -ne $ConnectorObject.SmartHosts) {
+                    $exchangeFactoryConnectorReturnObject.SmartHosts = $ConnectorObject.SmartHosts
+                }
+
+                if ($null -ne $ConnectorObject.AddressSpaces) {
+                    $exchangeFactoryConnectorReturnObject.AddressSpaces = $ConnectorObject.AddressSpaces
                 }
             }
 
@@ -70,6 +83,8 @@ Function Get-ExchangeConnectors {
                 Write-Verbose "TlsCertificateName is not configured on this connector"
                 $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsCertificateNameStatus = "TlsCertificateNameEmpty"
             }
+
+            $exchangeFactoryConnectorReturnObject.RequireTLS = $ConnectorObject.RequireTLS
 
             return $exchangeFactoryConnectorReturnObject
         }

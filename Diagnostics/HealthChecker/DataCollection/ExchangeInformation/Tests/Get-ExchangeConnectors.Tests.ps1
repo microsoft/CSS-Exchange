@@ -235,4 +235,29 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
             $results.Count | Should -Be 0
         }
     }
+
+    Context "Relay Mails To The Internet Via M365 Send Connector" {
+        BeforeAll {
+            Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnectorConfiguredToRelayToM365.xml }
+            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
+        }
+
+        It "Send Connector Configured As Expected For Relaying Via M365" {
+            Switch ($results) {
+                { ($_.SmartHosts -like "*.mail.protection.outlook.com") } {
+                    $smartHostsPointToExo = $true;
+                    $_.Name | Should -Be "My company to Office 365";
+                    $_.RequireTLS | Should -Be $true;
+                    # 1 = EncryptionOnly; 2 = CertificateValidation; 3 = DomainValidation
+                    $_.TlsAuthLevel | Should -Be 2
+                }
+                { ([System.Management.Automation.WildcardPattern]::ContainsWildcardCharacters($_.AddressSpaces)) } {
+                    $addressSpacesContainsWildcard = $true
+                }
+            }
+
+            $smartHostsPointToExo | Should -Be $true
+            $addressSpacesContainsWildcard | Should -Be $true
+        }
+    }
 }

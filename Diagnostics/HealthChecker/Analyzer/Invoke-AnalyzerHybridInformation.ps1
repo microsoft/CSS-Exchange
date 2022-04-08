@@ -185,85 +185,152 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayGroupingKey $keyHybridInformation
 
                     if (($connector.ConnectorType -eq "Send") -and
-                        ($null -ne $connector.CertificateDetails.TlsAuthLevel)) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.CertificateDetails.TlsAuthLevel `
-                            -DisplayGroupingKey $keyHybridInformation
-                    }
-
-                    $cloudConnectorTlsCertificateName = "Not set"
-                    if ($null -ne $connector.CertificateDetails.TlsCertificateName) {
-                        $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
-                    }
-
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $cloudConnectorTlsCertificateName `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayWriteType $cloudConnectorWriteType
-
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateDetails.CertificateMatchDetected `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayWriteType $cloudConnectorWriteType
-
-                    if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector. This will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $cloudConnectorWriteType `
-                            -DisplayCustomTabNumber 2
-                    } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server. This may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $cloudConnectorWriteType `
-                            -DisplayCustomTabNumber 2
-                    } else {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
-                            -DisplayGroupingKey $keyHybridInformation
-
-                        foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayCustomTabNumber 2
-                        }
-
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
-                            -DisplayGroupingKey $keyHybridInformation
-
-                        foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
-                            switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
-                                { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
-                                { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
-                                Default { $certificateLifetimeWriteType = "Red" }
+                        ($null -ne $connector.TlsAuthLevel)) {
+                        # Check if send connector is configured to relay mails to the internet via M365
+                        Switch ($connector) {
+                            { ($_.SmartHosts -like "*.mail.protection.outlook.com") } {
+                                $smartHostsPointToExo = $true
                             }
-
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint] `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $certificateLifetimeWriteType `
-                                -DisplayCustomTabNumber 2
+                            { ([System.Management.Automation.WildcardPattern]::ContainsWildcardCharacters($_.AddressSpaces)) } {
+                                $addressSpacesContainsWildcard = $true
+                            }
+                        }
+                        if (($smartHostsPointToExo -eq $false) -or
+                            ($addressSpacesContainsWildcard -eq $false)) {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
+                                -DisplayGroupingKey $keyHybridInformation
                         }
                     }
 
-                    $connectorCertificateMatchesHybridCertificate = $false
-                    $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
-                    if (($connector.CertificateDetails.TlsCertificateSet) -and
-                        (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
-                        ($connector.CertificateDetails.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
-                        $connectorCertificateMatchesHybridCertificate = $true
-                        $connectorCertificateMatchesHybridCertificateWritingType = "Green"
-                    }
+                    if (($smartHostsPointToExo) -and
+                        ($addressSpacesContainsWildcard)) {
+                        # Seems like this send connector is configured to relay mails to the internet via M365 - skipping some checks
+                        # https://docs.microsoft.com/exchange/mail-flow-best-practices/use-connectors-to-configure-mail-flow/set-up-connectors-to-route-mail#2-set-up-your-email-server-to-relay-mail-to-the-internet-via-microsoft-365-or-office-365
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Relay Internet Mails via M365" -Details $true `
+                            -DisplayGroupingKey $keyHybridInformation
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Matches Hybrid Certificate" -Details $connectorCertificateMatchesHybridCertificate `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayWriteType $connectorCertificateMatchesHybridCertificateWritingType
+                        Switch ($connector.TlsAuthLevel) {
+                            "EncryptionOnly" {
+                                $tlsAuthLevelM365RelayWriteType = "Yellow";
+                                break
+                            }
+                            "CertificateValidation" {
+                                $tlsAuthLevelM365RelayWriteType = "Green";
+                                break
+                            }
+                            "DomainValidation" {
+                                if ($null -eq $connector.TlsDomain) {
+                                    $tlsAuthLevelM365RelayWriteType = "Red"
+                                } else {
+                                    $tlsAuthLevelM365RelayWriteType = "Green"
+                                };
+                                break
+                            }
+                            Default { $tlsAuthLevelM365RelayWriteType = "Red" }
+                        }
 
-                    if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
-                        (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
-                            ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
+                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayWriteType $tlsAuthLevelM365RelayWriteType
+
+                        if ($tlsAuthLevelM365RelayWriteType -ne "Green") {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "'TlsAuthLevel' should be set to 'CertificateValidation'. More information: https://aka.ms/HC-HybridConnector" `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $tlsAuthLevelM365RelayWriteType `
+                                -DisplayCustomTabNumbermber 2
+                        }
+
+                        $requireTlsWriteType = "Red"
+                        if ($connector.RequireTLS) {
+                            $requireTlsWriteType = "Green"
+                        }
+
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "RequireTls Enabled" -Details $connector.RequireTLS `
+                            -DisplayGroupingKey $keyHybridInformation `
+                            -DisplayWriteType $requireTlsWriteType
+
+                        if ($requireTlsWriteType -eq "Red") {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "'RequireTLS' must be set to 'true' to ensure a working mail flow. More information: https://aka.ms/HC-HybridConnector" `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $requireTlsWriteType `
+                                -DisplayCustomTabNumber 2
+                        }
+                    } else {
+                        $cloudConnectorTlsCertificateName = "Not set"
+                        if ($null -ne $connector.CertificateDetails.TlsCertificateName) {
+                            $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
+                        }
+
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $cloudConnectorTlsCertificateName `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'" `
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateDetails.CertificateMatchDetected `
                             -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $cloudConnectorWriteType `
-                            -DisplayCustomTabNumber 2
+                            -DisplayWriteType $cloudConnectorWriteType
+
+                        if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $cloudConnectorWriteType `
+                                -DisplayCustomTabNumber 2
+                        } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $cloudConnectorWriteType `
+                                -DisplayCustomTabNumber 2
+                        } else {
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
+                                -DisplayGroupingKey $keyHybridInformation
+
+                            foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
+                                $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
+                                    -DisplayGroupingKey $keyHybridInformation `
+                                    -DisplayCustomTabNumber 2
+                            }
+
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
+                                -DisplayGroupingKey $keyHybridInformation
+
+                            foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
+                                switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
+                                    { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
+                                    { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
+                                    Default { $certificateLifetimeWriteType = "Red" }
+                                }
+
+                                $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint] `
+                                    -DisplayGroupingKey $keyHybridInformation `
+                                    -DisplayWriteType $certificateLifetimeWriteType `
+                                    -DisplayCustomTabNumber 2
+                            }
+
+                            $connectorCertificateMatchesHybridCertificate = $false
+                            $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
+                            if (($connector.CertificateDetails.TlsCertificateSet) -and
+                                (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
+                                ($connector.CertificateDetails.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
+                                $connectorCertificateMatchesHybridCertificate = $true
+                                $connectorCertificateMatchesHybridCertificateWritingType = "Green"
+                            }
+
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Matches Hybrid Certificate" -Details $connectorCertificateMatchesHybridCertificate `
+                                -DisplayGroupingKey $keyHybridInformation `
+                                -DisplayWriteType $connectorCertificateMatchesHybridCertificateWritingType
+
+                            if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
+                                (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
+                                    ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
+                                $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
+                                    -DisplayGroupingKey $keyHybridInformation `
+                                    -DisplayWriteType $cloudConnectorWriteType
+
+                                $AnalyzeResults | Add-AnalyzedResultInformation -Details "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'" `
+                                    -DisplayGroupingKey $keyHybridInformation `
+                                    -DisplayWriteType $cloudConnectorWriteType `
+                                    -DisplayCustomTabNumber 2
+                            }
+                        }
                     }
                 }
             }
