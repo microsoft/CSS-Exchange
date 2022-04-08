@@ -161,8 +161,8 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayGroupingKey $keyHybridInformation `
                         -AddHtmlDetailRow $false
 
-                    if (($connector.CertificateMatchDetected) -and
-                        ($connector.GoodTlsCertificateSyntax)) {
+                    if (($connector.CertificateDetails.CertificateMatchDetected) -and
+                        ($connector.CertificateDetails.GoodTlsCertificateSyntax)) {
                         $cloudConnectorWriteType = "Green"
                     }
 
@@ -185,31 +185,31 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayGroupingKey $keyHybridInformation
 
                     if (($connector.ConnectorType -eq "Send") -and
-                        ($null -ne $connector.TlsAuthLevel)) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
+                        ($null -ne $connector.CertificateDetails.TlsAuthLevel)) {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.CertificateDetails.TlsAuthLevel `
                             -DisplayGroupingKey $keyHybridInformation
                     }
 
                     $cloudConnectorTlsCertificateName = "Not set"
-                    if ($null -ne $connector.TlsCertificateName) {
-                        $cloudConnectorTlsCertificateName = $connector.TlsCertificateName
+                    if ($null -ne $connector.CertificateDetails.TlsCertificateName) {
+                        $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
                     }
 
                     $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $cloudConnectorTlsCertificateName `
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $cloudConnectorWriteType
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateMatchDetected `
+                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateDetails.CertificateMatchDetected `
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $cloudConnectorWriteType
 
-                    if ($connector.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector. This will cause mail flow issues in hybrid scenarios." `
+                    if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no Tls Certificate configured for this cloud mail enabled connector. This will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2
-                    } elseif ($connector.CertificateMatchDetected -eq $false) {
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server. This may cause mail flow issues." `
+                    } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
+                        $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured Tls Certificate was not found on the server. This may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType `
                             -DisplayCustomTabNumber 2
@@ -217,7 +217,7 @@ Function Invoke-AnalyzerHybridInformation {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
                             -DisplayGroupingKey $keyHybridInformation
 
-                        foreach ($thumbprint in $($connector.CertificateInformation).keys) {
+                        foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
                             $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayCustomTabNumber 2
@@ -226,14 +226,14 @@ Function Invoke-AnalyzerHybridInformation {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
                             -DisplayGroupingKey $keyHybridInformation
 
-                        foreach ($thumbprint in $($connector.CertificateInformation).keys) {
-                            switch ($($connector.CertificateInformation)[$thumbprint]) {
-                                { $_ -ge 60 } { $certificateLifetimeWriteType = "Green"; break }
-                                { $_ -ge 30 } { $certificateLifetimeWriteType = "Yellow"; break }
+                        foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
+                            switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
+                                { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
+                                { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
                                 Default { $certificateLifetimeWriteType = "Red" }
                             }
 
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateInformation)[$thumbprint] `
+                            $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint] `
                                 -DisplayGroupingKey $keyHybridInformation `
                                 -DisplayWriteType $certificateLifetimeWriteType `
                                 -DisplayCustomTabNumber 2
@@ -242,9 +242,9 @@ Function Invoke-AnalyzerHybridInformation {
 
                     $connectorCertificateMatchesHybridCertificate = $false
                     $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
-                    if (($connector.TlsCertificateSet) -and
+                    if (($connector.CertificateDetails.TlsCertificateSet) -and
                         (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
-                        ($connector.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
+                        ($connector.CertificateDetails.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
                         $connectorCertificateMatchesHybridCertificate = $true
                         $connectorCertificateMatchesHybridCertificateWritingType = "Green"
                     }
@@ -253,9 +253,9 @@ Function Invoke-AnalyzerHybridInformation {
                         -DisplayGroupingKey $keyHybridInformation `
                         -DisplayWriteType $connectorCertificateMatchesHybridCertificateWritingType
 
-                    if (($connector.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
-                        (($connector.GoodTlsCertificateSyntax -eq $false) -and
-                            ($null -ne $connector.TlsCertificateName))) {
+                    if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
+                        (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
+                            ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
                         $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
                             -DisplayGroupingKey $keyHybridInformation `
                             -DisplayWriteType $cloudConnectorWriteType

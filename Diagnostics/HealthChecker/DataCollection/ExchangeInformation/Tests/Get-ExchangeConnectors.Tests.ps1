@@ -93,9 +93,9 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         It "Connectors Without TlsCertificateName Should Be Set To TlsCertificateNameEmpty" {
             $i = 0
             foreach ($result in $results) {
-                if ($result.TlsCertificateSet -eq $false) {
+                if ($result.CertificateDetails.TlsCertificateSet -eq $false) {
                     $i++
-                    $result.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
+                    $result.CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
                 }
             }
 
@@ -109,14 +109,14 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
                     $cloudConnectors += $result
                 }
             }
-            $cloudConnectors[0].CertificateInformation.keys | Should -Be "611C687DFC4343A5A03E0005A1EC6E9B6AFF586D"
-            $cloudConnectors[0].TlsCertificateName | Should -Be "<I>CN=WIN-CTD3L0RGEN4<S>CN=WIN-CTD3L0RGEN4"
-            $cloudConnectors[0].TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
-            $cloudConnectors[0].GoodTlsCertificateSyntax | Should -Be $true
-            $cloudConnectors[1].CertificateInformation.keys | Should -Be "E267D459A0FB53D0EF225C11FAC062D522648C09"
-            $cloudConnectors[1].TlsCertificateName | Should -Be "<I>CN=localhost<S>CN=localhost"
-            $cloudConnectors[1].TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
-            $cloudConnectors[1].GoodTlsCertificateSyntax | Should -Be $true
+            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo.keys | Should -Be "611C687DFC4343A5A03E0005A1EC6E9B6AFF586D"
+            $cloudConnectors[0].CertificateDetails.TlsCertificateName | Should -Be "<I>CN=WIN-CTD3L0RGEN4<S>CN=WIN-CTD3L0RGEN4"
+            $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
+            $cloudConnectors[0].CertificateDetails.GoodTlsCertificateSyntax | Should -Be $true
+            $cloudConnectors[1].CertificateDetails.CertificateLifetimeInfo.keys | Should -Be "E267D459A0FB53D0EF225C11FAC062D522648C09"
+            $cloudConnectors[1].CertificateDetails.TlsCertificateName | Should -Be "<I>CN=localhost<S>CN=localhost"
+            $cloudConnectors[1].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
+            $cloudConnectors[1].CertificateDetails.GoodTlsCertificateSyntax | Should -Be $true
         }
     }
 
@@ -128,14 +128,14 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         }
 
         It "Should Return Multiple Certificate Thumbprints And Lifetime Information" {
-            ($results[5].CertificateInformation).Count | Should -Be 2
-            foreach ($key in ($results[5].CertificateInformation).keys) {
+            ($results[5].CertificateDetails.CertificateLifetimeInfo).Count | Should -Be 2
+            foreach ($key in ($results[5].CertificateDetails.CertificateLifetimeInfo).keys) {
                 if ($key -eq "E267D459A0FB53D0EF225C11FAC062D522648C09") {
-                    ($results[5].CertificateInformation)[$key] | Should -Be 1678
+                    ($results[5].CertificateDetails.CertificateLifetimeInfo)[$key] | Should -Be 1678
                 }
 
                 if ($key -eq "03221367D3A3E863698501592A9B9C420D8D3F4E") {
-                    ($results[5].CertificateInformation)[$key] | Should -Be 1911
+                    ($results[5].CertificateDetails.CertificateLifetimeInfo)[$key] | Should -Be 1911
                 }
             }
         }
@@ -156,11 +156,11 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         }
 
         It "Should Return TlsCertificateNotFound For The First Certificate" {
-            $cloudConnectors[0].TlsCertificateNameStatus | Should -Be "TlsCertificateNotFound"
+            $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNotFound"
         }
 
         It "Should Return TlsCertificateMatch For The Second Certificate" {
-            $cloudConnectors[1].TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
+            $cloudConnectors[1].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
         }
     }
 
@@ -177,9 +177,9 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
         It "Should Return Connector Objects With Some Placeholder Certificate Information" {
             foreach ($connector in $results) {
-                $connector.CertificateMatchDetected | Should -Be $false
-                $connector.GoodTlsCertificateSyntax | Should -Be $false
-                $connector.CertificateInformation | Should -Be $null
+                $connector.CertificateDetails.CertificateMatchDetected | Should -Be $false
+                $connector.CertificateDetails.GoodTlsCertificateSyntax | Should -Be $false
+                $connector.CertificateDetails.CertificateLifetimeInfo | Should -Be $null
             }
         }
     }
@@ -199,28 +199,28 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
         It "Cloud Mail Receive Connector Has Empty TlsCertificateName" {
             $cloudConnectors[0].ConnectorType | Should -Be "Receive"
-            $cloudConnectors[0].CertificateInformation | Should -Be $null
-            $cloudConnectors[0].TlsCertificateName | Should -Be $null
-            $cloudConnectors[0].TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
-            $cloudConnectors[0].GoodTlsCertificateSyntax | Should -Be $false
+            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo | Should -Be $null
+            $cloudConnectors[0].CertificateDetails.TlsCertificateName | Should -Be $null
+            $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
+            $cloudConnectors[0].CertificateDetails.GoodTlsCertificateSyntax | Should -Be $false
         }
 
         It "Cloud Mail Send Connector Has TlsCertificateName Set" {
             $cloudConnectors[1].ConnectorType | Should -Be "Send"
-            $cloudConnectors[1].CertificateInformation.keys | Should -Be "E267D459A0FB53D0EF225C11FAC062D522648C09"
-            $cloudConnectors[1].TlsCertificateName | Should -Be "<I>CN=localhost<S>CN=localhost"
-            $cloudConnectors[1].TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
-            $cloudConnectors[1].GoodTlsCertificateSyntax | Should -Be $true
+            $cloudConnectors[1].CertificateDetails.CertificateLifetimeInfo.keys | Should -Be "E267D459A0FB53D0EF225C11FAC062D522648C09"
+            $cloudConnectors[1].CertificateDetails.TlsCertificateName | Should -Be "<I>CN=localhost<S>CN=localhost"
+            $cloudConnectors[1].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
+            $cloudConnectors[1].CertificateDetails.GoodTlsCertificateSyntax | Should -Be $true
         }
 
         It "Certificate Lifetime Should Be 0 For Connectors Without TlsCertificateName Set" {
-            $cloudConnectors[0].TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
-            $cloudConnectors[0].CertificateInformation | Should -Be $null
+            $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
+            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo | Should -Be $null
         }
 
         It "Certificate Limetime Should Be Returned For Connectors With TlsCertificateName Set" {
-            $cloudConnectors[1].TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
-            $cloudConnectors[1].CertificateInformation.values | Should -Be 1678
+            $cloudConnectors[1].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
+            $cloudConnectors[1].CertificateDetails.CertificateLifetimeInfo.values | Should -Be 1678
         }
     }
 

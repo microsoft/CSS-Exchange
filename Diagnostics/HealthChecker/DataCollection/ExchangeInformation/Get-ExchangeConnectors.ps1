@@ -28,19 +28,21 @@ Function Get-ExchangeConnectors {
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             $exchangeFactoryConnectorReturnObject = [PSCustomObject]@{
-                Identity                 = $ConnectorObject.Identity
-                Name                     = $ConnectorObject.Name
-                Enabled                  = $ConnectorObject.Enabled
-                CloudEnabled             = $false
-                ConnectorType            = $null
-                TransportRole            = $null
-                CertificateMatchDetected = $false
-                GoodTlsCertificateSyntax = $false
-                TlsCertificateName       = $null
-                TlsCertificateNameStatus = $null
-                TlsCertificateSet        = $false
-                TlsAuthLevel             = $null
-                CertificateInformation   = $null
+                Identity           = $ConnectorObject.Identity
+                Name               = $ConnectorObject.Name
+                Enabled            = $ConnectorObject.Enabled
+                CloudEnabled       = $false
+                ConnectorType      = $null
+                TransportRole      = $null
+                CertificateDetails = [PSCustomObject]@{
+                    CertificateMatchDetected = $false
+                    GoodTlsCertificateSyntax = $false
+                    TlsCertificateName       = $null
+                    TlsCertificateNameStatus = $null
+                    TlsCertificateSet        = $false
+                    TlsAuthLevel             = $null
+                    CertificateLifetimeInfo  = $null
+                }
             }
 
             Write-Verbose ("Creating object for Exchange connector: '{0}'" -f $ConnectorObject.Identity)
@@ -56,17 +58,17 @@ Function Get-ExchangeConnectors {
                 $exchangeFactoryConnectorReturnObject.ConnectorType = "Send"
                 $exchangeFactoryConnectorReturnObject.CloudEnabled = $ConnectorObject.CloudServicesMailEnabled
                 if ($null -ne $ConnectorObject.TlsAuthLevel) {
-                    $exchangeFactoryConnectorReturnObject.TlsAuthLevel = $ConnectorObject.TlsAuthLevel
+                    $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsAuthLevel = $ConnectorObject.TlsAuthLevel
                 }
             }
 
             if ($null -ne $ConnectorObject.TlsCertificateName) {
                 Write-Verbose "TlsCertificateName is configured on this connector"
-                $exchangeFactoryConnectorReturnObject.TlsCertificateSet = $true
-                $exchangeFactoryConnectorReturnObject.TlsCertificateName = ($ConnectorObject.TlsCertificateName).ToString()
+                $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsCertificateSet = $true
+                $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsCertificateName = ($ConnectorObject.TlsCertificateName).ToString()
             } else {
                 Write-Verbose "TlsCertificateName is not configured on this connector"
-                $exchangeFactoryConnectorReturnObject.TlsCertificateNameStatus = "TlsCertificateNameEmpty"
+                $exchangeFactoryConnectorReturnObject.CertificateDetails.TlsCertificateNameStatus = "TlsCertificateNameEmpty"
             }
 
             return $exchangeFactoryConnectorReturnObject
@@ -92,12 +94,14 @@ Function Get-ExchangeConnectors {
 
                     Write-Verbose "TlsCertificateName that matches the expected syntax was passed"
                 } else {
+                    # Failsafe to detect cases where <I> and <S> are missing in TlsCertificateName
                     $issuerIndex = $TlsCertificateName.IndexOf("CN=", [System.StringComparison]::OrdinalIgnoreCase)
                     $subjectIndex = $TlsCertificateName.LastIndexOf("CN=", [System.StringComparison]::OrdinalIgnoreCase)
 
                     Write-Verbose "TlsCertificateName with bad syntax was passed"
                 }
 
+                # We stop processing if Issuer OR Subject index is -1 (no match found)
                 if (($issuerIndex -ne -1) -and
                     ($subjectIndex -ne -1)) {
                     if ($expectedTlsCertificateNameDetected) {
@@ -140,27 +144,27 @@ Function Get-ExchangeConnectors {
                 Write-Verbose ("{0} connector object(s) was/were passed to process" -f $ConnectorCustomObject.Count)
                 foreach ($connectorObject in $ConnectorCustomObject) {
 
-                    if ($null -ne $ConnectorObject.TlsCertificateName) {
+                    if ($null -ne $ConnectorObject.CertificateDetails.TlsCertificateName) {
                         $connectorTlsCertificateNormalizedObject = NormalizeTlsCertificateName `
-                            -TlsCertificateName $ConnectorObject.TlsCertificateName
+                            -TlsCertificateName $ConnectorObject.CertificateDetails.TlsCertificateName
 
                         if ($null -eq $connectorTlsCertificateNormalizedObject) {
                             Write-Verbose "Unable to normalize TlsCertificateName - could be caused by an invalid TlsCertificateName configuration"
-                            $connectorObject.TlsCertificateNameStatus = "TlsCertificateNameSyntaxInvalid"
+                            $connectorObject.CertificateDetails.TlsCertificateNameStatus = "TlsCertificateNameSyntaxInvalid"
                         } else {
                             if ($connectorTlsCertificateNormalizedObject.GoodSyntax) {
-                                $connectorObject.GoodTlsCertificateSyntax = $connectorTlsCertificateNormalizedObject.GoodSyntax
+                                $connectorObject.CertificateDetails.GoodTlsCertificateSyntax = $connectorTlsCertificateNormalizedObject.GoodSyntax
                             }
 
                             $certificateMatches = 0
-                            $certificateInformation = @{}
+                            $certificateLifetimeInformation = @{}
                             foreach ($certificate in $CertificateObject) {
                                 if (($certificate.Issuer -eq $connectorTlsCertificateNormalizedObject.Issuer) -and
                                     ($certificate.Subject -eq $connectorTlsCertificateNormalizedObject.Subject)) {
-                                    Write-Verbose ("Certificate: '{0}' matches Connectors: '{1}' TlsCertificateName: '{2}'" -f $certificate.Thumbprint, $connectorObject.Identity, $connectorObject.TlsCertificateName)
-                                    $connectorObject.CertificateMatchDetected = $true
-                                    $connectorObject.TlsCertificateNameStatus = "TlsCertificateMatch"
-                                    $certificateInformation.Add($certificate.Thumbprint, $certificate.LifetimeInDays)
+                                    Write-Verbose ("Certificate: '{0}' matches Connectors: '{1}' TlsCertificateName: '{2}'" -f $certificate.Thumbprint, $connectorObject.Identity, $connectorObject.CertificateDetails.TlsCertificateName)
+                                    $connectorObject.CertificateDetails.CertificateMatchDetected = $true
+                                    $connectorObject.CertificateDetails.TlsCertificateNameStatus = "TlsCertificateMatch"
+                                    $certificateLifetimeInformation.Add($certificate.Thumbprint, $certificate.LifetimeInDays)
 
                                     $certificateMatches++
                                 }
@@ -168,10 +172,10 @@ Function Get-ExchangeConnectors {
 
                             if ($certificateMatches -eq 0) {
                                 Write-Verbose "No matching certificate was found on the server"
-                                $connectorObject.TlsCertificateNameStatus = "TlsCertificateNotFound"
+                                $connectorObject.CertificateDetails.TlsCertificateNameStatus = "TlsCertificateNotFound"
                             } else {
                                 Write-Verbose ("We found: '{0}' matching certificates on the server" -f $certificateMatches)
-                                $connectorObject.CertificateInformation = $certificateInformation
+                                $connectorObject.CertificateDetails.CertificateLifetimeInfo = $certificateLifetimeInformation
                             }
                         }
                     }
