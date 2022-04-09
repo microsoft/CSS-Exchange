@@ -23,14 +23,6 @@ Function Invoke-AnalyzerSecuritySettings {
     $keySecuritySettings = Get-DisplayResultsGroupingKey -Name "Security Settings"  -DisplayOrder $Order
     $osInformation = $HealthServerObject.OSInformation
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
-        -DisplayGroupingKey $keySecuritySettings `
-        -DisplayCustomTabNumber 2 `
-        -AddHtmlDetailRow $false
-
     ##############
     # TLS Settings
     ##############
@@ -172,6 +164,14 @@ Function Invoke-AnalyzerSecuritySettings {
                 -DisplayCustomTabNumber 3
         }
     }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
+        -DisplayGroupingKey $keySecuritySettings
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -AddHtmlDetailRow $false
 
     $additionalDisplayValue = [string]::Empty
     $smb1Settings = $osInformation.Smb1ServerSettings
