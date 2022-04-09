@@ -37,7 +37,7 @@ Function Invoke-AnalyzerSecuritySettings {
     Write-Verbose "Working on TLS Settings"
 
     $tlsVersions = @("1.0", "1.1", "1.2")
-    $currentNetVersion = $osInformation.TLSSettings["NETv4"]
+    $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     function TestTlsValue {
         param(
@@ -57,7 +57,7 @@ Function Invoke-AnalyzerSecuritySettings {
     }
 
     foreach ($tlsKey in $tlsVersions) {
-        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
+        $currentTlsVersion = $osInformation.TLSSettings.Registry.TLS[$tlsKey]
 
         $AnalyzeResults | Add-AnalyzedResultInformation -Details ("TLS {0}" -f $tlsKey) `
             -DisplayGroupingKey $keySecuritySettings `
@@ -126,7 +126,7 @@ Function Invoke-AnalyzerSecuritySettings {
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "SchUseStrongCrypto - Wow6432Node" -Details ($currentNetVersion.WowSchUseStrongCrypto) `
         -DisplayGroupingKey $keySecuritySettings
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($currentNetVersion.SecurityProtocol) `
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
         -DisplayGroupingKey $keySecuritySettings
 
     <#
