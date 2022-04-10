@@ -118,44 +118,29 @@ Function Invoke-AnalyzerSecuritySettings {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions" -Details ($currentNetVersion.SystemDefaultTlsVersions) `
-        -DisplayGroupingKey $keySecuritySettings
+    $netVersions = @("NETv4", "NETv2")
+    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions - Wow6432Node" -Details ($currentNetVersion.WowSystemDefaultTlsVersions) `
-        -DisplayGroupingKey $keySecuritySettings
+    foreach ($netVersion in $netVersions) {
+        $currentNetVersion = $osInformation.TLSSettings.Registry.NET[$netVersion]
+        $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                    FrameworkVersion                    = $netVersion
+                    SystemDefaultTlsVersions            = $currentNetVersion.SystemDefaultTlsVersions
+                    Wow6432NodeSystemDefaultTlsVersions = $currentNetVersion.WowSystemDefaultTlsVersions
+                    SchUseStrongCrypto                  = $currentNetVersion.SchUseStrongCrypto
+                    Wow6432NodeSchUseStrongCrypto       = $currentNetVersion.WowSchUseStrongCrypto
+                })
+        )
+    }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SchUseStrongCrypto" -Details ($currentNetVersion.SchUseStrongCrypto) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SchUseStrongCrypto - Wow6432Node" -Details ($currentNetVersion.WowSchUseStrongCrypto) `
+    $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+            DisplayObject = $outputObjectDisplayValue
+            IndentSpaces  = 6
+        }) `
         -DisplayGroupingKey $keySecuritySettings
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
         -DisplayGroupingKey $keySecuritySettings
-
-    <#
-    [array]$securityProtocols = $currentNetVersion.SecurityProtocol.Split(",").Trim().ToUpper()
-    $lowerTLSVersions = @("1.0", "1.1")
-
-    foreach ($tlsKey in $lowerTLSVersions) {
-        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
-        $securityProtocolCheck = "TLS"
-        if ($tlsKey -eq "1.1") {
-            $securityProtocolCheck = "TLS11"
-        }
-
-        if (($currentTlsVersion.ServerEnabled -eq $false -or
-                $currentTlsVersion.ClientEnabled -eq $false) -and
-            $securityProtocols.Contains($securityProtocolCheck)) {
-
-            $AnalyzeResults = Add-AnalyzedResultInformation -Details ("Security Protocol is able to use TLS when we have TLS {0} disabled in the registry. This can cause issues with connectivity. It is recommended to follow the proper TLS settings. In some cases, it may require to also set SchUseStrongCrypto in the registry." -f $tlsKey) `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
-                -AnalyzedInformation $AnalyzeResults
-        }
-    }
-#>
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
         -DisplayGroupingKey $keySecuritySettings
