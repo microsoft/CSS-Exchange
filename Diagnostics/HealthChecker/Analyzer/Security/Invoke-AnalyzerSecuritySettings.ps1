@@ -55,7 +55,7 @@ Function Invoke-AnalyzerSecuritySettings {
     $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
             DisplayObject      = $outputObjectDisplayValue
             ColorizerFunctions = @($sbMisconfigured, $sbDisabled)
-            IndentSpaces       = 6
+            IndentSpaces       = 8
         }) `
         -DisplayGroupingKey $keySecuritySettings
 
@@ -135,7 +135,7 @@ Function Invoke-AnalyzerSecuritySettings {
 
     $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
             DisplayObject = $outputObjectDisplayValue
-            IndentSpaces  = 6
+            IndentSpaces  = 8
         }) `
         -DisplayGroupingKey $keySecuritySettings
 
