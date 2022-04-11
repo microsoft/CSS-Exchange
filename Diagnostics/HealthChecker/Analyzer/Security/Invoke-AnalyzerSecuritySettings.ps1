@@ -142,6 +142,26 @@ Function Invoke-AnalyzerSecuritySettings {
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
         -DisplayGroupingKey $keySecuritySettings
 
+    if ($null -ne $osInformation.TLSSettings.TlsCipherSuite) {
+        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+        foreach ($tlsCipher in $osInformation.TLSSettings.TlsCipherSuite) {
+            $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                        TlsCipherSuiteName = $tlsCipher.Name
+                        CipherSuite        = $tlsCipher.CipherSuite
+                        Cipher             = $tlsCipher.Cipher
+                        Certificate        = $tlsCipher.Certificate
+                    })
+            )
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                DisplayObject = $outputObjectDisplayValue
+                IndentSpaces  = 8
+            }) `
+            -DisplayGroupingKey $keySecuritySettings
+    }
+
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
         -DisplayGroupingKey $keySecuritySettings
 

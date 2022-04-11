@@ -18,6 +18,7 @@ Function Get-AllTlsSettings {
         return [PSCustomObject]@{
             Registry         = (Get-AllTlsSettingsFromRegistry -MachineName $MachineName -CatchActionFunction $CatchActionFunction)
             SecurityProtocol = (Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock { ([System.Net.ServicePointManager]::SecurityProtocol).ToString() } -CatchActionFunction $CatchActionFunction)
+            TlsCipherSuite   = (Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock { Get-TlsCipherSuite } -CatchActionFunction $CatchActionFunction)
         }
     }
 }
