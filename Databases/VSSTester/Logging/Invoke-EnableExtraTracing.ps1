@@ -9,13 +9,12 @@ function Invoke-EnableExTRATracing {
             [string]$LogmanName
         )
         logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
-        
+
         if ($LASTEXITCODE) {
             Write-Host "Exchange Trace data Collector set already created. Removing it and trying again"
             logman delete $LogmanName -s $ComputerName
-            
+
             logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
-            
         }
 
         if ($LASTEXITCODE) {
@@ -31,7 +30,7 @@ function Invoke-EnableExTRATracing {
         Invoke-ExtraTracingCreate -ComputerName $serverName -LogmanName "VSSTester"
         "Starting Exchange Trace data collector..."
         logman start VSSTester
-        
+
         if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
@@ -53,7 +52,7 @@ function Invoke-EnableExTRATracing {
         #start trace on passive copy
         "Starting Exchange Trace data collector on $serverName..."
         logman start VSSTester-Passive -s $serverName
-        
+
         if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
@@ -61,7 +60,7 @@ function Invoke-EnableExTRATracing {
         #start trace on active copy
         "Starting Exchange Trace data collector on $dbMountedOn..."
         logman start VSSTester-Active -s $dbMountedOn
-        
+
         if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
