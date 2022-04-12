@@ -98,8 +98,8 @@ Mock Get-TimeZoneInformationRegistrySettings {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
 }
 
-Mock Get-AllTlsSettingsFromRegistry {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry.xml"
+Mock Get-AllTlsSettings {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings.xml"
 }
 
 Mock Get-VisualCRedistributableInstalledVersion {

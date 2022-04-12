@@ -43,6 +43,7 @@ Function Add-AnalyzedResultInformation {
                 $lineInfo.OutColumns = $OutColumns
                 $lineInfo.WriteType = "OutColumns"
                 $lineInfo.TestingValue = $OutColumns
+                $lineInfo.TestingName = $TestingName
             } else {
 
                 $lineInfo.DisplayValue = $Details

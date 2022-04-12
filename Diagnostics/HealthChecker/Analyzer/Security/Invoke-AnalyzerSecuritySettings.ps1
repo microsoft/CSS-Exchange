@@ -57,7 +57,8 @@ Function Invoke-AnalyzerSecuritySettings {
             ColorizerFunctions = @($sbMisconfigured, $sbDisabled)
             IndentSpaces       = 8
         }) `
-        -DisplayGroupingKey $keySecuritySettings
+        -DisplayGroupingKey $keySecuritySettings `
+        -TestingName "TLS Settings Group"
 
     Function GetBadTlsValueSetting {
         [CmdletBinding()]
@@ -137,7 +138,8 @@ Function Invoke-AnalyzerSecuritySettings {
             DisplayObject = $outputObjectDisplayValue
             IndentSpaces  = 8
         }) `
-        -DisplayGroupingKey $keySecuritySettings
+        -DisplayGroupingKey $keySecuritySettings `
+        -TestingName "NET TLS Settings Group"
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
         -DisplayGroupingKey $keySecuritySettings
@@ -159,7 +161,8 @@ Function Invoke-AnalyzerSecuritySettings {
                 DisplayObject = $outputObjectDisplayValue
                 IndentSpaces  = 8
             }) `
-            -DisplayGroupingKey $keySecuritySettings
+            -DisplayGroupingKey $keySecuritySettings `
+            -TestingName "TLS Cipher Suite Group"
     }
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `

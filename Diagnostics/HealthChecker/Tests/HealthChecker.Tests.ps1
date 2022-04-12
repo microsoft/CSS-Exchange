@@ -123,7 +123,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 75
+            $Script:ActiveGrouping.Count | Should -Be 60
         }
 
         It "Display Results - Security Vulnerability" {
@@ -224,7 +224,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
             Assert-MockCalled Get-TimeZoneInformationRegistrySettings -Exactly 1
-            Assert-MockCalled Get-AllTlsSettingsFromRegistry -Exactly 1
+            Assert-MockCalled Get-AllTlsSettings -Exactly 1
             Assert-MockCalled Get-CredentialGuardEnabled -Exactly 1
             Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
@@ -256,7 +256,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-CredentialGuardEnabled -MockWith { return $true }
             Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
-            Mock Get-AllTlsSettingsFromRegistry { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry1.xml" }
+            Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
@@ -308,10 +308,38 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            TestObjectMatch "TLS 1.0 - Client Enabled Value" "-1" -WriteType "Red"
-            TestObjectMatch "TLS 1.1 - Mismatch" "True" -WriteType "Red"
-            TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" "True" -WriteType "Red"
+            $tlsSettings = (GetObject "TLS Settings Group").DisplayObject
+            $tls10 = $tlsSettings | Where-Object { $_.TLSVersion -eq "1.0" }
+            $tls11 = $tlsSettings | Where-Object { $_.TLSVersion -eq "1.1" }
+            $tls12 = $tlsSettings | Where-Object { $_.TLSVersion -eq "1.2" }
+
+            $tls10.ServerEnabled | Should -Be $false
+            $tls10.ServerDbd | Should -Be $true
+            $tls10.ClientEnabled | Should -Be $true
+            $tls10.ClientDbd | Should -Be $true
+            $tls10.Disabled | Should -Be $true
+
+            $tls11.ServerEnabled | Should -Be $true
+            $tls11.ServerDbd | Should -Be $true
+            $tls11.ClientEnabled | Should -Be $false
+            $tls11.ClientDbd | Should -Be $true
+            $tls11.Disabled | Should -Be $true
+
+            $tls12.ServerEnabled | Should -Be $true
+            $tls12.ServerDbd | Should -Be $false
+            $tls12.ClientEnabled | Should -Be $true
+            $tls12.ClientDbd | Should -Be $false
+            $tls12.Disabled | Should -Be $false
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
+
+            $netTlsSettings = (GetObject "NET TLS Settings Group").DisplayObject | Where-Object { $_.FrameworkVersion -eq "NETv4" }
+            $netTlsSettings.SystemDefaultTlsVersions | Should -Be $false
+            $netTlsSettings.Wow6432NodeSystemDefaultTlsVersions | Should -Be $false
+            $netTlsSettings.SchUseStrongCrypto | Should -Be $false
+            $netTlsSettings.Wow6432NodeSchUseStrongCrypto | Should -Be $false
+
+            $tlsCipherSuite = (GetObject "TLS Cipher Suite Group").DisplayObject
+            $tlsCipherSuite.Count | Should -Be 8
         }
 
         It "SMB Settings" {
