@@ -1,6 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-LogmanExt.ps1
+. $PSScriptRoot\Get-LogmanRootPath.ps1
+. $PSScriptRoot\Get-LogmanStartDate.ps1
+. $PSScriptRoot\Get-LogmanStatus.ps1
 Function Get-LogmanObject {
     param(
         [Parameter(Mandatory = $true)][string]$LogmanName,

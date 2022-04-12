@@ -5,19 +5,22 @@ Function Write-Host {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
     [CmdletBinding()]
     param(
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ValueFromPipeline)]
         [object]$Object,
         [switch]$NoNewLine,
         [string]$ForegroundColor
     )
-    begin {
+    process {
         $consoleHost = $host.Name -eq "ConsoleHost"
+
+        if ($null -ne $Script:WriteHostManipulateObjectAction) {
+            $Object = & $Script:WriteHostManipulateObjectAction $Object
+        }
+
         $params = @{
             Object    = $Object
             NoNewLine = $NoNewLine
         }
-    }
-    process {
 
         if ([string]::IsNullOrEmpty($ForegroundColor)) {
             if ($null -ne $host.UI.RawUI.ForegroundColor -and
@@ -71,4 +74,8 @@ Function RevertProperForegroundColor {
 
 Function SetWriteHostAction ($DebugAction) {
     $Script:WriteHostDebugAction = $DebugAction
+}
+
+Function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+    $Script:WriteHostManipulateObjectAction = $ManipulateObject
 }

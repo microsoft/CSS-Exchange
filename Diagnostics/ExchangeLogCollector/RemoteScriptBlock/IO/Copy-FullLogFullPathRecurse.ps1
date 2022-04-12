@@ -1,14 +1,16 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
+. $PSScriptRoot\..\Test-FreeSpace.ps1
 Function Copy-FullLogFullPathRecurse {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation
     )
-    Write-ScriptDebug("Function Enter: Copy-FullLogFullPathRecurse")
-    Write-ScriptDebug("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
-    New-Folder -NewFolder $CopyToThisLocation -IncludeDisplayCreate $true
+    Write-Verbose("Function Enter: Copy-FullLogFullPathRecurse")
+    Write-Verbose("Passed: [string]LogPath: {0} | [string]CopyToThisLocation: {1}" -f $LogPath, $CopyToThisLocation)
+    New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
     if (Test-Path $LogPath) {
         $childItems = Get-ChildItem $LogPath -Recurse
         $items = @()
@@ -24,16 +26,16 @@ Function Copy-FullLogFullPathRecurse {
                 Copy-Item $LogPath\* $CopyToThisLocation -Recurse -ErrorAction SilentlyContinue
                 Invoke-ZipFolder $CopyToThisLocation
             } else {
-                Write-ScriptDebug("Not going to copy over this set of data due to size restrictions.")
+                Write-Verbose("Not going to copy over this set of data due to size restrictions.")
                 New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
             }
         } else {
-            Write-ScriptHost("No data at path '{0}'. Unable to copy this data." -f $LogPath)
+            Write-Host "No data at path '$LogPath'. Unable to copy this data."
             New-Item -Path ("{0}\NoDataDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
         }
     } else {
-        Write-ScriptHost("No Folder at {0}. Unable to copy this data." -f $LogPath)
+        Write-Host "No Folder at $LogPath. Unable to copy this data."
         New-Item -Path ("{0}\NoFolderDetected.txt" -f $CopyToThisLocation) -ItemType File -Value $LogPath | Out-Null
     }
-    Write-ScriptDebug("Function Exit: Copy-FullLogFullPathRecurse")
+    Write-Verbose("Function Exit: Copy-FullLogFullPathRecurse")
 }

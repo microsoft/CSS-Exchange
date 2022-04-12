@@ -1,8 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#https://github.com/dpaulson45/PublicPowerShellFunctions/blob/master/src/ComputerInformation/Get-ClusterNodeFileVersions/Get-ClusterNodeFileVersions.ps1
-#v21.01.22.2212
 Function Get-ClusterNodeFileVersions {
     [CmdletBinding()]
     param(

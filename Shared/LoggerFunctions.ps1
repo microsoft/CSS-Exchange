@@ -4,7 +4,6 @@
 Function Get-NewLoggerInstance {
     [CmdletBinding()]
     param(
-        [ValidateScript( { Test-Path $_ })]
         [string]$LogDirectory = (Get-Location).Path,
 
         [ValidateNotNullOrEmpty()]
@@ -23,6 +22,14 @@ Function Get-NewLoggerInstance {
 
     $fileName = if ($AppendDateTimeToFileName) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
     $fullFilePath = [System.IO.Path]::Combine($LogDirectory, $fileName)
+
+    if (-not (Test-Path $LogDirectory)) {
+        try {
+            New-Item -ItemType Directory -Path $LogDirectory -ErrorAction Stop | Out-Null
+        } catch {
+            throw "Failed to create Log Directory: $LogDirectory"
+        }
+    }
 
     return [PSCustomObject]@{
         FullPath                 = $fullFilePath

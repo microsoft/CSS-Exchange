@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Save-DataToFile.ps1
+. $PSScriptRoot\..\Add-ServerNameToFileName.ps1
 Function Save-DataInfoToFile {
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,
@@ -11,7 +13,7 @@ Function Save-DataInfoToFile {
         [Parameter(Mandatory = $false)][bool]$AddServerName = $true
     )
     [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
-    Write-ScriptDebug "Function Enter: Save-DataInfoToFile"
+    Write-Verbose "Function Enter: Save-DataInfoToFile"
 
     if ($AddServerName) {
         $SaveToLocation = Add-ServerNameToFileName $SaveToLocation
@@ -19,5 +21,5 @@ Function Save-DataInfoToFile {
 
     Save-DataToFile -DataIn $DataIn -SaveToLocation $SaveToLocation -FormatList $FormatList -SaveTextFile $SaveTextFile -SaveXMLFile $SaveXMLFile
     $timer.Stop()
-    Write-ScriptDebug("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
+    Write-Verbose("Took {0} seconds to save out the data." -f $timer.Elapsed.TotalSeconds)
 }
