@@ -30,6 +30,8 @@
                     <Nil N="ClientDisabledByDefaultValue" />
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
+                    <B N="TLSHalfDisabled">false</B>
+                    <S N="TLSConfiguration">Enabled</S>
                   </MS>
                 </Obj>
               </En>
@@ -49,6 +51,8 @@
                     <Nil N="ClientDisabledByDefaultValue" />
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
+                    <B N="TLSHalfDisabled">false</B>
+                    <S N="TLSConfiguration">Enabled</S>
                   </MS>
                 </Obj>
               </En>
@@ -68,6 +72,8 @@
                     <Nil N="ClientDisabledByDefaultValue" />
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
+                    <B N="TLSHalfDisabled">false</B>
+                    <S N="TLSConfiguration">Enabled</S>
                   </MS>
                 </Obj>
               </En>

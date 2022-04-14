@@ -317,19 +317,19 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $tls10.ServerDbd | Should -Be $true
             $tls10.ClientEnabled | Should -Be $true
             $tls10.ClientDbd | Should -Be $true
-            $tls10.Disabled | Should -Be $true
+            $tls10.Configuration | Should -Be "Misconfigured"
 
             $tls11.ServerEnabled | Should -Be $true
             $tls11.ServerDbd | Should -Be $true
             $tls11.ClientEnabled | Should -Be $false
             $tls11.ClientDbd | Should -Be $true
-            $tls11.Disabled | Should -Be $true
+            $tls11.Configuration | Should -Be "Misconfigured"
 
             $tls12.ServerEnabled | Should -Be $true
             $tls12.ServerDbd | Should -Be $false
             $tls12.ClientEnabled | Should -Be $true
             $tls12.ClientDbd | Should -Be $false
-            $tls12.Disabled | Should -Be $false
+            $tls12.Configuration | Should -Be "Enabled"
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
 
             $netTlsSettings = (GetObject "NET TLS Settings Group").DisplayObject | Where-Object { $_.FrameworkVersion -eq "NETv4" }
