@@ -93,6 +93,28 @@ Function Get-AllTlsSettingsFromRegistry {
             $serverDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $serverDisabledByDefaultValue)
             $clientEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue)
             $clientDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $clientDisabledByDefaultValue)
+            $disabled = $serverEnabled -eq $false -and $serverDisabledByDefault -and $clientEnabled -eq $false -and $clientDisabledByDefault
+            $misconfigured = $serverEnabled -ne $clientEnabled -or $serverDisabledByDefault -ne $clientDisabledByDefault
+            # only need to test server settings here, because $misconfigured will be set and will be the official status.
+            # want to check for if Server is Disabled and Disabled By Default is not set or the reverse. This would be only part disabled
+            # and not what we recommend on the blog post.
+            $halfDisabled = $serverEnabled -eq $false -and $serverDisabledByDefault -eq $false -or $serverEnabled -and $serverDisabledByDefault
+            $configuration = "Enabled"
+
+            if ($disabled) {
+                Write-Verbose "TLS is Disabled"
+                $configuration = "Disabled"
+            }
+
+            if ($halfDisabled) {
+                Write-Verbose "TLS is only half disabled"
+                $configuration = "Half Disabled"
+            }
+
+            if ($misconfigured) {
+                Write-Verbose "TLS is misconfigured"
+                $configuration = "Misconfigured"
+            }
 
             $currentTLSObject = [PSCustomObject]@{
                 TLSVersion                 = $tlsVersion
@@ -104,8 +126,10 @@ Function Get-AllTlsSettingsFromRegistry {
                 "Client$enabledKey`Value"  = $clientEnabledValue
                 "Client$disabledKey"       = $clientDisabledByDefault
                 "Client$disabledKey`Value" = $clientDisabledByDefaultValue
-                "TLSVersionDisabled"       = $serverEnabled -eq $false -and $serverDisabledByDefault -and $clientEnabled -eq $false -and $clientDisabledByDefault
-                "TLSMisconfigured"         = $serverEnabled -ne $clientEnabled -or $serverDisabledByDefault -ne $clientDisabledByDefault
+                "TLSVersionDisabled"       = $disabled
+                "TLSMisconfigured"         = $misconfigured
+                "TLSHalfDisabled"          = $halfDisabled
+                "TLSConfiguration"         = $configuration
             }
             $allTlsObjects.TLS.Add($TlsVersion, $currentTLSObject)
         }

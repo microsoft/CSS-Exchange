@@ -44,17 +44,31 @@ Function Invoke-AnalyzerSecuritySettings {
                     ServerDbD     = $currentTlsVersion.ServerDisabledByDefault
                     ClientEnabled = $currentTlsVersion.ClientEnabled
                     ClientDbD     = $currentTlsVersion.ClientDisabledByDefault
-                    Disabled      = $currentTlsVersion.TLSVersionDisabled
-                    Misconfigured = $currentTlsVersion.TLSMisconfigured
+                    Configuration = $currentTlsVersion.TLSConfiguration
                 })
         )
     }
 
-    $sbMisconfigured = { param ($o, $p) if ($p -eq "Misconfigured") { if ($o."$p" -eq $true) { "Red" } else { "Green" } } }
-    $sbDisabled = { param ($o, $p) if ($p -eq "Disabled") { if ($o."$p" -eq $true) { if ($o.TLSVersion -eq "1.2" ) { "Red" } else { "Green" } } } }
+    $sbConfiguration = {
+        param ($o, $p)
+        if ($p -eq "Configuration") {
+            if ($p -eq "Misconfigured" -or $p -eq "Half Disabled") {
+                "Red"
+            } elseif ($p -eq "Disabled") {
+                if ($o.TLSVersion -eq "1.2") {
+                    "Red"
+                } else {
+                    "Green"
+                }
+            } else {
+                "Green"
+            }
+        }
+    }
+
     $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
             DisplayObject      = $outputObjectDisplayValue
-            ColorizerFunctions = @($sbMisconfigured, $sbDisabled)
+            ColorizerFunctions = @($sbConfiguration)
             IndentSpaces       = 8
         }) `
         -DisplayGroupingKey $keySecuritySettings `
