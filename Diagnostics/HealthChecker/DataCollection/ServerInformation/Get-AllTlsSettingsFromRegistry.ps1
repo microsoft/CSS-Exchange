@@ -135,8 +135,6 @@ Function Get-AllTlsSettingsFromRegistry {
         }
 
         foreach ($netVersion in $netVersions) {
-            $currentNetTlsDefaultVersionObject = New-Object PSCustomObject
-            $currentNetTlsDefaultVersionObject | Add-Member -MemberType NoteProperty -Name "NetVersion" -Value $netVersion
 
             $systemDefaultTlsVersionsValue = Get-RemoteRegistryValue `
                 -MachineName $MachineName `
