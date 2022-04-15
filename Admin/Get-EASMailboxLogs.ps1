@@ -6,8 +6,27 @@ param(
     [Parameter(Mandatory = $true)] [string[]] $Mailbox = "",
     [ValidateScript({ Test-Path $_ })]
     [Parameter(Mandatory = $true)] [string] $OutputPath = (Get-Location).Path,
-    [Parameter(Mandatory = $false)] [int] $Interval = 30
+    [Parameter(Mandatory = $false)] [int] $Interval = 30,
+    [Parameter(Mandatory = $false)] [string] $EnableMailboxLoggingVerboseMode = ""
 )
+
+#parse $EnableMailboxLoggingVerboseMode and convert it boolean value(s)
+$NeedChangeConfig = $false
+switch ($EnableMailboxLoggingVerboseMode) {
+    $true { $NeedChangeConfig = $true; $EnableVerboseLogging = "true"; break }
+    $false { $NeedChangeConfig = $true; $EnableVerboseLogging = "false"; break }
+    '' { break }
+    default { Write-Warning "Wrong value $EnableMailboxLoggingVerboseMode in EnableMailboxLoggingVerboseMode will be ignored"; Write-Warning "Press any key to continue ..."; $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null }
+}
+
+#Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
+If ($NeedChangeConfig) {
+    [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
+    $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value=$EnableVerboseLogging
+    #if ($EnableVerboseLogging) { $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value="true"}
+    #else {$web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = "false"}
+    $web.Save($env:ExchangeInstallPath+"ClientAccess\Sync\web.config")
+}
 
 Clear-Host
 Write-Host "Do not close this window until you are ready to collect the logs." -ForegroundColor Black -BackgroundColor Yellow
@@ -77,3 +96,4 @@ while ($true) {
     Write-Host "Next set of logs will be retrieved at" (Get-Date).AddSeconds($Interval) -ForegroundColor Green
     Start-Sleep $Interval
 }
+
