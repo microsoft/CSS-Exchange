@@ -98,7 +98,7 @@ Function Get-AllTlsSettingsFromRegistry {
             # only need to test server settings here, because $misconfigured will be set and will be the official status.
             # want to check for if Server is Disabled and Disabled By Default is not set or the reverse. This would be only part disabled
             # and not what we recommend on the blog post.
-            $halfDisabled = $serverEnabled -eq $false -and $serverDisabledByDefault -eq $false -or $serverEnabled -and $serverDisabledByDefault
+            $halfDisabled = ($serverEnabled -eq $false -and $serverDisabledByDefault -eq $false) -or ($serverEnabled -and $serverDisabledByDefault)
             $configuration = "Enabled"
 
             if ($disabled) {
