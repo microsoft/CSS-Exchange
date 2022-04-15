@@ -72,6 +72,7 @@ Function Invoke-AnalyzerSecuritySettings {
             IndentSpaces       = 8
         }) `
         -DisplayGroupingKey $keySecuritySettings `
+        -OutColumnsColorTests @($sbConfiguration) `
         -TestingName "TLS Settings Group"
 
     Function GetBadTlsValueSetting {

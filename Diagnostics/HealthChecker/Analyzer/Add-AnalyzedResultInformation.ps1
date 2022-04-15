@@ -10,6 +10,7 @@ Function Add-AnalyzedResultInformation {
         [string]$Name,
         [string]$TestingName,
         [object]$OutColumns,
+        [scriptblock[]]$OutColumnsColorTests,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
         [int]$DisplayCustomTabNumber = -1,
@@ -40,9 +41,29 @@ Function Add-AnalyzedResultInformation {
             $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
 
             if ($null -ne $OutColumns) {
+                $testingValue = New-Object System.Collections.Generic.List[object]
+                foreach ($obj in $OutColumns.DisplayObject) {
+                    $objectTestingValue = New-Object PSCustomObject
+                    foreach ($property in $obj.PSObject.Properties.Name) {
+                        $displayColor = "Grey"
+
+                        foreach ($func in $OutColumnsColorTests) {
+                            $result = $func.Invoke($obj, $property)
+                            if (-not [string]::IsNullOrEmpty($result)) {
+                                $displayColor = $result[0]
+                                break
+                            }
+                        }
+                        $objectTestingValue | Add-Member -MemberType NoteProperty -Name $property -Value ([PSCustomObject]@{
+                                Value        = $obj.$property
+                                DisplayColor = $displayColor
+                            })
+                    }
+                    $testingValue.Add($objectTestingValue)
+                }
                 $lineInfo.OutColumns = $OutColumns
                 $lineInfo.WriteType = "OutColumns"
-                $lineInfo.TestingValue = $OutColumns
+                $lineInfo.TestingValue = $testingValue
                 $lineInfo.TestingName = $TestingName
             } else {
 
