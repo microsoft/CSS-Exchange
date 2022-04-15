@@ -20,9 +20,9 @@
     Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
     30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
 .EXAMPLE
-    PS C:\> .\SimplePerf.ps1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 512 -OutputFolder C:\PerfLogs
-    Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 2 hours, has a
-    30-second interval, has a max file size of 512 MB, and saves the logs to C:\PerfLogs.
+    PS C:\> .\SimplePerf.ps1 -Start -Duration 02:00:00 -Interval 30 -MaximumSizeInMB 1024 -Circular -OutputFolder C:\PerfLogs
+    Starts a collector using Exchange counter defaults. The collector is circular, will run for 2 hours, has a
+    30-second interval, has a max file size of 1024 MB, and saves the logs to C:\PerfLogs.
 .EXAMPLE
     PS C:\> .\SimplePerf.ps1 -Stop
     Stops a running SimplePerf.
