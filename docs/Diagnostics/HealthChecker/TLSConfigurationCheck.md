@@ -6,6 +6,17 @@ We also check for the SystemDefaultTlsVersions registry value which controls if 
 
 An invalid TLS configuration can cause issues within Exchange for communication.
 
+Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.
+
+The `Configuration` result can provide a value of `Enabled`, `Disabled`, `Half Disabled`, or `Misconfigured`. They are defined by the following conditions:
+
+Value | Definition
+------|-----------
+Enabled | Client and Server Enabled values are set to 1 and DisabledByDefault is set to 0 on the TLS Version.
+Disabled | Client and Server Enabled values are set to 0 and DisabledByDefault is set to 1 on the TLS Version.
+Half Disabled | Client and Server Enabled values are set to either 0 or 1 and DisabledByDefault is set to the opposite where the value doesn't equal Enabled or Disabled.<br>This is not a supported configuration as it doesn't follow the documentation that we have provided.
+Misconfigured | When either the Enabled or the DisabledByDefault values do not match between the Client and Server of that TLS Version.<br>Exchange can be a Client and a Server and this will cause problems and needs to be addressed ASAP.
+
 **Included in HTML Report?**
 
 Yes
