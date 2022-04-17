@@ -52,9 +52,9 @@ Function Invoke-AnalyzerSecuritySettings {
     $sbConfiguration = {
         param ($o, $p)
         if ($p -eq "Configuration") {
-            if ($p -eq "Misconfigured" -or $p -eq "Half Disabled") {
+            if ($o.$p -eq "Misconfigured" -or $o.$p -eq "Half Disabled") {
                 "Red"
-            } elseif ($p -eq "Disabled") {
+            } elseif ($o.$p -eq "Disabled") {
                 if ($o.TLSVersion -eq "1.2") {
                     "Red"
                 } else {
