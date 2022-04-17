@@ -64,3 +64,42 @@ Function TestObjectMatch {
     GetWriteTypeObject $Name |
         Should -Be $WriteType
 }
+
+Function TestOutColumnObjectCompare {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$CompareObject,
+
+        [Parameter(Mandatory = $true)]
+        [object]$TestObject
+    )
+    $properties = ($CompareObject | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" }).Name
+    foreach ($property in $properties) {
+        if ($TestObject.$property.Value -ne $CompareObject.$property.Value) {
+            Write-Host "Failed Property Value: $property"
+        }
+        $TestObject.$property.Value | Should -Be $CompareObject.$property.Value
+
+        if ($TestObject.$property.DisplayColor -ne $CompareObject.$property.DisplayColor) {
+            Write-Host "Failed Property Display Color: $property"
+        }
+        $TestObject.$property.DisplayColor | Should -Be $CompareObject.$property.DisplayColor
+    }
+}
+
+Function NewOutColumnCompareValue {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 1)]
+        [object]$Value,
+
+        [Parameter(Position = 2)]
+        [string]$DisplayColor = "Grey"
+    )
+
+    return [PSCustomObject]@{
+        Value        = $Value
+        DisplayColor = $DisplayColor
+    }
+}
