@@ -24,8 +24,16 @@ Function Get-ExchangeRegistryValues {
         CatchActionFunction = $CatchActionFunction
     }
 
+    $blockReplParams = @{
+        MachineName         = $MachineName
+        SubKey              = "SOFTWARE\Microsoft\ExchangeServer\v15\Replay\Parameters"
+        GetValue            = "DisableGranularReplication"
+        CatchActionFunction = $CatchActionFunction
+    }
+
     return [PSCustomObject]@{
         CtsProcessorAffinityPercentage = [int](Get-RemoteRegistryValue @ctsParams)
         FipsAlgorithmPolicyEnabled     = [int](Get-RemoteRegistryValue @fipsParams)
+        DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
     }
 }
