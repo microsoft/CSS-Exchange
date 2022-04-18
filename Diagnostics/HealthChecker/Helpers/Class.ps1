@@ -50,6 +50,7 @@ using System.Collections;
             public string BuildNumber;      //Exchange Build Number
             public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
             public string ReleaseDate;      // Exchange release date for which the CU they are currently on
+            public string ExtendedSupportDate; // End of Life Support Date.
             public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
             public object ExchangeSetup;    //Stores the Get-Command ExSetup object
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
