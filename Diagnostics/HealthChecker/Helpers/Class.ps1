@@ -34,7 +34,7 @@ using System.Collections;
             public bool MapiHttpEnabled; //Stored from organization config
             public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
             public Hashtable ApplicationPools = new Hashtable();
-            public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
+            public object RegistryValues; //stores all Exchange Registry values
             public ExchangeServerMaintenance ServerMaintenance;
             public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
@@ -124,12 +124,6 @@ using System.Collections;
             Exchange2013,
             Exchange2016,
             Exchange2019
-        }
-
-        public class ExchangeRegistryValues
-        {
-            public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
-            public int FipsAlgorithmPolicyEnabled;       //Stores the Enabled value from HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy
         }
         // End ExchangeInformation
 
