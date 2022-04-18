@@ -120,7 +120,7 @@ function Out-Columns {
                         if ($null -ne $multiLineProps[$p] -and $multiLineProps[$p].Length -gt $i) {
                             $lineProps[$p] = $multiLineProps[$p][$i]
                         } elseif ($i -eq 0) {
-                            $lineProps[$p] = $o."$p"
+                            $lineProps[$p] = $obj."$p"
                         } else {
                             $lineProps[$p] = $null
                         }
@@ -143,7 +143,7 @@ function Out-Columns {
                     $fgColor = "White"
                 }
                 foreach ($func in $funcs) {
-                    $result = $func.Invoke($o, $props[$i])
+                    $result = $func.Invoke($obj, $props[$i])
                     if (-not [string]::IsNullOrEmpty($result)) {
                         $fgColor = $result
                         break # The first colorizer that takes action wins
