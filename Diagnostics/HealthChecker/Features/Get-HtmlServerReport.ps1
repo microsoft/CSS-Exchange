@@ -7,6 +7,30 @@ Function Get-HtmlServerReport {
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+    Function GetOutColumnHtmlTable {
+        param(
+            [object]$OutColumn
+        )
+        # this keeps the order of the columns
+        $headerValues = $OutColumn[0].PSObject.Properties.Name
+        $htmlTableValue = "<table>"
+
+        foreach ($header in $headerValues) {
+            $htmlTableValue += "<th>$header</th>"
+        }
+
+        foreach ($dataRow in $OutColumn) {
+            $htmlTableValue += "$([System.Environment]::NewLine)<tr>"
+
+            foreach ($header in $headerValues) {
+                $htmlTableValue += "<td>$($dataRow.$header)</td>"
+            }
+            $htmlTableValue += "$([System.Environment]::NewLine)</tr>"
+        }
+        $htmlTableValue += "</table>"
+        return $htmlTableValue
+    }
+
     $htmlHeader = "<html>
         <style>
         BODY{font-family: Arial; font-size: 8pt;}
@@ -56,6 +80,11 @@ Function Get-HtmlServerReport {
             if ($htmlTableDataRow.Name -eq "Server Name") {
                 $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<th>{0}</th>$([System.Environment]::NewLine)<th>{1}</th>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue
+            } elseif ($null -ne $htmlTableDataRow.TableValue) {
+                $htmlTable = GetOutColumnHtmlTable $htmlTableDataRow.TableValue.DisplayObject
+                $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
+                    $htmlTableDataRow.Name, `
+                    $htmlTable
             } else {
                 $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
                     $htmlTableDataRow.Name, `

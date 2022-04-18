@@ -112,7 +112,9 @@ Function Add-AnalyzedResultInformation {
                 $detailRow.Name = $HtmlName
             }
 
-            if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
+            if ($null -ne $OutColumns) {
+                $detailRow.TableValue = $OutColumns
+            } elseif ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
                 $detailRow.DetailValue = $Details
             } else {
                 $detailRow.DetailValue = $HtmlDetailsCustomValue

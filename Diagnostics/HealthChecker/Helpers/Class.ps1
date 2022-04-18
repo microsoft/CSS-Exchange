@@ -327,6 +327,7 @@ using System.Collections;
         {
             public string Name;
             public string DetailValue;
+            public object TableValue;
             public string Class;
         }
 
