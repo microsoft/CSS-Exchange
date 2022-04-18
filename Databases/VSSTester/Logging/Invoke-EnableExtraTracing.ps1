@@ -8,19 +8,16 @@ function Invoke-EnableExTRATracing {
             [string]$ComputerName,
             [string]$LogmanName
         )
-        [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
-        $results
+        logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
 
-        if ($results[-1] -eq "Data Collector already exists.") {
+        if ($LASTEXITCODE) {
             Write-Host "Exchange Trace data Collector set already created. Removing it and trying again"
-            [array]$results = logman delete $LogmanName -s $ComputerName
-            $results
+            logman delete $LogmanName -s $ComputerName
 
-            [array]$results = logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
-            $results
+            logman create trace $LogmanName -p '{79bb49e6-2a2c-46e4-9167-fa122525d540}' -o $path\$LogmanName.etl -ow -s $ComputerName -mode globalsequence
         }
 
-        if ($results[-1] -ne "The command completed successfully.") {
+        if ($LASTEXITCODE) {
             Write-Host "Failed to create the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
         }
@@ -32,10 +29,9 @@ function Invoke-EnableExTRATracing {
         "Creating Exchange Trace data collector set..."
         Invoke-ExtraTracingCreate -ComputerName $serverName -LogmanName "VSSTester"
         "Starting Exchange Trace data collector..."
-        [array]$results = logman start VSSTester
-        $results
+        logman start VSSTester
 
-        if ($results[-1] -ne "The command completed successfully.") {
+        if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
         }
@@ -55,19 +51,17 @@ function Invoke-EnableExTRATracing {
         Invoke-ExtraTracingCreate -ComputerName $dbMountedOn -LogmanName "VSSTester-Active"
         #start trace on passive copy
         "Starting Exchange Trace data collector on $serverName..."
-        [array]$results = logman start VSSTester-Passive -s $serverName
-        $results
+        logman start VSSTester-Passive -s $serverName
 
-        if ($results[-1] -ne "The command completed successfully.") {
+        if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
         }
         #start trace on active copy
         "Starting Exchange Trace data collector on $dbMountedOn..."
-        [array]$results = logman start VSSTester-Active -s $dbMountedOn
-        $results
+        logman start VSSTester-Active -s $dbMountedOn
 
-        if ($results[-1] -ne "The command completed successfully.") {
+        if ($LASTEXITCODE) {
             Write-Host "Failed to start the extra trace. Stopping the VSSTester Script" -ForegroundColor Red
             exit
         }
