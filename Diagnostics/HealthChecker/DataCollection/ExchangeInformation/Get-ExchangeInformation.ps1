@@ -64,6 +64,7 @@ Function Get-ExchangeInformation {
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             Write-Verbose "Exchange 2019 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2019 "
+            $buildInformation.ExtendedSupportDate = "10/14/2025"
 
             #Exchange 2019 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.2.330.5") {
@@ -132,6 +133,7 @@ Function Get-ExchangeInformation {
         } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
             Write-Verbose "Exchange 2016 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2016 "
+            $buildInformation.ExtendedSupportDate = "10/14/2025"
 
             #Exchange 2016 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.1.466.34") {
@@ -267,6 +269,7 @@ Function Get-ExchangeInformation {
         } else {
             Write-Verbose "Exchange 2013 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2013 "
+            $buildInformation.ExtendedSupportDate = "04/11/2023"
 
             #Exchange 2013 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.0.712.24") {
