@@ -74,6 +74,7 @@ Function Invoke-AnalyzerSecuritySettings {
         }) `
         -DisplayGroupingKey $keySecuritySettings `
         -OutColumnsColorTests @($sbConfiguration) `
+        -HtmlName "TLS Settings" `
         -TestingName "TLS Settings Group"
 
     Function GetBadTlsValueSetting {
@@ -165,6 +166,7 @@ Function Invoke-AnalyzerSecuritySettings {
             IndentSpaces  = 8
         }) `
         -DisplayGroupingKey $keySecuritySettings `
+        -HtmlName "TLS NET Settings" `
         -TestingName "NET TLS Settings Group"
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
@@ -188,6 +190,7 @@ Function Invoke-AnalyzerSecuritySettings {
                 IndentSpaces  = 8
             }) `
             -DisplayGroupingKey $keySecuritySettings `
+            -HtmlName "TLS Cipher Suite" `
             -TestingName "TLS Cipher Suite Group"
     }
 
