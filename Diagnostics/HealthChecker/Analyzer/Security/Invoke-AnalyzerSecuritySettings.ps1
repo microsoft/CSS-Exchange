@@ -34,6 +34,7 @@ Function Invoke-AnalyzerSecuritySettings {
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
     $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
     $misconfiguredClientServerSettings = ($tlsSettings.Values | Where-Object { $_.TLSMisconfigured -eq $true }).Count -ne 0
+    $displayLinkToDocsPage = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
     $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and $_.TLSVersion -ne "1.2" }).Count -ne 0
 
     foreach ($tlsKey in $tlsVersions) {
@@ -92,6 +93,7 @@ Function Invoke-AnalyzerSecuritySettings {
         $results = $tlsSettings.Values | GetBadTlsValueSetting -PropertyName $testValue
 
         if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
             foreach ($result in $results) {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Name "$($result.TLSVersion) $testValue" -Details ("$($result."$testValue") --- Error: Must be a value of 1 or 0.") `
                     -DisplayGroupingKey $keySecuritySettings `
@@ -132,6 +134,15 @@ Function Invoke-AnalyzerSecuritySettings {
                 -DisplayWriteType "Yellow" `
                 -DisplayCustomTabNumber 3
         }
+    }
+
+    if ($displayLinkToDocsPage) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-TLSConfigDocs" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -TestingName "Display Link to Docs Page" `
+            -DisplayTestingValue $true `
+            -DisplayWriteType "Yellow"
     }
 
     $netVersions = @("NETv4", "NETv2")

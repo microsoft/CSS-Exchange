@@ -343,6 +343,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             TestOutColumnObjectCompare $tls12CompareObject $tls12
 
+            TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
+
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
 
             $netTlsSettings = (GetObject "NET TLS Settings Group") | Where-Object { $_.FrameworkVersion.Value -eq "NETv4" }
