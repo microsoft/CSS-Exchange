@@ -23,7 +23,7 @@ Function Get-HtmlServerReport {
             $htmlTableValue += "$([System.Environment]::NewLine)<tr>"
 
             foreach ($header in $headerValues) {
-                $htmlTableValue += "<td>$($dataRow.$header)</td>"
+                $htmlTableValue += "<td class=`"$($dataRow.$header.DisplayColor)`">$($dataRow.$header.Value)</td>"
             }
             $htmlTableValue += "$([System.Environment]::NewLine)</tr>"
         }
@@ -81,7 +81,7 @@ Function Get-HtmlServerReport {
                 $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<th>{0}</th>$([System.Environment]::NewLine)<th>{1}</th>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue
             } elseif ($null -ne $htmlTableDataRow.TableValue) {
-                $htmlTable = GetOutColumnHtmlTable $htmlTableDataRow.TableValue.DisplayObject
+                $htmlTable = GetOutColumnHtmlTable $htmlTableDataRow.TableValue
                 $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
                     $htmlTableDataRow.Name, `
                     $htmlTable

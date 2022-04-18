@@ -28,6 +28,39 @@ Function Add-AnalyzedResultInformation {
         #[string]$ActionMoreInformationClass = "",
         #[string]$ActionMoreInformationValue,
     )
+    begin {
+        Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
+        Function GetOutColumnsColorObject {
+            param(
+                [object[]]$OutColumns,
+                [scriptblock[]]$OutColumnsColorTests,
+                [string]$DefaultDisplayColor = ""
+            )
+
+            $returnValue = New-Object System.Collections.Generic.List[object]
+
+            foreach ($obj in $OutColumns) {
+                $objectValue = New-Object PSCustomObject
+                foreach ($property in $obj.PSObject.Properties.Name) {
+                    $displayColor = $DefaultDisplayColor
+                    foreach ($func in $OutColumnsColorTests) {
+                        $result = $func.Invoke($obj, $property)
+                        if (-not [string]::IsNullOrEmpty($result)) {
+                            $displayColor = $result[0]
+                            break
+                        }
+                    }
+
+                    $objectValue | Add-Member -MemberType NoteProperty -Name $property -Value ([PSCustomObject]@{
+                            Value        = $obj.$property
+                            DisplayColor = $displayColor
+                        })
+                }
+                $returnValue.Add($objectValue)
+            }
+            return $returnValue
+        }
+    }
     process {
         Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
 
@@ -41,29 +74,9 @@ Function Add-AnalyzedResultInformation {
             $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
 
             if ($null -ne $OutColumns) {
-                $testingValue = New-Object System.Collections.Generic.List[object]
-                foreach ($obj in $OutColumns.DisplayObject) {
-                    $objectTestingValue = New-Object PSCustomObject
-                    foreach ($property in $obj.PSObject.Properties.Name) {
-                        $displayColor = "Grey"
-
-                        foreach ($func in $OutColumnsColorTests) {
-                            $result = $func.Invoke($obj, $property)
-                            if (-not [string]::IsNullOrEmpty($result)) {
-                                $displayColor = $result[0]
-                                break
-                            }
-                        }
-                        $objectTestingValue | Add-Member -MemberType NoteProperty -Name $property -Value ([PSCustomObject]@{
-                                Value        = $obj.$property
-                                DisplayColor = $displayColor
-                            })
-                    }
-                    $testingValue.Add($objectTestingValue)
-                }
                 $lineInfo.OutColumns = $OutColumns
                 $lineInfo.WriteType = "OutColumns"
-                $lineInfo.TestingValue = $testingValue
+                $lineInfo.TestingValue = (GetOutColumnsColorObject -OutColumns $OutColumns.DisplayObject -OutColumnsColorTests $OutColumnsColorTests -DefaultDisplayColor "Grey")
                 $lineInfo.TestingName = $TestingName
             } else {
 
@@ -113,7 +126,7 @@ Function Add-AnalyzedResultInformation {
             }
 
             if ($null -ne $OutColumns) {
-                $detailRow.TableValue = $OutColumns
+                $detailRow.TableValue = (GetOutColumnsColorObject -OutColumns $OutColumns.DisplayObject -OutColumnsColorTests $OutColumnsColorTests)
             } elseif ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
                 $detailRow.DetailValue = $Details
             } else {
