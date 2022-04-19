@@ -19,3 +19,4 @@ Yes
 **Additional resources:**
 
 [Information about power management setting on a network adapter](https://support.microsoft.com/kb/2740020)
+
