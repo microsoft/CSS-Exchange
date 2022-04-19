@@ -31,9 +31,17 @@ Function Get-ExchangeRegistryValues {
         CatchActionFunction = $CatchActionFunction
     }
 
+    $disableAsyncParams = @{
+        MachineName         = $MachineName
+        SubKey              = "SOFTWARE\Microsoft\ExchangeServer\v15"
+        GetValue            = "DisableAsyncNotification"
+        CatchActionFunction = $CatchActionFunction
+    }
+
     return [PSCustomObject]@{
         CtsProcessorAffinityPercentage = [int](Get-RemoteRegistryValue @ctsParams)
         FipsAlgorithmPolicyEnabled     = [int](Get-RemoteRegistryValue @fipsParams)
         DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
+        DisableAsyncNotification       = [int](Get-RemoteRegistryValue @disableAsyncParams)
     }
 }
