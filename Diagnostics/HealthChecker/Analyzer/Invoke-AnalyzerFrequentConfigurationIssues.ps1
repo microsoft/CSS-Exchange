@@ -71,6 +71,19 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
         -HtmlName "CtsProcessorAffinityPercentage"
 
+    $displayValue = $exchangeInformation.RegistryValues.DisableAsyncNotification
+    $displayWriteType = "Grey"
+
+    if ($displayValue -ne 0) {
+        $displayWriteType = "Yellow"
+        $displayValue = "$($exchangeInformation.RegistryValues.DisableAsyncNotification) Warning: This value should be set back to 0 after you no longer need it for the workaround described in http://support.microsoft.com/kb/5013118"
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Disable Async Notification" -Details $displayValue `
+        -DisplayGroupingKey $keyFrequentConfigIssues `
+        -DisplayWriteType $displayWriteType `
+        -DisplayTestingValue $true
+
     $displayValue = $osInformation.CredentialGuardEnabled
     $displayWriteType = "Grey"
 
