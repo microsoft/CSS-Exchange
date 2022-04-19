@@ -10,32 +10,29 @@ Function Get-ExchangeRegistryValues {
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $ctsParams = @{
+    $baseParams = @{
         MachineName         = $MachineName
-        SubKey              = "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters"
-        GetValue            = "CtsProcessorAffinityPercentage"
         CatchActionFunction = $CatchActionFunction
     }
 
-    $fipsParams = @{
-        MachineName         = $MachineName
-        SubKey              = "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy"
-        GetValue            = "Enabled"
-        CatchActionFunction = $CatchActionFunction
+    $ctsParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters"
+        GetValue = "CtsProcessorAffinityPercentage"
     }
 
-    $blockReplParams = @{
-        MachineName         = $MachineName
-        SubKey              = "SOFTWARE\Microsoft\ExchangeServer\v15\Replay\Parameters"
-        GetValue            = "DisableGranularReplication"
-        CatchActionFunction = $CatchActionFunction
+    $fipsParams = $baseParams + @{
+        SubKey   = "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy"
+        GetValue = "Enabled"
     }
 
-    $disableAsyncParams = @{
-        MachineName         = $MachineName
-        SubKey              = "SOFTWARE\Microsoft\ExchangeServer\v15"
-        GetValue            = "DisableAsyncNotification"
-        CatchActionFunction = $CatchActionFunction
+    $blockReplParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Replay\Parameters"
+        GetValue = "DisableGranularReplication"
+    }
+
+    $disableAsyncParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15"
+        GetValue = "DisableAsyncNotification"
     }
 
     return [PSCustomObject]@{
