@@ -2,19 +2,19 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
-. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
-. $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
+. $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExSetupDetails.ps1
+. $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
 Function Get-ExchangeInformation {
     param(
@@ -486,14 +486,7 @@ Function Get-ExchangeInformation {
             $buildInformation.AffectedByFIPFSUpdateIssue = $false
         }
 
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Get-RemoteRegistryValue -MachineName $Script:Server `
-            -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
-            -GetValue "CtsProcessorAffinityPercentage" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
-        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Get-RemoteRegistryValue -MachineName $Script:Server `
-            -SubKey "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" `
-            -GetValue "Enabled" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and

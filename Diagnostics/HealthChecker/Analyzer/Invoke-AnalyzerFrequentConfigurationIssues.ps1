@@ -46,6 +46,13 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         -DisplayTestingValue $osInformation.NetworkInformation.RpcMinConnectionTimeout `
         -HtmlName "RPC Minimum Connection Timeout"
 
+    if ($exchangeInformation.RegistryValues.DisableGranularReplication -ne 0) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "DisableGranularReplication" -Details "$($exchangeInformation.RegistryValues.DisableGranularReplication) - Error this can cause work load management issues." `
+            -DisplayGroupingKey $keyFrequentConfigIssues `
+            -DisplayWriteType "Red" `
+            -DisplayTestingValue $true
+    }
+
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIPS Algorithm Policy Enabled" -Details ($exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled) `
         -DisplayGroupingKey $keyFrequentConfigIssues `
         -HtmlName "FipsAlgorithmPolicy-Enabled"
