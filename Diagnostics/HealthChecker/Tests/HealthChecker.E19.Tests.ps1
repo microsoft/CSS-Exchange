@@ -213,7 +213,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 8
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 9
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
@@ -392,6 +392,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
     Context "Checking Scenarios 2" {
         BeforeAll {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
@@ -409,6 +410,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Open Relay Wild Card Domain" {
             TestObjectMatch "Open Relay Wild Card Domain" "Error --- Accepted Domain `"Bad Accepted Domain`" is set to a Wild Card (*) Domain Name with a domain type of ExternalRelay. This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain" -WriteType "Red"
+        }
+
+        It "DisableGranularReplication" {
+            TestObjectMatch "DisableGranularReplication" $true -WriteType "Red"
         }
 
         It "Enabled Domains" {

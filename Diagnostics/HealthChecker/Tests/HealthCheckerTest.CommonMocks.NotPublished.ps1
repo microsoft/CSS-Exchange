@@ -47,6 +47,7 @@ Mock Get-RemoteRegistryValue {
         "DisableCompression" { return 0 }
         "CtsProcessorAffinityPercentage" { return 0 }
         "Enabled" { return 0 }
+        "DisableGranularReplication" { return 0 }
         Default { throw "Failed to find GetValue: $GetValue" }
     }
 }
