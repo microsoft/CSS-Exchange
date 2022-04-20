@@ -10,16 +10,16 @@ Function Get-ExchangeDependentServices {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $criticalWindowServices = @("WinMgmt", "W3Svc", "IISAdmin", "Pla", "MpsSvc",
-            "RpcEptMapper", "EventLog")
+            "RpcEptMapper", "EventLog").ToLower()
         $criticalExchangeServices = @("MSExchangeADTopology", "MSExchangeDelivery",
             "MSExchangeFastSearch", "MSExchangeFrontEndTransport", "MSExchangeIS",
             "MSExchangeRepl", "MSExchangeRPC", "MSExchangeServiceHost",
-            "MSExchangeSubmission", "MSExchangeTransport", "HostControllerService")
+            "MSExchangeSubmission", "MSExchangeTransport", "HostControllerService").ToLower()
         $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSExchangeCompliance",
             "MSExchangeDagMgmt", "MSExchangeDiagnostics", "MSExchangeEdgeSync",
             "MSExchangeHM", "MSExchangeHMRecovery", "MSExchangeMailboxAssistants",
             "MSExchangeMailboxReplication", "MSExchangeMitigation",
-            "MSExchangeThrottling", "MSExchangeTransportLogSearch", "BITS")
+            "MSExchangeThrottling", "MSExchangeTransportLogSearch", "BITS").ToLower()
         $criticalServices = New-Object 'System.Collections.Generic.List[object]'
         $commonServices = New-Object 'System.Collections.Generic.List[object]'
         Function TestServiceRunning {
@@ -38,8 +38,8 @@ Function Get-ExchangeDependentServices {
             return [PSCustomObject]@{
                 Service   = $Service
                 Name      = $Service.Name
-                Status    = $Service.Status
-                StartType = $Service.StartType
+                Status    = $Service.Status.ToString()
+                StartType = $Service.StartType.ToString()
             }
         }
     } process {
@@ -52,11 +52,11 @@ Function Get-ExchangeDependentServices {
         }
 
         foreach ($service in $getServices) {
-            if (($criticalWindowServices.Contains($service.Name) -or
-                    $criticalExchangeServices.Contains($service.Name)) -and
+            if (($criticalWindowServices.Contains($service.Name.ToLower()) -or
+                    $criticalExchangeServices.Contains($service.Name.ToLower())) -and
                 (-not (TestServiceRunning $service))) {
                 $criticalServices.Add((NewServiceObject $service))
-            } elseif ($commonExchangeServices.Contains($service.Name) -and
+            } elseif ($commonExchangeServices.Contains($service.Name.ToLower()) -and
                 (-not (TestServiceRunning $service))) {
                 $commonServices.Add((NewServiceObject $service))
             }
