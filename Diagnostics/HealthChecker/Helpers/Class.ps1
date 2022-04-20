@@ -39,6 +39,7 @@ using System.Collections;
             public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
+            public object DependentServices; // store the results for the dependent services of Exchange.
         }
 
         public class ExchangeBuildInformation
