@@ -34,11 +34,12 @@ using System.Collections;
             public bool MapiHttpEnabled; //Stored from organization config
             public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
             public Hashtable ApplicationPools = new Hashtable();
-            public ExchangeRegistryValues RegistryValues = new ExchangeRegistryValues();
+            public object RegistryValues; //stores all Exchange Registry values
             public ExchangeServerMaintenance ServerMaintenance;
             public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
+            public object DependentServices; // store the results for the dependent services of Exchange.
         }
 
         public class ExchangeBuildInformation
@@ -50,6 +51,7 @@ using System.Collections;
             public string BuildNumber;      //Exchange Build Number
             public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
             public string ReleaseDate;      // Exchange release date for which the CU they are currently on
+            public string ExtendedSupportDate; // End of Life Support Date.
             public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
             public object ExchangeSetup;    //Stores the Get-Command ExSetup object
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
@@ -124,12 +126,6 @@ using System.Collections;
             Exchange2016,
             Exchange2019
         }
-
-        public class ExchangeRegistryValues
-        {
-            public int CtsProcessorAffinityPercentage;    //Stores the CtsProcessorAffinityPercentage registry value from HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters
-            public int FipsAlgorithmPolicyEnabled;       //Stores the Enabled value from HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy
-        }
         // End ExchangeInformation
 
         // OperatingSystemInformation
@@ -142,7 +138,7 @@ using System.Collections;
             public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public object ServerPendingReboot; // determine if server is pending a reboot.
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
-            public Hashtable TLSSettings;            // stores the TLS settings on the server.
+            public object TLSSettings;            // stores the TLS settings on the server.
             public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
             public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
@@ -246,6 +242,7 @@ using System.Collections;
             Windows2012R2,
             Windows2016,
             Windows2019,
+            Windows2022,
             WindowsCore
         }
 
@@ -327,6 +324,7 @@ using System.Collections;
         {
             public string Name;
             public string DetailValue;
+            public object TableValue;
             public string Class;
         }
 

@@ -30,3 +30,4 @@ Yes
 **Additional resources:**
 
 [Allow anonymous relay on Exchange servers](https://docs.microsoft.com/en-us/Exchange/mail-flow/connectors/allow-anonymous-relay?view=exchserver-2019)
+

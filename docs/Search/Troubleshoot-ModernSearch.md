@@ -65,3 +65,4 @@ This is an example of how to run the script to get all the active mailboxes on a
 ```
 .\Troubleshoot-ModernSearch.ps1 -Server "Solo-E19A"
 ```
+

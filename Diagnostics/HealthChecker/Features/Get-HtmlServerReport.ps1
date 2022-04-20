@@ -7,6 +7,30 @@ Function Get-HtmlServerReport {
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+    Function GetOutColumnHtmlTable {
+        param(
+            [object]$OutColumn
+        )
+        # this keeps the order of the columns
+        $headerValues = $OutColumn[0].PSObject.Properties.Name
+        $htmlTableValue = "<table>"
+
+        foreach ($header in $headerValues) {
+            $htmlTableValue += "<th>$header</th>"
+        }
+
+        foreach ($dataRow in $OutColumn) {
+            $htmlTableValue += "$([System.Environment]::NewLine)<tr>"
+
+            foreach ($header in $headerValues) {
+                $htmlTableValue += "<td class=`"$($dataRow.$header.DisplayColor)`">$($dataRow.$header.Value)</td>"
+            }
+            $htmlTableValue += "$([System.Environment]::NewLine)</tr>"
+        }
+        $htmlTableValue += "</table>"
+        return $htmlTableValue
+    }
+
     $htmlHeader = "<html>
         <style>
         BODY{font-family: Arial; font-size: 8pt;}
@@ -27,45 +51,50 @@ Function Get-HtmlServerReport {
 
     [array]$htmlOverviewTable += "<p>
         <table>
-        <tr>"
+        <tr>$([System.Environment]::NewLine)"
 
     foreach ($tableHeaderName in $AnalyzedHtmlServerValues[0]["OverviewValues"].Name) {
-        $htmlOverviewTable += "<th>{0}</th>" -f $tableHeaderName
+        $htmlOverviewTable += "<th>{0}</th>$([System.Environment]::NewLine)" -f $tableHeaderName
     }
 
-    $htmlOverviewTable += "</tr>"
+    $htmlOverviewTable += "</tr>$([System.Environment]::NewLine)"
 
     foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues) {
         $htmlTableRow = @()
-        [array]$htmlTableRow += "<tr>"
+        [array]$htmlTableRow += "<tr>$([System.Environment]::NewLine)"
         foreach ($htmlTableDataRow in $serverHtmlServerValues["OverviewValues"]) {
-            $htmlTableRow += "<td class=`"{0}`">{1}</td>" -f $htmlTableDataRow.Class, `
+            $htmlTableRow += "<td class=`"{0}`">{1}</td>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
                 $htmlTableDataRow.DetailValue
         }
 
-        $htmlTableRow += "</tr>"
+        $htmlTableRow += "</tr>$([System.Environment]::NewLine)"
         $htmlOverviewTable += $htmlTableRow
     }
 
-    $htmlOverviewTable += "</table></p>"
+    $htmlOverviewTable += "</table>$([System.Environment]::NewLine)</p>$([System.Environment]::NewLine)"
 
-    [array]$htmlServerDetails += "<p><h2>Server Details</h2><table>"
+    [array]$htmlServerDetails += "<p>$([System.Environment]::NewLine)<h2>Server Details</h2>$([System.Environment]::NewLine)<table>"
 
     foreach ($serverHtmlServerValues in $AnalyzedHtmlServerValues) {
         foreach ($htmlTableDataRow in $serverHtmlServerValues["ServerDetails"]) {
             if ($htmlTableDataRow.Name -eq "Server Name") {
-                $htmlServerDetails += "<tr><th>{0}</th><th>{1}</th><tr>" -f $htmlTableDataRow.Name, `
+                $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<th>{0}</th>$([System.Environment]::NewLine)<th>{1}</th>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue
+            } elseif ($null -ne $htmlTableDataRow.TableValue) {
+                $htmlTable = GetOutColumnHtmlTable $htmlTableDataRow.TableValue
+                $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
+                    $htmlTableDataRow.Name, `
+                    $htmlTable
             } else {
-                $htmlServerDetails += "<tr><td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td><tr>" -f $htmlTableDataRow.Class, `
+                $htmlServerDetails += "<tr>$([System.Environment]::NewLine)<td class=`"{0}`">{1}</td><td class=`"{0}`">{2}</td>$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)" -f $htmlTableDataRow.Class, `
                     $htmlTableDataRow.Name, `
                     $htmlTableDataRow.DetailValue
             }
         }
     }
-    $htmlServerDetails += "</table></p>"
+    $htmlServerDetails += "$([System.Environment]::NewLine)</table>$([System.Environment]::NewLine)</p>$([System.Environment]::NewLine)"
 
-    $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body></html>"
+    $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body>$([System.Environment]::NewLine)</html>"
 
     $htmlReport | Out-File $HtmlReportFile -Encoding UTF8
 }

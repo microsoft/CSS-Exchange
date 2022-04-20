@@ -11,3 +11,4 @@ Yes
 **Additional resources:**
 
 [Microsoft .NET Framework Supportability Matrix](https://docs.microsoft.com/exchange/plan-and-deploy/supportability-matrix?view=exchserver-2019#microsoft-net-framework)
+

@@ -285,6 +285,10 @@ Function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "2308.27", "2375.24" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
         }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU23) {
+            Write-Verbose "There are no knonwn vulnerabilities in this Exchange Server 2016 build"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -390,6 +394,10 @@ Function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "922.27", "986.22" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
+        }
+
+        if ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU12) {
+            Write-Verbose "There are no knonwn vulnerabilities in this Exchange Server 2019 build"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"

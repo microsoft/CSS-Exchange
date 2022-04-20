@@ -2,19 +2,20 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
+. $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
-. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
-. $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
+. $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExSetupDetails.ps1
+. $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
 Function Get-ExchangeInformation {
     param(
@@ -30,6 +31,7 @@ Function Get-ExchangeInformation {
     $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $buildVersionInfo.Major, $buildVersionInfo.Minor, $buildVersionInfo.Build, $buildVersionInfo.Revision
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails
+    $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Script:Server)
 
     if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
         try {
@@ -64,6 +66,7 @@ Function Get-ExchangeInformation {
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
             Write-Verbose "Exchange 2019 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2019 "
+            $buildInformation.ExtendedSupportDate = "10/14/2025"
 
             #Exchange 2019 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.2.330.5") {
@@ -110,11 +113,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.986.5") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.1118.7") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.1118.7") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
+                $buildInformation.FriendlyName += "CU12"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -132,6 +139,7 @@ Function Get-ExchangeInformation {
         } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
             Write-Verbose "Exchange 2016 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2016 "
+            $buildInformation.ExtendedSupportDate = "10/14/2025"
 
             #Exchange 2016 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.1.466.34") {
@@ -218,11 +226,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2375.7") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2507.6") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
                 $buildInformation.FriendlyName += "CU22"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2507.6") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
+                $buildInformation.FriendlyName += "CU23"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -267,6 +279,7 @@ Function Get-ExchangeInformation {
         } else {
             Write-Verbose "Exchange 2013 is detected. Checking build number..."
             $buildInformation.FriendlyName = "Exchange 2013 "
+            $buildInformation.ExtendedSupportDate = "04/11/2023"
 
             #Exchange 2013 Information
             if ($adminDisplayVersionFullBuildNumber -lt "15.0.712.24") {
@@ -483,14 +496,7 @@ Function Get-ExchangeInformation {
             $buildInformation.AffectedByFIPFSUpdateIssue = $false
         }
 
-        $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage = Get-RemoteRegistryValue -MachineName $Script:Server `
-            -SubKey "SOFTWARE\Microsoft\ExchangeServer\v15\Search\SystemParameters" `
-            -GetValue "CtsProcessorAffinityPercentage" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
-        $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled = Get-RemoteRegistryValue -MachineName $Script:Server `
-            -SubKey "SYSTEM\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy" `
-            -GetValue "Enabled" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and

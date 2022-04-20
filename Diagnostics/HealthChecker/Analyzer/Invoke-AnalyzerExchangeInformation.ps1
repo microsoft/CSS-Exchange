@@ -53,6 +53,28 @@ Function Invoke-AnalyzerExchangeInformation {
             -AddHtmlDetailRow $false
     }
 
+    $extendedSupportDate = [System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ExtendedSupportDate,
+        [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
+    if ($extendedSupportDate -le ([DateTime]::Now.AddYears(1))) {
+        $displayWriteType = "Yellow"
+
+        if ($extendedSupportDate -le ([DateTime]::Now.AddDays(178))) {
+            $displayWriteType = "Red"
+        }
+
+        $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Please note of the End Of Life date and plan to migrate soon."
+
+        if ($extendedSupportDate -le ([DateTime]::Now)) {
+            $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Error: You are past the End Of Life of Exchange."
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "End Of Life" -Details $displayValue `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType $displayWriteType `
+            -DisplayCustomTabNumber 2 `
+            -AddHtmlDetailRow $false
+    }
+
     if (-not ([string]::IsNullOrEmpty($exchangeInformation.BuildInformation.LocalBuildNumber))) {
         $local = $exchangeInformation.BuildInformation.LocalBuildNumber
         $remote = $exchangeInformation.BuildInformation.BuildNumber
@@ -172,6 +194,37 @@ Function Invoke-AnalyzerExchangeInformation {
                 -DisplayGroupingKey $keyExchangeInformation `
                 -DisplayCustomTabNumber 2  `
                 -DisplayWriteType "Yellow"
+        }
+    }
+
+    Write-Verbose "Working on Exchange Dependent Services"
+    if ($null -ne $exchangeInformation.DependentServices) {
+
+        if ($exchangeInformation.DependentServices.Critical.Count -gt 0) {
+            Write-Verbose "Critical Services found to be not running."
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Critical Services Not Running" `
+                -DisplayGroupingKey $keyExchangeInformation
+
+            foreach ($service in $exchangeInformation.DependentServices.Critical) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Red" `
+                    -TestingName "Critical $($service.Name)"
+            }
+        }
+        if ($exchangeInformation.DependentServices.Common.Count -gt 0) {
+            Write-Verbose "Common Services found to be not running."
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Common Services Not Running" `
+                -DisplayGroupingKey $keyExchangeInformation
+
+            foreach ($service in $exchangeInformation.DependentServices.Common) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow" `
+                    -TestingName "Common $($service.Name)"
+            }
         }
     }
 

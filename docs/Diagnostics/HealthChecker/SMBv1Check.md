@@ -13,3 +13,4 @@ Yes
 **Additional resources:**
 
 [Exchange Server and SMBv1](https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-and-smbv1/ba-p/1165615)
+

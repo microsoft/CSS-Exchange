@@ -47,6 +47,8 @@ Mock Get-RemoteRegistryValue {
         "DisableCompression" { return 0 }
         "CtsProcessorAffinityPercentage" { return 0 }
         "Enabled" { return 0 }
+        "DisableGranularReplication" { return 0 }
+        "DisableAsyncNotification" { return 0 }
         Default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -98,8 +100,8 @@ Mock Get-TimeZoneInformationRegistrySettings {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
 }
 
-Mock Get-AllTlsSettingsFromRegistry {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry.xml"
+Mock Get-AllTlsSettings {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings.xml"
 }
 
 Mock Get-VisualCRedistributableInstalledVersion {
@@ -178,7 +180,13 @@ Function Get-HybridConfiguration { return $null }
 
 # Needs to be a function as PS core doesn't have -ComputerName parameter
 Function Get-Service {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml"
+    [CmdletBinding()]
+    param(
+        [string]$ComputerName,
+        [string]$Name
+    )
+    if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService.xml"
 }
 
 Function Get-ServerComponentState {

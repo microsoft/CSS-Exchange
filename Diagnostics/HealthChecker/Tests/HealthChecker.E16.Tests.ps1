@@ -108,7 +108,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 7
+            $Script:ActiveGrouping.Count | Should -Be 8
         }
 
         It "Display Results - Security Settings" {
@@ -121,7 +121,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 76
+            $Script:ActiveGrouping.Count | Should -Be 60
         }
 
         It "Display Results - Security Vulnerability" {
