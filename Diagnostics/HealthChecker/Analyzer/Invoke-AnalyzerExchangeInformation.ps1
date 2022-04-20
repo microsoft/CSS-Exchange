@@ -53,6 +53,28 @@ Function Invoke-AnalyzerExchangeInformation {
             -AddHtmlDetailRow $false
     }
 
+    $extendedSupportDate = [System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ExtendedSupportDate,
+        [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
+    if ($extendedSupportDate -le ([DateTime]::Now.AddYears(1))) {
+        $displayWriteType = "Yellow"
+
+        if ($extendedSupportDate -le ([DateTime]::Now.AddDays(178))) {
+            $displayWriteType = "Red"
+        }
+
+        $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Please note of the End Of Life date and plan to migrate soon."
+
+        if ($extendedSupportDate -le ([DateTime]::Now)) {
+            $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Error: You are past the End Of Life of Exchange."
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Name "End Of Life" -Details $displayValue `
+            -DisplayGroupingKey $keyExchangeInformation `
+            -DisplayWriteType $displayWriteType `
+            -DisplayCustomTabNumber 2 `
+            -AddHtmlDetailRow $false
+    }
+
     if (-not ([string]::IsNullOrEmpty($exchangeInformation.BuildInformation.LocalBuildNumber))) {
         $local = $exchangeInformation.BuildInformation.LocalBuildNumber
         $remote = $exchangeInformation.BuildInformation.BuildNumber

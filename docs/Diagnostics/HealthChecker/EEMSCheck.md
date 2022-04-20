@@ -46,3 +46,4 @@ Yes
 [Exchange Emergency Mitigation (EM) service](https://docs.microsoft.com/exchange/exchange-emergency-mitigation-service?view=exchserver-2019)
 
 [Mitigations Cloud endpoint is not reachable](https://docs.microsoft.com/exchange/plan-and-deploy/deployment-ref/ms-exch-setupreadiness-MitigationsCloudEndpointUnreachable?view=exchserver-2019)
+

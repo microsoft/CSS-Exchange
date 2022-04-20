@@ -11,3 +11,4 @@ Yes
 **Additional resources:**
 
 [Manage Windows Defender Credential Guard](https://docs.microsoft.com/windows/security/identity-protection/credential-guard/credential-guard-manage)
+
