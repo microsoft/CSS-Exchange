@@ -34,3 +34,4 @@ Yes
 [Fundamentals of garbage collection](https://docs.microsoft.com/dotnet/standard/garbage-collection/fundamentals)
 
 [Workstation and server garbage collection](https://docs.microsoft.com/dotnet/standard/garbage-collection/workstation-server-gc)
+

@@ -62,3 +62,4 @@ Yes
 [5 - Hardware requirements for Exchange 2016](https://docs.microsoft.com/exchange/plan-and-deploy/system-requirements?view=exchserver-2016#hardware-requirements-for-exchange-2016)
 
 [5 - Hardware requirements for Exchange 2019](https://docs.microsoft.com/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#hardware-requirements-for-exchange-2019)
+
