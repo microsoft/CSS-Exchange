@@ -137,7 +137,7 @@ using System.Collections;
             public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public object ServerPendingReboot; // determine if server is pending a reboot.
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
-            public Hashtable TLSSettings;            // stores the TLS settings on the server.
+            public object TLSSettings;            // stores the TLS settings on the server.
             public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
             public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
@@ -322,6 +322,7 @@ using System.Collections;
         {
             public string Name;
             public string DetailValue;
+            public object TableValue;
             public string Class;
         }
 

@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
+. $PSScriptRoot\Get-AllTlsSettings.ps1
 . $PSScriptRoot\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-CredentialGuardEnabled.ps1
 . $PSScriptRoot\Get-HttpProxySetting.ps1
@@ -91,7 +91,7 @@ Function Get-OperatingSystemInformation {
         -ScriptBlock { ([System.TimeZone]::CurrentTimeZone).StandardName } `
         -ScriptBlockDescription "Getting Current Time Zone" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.TLSSettings = Get-AllTlsSettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Get-RemoteRegistryValue `

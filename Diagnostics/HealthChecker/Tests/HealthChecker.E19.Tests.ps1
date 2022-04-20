@@ -123,7 +123,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 75
+            $Script:ActiveGrouping.Count | Should -Be 60
         }
 
         It "Display Results - Security Vulnerability" {
@@ -224,7 +224,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
             Assert-MockCalled Get-TimeZoneInformationRegistrySettings -Exactly 1
-            Assert-MockCalled Get-AllTlsSettingsFromRegistry -Exactly 1
+            Assert-MockCalled Get-AllTlsSettings -Exactly 1
             Assert-MockCalled Get-CredentialGuardEnabled -Exactly 1
             Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
@@ -256,7 +256,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-CredentialGuardEnabled -MockWith { return $true }
             Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
-            Mock Get-AllTlsSettingsFromRegistry { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry1.xml" }
+            Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
@@ -308,10 +308,58 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            TestObjectMatch "TLS 1.0 - Client Enabled Value" "-1" -WriteType "Red"
-            TestObjectMatch "TLS 1.1 - Mismatch" "True" -WriteType "Red"
-            TestObjectMatch "TLS 1.1 - SystemDefaultTlsVersions Error" "True" -WriteType "Red"
+            $tlsSettings = GetObject "TLS Settings Group"
+            $tls10 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.0" }
+            $tls11 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.1" }
+            $tls12 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.2" }
+
+            $tls10CompareObject = [PSCustomObject]@{
+                ServerEnabled = (NewOutColumnCompareValue $false)
+                ServerDbd     = (NewOutColumnCompareValue $true)
+                ClientEnabled = (NewOutColumnCompareValue $true)
+                ClientDbd     = (NewOutColumnCompareValue $true)
+                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
+            }
+
+            $tls11CompareObject = [PSCustomObject]@{
+                ServerEnabled = (NewOutColumnCompareValue $true)
+                ServerDbd     = (NewOutColumnCompareValue $true)
+                ClientEnabled = (NewOutColumnCompareValue $false)
+                ClientDbd     = (NewOutColumnCompareValue $true)
+                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
+            }
+
+            $tls12CompareObject = [PSCustomObject]@{
+                ServerEnabled = (NewOutColumnCompareValue $true)
+                ServerDbd     = (NewOutColumnCompareValue $false)
+                ClientEnabled = (NewOutColumnCompareValue $true)
+                ClientDbd     = (NewOutColumnCompareValue $false)
+                Configuration = (NewOutColumnCompareValue "Enabled" "Green")
+            }
+
+            TestOutColumnObjectCompare $tls10CompareObject $tls10
+
+            TestOutColumnObjectCompare $tls11CompareObject $tls11
+
+            TestOutColumnObjectCompare $tls12CompareObject $tls12
+
+            TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
+
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
+
+            $netTlsSettings = (GetObject "NET TLS Settings Group") | Where-Object { $_.FrameworkVersion.Value -eq "NETv4" }
+
+            $netv4CompareObject = [PSCustomObject]@{
+                SystemDefaultTlsVersions            = (NewOutColumnCompareValue $false)
+                Wow6432NodeSystemDefaultTlsVersions = (NewOutColumnCompareValue $false)
+                SchUseStrongCrypto                  = (NewOutColumnCompareValue $false)
+                Wow6432NodeSchUseStrongCrypto       = (NewOutColumnCompareValue $false)
+            }
+
+            TestOutColumnObjectCompare $netv4CompareObject $netTlsSettings
+
+            $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
+            $tlsCipherSuite.Count | Should -Be 8
         }
 
         It "SMB Settings" {
