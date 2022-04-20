@@ -241,6 +241,7 @@ using System.Collections;
             Windows2012R2,
             Windows2016,
             Windows2019,
+            Windows2022,
             WindowsCore
         }
 

@@ -111,11 +111,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.986.5") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.1118.7") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.1118.7") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
+                $buildInformation.FriendlyName += "CU12"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -220,11 +224,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2375.7") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2507.6") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
                 $buildInformation.FriendlyName += "CU22"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2507.6") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
+                $buildInformation.FriendlyName += "CU23"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 

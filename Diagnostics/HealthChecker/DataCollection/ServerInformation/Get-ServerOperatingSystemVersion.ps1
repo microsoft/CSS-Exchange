@@ -26,6 +26,7 @@ Function Get-ServerOperatingSystemVersion {
             "*Server 2012*" { $osReturnValue = "Windows2012" }
             "*Server 2016*" { $osReturnValue = "Windows2016" }
             "*Server 2019*" { $osReturnValue = "Windows2019" }
+            "*Server 2022*" { $osReturnValue = "Windows2022" }
             "Microsoft Windows Server Standard" { $osReturnValue = "WindowsCore" }
             "Microsoft Windows Server Datacenter" { $osReturnValue = "WindowsCore" }
             default { $osReturnValue = "Unknown" }

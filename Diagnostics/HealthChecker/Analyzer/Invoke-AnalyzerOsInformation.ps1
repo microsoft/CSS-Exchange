@@ -28,6 +28,16 @@ Function Invoke-AnalyzerOsInformation {
         -AddHtmlOverviewValues $true `
         -HtmlName "OS Version"
 
+    if (($osInformation.BuildInformation.MajorVersion -eq [HealthChecker.OSServerVersion]::Windows2022) -and
+        (($exchangeInformation.BuildInformation.MajorVersion -le [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
+        ($exchangeInformation.BuildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU12))) {
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Windows Server 2022 is only supported when running Exchange Server 2019 CU12 or greater" `
+            -DisplayGroupingKey $keyOSInformation `
+            -DisplayWriteType "Red" `
+            -DisplayCustomTabNumber 2
+    }
+
     $upTime = "{0} day(s) {1} hour(s) {2} minute(s) {3} second(s)" -f $osInformation.ServerBootUp.Days,
     $osInformation.ServerBootUp.Hours,
     $osInformation.ServerBootUp.Minutes,
