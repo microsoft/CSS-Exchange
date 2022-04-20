@@ -9,7 +9,8 @@ Function Get-ExchangeDependentServices {
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $criticalWindowServices = @("WinMgmt", "W3Svc", "IISAdmin", "Pla")
+        $criticalWindowServices = @("WinMgmt", "W3Svc", "IISAdmin", "Pla", "MpsSvc",
+            "RpcEptMapper", "EventLog")
         $criticalExchangeServices = @("MSExchangeADTopology", "MSExchangeDelivery",
             "MSExchangeFastSearch", "MSExchangeFrontEndTransport", "MSExchangeIS",
             "MSExchangeRepl", "MSExchangeRPC", "MSExchangeServiceHost",
