@@ -26,7 +26,7 @@ Function Get-ExchangeDependentServices {
                 [object]$Service
             )
             Write-Verbose "Testing $($Service.Name) - Status: $($Service.Status)"
-            if ($Service.Status -eq "Running") { return $true }
+            if ($Service.Status.ToString() -eq "Running") { return $true }
             return $false
         }
 
