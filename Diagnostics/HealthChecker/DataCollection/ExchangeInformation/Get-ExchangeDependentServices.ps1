@@ -25,6 +25,7 @@ Function Get-ExchangeDependentServices {
             param(
                 [object]$Service
             )
+            Write-Verbose "Testing $($Service.Name) - Status: $($Service.Status)"
             if ($Service.Status -eq "Running") { return $true }
             return $false
         }
