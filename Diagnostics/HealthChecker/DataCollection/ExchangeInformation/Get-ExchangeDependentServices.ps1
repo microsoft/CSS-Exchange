@@ -13,12 +13,12 @@ Function Get-ExchangeDependentServices {
         $criticalExchangeServices = @("MSExchangeADTopology", "MSExchangeDelivery",
             "MSExchangeFastSearch", "MSExchangeFrontEndTransport", "MSExchangeIS",
             "MSExchangeRepl", "MSExchangeRPC", "MSExchangeServiceHost",
-            "MSExchangeSubmission", "MSExchangeTransport")
+            "MSExchangeSubmission", "MSExchangeTransport", "HostControllerService")
         $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSExchangeCompliance",
             "MSExchangeDagMgmt", "MSExchangeDiagnostics", "MSExchangeEdgeSync",
             "MSExchangeHM", "MSExchangeHMRecovery", "MSExchangeMailboxAssistants",
             "MSExchangeMailboxReplication", "MSExchangeMitigation",
-            "MSExchangeThrottling", "MSExchangeTransportLogSearch")
+            "MSExchangeThrottling", "MSExchangeTransportLogSearch", "BITS")
         $criticalServices = New-Object 'System.Collections.Generic.List[object]'
         $commonServices = New-Object 'System.Collections.Generic.List[object]'
         Function TestServiceRunning {
