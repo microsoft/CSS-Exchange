@@ -62,16 +62,16 @@ foreach ($fileInfo in $filesToCheck) {
             }
             break
         } catch {
-            Write-Warning "Invoke-ScriptAnalyer failed. Error:"
+            Write-Warning "Invoke-ScriptAnalyer failed on $($fileInfo.FullName). Error:"
             $_.Exception | Format-List | Out-Host
             Write-Warning "Retrying in 5 seconds."
             Start-Sleep -Seconds 5
         }
     }
-}
 
-if ($i -eq $maxRetries) {
-    $errorCount += 1
+    if ($i -eq $maxRetries) {
+        throw "Invoke-ScriptAnalyzer failed $maxRetries times. Giving up."
+    }
 }
 
 if ($errorCount -gt 0) {
