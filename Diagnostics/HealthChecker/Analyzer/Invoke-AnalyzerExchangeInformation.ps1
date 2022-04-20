@@ -209,7 +209,8 @@ Function Invoke-AnalyzerExchangeInformation {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
                     -DisplayGroupingKey $keyExchangeInformation `
                     -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType "Red"
+                    -DisplayWriteType "Red" `
+                    -TestingName "Critical $($service.Name)"
             }
         }
         if ($exchangeInformation.DependentServices.Common.Count -gt 0) {
@@ -221,7 +222,8 @@ Function Invoke-AnalyzerExchangeInformation {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
                     -DisplayGroupingKey $keyExchangeInformation `
                     -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType "Yellow"
+                    -DisplayWriteType "Yellow" `
+                    -TestingName "Common $($service.Name)"
             }
         }
     }

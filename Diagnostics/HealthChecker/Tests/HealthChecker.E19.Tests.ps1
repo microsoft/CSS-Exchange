@@ -263,10 +263,26 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
+            Mock Get-Service {
+                param(
+                    [string]$ComputerName,
+                    [string]$Name
+                )
+                if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+                return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService1.xml"
+            }
 
             $hc = Get-HealthCheckerExchangeServer
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Dependent Services" {
+            SetActiveDisplayGrouping "Exchange Information"
+            $displayFormat = "{0} - Status: {1} - StartType: {2}"
+            TestObjectMatch "Critical Pla" ($displayFormat -f "pla", "Stopped", "Manual") -WriteType "Red"
+            TestObjectMatch "Critical HostControllerService" ($displayFormat -f "HostControllerService", "Stopped", "Disabled") -WriteType "Red"
+            TestObjectMatch "Common MSExchangeDagMgmt" ($displayFormat -f "MSExchangeDagMgmt", "Stopped", "Automatic") -WriteType "Yellow"
         }
 
         It "Http Proxy Settings" {
