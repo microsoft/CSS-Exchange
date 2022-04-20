@@ -197,6 +197,35 @@ Function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    Write-Verbose "Working on Exchange Dependent Services"
+    if ($null -ne $exchangeInformation.DependentServices) {
+
+        if ($exchangeInformation.DependentServices.Critical.Count -gt 0) {
+            Write-Verbose "Critical Services found to be not running."
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Critical Services Not Running" `
+                -DisplayGroupingKey $keyExchangeInformation
+
+            foreach ($service in $exchangeInformation.DependentServices.Critical) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Red"
+            }
+        }
+        if ($exchangeInformation.DependentServices.Common.Count -gt 0) {
+            Write-Verbose "Common Services found to be not running."
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Common Services Not Running" `
+                -DisplayGroupingKey $keyExchangeInformation
+
+            foreach ($service in $exchangeInformation.DependentServices.Common) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType)" `
+                    -DisplayGroupingKey $keyExchangeInformation `
+                    -DisplayCustomTabNumber 2 `
+                    -DisplayWriteType "Yellow"
+            }
+        }
+    }
+
     Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
     $getMailboxServer = $exchangeInformation.GetMailboxServer
