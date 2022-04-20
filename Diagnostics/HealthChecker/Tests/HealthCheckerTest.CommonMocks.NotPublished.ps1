@@ -180,7 +180,13 @@ Function Get-HybridConfiguration { return $null }
 
 # Needs to be a function as PS core doesn't have -ComputerName parameter
 Function Get-Service {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml"
+    [CmdletBinding()]
+    param(
+        [string]$ComputerName,
+        [string]$Name
+    )
+    if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService.xml"
 }
 
 Function Get-ServerComponentState {
