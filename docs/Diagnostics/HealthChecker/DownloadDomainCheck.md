@@ -17,3 +17,4 @@ Yes
 **Additional resources:**
 
 [How to configure the Download Domain feature (see FAQ section)](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-1730)
+

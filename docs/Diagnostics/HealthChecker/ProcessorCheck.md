@@ -63,3 +63,4 @@ Yes
 [Exchange 2013 Sizing](https://docs.microsoft.com/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help#exchange-2013-sizing)
 
 [Hardware requirements for Exchange 2016](https://docs.microsoft.com/exchange/plan-and-deploy/system-requirements?view=exchserver-2016#hardware-requirements-for-exchange-2016)
+

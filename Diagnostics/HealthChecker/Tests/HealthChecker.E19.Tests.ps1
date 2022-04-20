@@ -109,7 +109,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 7
+            $Script:ActiveGrouping.Count | Should -Be 8
         }
 
         It "Display Results - Security Settings" {
@@ -213,7 +213,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 9
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 10
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
@@ -393,6 +393,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         BeforeAll {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
@@ -414,6 +415,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "DisableGranularReplication" {
             TestObjectMatch "DisableGranularReplication" $true -WriteType "Red"
+        }
+
+        It "Disable Async Notification" {
+            TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
         }
 
         It "Enabled Domains" {
