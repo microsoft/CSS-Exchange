@@ -29,7 +29,7 @@ Mock Get-WmiObjectHandler {
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Trying to get the System.Environment ProcessorCount" } -MockWith { return 4 }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Current Time Zone" } -MockWith { return "Pacific Standard Time" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_getexchangemitigations.xml" }
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Bin Directory" } -MockWith { return "hi" }
+Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Install Directory" } -MockWith { return "hi" }
 
 
 Mock Get-RemoteRegistryValue {
@@ -138,6 +138,10 @@ Mock Get-HttpProxySetting {
 
 Mock Get-FIPFSScanEngineVersionState {
     return $true
+}
+
+Mock Get-ExchangeIISConfigSettings {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeIISConfigSettings.xml"
 }
 
 # Do nothing

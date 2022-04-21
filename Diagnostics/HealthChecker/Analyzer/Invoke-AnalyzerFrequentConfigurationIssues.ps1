@@ -164,7 +164,8 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         if ($null -ne $missingConfigFile) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Missing Configuration File" `
                 -DisplayGroupingKey $keyFrequentConfigIssues `
-                -DisplayWriteType "Red"
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
 
             foreach ($file in $missingConfigFile) {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details "Missing: $($file.Location)" `
@@ -182,7 +183,8 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         if ($null -ne $defaultVariableDetected) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Default Variable Detected" `
                 -DisplayGroupingKey $keyFrequentConfigIssues `
-                -DisplayWriteType "Red"
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
 
             foreach ($file in $defaultVariableDetected) {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($file.Location)" `
@@ -200,7 +202,8 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         if ($null -ne $binSearchFoldersNotFound) {
             $AnalyzeResults | Add-AnalyzedResultInformation -Name "Bin Search Folder Not Found" `
                 -DisplayGroupingKey $keyFrequentConfigIssues `
-                -DisplayWriteType "Red"
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
 
             foreach ($file in $binSearchFoldersNotFound) {
                 $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($file.Location)" `
