@@ -22,6 +22,7 @@ Function Get-ExchangeDependentServices {
             "MSExchangeThrottling", "MSExchangeTransportLogSearch", "BITS").ToLower()
         $criticalServices = New-Object 'System.Collections.Generic.List[object]'
         $commonServices = New-Object 'System.Collections.Generic.List[object]'
+        $getServicesList = New-Object 'System.Collections.Generic.List[object]'
         Function TestServiceRunning {
             param(
                 [object]$Service
@@ -36,7 +37,6 @@ Function Get-ExchangeDependentServices {
                 [object]$Service
             )
             return [PSCustomObject]@{
-                Service   = $Service
                 Name      = $Service.Name
                 Status    = $Service.Status.ToString()
                 StartType = $Service.StartType.ToString()
@@ -60,10 +60,11 @@ Function Get-ExchangeDependentServices {
                 (-not (TestServiceRunning $service))) {
                 $commonServices.Add((NewServiceObject $service))
             }
+            $getServicesList.Add((NewServiceObject $service))
         }
     } end {
         return [PSCustomObject]@{
-            Services = $getServices
+            Services = $getServicesList
             Critical = $criticalServices
             Common   = $commonServices
         }
