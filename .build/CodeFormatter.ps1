@@ -46,7 +46,7 @@ foreach ($fileInfo in $filesToCheck) {
     # for the function to output the diff while preserving the color. So we unfortunately
     # have to handle the output here.
     $results = @(CheckScriptFormat $fileInfo $Save)
-    if ($results[0]) {
+    if ($results.Length -gt 2) {
         git -c color.status=always diff ($($results[1]) | git hash-object -w --stdin) ($($results[2]) | git hash-object -w --stdin)
     }
 }
