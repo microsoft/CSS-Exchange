@@ -37,6 +37,8 @@ function CheckScriptFormat {
                 $before
                 $after
             }
+        } else {
+            $false
         }
     } else {
         $false
