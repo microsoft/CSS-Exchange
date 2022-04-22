@@ -19,7 +19,7 @@ BeforeAll {
 
         foreach ($key in $TestGroup.Keys) {
             $currentBuild = GetVersionFromString $key
-            TestOnKnownBuildIssue $KnownIssue $currentBuild -Verbose | Should -Be $TestGroup[$key]
+            TestOnKnownBuildIssue $KnownIssue $currentBuild | Should -Be $TestGroup[$key]
         }
     }
 }
