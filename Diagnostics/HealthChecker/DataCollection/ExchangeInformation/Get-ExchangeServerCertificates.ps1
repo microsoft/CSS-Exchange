@@ -112,6 +112,8 @@ Function Get-ExchangeServerCertificates {
                     }
 
                     $certInformationObj = New-Object PSCustomObject
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Issuer" -Value $cert.Issuer
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Subject" -Value $cert.Subject
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $certFriendlyName
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -Value $cert.PublicKey.Key.KeySize

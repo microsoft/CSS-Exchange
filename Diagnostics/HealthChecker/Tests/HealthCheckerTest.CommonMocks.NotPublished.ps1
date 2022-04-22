@@ -208,3 +208,11 @@ Function Get-SettingOverride {
 Function Get-AcceptedDomain {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml"
 }
+
+Function Get-ReceiveConnector {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml"
+}
+
+Function Get-SendConnector {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml"
+}
