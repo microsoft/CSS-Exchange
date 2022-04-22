@@ -154,4 +154,68 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
             -DisplayGroupingKey $keyFrequentConfigIssues `
             -DisplayWriteType "Red"
     }
+
+    if ($null -ne $exchangeInformation.IISConfigurationSettings) {
+        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings
+        $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
+        $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $_.DefaultVariable -eq $true }
+        $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }
+
+        if ($null -ne $missingConfigFile) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Missing Configuration File" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
+
+            foreach ($file in $missingConfigFile) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "Missing: $($file.Location)" `
+                    -DisplayGroupingKey $keyFrequentConfigIssues `
+                    -DisplayWriteType "Red" `
+                    -DisplayCustomTabNumber 2
+            }
+
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-MissingConfig" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 2
+        }
+
+        if ($null -ne $defaultVariableDetected) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Default Variable Detected" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
+
+            foreach ($file in $defaultVariableDetected) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($file.Location)" `
+                    -DisplayGroupingKey $keyFrequentConfigIssues `
+                    -DisplayWriteType "Red" `
+                    -DisplayCustomTabNumber 2
+            }
+
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-DefaultVariableDetected" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 2
+        }
+
+        if ($null -ne $binSearchFoldersNotFound) {
+            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Bin Search Folder Not Found" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Red" `
+                -DisplayTestingValue $true
+
+            foreach ($file in $binSearchFoldersNotFound) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($file.Location)" `
+                    -DisplayGroupingKey $keyFrequentConfigIssues `
+                    -DisplayWriteType "Red" `
+                    -DisplayCustomTabNumber 2
+            }
+
+            $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-BinSearchFolder" `
+                -DisplayGroupingKey $keyFrequentConfigIssues `
+                -DisplayWriteType "Yellow" `
+                -DisplayCustomTabNumber 2
+        }
+    }
 }
