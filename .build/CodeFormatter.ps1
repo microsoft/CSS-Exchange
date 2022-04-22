@@ -1,6 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = '$filesFailed is being used.')]
 [CmdletBinding()]
 param(
     [Switch]
@@ -57,7 +56,7 @@ foreach ($fileInfo in $filesToCheck) {
         try {
             $analyzerResults = Invoke-ScriptAnalyzer -Path $FileInfo.FullName -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -ErrorAction Stop
             if ($null -ne $analyzerResults) {
-                $filesFailed = $true
+                $errorCount++
                 $analyzerResults | Format-Table -AutoSize
             }
             break
