@@ -8,6 +8,8 @@ param(
 
 #Requires -Version 7
 
+Set-StrictMode -Version Latest
+
 . $PSScriptRoot\Load-Module.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckFileHasNewlineAtEndOfFile.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckMarkdownFileHasNoBOM.ps1
