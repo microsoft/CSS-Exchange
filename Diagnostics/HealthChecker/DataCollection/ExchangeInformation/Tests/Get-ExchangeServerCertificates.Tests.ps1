@@ -79,8 +79,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
 
         It "Get Auth Config But No Matching Certificate" {
             foreach ($result in $results) {
-                Write-Host ("Validating if Certificate: '{0}' is Auth Certificate" -f $result.FriendlyName)
-                Write-Host ("Is current Auth Config Certificate? '{0}'" -f $result.IsCurrentAuthConfigCertificate)
+                Write-Verbose ("Validating if Certificate: '{0}' is Auth Certificate" -f $result.FriendlyName)
+                Write-Verbose ("Is current Auth Config Certificate? '{0}'" -f $result.IsCurrentAuthConfigCertificate)
 
                 $result.IsCurrentAuthConfigCertificate | Should -Be $false
             }
@@ -95,8 +95,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
 
         It "Unable To Find Valid Auth Certificate" {
             foreach ($result in $results) {
-                Write-Host ("Validating if Certificate: '{0}' is Auth Certificate" -f $result.FriendlyName)
-                Write-Host ("Status: '{0}'" -f $result.IsCurrentAuthConfigCertificate)
+                Write-Verbose ("Validating if Certificate: '{0}' is Auth Certificate" -f $result.FriendlyName)
+                Write-Verbose ("Status: '{0}'" -f $result.IsCurrentAuthConfigCertificate)
 
                 $result.IsCurrentAuthConfigCertificate | Should -Be "InvalidAuthConfig"
             }
