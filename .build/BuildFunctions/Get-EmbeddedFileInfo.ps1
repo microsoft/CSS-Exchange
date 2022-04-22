@@ -16,7 +16,7 @@ function Get-EmbeddedFileInfo {
 
     process {
         $m = $Line | Select-String "\`$(.+) = Get-Content `"?(\`$PSScriptRoot|\.)\\([\w|\d|\.|\\]+)`"? -AsByteStream -Raw"
-        if ($m.Matches.Count -gt 0) {
+        if ($null -ne $m) {
             [PSCustomObject]@{
                 FilePath     = $m.Matches[0].Groups[3].Value
                 VariableName = $m.Matches[0].Groups[1].Value
