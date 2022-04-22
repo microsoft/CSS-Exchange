@@ -9,7 +9,9 @@
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
+. $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
+. $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -31,6 +33,7 @@ Function Get-ExchangeInformation {
     $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $buildVersionInfo.Major, $buildVersionInfo.Minor, $buildVersionInfo.Build, $buildVersionInfo.Revision
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails
+    $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Script:Server)
 
     if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
         try {
@@ -112,11 +115,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
                 $buildInformation.FriendlyName += "CU10"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.986.5") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.1118.7") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
                 $buildInformation.FriendlyName += "CU11"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.1118.7") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
+                $buildInformation.FriendlyName += "CU12"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -221,11 +228,15 @@ Function Get-ExchangeInformation {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
                 $buildInformation.FriendlyName += "CU21"
                 $buildInformation.ReleaseDate = "06/29/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2375.7") {
+            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2507.6") {
                 $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
                 $buildInformation.FriendlyName += "CU22"
                 $buildInformation.ReleaseDate = "09/28/2021"
+                $buildInformation.SupportedBuild = $true
+            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2507.6") {
+                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
+                $buildInformation.FriendlyName += "CU23"
+                $buildInformation.ReleaseDate = "04/20/2022"
                 $buildInformation.SupportedBuild = $true
             }
 
@@ -456,13 +467,17 @@ Function Get-ExchangeInformation {
                 -CertificateObject $exchangeInformation.ExchangeCertificates
         }
 
-        $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
-            -ScriptBlockDescription "Getting Exchange Bin Directory" `
+        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+            -ScriptBlockDescription "Getting Exchange Install Directory" `
             -CatchActionFunction ${Function:Invoke-CatchActions} `
             -ScriptBlock {
-            "{0}Bin\" -f (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
         }
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
+        $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
+            -ExchangeInstallPath $serverExchangeInstallDirectory `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion

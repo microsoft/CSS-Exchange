@@ -23,137 +23,101 @@ Function Invoke-AnalyzerSecuritySettings {
     $keySecuritySettings = Get-DisplayResultsGroupingKey -Name "Security Settings"  -DisplayOrder $Order
     $osInformation = $HealthServerObject.OSInformation
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
-        -DisplayGroupingKey $keySecuritySettings `
-        -DisplayCustomTabNumber 2 `
-        -AddHtmlDetailRow $false
-
     ##############
     # TLS Settings
     ##############
     Write-Verbose "Working on TLS Settings"
 
     $tlsVersions = @("1.0", "1.1", "1.2")
-    $currentNetVersion = $osInformation.TLSSettings["NETv4"]
+    $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
-    function TestTlsValue {
-        param(
-            [string]$Name,
-            [int]$Value,
-            [string]$Key
-        )
-        if ($Value -ne 0 -and
-            $Value -ne 1) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name $Name -Details "$Value --- Error: Must be a value of 1 or 0." `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Red" `
-                -TestingName "TLS $key - $Name" `
-                -DisplayTestingValue $Value
-        }
-    }
+    $tlsSettings = $osInformation.TLSSettings.Registry.TLS
+    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+    $misconfiguredClientServerSettings = ($tlsSettings.Values | Where-Object { $_.TLSMisconfigured -eq $true }).Count -ne 0
+    $displayLinkToDocsPage = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
+    $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and $_.TLSVersion -ne "1.2" }).Count -ne 0
 
     foreach ($tlsKey in $tlsVersions) {
-        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
+        $currentTlsVersion = $osInformation.TLSSettings.Registry.TLS[$tlsKey]
+        $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                    TLSVersion    = $tlsKey
+                    ServerEnabled = $currentTlsVersion.ServerEnabled
+                    ServerDbD     = $currentTlsVersion.ServerDisabledByDefault
+                    ClientEnabled = $currentTlsVersion.ClientEnabled
+                    ClientDbD     = $currentTlsVersion.ClientDisabledByDefault
+                    Configuration = $currentTlsVersion.TLSConfiguration
+                })
+        )
+    }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details ("TLS {0}" -f $tlsKey) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 1
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Server Enabled") -Details ($currentTlsVersion.ServerEnabled) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2
-
-        TestTlsValue -Name "Server Enabled Value" -Value $currentTlsVersion.ServerEnabledValue -Key $tlsKey
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Server Disabled By Default") -Details ($currentTlsVersion.ServerDisabledByDefault) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2
-
-        TestTlsValue -Name "Server Disabled By Default Value" -Value $currentTlsVersion.ServerDisabledByDefaultValue -Key $tlsKey
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Client Enabled") -Details ($currentTlsVersion.ClientEnabled) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2
-
-        TestTlsValue -Name "Client Enabled Value" -Value $currentTlsVersion.ClientEnabledValue -Key $tlsKey
-
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ("Client Disabled By Default") -Details ($currentTlsVersion.ClientDisabledByDefault) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2
-
-        TestTlsValue -Name "Client Disabled By Default Value" -Value $currentTlsVersion.ClientDisabledByDefaultValue -Key $tlsKey
-
-        if ($currentTlsVersion.ServerEnabled -ne $currentTlsVersion.ClientEnabled) {
-            $detectedTlsMismatch = $true
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication.") `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayCustomTabNumber 3 `
-                -TestingName "TLS $tlsKey - Mismatch" `
-                -DisplayTestingValue $true `
-                -DisplayWriteType "Red"
-        }
-
-        if (($tlsKey -eq "1.0" -or
-                $tlsKey -eq "1.1") -and (
-                $currentTlsVersion.ServerEnabled -eq $false -or
-                $currentTlsVersion.ClientEnabled -eq $false -or
-                $currentTlsVersion.ServerDisabledByDefault -or
-                $currentTlsVersion.ClientDisabledByDefault) -and
-            ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
-            $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2") `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayCustomTabNumber 3 `
-                -TestingName "TLS $tlsKey - SystemDefaultTlsVersions Error" `
-                -DisplayTestingValue $true `
-                -DisplayWriteType "Red"
+    $sbConfiguration = {
+        param ($o, $p)
+        if ($p -eq "Configuration") {
+            if ($o.$p -eq "Misconfigured" -or $o.$p -eq "Half Disabled") {
+                "Red"
+            } elseif ($o.$p -eq "Disabled") {
+                if ($o.TLSVersion -eq "1.2") {
+                    "Red"
+                } else {
+                    "Green"
+                }
+            } else {
+                "Green"
+            }
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions" -Details ($currentNetVersion.SystemDefaultTlsVersions) `
-        -DisplayGroupingKey $keySecuritySettings
+    $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+            DisplayObject      = $outputObjectDisplayValue
+            ColorizerFunctions = @($sbConfiguration)
+            IndentSpaces       = 8
+        }) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -OutColumnsColorTests @($sbConfiguration) `
+        -HtmlName "TLS Settings" `
+        -TestingName "TLS Settings Group"
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SystemDefaultTlsVersions - Wow6432Node" -Details ($currentNetVersion.WowSystemDefaultTlsVersions) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SchUseStrongCrypto" -Details ($currentNetVersion.SchUseStrongCrypto) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SchUseStrongCrypto - Wow6432Node" -Details ($currentNetVersion.WowSchUseStrongCrypto) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($currentNetVersion.SecurityProtocol) `
-        -DisplayGroupingKey $keySecuritySettings
-
-    <#
-    [array]$securityProtocols = $currentNetVersion.SecurityProtocol.Split(",").Trim().ToUpper()
-    $lowerTLSVersions = @("1.0", "1.1")
-
-    foreach ($tlsKey in $lowerTLSVersions) {
-        $currentTlsVersion = $osInformation.TLSSettings[$tlsKey]
-        $securityProtocolCheck = "TLS"
-        if ($tlsKey -eq "1.1") {
-            $securityProtocolCheck = "TLS11"
-        }
-
-        if (($currentTlsVersion.ServerEnabled -eq $false -or
-                $currentTlsVersion.ClientEnabled -eq $false) -and
-            $securityProtocols.Contains($securityProtocolCheck)) {
-
-            $AnalyzeResults = Add-AnalyzedResultInformation -Details ("Security Protocol is able to use TLS when we have TLS {0} disabled in the registry. This can cause issues with connectivity. It is recommended to follow the proper TLS settings. In some cases, it may require to also set SchUseStrongCrypto in the registry." -f $tlsKey) `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType "Yellow" `
-                -AnalyzedInformation $AnalyzeResults
+    Function GetBadTlsValueSetting {
+        [CmdletBinding()]
+        param(
+            [Parameter(ValueFromPipeline = $true)]
+            $TlsSetting,
+            $PropertyName
+        )
+        process {
+            return $TlsSetting | Where-Object { $null -ne $_."$PropertyName" -and $_."$PropertyName" -ne 0 -and $_."$PropertyName" -ne 1 }
         }
     }
-#>
+    $testValues = @("ServerEnabledValue", "ClientEnabledValue", "ServerDisabledByDefaultValue", "ClientDisabledByDefaultValue")
 
-    if ($detectedTlsMismatch) {
+    foreach ($testValue in $testValues) {
+        $results = $tlsSettings.Values | GetBadTlsValueSetting -PropertyName $testValue
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $AnalyzeResults | Add-AnalyzedResultInformation -Name "$($result.TLSVersion) $testValue" -Details ("$($result."$testValue") --- Error: Must be a value of 1 or 0.") `
+                    -DisplayGroupingKey $keySecuritySettings `
+                    -DisplayWriteType "Red"
+            }
+        }
+    }
+
+    if ($lowerTlsVersionDisabled -and
+        ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
+        $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Red"
+    }
+
+    if ($misconfiguredClientServerSettings) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication." `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -DisplayWriteType "Red"
+
         $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
             "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
             "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
@@ -172,6 +136,71 @@ Function Invoke-AnalyzerSecuritySettings {
                 -DisplayCustomTabNumber 3
         }
     }
+
+    if ($displayLinkToDocsPage) {
+        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-TLSConfigDocs" `
+            -DisplayGroupingKey $keySecuritySettings `
+            -DisplayCustomTabNumber 2 `
+            -TestingName "Display Link to Docs Page" `
+            -DisplayTestingValue $true `
+            -DisplayWriteType "Yellow"
+    }
+
+    $netVersions = @("NETv4", "NETv2")
+    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+    foreach ($netVersion in $netVersions) {
+        $currentNetVersion = $osInformation.TLSSettings.Registry.NET[$netVersion]
+        $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                    FrameworkVersion                    = $netVersion
+                    SystemDefaultTlsVersions            = $currentNetVersion.SystemDefaultTlsVersions
+                    Wow6432NodeSystemDefaultTlsVersions = $currentNetVersion.WowSystemDefaultTlsVersions
+                    SchUseStrongCrypto                  = $currentNetVersion.SchUseStrongCrypto
+                    Wow6432NodeSchUseStrongCrypto       = $currentNetVersion.WowSchUseStrongCrypto
+                })
+        )
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+            DisplayObject = $outputObjectDisplayValue
+            IndentSpaces  = 8
+        }) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -HtmlName "TLS NET Settings" `
+        -TestingName "NET TLS Settings Group"
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
+        -DisplayGroupingKey $keySecuritySettings
+
+    if ($null -ne $osInformation.TLSSettings.TlsCipherSuite) {
+        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+        foreach ($tlsCipher in $osInformation.TLSSettings.TlsCipherSuite) {
+            $outputObjectDisplayValue.Add(([PSCustomObject]@{
+                        TlsCipherSuiteName = $tlsCipher.Name
+                        CipherSuite        = $tlsCipher.CipherSuite
+                        Cipher             = $tlsCipher.Cipher
+                        Certificate        = $tlsCipher.Certificate
+                    })
+            )
+        }
+
+        $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
+                DisplayObject = $outputObjectDisplayValue
+                IndentSpaces  = 8
+            }) `
+            -DisplayGroupingKey $keySecuritySettings `
+            -HtmlName "TLS Cipher Suite" `
+            -TestingName "TLS Cipher Suite Group"
+    }
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
+        -DisplayGroupingKey $keySecuritySettings
+
+    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
+        -DisplayGroupingKey $keySecuritySettings `
+        -DisplayCustomTabNumber 2 `
+        -AddHtmlDetailRow $false
 
     $additionalDisplayValue = [string]::Empty
     $smb1Settings = $osInformation.Smb1ServerSettings

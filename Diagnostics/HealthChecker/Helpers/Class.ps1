@@ -40,6 +40,8 @@ using System.Collections;
             public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
+            public object DependentServices; // store the results for the dependent services of Exchange.
+            public object IISConfigurationSettings; // store the results for the IIS Settings test
         }
 
         public class ExchangeBuildInformation
@@ -138,7 +140,7 @@ using System.Collections;
             public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public object ServerPendingReboot; // determine if server is pending a reboot.
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
-            public Hashtable TLSSettings;            // stores the TLS settings on the server.
+            public object TLSSettings;            // stores the TLS settings on the server.
             public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
             public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
@@ -242,6 +244,7 @@ using System.Collections;
             Windows2012R2,
             Windows2016,
             Windows2019,
+            Windows2022,
             WindowsCore
         }
 
@@ -323,6 +326,7 @@ using System.Collections;
         {
             public string Name;
             public string DetailValue;
+            public object TableValue;
             public string Class;
         }
 

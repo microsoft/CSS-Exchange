@@ -35,8 +35,7 @@ Function Invoke-AnalyzerOsInformation {
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "System Up Time" -Details $upTime `
         -DisplayGroupingKey $keyOSInformation `
-        -DisplayTestingValue ($osInformation.ServerBootUp) `
-        -AddHtmlDetailRow $false
+        -DisplayTestingValue ($osInformation.ServerBootUp)
 
     $AnalyzeResults | Add-AnalyzedResultInformation -Name "Time Zone" -Details ($osInformation.TimeZone.CurrentTimeZone) `
         -DisplayGroupingKey $keyOSInformation `

@@ -29,7 +29,7 @@ Mock Get-WmiObjectHandler {
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Trying to get the System.Environment ProcessorCount" } -MockWith { return 4 }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Current Time Zone" } -MockWith { return "Pacific Standard Time" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_getexchangemitigations.xml" }
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Bin Directory" } -MockWith { return "hi" }
+Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Install Directory" } -MockWith { return "hi" }
 
 
 Mock Get-RemoteRegistryValue {
@@ -100,8 +100,8 @@ Mock Get-TimeZoneInformationRegistrySettings {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
 }
 
-Mock Get-AllTlsSettingsFromRegistry {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettingsFromRegistry.xml"
+Mock Get-AllTlsSettings {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings.xml"
 }
 
 Mock Get-VisualCRedistributableInstalledVersion {
@@ -138,6 +138,10 @@ Mock Get-HttpProxySetting {
 
 Mock Get-FIPFSScanEngineVersionState {
     return $true
+}
+
+Mock Get-ExchangeIISConfigSettings {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeIISConfigSettings.xml"
 }
 
 # Do nothing
@@ -180,7 +184,13 @@ Function Get-HybridConfiguration { return $null }
 
 # Needs to be a function as PS core doesn't have -ComputerName parameter
 Function Get-Service {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml"
+    [CmdletBinding()]
+    param(
+        [string]$ComputerName,
+        [string]$Name
+    )
+    if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService.xml"
 }
 
 Function Get-ServerComponentState {
