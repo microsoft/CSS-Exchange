@@ -10,6 +10,7 @@
 . $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
+. $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -460,13 +461,17 @@ Function Get-ExchangeInformation {
             }
         }
 
-        $serverExchangeBinDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
-            -ScriptBlockDescription "Getting Exchange Bin Directory" `
+        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+            -ScriptBlockDescription "Getting Exchange Install Directory" `
             -CatchActionFunction ${Function:Invoke-CatchActions} `
             -ScriptBlock {
-            "{0}Bin\" -f (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
         }
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
+        $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
+            -ExchangeInstallPath $serverExchangeInstallDirectory `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion

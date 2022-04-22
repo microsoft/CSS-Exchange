@@ -45,6 +45,7 @@ nav:
       - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
+      - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
