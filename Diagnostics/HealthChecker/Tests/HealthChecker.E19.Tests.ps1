@@ -204,6 +204,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerComponentState { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml" }
             Mock Test-ServiceHealth { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml" }
+            Mock Get-ReceiveConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml" }
+            Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
 
             $Error.Clear()
             Get-HealthCheckerExchangeServer | Out-Null
@@ -247,6 +249,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Test-ServiceHealth -Exactly 1
             Assert-MockCalled Get-AcceptedDomain -Exactly 1
             Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1
+            Assert-MockCalled Get-ReceiveConnector -Exactly 1
+            Assert-MockCalled Get-SendConnector -Exactly 1
         }
     }
 
@@ -263,6 +267,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
+            Mock Get-ExchangeIISConfigSettings { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeIISConfigSettings1.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -313,6 +318,18 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Open Relay Wild Card Domain" {
             TestObjectMatch "Open Relay Wild Card Domain" "Error --- Accepted Domain `"Problem Accepted Domain`" is set to a Wild Card (*) Domain Name with a domain type of InternalRelay. This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain" -WriteType "Red"
+        }
+
+        It "Testing Missing Configuration File" {
+            TestObjectMatch "Missing Configuration File" $true -WriteType "Red"
+        }
+
+        It "Testing Default Variable Detected" {
+            TestObjectMatch "Default Variable Detected" $true -WriteType "Red"
+        }
+
+        It "Testing Bin Search Folder Not Found" {
+            TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
         }
 
         It "Server Pending Reboot" {
