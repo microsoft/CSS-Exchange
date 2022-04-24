@@ -18,28 +18,41 @@ Function Invoke-AnalyzerOsInformation {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keyOSInformation = Get-DisplayResultsGroupingKey -Name "Operating System Information"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Version" -Details ($osInformation.BuildInformation.FriendlyName) `
-        -DisplayGroupingKey $keyOSInformation `
-        -AddHtmlOverviewValues $true `
-        -HtmlName "OS Version"
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Operating System Information"  -DisplayOrder $Order)
+    }
+
+    $params = $baseParams + @{
+        Name                  = "Version"
+        Details               = $osInformation.BuildInformation.FriendlyName
+        AddHtmlOverviewValues = $true
+        HtmlName              = "OS Version"
+    }
+    Add-AnalyzedResultInformation @params
 
     $upTime = "{0} day(s) {1} hour(s) {2} minute(s) {3} second(s)" -f $osInformation.ServerBootUp.Days,
     $osInformation.ServerBootUp.Hours,
     $osInformation.ServerBootUp.Minutes,
     $osInformation.ServerBootUp.Seconds
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "System Up Time" -Details $upTime `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayTestingValue ($osInformation.ServerBootUp)
+    $params = $baseParams + @{
+        Name                = "System Up Time"
+        Details             = $upTime
+        DisplayTestingValue = $osInformation.ServerBootUp
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Time Zone" -Details ($osInformation.TimeZone.CurrentTimeZone) `
-        -DisplayGroupingKey $keyOSInformation `
-        -AddHtmlOverviewValues $true
+    $params = $baseParams + @{
+        Name                  = "Time Zone"
+        Details               = $osInformation.TimeZone.CurrentTimeZone
+        AddHtmlOverviewValues = $true
+    }
+    Add-AnalyzedResultInformation @params
 
     $writeValue = $false
     $warning = @("Windows can not properly detect any DST rule changes in your time zone. Set 'Adjust for daylight saving time automatically to on'")
@@ -54,41 +67,56 @@ Function Invoke-AnalyzerOsInformation {
         $writeType = "Grey"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Dynamic Daylight Time Enabled" -Details $writeValue `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $writeType
+    $params = $baseParams + @{
+        Name             = "Dynamic Daylight Time Enabled"
+        Details          = $writeValue
+        DisplayWriteType = $writeType
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($warning -ne [string]::Empty) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details $warning `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
-            -DisplayCustomTabNumber 2 `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Details                = $warning
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+            AddHtmlDetailRow       = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ([string]::IsNullOrEmpty($osInformation.TimeZone.TimeZoneKeyName)) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Time Zone Key Name" -Details "Empty --- Warning Need to switch your current time zone to a different value, then switch it back to have this value populated again." `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow"
+        $params = $baseParams + @{
+            Name             = "Time Zone Key Name"
+            Details          = "Empty --- Warning Need to switch your current time zone to a different value, then switch it back to have this value populated again."
+            DisplayWriteType = "Yellow"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($exchangeInformation.NETFramework.OnRecommendedVersion) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ".NET Framework" -Details ($osInformation.NETFramework.FriendlyName) `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Green" `
-            -AddHtmlOverviewValues $true
+        $params = $baseParams + @{
+            Name                  = ".NET Framework"
+            Details               = $osInformation.NETFramework.FriendlyName
+            DisplayWriteType      = "Green"
+            AddHtmlOverviewValues = $true
+        }
+        Add-AnalyzedResultInformation @params
     } else {
-        $testObject = New-Object PSCustomObject
-        $testObject | Add-Member -MemberType NoteProperty -Name "CurrentValue" -Value ($osInformation.NETFramework.FriendlyName)
-        $testObject | Add-Member -MemberType NoteProperty -Name "MaxSupportedVersion" -Value ($exchangeInformation.NETFramework.MaxSupportedVersion)
         $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $exchangeInformation.NETFramework.MaxSupportedVersion
         $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name ".NET Framework" -Details $displayValue `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
-            -DisplayTestingValue $testObject `
-            -HtmlDetailsCustomValue ($osInformation.NETFramework.FriendlyName) `
-            -AddHtmlOverviewValues $true
+        $testValue = [PSCustomObject]@{
+            CurrentValue        = $osInformation.NETFramework.FriendlyName
+            MaxSupportedVersion = $exchangeInformation.NETFramework.MaxSupportedVersion
+        }
+        $params = $baseParams + @{
+            Name                   = ".NET Framework"
+            Details                = $displayValue
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $testValue
+            HtmlDetailsCustomValue = $osInformation.NETFramework.FriendlyName
+            AddHtmlOverviewValues  = $true
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $displayValue = [string]::Empty
@@ -166,23 +194,30 @@ Function Invoke-AnalyzerOsInformation {
             }
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "PageFile" -Details $displayValue `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType $displayWriteType `
-            -TestingName "PageFile Size $instanceCount" `
-            -DisplayTestingValue $pageFileObj
+        $params = $baseParams + @{
+            Name                = "PageFile"
+            Details             = $displayValue
+            DisplayWriteType    = $displayWriteType
+            TestingName         = "PageFile Size $instanceCount"
+            DisplayTestingValue = $pageFileObj
+        }
+        Add-AnalyzedResultInformation @params
 
         if ($null -ne $pageFileAdditionalDisplayValue) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details $pageFileAdditionalDisplayValue `
-                -DisplayGroupingKey $keyOSInformation `
-                -DisplayWriteType $displayWriteType `
-                -TestingName "PageFile Additional Information" `
-                -DisplayCustomTabNumber 2
+            $params = $baseParams + @{
+                Details                = $pageFileAdditionalDisplayValue
+                DisplayWriteType       = $displayWriteType
+                TestingName            = "PageFile Additional Information"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details "More information: https://aka.ms/HC-PageFile" `
-                -DisplayGroupingKey $keyOSInformation `
-                -DisplayWriteType $displayWriteType `
-                -DisplayCustomTabNumber 2
+            $params = $baseParams + @{
+                Details                = "More information: https://aka.ms/HC-PageFile"
+                DisplayWriteType       = $displayWriteType
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
         }
 
         $instanceCount++
@@ -190,23 +225,30 @@ Function Invoke-AnalyzerOsInformation {
 
     if ($null -ne $osInformation.PageFile -and
         $osInformation.PageFile.Count -gt 1) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "`r`n`t`tError: Multiple PageFiles detected. This has been known to cause performance issues, please address this." `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Red" `
-            -TestingName "Multiple PageFile Detected" `
-            -DisplayTestingValue $true `
-            -DisplayCustomTabNumber 2
+        $params = $baseParams + @{
+            Details                = "`r`n`t`tError: Multiple PageFiles detected. This has been known to cause performance issues, please address this."
+            DisplayWriteType       = "Red"
+            TestingName            = "Multiple PageFile Detected"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($osInformation.PowerPlan.HighPerformanceSet) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Power Plan" -Details ($osInformation.PowerPlan.PowerPlanSetting) `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Green"
+        $params = $baseParams + @{
+            Name             = "Power Plan"
+            Details          = $osInformation.PowerPlan.PowerPlanSetting
+            DisplayWriteType = "Green"
+        }
+        Add-AnalyzedResultInformation @params
     } else {
-        $displayValue = "{0} --- Error" -f $osInformation.PowerPlan.PowerPlanSetting
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Power Plan" -Details $displayValue `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Name             = "Power Plan"
+            Details          = "$($osInformation.PowerPlan.PowerPlanSetting) --- Error"
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $displayWriteType = "Grey"
@@ -217,26 +259,32 @@ Function Invoke-AnalyzerOsInformation {
         $displayWriteType = "Yellow"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy Setting" `
-        -Details $displayValue `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue $osInformation.NetworkInformation.HttpProxy
+    $params = $baseParams + @{
+        Name                = "Http Proxy Setting"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $osInformation.NetworkInformation.HttpProxy
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($displayWriteType -eq "Yellow") {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Http Proxy By Pass List" `
-            -Details "$($osInformation.NetworkInformation.HttpProxy.ByPassList)" `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow"
+        $params = $baseParams + @{
+            Name             = "Http Proxy By Pass List"
+            Details          = "$($osInformation.NetworkInformation.HttpProxy.ByPassList)"
+            DisplayWriteType = "Yellow"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None" -and
         $osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy." `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Red" `
-            -TestingName "Proxy Doesn't Match" `
-            -DisplayCustomTabNumber 2
+        $params = $baseParams + @{
+            Details                = "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy."
+            DisplayWriteType       = "Red"
+            TestingName            = "Proxy Doesn't Match"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $displayWriteType2012 = $displayWriteType2013 = "Red"
@@ -261,14 +309,20 @@ Function Invoke-AnalyzerOsInformation {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Visual C++ 2012" -Details $displayValue2012 `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $displayWriteType2012
+    $params = $baseParams + @{
+        Name             = "Visual C++ 2012"
+        Details          = $displayValue2012
+        DisplayWriteType = $displayWriteType2012
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Visual C++ 2013" -Details $displayValue2013 `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType $displayWriteType2013
+        $params = $baseParams + @{
+            Name             = "Visual C++ 2013"
+            Details          = $displayValue2013
+            DisplayWriteType = $displayWriteType2013
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
@@ -276,20 +330,24 @@ Function Invoke-AnalyzerOsInformation {
             $displayWriteType2013 -eq "Yellow")) -or
         $displayWriteType2012 -eq "Yellow") {
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Note: For more information about the latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention." `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Yellow"
+        $params = $baseParams + @{
+            Details                = "Note: For more information about the latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention."
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($defaultValue -eq $displayValue2012 -or
         ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
         $displayValue2013 -eq $defaultValue)) {
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "ERROR: Unable to find one of the Visual C++ Redistributable Packages. This can cause a wide range of issues on the server.`r`n`t`tPlease install the missing package as soon as possible. Latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC" `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Details                = "ERROR: Unable to find one of the Visual C++ Redistributable Packages. This can cause a wide range of issues on the server.`r`n`t`tPlease install the missing package as soon as possible. Latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC"
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $displayValue = "False"
@@ -300,27 +358,34 @@ Function Invoke-AnalyzerOsInformation {
         $writeType = "Yellow"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Server Pending Reboot" -Details $displayValue `
-        -DisplayGroupingKey $keyOSInformation `
-        -DisplayWriteType $writeType `
-        -DisplayTestingValue ($osInformation.ServerPendingReboot.PendingReboot)
+    $params = $baseParams + @{
+        Name                = "Server Pending Reboot"
+        Details             = $displayValue
+        DisplayWriteType    = $writeType
+        DisplayTestingValue = $osInformation.ServerPendingReboot.PendingReboot
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($osInformation.ServerPendingReboot.PendingReboot -and
         $osInformation.ServerPendingReboot.PendingRebootLocations.Count -gt 0) {
 
         foreach ($line in $osInformation.ServerPendingReboot.PendingRebootLocations) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details $line `
-                -DisplayGroupingKey $keyOSInformation `
-                -DisplayCustomTabNumber 2 `
-                -TestingName $line `
-                -DisplayWriteType "Yellow"
+            $params = $baseParams + @{
+                Details                = $line
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+                TestingName            = $line
+            }
+            Add-AnalyzedResultInformation @params
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-RebootPending" `
-            -DisplayGroupingKey $keyOSInformation `
-            -DisplayWriteType "Yellow" `
-            -TestingName "Reboot More Information" `
-            -DisplayTestingValue $true `
-            -DisplayCustomTabNumber 2
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-RebootPending"
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "Reboot More Information"
+        }
+        Add-AnalyzedResultInformation @params
     }
 }

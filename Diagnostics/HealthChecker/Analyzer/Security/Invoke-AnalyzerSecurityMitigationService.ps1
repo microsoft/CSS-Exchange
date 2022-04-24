@@ -19,6 +19,10 @@ Function Invoke-AnalyzerSecurityMitigationService {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
     $mitigationService = $exchangeInformation.ExchangeEmergencyMitigationService
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = $DisplayGroupingKey
+    }
     #Description: Check for Exchange Emergency Mitigation Service (EEMS)
     #Introduced in: Exchange 2016 CU22, Exchange 2019 CU11
     if (((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
@@ -31,30 +35,35 @@ Function Invoke-AnalyzerSecurityMitigationService {
             if (($mitigationService.MitigationServiceOrgState) -and
                 ($mitigationService.MitigationServiceSrvState)) {
                 $eemsWriteType = "Green"
-                $eemsOveralState = "Enabled"
+                $eemsOverallState = "Enabled"
             } elseif (($mitigationService.MitigationServiceOrgState -eq $false) -and
                 ($mitigationService.MitigationServiceSrvState)) {
                 $eemsWriteType = "Yellow"
-                $eemsOveralState = "Disabled on org level"
+                $eemsOverallState = "Disabled on org level"
             } elseif (($mitigationService.MitigationServiceSrvState -eq $false) -and
                 ($mitigationService.MitigationServiceOrgState)) {
                 $eemsWriteType = "Yellow"
-                $eemsOveralState = "Disabled on server level"
+                $eemsOverallState = "Disabled on server level"
             } else {
                 $eemsWriteType = "Yellow"
-                $eemsOveralState = "Disabled"
+                $eemsOverallState = "Disabled"
             }
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details $eemsOveralState `
-                -DisplayGroupingKey $DisplayGroupingKey `
-                -DisplayWriteType $eemsWriteType
+            $params = $baseParams + @{
+                Name             = "Exchange Emergency Mitigation Service"
+                Details          = $eemsOverallState
+                DisplayWriteType = $eemsWriteType
+            }
+            Add-AnalyzedResultInformation @params
 
             if ($eemsWriteType -ne "Green") {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-EEMS" `
-                    -DisplayGroupingKey $DisplayGroupingKey `
-                    -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType $eemsWriteType `
-                    -AddHtmlDetailRow $false
+                $params = $baseParams + @{
+                    Details                = "More Information: https://aka.ms/HC-EEMS"
+                    DisplayWriteType       = $eemsWriteType
+                    DisplayCustomTabNumber = 2
+                    AddHtmlDetailRow       = $false
+                }
+                Add-AnalyzedResultInformation @params
             }
 
             $eemsWinSrvWriteType = "Yellow"
@@ -67,10 +76,13 @@ Function Invoke-AnalyzerSecurityMitigationService {
                 $details = "Unknown"
             }
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Windows service" -Details $details `
-                -DisplayGroupingKey $DisplayGroupingKey `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType $eemsWinSrvWriteType
+            $params = $baseParams + @{
+                Name                   = "Windows service"
+                Details                = $details
+                DisplayWriteType       = $eemsWinSrvWriteType
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
 
             if ($mitigationService.MitigationServiceEndpoint -eq 200) {
                 $eemsPatternServiceWriteType = "Grey"
@@ -79,42 +91,59 @@ Function Invoke-AnalyzerSecurityMitigationService {
                 $eemsPatternServiceWriteType = "Yellow"
                 $eemsPatternServiceStatus = "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
             }
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Pattern service" -Details $eemsPatternServiceStatus `
-                -DisplayGroupingKey $DisplayGroupingKey `
-                -DisplayCustomTabNumber 2 `
-                -DisplayWriteType $eemsPatternServiceWriteType
+            $params = $baseParams + @{
+                Name                   = "Pattern service"
+                Details                = $eemsPatternServiceStatus
+                DisplayWriteType       = $eemsPatternServiceWriteType
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
 
             if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsApplied))) {
                 foreach ($mitigationApplied in $mitigationService.MitigationsApplied) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Mitigation applied" -Details $mitigationApplied `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayCustomTabNumber 2
+                    $params = $baseParams + @{
+                        Name                   = "Mitigation applied"
+                        Details                = $mitigationApplied
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
 
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details ("Run: 'Get-Mitigations.ps1' from: '{0}' to learn more." -f $exscripts) `
-                    -DisplayGroupingKey $DisplayGroupingKey `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Details                = "Run: 'Get-Mitigations.ps1' from: '$exscripts' to learn more."
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
 
             if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsBlocked))) {
                 foreach ($mitigationBlocked in $mitigationService.MitigationsBlocked) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Mitigation blocked" -Details $mitigationBlocked `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayCustomTabNumber 2 `
-                        -DisplayWriteType "Yellow"
+                    $params = $baseParams + @{
+                        Name                   = "Mitigation blocked"
+                        Details                = $mitigationBlocked
+                        DisplayWriteType       = "Yellow"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
             }
 
             if (-not([String]::IsNullOrEmpty($mitigationService.DataCollectionEnabled))) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Name "Telemetry enabled" -Details $mitigationService.DataCollectionEnabled `
-                    -DisplayGroupingKey $DisplayGroupingKey `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Name                   = "Telemetry enabled"
+                    Details                = $mitigationService.DataCollectionEnabled
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
         } else {
             Write-Verbose "Unable to validate Exchange Emergency Mitigation Service state"
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Exchange Emergency Mitigation Service" -Details "Failed to query config" `
-                -DisplayGroupingKey $DisplayGroupingKey `
-                -DisplayWriteType "Red"
+            $params = $baseParams + @{
+                Name             = "Exchange Emergency Mitigation Service"
+                Details          = "Failed to query config"
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
         }
     } else {
         Write-Verbose "Exchange Emergency Mitigation Service feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
