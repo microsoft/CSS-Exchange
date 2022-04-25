@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Copy-BulkItems.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 Function Save-WindowsEventLogs {
 
     Write-Verbose("Function Enter: Save-WindowsEventLogs")
@@ -14,15 +15,52 @@ Function Save-WindowsEventLogs {
             $_.VersionInfo.FileName
         }
 
-    if ($PassedInfo.AppSysLogs) {
-        Write-Verbose("Adding Application and System Logs")
-        $logs = @()
-        $logs += "$rootLogPath\Application.evtx"
-        $logs += "$rootLogPath\System.evtx"
-        $logs += "$rootLogPath\MSExchange Management.evtx"
+    $baseRegistryLocation = "SYSTEM\CurrentControlSet\Services\EventLog\"
+    $logs = @()
+    $baseParams = @{
+        MachineName = $env:COMPUTERNAME
+        GetValue    = "File"
     }
 
-    if ($PassedInfo.WindowsSecurityLogs) { $logs += "$rootLogPath\Security.evtx" }
+    if ($PassedInfo.AppSysLogs) {
+        Write-Verbose("Adding Application and System Logs")
+
+        $appParams = $baseParams + @{
+            SubKey = "$baseRegistryLocation`Application"
+        }
+        $sysParams = $baseParams + @{
+            SubKey = "$baseRegistryLocation`System"
+        }
+        $manParams = $baseParams + @{
+            SubKey = "$baseRegistryLocation`MSExchange Management"
+        }
+        $applicationLogs = Get-RemoteRegistryValue @appParams
+        $systemLogs = Get-RemoteRegistryValue @sysParams
+        $managementLogs = Get-RemoteRegistryValue @manParams
+
+        if ($null -eq $applicationLogs) { $applicationLogs = "$rootLogPath\Application.evtx" }
+
+        if ($null -eq $systemLogs) { $systemLogs = "$rootLogPath\System.evtx" }
+
+        if ($null -eq $managementLogs) { $managementLogs = "$rootLogPath\MSExchange Management.evtx" }
+
+        $logs += $applicationLogs
+        $logs += $systemLogs
+        $logs += $managementLogs
+    }
+
+    if ($PassedInfo.WindowsSecurityLogs) {
+
+        $secParams = $baseParams + @{
+            SubKey = "$baseRegistryLocation`Security"
+        }
+        $securityLogs = Get-RemoteRegistryValue @secParams
+
+        if ($null -eq $securityLogs) {
+            $securityLogs = "$rootLogPath\Security.evtx"
+        }
+        $logs += $securityLogs
+    }
 
     if ($PassedInfo.AppSysLogs -or
         $PassedInfo.WindowsSecurityLogs) {
