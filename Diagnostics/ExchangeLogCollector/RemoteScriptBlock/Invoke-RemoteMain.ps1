@@ -213,7 +213,7 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.MessageTrackingLogs -and
             (-not ($Script:localServerObject.Version -eq 15 -and
                 $Script:localServerObject.CASOnly))) {
-            Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.MessageTrackingLogPath "Message_Tracking_Logs"
+            Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.MessageTrackingLogPath "Message_Tracking_Logs" $false
         }
 
         if ($PassedInfo.HubProtocolLogs -and

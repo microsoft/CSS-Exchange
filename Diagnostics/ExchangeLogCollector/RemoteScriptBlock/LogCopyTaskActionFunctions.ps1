@@ -24,6 +24,17 @@ Function NewLogCopyParameters {
     }
 }
 
+Function NewLogCopyBasedOffTimeParameters {
+    param(
+        [string]$LogPath,
+        [string]$CopyToThisLocation,
+        [bool]$IncludeSubDirectory
+    )
+    return (NewLogCopyParameters $LogPath $CopyToThisLocation) + @{
+        IncludeSubDirectory = $IncludeSubDirectory
+    }
+}
+
 Function GetTaskActionToString {
     [CmdletBinding()]
     [OutputType([string])]
@@ -49,11 +60,17 @@ Function Add-TaskAction {
 Function Add-LogCopyBasedOffTimeTaskAction {
     param(
         [string]$LogPath,
-        [string]$CopyToThisLocation
+        [string]$CopyToThisLocation,
+        [bool]$IncludeSubDirectory = $true
     )
+    $timeCopyParams = @{
+        LogPath             = $LogPath
+        CopyToThisLocation  = $CopyToThisLocation
+        IncludeSubDirectory = $IncludeSubDirectory
+    }
     $params = @{
         FunctionName = "Copy-LogsBasedOnTime"
-        Parameters   = (NewLogCopyParameters $LogPath $CopyToThisLocation)
+        Parameters   = (NewLogCopyBasedOffTimeParameters @timeCopyParams)
     }
     $Script:taskActionList.Add((NewTaskAction @params))
 }
