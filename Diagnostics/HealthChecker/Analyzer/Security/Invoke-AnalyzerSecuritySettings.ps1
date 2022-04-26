@@ -20,8 +20,12 @@ Function Invoke-AnalyzerSecuritySettings {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keySecuritySettings = Get-DisplayResultsGroupingKey -Name "Security Settings"  -DisplayOrder $Order
     $osInformation = $HealthServerObject.OSInformation
+    $keySecuritySettings = (Get-DisplayResultsGroupingKey -Name "Security Settings"  -DisplayOrder $Order)
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = $keySecuritySettings
+    }
 
     ##############
     # TLS Settings
@@ -67,15 +71,17 @@ Function Invoke-AnalyzerSecuritySettings {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
-            DisplayObject      = $outputObjectDisplayValue
-            ColorizerFunctions = @($sbConfiguration)
-            IndentSpaces       = 8
-        }) `
-        -DisplayGroupingKey $keySecuritySettings `
-        -OutColumnsColorTests @($sbConfiguration) `
-        -HtmlName "TLS Settings" `
-        -TestingName "TLS Settings Group"
+    $params = $baseParams + @{
+        OutColumns           = ([PSCustomObject]@{
+                DisplayObject      = $outputObjectDisplayValue
+                ColorizerFunctions = @($sbConfiguration)
+                IndentSpaces       = 8
+            })
+        OutColumnsColorTests = @($sbConfiguration)
+        HtmlName             = "TLS Settings"
+        TestingName          = "TLS Settings Group"
+    }
+    Add-AnalyzedResultInformation @params
 
     Function GetBadTlsValueSetting {
         [CmdletBinding()]
@@ -96,9 +102,12 @@ Function Invoke-AnalyzerSecuritySettings {
         if ($null -ne $results) {
             $displayLinkToDocsPage = $true
             foreach ($result in $results) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Name "$($result.TLSVersion) $testValue" -Details ("$($result."$testValue") --- Error: Must be a value of 1 or 0.") `
-                    -DisplayGroupingKey $keySecuritySettings `
-                    -DisplayWriteType "Red"
+                $params = $baseParams + @{
+                    Name             = "$($result.TLSVersion) $testValue"
+                    Details          = "$($result."$testValue") --- Error: Must be a value of 1 or 0."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
             }
         }
     }
@@ -106,44 +115,54 @@ Function Invoke-AnalyzerSecuritySettings {
     if ($lowerTlsVersionDisabled -and
         ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
         $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2" `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2"
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($misconfiguredClientServerSettings) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication." `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Details                = "Error: Mismatch in TLS version for client and server. Exchange can be both client and a server. This can cause issues within Exchange for communication."
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
 
         $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
             "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
             "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "For More Information on how to properly set TLS follow these blog posts:" `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -TestingName "Detected TLS Mismatch Display More Info" `
-            -DisplayTestingValue $true `
-            -DisplayWriteType "Yellow"
+        $params = $baseParams + @{
+            Details                = "For More Information on how to properly set TLS follow these blog posts:"
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "Detected TLS Mismatch Display More Info"
+        }
+        Add-AnalyzedResultInformation @params
 
         foreach ($displayValue in $displayValues) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details $displayValue `
-                -DisplayGroupingKey $keySecuritySettings `
-                -DisplayWriteType "Yellow" `
-                -DisplayCustomTabNumber 3
+            $params = $baseParams + @{
+                Details                = $displayValue
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 3
+            }
+            Add-AnalyzedResultInformation @params
         }
     }
 
     if ($displayLinkToDocsPage) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-TLSConfigDocs" `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayCustomTabNumber 2 `
-            -TestingName "Display Link to Docs Page" `
-            -DisplayTestingValue $true `
-            -DisplayWriteType "Yellow"
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-TLSConfigDocs"
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "Display Link to Docs Page"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $netVersions = @("NETv4", "NETv2")
@@ -161,16 +180,21 @@ Function Invoke-AnalyzerSecuritySettings {
         )
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
-            DisplayObject = $outputObjectDisplayValue
-            IndentSpaces  = 8
-        }) `
-        -DisplayGroupingKey $keySecuritySettings `
-        -HtmlName "TLS NET Settings" `
-        -TestingName "NET TLS Settings Group"
+    $params = $baseParams + @{
+        OutColumns  = ([PSCustomObject]@{
+                DisplayObject = $outputObjectDisplayValue
+                IndentSpaces  = 8
+            })
+        HtmlName    = "TLS NET Settings"
+        TestingName = "NET TLS Settings Group"
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SecurityProtocol" -Details ($osInformation.TLSSettings.SecurityProtocol) `
-        -DisplayGroupingKey $keySecuritySettings
+    $params = $baseParams + @{
+        Name    = "SecurityProtocol"
+        Details = $osInformation.TLSSettings.SecurityProtocol
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($null -ne $osInformation.TLSSettings.TlsCipherSuite) {
         $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
@@ -185,22 +209,30 @@ Function Invoke-AnalyzerSecuritySettings {
             )
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
-                DisplayObject = $outputObjectDisplayValue
-                IndentSpaces  = 8
-            }) `
-            -DisplayGroupingKey $keySecuritySettings `
-            -HtmlName "TLS Cipher Suite" `
-            -TestingName "TLS Cipher Suite Group"
+        $params = $baseParams + @{
+            OutColumns  = ([PSCustomObject]@{
+                    DisplayObject = $outputObjectDisplayValue
+                    IndentSpaces  = 8
+                })
+            HtmlName    = "TLS Cipher Suite"
+            TestingName = "TLS Cipher Suite Group"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "LmCompatibilityLevel Settings" -Details ($osInformation.LmCompatibility.RegistryValue) `
-        -DisplayGroupingKey $keySecuritySettings
+    $params = $baseParams + @{
+        Name    = "LmCompatibilityLevel Settings"
+        Details = $osInformation.LmCompatibility.RegistryValue
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Description" -Details ($osInformation.LmCompatibility.Description) `
-        -DisplayGroupingKey $keySecuritySettings `
-        -DisplayCustomTabNumber 2 `
-        -AddHtmlDetailRow $false
+    $params = $baseParams + @{
+        Name                   = "Description"
+        Details                = $osInformation.LmCompatibility.Description
+        DisplayCustomTabNumber = 2
+        AddHtmlDetailRow       = $false
+    }
+    Add-AnalyzedResultInformation @params
 
     $additionalDisplayValue = [string]::Empty
     $smb1Settings = $osInformation.Smb1ServerSettings
@@ -218,9 +250,12 @@ Function Invoke-AnalyzerSecuritySettings {
             $additionalDisplayValue = "SMB1 should be uninstalled"
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "SMB1 Installed" -Details $displayValue `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType $writeType
+        $params = $baseParams + @{
+            Name             = "SMB1 Installed"
+            Details          = $displayValue
+            DisplayWriteType = $writeType
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $writeType = "Green"
@@ -235,18 +270,23 @@ Function Invoke-AnalyzerSecuritySettings {
         $additionalDisplayValue += " SMB1 should be blocked"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "SMB1 Blocked" -Details $displayValue `
-        -DisplayGroupingKey $keySecuritySettings `
-        -DisplayWriteType $writeType
+    $params = $baseParams + @{
+        Name             = "SMB1 Blocked"
+        Details          = $displayValue
+        DisplayWriteType = $writeType
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($additionalDisplayValue -ne [string]::Empty) {
         $additionalDisplayValue += "`r`n`t`tMore Information: https://aka.ms/HC-SMB1"
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details $additionalDisplayValue.Trim() `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Yellow" `
-            -DisplayCustomTabNumber 2 `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Details                = $additionalDisplayValue.Trim()
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+            AddHtmlDetailRow       = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
@@ -254,17 +294,25 @@ Function Invoke-AnalyzerSecuritySettings {
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
 
     if ($HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details $true `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Name             = "FIP-FS Update Issue Detected"
+            Details          = $true
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details "More Information: https://aka.ms/HC-FIPFSUpdateIssue" `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Red" `
-            -DisplayCustomTabNumber 2
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-FIPFSUpdateIssue"
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     } elseif ($null -eq $HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIP-FS Update Issue Detected" -Details "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent." `
-            -DisplayGroupingKey $keySecuritySettings `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Name             = "FIP-FS Update Issue Detected"
+            Details          = "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent."
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
     }
 }

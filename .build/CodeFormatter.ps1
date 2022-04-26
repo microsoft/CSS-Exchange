@@ -1,6 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = '$filesFailed is being used.')]
 [CmdletBinding()]
 param(
     [Switch]
@@ -8,6 +7,8 @@ param(
 )
 
 #Requires -Version 7
+
+Set-StrictMode -Version Latest
 
 . $PSScriptRoot\Load-Module.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckFileHasNewlineAtEndOfFile.ps1
@@ -45,8 +46,11 @@ foreach ($fileInfo in $filesToCheck) {
     # for the function to output the diff while preserving the color. So we unfortunately
     # have to handle the output here.
     $results = @(CheckScriptFormat $fileInfo $Save)
-    if ($results[0]) {
-        git -c color.status=always diff ($($results[1]) | git hash-object -w --stdin) ($($results[2]) | git hash-object -w --stdin)
+    if ($results.Length -gt 0 -and $results[0] -eq $true) {
+        $errorCount++
+        if ($results.Length -gt 2) {
+            git -c color.status=always diff ($($results[1]) | git hash-object -w --stdin) ($($results[2]) | git hash-object -w --stdin)
+        }
     }
 }
 
@@ -57,7 +61,7 @@ foreach ($fileInfo in $filesToCheck) {
         try {
             $analyzerResults = Invoke-ScriptAnalyzer -Path $FileInfo.FullName -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -ErrorAction Stop
             if ($null -ne $analyzerResults) {
-                $filesFailed = $true
+                $errorCount++
                 $analyzerResults | Format-Table -AutoSize
             }
             break
