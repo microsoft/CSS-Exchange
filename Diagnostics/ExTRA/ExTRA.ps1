@@ -1,5 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+[CmdletBinding()]
+param(
+    [switch]$ShowCommandOnly
+)
 
 $tagFileBytes = Get-Content "$PSScriptRoot\tags.txt" -AsByteStream -Raw
 
@@ -12,6 +16,32 @@ $htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
 $uri = "http://localhost:5002/"
 
 $outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
+
+Function ShowCommandToHost {
+    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
+    Write-Host
+    Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 1024 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To create a data collector which is circular and stops at 2 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To start the trace:"
+    Write-Host
+    Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "To stop the trace:"
+    Write-Host
+    Write-Host "logman stop ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "The collector can also be started and stopped from Perfmon."
+}
 
 function GetTagsFromFile($file) {
     $tags = $file | ForEach-Object {
@@ -32,6 +62,11 @@ function GetTagsFromFile($file) {
     }
 
     return $tags
+}
+
+if ($ShowCommandOnly) {
+    ShowCommandToHost
+    return
 }
 
 $extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine)
@@ -138,29 +173,7 @@ try {
 }
 
 if (Test-Path $outputPath) {
-    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
-    Write-Host
-    Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 1024 -mode globalsequence" -ForegroundColor Green
-    Write-Host
-    Write-Host "To create a data collector which is circular and stops at 2 GB:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048 -mode globalsequence" -ForegroundColor Green
-    Write-Host
-    Write-Host "To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0 -mode globalsequence" -ForegroundColor Green
-    Write-Host
-    Write-Host "To start the trace:"
-    Write-Host
-    Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
-    Write-Host
-    Write-Host "To stop the trace:"
-    Write-Host
-    Write-Host "logman stop ExchangeDebugTraces" -ForegroundColor Green
-    Write-Host
-    Write-Host "The collector can also be started and stopped from Perfmon."
+    ShowCommandToHost
 }
 
 if ($MyInvocation.InvocationName -eq "&") {
