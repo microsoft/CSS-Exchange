@@ -18,6 +18,10 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
     $osInformation = $HealthServerObject.OSInformation
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = $DisplayGroupingKey
+    }
 
     # AMSI integration is only available on Windows Server 2016 or higher and only on
     # Exchange Server 2016 CU21+ or Exchange Server 2019 CU10+.
@@ -75,15 +79,20 @@ Function Invoke-AnalyzerSecurityAMSIConfigState {
             $additionalAMSIDisplayValue = "Unable to query Exchange AMSI integration state"
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "AMSI Enabled" -Details $amsiState `
-            -DisplayGroupingKey $DisplayGroupingKey `
-            -DisplayWriteType $amsiWriteType
+        $params = $baseParams + @{
+            Name             = "AMSI Enabled"
+            Details          = $amsiState
+            DisplayWriteType = $amsiWriteType
+        }
+        Add-AnalyzedResultInformation @params
 
         if ($null -ne $additionalAMSIDisplayValue) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details $additionalAMSIDisplayValue `
-                -DisplayGroupingKey $DisplayGroupingKey `
-                -DisplayWriteType $amsiWriteType `
-                -DisplayCustomTabNumber 2
+            $params = $baseParams + @{
+                Details                = $additionalAMSIDisplayValue
+                DisplayWriteType       = $amsiWriteType
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
         }
     } else {
         Write-Verbose "AMSI integration is not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU"
