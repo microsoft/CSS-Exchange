@@ -17,8 +17,11 @@ Function Invoke-AnalyzerWebAppPools {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keyWebApps = Get-DisplayResultsGroupingKey -Name "Exchange Web App Pools"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Exchange Web App Pools"  -DisplayOrder $Order)
+    }
 
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
         Write-Verbose "Working on Exchange Web App GC Mode"
@@ -47,13 +50,15 @@ Function Invoke-AnalyzerWebAppPools {
 
         $sbStarted = { param($o, $p) if ($p -eq "State") { if ($o."$p" -eq "Started") { "Green" } else { "Red" } } }
         $sbRestart = { param($o, $p) if ($p -eq "RestartConditionSet") { if ($o."$p") { "Red" } else { "Green" } } }
-        $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
-                DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($sbStarted, $sbRestart)
-                IndentSpaces       = 8
-            }) `
-            -DisplayGroupingKey $keyWebApps `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            OutColumns       = ([PSCustomObject]@{
+                    DisplayObject      = $outputObjectDisplayValue
+                    ColorizerFunctions = @($sbStarted, $sbRestart)
+                    IndentSpaces       = 8
+                })
+            AddHtmlDetailRow = $false
+        }
+        Add-AnalyzedResultInformation @params
 
         $periodicStartAppPools = $outputObjectDisplayValue | Where-Object { $_.RestartConditionSet -eq $true }
 
@@ -94,18 +99,22 @@ Function Invoke-AnalyzerWebAppPools {
                 }
             }
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -OutColumns ([PSCustomObject]@{
-                    DisplayObject      = $outputObjectDisplayValue
-                    ColorizerFunctions = @($sbColorizer)
-                    IndentSpaces       = 8
-                }) `
-                -DisplayGroupingKey $keyWebApps `
-                -AddHtmlDetailRow $false
+            $params = $baseParams + @{
+                OutColumns       = ([PSCustomObject]@{
+                        DisplayObject      = $outputObjectDisplayValue
+                        ColorizerFunctions = @($sbColorizer)
+                        IndentSpaces       = 8
+                    })
+                AddHtmlDetailRow = $false
+            }
+            Add-AnalyzedResultInformation @params
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details "Error: The above app pools currently have the periodic restarts set. This restart will cause disruption to end users." `
-                -DisplayGroupingKey $keyWebApps `
-                -DisplayWriteType "Red" `
-                -AddHtmlDetailRow $false
+            $params = $baseParams + @{
+                Details          = "Error: The above app pools currently have the periodic restarts set. This restart will cause disruption to end users."
+                DisplayWriteType = "Red"
+                AddHtmlDetailRow = $false
+            }
+            Add-AnalyzedResultInformation @params
         }
     }
 }

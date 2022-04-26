@@ -18,6 +18,10 @@ Function Invoke-AnalyzerKnownBuildIssues {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = $DisplayGroupingKey
+    }
 
     # Extract for Pester Testing - Start
     Function GetVersionFromString {
@@ -117,21 +121,27 @@ Function Invoke-AnalyzerKnownBuildIssues {
                 if (-not ($Script:DisplayKnownIssueHeader)) {
                     $Script:DisplayKnownIssueHeader = $true
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Known Issue Detected" `
-                        -Details "True" `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayWriteType "Yellow"
+                    $params = $baseParams + @{
+                        Name             = "Known Issue Detected"
+                        Details          = "True"
+                        DisplayWriteType = "Yellow"
+                    }
+                    Add-AnalyzedResultInformation @params
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Details "This build has a known issue(s) which may or may not have been addressed. See the below link(s) for more information.`r`n" `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayCustomTabNumber 2 `
-                        -DisplayWriteType "Yellow"
+                    $params = $baseParams + @{
+                        Details                = "This build has a known issue(s) which may or may not have been addressed. See the below link(s) for more information.`r`n"
+                        DisplayWriteType       = "Yellow"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
 
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details "$($InformationUrl.Name):`r`n`t`t`t$($InformationUrl.Url)" `
-                    -DisplayGroupingKey $DisplayGroupingKey `
-                    -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType "Yellow"
+                $params = $baseParams + @{
+                    Details                = "$($InformationUrl.Name):`r`n`t`t`t$($InformationUrl.Url)"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
 
                 if (-not ($Script:CachedKnownIssues.Contains($InformationUrl))) {
                     $Script:CachedKnownIssues += $InformationUrl

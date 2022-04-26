@@ -17,14 +17,20 @@ Function Invoke-AnalyzerHybridInformation {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keyHybridInformation = Get-DisplayResultsGroupingKey -Name "Hybrid Information"  -DisplayOrder $Order
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = Get-DisplayResultsGroupingKey -Name "Hybrid Information"  -DisplayOrder $Order
+    }
     $exchangeInformation = $HealthServerObject.ExchangeInformation
 
     if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $null -ne $exchangeInformation.GetHybridConfiguration) {
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Organization Hybrid Enabled" -Details "True" `
-            -DisplayGroupingKey $keyHybridInformation
+        $params = $baseParams + @{
+            Name    = "Organization Hybrid Enabled"
+            Details = "True"
+        }
+        Add-AnalyzedResultInformation @params
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost))) {
             $onPremSmartHostDomain = ($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost).ToString()
@@ -34,9 +40,12 @@ Function Invoke-AnalyzerHybridInformation {
             $onPremSmartHostWriteType = "Yellow"
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "On-Premises Smart Host Domain" -Details $onPremSmartHostDomain `
-            -DisplayGroupingKey $keyHybridInformation `
-            -DisplayWriteType $onPremSmartHostWriteType
+        $params = $baseParams + @{
+            Name             = "On-Premises Smart Host Domain"
+            Details          = $onPremSmartHostDomain
+            DisplayWriteType = $onPremSmartHostWriteType
+        }
+        Add-AnalyzedResultInformation @params
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Domains))) {
             $domainsConfiguredForHybrid = $exchangeInformation.GetHybridConfiguration.Domains
@@ -45,110 +54,142 @@ Function Invoke-AnalyzerHybridInformation {
             $domainsConfiguredForHybridWriteType = "Yellow"
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Domain(s) configured for Hybrid use" `
-            -DisplayGroupingKey $keyHybridInformation `
-            -DisplayWriteType $domainsConfiguredForHybridWriteType
+        $params = $baseParams + @{
+            Name             = "Domain(s) configured for Hybrid use"
+            DisplayWriteType = $domainsConfiguredForHybridWriteType
+        }
+        Add-AnalyzedResultInformation @params
 
         if ($domainsConfiguredForHybrid.Count -ge 1) {
             foreach ($domain in $domainsConfiguredForHybrid) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details $domain `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayWriteType $domainsConfiguredForHybridWriteType `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Details                = $domain
+                    DisplayWriteType       = $domainsConfiguredForHybridWriteType
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
         } else {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details "No domain configured for Hybrid use" `
-                -DisplayGroupingKey $keyHybridInformation `
-                -DisplayWriteType $domainsConfiguredForHybridWriteType `
-                -DisplayCustomTabNumber 2
+            $params = $baseParams + @{
+                Details                = "No domain configured for Hybrid use"
+                DisplayWriteType       = $domainsConfiguredForHybridWriteType
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
         }
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.EdgeTransportServers))) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" `
-                -DisplayGroupingKey $keyHybridInformation
+            Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" @baseParams
 
             foreach ($edgeServer in $exchangeInformation.GetHybridConfiguration.EdgeTransportServers) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details $edgeServer `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Details                = $edgeServer
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
 
             if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers)) -or
             (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers)))) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null" `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayWriteType "Yellow" `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
         } else {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" `
-                -DisplayGroupingKey $keyHybridInformation
+            Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" @baseParams
 
             if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers))) {
                 foreach ($receivingTransportSrv in $exchangeInformation.GetHybridConfiguration.ReceivingTransportServers) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Details $receivingTransportSrv `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayCustomTabNumber 2
+                    $params = $baseParams + @{
+                        Details                = $receivingTransportSrv
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
             } else {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details "No Receiving Transport Server configured for Hybrid use" `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType "Yellow"
+                $params = $baseParams + @{
+                    Details                = "No Receiving Transport Server configured for Hybrid use"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" `
-                -DisplayGroupingKey $keyHybridInformation
+            Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" @baseParams
 
             if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers))) {
                 foreach ($sendingTransportSrv in $exchangeInformation.GetHybridConfiguration.SendingTransportServers) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Details $sendingTransportSrv `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayCustomTabNumber 2
+                    $params = $baseParams + @{
+                        Details                = $sendingTransportSrv
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
             } else {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details "No Sending Transport Server configured for Hybrid use" `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayCustomTabNumber 2 `
-                    -DisplayWriteType "Yellow"
+                $params = $baseParams + @{
+                    Details                = "No Sending Transport Server configured for Hybrid use"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
         }
 
         if ($exchangeInformation.GetHybridConfiguration.ServiceInstance -eq 1) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Service Instance" -Details "Office 365 operated by 21Vianet" `
-                -DisplayGroupingKey $keyHybridInformation
+            $params = $baseParams + @{
+                Name    = "Service Instance"
+                Details = "Office 365 operated by 21Vianet"
+            }
+            Add-AnalyzedResultInformation @params
         } elseif ($exchangeInformation.GetHybridConfiguration.ServiceInstance -ne 0) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Service Instance" -Details ($exchangeInformation.GetHybridConfiguration.ServiceInstance) `
-                -DisplayGroupingKey $keyHybridInformation `
-                -DisplayWriteType "Red"
+            $params = $baseParams + @{
+                Name             = "Service Instance"
+                Details          = $exchangeInformation.GetHybridConfiguration.ServiceInstance
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details "You are using an invalid value. Please set this value to 0 (null) or re-run HCW" `
-                -DisplayGroupingKey $keyHybridInformation `
-                -DisplayWriteType "Red"
+            $params = $baseParams + @{
+                Details          = "You are using an invalid value. Please set this value to 0 (null) or re-run HCW"
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
         }
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details ($exchangeInformation.GetHybridConfiguration.TlsCertificateName).ToString() `
-                -DisplayGroupingKey $keyHybridInformation
+            $params = $baseParams + @{
+                Name    = "TLS Certificate Name"
+                Details = ($exchangeInformation.GetHybridConfiguration.TlsCertificateName).ToString()
+            }
+            Add-AnalyzedResultInformation @params
         } else {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name "TLS Certificate Name" -Details "No valid certificate found" `
-                -DisplayGroupingKey $keyHybridInformation `
-                -DisplayWriteType "Red"
+            $params = $baseParams + @{
+                Name             = "TLS Certificate Name"
+                Details          = "No valid certificate found"
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" `
-            -DisplayGroupingKey $keyHybridInformation
+        Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" @baseParams
 
         if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Features))) {
             foreach ($feature in $exchangeInformation.GetHybridConfiguration.Features) {
-                $AnalyzeResults | Add-AnalyzedResultInformation -Details $feature `
-                    -DisplayGroupingKey $keyHybridInformation `
-                    -DisplayCustomTabNumber 2
+                $params = $baseParams + @{
+                    Details                = $feature
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
             }
         } else {
-            $AnalyzeResults | Add-AnalyzedResultInformation -Details "No feature(s) enabled for Hybrid use" `
-                -DisplayGroupingKey $keyHybridInformation `
-                -DisplayCustomTabNumber 2
+            $params = $baseParams + @{
+                Details                = "No feature(s) enabled for Hybrid use"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
         }
 
         if ($null -ne $exchangeInformation.ExchangeConnectors) {
@@ -157,32 +198,46 @@ Function Invoke-AnalyzerHybridInformation {
                 if (($connector.TransportRole -ne "HubTransport") -and
                     ($connector.CloudEnabled -eq $true)) {
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Details "`r" `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -AddHtmlDetailRow $false
+                    $params = $baseParams + @{
+                        Details          = "`r"
+                        AddHtmlDetailRow = $false
+                    }
+                    Add-AnalyzedResultInformation @params
 
                     if (($connector.CertificateDetails.CertificateMatchDetected) -and
                         ($connector.CertificateDetails.GoodTlsCertificateSyntax)) {
                         $cloudConnectorWriteType = "Green"
                     }
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Name" -Details $connector.Name `
-                        -DisplayGroupingKey $keyHybridInformation
+                    $params = $baseParams + @{
+                        Name    = "Connector Name"
+                        Details = $connector.Name
+                    }
+                    Add-AnalyzedResultInformation @params
 
                     $cloudConnectorEnabledWriteType = "Gray"
                     if ($connector.Enabled -eq $false) {
                         $cloudConnectorEnabledWriteType = "Yellow"
                     }
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Enabled" -Details $connector.Enabled `
-                        -DisplayGroupingKey $keyHybridInformation `
-                        -DisplayWriteType $cloudConnectorEnabledWriteType
+                    $params = $baseParams + @{
+                        Name             = "Connector Enabled"
+                        Details          = $connector.Enabled
+                        DisplayWriteType = $cloudConnectorEnabledWriteType
+                    }
+                    Add-AnalyzedResultInformation @params
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Cloud Mail Enabled" -Details $connector.CloudEnabled `
-                        -DisplayGroupingKey $keyHybridInformation
+                    $params = $baseParams + @{
+                        Name    = "Cloud Mail Enabled"
+                        Details = $connector.CloudEnabled
+                    }
+                    Add-AnalyzedResultInformation @params
 
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Connector Type" -Details $connector.ConnectorType `
-                        -DisplayGroupingKey $keyHybridInformation
+                    $params = $baseParams + @{
+                        Name    = "Connector Type"
+                        Details = $connector.ConnectorType
+                    }
+                    Add-AnalyzedResultInformation @params
 
                     if (($connector.ConnectorType -eq "Send") -and
                         ($null -ne $connector.TlsAuthLevel)) {
@@ -212,15 +267,20 @@ Function Invoke-AnalyzerHybridInformation {
                                 }
                             }
 
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $tlsAuthLevelWriteType
+                            $params = $baseParams + @{
+                                Name             = "TlsAuthLevel"
+                                Details          = $connector.TlsAuthLevel
+                                DisplayWriteType = $tlsAuthLevelWriteType
+                            }
+                            Add-AnalyzedResultInformation @params
 
                             if ($null -ne $tlsAuthLevelAdditionalInfo) {
-                                $AnalyzeResults | Add-AnalyzedResultInformation -Details $tlsAuthLevelAdditionalInfo `
-                                    -DisplayGroupingKey $keyHybridInformation `
-                                    -DisplayWriteType $tlsAuthLevelWriteType `
-                                    -DisplayCustomTabNumber 2
+                                $params = $baseParams + @{
+                                    Details                = $tlsAuthLevelAdditionalInfo
+                                    DisplayWriteType       = $tlsAuthLevelWriteType
+                                    DisplayCustomTabNumber = 2
+                                }
+                                Add-AnalyzedResultInformation @params
                             }
                         }
                     }
@@ -229,8 +289,11 @@ Function Invoke-AnalyzerHybridInformation {
                         ($addressSpacesContainsWildcard)) {
                         # Seems like this send connector is configured to relay mails to the internet via M365 - skipping some checks
                         # https://docs.microsoft.com/exchange/mail-flow-best-practices/use-connectors-to-configure-mail-flow/set-up-connectors-to-route-mail#2-set-up-your-email-server-to-relay-mail-to-the-internet-via-microsoft-365-or-office-365
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Relay Internet Mails via M365" -Details $true `
-                            -DisplayGroupingKey $keyHybridInformation
+                        $params = $baseParams + @{
+                            Name    = "Relay Internet Mails via M365"
+                            Details = $true
+                        }
+                        Add-AnalyzedResultInformation @params
 
                         Switch ($connector.TlsAuthLevel) {
                             "EncryptionOnly" {
@@ -252,15 +315,20 @@ Function Invoke-AnalyzerHybridInformation {
                             Default { $tlsAuthLevelM365RelayWriteType = "Red" }
                         }
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsAuthLevel" -Details $connector.TlsAuthLevel `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $tlsAuthLevelM365RelayWriteType
+                        $params = $baseParams + @{
+                            Name             = "TlsAuthLevel"
+                            Details          = $connector.TlsAuthLevel
+                            DisplayWriteType = $tlsAuthLevelM365RelayWriteType
+                        }
+                        Add-AnalyzedResultInformation @params
 
                         if ($tlsAuthLevelM365RelayWriteType -ne "Green") {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "'TlsAuthLevel' should be set to 'CertificateValidation'. More information: https://aka.ms/HC-HybridConnector" `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $tlsAuthLevelM365RelayWriteType `
-                                -DisplayCustomTabNumbermber 2
+                            $params = $baseParams + @{
+                                Details                = "'TlsAuthLevel' should be set to 'CertificateValidation'. More information: https://aka.ms/HC-HybridConnector"
+                                DisplayWriteType       = $tlsAuthLevelM365RelayWriteType
+                                DisplayCustomTabNumber = 2
+                            }
+                            Add-AnalyzedResultInformation @params
                         }
 
                         $requireTlsWriteType = "Red"
@@ -268,15 +336,20 @@ Function Invoke-AnalyzerHybridInformation {
                             $requireTlsWriteType = "Green"
                         }
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "RequireTls Enabled" -Details $connector.RequireTLS `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $requireTlsWriteType
+                        $params = $baseParams + @{
+                            Name             = "RequireTls Enabled"
+                            Details          = $connector.RequireTLS
+                            DisplayWriteType = $requireTlsWriteType
+                        }
+                        Add-AnalyzedResultInformation @params
 
                         if ($requireTlsWriteType -eq "Red") {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "'RequireTLS' must be set to 'true' to ensure a working mail flow. More information: https://aka.ms/HC-HybridConnector" `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $requireTlsWriteType `
-                                -DisplayCustomTabNumber 2
+                            $params = $baseParams + @{
+                                Details                = "'RequireTLS' must be set to 'true' to ensure a working mail flow. More information: https://aka.ms/HC-HybridConnector"
+                                DisplayWriteType       = $requireTlsWriteType
+                                DisplayCustomTabNumber = 2
+                            }
+                            Add-AnalyzedResultInformation @params
                         }
                     } else {
                         $cloudConnectorTlsCertificateName = "Not set"
@@ -284,36 +357,46 @@ Function Invoke-AnalyzerHybridInformation {
                             $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
                         }
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName" -Details $cloudConnectorTlsCertificateName `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $cloudConnectorWriteType
+                        $params = $baseParams + @{
+                            Name             = "TlsCertificateName"
+                            Details          = $cloudConnectorTlsCertificateName
+                            DisplayWriteType = $cloudConnectorWriteType
+                        }
+                        Add-AnalyzedResultInformation @params
 
-                        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Found On Server" -Details $connector.CertificateDetails.CertificateMatchDetected `
-                            -DisplayGroupingKey $keyHybridInformation `
-                            -DisplayWriteType $cloudConnectorWriteType
+                        $params = $baseParams + @{
+                            Name             = "Certificate Found On Server"
+                            Details          = $connector.CertificateDetails.CertificateMatchDetected
+                            DisplayWriteType = $cloudConnectorWriteType
+                        }
+                        Add-AnalyzedResultInformation @params
 
                         if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "There is no 'TlsCertificateName' configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector" `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $cloudConnectorWriteType `
-                                -DisplayCustomTabNumber 2
+                            $params = $baseParams + @{
+                                Details                = "There is no 'TlsCertificateName' configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector"
+                                DisplayWriteType       = $cloudConnectorWriteType
+                                DisplayCustomTabNumber = 2
+                            }
+                            Add-AnalyzedResultInformation @params
                         } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Details "The configured 'TlsCertificateName' was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector" `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $cloudConnectorWriteType `
-                                -DisplayCustomTabNumber 2
+                            $params = $baseParams + @{
+                                Details                = "The configured 'TlsCertificateName' was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector"
+                                DisplayWriteType       = $cloudConnectorWriteType
+                                DisplayCustomTabNumber = 2
+                            }
+                            Add-AnalyzedResultInformation @params
                         } else {
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" `
-                                -DisplayGroupingKey $keyHybridInformation
+                            Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" @baseParams
 
                             foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
-                                $AnalyzeResults | Add-AnalyzedResultInformation -Details $thumbprint `
-                                    -DisplayGroupingKey $keyHybridInformation `
-                                    -DisplayCustomTabNumber 2
+                                $params = $baseParams + @{
+                                    Details                = $thumbprint
+                                    DisplayCustomTabNumber = 2
+                                }
+                                Add-AnalyzedResultInformation @params
                             }
 
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Lifetime In Days" `
-                                -DisplayGroupingKey $keyHybridInformation
+                            Add-AnalyzedResultInformation -Name "Lifetime In Days" @baseParams
 
                             foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
                                 switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
@@ -322,10 +405,12 @@ Function Invoke-AnalyzerHybridInformation {
                                     Default { $certificateLifetimeWriteType = "Red" }
                                 }
 
-                                $AnalyzeResults | Add-AnalyzedResultInformation -Details ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint] `
-                                    -DisplayGroupingKey $keyHybridInformation `
-                                    -DisplayWriteType $certificateLifetimeWriteType `
-                                    -DisplayCustomTabNumber 2
+                                $params = $baseParams + @{
+                                    Details                = ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]
+                                    DisplayWriteType       = $certificateLifetimeWriteType
+                                    DisplayCustomTabNumber = 2
+                                }
+                                Add-AnalyzedResultInformation @params
                             }
 
                             $connectorCertificateMatchesHybridCertificate = $false
@@ -337,21 +422,29 @@ Function Invoke-AnalyzerHybridInformation {
                                 $connectorCertificateMatchesHybridCertificateWritingType = "Green"
                             }
 
-                            $AnalyzeResults | Add-AnalyzedResultInformation -Name "Certificate Matches Hybrid Certificate" -Details $connectorCertificateMatchesHybridCertificate `
-                                -DisplayGroupingKey $keyHybridInformation `
-                                -DisplayWriteType $connectorCertificateMatchesHybridCertificateWritingType
+                            $params = $baseParams + @{
+                                Name             = "Certificate Matches Hybrid Certificate"
+                                Details          = $connectorCertificateMatchesHybridCertificate
+                                DisplayWriteType = $connectorCertificateMatchesHybridCertificateWritingType
+                            }
+                            Add-AnalyzedResultInformation @params
 
                             if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
                                 (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
                                     ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
-                                $AnalyzeResults | Add-AnalyzedResultInformation -Name "TlsCertificateName Syntax Invalid" -Details "True" `
-                                    -DisplayGroupingKey $keyHybridInformation `
-                                    -DisplayWriteType $cloudConnectorWriteType
+                                $params = $baseParams + @{
+                                    Name             = "TlsCertificateName Syntax Invalid"
+                                    Details          = "True"
+                                    DisplayWriteType = $cloudConnectorWriteType
+                                }
+                                Add-AnalyzedResultInformation @params
 
-                                $AnalyzeResults | Add-AnalyzedResultInformation -Details "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'" `
-                                    -DisplayGroupingKey $keyHybridInformation `
-                                    -DisplayWriteType $cloudConnectorWriteType `
-                                    -DisplayCustomTabNumber 2
+                                $params = $baseParams + @{
+                                    Details                = "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'"
+                                    DisplayWriteType       = $cloudConnectorWriteType
+                                    DisplayCustomTabNumber = 2
+                                }
+                                Add-AnalyzedResultInformation @params
                             }
                         }
                     }
