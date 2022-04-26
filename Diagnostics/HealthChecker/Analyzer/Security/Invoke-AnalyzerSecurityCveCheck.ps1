@@ -42,12 +42,16 @@ Function Invoke-AnalyzerSecurityCveCheck {
                     ($fileBuildPart -eq $securityFixedBuildPart -and
                 $filePrivatePart -lt $securityFixedPrivatePart)) {
                 foreach ($cveName in $CVENames) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Security Vulnerability" `
-                        -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayTestingValue $cveName `
-                        -DisplayWriteType "Red" `
-                        -AddHtmlDetailRow $false
+                    $params = @{
+                        AnalyzedInformation = $AnalyzeResults
+                        DisplayGroupingKey  = $DisplayGroupingKey
+                        Name                = "Security Vulnerability"
+                        Details             = ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName)
+                        DisplayWriteType    = "Red"
+                        DisplayTestingValue = $cveName
+                        AddHtmlDetailRow    = $false
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
                 break
             }
