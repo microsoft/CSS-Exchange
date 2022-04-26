@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 [CmdletBinding()]
 param(
+    [ValidateSet("Search", "MRM")]
+    [string]$Scenario,
     [switch]$ShowCommandOnly
 )
 
@@ -9,9 +11,17 @@ $tagFileBytes = Get-Content "$PSScriptRoot\tags.txt" -AsByteStream -Raw
 
 $htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
 
+$searchTagFileBytes = Get-Content "$PSScriptRoot\searchTags.txt" -AsByteStream -Raw
+
+$mrmTagFileBytes = Get-Content "$PSScriptRoot\mrmTags.txt" -AsByteStream -Raw
+
 $tagFileContent = [System.Text.Encoding]::UTF8.GetString($tagFileBytes)
 
 $htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
+
+$searchTagFileContent = [System.Text.Encoding]::UTF8.GetString($searchTagFileBytes)
+
+$mrmTagFileContent = [System.Text.Encoding]::UTF8.GetString($mrmTagFileBytes)
 
 $uri = "http://localhost:5002/"
 
@@ -73,7 +83,11 @@ $extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine
 
 $alreadySelectedTags = $null
 
-if (Test-Path $outputPath) {
+if ($Scenario -eq "Search") {
+    $alreadySelectedTags = GetTagsFromFile $searchTagFileContent.Split([System.Environment]::NewLine)
+} elseif ($Scenario -eq "MRM") {
+    $alreadySelectedTags = GetTagsFromFile $mrmTagFileContent.Split([System.Environment]::NewLine)
+} elseif (Test-Path $outputPath) {
     $alreadySelectedTags = GetTagsFromFile (Get-Content $outputPath)
 }
 
