@@ -290,7 +290,7 @@ Function Invoke-AnalyzerNicSettings {
     }
 
     if ($osInformation.NetworkInformation.NetworkAdapters.Count -gt 1) {
-        $params = @{
+        $params = $baseParams + @{
             Details          = "Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://aka.ms/HC-PlanHA#network-requirements"
             AddHtmlDetailRow = $false
         }
