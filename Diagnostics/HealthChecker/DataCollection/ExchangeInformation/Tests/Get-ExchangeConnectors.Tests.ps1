@@ -34,6 +34,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnector.xml }
         Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetReceiveConnector.xml }
         $Script:exchangeCertificates = Get-ExchangeServerCertificates -ComputerName $Script:Server -ComputerName $Server
+        $Script:currentDate = [datetime]::ParseExact((Get-Date), "MM/dd/yyyy HH:mm:ss", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
     }
 
     Context "Validate Exchange Connectors Return Object" {
@@ -130,12 +131,12 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
             ($results[5].CertificateDetails.CertificateLifetimeInfo).Count | Should -Be 2
             foreach ($key in ($results[5].CertificateDetails.CertificateLifetimeInfo).keys) {
                 if ($key -eq "E267D459A0FB53D0EF225C11FAC062D522648C09") {
-                    $testDays = ([System.Convert]::ToDateTime("8/6/2026 3:56:14 PM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days
+                    $testDays = ([System.Convert]::ToDateTime("8/6/2026 3:56:14 PM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - $currentDate).Days
                     ($results[5].CertificateDetails.CertificateLifetimeInfo)[$key] | Should -Be $testDays
                 }
 
                 if ($key -eq "03221367D3A3E863698501592A9B9C420D8D3F4E") {
-                    $testDays = ([System.Convert]::ToDateTime("3/27/2027 9:12:35 AM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days
+                    $testDays = ([System.Convert]::ToDateTime("3/27/2027 9:12:35 AM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - $currentDate).Days
                     ($results[5].CertificateDetails.CertificateLifetimeInfo)[$key] | Should -Be $testDays
                 }
             }
@@ -221,7 +222,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
         It "Certificate Limetime Should Be Returned For Connectors With TlsCertificateName Set" {
             $cloudConnectors[1].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateMatch"
-            $testDays = ([System.Convert]::ToDateTime("8/6/2026 3:56:14 PM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days
+            $testDays = ([System.Convert]::ToDateTime("8/6/2026 3:56:14 PM", [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - $currentDate).Days
             $cloudConnectors[1].CertificateDetails.CertificateLifetimeInfo.values | Should -Be $testDays
         }
     }
