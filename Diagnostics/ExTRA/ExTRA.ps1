@@ -53,7 +53,11 @@ $uri = "http://localhost:5002/"
 $outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
 
 $alreadySelectedTags = $null
-$alreadySelectedTags = GetTagsFromFileContent (Get-Content $outputPath)
+
+if (Test-Path $outputPath) {
+    $alreadySelectedTags = GetTagsFromFileContent (Get-Content $outputPath)
+}
+
 if ($null -ne $alreadySelectedTags) {
     foreach ($category in $alreadySelectedTags) {
         $selectedTags = $category.tags | ForEach-Object { $_.name }
