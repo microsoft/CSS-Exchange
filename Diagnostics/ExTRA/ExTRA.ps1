@@ -2,32 +2,12 @@
 # Licensed under the MIT License.
 [CmdletBinding()]
 param(
-    [ValidateSet("Search", "MRM")]
-    [string]$Scenario,
     [switch]$ShowCommandOnly
 )
 
-$tagFileBytes = Get-Content "$PSScriptRoot\tags.txt" -AsByteStream -Raw
+. $PSScriptRoot\GetTagsFromFileContent.ps1
 
-$htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
-
-$searchTagFileBytes = Get-Content "$PSScriptRoot\searchTags.txt" -AsByteStream -Raw
-
-$mrmTagFileBytes = Get-Content "$PSScriptRoot\mrmTags.txt" -AsByteStream -Raw
-
-$tagFileContent = [System.Text.Encoding]::UTF8.GetString($tagFileBytes)
-
-$htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
-
-$searchTagFileContent = [System.Text.Encoding]::UTF8.GetString($searchTagFileBytes)
-
-$mrmTagFileContent = [System.Text.Encoding]::UTF8.GetString($mrmTagFileBytes)
-
-$uri = "http://localhost:5002/"
-
-$outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
-
-Function ShowCommandToHost {
+function ShowCommandToHost {
     Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
     Write-Host
     Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
@@ -53,48 +33,31 @@ Function ShowCommandToHost {
     Write-Host "The collector can also be started and stopped from Perfmon."
 }
 
-function GetTagsFromFile($file) {
-    $tags = $file | ForEach-Object {
-        if ($_ -match "(^TraceLevels|^InMemoryTracing|^FilteredTracing)" -or $_.Length -lt 1) {
-            # Skip these lines
-        } else {
-            [PSCustomObject]@{
-                name       = $_.Substring(0, $_.IndexOf(':'))
-                isSelected = $false
-                tags       = @($_.Substring($_.IndexOf(':') + 1).Split(',') | Sort-Object | ForEach-Object {
-                        [PSCustomObject]@{
-                            name       = $_
-                            isSelected = $false
-                        }
-                    })
-            }
-        }
-    }
-
-    return $tags
-}
-
 if ($ShowCommandOnly) {
     ShowCommandToHost
     return
 }
 
-$extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine)
+$selectionTableJsonBytes = Get-Content "$PSScriptRoot\SelectionTable.json" -AsByteStream -Raw
+
+$selectionTableJson = [System.Text.Encoding]::UTF8.GetString($selectionTableJsonBytes)
+
+$selectionTable = ConvertFrom-Json $selectionTableJson
+
+$htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
+
+$htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
+
+$uri = "http://localhost:5002/"
+
+$outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
 
 $alreadySelectedTags = $null
-
-if ($Scenario -eq "Search") {
-    $alreadySelectedTags = GetTagsFromFile $searchTagFileContent.Split([System.Environment]::NewLine)
-} elseif ($Scenario -eq "MRM") {
-    $alreadySelectedTags = GetTagsFromFile $mrmTagFileContent.Split([System.Environment]::NewLine)
-} elseif (Test-Path $outputPath) {
-    $alreadySelectedTags = GetTagsFromFile (Get-Content $outputPath)
-}
-
+$alreadySelectedTags = GetTagsFromFileContent (Get-Content $outputPath)
 if ($null -ne $alreadySelectedTags) {
     foreach ($category in $alreadySelectedTags) {
         $selectedTags = $category.tags | ForEach-Object { $_.name }
-        $categoryToUpdate = $extraTags | Where-Object { $_.name -eq $category.name }
+        $categoryToUpdate = $selectionTable | Where-Object { $_.name -eq $category.name }
         $categoryToUpdate.tags | ForEach-Object {
             if ($selectedTags.Contains($_.name)) {
                 $_.isSelected = $true
@@ -103,7 +66,7 @@ if ($null -ne $alreadySelectedTags) {
     }
 }
 
-$extraTags = ConvertTo-Json $extraTags -Depth 3
+$selectionTableJson = $selectionTable | ConvertTo-Json -Depth 4
 
 $httpListener = New-Object System.Net.HttpListener
 $httpListener.Prefixes.Add($uri)
@@ -138,7 +101,7 @@ try {
 
         if ($context.Request.HttpMethod -eq "GET") {
             Write-Host "Showing tag selector UI in the default browser."
-            $pageContent = $htmlFileContent.Replace("var exchange2016Tags = [];", "var exchange2016Tags = $extraTags;")
+            $pageContent = $htmlFileContent.Replace("var selectionTable = [];", "var selectionTable = $selectionTableJson;")
             $pageContentUTF8 = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
             $context.Response.StatusCode = 200
             $context.Response.OutputStream.Write($pageContentUTF8, 0, $pageContentUTF8.Length)
