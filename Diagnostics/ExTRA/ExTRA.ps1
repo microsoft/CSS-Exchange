@@ -1,11 +1,50 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+[CmdletBinding()]
+param(
+    [switch]$ShowCommandOnly
+)
 
-$tagFileBytes = Get-Content "$PSScriptRoot\tags.txt" -AsByteStream -Raw
+. $PSScriptRoot\GetTagsFromFileContent.ps1
+
+function ShowCommandToHost {
+    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
+    Write-Host
+    Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 1024 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To create a data collector which is circular and stops at 2 GB:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:"
+    Write-Host
+    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0 -mode globalsequence" -ForegroundColor Green
+    Write-Host
+    Write-Host "To start the trace:"
+    Write-Host
+    Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "To stop the trace:"
+    Write-Host
+    Write-Host "logman stop ExchangeDebugTraces" -ForegroundColor Green
+    Write-Host
+    Write-Host "The collector can also be started and stopped from Perfmon."
+}
+
+if ($ShowCommandOnly) {
+    ShowCommandToHost
+    return
+}
+
+$selectionTableJsonBytes = Get-Content "$PSScriptRoot\SelectionTable.json" -AsByteStream -Raw
+
+$selectionTableJson = [System.Text.Encoding]::UTF8.GetString($selectionTableJsonBytes)
+
+$selectionTable = ConvertFrom-Json $selectionTableJson
 
 $htmlFileBytes = Get-Content "$PSScriptRoot\ui.html" -AsByteStream -Raw
-
-$tagFileContent = [System.Text.Encoding]::UTF8.GetString($tagFileBytes)
 
 $htmlFileContent = [System.Text.Encoding]::UTF8.GetString($htmlFileBytes)
 
@@ -13,39 +52,16 @@ $uri = "http://localhost:5002/"
 
 $outputPath = Join-Path $PSScriptRoot "EnabledTraces.config"
 
-function GetTagsFromFile($file) {
-    $tags = $file | ForEach-Object {
-        if ($_ -match "(^TraceLevels|^InMemoryTracing|^FilteredTracing)" -or $_.Length -lt 1) {
-            # Skip these lines
-        } else {
-            [PSCustomObject]@{
-                name       = $_.Substring(0, $_.IndexOf(':'))
-                isSelected = $false
-                tags       = @($_.Substring($_.IndexOf(':') + 1).Split(',') | Sort-Object | ForEach-Object {
-                        [PSCustomObject]@{
-                            name       = $_
-                            isSelected = $false
-                        }
-                    })
-            }
-        }
-    }
-
-    return $tags
-}
-
-$extraTags = GetTagsFromFile $tagFileContent.Split([System.Environment]::NewLine)
-
 $alreadySelectedTags = $null
 
 if (Test-Path $outputPath) {
-    $alreadySelectedTags = GetTagsFromFile (Get-Content $outputPath)
+    $alreadySelectedTags = GetTagsFromFileContent (Get-Content $outputPath)
 }
 
 if ($null -ne $alreadySelectedTags) {
     foreach ($category in $alreadySelectedTags) {
         $selectedTags = $category.tags | ForEach-Object { $_.name }
-        $categoryToUpdate = $extraTags | Where-Object { $_.name -eq $category.name }
+        $categoryToUpdate = $selectionTable | Where-Object { $_.name -eq $category.name }
         $categoryToUpdate.tags | ForEach-Object {
             if ($selectedTags.Contains($_.name)) {
                 $_.isSelected = $true
@@ -54,7 +70,7 @@ if ($null -ne $alreadySelectedTags) {
     }
 }
 
-$extraTags = ConvertTo-Json $extraTags -Depth 3
+$selectionTableJson = $selectionTable | ConvertTo-Json -Depth 4
 
 $httpListener = New-Object System.Net.HttpListener
 $httpListener.Prefixes.Add($uri)
@@ -89,7 +105,7 @@ try {
 
         if ($context.Request.HttpMethod -eq "GET") {
             Write-Host "Showing tag selector UI in the default browser."
-            $pageContent = $htmlFileContent.Replace("var exchange2016Tags = [];", "var exchange2016Tags = $extraTags;")
+            $pageContent = $htmlFileContent.Replace("var selectionTable = [];", "var selectionTable = $selectionTableJson;")
             $pageContentUTF8 = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
             $context.Response.StatusCode = 200
             $context.Response.OutputStream.Write($pageContentUTF8, 0, $pageContentUTF8.Length)
@@ -138,29 +154,7 @@ try {
 }
 
 if (Test-Path $outputPath) {
-    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
-    Write-Host
-    Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 1024" -ForegroundColor Green
-    Write-Host
-    Write-Host "To create a data collector which is circular and stops at 2 GB:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bincirc -max 2048" -ForegroundColor Green
-    Write-Host
-    Write-Host "To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:"
-    Write-Host
-    Write-Host "logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0" -ForegroundColor Green
-    Write-Host
-    Write-Host "To start the trace:"
-    Write-Host
-    Write-Host "logman start ExchangeDebugTraces" -ForegroundColor Green
-    Write-Host
-    Write-Host "To stop the trace:"
-    Write-Host
-    Write-Host "logman stop ExchangeDebugTraces" -ForegroundColor Green
-    Write-Host
-    Write-Host "The collector can also be started and stopped from Perfmon."
+    ShowCommandToHost
 }
 
 if ($MyInvocation.InvocationName -eq "&") {
