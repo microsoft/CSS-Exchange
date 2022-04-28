@@ -36,8 +36,7 @@ BeforeAll {
         )
 
         $invariantTime = [System.Convert]::ToDateTime($TimeToConvert, [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
-        $normalizedTime = $invariantTime.AddHours((Get-TimeZone).BaseUtcOffset.Hours)
-        return $normalizedTime
+        return $invariantTime.AddHours((Get-TimeZone).BaseUtcOffset.Hours)
     }
 }
 
