@@ -192,7 +192,7 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }
 
         if ($null -ne $missingConfigFile) {
-            $params =  $baseParams + @{
+            $params = $baseParams + @{
                 Name                = "Missing Configuration File"
                 DisplayWriteType    = "Red"
                 DisplayTestingValue = $true
