@@ -25,23 +25,11 @@ BeforeAll {
     Function Get-SendConnector {
         param()
     }
-
-    Function ConvertTimeToUtcHelper {
-        [CmdletBinding()]
-        [OutputType("System.DateTime")]
-        param(
-            [Parameter(Mandatory = $true)]
-            [datetime]
-            $TimeToConvert
-        )
-
-        $invariantTime = [System.Convert]::ToDateTime($TimeToConvert, [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
-        return $invariantTime.AddHours((Get-TimeZone).BaseUtcOffset.Hours)
-    }
 }
 
 Describe "Testing Get-ExchangeConnectors.ps1" {
     BeforeAll {
+        . $PSScriptRoot\HealthCheckerTests.Helpers.NotPublished.ps1
         Mock Get-Date -MockWith { return ([System.Convert]::ToDateTime("01/01/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo).ToUniversalTime()) }
         Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificate.xml }
         Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnector.xml }
