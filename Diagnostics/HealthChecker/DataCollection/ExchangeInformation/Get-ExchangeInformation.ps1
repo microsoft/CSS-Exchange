@@ -452,6 +452,15 @@ Function Get-ExchangeInformation {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
+        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+            -ScriptBlockDescription "Getting Exchange Install Directory" `
+            -CatchActionFunction ${Function:Invoke-CatchActions} `
+            -ScriptBlock {
+            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+        }
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
+        Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
+
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
             try {
@@ -465,19 +474,12 @@ Function Get-ExchangeInformation {
             $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
                 -ComputerName $Script:Server `
                 -CertificateObject $exchangeInformation.ExchangeCertificates
+
+            $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
+                -ExchangeInstallPath $serverExchangeInstallDirectory `
+                -CatchActionFunction ${Function:Invoke-CatchActions}
         }
 
-        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
-            -ScriptBlockDescription "Getting Exchange Install Directory" `
-            -CatchActionFunction ${Function:Invoke-CatchActions} `
-            -ScriptBlock {
-            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
-        }
-        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
-        Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
-        $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
-            -ExchangeInstallPath $serverExchangeInstallDirectory `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
