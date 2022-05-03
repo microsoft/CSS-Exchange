@@ -19,31 +19,37 @@ Function Get-ExchangeBuildVersionInformation {
         [int]$revision = 0
         $product = $null
         [double]$buildVersion = 0.0
+        $oldErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = 'SilentlyContinue'
     }
     process {
-        $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).Split(".")
-        $major = [int]$split[0]
-        $minor = [int]$split[1]
-        $product = $major + ($minor / 10)
+        try {
+            $split = $AdminDisplayVersion.Substring(($AdminDisplayVersion.IndexOf(" ")) + 1, 4).Split(".")
+            $major = [int]$split[0]
+            $minor = [int]$split[1]
+            $product = $major + ($minor / 10)
 
-        $buildStart = $AdminDisplayVersion.LastIndexOf(" ") + 1
-        $split = $AdminDisplayVersion.Substring($buildStart, ($AdminDisplayVersion.LastIndexOf(")") - $buildStart)).Split(".")
-        $build = [int]$split[0]
-        $revision = [int]$split[1]
-        $revisionDecimal = if ($revision -lt 10) { $revision / 10 } else { $revision / 100 }
-        $buildVersion = $build + $revisionDecimal
+            $buildStart = $AdminDisplayVersion.LastIndexOf(" ") + 1
+            $split = $AdminDisplayVersion.Substring($buildStart, ($AdminDisplayVersion.LastIndexOf(")") - $buildStart)).Split(".")
+            $build = [int]$split[0]
+            $revision = [int]$split[1]
+            $revisionDecimal = if ($revision -lt 10) { $revision / 10 } else { $revision / 100 }
+            $buildVersion = $build + $revisionDecimal
+            Write-Verbose "Determining Major Version based off of $product"
 
-        Write-Verbose "Determining Major Version based off of $product"
-
-        switch ([string]$product) {
-            "14.3" { $exchangeMajorVersion = "Exchange2010" }
-            "15" { $exchangeMajorVersion = "Exchange2013" }
-            "15.1" { $exchangeMajorVersion = "Exchange2016" }
-            "15.2" { $exchangeMajorVersion = "Exchange2019" }
-            default { $exchangeMajorVersion = "Unknown" }
+            switch ([string]$product) {
+                "14.3" { $exchangeMajorVersion = "Exchange2010" }
+                "15" { $exchangeMajorVersion = "Exchange2013" }
+                "15.1" { $exchangeMajorVersion = "Exchange2016" }
+                "15.2" { $exchangeMajorVersion = "Exchange2019" }
+                default { $exchangeMajorVersion = "Unknown" }
+            }
+        } catch {
+            Write-Error $_.Exception.Message
         }
     }
     end {
+        $ErrorActionPreference = $oldErrorAction
         Write-Verbose "Found Major Version '$exchangeMajorVersion'"
         return [PSCustomObject]@{
             MajorVersion = $exchangeMajorVersion
