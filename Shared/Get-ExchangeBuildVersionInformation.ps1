@@ -4,12 +4,14 @@
 Function Get-ExchangeBuildVersionInformation {
     [CmdletBinding()]
     param(
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
         [object]$AdminDisplayVersion
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed $($AdminDisplayVersion.ToString())"
-        $AdminDisplayVersion = $AdminDisplayVersion.ToString()
+        Write-Verbose "Passed $([string]$AdminDisplayVersion)"
+        $AdminDisplayVersion = [string]$AdminDisplayVersion
         $exchangeMajorVersion = [string]::Empty
         [int]$major = 0
         [int]$minor = 0
