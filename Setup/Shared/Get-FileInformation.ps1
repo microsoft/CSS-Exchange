@@ -14,7 +14,6 @@ Function Get-FileInformation {
         $revNumber = [string]::Empty
     }
     process {
-
         if (-not($installerCOM) -and
             -not($AllowFileSubjectOnly)) {
             throw "Failed to create 'WindowsInstaller.Installer' COM object. This can lead to issues with validation of the script."
@@ -34,19 +33,26 @@ Function Get-FileInformation {
                 return
             }
 
-            <#
-TODO: Fix this code. Clearly didn't finish it.
-        $shellApplication = New-Object -ComObject "Shell.Application"
-
-        if (-not($shellApplication)) {
-            "Failed to create 'Shell.Application' COM Object. This can lead to issues with validation of the script." | Receive-Output -ForegroundColor Red
-            exit
-        }
-
-        $fileItem = Get-Item $File
-        $shellFolder = $shellApplication.NameSpace($fileItem.Directory.FullName)
-        $subject = $shellFolder.GetDetailsOf($shellFolder.ParseName($fileItem.Name), 22)
-#>
+            <# TODO: Still need more testing (Making sure it produces same properties)
+                try {
+                    $shellApplication = New-Object -ComObject "Shell.Application"
+                } catch {
+                    "Failed to create 'Shell.Application' COM Object. This can lead to issues with validation of the script." | Receive-Output -ForegroundColor Red
+                    break
+                }
+                # One $fileItem Example:
+                # $localPackageChildItems = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer" -Recurse | Where-Object { $_.Property -eq "LocalPackage" };
+                # $File = [IO.FileInfo]$localPackageChildItems[1].GetValue("LocalPackage");
+                # $fileItem = Get-Item $File
+                $fileItem = Get-Item $File
+                $shellFolder = $shellApplication.NameSpace($fileItem.Directory.FullName)
+                $FileInformation = @{}
+                $info = 0..320 | ForEach-Object { $_ } | Select-Object @{l = 'no'; e = { $_ } }, @{l = 'variant'; e = { $($shellFolder.GetDetailsOf('', $_)) } }, @{l = 'value'; e = { $($shellFolder.GetDetailsOf($shellFolder.ParseName($fileItem.Name), $_)) } } | Where-Object { $_.value -ne '' -and $_.variant -ne '' }
+                foreach ($item in $info) {
+                    $FileInformation.Add($item.variant, $item.value)
+                }
+                $FileInformation = [PSCustomObject]$FileInformation
+            #>
         } catch {
             Write-Host "$($_.Exception)"
             Write-Host "$($_.ScriptStackTrace)"
