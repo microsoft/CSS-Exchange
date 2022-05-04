@@ -19,8 +19,6 @@ Function Get-ExchangeBuildVersionInformation {
         [int]$revision = 0
         $product = $null
         [double]$buildVersion = 0.0
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = 'SilentlyContinue'
     }
     process {
         try {
@@ -49,7 +47,6 @@ Function Get-ExchangeBuildVersionInformation {
         }
     }
     end {
-        $ErrorActionPreference = $oldErrorAction
         Write-Verbose "Found Major Version '$exchangeMajorVersion'"
         return [PSCustomObject]@{
             MajorVersion = $exchangeMajorVersion
