@@ -69,7 +69,7 @@ function Out-Columns {
                             [void]$sb.Clear()
                             $i--
                         } else {
-                            if ($split[$i].Length -lt $width) {
+                            if ($split[$i].Length -le $width) {
                                 [void]$lines.Add($split[$i])
                             } else {
                                 [void]$lines.Add($split[$i].Substring(0, $width))
