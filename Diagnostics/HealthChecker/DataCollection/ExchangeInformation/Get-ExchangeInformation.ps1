@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
@@ -490,6 +491,9 @@ Function Get-ExchangeInformation {
             Write-Verbose "March 2021 SU: KB5000871 was not detected on the system"
             $buildInformation.March2021SUInstalled = $false
         }
+
+        Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
+        $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions
 
         Write-Verbose "Query schema class information for CVE-2021-34470 testing"
         try {
