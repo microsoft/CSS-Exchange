@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-WellKnownGroupSid.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
 Function Test-UserGroupMemberOf {
     [CmdletBinding()]
@@ -9,42 +10,6 @@ Function Test-UserGroupMemberOf {
         [bool]$PrepareAdRequired,
         [bool]$PrepareSchemaRequired
     )
-
-    function GetGroupMatches($whoamiOutput, $groupName) {
-        $m = @($whoamiOutput | Select-String "(^\w+\\$($groupName))\s+")
-        if ($m.Count -eq 0) { return $m }
-        return $m | ForEach-Object {
-            [PSCustomObject]@{
-                GroupName = ($_.Matches.Groups[1].Value)
-                SID       = (GetSidFromLine $_.Line)
-            }
-        }
-    }
-
-    Function GetSidFromLine ([string]$Line) {
-        $startIndex = $Line.IndexOf("S-")
-        return $Line.Substring($startIndex,
-            $Line.IndexOf(" ", $startIndex) - $startIndex)
-    }
-
-    Function TestGroupResult($WhoamiOutput, $GroupName) {
-        [array]$g = GetGroupMatches $WhoamiOutput $GroupName
-        $params = @{
-            TestName = $GroupName
-            Details  = "Not a member of the $GroupName Group"
-        }
-
-        if ($g.Count -gt 0) {
-            $params.Details = "$($g.GroupName) $($g.SID)"
-            New-TestResult @params -Result "Passed"
-        } elseif ($GroupName -eq "Schema Admins") {
-            New-TestResult @params -Result "Failed" -ReferenceInfo "User must be in Schema Admins to update Schema which is required."
-        } elseif ($GroupName -eq "Enterprise Admins") {
-            New-TestResult @params -Result "Failed" -ReferenceInfo "User must be Enterprise Admins to do PrepareSchema or PrepareAD"
-        } else {
-            New-TestResult @params -Result "Failed"
-        }
-    }
 
     $whoami = whoami
     $whoamiAllOutput = whoami /all
@@ -61,15 +26,44 @@ Function Test-UserGroupMemberOf {
         New-TestResult @params -Result "Failed"
     }
 
-    TestGroupResult $whoamiAllOutput "Organization Management"
+    $groupRequirements = @(
+        @{
+            Name   = "Organization Management"
+            Role   = "Organization Management"
+            Reason = "User must be in the Organization Management Group"
+        }
+    )
 
     if ($PrepareSchemaRequired) {
-        TestGroupResult $whoamiAllOutput "Schema Admins"
+        $groupRequirements += @{
+            Name   = "Schema Admins"
+            Role   = (Get-WellKnownGroupSid "Schema Admins")
+            Reason = "User must be in Schema Admins to update Schema which is required."
+        }
     }
 
     if ($PrepareAdRequired) {
-        TestGroupResult $whoamiAllOutput "Domain Admins"
-        TestGroupResult $whoamiAllOutput "Enterprise Admins"
+        $groupRequirements += @{
+            Name   = "Enterprise Admins"
+            Role   = (Get-WellKnownGroupSid "Enterprise Admins")
+            Reason = "User must be Enterprise Admins to do PrepareSchema or PrepareAD."
+        }
+
+        $groupRequirements += @{
+            Name   = "Domain Admins"
+            Role   = (Get-WellKnownGroupSid "Domain Admins")
+            Reason = "User must be in Domain Admins to do PrepareAD which is required."
+        }
+    }
+
+    $principal = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent()))
+
+    foreach ($group in $groupRequirements) {
+        if ($principal.IsInRole($group.Role)) {
+            $params.Details = "$($group.Name) $($group.Role)"
+            New-TestResult @params -Result "Passed"
+        } else {
+            New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
+        }
     }
 }
-
