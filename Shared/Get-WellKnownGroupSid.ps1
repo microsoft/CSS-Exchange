@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-    Returns the SID of the desired group in string format.
+    Returns the SID of the desired group.
 .DESCRIPTION
     Long description
 .EXAMPLE
@@ -21,7 +21,7 @@
 #>
 function Get-WellKnownGroupSid {
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType([System.Security.Principal.SecurityIdentifier])]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateSet("Enterprise Admins", "Schema Admins", "Domain Admins")]
@@ -39,13 +39,13 @@ function Get-WellKnownGroupSid {
 
     switch ($GroupType) {
         "Enterprise Admins" {
-            return "${rootDomainSid}-519"
+            return New-Object System.Security.Principal.SecurityIdentifier("${rootDomainSid}-519")
         }
         "Schema Admins" {
-            return "${rootDomainSid}-518"
+            return New-Object System.Security.Principal.SecurityIdentifier("${rootDomainSid}-518")
         }
         "Domain Admins" {
-            return "${computerDomainSid}-512"
+            return New-Object System.Security.Principal.SecurityIdentifier("${computerDomainSid}-512")
         }
     }
 }

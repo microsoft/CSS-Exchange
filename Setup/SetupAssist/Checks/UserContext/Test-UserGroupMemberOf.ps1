@@ -28,39 +28,39 @@ Function Test-UserGroupMemberOf {
 
     $groupRequirements = @(
         @{
-            Name       = "Organization Management"
-            RoleString = "Organization Management"
-            Reason     = "User must be in the Organization Management Group"
+            Name   = "Organization Management"
+            Role   = "Organization Management"
+            Reason = "User must be in the Organization Management Group"
         }
     )
 
     if ($PrepareSchemaRequired) {
         $groupRequirements += @{
-            Name       = "Schema Admins"
-            RoleString = (Get-WellKnownGroupSid "Schema Admins")
-            Reason     = "User must be in Schema Admins to update Schema which is required."
+            Name   = "Schema Admins"
+            Role   = (Get-WellKnownGroupSid "Schema Admins")
+            Reason = "User must be in Schema Admins to update Schema which is required."
         }
     }
 
     if ($PrepareAdRequired) {
         $groupRequirements += @{
-            Name       = "Enterprise Admins"
-            RoleString = (Get-WellKnownGroupSid "Enterprise Admins")
-            Reason     = "User must be Enterprise Admins to do PrepareSchema or PrepareAD."
+            Name   = "Enterprise Admins"
+            Role   = (Get-WellKnownGroupSid "Enterprise Admins")
+            Reason = "User must be Enterprise Admins to do PrepareSchema or PrepareAD."
         }
 
         $groupRequirements += @{
-            Name       = "Domain Admins"
-            RoleString = (Get-WellKnownGroupSid "Domain Admins")
-            Reason     = "User must be in Domain Admins to do PrepareAD which is required."
+            Name   = "Domain Admins"
+            Role   = (Get-WellKnownGroupSid "Domain Admins")
+            Reason = "User must be in Domain Admins to do PrepareAD which is required."
         }
     }
 
     $principal = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent()))
 
     foreach ($group in $groupRequirements) {
-        if ($principal.IsInRole($group.RoleString)) {
-            $params.Details = "$($group.Name) $($group.RoleString)"
+        if ($principal.IsInRole($group.Role)) {
+            $params.Details = "$($group.Name) $($group.Role)"
             New-TestResult @params -Result "Passed"
         } else {
             New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
