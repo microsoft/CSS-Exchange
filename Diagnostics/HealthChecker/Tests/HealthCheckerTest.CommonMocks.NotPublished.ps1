@@ -132,6 +132,10 @@ Mock Get-ExchangeAdSchemaClass {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Storage-Group.xml"
 }
 
+Mock Get-ExchangeAdPermissions {
+    return $null
+}
+
 Mock Get-HttpProxySetting {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting.xml"
 }
