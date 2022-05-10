@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
@@ -104,25 +105,10 @@ Function Get-ExchangeAdPermissions {
 
         Write-Verbose "Working on Domain: $domainName"
         Write-Verbose "DomainDN: $domainDN"
-        $driveLoaded = $false
 
         try {
-            if (-not(Get-Module ActiveDirectory -ErrorAction SilentlyContinue)) {
-                Write-Verbose "Trying to import ActiveDirectory module"
-                Import-Module -Name ActiveDirectory -ErrorAction Stop
-            }
-
-            $domainPSDriveName = $domainName.Substring(0, $domainName.IndexOf('.'))
-            Write-Verbose "PSDrive Name: $($domainPSDriveName)"
-            $domainControllerToUse = (Get-ADDomainController -Domain $domainName -Discover -Writable -ErrorAction Stop).Name
-            Write-Verbose "Domain Controller to use: $($domainControllerToUse)"
-
-            Write-Verbose "Creating PSDrive and setting location"
-            New-PSDrive -Name $domainPSDriveName -PSProvider ActiveDirectory -Server $domainControllerToUse -Root "" -WhatIf:$false -Confirm:$false -ErrorAction Stop | Out-Null
-            $driveLoaded = $true
-
-            $domainAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $domainDN.ToString())
-            $adminSdHolderAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $adminSdHolderDN)
+            $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
+            $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
 
             foreach ($group in $groupLists) {
 
@@ -178,12 +164,6 @@ Function Get-ExchangeAdPermissions {
         } catch {
             Write-Verbose "Failed while getting ACE information"
             Invoke-CatchActions
-        } finally {
-            Write-Verbose "Removing PSDrive: $($domainPSDriveName)"
-
-            if ($driveLoaded) {
-                Remove-PSDrive -Name $domainPSDriveName -WhatIf:$false -Confirm:$false
-            }
         }
     }
     return $returnedResults
