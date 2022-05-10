@@ -104,6 +104,7 @@ Function Get-ExchangeAdPermissions {
 
         Write-Verbose "Working on Domain: $domainName"
         Write-Verbose "DomainDN: $domainDN"
+        $driveLoaded = $false
 
         try {
             if (-not(Get-Module ActiveDirectory -ErrorAction SilentlyContinue)) {
@@ -117,7 +118,8 @@ Function Get-ExchangeAdPermissions {
             Write-Verbose "Domain Controller to use: $($domainControllerToUse)"
 
             Write-Verbose "Creating PSDrive and setting location"
-            New-PSDrive -Name $domainPSDriveName -PSProvider ActiveDirectory -Server $domainControllerToUse -Root "" -WhatIf:$false -Confirm:$false | Out-Null
+            New-PSDrive -Name $domainPSDriveName -PSProvider ActiveDirectory -Server $domainControllerToUse -Root "" -WhatIf:$false -Confirm:$false -ErrorAction Stop | Out-Null
+            $driveLoaded = $true
 
             $domainAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $domainDN.ToString())
             $adminSdHolderAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $adminSdHolderDN)
@@ -178,7 +180,10 @@ Function Get-ExchangeAdPermissions {
             Invoke-CatchActions
         } finally {
             Write-Verbose "Removing PSDrive: $($domainPSDriveName)"
-            Remove-PSDrive -Name $domainPSDriveName -WhatIf:$false -Confirm:$false
+
+            if ($driveLoaded) {
+                Remove-PSDrive -Name $domainPSDriveName -WhatIf:$false -Confirm:$false
+            }
         }
     }
     return $returnedResults
