@@ -131,7 +131,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 12
+            $cveTests.Count | Should -Be 13
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
         }
@@ -233,6 +233,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
             Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
+            Assert-MockCalled Get-ExchangeAdPermissions -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1

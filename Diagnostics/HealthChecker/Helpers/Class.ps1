@@ -25,6 +25,7 @@ using System.Collections;
             public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
             public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+            public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
             public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
             public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
