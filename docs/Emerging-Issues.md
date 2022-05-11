@@ -7,6 +7,13 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
+**Updated on 5/11/2022**
+
+**Issue** |**Possible reason**| **Workaround/Solution**
+-|-|-
+After installing [March 2022 Security Update For Exchange Server 2013, 2016, 2019](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2022-exchange-server-security-updates/ba-p/3247586), the Microsoft Exchange Service Host service may crash repeatedly with Event ID 7031 in system log and Event ID 4999 in application log. <BR><BR>  Event ID 4999 <BR> Watson report about to be sent for process id: 4564, with parameters: E12IIS, c-RTL-AMD64, 15.01.2375.024, M.Exchange.ServiceHost, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.LoadType, M.E.Diagnostics.BlockedDeserializeTypeException, c0e9-dumptidset, 15.01.2375.024.|The issue can occur if there are any expired certificates present on or any certificates nearing expiry on the server| Install [May 2022 Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-may-2022-exchange-server-security-updates/bc-p/3356108) to resolve the issue
+
+
 **Updated on 3/16/2022**
 
 **Issue** |**Possible reason**| **Workaround/Solution**
