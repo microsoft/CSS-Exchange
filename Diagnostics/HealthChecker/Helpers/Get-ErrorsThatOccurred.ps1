@@ -3,6 +3,25 @@
 
 Function Get-ErrorsThatOccurred {
 
+    Function WriteErrorInformation {
+        [CmdletBinding()]
+        param(
+            [object]$CurrentError
+        )
+        Write-Verbose "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())"
+
+        if ($null -ne $CurrentError.Exception -and
+            $null -ne $CurrentError.Exception.StackTrace) {
+            Write-Verbose "Inner Exception: $($CurrentError.Exception.StackTrace)"
+        }
+
+        if ($null -ne $CurrentError.ScriptStackTrace) {
+            Write-Verbose "Script Stack: $($CurrentError.ScriptStackTrace)"
+        }
+
+        Write-Verbose "-----------------------------------`r`n`r`n"
+    }
+
     if ($Error.Count -gt 0) {
         Write-Grey(" "); Write-Grey(" ")
         Function Write-Errors {
@@ -18,12 +37,7 @@ Function Get-ErrorsThatOccurred {
 
                         if ($null -eq $handledError) {
                             Write-Verbose "Error Index: $index"
-                            Write-Verbose $currentError
-
-                            if ($null -ne $currentError.ScriptStackTrace) {
-                                Write-Verbose $currentError.ScriptStackTrace
-                            }
-                            Write-Verbose "-----------------------------------`r`n`r`n"
+                            WriteErrorInformation $currentError
                         }
                     }
 
@@ -38,12 +52,7 @@ Function Get-ErrorsThatOccurred {
 
                         if ($null -ne $handledError) {
                             Write-Verbose "Error Index: $index"
-                            Write-Verbose $handledError
-
-                            if ($null -ne $handledError.ScriptStackTrace) {
-                                Write-Verbose $handledError.ScriptStackTrace
-                            }
-                            Write-Verbose "-----------------------------------`r`n`r`n"
+                            WriteErrorInformation $handledError
                         }
                     }
         }
