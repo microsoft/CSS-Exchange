@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-OrganizationContainer.ps1
 
 function Test-VirtualDirectoryConfiguration {
     [CmdletBinding()]
@@ -46,9 +47,7 @@ function Test-VirtualDirectoryConfiguration {
 
         $searcher = $null
         try {
-            $configDN = ([ADSI]("LDAP://RootDSE")).Properties["configurationNamingContext"][0].ToString()
-            $exchangeDN = "CN=Microsoft Exchange,CN=Services,$configDN"
-            $exchangeContainer = [ADSI]("LDAP://$exchangeDN")
+            $exchangeContainer = Get-ExchangeContainer
             $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer)
         } catch {
             New-TestResult @resultParams -Result "Failed" -Details "Failed to find Exchange configuration object."

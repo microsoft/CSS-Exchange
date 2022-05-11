@@ -1,7 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeDomainConfigVersion.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
@@ -56,19 +58,17 @@ Function Get-ExchangeAdPermissions {
 
     $groupLists = @(
         (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $false -RootOnly $false),
             (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $false -RootOnly $true)
+            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Servers" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $true),
-            # ComputerClass should be false, but is set to true right now - need to do some more investigation here
+            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
             (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Windows Permissions" @(
-            (NewMatchingEntry -ObjectTypeGuid $managedBySID -AdminSdHolder $false -ComputerClass $true -RootOnly $true)
+            (NewMatchingEntry -ObjectTypeGuid $managedBySID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
         )))
 
     $returnedResults = New-Object 'System.Collections.Generic.List[object]'
@@ -101,89 +101,76 @@ Function Get-ExchangeAdPermissions {
         $domainName = $domain.Name
         $domainDN = $domain.GetDirectoryEntry().distinguishedName
         $adminSdHolderDN = "CN=AdminSDHolder,CN=System,$domainDN"
+        $prepareDomainInfo = Get-ExchangeDomainConfigVersion -Domain $domainName
 
-        Write-Verbose "Working on Domain: $domainName"
-        Write-Verbose "DomainDN: $domainDN"
-        $driveLoaded = $false
+        if ($prepareDomainInfo.DomainPreparedForExchange) {
+            Write-Verbose "Working on Domain: $domainName"
+            Write-Verbose "MESO object version is: $($prepareDomainInfo.ObjectVersion)"
+            Write-Verbose "DomainDN: $domainDN"
 
-        try {
-            if (-not(Get-Module ActiveDirectory -ErrorAction SilentlyContinue)) {
-                Write-Verbose "Trying to import ActiveDirectory module"
-                Import-Module -Name ActiveDirectory -ErrorAction Stop
-            }
+            try {
+                $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
+                $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
 
-            $domainPSDriveName = $domainName.Substring(0, $domainName.IndexOf('.'))
-            Write-Verbose "PSDrive Name: $($domainPSDriveName)"
-            $domainControllerToUse = (Get-ADDomainController -Domain $domainName -Discover -Writable -ErrorAction Stop).Name
-            Write-Verbose "Domain Controller to use: $($domainControllerToUse)"
+                foreach ($group in $groupLists) {
 
-            Write-Verbose "Creating PSDrive and setting location"
-            New-PSDrive -Name $domainPSDriveName -PSProvider ActiveDirectory -Server $domainControllerToUse -Root "" -WhatIf:$false -Confirm:$false -ErrorAction Stop | Out-Null
-            $driveLoaded = $true
+                    Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
+                    foreach ($entry in $group.AceEntry) {
 
-            $domainAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $domainDN.ToString())
-            $adminSdHolderAcl = Get-Acl -Path ("{0}:{1}" -f $domainPSDriveName, $adminSdHolderDN)
+                        if ((($entry.RootOnly) -and ($domainName -eq $rootDomainName)) -or
+                            ($entry.RootOnly -eq $false)) {
+                            Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
+                            if ($entry.AdminSdHolder) {
+                                $objectAcl = $adminSdHolderAcl
+                                $objectDN = $adminSdHolderDN
+                            } else {
+                                $objectAcl = $domainAcl
+                                $objectDN = $domainDN
+                            }
+                            Write-Verbose "ObjectDN: $objectDN"
 
-            foreach ($group in $groupLists) {
+                            # We need to pass an IdentityReference object to the constructor
+                            $groupIdentityRef = New-Object System.Security.Principal.SecurityIdentifier($group.Sid)
 
-                Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
-                foreach ($entry in $group.AceEntry) {
+                            if ($entry.ComputerClass) {
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
+                            } else {
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
+                            }
 
-                    if ((($entry.RootOnly) -and ($domainName -eq $rootDomainName)) -or
-                        ($entry.RootOnly -eq $false)) {
-                        Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
-                        if ($entry.AdminSdHolder) {
-                            $objectAcl = $adminSdHolderAcl
-                            $objectDN = $adminSdHolderDN
+                            $checkAce = $objectAcl.Access.Where({
+                                    ($_.ActiveDirectoryRights -eq $ace.ActiveDirectoryRights) -and
+                                    ($_.InheritanceType -eq $ace.InheritanceType) -and
+                                    ($_.ObjectType -eq $ace.ObjectType) -and
+                                    ($_.InheritedObjectType -eq $ace.InheritedObjectType) -and
+                                    ($_.ObjectFlags -eq $ace.ObjectFlags) -and
+                                    ($_.AccessControlType -eq $ace.AccessControlType) -and
+                                    ($_.IsInherited -eq $ace.IsInherited) -and
+                                    ($_.InheritanceFlags -eq $ace.InheritanceFlags) -and
+                                    ($_.PropagationFlags -eq $ace.PropagationFlags) -and
+                                    ($_.IdentityReference -eq $ace.IdentityReference.Translate([System.Security.Principal.NTAccount]))
+                                })
+
+                            $checkPass = $checkAce.Count -gt 0
+                            Write-Verbose "Ace Result Check Passed: $checkPass"
+
+                            $returnedResults.Add([PSCustomObject]@{
+                                    DomainName = $domainName
+                                    ObjectDN   = $objectDN
+                                    ObjectAcl  = $objectAcl
+                                    CheckPass  = $checkPass
+                                })
                         } else {
-                            $objectAcl = $domainAcl
-                            $objectDN = $domainDN
+                            Write-Verbose "ACE entry: $($entry.ObjectTypeGuid) is root-exclusive and will be skipped for domain: $($domainName)"
                         }
-                        Write-Verbose "ObjectDN: $objectDN"
-
-                        # We need to pass an IdentityReference object to the constructor
-                        if ($entry.ComputerClass) {
-                            $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
-                        } else {
-                            $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
-                        }
-
-                        $checkAce = $objectAcl.Access.Where({
-                                ($_.ActiveDirectoryRights -eq $ace.ActiveDirectoryRights) -and
-                                ($_.InheritanceType -eq $ace.InheritanceType) -and
-                                ($_.ObjectType -eq $ace.ObjectType) -and
-                                ($_.InheritedObjectType -eq $ace.InheritedObjectType) -and
-                                ($_.ObjectFlags -eq $ace.ObjectFlags) -and
-                                ($_.AccessControlType -eq $ace.AccessControlType) -and
-                                ($_.IsInherited -eq $ace.IsInherited) -and
-                                ($_.InheritanceFlags -eq $ace.InheritanceFlags) -and
-                                ($_.PropagationFlags -eq $ace.PropagationFlags) -and
-                                ($_.IdentityReference -eq $ace.IdentityReference.Translate([System.Security.Principal.NTAccount]))
-                            })
-
-                        $checkPass = $checkAce.Count -gt 0
-                        Write-Verbose "Ace Result Check Passed: $checkPass"
-
-                        $returnedResults.Add([PSCustomObject]@{
-                                DomainName = $domainName
-                                ObjectDN   = $objectDN
-                                ObjectAcl  = $objectAcl
-                                CheckPass  = $checkPass
-                            })
-                    } else {
-                        Write-Verbose "ACE entry: $($entry.ObjectTypeGuid) is root-exclusive and will be skipped for domain: $($domainName)"
                     }
                 }
+            } catch {
+                Write-Verbose "Failed while getting ACE information"
+                Invoke-CatchActions
             }
-        } catch {
-            Write-Verbose "Failed while getting ACE information"
-            Invoke-CatchActions
-        } finally {
-            Write-Verbose "Removing PSDrive: $($domainPSDriveName)"
-
-            if ($driveLoaded) {
-                Remove-PSDrive -Name $domainPSDriveName -WhatIf:$false -Confirm:$false
-            }
+        } else {
+            Write-Verbose "Domain: $domainName will be skipped because it is not configured to hold Exchange-related objects"
         }
     }
     return $returnedResults

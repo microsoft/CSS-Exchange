@@ -2,19 +2,18 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Search-AllActiveDirectoryDomains.ps1
+
 Function Test-ValidHomeMDB {
     $testName = "Valid Home MDB"
-    $rootDSE = [ADSI]("LDAP://RootDSE")
-    $container = [ADSI]("GC://$($rootDSE.dnsHostName)")
     $arbitration = 0x800000
     $discovery = 0x20000000
     $publicFolder = 0x1000000000
     $recipientTypes = $arbitration -bor $discovery -bor $publicFolder
-    $searcher = New-Object System.DirectoryServices.DirectorySearcher($container,
-        "(&(objectClass=user)(mailnickname=*)(msExchRecipientTypeDetails:1.2.840.113556.1.4.804:=$recipientTypes))",
-        @("distinguishedName", "homeMDB"))
+    $filter = "(&(objectClass=user)(mailnickname=*)(msExchRecipientTypeDetails:1.2.840.113556.1.4.804:=$recipientTypes))"
+    $propsToLoad = @("distinguishedName", "homeMDB")
 
-    $results = $searcher.FindAll()
+    $results = Search-AllActiveDirectoryDomains -Filter $filter -PropertiesToLoad $propsToLoad
 
     if ($null -ne $results -and
         $results.Count -gt 0) {
