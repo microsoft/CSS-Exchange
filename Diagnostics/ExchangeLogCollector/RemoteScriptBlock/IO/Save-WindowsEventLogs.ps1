@@ -15,55 +15,35 @@ Function Save-WindowsEventLogs {
             $_.VersionInfo.FileName
         }
 
-    $baseRegistryLocation = "SYSTEM\CurrentControlSet\Services\EventLog\"
-    $logs = @()
-    $baseParams = @{
-        MachineName = $env:COMPUTERNAME
-        GetValue    = "File"
-    }
-
-    if ($PassedInfo.AppSysLogs) {
-        Write-Verbose("Adding Application and System Logs")
-
-        $appParams = $baseParams + @{
-            SubKey = "$baseRegistryLocation`Application"
-        }
-        $sysParams = $baseParams + @{
-            SubKey = "$baseRegistryLocation`System"
-        }
-        $manParams = $baseParams + @{
-            SubKey = "$baseRegistryLocation`MSExchange Management"
-        }
-        $applicationLogs = Get-RemoteRegistryValue @appParams
-        $systemLogs = Get-RemoteRegistryValue @sysParams
-        $managementLogs = Get-RemoteRegistryValue @manParams
-
-        if ($null -eq $applicationLogs) { $applicationLogs = "$rootLogPath\Application.evtx" }
-
-        if ($null -eq $systemLogs) { $systemLogs = "$rootLogPath\System.evtx" }
-
-        if ($null -eq $managementLogs) { $managementLogs = "$rootLogPath\MSExchange Management.evtx" }
-
-        $logs += $applicationLogs
-        $logs += $systemLogs
-        $logs += $managementLogs
-    }
-
-    if ($PassedInfo.WindowsSecurityLogs) {
-
-        $secParams = $baseParams + @{
-            SubKey = "$baseRegistryLocation`Security"
-        }
-        $securityLogs = Get-RemoteRegistryValue @secParams
-
-        if ($null -eq $securityLogs) {
-            $securityLogs = "$rootLogPath\Security.evtx"
-        }
-        $logs += $securityLogs
-    }
-
     if ($PassedInfo.AppSysLogs -or
         $PassedInfo.WindowsSecurityLogs) {
+
+        $baseRegistryLocation = "SYSTEM\CurrentControlSet\Services\EventLog\"
+        $logs = @()
+        $baseParams = @{
+            MachineName = $env:COMPUTERNAME
+            GetValue    = "File"
+        }
+
+        Write-Verbose("Adding Windows Default Event Logging: AppSysLogs: $($PassedInfo.AppSysLogs) WindowsSecurityLogs: $($PassedInfo.WindowsSecurityLogs)")
+
+        foreach ($logName in @("Application", "System", "MSExchange Management", "Security")) {
+
+            if ((-not ($PassedInfo.WindowsSecurityLogs)) -and
+                $logName -eq "Security") { continue }
+            elseif ((-not ($PassedInfo.AppSysLogs)) -and
+                $logName -ne "Security") { continue }
+
+            Write-Verbose "Adding LogName: $logName"
+            $params = $baseParams + @{
+                SubKey = "$baseRegistryLocation$logName"
+            }
+            $logLocation = Get-RemoteRegistryValue @params
+
+            if ($null -eq $logLocation) { $logLocation = "$rootLogPath\$logName.evtx" }
+            $logs += $logLocation
+        }
+
         $SaveLogs.Add("Windows-Logs", $logs)
     }
 
