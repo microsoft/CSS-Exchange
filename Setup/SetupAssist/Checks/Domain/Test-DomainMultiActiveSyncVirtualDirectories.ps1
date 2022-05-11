@@ -2,16 +2,14 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-OrganizationContainer.ps1
+
 Function Test-DomainMultiActiveSyncVirtualDirectories {
     $params = @{
         TestName = "Multiple Active Sync Vdirs Detected"
     }
-    $rootDSE = [ADSI]("LDAP://RootDSE")
-    $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
-    $exchangeContainer = [ADSI]("LDAP://" + $exchangeContainerPath)
-    $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=msExchOrganizationContainer)", @("distinguishedName"))
-    $result = $searcher.FindOne()
-    $orgDN = $result.Properties["distinguishedName"]
+    $orgContainer = Get-OrganizationContainer
+    $orgDN = $orgContainer.Properties["distinguishedName"]
     $containerPath = [ADSI]("LDAP://CN=$env:ComputerName,CN=Servers,CN=Exchange administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,$orgDN")
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($containerPath, "(objectClass=msExchMobileVirtualDirectory)", @("distinguishedName"))
     $result = $searcher.FindAll()
