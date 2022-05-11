@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeDomainConfigVersion.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
@@ -100,68 +101,74 @@ Function Get-ExchangeAdPermissions {
         $domainName = $domain.Name
         $domainDN = $domain.GetDirectoryEntry().distinguishedName
         $adminSdHolderDN = "CN=AdminSDHolder,CN=System,$domainDN"
+        $prepareDomainInfo = Get-ExchangeDomainConfigVersion -Domain $domainName
 
-        Write-Verbose "Working on Domain: $domainName"
-        Write-Verbose "DomainDN: $domainDN"
+        if ($null -ne $prepareDomainInfo.ObjectVersion) {
+            Write-Verbose "Working on Domain: $domainName"
+            Write-Verbose "MESO object version is: $($prepareDomainInfo.ObjectVersion)"
+            Write-Verbose "DomainDN: $domainDN"
 
-        try {
-            $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
-            $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
+            try {
+                $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
+                $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
 
-            foreach ($group in $groupLists) {
+                foreach ($group in $groupLists) {
 
-                Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
-                foreach ($entry in $group.AceEntry) {
+                    Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
+                    foreach ($entry in $group.AceEntry) {
 
-                    if ((($entry.RootOnly) -and ($domainName -eq $rootDomainName)) -or
-                        ($entry.RootOnly -eq $false)) {
-                        Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
-                        if ($entry.AdminSdHolder) {
-                            $objectAcl = $adminSdHolderAcl
-                            $objectDN = $adminSdHolderDN
+                        if ((($entry.RootOnly) -and ($domainName -eq $rootDomainName)) -or
+                            ($entry.RootOnly -eq $false)) {
+                            Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
+                            if ($entry.AdminSdHolder) {
+                                $objectAcl = $adminSdHolderAcl
+                                $objectDN = $adminSdHolderDN
+                            } else {
+                                $objectAcl = $domainAcl
+                                $objectDN = $domainDN
+                            }
+                            Write-Verbose "ObjectDN: $objectDN"
+
+                            # We need to pass an IdentityReference object to the constructor
+                            if ($entry.ComputerClass) {
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
+                            } else {
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
+                            }
+
+                            $checkAce = $objectAcl.Access.Where({
+                                    ($_.ActiveDirectoryRights -eq $ace.ActiveDirectoryRights) -and
+                                    ($_.InheritanceType -eq $ace.InheritanceType) -and
+                                    ($_.ObjectType -eq $ace.ObjectType) -and
+                                    ($_.InheritedObjectType -eq $ace.InheritedObjectType) -and
+                                    ($_.ObjectFlags -eq $ace.ObjectFlags) -and
+                                    ($_.AccessControlType -eq $ace.AccessControlType) -and
+                                    ($_.IsInherited -eq $ace.IsInherited) -and
+                                    ($_.InheritanceFlags -eq $ace.InheritanceFlags) -and
+                                    ($_.PropagationFlags -eq $ace.PropagationFlags) -and
+                                    ($_.IdentityReference -eq $ace.IdentityReference.Translate([System.Security.Principal.NTAccount]))
+                                })
+
+                            $checkPass = $checkAce.Count -gt 0
+                            Write-Verbose "Ace Result Check Passed: $checkPass"
+
+                            $returnedResults.Add([PSCustomObject]@{
+                                    DomainName = $domainName
+                                    ObjectDN   = $objectDN
+                                    ObjectAcl  = $objectAcl
+                                    CheckPass  = $checkPass
+                                })
                         } else {
-                            $objectAcl = $domainAcl
-                            $objectDN = $domainDN
+                            Write-Verbose "ACE entry: $($entry.ObjectTypeGuid) is root-exclusive and will be skipped for domain: $($domainName)"
                         }
-                        Write-Verbose "ObjectDN: $objectDN"
-
-                        # We need to pass an IdentityReference object to the constructor
-                        if ($entry.ComputerClass) {
-                            $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
-                        } else {
-                            $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
-                        }
-
-                        $checkAce = $objectAcl.Access.Where({
-                                ($_.ActiveDirectoryRights -eq $ace.ActiveDirectoryRights) -and
-                                ($_.InheritanceType -eq $ace.InheritanceType) -and
-                                ($_.ObjectType -eq $ace.ObjectType) -and
-                                ($_.InheritedObjectType -eq $ace.InheritedObjectType) -and
-                                ($_.ObjectFlags -eq $ace.ObjectFlags) -and
-                                ($_.AccessControlType -eq $ace.AccessControlType) -and
-                                ($_.IsInherited -eq $ace.IsInherited) -and
-                                ($_.InheritanceFlags -eq $ace.InheritanceFlags) -and
-                                ($_.PropagationFlags -eq $ace.PropagationFlags) -and
-                                ($_.IdentityReference -eq $ace.IdentityReference.Translate([System.Security.Principal.NTAccount]))
-                            })
-
-                        $checkPass = $checkAce.Count -gt 0
-                        Write-Verbose "Ace Result Check Passed: $checkPass"
-
-                        $returnedResults.Add([PSCustomObject]@{
-                                DomainName = $domainName
-                                ObjectDN   = $objectDN
-                                ObjectAcl  = $objectAcl
-                                CheckPass  = $checkPass
-                            })
-                    } else {
-                        Write-Verbose "ACE entry: $($entry.ObjectTypeGuid) is root-exclusive and will be skipped for domain: $($domainName)"
                     }
                 }
+            } catch {
+                Write-Verbose "Failed while getting ACE information"
+                Invoke-CatchActions
             }
-        } catch {
-            Write-Verbose "Failed while getting ACE information"
-            Invoke-CatchActions
+        } else {
+            Write-Verbose "Domain: $domainName will be skipped because it is not configured to hold Exchange-related objects"
         }
     }
     return $returnedResults
