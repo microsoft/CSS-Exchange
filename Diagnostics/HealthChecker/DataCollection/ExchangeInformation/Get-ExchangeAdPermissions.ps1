@@ -103,7 +103,7 @@ Function Get-ExchangeAdPermissions {
         $adminSdHolderDN = "CN=AdminSDHolder,CN=System,$domainDN"
         $prepareDomainInfo = Get-ExchangeDomainConfigVersion -Domain $domainName
 
-        if ($null -ne $prepareDomainInfo.ObjectVersion) {
+        if ($prepareDomainInfo.DomainPreparedForExchange) {
             Write-Verbose "Working on Domain: $domainName"
             Write-Verbose "MESO object version is: $($prepareDomainInfo.ObjectVersion)"
             Write-Verbose "DomainDN: $domainDN"

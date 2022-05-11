@@ -21,7 +21,11 @@ Function Get-ExchangeDomainConfigVersion {
         $domainDN = $domainObject.GetDirectoryEntry().distinguishedName
         $adEntry = [ADSI]("LDAP://CN=Microsoft Exchange System Objects," + $domainDN)
         $sdFinder = New-Object System.DirectoryServices.DirectorySearcher($adEntry)
-        $mesoResult = $sdFinder.FindOne()
+        try {
+            $mesoResult = $sdFinder.FindOne()
+        } catch {
+            Write-Verbose "No result was returned"
+        }
 
         if ($null -ne $mesoResult) {
             Write-Verbose "MESO (Microsoft Exchange System Objects) container detected"
