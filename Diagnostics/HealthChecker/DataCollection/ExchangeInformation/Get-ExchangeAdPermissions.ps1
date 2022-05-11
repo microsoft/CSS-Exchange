@@ -57,19 +57,17 @@ Function Get-ExchangeAdPermissions {
 
     $groupLists = @(
         (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $false -RootOnly $false),
             (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $false -RootOnly $true)
+            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Servers" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $true),
-            # ComputerClass should be false, but is set to true right now - need to do some more investigation here
+            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
             (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Windows Permissions" @(
-            (NewMatchingEntry -ObjectTypeGuid $managedBySID -AdminSdHolder $false -ComputerClass $true -RootOnly $true)
+            (NewMatchingEntry -ObjectTypeGuid $managedBySID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
         )))
 
     $returnedResults = New-Object 'System.Collections.Generic.List[object]'
