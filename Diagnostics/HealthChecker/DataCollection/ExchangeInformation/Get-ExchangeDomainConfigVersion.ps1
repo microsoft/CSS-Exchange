@@ -1,15 +1,22 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+
 Function Get-ExchangeDomainConfigVersion {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
         $Domain
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+
+    if ([System.String]::IsNullOrEmpty($Domain)) {
+        Write-Verbose "No domain information passed - using current domain"
+        $Domain = ([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).Name
+    }
 
     Write-Verbose "Getting domain information for domain: $Domain"
     $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
@@ -25,6 +32,7 @@ Function Get-ExchangeDomainConfigVersion {
             $mesoResult = $sdFinder.FindOne()
         } catch {
             Write-Verbose "No result was returned"
+            Invoke-CatchActions
         }
 
         if ($null -ne $mesoResult) {

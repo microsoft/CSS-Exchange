@@ -130,10 +130,12 @@ Function Get-ExchangeAdPermissions {
                             Write-Verbose "ObjectDN: $objectDN"
 
                             # We need to pass an IdentityReference object to the constructor
+                            $groupIdentityRef = New-Object System.Security.Principal.SecurityIdentifier($group.Sid)
+
                             if ($entry.ComputerClass) {
-                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
                             } else {
-                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule([System.Security.Principal.SecurityIdentifier]::new($group.Sid), $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
+                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
                             }
 
                             $checkAce = $objectAcl.Access.Where({
