@@ -7,23 +7,22 @@
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
-    param()
+    param ()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     Function NewMatchingEntry {
         param(
+            [ValidateSet("Domain", "AdminSDHolder")]
+            [string]$TargetObject,
             [string]$ObjectTypeGuid,
-            [bool]$AdminSdHolder,
-            [bool]$ComputerClass,
-            [bool]$RootOnly
+            [string]$InheritedObjectType
         )
 
         return [PSCustomObject]@{
-            ObjectTypeGuid = $ObjectTypeGuid
-            AdminSdHolder  = $AdminSdHolder
-            ComputerClass  = $ComputerClass
-            RootOnly       = $RootOnly
+            TargetObject        = $TargetObject
+            ObjectTypeGuid      = $ObjectTypeGuid
+            InheritedObjectType = $InheritedObjectType
         }
     }
 
@@ -40,35 +39,26 @@ Function Get-ExchangeAdPermissions {
         }
     }
 
-    # Alt-Scurity-Identities GUID
-    $altSecIdentitySchemaGUID = "00fbf30c-91fe-11d1-aebc-0000f80367c1"
+    # Computer Class GUID
+    $computerClassGUID = "bf967a86-0de6-11d0-a285-00aa003049e2"
 
-    # Computer Class SID
-    $computerClassSID = "bf967a86-0de6-11d0-a285-00aa003049e2"
+    # userCertificate GUID
+    $userCertificateGUID = "bf967a7f-0de6-11d0-a285-00aa003049e2"
 
-    # userCertificate SID
-    $userCertificateSID = "bf967a7f-0de6-11d0-a285-00aa003049e2"
-
-    # managedBy SID
-    $managedBySID = "0296c120-40da-11d1-a9c0-0000f80367c1"
+    # managedBy GUID
+    $managedByGUID = "0296c120-40da-11d1-a9c0-0000f80367c1"
 
     $writePropertyRight = [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty
     $denyType = [System.Security.AccessControl.AccessControlType]::Deny
     $inheritanceAll = [System.DirectoryServices.ActiveDirectorySecurityInheritance]::All
 
     $groupLists = @(
-        (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
-        )),
-
         (NewGroupEntry "Exchange Servers" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
+            (NewMatchingEntry -TargetObject "Domain" -ObjectTypeGuid $userCertificateGUID -InheritedObjectType $computerClassGUID)
         )),
 
         (NewGroupEntry "Exchange Windows Permissions" @(
-            (NewMatchingEntry -ObjectTypeGuid $managedBySID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
+            (NewMatchingEntry -TargetObject "Domain" -ObjectTypeGuid $managedByGUID -InheritedObjectType $computerClassGUID)
         )))
 
     $returnedResults = New-Object 'System.Collections.Generic.List[object]'
@@ -78,7 +68,6 @@ Function Get-ExchangeAdPermissions {
         $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         Write-Verbose ("Detected: $($forest.Domains.Count) domain(s)")
         $rootDomain = $forest.RootDomain.GetDirectoryEntry()
-        $rootDomainName = $forest.RootDomain.forest.Name
 
         foreach ($group in $groupLists) {
             Write-Verbose "Trying to find: $($group.Name)"
@@ -99,7 +88,13 @@ Function Get-ExchangeAdPermissions {
     foreach ($domain in $forest.Domains) {
 
         $domainName = $domain.Name
-        $domainDN = $domain.GetDirectoryEntry().distinguishedName
+        try {
+            $domainDN = $domain.GetDirectoryEntry().distinguishedName
+        } catch {
+            Write-Verbose "Domain: $domainName - seems to be offline and will be skipped"
+            Invoke-CatchActions
+            continue
+        }
         $adminSdHolderDN = "CN=AdminSDHolder,CN=System,$domainDN"
         $prepareDomainInfo = Get-ExchangeDomainConfigVersion -Domain $domainName
 
@@ -113,32 +108,25 @@ Function Get-ExchangeAdPermissions {
                 $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
 
                 foreach ($group in $groupLists) {
-
                     Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
+
                     foreach ($entry in $group.AceEntry) {
+                        Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
+                        if ($entry.TargetObject -eq "AdminSDHolder") {
+                            $objectAcl = $adminSdHolderAcl
+                            $objectDN = $adminSdHolderDN
+                        } else {
+                            $objectAcl = $domainAcl
+                            $objectDN = $domainDN
+                        }
+                        Write-Verbose "ObjectDN: $objectDN"
 
-                        if ((($entry.RootOnly) -and ($domainName -eq $rootDomainName)) -or
-                            ($entry.RootOnly -eq $false)) {
-                            Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
-                            if ($entry.AdminSdHolder) {
-                                $objectAcl = $adminSdHolderAcl
-                                $objectDN = $adminSdHolderDN
-                            } else {
-                                $objectAcl = $domainAcl
-                                $objectDN = $domainDN
-                            }
-                            Write-Verbose "ObjectDN: $objectDN"
+                        # We need to pass an IdentityReference object to the constructor
+                        $groupIdentityRef = New-Object System.Security.Principal.SecurityIdentifier($group.Sid)
 
-                            # We need to pass an IdentityReference object to the constructor
-                            $groupIdentityRef = New-Object System.Security.Principal.SecurityIdentifier($group.Sid)
+                        $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $entry.InheritedObjectType)
 
-                            if ($entry.ComputerClass) {
-                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll, $computerClassSID)
-                            } else {
-                                $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule($groupIdentityRef, $writePropertyRight, $denyType, $entry.ObjectTypeGuid, $inheritanceAll)
-                            }
-
-                            $checkAce = $objectAcl.Access.Where({
+                        $checkAce = $objectAcl.Access.Where({
                                     ($_.ActiveDirectoryRights -eq $ace.ActiveDirectoryRights) -and
                                     ($_.InheritanceType -eq $ace.InheritanceType) -and
                                     ($_.ObjectType -eq $ace.ObjectType) -and
@@ -149,20 +137,17 @@ Function Get-ExchangeAdPermissions {
                                     ($_.InheritanceFlags -eq $ace.InheritanceFlags) -and
                                     ($_.PropagationFlags -eq $ace.PropagationFlags) -and
                                     ($_.IdentityReference -eq $ace.IdentityReference.Translate([System.Security.Principal.NTAccount]))
-                                })
+                            })
 
-                            $checkPass = $checkAce.Count -gt 0
-                            Write-Verbose "Ace Result Check Passed: $checkPass"
+                        $checkPass = $checkAce.Count -gt 0
+                        Write-Verbose "Ace Result Check Passed: $checkPass"
 
-                            $returnedResults.Add([PSCustomObject]@{
-                                    DomainName = $domainName
-                                    ObjectDN   = $objectDN
-                                    ObjectAcl  = $objectAcl
-                                    CheckPass  = $checkPass
-                                })
-                        } else {
-                            Write-Verbose "ACE entry: $($entry.ObjectTypeGuid) is root-exclusive and will be skipped for domain: $($domainName)"
-                        }
+                        $returnedResults.Add([PSCustomObject]@{
+                                DomainName = $domainName
+                                ObjectDN   = $objectDN
+                                ObjectAcl  = $objectAcl
+                                CheckPass  = $checkPass
+                            })
                     }
                 }
             } catch {
