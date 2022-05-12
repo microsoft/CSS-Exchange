@@ -58,7 +58,7 @@ Function Get-ExchangeAdPermissions {
 
     $groupLists = @(
         (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
+            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $false -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Servers" @(
