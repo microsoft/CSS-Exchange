@@ -7,7 +7,11 @@
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
-    param()
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Object]
+        $BuildInformation
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -58,13 +62,11 @@ Function Get-ExchangeAdPermissions {
 
     $groupLists = @(
         (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
+            (NewMatchingEntry -ObjectTypeGuid $altSecIdentitySchemaGUID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Servers" @(
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $false),
-            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $true -ComputerClass $true -RootOnly $false)
+            (NewMatchingEntry -ObjectTypeGuid $userCertificateSID -AdminSdHolder $false -ComputerClass $true -RootOnly $false)
         )),
 
         (NewGroupEntry "Exchange Windows Permissions" @(
@@ -99,7 +101,13 @@ Function Get-ExchangeAdPermissions {
     foreach ($domain in $forest.Domains) {
 
         $domainName = $domain.Name
-        $domainDN = $domain.GetDirectoryEntry().distinguishedName
+        try {
+            $domainDN = $domain.GetDirectoryEntry().distinguishedName
+        } catch {
+            Write-Verbose "Domain: $domainName - seems to be offline and will be skipped"
+            Invoke-CatchActions
+            continue
+        }
         $adminSdHolderDN = "CN=AdminSDHolder,CN=System,$domainDN"
         $prepareDomainInfo = Get-ExchangeDomainConfigVersion -Domain $domainName
 

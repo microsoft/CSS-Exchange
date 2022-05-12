@@ -125,7 +125,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 42
+            $cveTests.Count | Should -Be 43
         }
     }
 }
