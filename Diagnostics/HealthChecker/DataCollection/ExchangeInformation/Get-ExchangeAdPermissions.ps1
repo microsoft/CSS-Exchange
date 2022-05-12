@@ -7,11 +7,7 @@
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.Object]
-        $BuildInformation
-    )
+    param ()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
