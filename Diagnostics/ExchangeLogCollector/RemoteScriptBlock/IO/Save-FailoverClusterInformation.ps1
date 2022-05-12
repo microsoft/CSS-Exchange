@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Save-DataInfoToFile.ps1
+. $PSScriptRoot\Save-RegistryHive.ps1
 . $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
 Function Save-FailoverClusterInformation {
@@ -60,16 +61,13 @@ Function Save-FailoverClusterInformation {
         Invoke-CatchBlockActions
     }
 
-    try {
-        $saveName = "$copyTo\ClusterHive.hiv"
-        reg save "HKEY_LOCAL_MACHINE\Cluster" $saveName | Out-Null
-        "To read the cluster hive. Run 'reg load HKLM\TempHive ClusterHive.hiv'. Then Open your regedit then go to HKLM:\TempHive to view the data." |
-            Out-File -FilePath "$copyTo\ClusterHive_HowToRead.txt"
-    } catch {
-        Write-Verbose "Failed to get the Cluster Hive"
-        Invoke-CatchBlockActions
+    $params = @{
+        RegistryPath    = "HKLM:Cluster"
+        SaveName        = "Cluster_Hive"
+        SaveToPath      = $copyTo
+        UseGetChildItem = $true
     }
-
+    Save-RegistryHive @params
     Invoke-ZipFolder -Folder $copyTo
     Write-Verbose "Function Exit: Save-FailoverClusterInformation"
 }
