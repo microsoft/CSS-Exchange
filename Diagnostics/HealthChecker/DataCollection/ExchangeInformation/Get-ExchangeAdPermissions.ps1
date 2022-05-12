@@ -39,9 +39,6 @@ Function Get-ExchangeAdPermissions {
         }
     }
 
-    # Alt-Scurity-Identities GUID
-    $altSecIdentitySchemaGUID = "00fbf30c-91fe-11d1-aebc-0000f80367c1"
-
     # Computer Class GUID
     $computerClassGUID = "bf967a86-0de6-11d0-a285-00aa003049e2"
 
@@ -56,10 +53,6 @@ Function Get-ExchangeAdPermissions {
     $inheritanceAll = [System.DirectoryServices.ActiveDirectorySecurityInheritance]::All
 
     $groupLists = @(
-        (NewGroupEntry "Exchange Trusted Subsystem" @(
-            (NewMatchingEntry -TargetObject "AdminSDHolder" -ObjectTypeGuid $altSecIdentitySchemaGUID -InheritedObjectType "$([Guid]::Empty)")
-        )),
-
         (NewGroupEntry "Exchange Servers" @(
             (NewMatchingEntry -TargetObject "Domain" -ObjectTypeGuid $userCertificateGUID -InheritedObjectType $computerClassGUID)
         )),
