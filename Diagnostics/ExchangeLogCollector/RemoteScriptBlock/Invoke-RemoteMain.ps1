@@ -181,6 +181,15 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.MitigationService) {
             Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MitigationService" "Mitigation_Service_Logs"
         }
+
+        if ($PassedInfo.MailboxAssistantsLogs) {
+            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsLog" "Mailbox_Assistants_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsSlaReportLog" "Mailbox_Assistants_Sla_Report_Logs"
+
+            if ($Script:localServerObject.Version -eq 15) {
+                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsDatabaseSlaLog" "Mailbox_Assistants_Database_Sla_Logs"
+            }
+        }
     }
 
     ############################################

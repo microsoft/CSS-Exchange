@@ -34,6 +34,7 @@ Function Test-PossibleCommonScenarios {
         $Script:ConnectivityLogs = $true
         $Script:ProtocolLogs = $true
         $Script:MitigationService = $true
+        $Script:MailboxAssistantsLogs = $true
     }
 
     if ($DefaultTransportLogging) {

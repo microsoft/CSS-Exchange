@@ -29,6 +29,7 @@ Param (
     [switch]$HubProtocolLogs,
     [switch]$IISLogs,
     [switch]$ImapLogs,
+    [switch]$MailboxAssistantsLogs,
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
     [switch]$MailboxProtocolLogs,
