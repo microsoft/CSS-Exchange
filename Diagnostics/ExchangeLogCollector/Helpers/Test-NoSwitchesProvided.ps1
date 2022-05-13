@@ -28,6 +28,7 @@ Function Test-NoSwitchesProvided {
         $OABLogs -or
         $PowerShellLogs -or
         $WindowsSecurityLogs -or
+        $MailboxAssistantsLogs -or
         $ExchangeServerInformation -or
         $MitigationService
     ) {
