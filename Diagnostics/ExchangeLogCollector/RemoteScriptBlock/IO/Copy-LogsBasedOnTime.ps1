@@ -63,18 +63,19 @@ Function Copy-LogsBasedOnTime {
 
         Write-Verbose "Function Enter: $($MyInvocation.MyCommand)"
         Write-Verbose "LogPath: '$LogPath' | CopyToThisLocation: '$CopyToThisLocation'"
+        New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
         $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
+        Write-Verbose "Copy From Date: $copyFromDate"
+    }
+    process {
 
+        # need to have the return in process
         if (-not (Test-Path $LogPath)) {
             # If the directory isn't there, provide that
             Write-Verbose "$LogPath doesn't exist"
             NoFilesInLocation "Path doesn't exist"
             return
         }
-    }
-    process {
-        New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
-        Write-Verbose "Copy From Date: $copyFromDate"
 
         if ($IncludeSubDirectory) {
             $getChildItem = Get-ChildItem -Path $LogPath -Recurse

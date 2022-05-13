@@ -25,6 +25,8 @@ Function Get-TransportLoggingInformationPerServer {
                 ReceiveProtocolLogPath = $data.ReceiveProtocolLogPath.ToString()
                 SendProtocolLogPath    = $data.SendProtocolLogPath.ToString()
                 WlmLogPath             = $data.WlmLogPath.ToString()
+                RoutingTableLogPath    = $data.RoutingTableLogPath.ToString()
+                AgentLogPath           = $data.AgentLogPath.ToString()
             }
 
             if (![string]::IsNullOrEmpty($data.QueueLogPath)) {
@@ -39,11 +41,16 @@ Function Get-TransportLoggingInformationPerServer {
             if (($Version -eq 15 -and (-not ($MailboxOnly))) -or $Version -ge 16) {
                 $data = Get-FrontendTransportService -Identity $Server
 
+                if ($Version -ne 15) {
+                    $routingTableLogPath = $data.RoutingTableLogPath.ToString()
+                }
+
                 $FETransObject = [PSCustomObject]@{
                     ConnectivityLogPath    = $data.ConnectivityLogPath.ToString()
                     ReceiveProtocolLogPath = $data.ReceiveProtocolLogPath.ToString()
                     SendProtocolLogPath    = $data.SendProtocolLogPath.ToString()
                     AgentLogPath           = $data.AgentLogPath.ToString()
+                    RoutingTableLogPath    = $routingTableLogPath
                 }
                 $transportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
             }
@@ -51,12 +58,20 @@ Function Get-TransportLoggingInformationPerServer {
             if (($Version -eq 15 -and (-not ($CASOnly))) -or $Version -ge 16) {
                 #Mailbox Transport Layer
                 $data = Get-MailboxTransportService -Identity $Server
+
+                if ($Version -ne 15) {
+                    $routingTableLogPath = $data.RoutingTableLogPath.ToString()
+                }
+
                 $mbxObject = [PSCustomObject]@{
                     ConnectivityLogPath              = $data.ConnectivityLogPath.ToString()
                     ReceiveProtocolLogPath           = $data.ReceiveProtocolLogPath.ToString()
                     SendProtocolLogPath              = $data.SendProtocolLogPath.ToString()
                     PipelineTracingPath              = $data.PipelineTracingPath.ToString()
                     MailboxDeliveryThrottlingLogPath = $data.MailboxDeliveryThrottlingLogPath.ToString()
+                    MailboxDeliveryAgentLogPath      = $data.MailboxDeliveryAgentLogPath.ToString()
+                    MailboxSubmissionAgentLogPath    = $data.MailboxSubmissionAgentLogPath.ToString()
+                    RoutingTableLogPath              = $routingTableLogPath
                 }
                 $transportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject
             }

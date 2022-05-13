@@ -181,6 +181,15 @@ Function Invoke-RemoteMain {
         if ($PassedInfo.MitigationService) {
             Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MitigationService" "Mitigation_Service_Logs"
         }
+
+        if ($PassedInfo.MailboxAssistantsLogs) {
+            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsLog" "Mailbox_Assistants_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsSlaReportLog" "Mailbox_Assistants_Sla_Report_Logs"
+
+            if ($Script:localServerObject.Version -eq 15) {
+                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsDatabaseSlaLog" "Mailbox_Assistants_Database_Sla_Logs"
+            }
+        }
     }
 
     ############################################
@@ -253,6 +262,41 @@ Function Invoke-RemoteMain {
 
             # TODO: Make into a task vs in the main loop
             Copy-BulkItems -CopyToLocation ($Script:RootCopyToDirectory + "\Transport_Configuration") -ItemsToCopyLocation $items
+        }
+
+        if ($PassedInfo.TransportAgentLogs) {
+
+            if ($Script:localServerObject.CAS) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.FELoggingInfo.AgentLogPath "FE_Transport_Agent_Logs"
+            }
+
+            if ($Script:localServerObject.Hub -or
+                $Script:localServerObject.Edge) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.AgentLogPath "Hub_Transport_Agent_Logs"
+            }
+
+            if ($Script:localServerObject.Mailbox) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxSubmissionAgentLogPath "Mbx_Submission_Transport_Agent_Logs"
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxDeliveryAgentLogPath "Mbx_Delivery_Transport_Agent_Logs"
+            }
+        }
+
+        if ($PassedInfo.TransportRoutingTableLogs) {
+
+            if ($Script:localServerObject.Version -ne 15 -and
+                (-not ($Script:localServerObject.Edge))) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.FELoggingInfo.RoutingTableLogPath "FE_Transport_Routing_Table_Logs"
+            }
+
+            if ($Script:localServerObject.Hub -or
+                $Script:localServerObject.Edge) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.RoutingTableLogPath "Hub_Transport_Routing_Table_Logs"
+            }
+
+            if ($Script:localServerObject.Version -ne 15 -and
+                (-not ($Script:localServerObject.Edge))) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.RoutingTableLogPath "Mbx_Transport_Routing_Table_Logs"
+            }
         }
 
         #Exchange 2013+ only

@@ -52,6 +52,7 @@ Function Get-ArgumentList {
         IISLogs                        = $IISLogs
         ImapLogs                       = $ImapLogs
         TimeSpan                       = $LogAge
+        MailboxAssistantsLogs          = $MailboxAssistantsLogs
         MailboxConnectivityLogs        = $MailboxConnectivityLogs
         MailboxDeliveryThrottlingLogs  = $MailboxDeliveryThrottlingLogs
         MailboxProtocolLogs            = $MailboxProtocolLogs
@@ -73,7 +74,9 @@ Function Get-ArgumentList {
         ServerObjects                  = (Get-ServerObjects -ValidServers $Servers)
         ScriptDebug                    = $ScriptDebug
         StandardFreeSpaceInGBCheckSize = $Script:StandardFreeSpaceInGBCheckSize
+        TransportAgentLogs             = $TransportAgentLogs
         TransportConfig                = $TransportConfig
+        TransportRoutingTableLogs      = $TransportRoutingTableLogs
         WindowsSecurityLogs            = $WindowsSecurityLogs
     }
 }

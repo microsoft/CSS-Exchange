@@ -87,6 +87,7 @@ HubConnectivityLogs | Enable to collect the Hub connectivity logging. Location: 
 HubProtocolLogs | Enable to collect the protocol logging. Location: `(Get-TransportService $server).ReceiveProtocolLogPath` and `(Get-TransportService $server).SendProtocolLogPath`
 IISLogs | Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: `C:\inetpub\logs\LogFiles\W3SVC1`, `C:\inetpub\logs\LogFiles\W3SVC1`, and `C:\Windows\System32\LogFiles\HTTPERR`. Only able to collect on `LogAge`.
 ImapLogs | Enable to collect IMAP logging. Location: `(Get-ImapSettings -Server $server).LogFileLocation`
+MailboxAssistantsLogs | Enable to collect Mailbox Assistants logging. Location: `V15\Logging\MailboxAssistantsLog`, `V15\Logging\MailboxAssistantsSlaReportLog`, and `V15\Logging\MailboxAssistantsDatabaseSlaLog`
 MailboxConnectivityLogs | Enable to collect the connectivity logging on the mailbox server. Location: `(Get-MailboxTransportService $server).ConnectivityLogPath`
 MailboxDeliveryThrottlingLogs | Enable to collect the mailbox delivery throttling logs on the server. Location: `(Get-MailboxTransportService $server).MailboxDeliveryThrottlingLogPath`
 MailboxProtocolLogs | Enable to collect protocol logging on the mailbox server. Location: `(Get-MailboxTransportService $server).ReceiveProtocolLogPath` and `(Get-MailboxTransportService $server).SendProtocolLogPath`
@@ -105,7 +106,9 @@ RPCLogs | Enable to collect RPC Logs. Location: `V15\Logging\RPC Client Access`,
 SearchLogs | Enable to collect Search Logs. Location: `V15\Bin\Search\Ceres\Diagnostics\Logs`, `V15\Bin\Search\Ceres\Diagnostics\ETLTraces`, `V15\Logging\Search`. On 2019 only we also include `V15\Logging\BigFunnelMetricsCollectionAssistant`, `V15\Logging\BigFunnelQueryParityAssistant`, and `V15\Logging\BigFunnelRetryFeederTimeBasedAssistant`
 SendConnectors | Enable to collect the send connector information from the environment.
 ServerInformation | Enable to collect general server information.
+TransportAgentLogs | Enable to collect the Agnet Logs. Location: `(Get-TransportService $server).AgentLogPath`, `(Get-FrontendTransportService $server).AgentLogPath`, `(Get-MailboxTransportService $server).MailboxSubmissionAgentLogPath`, and `(Get-MailboxTransportService $server).MailboxDeliveryAgentLogPath`
 TransportConfig | Enable to collect the Transport Configuration files from the Server and `Get-TransportConfig` from the org. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
+TransportRoutingTableLogs | Enable to collect the Routing Table Logs. Location: `(Get-TransportService $server).RoutingTableLogPath`, `(Get-FrontendTransportService $server).RoutingTableLogPath`, and `(Get-MailboxTransportService $server).RoutingTableLogPath`
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\Winevt\Logs\Security.evtx'`
 AcceptEULA | Enable to accept the conditions of the script and not get prompted.
 AllPossibleLogs | Enables the collection of all default logging collection on the Server.
