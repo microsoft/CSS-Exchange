@@ -43,7 +43,9 @@ Function Test-PossibleCommonScenarios {
         $Script:QueueInformation = $true
         $Script:SendConnectors = $true
         $Script:ReceiveConnectors = $true
+        $Script:TransportAgentLogs = $true
         $Script:TransportConfig = $true
+        $Script:TransportRoutingTableLogs = $true
         $Script:FrontEndConnectivityLogs = $true
         $Script:MailboxConnectivityLogs = $true
         $Script:FrontEndProtocolLogs = $true
@@ -117,6 +119,8 @@ Function Test-PossibleCommonScenarios {
         $MailboxConnectivityLogs -or
         $MailboxProtocolLogs -or
         $MailboxDeliveryThrottlingLogs -or
+        $TransportAgentLogs -or
+        $TransportRoutingTableLogs -or
         $DefaultTransportLogging) {
         $Script:AnyTransportSwitchesEnabled = $true
     }

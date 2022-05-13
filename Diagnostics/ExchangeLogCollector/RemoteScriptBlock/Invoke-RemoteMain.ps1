@@ -264,6 +264,41 @@ Function Invoke-RemoteMain {
             Copy-BulkItems -CopyToLocation ($Script:RootCopyToDirectory + "\Transport_Configuration") -ItemsToCopyLocation $items
         }
 
+        if ($PassedInfo.TransportAgentLogs) {
+
+            if ($Script:localServerObject.CAS) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.FELoggingInfo.AgentLogPath "FE_Transport_Agent_Logs"
+            }
+
+            if ($Script:localServerObject.Hub -or
+                $Script:localServerObject.Edge) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.AgentLogPath "Hub_Transport_Agent_Logs"
+            }
+
+            if ($Script:localServerObject.Mailbox) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxSubmissionAgentLogPath "Mbx_Submission_Transport_Agent_Logs"
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.MailboxDeliveryAgentLogPath "Mbx_Delivery_Transport_Agent_Logs"
+            }
+        }
+
+        if ($PassedInfo.TransportRoutingTableLogs) {
+
+            if ($Script:localServerObject.Version -ne 15 -and
+                (-not ($Script:localServerObject.Edge))) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.FELoggingInfo.RoutingTableLogPath "FE_Transport_Routing_Table_Logs"
+            }
+
+            if ($Script:localServerObject.Hub -or
+                $Script:localServerObject.Edge) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.RoutingTableLogPath "Hub_Transport_Routing_Table_Logs"
+            }
+
+            if ($Script:localServerObject.Version -ne 15 -and
+                (-not ($Script:localServerObject.Edge))) {
+                Add-LogCopyBasedOffTimeTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.RoutingTableLogPath "Mbx_Transport_Routing_Table_Logs"
+            }
+        }
+
         #Exchange 2013+ only
         if ($Script:localServerObject.Version -ge 15 -and
             (-not($Script:localServerObject.Edge))) {
