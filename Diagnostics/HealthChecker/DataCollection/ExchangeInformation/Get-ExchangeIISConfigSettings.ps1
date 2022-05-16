@@ -47,9 +47,18 @@ Function Get-ExchangeIISConfigSettings {
             foreach ($location in $iisConfigLocations) {
                 $binSearchFoldersNotFound = $false
                 $fullPath = [System.IO.Path]::Combine($ExchangeInstallPath, $location)
+
+                if ((Test-Path $fullPath)) {
+                    $exist = $true
+                    $defaultVariable = $null -ne (Get-ChildItem $fullPath | Select-String "%ExchangeInstallDir%")
+                } else {
+                    $exist = $false
+                    $defaultVariable = $false
+                }
                 # not sure if we need to check for this, because I think the %ExchangeInstallDir% will be set still
                 # but going to add this check as well either way.
-                if ($location -eq "ClientAccess\ecp\web.config") {
+                if ($location -eq "ClientAccess\ecp\web.config" -and
+                    $exist) {
 
                     $BinSearchFolders = Get-ChildItem $fullPath | Select-String "BinSearchFolders" | Select-Object -ExpandProperty Line
                     $startIndex = $BinSearchFolders.IndexOf("value=`"") + 7
@@ -65,8 +74,8 @@ Function Get-ExchangeIISConfigSettings {
                 }
                 $results.Add([PSCustomObject]@{
                         Location                 = $fullPath
-                        Exist                    = (Test-Path $fullPath)
-                        DefaultVariable          = ($null -ne (Get-ChildItem $fullPath | Select-String "%ExchangeInstallDir%"))
+                        Exist                    = $exist
+                        DefaultVariable          = $defaultVariable
                         BinSearchFoldersNotFound = $binSearchFoldersNotFound
                     })
             }
