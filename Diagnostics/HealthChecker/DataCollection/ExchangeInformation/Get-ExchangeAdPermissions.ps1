@@ -114,7 +114,7 @@ Function Get-ExchangeAdPermissions {
                 } catch {
                     Invoke-CatchActions
                     $objectVersionTestingValue = 13243
-                    if ($ExchangeServerObject.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
+                    if ($ExchangeVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
                         $objectVersionTestingValue = 13238
                     }
                     Write-Verbose "Unable to query Acl for Domain: $domainName - fallback to objectVersion (Default) validation"
