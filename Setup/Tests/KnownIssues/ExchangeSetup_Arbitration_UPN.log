@@ -1,0 +1,145 @@
+[03/08/2021 20:20:33.0857] [0] **********************************************
+[03/08/2021 20:20:33.0857] [0] Starting Microsoft Exchange Server 2013 Setup
+[03/08/2021 20:20:33.0857] [0] **********************************************
+[03/08/2021 20:20:33.0857] [0] Local time zone: (UTC-05:00) Eastern Time (US & Canada).
+[03/08/2021 20:20:33.0857] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/08/2021 20:20:33.0857] [0] Setup version: 15.0.1497.2.
+[03/08/2021 20:20:33.0857] [0] Logged on user: SOLO\Han.
+[03/08/2021 20:20:33.0873] [0] Command Line Parameter Name='preparead', Value=''.
+[03/08/2021 20:20:33.0873] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/08/2021 20:20:33.0873] [0] Command Line Parameter Name='sourcedir', Value='C:\Users\han\Desktop\cu23'.
+[03/08/2021 20:20:33.0966] [0] RuntimeAssembly was started with the following command: '/preparead /iacceptexchangeserverlicenseterms /sourcedir:C:\Users\han\Desktop\cu23'.
+[03/08/2021 20:20:33.0966] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/08/2021 20:20:33.0966] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/08/2021 20:20:33.0966] [0] Copying Files...
+[03/08/2021 20:20:33.0966] [0] Starting copy from C:\Users\han\Desktop\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/08/2021 20:20:38.0726] [0] Finished copy from C:\Users\han\Desktop\cu23\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/08/2021 20:20:38.0726] [0] File copy complete. Setup will now collect additional information needed for installation.
+[03/08/2021 20:20:38.0726] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/08/2021 20:20:39.0943] [0] Setup is choosing the domain controller to use
+[03/08/2021 20:20:40.0083] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Solo.local
+[03/08/2021 20:20:41.0253] [0] PrepareAD has either not been run or has not replicated to the domain controller used by Setup. Setup will attempt to use the Schema Master domain controller DC2.Solo.local
+[03/08/2021 20:20:41.0316] [0] The schema master domain controller is available
+[03/08/2021 20:20:41.0316] [0] The schema master domain controller is in the local domain; setup will use DC2.Solo.local
+[03/08/2021 20:20:41.0331] [0] Setup is choosing a global catalog...
+[03/08/2021 20:20:41.0363] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/08/2021 20:20:41.0394] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/08/2021 20:20:41.0394] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/08/2021 20:20:41.0394] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/08/2021 20:20:41.0394] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/08/2021 20:20:41.0409] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/08/2021 20:20:41.0534] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/08/2021 20:20:41.0581] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/08/2021 20:20:41.0581] [0] The following datacenter roles are unpacked:
+[03/08/2021 20:20:41.0581] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/08/2021 20:20:41.0581] [0] The local server has some Exchange files installed.
+[03/08/2021 20:20:41.0581] [0] Server Name=ExSvr1
+[03/08/2021 20:20:41.0597] [0] Setup will use the path 'C:\Users\han\Desktop\cu23' for installing Exchange.
+[03/08/2021 20:20:41.0597] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/08/2021 20:20:41.0597] [0] 'BridgeheadRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] 'ClientAccessRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] 'MailboxRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] 'CafeRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] 'FrontendTransportRole' is installed on the server object.
+[03/08/2021 20:20:41.0597] [0] The installation mode is set to: 'Install'.
+[03/08/2021 20:20:44.0733] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/08/2021 20:20:44.0733] [0] Active Directory Initialization status : 'True'.
+[03/08/2021 20:20:44.0733] [0] Schema Update Required Status : 'False'.
+[03/08/2021 20:20:44.0733] [0] Organization Configuration Update Required Status : 'True'.
+[03/08/2021 20:20:44.0733] [0] Domain Configuration Update Required Status : 'True'.
+[03/08/2021 20:20:44.0733] [0] The locally installed version is 15.0.1156.6.
+[03/08/2021 20:20:44.0733] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/08/2021 20:20:44.0796] [0] Applying default role selection state
+[03/08/2021 20:20:44.0811] [0] Setup is determining what organization-level operations to perform.
+[03/08/2021 20:20:44.0811] [0] The command-line option preparead has been specified.
+[03/08/2021 20:20:44.0811] [0] Because the command-line option preparead was specified, setup is adding the argument PrepareOrganization.
+[03/08/2021 20:20:44.0811] [0] Because the command-line option preparead was specified, setup is adding the argument PrepareDomain.
+[03/08/2021 20:20:44.0811] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/08/2021 20:20:44.0811] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/08/2021 20:20:44.0811] [0] InstallModeDataHandler has 1 DataHandlers
+[03/08/2021 20:20:44.0811] [0] RootDataHandler has 1 DataHandlers
+[03/08/2021 20:20:44.0827] [0] Validating options for the 0 requested roles
+[03/08/2021 20:20:44.0842] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/08/2021 20:20:44.0858] [0] Setup is determining what organization-level operations to perform.
+[03/08/2021 20:20:44.0858] [0] The command-line option preparead has been specified.
+[03/08/2021 20:20:44.0858] [0] Because the command-line option preparead was specified, setup is adding the argument PrepareOrganization.
+[03/08/2021 20:20:44.0858] [0] Because the command-line option preparead was specified, setup is adding the argument PrepareDomain.
+[03/08/2021 20:20:44.0858] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/08/2021 20:20:44.0889] [0] **************
+[03/08/2021 20:20:46.0481] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:5] [Duration:00:00:00]
+[03/08/2021 20:21:50.0770] [2] Processing object "SoloORG/Users/SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}".
+[03/08/2021 20:21:50.0785] [2] [ERROR] An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.
+Active directory response: 000021C8: AtrErr: DSID-03200BE9, #1:
+	0: 000021C8: DSID-03200BE9, problem 1005 (CONSTRAINT_ATT_TYPE), data 0, Att 90290 (userPrincipalName)
+
+[03/08/2021 20:21:50.0801] [2] [ERROR] A value in the request is invalid.
+[03/08/2021 20:21:50.0832] [2] Ending processing Install-UserAccount
+[03/08/2021 20:21:50.0832] [1] The following 1 error(s) occurred during task execution:
+[03/08/2021 20:21:50.0832] [1] 0.  ErrorRecord: An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.
+Active directory response: 000021C8: AtrErr: DSID-03200BE9, #1:
+	0: 000021C8: DSID-03200BE9, problem 1005 (CONSTRAINT_ATT_TYPE), data 0, Att 90290 (userPrincipalName)
+
+[03/08/2021 20:21:50.0832] [1] 0.  ErrorRecord: Microsoft.Exchange.Data.Directory.ADConstraintViolationException: An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.
+Active directory response: 000021C8: AtrErr: DSID-03200BE9, #1:
+	0: 000021C8: DSID-03200BE9, problem 1005 (CONSTRAINT_ATT_TYPE), data 0, Att 90290 (userPrincipalName)
+ ---> System.DirectoryServices.Protocols.DirectoryOperationException: A value in the request is invalid.
+   at System.DirectoryServices.Protocols.LdapConnection.ConstructResponse(Int32 messageId, LdapOperation operation, ResultAll resultType, TimeSpan requestTimeOut, Boolean exceptionOnTimeOut)
+   at System.DirectoryServices.Protocols.LdapConnection.SendRequest(DirectoryRequest request, TimeSpan requestTimeout)
+   at Microsoft.Exchange.Data.Directory.PooledLdapConnection.SendRequest(DirectoryRequest request, LdapOperation ldapOperation, Nullable`1 clientSideSearchTimeout, IActivityScope activityScope, String callerInfo)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.ExecuteModificationRequest(ADObject entry, DirectoryRequest request, ADObjectId originalId, Boolean emptyObjectSessionOnException, Boolean isSync)
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Data.Directory.ADDataSession.AnalyzeDirectoryError(PooledLdapConnection connection, DirectoryRequest request, DirectoryException de, Int32 totalRetries, Int32 retriesOnServer)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.ExecuteModificationRequest(ADObject entry, DirectoryRequest request, ADObjectId originalId, Boolean emptyObjectSessionOnException, Boolean isSync)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.Save(ADObject instanceToSave, IEnumerable`1 properties, Boolean bypassValidation)
+   at Microsoft.Exchange.Data.Directory.Recipient.ADRecipientObjectSession.Save(ADRecipient instanceToSave)
+   at Microsoft.Exchange.Management.Deployment.InstallUserAccount.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/08/2021 20:21:50.0832] [1] [ERROR] The following error was generated when "$error.Clear();
+          $arbMbxname = "SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}";
+          $arbMbxLastName = "MsExchDiscovery e0dc1c29-89c3-4034-b678-e6c29d823ed9";
+          $arbUser = @(Get-User -Filter {LastName -eq $arbMbxLastName} -IgnoreDefaultScope -ResultSize 1);
+          if ($arbUser.Length -eq 0)
+          {
+            $arbUser = @(Get-User -Arbitration -Filter {LastName -eq $arbMbxLastName} -IgnoreDefaultScope -ResultSize 1);
+          }
+
+          if ($arbUser.Length -eq 0)
+          {
+            Install-UserAccount -Name $arbMbxname -LastName $arbMbxLastName;
+          }
+        " was run: "Microsoft.Exchange.Data.Directory.ADConstraintViolationException: An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.
+Active directory response: 000021C8: AtrErr: DSID-03200BE9, #1:
+	0: 000021C8: DSID-03200BE9, problem 1005 (CONSTRAINT_ATT_TYPE), data 0, Att 90290 (userPrincipalName)
+ ---> System.DirectoryServices.Protocols.DirectoryOperationException: A value in the request is invalid.
+   at System.DirectoryServices.Protocols.LdapConnection.ConstructResponse(Int32 messageId, LdapOperation operation, ResultAll resultType, TimeSpan requestTimeOut, Boolean exceptionOnTimeOut)
+   at System.DirectoryServices.Protocols.LdapConnection.SendRequest(DirectoryRequest request, TimeSpan requestTimeout)
+   at Microsoft.Exchange.Data.Directory.PooledLdapConnection.SendRequest(DirectoryRequest request, LdapOperation ldapOperation, Nullable`1 clientSideSearchTimeout, IActivityScope activityScope, String callerInfo)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.ExecuteModificationRequest(ADObject entry, DirectoryRequest request, ADObjectId originalId, Boolean emptyObjectSessionOnException, Boolean isSync)
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Data.Directory.ADDataSession.AnalyzeDirectoryError(PooledLdapConnection connection, DirectoryRequest request, DirectoryException de, Int32 totalRetries, Int32 retriesOnServer)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.ExecuteModificationRequest(ADObject entry, DirectoryRequest request, ADObjectId originalId, Boolean emptyObjectSessionOnException, Boolean isSync)
+   at Microsoft.Exchange.Data.Directory.ADDataSession.Save(ADObject instanceToSave, IEnumerable`1 properties, Boolean bypassValidation)
+   at Microsoft.Exchange.Data.Directory.Recipient.ADRecipientObjectSession.Save(ADRecipient instanceToSave)
+   at Microsoft.Exchange.Management.Deployment.InstallUserAccount.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__b()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/08/2021 20:21:50.0832] [1] [ERROR] An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.
+Active directory response: 000021C8: AtrErr: DSID-03200BE9, #1:
+	0: 000021C8: DSID-03200BE9, problem 1005 (CONSTRAINT_ATT_TYPE), data 0, Att 90290 (userPrincipalName)
+
+[03/08/2021 20:21:50.0832] [1] [ERROR] A value in the request is invalid.
+[03/08/2021 20:21:50.0832] [1] [ERROR-REFERENCE] Id=CommonGlobalConfig___04f8b3bdd23644f38fcfed07620d42f5 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/08/2021 20:21:50.0832] [1] Setup is stopping now because of one or more critical errors.
+[03/08/2021 20:21:50.0832] [1] Finished executing component tasks.
+[03/08/2021 20:21:50.0848] [1] Ending processing Install-ExchangeOrganization
+[03/08/2021 20:21:50.0848] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/08/2021 20:21:50.0848] [0] CurrentResult launcherbase.maincore:90: 1
+[03/08/2021 20:21:50.0848] [0] CurrentResult console.startmain:52: 1
+[03/08/2021 20:21:50.0848] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/08/2021 20:21:50.0848] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/08/2021 20:21:50.0863] [0] CurrentResult main.run:235: 1
+[03/08/2021 20:21:50.0863] [0] CurrentResult setupbase.maincore:396: 1
+[03/08/2021 20:21:50.0863] [0] End of Setup
+[03/08/2021 20:21:50.0863] [0] **********************************************
