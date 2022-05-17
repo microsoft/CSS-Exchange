@@ -27,7 +27,7 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
