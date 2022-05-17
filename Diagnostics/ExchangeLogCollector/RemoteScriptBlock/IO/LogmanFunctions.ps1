@@ -1,41 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function GetLogmanExtension {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param (
-        [Parameter(Mandatory = $true)]
-        [object]$RawLogmanData
-    )
-    $line = $RawLogmanData | Where-Object { $_.Trim().Contains("Output Location:") }
-
-    if ($null -ne $line) {
-        [int]$index = $line.LastIndexOf(".")
-
-        if ($index -ne -1) {
-            return $line.Substring($index)
-        }
-    }
-    return ".blg"
-}
-
-Function GetLogmanStartDate {
-    [CmdletBinding()]
-    [OutputType([datetime])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$RawLogmanData
-    )
-    $line = $RawLogmanData | Where-Object { $_.Trim().Contains("Start Date:") }
-
-    if ($null -ne $line) {
-        [string]$dateTime = $line.Substring($line.LastIndexOf(" ") + 1)
-        return [System.Convert]::ToDateTime($dateTime)
-    }
-    return [datetime]::MinValue
-}
-
 Function CopyLogmanData {
     [CmdletBinding()]
     param(
@@ -122,17 +87,11 @@ Function GetLogmanObject {
             }
 
             $rootPath = $existingLogmanDcsc.RootPath
-
-            $logmanResults = logman $LogmanName
-
-            if ($LASTEXITCODE) {
-                Write-Verbose "Failed to get logman information"
-                return
-            }
-
-            $logmanResults | ForEach-Object { Write-Verbose $_ }
-            $extension = GetLogmanExtension $logmanResults
-            $startDate = GetLogmanStartDate $logmanResults
+            $outputLocation = $existingLogmanDcsc.DataCollectors._NewEnum.OutputLocation
+            Write-Verbose "Output Location: $outputLocation"
+            $extension = $outputLocation.Substring($outputLocation.LastIndexOf("."))
+            $startDate = $existingLogmanDcsc.Schedules._NewEnum.StartDate
+            Write-Verbose "Status: $status RootPath: $rootPath Extension: $extension StartDate: $startDate"
             $foundLogman = $true
         } catch {
             Write-Verbose "Failed to get the Logman information. Exception $_"
