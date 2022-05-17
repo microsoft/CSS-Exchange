@@ -37,7 +37,7 @@ Function Get-ExchangeDomainConfigVersion {
 
         if ($null -ne $mesoResult) {
             Write-Verbose "MESO (Microsoft Exchange System Objects) container detected"
-            $objectVersion = $mesoResult.Properties.objectversion
+            [int]$objectVersion = $mesoResult.Properties.objectversion[0]
             $whenChangedInfo = $mesoResult.Properties.whenchanged
         } else {
             Write-Verbose "No MESO (Microsoft Exchange System Objects) container detected"
