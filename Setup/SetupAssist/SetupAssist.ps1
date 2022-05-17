@@ -156,4 +156,6 @@ try {
     } elseif (-not ($PSBoundParameters["Verbose"])) {
         $Script:Logger | Invoke-LoggerInstanceCleanup
     }
+
+    Write-Host("Do you like the script? Visit https://aka.ms/ExchangeSetupAssist-Feedback to rate it and to provide feedback.") -ForegroundColor Green
 }
