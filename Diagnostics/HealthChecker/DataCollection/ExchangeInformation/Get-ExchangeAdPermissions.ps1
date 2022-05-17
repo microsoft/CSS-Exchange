@@ -7,7 +7,11 @@
 
 Function Get-ExchangeAdPermissions {
     [CmdletBinding()]
-    param ()
+    param (
+        [Parameter(Mandatory = $true)]
+        [HealthChecker.ExchangeMajorVersion]
+        $ExchangeVersion
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -104,8 +108,24 @@ Function Get-ExchangeAdPermissions {
             Write-Verbose "DomainDN: $domainDN"
 
             try {
-                $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
-                $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
+                try {
+                    $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
+                    $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
+                } catch {
+                    Invoke-CatchActions
+                    $objectVersionTestingValue = 13243
+                    if ($ExchangeServerObject.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
+                        $objectVersionTestingValue = 13238
+                    }
+                    Write-Verbose "Unable to query Acl for Domain: $domainName - fallback to objectVersion (Default) validation"
+                    $returnedResults.Add([PSCustomObject]@{
+                            DomainName = $domainName
+                            ObjectDN   = $null
+                            ObjectAcl  = $null
+                            CheckPass  = ($prepareDomainInfo.ObjectVersion -ge $objectVersionTestingValue)
+                        })
+                    continue
+                }
 
                 foreach ($group in $groupLists) {
                     Write-Verbose "Looking Ace Entries for the group: $($group.Name)"
