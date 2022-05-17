@@ -84,8 +84,8 @@ param (
     [switch]
     $Stop,
 
-    [Parameter(ParameterSetName = "Start", ValueFromPipeline = $true)]
-    [Parameter(ParameterSetName = "Stop", ValueFromPipeline = $true)]
+    [Parameter(ParameterSetName = "Start")]
+    [Parameter(ParameterSetName = "Stop")]
     [string]
     $CollectorName = ""
 )
