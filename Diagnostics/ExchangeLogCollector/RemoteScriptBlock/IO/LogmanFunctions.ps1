@@ -137,6 +137,14 @@ Function GetLogmanObject {
         } catch {
             Write-Verbose "Failed to get the Logman information. Exception $_"
         }
+
+        finally {
+            if ($null -ne $dcsc) {
+                [System.Runtime.Interopservices.Marshal]::ReleaseComObject($dcsc) | Out-Null
+                $dcsc = $null
+                $existingLogmanDcsc = $null
+            }
+        }
     }
     end {
         return [PSCustomObject]@{
