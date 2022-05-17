@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
 )
-
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Get-ScriptUpdateAvailable.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\DiskShadow\Invoke-CreateDiskShadowFile.ps1
 . .\DiskShadow\Invoke-DiskShadow.ps1
@@ -40,6 +40,11 @@ param(
 . .\Logging\Invoke-EnableVSSTracing.ps1
 
 Function Main {
+    $updateInfo = Get-ScriptUpdateAvailable
+    if ($updateInfo.UpdateFound) {
+        Write-Warning "An update is available for this script. Current: $($updateInfo.CurrentVersion) Latest: $($updateInfo.LatestVersion)"
+        Write-Warning "Please download the latest: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/"
+    }
 
     # if a transcript is running, we need to stop it as this script will start its own
     try {
