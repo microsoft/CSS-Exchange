@@ -186,7 +186,19 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
     }
 
     if ($null -ne $exchangeInformation.IISConfigurationSettings) {
-        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings
+        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings |
+            Where-Object {
+                if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -or
+                    $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole) {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Mailbox -and
+                    $_.Location -like "*ClientAccess*") {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -and
+                    $_.Location -like "*FrontEnd\HttpProxy*") {
+                    return $_
+                }
+            }
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
         $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $_.DefaultVariable -eq $true }
         $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }
