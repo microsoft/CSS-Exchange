@@ -309,6 +309,16 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.1.2242.4" }
         }
+
+        It "Arbitration Mailbox UPN" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Arbitration_UPN.log"
+            Assert-MockCalled -Exactly 2 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Microsoft.Exchange.Data.Directory.ADConstraintViolationException: An Active Directory Constraint Violation error occurred on DC2.Solo.local. Additional information: The operation failed because UPN value provided for addition/modification is not unique forest-wide.*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*This is a known issue, however, we are still investigating as to why this issue is occurring in some environments. Please email 'ExToolsFeedback@microsoft.com' ASAP to investigate this issue." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Do NOT remove the arbitration mailboxes/accounts as they may contain critical information for your environment." }
+        }
     }
 
     Context "Good Test Case" {
