@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\ErrorContext\Test-ArbitrationMailbox.ps1
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
 . $PSScriptRoot\..\ErrorContext\Test-FailedSearchFoundation.ps1
@@ -57,6 +58,7 @@ Function Test-KnownIssuesByErrors {
         InvokeTest -PipeObject ([PSCustomObject]@{
                 ErrorContext = $contextOfError
             }) -Tests @(
+            "Test-ArbitrationMailbox",
             "Test-DisabledService",
             "Test-EndpointMapper",
             "Test-ExceptionADOperationFailedAlreadyExist",
