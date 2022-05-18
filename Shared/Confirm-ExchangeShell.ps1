@@ -4,7 +4,7 @@
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 . $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 
-Function Confirm-ExchangeShell {
+function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -22,7 +22,7 @@ Function Confirm-ExchangeShell {
     )
 
     begin {
-        Function Test-GetExchangeServerCmdletError {
+        function Test-GetExchangeServerCmdletError {
             param(
                 [Parameter(Mandatory = $true)]
                 [object]$ThisError

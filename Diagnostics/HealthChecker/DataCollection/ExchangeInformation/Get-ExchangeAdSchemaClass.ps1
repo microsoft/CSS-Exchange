@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ExchangeAdSchemaClass {
+function Get-ExchangeAdSchemaClass {
     param(
         [Parameter(Mandatory = $true)][string]$SchemaClassName
     )

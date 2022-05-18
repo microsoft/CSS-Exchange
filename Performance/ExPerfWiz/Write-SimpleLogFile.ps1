@@ -44,9 +44,9 @@ Write-SimpleLogFile -String "Start ProcessB" -Name mylogfile.log -OutHost
 Writes "[Date] - Start ProcessB" to $env:LocalAppData\mylogfile and to the Host
 
 #>
-Function global:Write-SimpleLogfile {
+function global:Write-SimpleLogfile {
     [cmdletbinding()]
-    Param
+    param
     (
         [Parameter(Mandatory = $true)]
         [string]$String,
@@ -60,16 +60,16 @@ Function global:Write-SimpleLogfile {
 
     )
 
-    Begin {
+    begin {
         # Get our log file path
         $LogFile = Join-Path $env:LOCALAPPDATA $Name
 
         if ($OpenLog) {
             Notepad.exe $LogFile
-            Exit
+            exit
         }
     }
-    Process {
+    process {
 
         # Get the current date
         [string]$date = Get-Date -Format G
@@ -83,5 +83,3 @@ Function global:Write-SimpleLogfile {
         else { Write-Verbose  $logstring }
     }
 }
-
-

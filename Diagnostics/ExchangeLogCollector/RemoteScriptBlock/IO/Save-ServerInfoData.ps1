@@ -5,7 +5,7 @@
 . $PSScriptRoot\Save-RegistryHive.ps1
 . $PSScriptRoot\..\Add-ServerNameToFileName.ps1
 . $PSScriptRoot\..\Test-CommandExists.ps1
-Function Save-ServerInfoData {
+function Save-ServerInfoData {
     Write-Verbose("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
     New-Item -ItemType Directory -Path $copyTo -Force | Out-Null

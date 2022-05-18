@@ -10,19 +10,19 @@ BeforeAll {
     . $Script:parentPath\Get-ExchangeConnectors.ps1
     . $Script:parentPath\Get-ExchangeServerCertificates.ps1
 
-    Function Invoke-CatchActions {
+    function Invoke-CatchActions {
         param()
     }
 
-    Function Get-ExchangeCertificate {
+    function Get-ExchangeCertificate {
         param()
     }
 
-    Function Get-ReceiveConnector {
+    function Get-ReceiveConnector {
         param()
     }
 
-    Function Get-SendConnector {
+    function Get-SendConnector {
         param()
     }
 }
@@ -248,7 +248,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         }
 
         It "Send Connector Configured As Expected For Relaying Via M365" {
-            Switch ($results) {
+            switch ($results) {
                 { ($_.SmartHosts -like "*.mail.protection.outlook.com") } {
                     $smartHostsPointToExo = $true;
                     $_.Name | Should -Be "My company to Office 365";

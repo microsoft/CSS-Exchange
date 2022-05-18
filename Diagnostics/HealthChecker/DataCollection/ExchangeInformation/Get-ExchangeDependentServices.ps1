@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
-Function Get-ExchangeDependentServices {
+function Get-ExchangeDependentServices {
     [CmdletBinding()]
     param(
         [string]$MachineName
@@ -23,7 +23,7 @@ Function Get-ExchangeDependentServices {
         $criticalServices = New-Object 'System.Collections.Generic.List[object]'
         $commonServices = New-Object 'System.Collections.Generic.List[object]'
         $getServicesList = New-Object 'System.Collections.Generic.List[object]'
-        Function TestServiceRunning {
+        function TestServiceRunning {
             param(
                 [object]$Service
             )
@@ -32,7 +32,7 @@ Function Get-ExchangeDependentServices {
             return $false
         }
 
-        Function NewServiceObject {
+        function NewServiceObject {
             param(
                 [object]$Service
             )

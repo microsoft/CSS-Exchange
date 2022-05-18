@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-CredentialGuardEnabled {
+function Get-CredentialGuardEnabled {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $registryValue = Get-RemoteRegistryValue -MachineName $Script:Server `

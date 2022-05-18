@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # Small set of functions that are used to help override the Write-Host and Write-Verbose functions
-Function Get-ManipulateWriteHostValue {
+function Get-ManipulateWriteHostValue {
     [CmdletBinding()]
     [OutputType([string])]
     param(
@@ -15,7 +15,7 @@ Function Get-ManipulateWriteHostValue {
     }
 }
 
-Function Get-ManipulateWriteVerboseValue {
+function Get-ManipulateWriteVerboseValue {
     [CmdletBinding()]
     [OutputType([string])]
     param(
@@ -29,7 +29,7 @@ Function Get-ManipulateWriteVerboseValue {
 }
 
 #Calls the $Script:Logger object to write the data to file only.
-Function Write-DebugLog($message) {
+function Write-DebugLog($message) {
     if ($null -ne $message -and
         ![string]::IsNullOrEmpty($message) -and
         $null -ne $Script:Logger) {

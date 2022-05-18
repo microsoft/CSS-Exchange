@@ -5,7 +5,7 @@
 . $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
 
 # Gets all related TLS Settings, from registry or other factors
-Function Get-AllTlsSettings {
+function Get-AllTlsSettings {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,

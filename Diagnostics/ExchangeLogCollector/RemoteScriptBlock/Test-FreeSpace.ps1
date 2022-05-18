@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-FreeSpace.ps1
 . $PSScriptRoot\Get-ItemsSize.ps1
-Function Test-FreeSpace {
+function Test-FreeSpace {
     param(
         [Parameter(Mandatory = $false)][array]$FilePaths
     )

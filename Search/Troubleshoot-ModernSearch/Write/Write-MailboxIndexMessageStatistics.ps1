@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
-Function Write-MailboxIndexMessageStatistics {
+function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-DisabledService {
+function Test-DisabledService {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

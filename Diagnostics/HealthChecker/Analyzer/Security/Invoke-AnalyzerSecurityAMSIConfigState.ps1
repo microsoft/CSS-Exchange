@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Invoke-AnalyzerSecurityAMSIConfigState {
+function Invoke-AnalyzerSecurityAMSIConfigState {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

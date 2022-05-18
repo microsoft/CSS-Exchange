@@ -15,7 +15,7 @@ Describe "Testing SetupLogReviewer" {
             Mock Write-Host {}
             Mock Write-Warning {}
             Mock Write-Host {}
-            Function Test-GeneralAdditionalContext {
+            function Test-GeneralAdditionalContext {
                 param(
                     [bool]$SkipSchema = $false
                 )

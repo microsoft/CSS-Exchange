@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
-Function Get-ExchangeAdPermissions {
+function Get-ExchangeAdPermissions {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -15,7 +15,7 @@ Function Get-ExchangeAdPermissions {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    Function NewMatchingEntry {
+    function NewMatchingEntry {
         param(
             [ValidateSet("Domain", "AdminSDHolder")]
             [string]$TargetObject,
@@ -30,7 +30,7 @@ Function Get-ExchangeAdPermissions {
         }
     }
 
-    Function NewGroupEntry {
+    function NewGroupEntry {
         param(
             [string]$Name,
             [object[]]$MatchingEntries

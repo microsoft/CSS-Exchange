@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Save-DataToFile.ps1
 . $PSScriptRoot\..\Add-ServerNameToFileName.ps1
-Function Save-DataInfoToFile {
+function Save-DataInfoToFile {
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,
         [Parameter(Mandatory = $true)][string]$SaveToLocation,

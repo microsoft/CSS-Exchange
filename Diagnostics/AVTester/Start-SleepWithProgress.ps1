@@ -30,9 +30,9 @@ Creates a Progress bar with the message "Waiting on Process to complete"
 Counts down 60 seconds and updates the Progress bar during the proess.
 
 #>
-Function Start-SleepWithProgress {
+function Start-SleepWithProgress {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Start-Sleep does not use -WhatIf')]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [int]$SleepTime,
 
@@ -41,7 +41,7 @@ Function Start-SleepWithProgress {
     )
 
     # Loop Number of seconds you want to sleep
-    For ($i = 0; $i -le $SleepTime; $i++) {
+    for ($i = 0; $i -le $SleepTime; $i++) {
         $timeleft = ($SleepTime - $i);
 
         # Progress bar showing progress of the sleep

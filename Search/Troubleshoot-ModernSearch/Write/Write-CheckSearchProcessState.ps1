@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
-Function Write-CheckSearchProcessState {
+function Write-CheckSearchProcessState {
     [CmdletBinding()]
     param(
         [string]$ActiveServer

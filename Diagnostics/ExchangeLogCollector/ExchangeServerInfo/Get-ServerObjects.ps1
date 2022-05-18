@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-ExchangeBasicServerObject.ps1
 . $PSScriptRoot\Get-TransportLoggingInformationPerServer.ps1
-Function Get-ServerObjects {
+function Get-ServerObjects {
     param(
         [Parameter(Mandatory = $true)][Array]$ValidServers
     )
@@ -56,5 +56,5 @@ Function Get-ServerObjects {
     #Set the valid servers
     $Script:ValidServers = $validServersList
     Write-Verbose("Function Exit: Get-ServerObjects")
-    Return $svrsObject
+    return $svrsObject
 }

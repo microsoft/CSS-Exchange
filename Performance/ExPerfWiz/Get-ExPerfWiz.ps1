@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Get-ExPerfWiz {
+function global:Get-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -60,7 +60,7 @@ Function global:Get-ExPerfWiz {
         # Returns all found collector sets
         $logmanAll = logman query -s $server
 
-        If (!([string]::isnullorempty(($logmanAll | Select-String "Error:")))) {
+        if (!([string]::isnullorempty(($logmanAll | Select-String "Error:")))) {
             throw $logmanAll[-1]
         }
 
@@ -68,7 +68,7 @@ Function global:Get-ExPerfWiz {
         $i = -3
         [array]$perfLogNames = $null
 
-        While (!($logmanAll[$i] | Select-String "---")) {
+        while (!($logmanAll[$i] | Select-String "---")) {
 
             # pull the first 40 characters then trim and trailing spaces
             [array]$perfLogNames += $logmanAll[$i].substring(0, 40).trimend()
@@ -86,7 +86,7 @@ Function global:Get-ExPerfWiz {
         $logman = logman query $collectorname -s $Server
 
         # Quick error check
-        If (!([string]::isnullorempty(($logman | Select-String "Error:")))) {
+        if (!([string]::isnullorempty(($logman | Select-String "Error:")))) {
             throw $logman[-1]
         }
 
@@ -131,7 +131,7 @@ Function global:Get-ExPerfWiz {
                 'Circular' { $circular = (Convert-OnOffBool($linesplit[1])) }
                 'Overwrite' { $overwrite = (Convert-OnOffBool($linesplit[1])) }
                 'Sample Interval' { $sampleInterval = (($linesplit[1].split(" "))[0]) }
-                Default {}
+                default {}
             }
         }
 
@@ -163,5 +163,3 @@ Function global:Get-ExPerfWiz {
         $logmanObject
     }
 }
-
-

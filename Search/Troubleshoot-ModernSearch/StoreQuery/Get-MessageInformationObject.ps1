@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-IndexStateOfMessage.ps1
-Function Get-MessageInformationObject {
+function Get-MessageInformationObject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

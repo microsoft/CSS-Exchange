@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Invoke-CatchBlockActions.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
-Function Save-RegistryHive {
+function Save-RegistryHive {
     [CmdletBinding()]
     param(
         [string]$RegistryPath,

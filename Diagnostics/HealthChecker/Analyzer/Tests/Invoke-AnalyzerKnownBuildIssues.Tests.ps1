@@ -9,9 +9,9 @@ BeforeAll {
     . $PSScriptRoot\..\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
     $scriptContent = Get-PesterScriptContent -FilePath "$PSScriptRoot\..\Invoke-AnalyzerKnownBuildIssues.ps1"
     Invoke-Expression $scriptContent
-    Function Invoke-CatchActions { throw "Called Invoke-CatchActions" }
+    function Invoke-CatchActions { throw "Called Invoke-CatchActions" }
 
-    Function TestPesterResults {
+    function TestPesterResults {
         param(
             [hashtable]$TestGroup,
             [object]$KnownIssue

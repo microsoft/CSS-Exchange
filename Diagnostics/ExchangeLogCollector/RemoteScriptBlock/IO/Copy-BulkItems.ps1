@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
 . $PSScriptRoot\..\Test-FreeSpace.ps1
-Function Copy-BulkItems {
+function Copy-BulkItems {
     param(
         [string]$CopyToLocation,
         [Array]$ItemsToCopyLocation

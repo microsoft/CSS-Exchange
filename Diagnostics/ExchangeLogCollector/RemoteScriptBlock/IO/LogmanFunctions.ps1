@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function CopyLogmanData {
+function CopyLogmanData {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -60,7 +60,7 @@ Function CopyLogmanData {
     }
 }
 
-Function GetLogmanObject {
+function GetLogmanObject {
     [CmdletBinding()]
     param(
         [string]$LogmanName
@@ -117,7 +117,7 @@ Function GetLogmanObject {
     }
 }
 
-Function GetLogmanData {
+function GetLogmanData {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -151,11 +151,11 @@ Function GetLogmanData {
     }
 }
 
-Function Save-LogmanExmonData {
+function Save-LogmanExmonData {
     GetLogmanData -LogmanName $PassedInfo.ExmonLogmanName
 }
 
-Function Save-LogmanExperfwizData {
+function Save-LogmanExperfwizData {
     $PassedInfo.ExperfwizLogmanName |
         ForEach-Object {
             GetLogmanData -LogmanName $_

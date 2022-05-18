@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Write-ScriptOutput.ps1
-Function Write-DisplayObjectInformation {
+function Write-DisplayObjectInformation {
     [CmdletBinding()]
     param(
         [object]$DisplayObject,

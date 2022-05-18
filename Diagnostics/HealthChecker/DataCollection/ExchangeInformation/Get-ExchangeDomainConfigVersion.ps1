@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 
-Function Get-ExchangeDomainConfigVersion {
+function Get-ExchangeDomainConfigVersion {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)]

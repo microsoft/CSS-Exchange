@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-CommandExists {
+function Test-CommandExists {
     param(
         [string]$command
     )

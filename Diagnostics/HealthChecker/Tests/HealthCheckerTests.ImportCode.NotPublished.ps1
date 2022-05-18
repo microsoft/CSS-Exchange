@@ -16,7 +16,7 @@ $scriptContent = Get-PesterScriptContent -FilePath @(
 
 Invoke-Expression $scriptContent
 
-Function SetActiveDisplayGrouping {
+function SetActiveDisplayGrouping {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -26,7 +26,7 @@ Function SetActiveDisplayGrouping {
     $Script:ActiveGrouping = $Script:results.DisplayResults[$key]
 }
 
-Function GetObject {
+function GetObject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -36,7 +36,7 @@ Function GetObject {
     ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).TestingValue
 }
 
-Function GetWriteTypeObject {
+function GetWriteTypeObject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -46,7 +46,7 @@ Function GetWriteTypeObject {
     ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).WriteType
 }
 
-Function TestObjectMatch {
+function TestObjectMatch {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -65,7 +65,7 @@ Function TestObjectMatch {
         Should -Be $WriteType
 }
 
-Function TestOutColumnObjectCompare {
+function TestOutColumnObjectCompare {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -88,7 +88,7 @@ Function TestOutColumnObjectCompare {
     }
 }
 
-Function NewOutColumnCompareValue {
+function NewOutColumnCompareValue {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]

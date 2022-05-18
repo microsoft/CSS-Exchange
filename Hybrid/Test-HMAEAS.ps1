@@ -52,7 +52,7 @@ process {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $SMTPAddress = $SMTP.Split("@")
 
-    Function Read-AutoDv2EAS {
+    function Read-AutoDv2EAS {
         [CmdletBinding()]
         param (
             [Parameter()]
@@ -103,7 +103,7 @@ process {
         }
     }
 
-    Function Test-EASBearer {
+    function Test-EASBearer {
         process {
             try {
                 $requestURI = $easUrl
@@ -150,7 +150,7 @@ process {
         }
     }
 
-    Function Test-AutoDetect {
+    function Test-AutoDetect {
         process {
             try {
                 $RequestURI = "https://prod-autodetect.outlookmobile.com/detect?services=office365,outlook,google,icloud,yahoo&protocols=rest-cloud,rest-outlook,rest-office365,eas,imap,smtp"
@@ -190,7 +190,7 @@ process {
         }
     }
 
-    Function Read-EASOptions {
+    function Read-EASOptions {
         process {
             try {
                 Write-Host
@@ -215,7 +215,7 @@ process {
         }
     }
 
-    Function Read-EASSettings {
+    function Read-EASSettings {
         process {
             try {
                 Write-Host
@@ -245,7 +245,7 @@ process {
         }
     }
 
-    Function Get-AccessToken {
+    function Get-AccessToken {
         process {
             try {
                 Write-Host
@@ -294,7 +294,7 @@ process {
         }
     }
 
-    If ($TestEAS) {
+    if ($TestEAS) {
         Write-Host "Installing ADAL package. Please accept if prompted." -ForegroundColor Green
         Install-Package Microsoft.IdentityModel.Clients.ActiveDirectory -RequiredVersion 3.19.8 -Source 'https://www.nuget.org/api/v2' -SkipDependencies -Scope CurrentUser
         Write-Host "Loading ADAL package" -ForegroundColor Green

@@ -20,7 +20,7 @@
 . $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
-Function Get-ExchangeInformation {
+function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )

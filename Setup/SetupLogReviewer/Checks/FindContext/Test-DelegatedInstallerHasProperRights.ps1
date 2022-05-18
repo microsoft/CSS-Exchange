@@ -8,7 +8,7 @@
 # group. The options are either add the delegated installer to that group, or
 # remove them from whatever group is giving them too many rights (usually Domain Admins).
 . $PSScriptRoot\..\New-WriteObject.ps1
-Function Test-DelegatedInstallerHasProperRights {
+function Test-DelegatedInstallerHasProperRights {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

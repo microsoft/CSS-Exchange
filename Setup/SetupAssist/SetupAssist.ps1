@@ -33,13 +33,13 @@ param(
 
 $BuildVersion = ""
 
-Function WriteCatchInfo {
+function WriteCatchInfo {
     Write-Host "$($Error[0].Exception)"
     Write-Host "$($Error[0].ScriptStackTrace)"
     $Script:ErrorOccurred = $true
 }
 
-Function RunAllTests {
+function RunAllTests {
     $tests = @("Test-ExchangeADSetupLevel",
         "Test-ExecutionPolicy",
         "Test-ExchangeServices",
@@ -66,7 +66,7 @@ Function RunAllTests {
     }
 }
 
-Function Main {
+function Main {
 
     $results = RunAllTests
     $results | Export-Csv "$PSScriptRoot\SetupAssistResults-$((Get-Date).ToString("yyyyMMddhhmm")).csv" -NoTypeInformation

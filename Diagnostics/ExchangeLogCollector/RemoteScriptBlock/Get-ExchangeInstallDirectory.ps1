@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ExchangeInstallDirectory {
+function Get-ExchangeInstallDirectory {
     [CmdletBinding()]
     param()
 

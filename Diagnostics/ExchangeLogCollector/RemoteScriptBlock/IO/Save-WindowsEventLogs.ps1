@@ -4,7 +4,7 @@
 . $PSScriptRoot\Copy-BulkItems.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Save-WindowsEventLogs {
+function Save-WindowsEventLogs {
 
     Write-Verbose("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"

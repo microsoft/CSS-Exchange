@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 
-Function Get-FIPFSScanEngineVersionState {
+function Get-FIPFSScanEngineVersionState {
     [CmdletBinding()]
     [OutputType("System.Object")]
     param (

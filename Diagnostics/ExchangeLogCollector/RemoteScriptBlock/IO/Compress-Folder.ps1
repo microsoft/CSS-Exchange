@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Compress-Folder {
+function Compress-Folder {
     [CmdletBinding()]
     [OutputType([string])]
     param(

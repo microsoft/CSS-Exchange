@@ -10,11 +10,11 @@ BeforeAll {
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\Get-ExchangeAMSIConfigurationState.ps1
 
-    Function Get-SettingOverride {
+    function Get-SettingOverride {
         param()
     }
 
-    Function Invoke-CatchActions {
+    function Invoke-CatchActions {
         param()
     }
 }

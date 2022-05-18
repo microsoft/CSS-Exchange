@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Write-LogInformation {
+function Write-LogInformation {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         [object[]]$Object,

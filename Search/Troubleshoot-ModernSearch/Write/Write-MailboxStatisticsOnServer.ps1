@@ -6,7 +6,7 @@
 . $PSScriptRoot\..\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 . $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
 . $PSScriptRoot\Write-ScriptOutput.ps1
-Function Write-MailboxStatisticsOnServer {
+function Write-MailboxStatisticsOnServer {
     [CmdletBinding()]
     param(
         [string[]]$Server,

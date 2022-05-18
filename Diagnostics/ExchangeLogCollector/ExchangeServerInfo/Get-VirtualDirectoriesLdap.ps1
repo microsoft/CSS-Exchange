@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\..\..\Shared\ActiveDirectoryFunctions\Get-OrganizationContainer.ps1
 
-Function Get-VirtualDirectoriesLdap {
+function Get-VirtualDirectoriesLdap {
 
     $authTypeEnum = @"
     namespace AuthMethods

@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-MultiActiveSyncVirtualDirectories {
+function Test-MultiActiveSyncVirtualDirectories {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]
