@@ -113,8 +113,39 @@ function Test-VirtualDirectoryConfiguration {
             }
 
             $adObject = $vdirsInDirectory | Where-Object { $_.Properties["cn"][0].ToString() -eq $expectedVdir.DirectoryName }
+            $locationPaths = ($appHostConfig.LastChild.Location.GetEnumerator() |
+                    Where-Object { $_.Path -like "$($iisSite.Name)$($expectedVdir.Paths[0])*" }).Path
+            $customMetadataPaths = ($appHostConfig.LastChild."system.applicationHost".customMetadata.key.GetEnumerator() |
+                    Where-Object { $_.Path -like "*$($iisSite.Id)/ROOT$($expectedVdir.Paths[0])*" } ).Path
 
-            if ($expectedIISObjectsPresent.Count -eq 0) {
+            if ($expectedVdir.DirectoryName -eq "owa (Exchange Back End)") {
+                $specialPaths = @("/Exchange", "/Exchweb", "/Public")
+                $tempLocationPaths = @()
+                $owaRootPaths = @()
+
+                foreach ($path in $specialPaths) {
+                    $node = $appHostConfig.LastChild.Location.GetEnumerator() | Where-Object { $_.Path -like "$($iisSite.Name)$path" }
+                    if ($null -ne $node) { $tempLocationPaths += $node.Path }
+                }
+
+                if ($null -eq $locationPaths) {
+                    $locationPaths = $tempLocationPaths
+                } elseif ($tempLocationPaths.Count -gt 0) {
+                    $locationPaths += $tempLocationPaths
+                }
+
+                foreach ($path in $specialPaths) {
+                    $node = ($iisSite.application.GetEnumerator() | Where-Object { $_.Path -eq "/" }).GetEnumerator() |
+                        Where-Object { $_.Path -eq $path }
+                    if ($null -ne $node) { $owaRootPaths += $node.Path }
+                }
+            }
+
+            # Only want to enter here if we don't have any IIS settings in the appHostConfig present. Otherwise, we might have something to fix.
+            if ($expectedIISObjectsPresent.Count -eq 0 -and
+                $null -eq $locationPaths -and
+                $null -eq $customMetadataPaths -and
+                $owaRootPaths.Count -eq 0 ) {
                 if ($null -ne $adObject) {
                     New-TestResult @resultParams -Result "Failed" -Details "Virtual directory `"$($expectedVdir.DirectoryName)`" exists in AD but not in IIS."
                     # Should we say to delete the AD object? What if it's PushNotifications?
@@ -123,18 +154,56 @@ function Test-VirtualDirectoryConfiguration {
                     # If there are no IIS objects and no AD object, then the state is consistent.
                     # Do we know when this is expected vs when we need to run New-VirtualDirectory?
                 }
-            } elseif ($expectedIISObjectsMissing.Count -gt 0) {
-                New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"."
-                $fixesPerformed = $true
+            } elseif ($expectedIISObjectsMissing.Count -gt 0 -or
+                $null -eq $adObject) {
 
-                $expectedIISObjectsPresent | ForEach-Object {
-                    $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@name = '$siteName']/application[@path = '$_']")
-                    $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
+                # Missing some critical information from IIS or the object is removed from AD
+                # need to remove from a few different locations to allow New-*VirtualDirectory to work
+                if ($expectedIISObjectsMissing.Count -gt 0) {
+                    New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"."
+                } else {
+                    New-TestResult @resultParams -Result "Failed" -Details "Full IIS Object exists for `"$($expectedVdir.DirectoryName)`", but doesn't exist in AD."
+                }
 
-                    if ($null -ne $adObject) {
-                        New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
-                        # Should we say to delete the AD object?
+                if ($expectedIISObjectsMissing.Count -gt 0) {
+                    $fixesPerformed = $true
+                    $expectedIISObjectsPresent | ForEach-Object {
+                        Write-Verbose "Removing Node for configuration site $siteName path $_"
+                        $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@name = '$siteName']/application[@path = '$_']")
+                        $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
                     }
+                }
+
+                if ($null -ne $locationPaths) {
+                    $fixesPerformed = $true
+                    $locationPaths | ForEach-Object {
+                        Write-Verbose "Removing node for location at path $_"
+                        $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/location[@path = '$_']")
+                        $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
+                    }
+                }
+
+                if ($null -ne $customMetadataPaths) {
+                    $fixesPerformed = $true
+                    $customMetadataPaths | ForEach-Object {
+                        Write-Verbose "Removing node for customMetadata at path $_"
+                        $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/system.applicationHost/customMetadata/key[@path = '$_']")
+                        $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
+                    }
+                }
+
+                if ($owaRootPaths.Count -gt 0) {
+                    $fixesPerformed = $true
+                    $owaRootPaths | ForEach-Object {
+                        Write-Verbose "Removing node for special OWA / at path $_"
+                        $nodeToRemove = $appHostConfig.SelectSingleNode("/configuration/system.applicationHost/sites/site[@name = '$siteName']/application[@path = '/']/virtualDirectory[@path = '$_']")
+                        $nodeToRemove.ParentNode.RemoveChild($nodeToRemove) | Out-Null
+                    }
+                }
+
+                if ($null -ne $adObject) {
+                    New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
+                    # Should we say to delete the AD object?
                 }
             }
         }
