@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-KnownLdifErrors {
+function Test-KnownLdifErrors {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
-Function Invoke-ScriptLogFileLocation {
+function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
         [Parameter(Mandatory = $false)][bool]$IgnoreToolsIdentity = $false,

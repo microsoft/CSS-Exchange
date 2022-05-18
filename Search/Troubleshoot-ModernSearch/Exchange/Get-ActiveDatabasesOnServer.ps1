@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 #Dependencies are based off EMS cmdlets.
-Function Get-ActiveDatabasesOnServer {
+function Get-ActiveDatabasesOnServer {
     [CmdletBinding()]
     param(
         [ValidateNotNullOrEmpty()]

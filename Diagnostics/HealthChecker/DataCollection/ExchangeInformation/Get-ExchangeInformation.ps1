@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
@@ -19,7 +20,7 @@
 . $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
-Function Get-ExchangeInformation {
+function Get-ExchangeInformation {
     param(
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
@@ -452,6 +453,15 @@ Function Get-ExchangeInformation {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
+        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+            -ScriptBlockDescription "Getting Exchange Install Directory" `
+            -CatchActionFunction ${Function:Invoke-CatchActions} `
+            -ScriptBlock {
+            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
+        }
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
+        Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
+
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
             try {
@@ -465,19 +475,15 @@ Function Get-ExchangeInformation {
             $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
                 -ComputerName $Script:Server `
                 -CertificateObject $exchangeInformation.ExchangeCertificates
+
+            $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
+                -ExchangeInstallPath $serverExchangeInstallDirectory `
+                -CatchActionFunction ${Function:Invoke-CatchActions}
+
+            Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
+            $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion
         }
 
-        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
-            -ScriptBlockDescription "Getting Exchange Install Directory" `
-            -CatchActionFunction ${Function:Invoke-CatchActions} `
-            -ScriptBlock {
-            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
-        }
-        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
-        Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
-        $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
-            -ExchangeInstallPath $serverExchangeInstallDirectory `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
         $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion

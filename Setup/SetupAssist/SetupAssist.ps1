@@ -27,19 +27,19 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
 $BuildVersion = ""
 
-Function WriteCatchInfo {
+function WriteCatchInfo {
     Write-Host "$($Error[0].Exception)"
     Write-Host "$($Error[0].ScriptStackTrace)"
     $Script:ErrorOccurred = $true
 }
 
-Function RunAllTests {
+function RunAllTests {
     $tests = @("Test-ExchangeADSetupLevel",
         "Test-ExecutionPolicy",
         "Test-ExchangeServices",
@@ -66,7 +66,7 @@ Function RunAllTests {
     }
 }
 
-Function Main {
+function Main {
 
     $results = RunAllTests
     $results | Export-Csv "$PSScriptRoot\SetupAssistResults-$((Get-Date).ToString("yyyyMMddhhmm")).csv" -NoTypeInformation
@@ -156,4 +156,6 @@ try {
     } elseif (-not ($PSBoundParameters["Verbose"])) {
         $Script:Logger | Invoke-LoggerInstanceCleanup
     }
+
+    Write-Host("Do you like the script? Visit https://aka.ms/ExchangeSetupAssist-Feedback to rate it and to provide feedback.") -ForegroundColor Green
 }

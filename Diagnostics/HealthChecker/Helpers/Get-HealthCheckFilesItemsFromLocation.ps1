@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-HealthCheckFilesItemsFromLocation {
+function Get-HealthCheckFilesItemsFromLocation {
     $items = Get-ChildItem $XMLDirectoryPath | Where-Object { $_.Name -like "HealthChecker-*-*.xml" }
 
     if ($null -eq $items) {

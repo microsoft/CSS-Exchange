@@ -9,15 +9,15 @@ BeforeAll {
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\Get-ExchangeServerCertificates.ps1
 
-    Function Invoke-CatchActions {
+    function Invoke-CatchActions {
         param()
     }
 
-    Function Get-AuthConfig {
+    function Get-AuthConfig {
         param()
     }
 
-    Function Get-ExchangeCertificate {
+    function Get-ExchangeCertificate {
         param()
     }
 }

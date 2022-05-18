@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-KnownMsiIssuesCheck {
+function Test-KnownMsiIssuesCheck {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

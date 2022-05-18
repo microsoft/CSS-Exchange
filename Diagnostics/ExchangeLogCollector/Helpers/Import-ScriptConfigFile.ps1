@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Import-ScriptConfigFile {
+function Import-ScriptConfigFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

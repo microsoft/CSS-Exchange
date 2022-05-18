@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ServerRole {
+function Get-ServerRole {
     param(
         [Parameter(Mandatory = $true)][object]$ExchangeServerObj
     )

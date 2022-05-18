@@ -4,7 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
-Function Invoke-AnalyzerHardwareInformation {
+function Invoke-AnalyzerHardwareInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

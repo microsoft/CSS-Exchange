@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:New-ExPerfWiz {
+function global:New-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -107,7 +107,7 @@ Function global:New-ExPerfWiz {
 
     ### Creates a new experfwiz collector
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
-    Param(
+    param(
         [switch]
         $Circular,
 
@@ -145,14 +145,14 @@ Function global:New-ExPerfWiz {
 
     )
 
-    Begin {
+    begin {
         # Check for new version of Experfwiz
     }
 
-    Process {
+    process {
 
         # If no template provided then we use the default one
-        If ([string]::IsNullOrEmpty($Template)) {
+        if ([string]::IsNullOrEmpty($Template)) {
             Write-SimpleLogFile "Using default template" -Name "ExPerfWiz.log"
 
             # Put the default xml into template
@@ -160,10 +160,10 @@ Function global:New-ExPerfWiz {
         }
 
         # Test the template path and log it as good or throw an error
-        If (Test-Path $Template) {
+        if (Test-Path $Template) {
             Write-SimpleLogFile -string ("Using Template:" + $Template) -Name "ExPerfWiz.log"
-        } Else {
-            Throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
+        } else {
+            throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
         }
 
         ### Manipulate Template ###
@@ -221,7 +221,7 @@ Function global:New-ExPerfWiz {
         }
 
         # If -threads is specified we need to add it to the counter set
-        If ($Threads) {
+        if ($Threads) {
 
             Write-SimpleLogFile -string "Adding threads to counter set" -Name "ExPerfWiz.log"
 
@@ -255,7 +255,7 @@ Function global:New-ExPerfWiz {
                 Write-SimpleLogFile "Duplicate Found" -Name "ExPerfWiz.log"
                 #Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
             }
-            Default {
+            default {
                 Write-SimpleLogFile "No Comflicts Found" -Name "ExPerfWiz.log"
             }
         }
@@ -267,7 +267,7 @@ Function global:New-ExPerfWiz {
         if ($null -eq ($logman | Select-String "Error:")) {
             Write-SimpleLogFile "Collector Successfully Created" -Name "ExPerfWiz.log"
         } else {
-            Throw $logman
+            throw $logman
         }
 
         ## Implement Start time
@@ -281,7 +281,7 @@ Function global:New-ExPerfWiz {
         }
 
         # Need to start the counter set if asked to do so
-        If ($StartOnCreate) {
+        if ($StartOnCreate) {
             Start-ExPerfwiz -Server $Server -Name $Name
         } else {}
 
@@ -289,4 +289,3 @@ Function global:New-ExPerfWiz {
         Get-ExPerfwiz -Name $Name -Server $Server
     }
 }
-

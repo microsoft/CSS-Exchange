@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-Function Get-PageFileInformation {
+function Get-PageFileInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $pageFiles = @(Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions})

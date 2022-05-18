@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-Function Invoke-AnalyzerFrequentConfigurationIssues {
+function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -27,11 +27,11 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
     }
 
     if ($tcpKeepAlive -eq 0) {
-        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist"
+        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://aka.ms/HC-TcpIpSettingsCheck"
         $displayWriteType = "Red"
     } elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000) {
-        $displayValue = "{0} `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist" -f $tcpKeepAlive
+        $displayValue = "$tcpKeepAlive `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://aka.ms/HC-TcpIpSettingsCheck"
         $displayWriteType = "Yellow"
     } else {
         $displayValue = $tcpKeepAlive
@@ -186,7 +186,19 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
     }
 
     if ($null -ne $exchangeInformation.IISConfigurationSettings) {
-        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings
+        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings |
+            Where-Object {
+                if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -or
+                    $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole) {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Mailbox -and
+                    $_.Location -like "*ClientAccess*") {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -and
+                    $_.Location -like "*FrontEnd\HttpProxy*") {
+                    return $_
+                }
+            }
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
         $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $_.DefaultVariable -eq $true }
         $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }

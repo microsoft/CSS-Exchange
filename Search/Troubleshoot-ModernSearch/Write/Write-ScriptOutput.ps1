@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Write-LogInformation.ps1
-Function Write-ScriptOutput {
+function Write-ScriptOutput {
     param(
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         [object[]]$Object,

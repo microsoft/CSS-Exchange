@@ -1,13 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-HtmlServerReport {
+function Get-HtmlServerReport {
     param(
         [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    Function GetOutColumnHtmlTable {
+    function GetOutColumnHtmlTable {
         param(
             [object]$OutColumn
         )

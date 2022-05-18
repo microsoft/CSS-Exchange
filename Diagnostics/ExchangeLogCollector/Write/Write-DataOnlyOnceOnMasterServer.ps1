@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
-Function Write-DataOnlyOnceOnMasterServer {
+function Write-DataOnlyOnceOnMasterServer {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
     param()
     Write-Verbose("Enter Function: Write-DataOnlyOnceOnMasterServer")

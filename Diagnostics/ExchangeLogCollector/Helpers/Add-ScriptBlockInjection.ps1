@@ -6,7 +6,7 @@
 # Injects Verbose and Debug Preferences and other passed variables into the script block
 # It will also inject any additional script blocks into the main script block.
 # This allows for an Invoke-Command to work as intended if multiple functions/script blocks are required.
-Function Add-ScriptBlockInjection {
+function Add-ScriptBlockInjection {
     [CmdletBinding()]
     [OutputType([string])]
     param(

@@ -4,7 +4,7 @@
 #By doing it this way and looking at the registry, we get msp files as well. (Security Updates)
 #Vs doing Get-CimInstance -ClassName Win32_Product
 . $PSScriptRoot\Get-FileInformation.ps1
-Function Get-InstallerPackages {
+function Get-InstallerPackages {
     [CmdletBinding()]
     param(
         [string[]]$FilterDisplayName
@@ -88,7 +88,7 @@ Function Get-InstallerPackages {
     }
 }
 
-Function Get-GuidProductCodeFromString {
+function Get-GuidProductCodeFromString {
     param(
         [string]$GuidString
     )

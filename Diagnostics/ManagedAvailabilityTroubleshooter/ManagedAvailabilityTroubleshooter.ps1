@@ -7,7 +7,7 @@
 #  Provide your feedback to ExToolsFeedback@microsoft.com
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Override for now')]
 [cmdletbinding()]
-Param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
+param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
 
 $Script:lastProbeerror = $null
 $Script:foundissue = $false
@@ -17,7 +17,7 @@ $Script:LoggingMonitoringpath = ""
 
 function TestFileorCmd {
     [cmdletbinding()]
-    Param( [String] $FileorCmd )
+    param( [String] $FileorCmd )
 
     if ($FileorCmd -like "File missing for this action*") {
         Write-Host -ForegroundColor red $FileorCmd;
@@ -27,7 +27,7 @@ function TestFileorCmd {
 
 function ParseProbeResult {
     [cmdletbinding()]
-    Param( [String] $FilterXpath , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
+    param( [String] $FilterXpath , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
     TestFileorCmd $ProbeResulteventcmd;
     ParseProbeResult2 -ProbeResulteventcompletecmd ($ProbeResulteventcmd + " -maxevents 200" ) `
@@ -46,7 +46,7 @@ function ParseProbeResult {
 
 function ParseProbeResult2 {
     [cmdletbinding()]
-    Param( [String] $ProbeResulteventcompletecmd , [String] $FilterXpath , [String] $waitstring , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
+    param( [String] $ProbeResulteventcompletecmd , [String] $FilterXpath , [String] $waitstring , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
     TestFileorCmd $ProbeResulteventcmd;
     $Probeeventscmd = '(' + $ProbeResulteventcompletecmd + ' -FilterXPath ("' + $FilterXpath + '") -ErrorAction SilentlyContinue | % {[XML]$_.toXml()}).event.userData.eventXml'
@@ -73,10 +73,10 @@ function ParseProbeResult2 {
     }
     if ($Probeevents) {
         foreach ($Probeevt in $Probeevents) {
-            If ($Probeevt.ResultType -eq 4) {
+            if ($Probeevt.ResultType -eq 4) {
                 $Script:lastProbeerror = $Probeevt
                 if ($Script:KnownIssueDetectionAlreadydone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
-                Break;
+                break;
             }
         }
         if ($Script:KnownIssueDetectionAlreadydone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
@@ -88,7 +88,7 @@ function ParseProbeResult2 {
 
 function InvestigateProbe {
     [cmdletbinding()]
-    Param([String]$ProbeToInvestigate , [String]$MonitorToInvestigate , [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource )
+    param([String]$ProbeToInvestigate , [String]$MonitorToInvestigate , [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource )
 
     TestFileorCmd $ProbeDefinitioneventcmd;
     if (-Not ($ResponderTargetResource) -and ($ProbeToInvestigate.split("/").Count -gt 1)) {
@@ -153,7 +153,7 @@ function InvestigateProbe {
             }
             Write-Host $relationdescription
         }
-        If ( $Probename -eq "EacBackEndLogonProbe") {
+        if ( $Probename -eq "EacBackEndLogonProbe") {
             if ($Script:KnownIssueDetectionAlreadydone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
 
             $EacBackEndLogonProbefolder = $Script:LoggingMonitoringpath + "\ECP\EacBackEndLogonProbe"
@@ -174,10 +174,10 @@ function InvestigateProbe {
     { Write-Host("`nFound no definitions for " + $ProbeToInvestigate + " probe") }
 }
 
-Function InvestigateMonitor {
+function InvestigateMonitor {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '', Justification = 'Override for now')]
     [cmdletbinding()]
-    Param( [String]$MonitorToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource , [String] $ResponderToInvestigate)
+    param( [String]$MonitorToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource , [String] $ResponderToInvestigate)
 
     if ($MonitorToInvestigate -like "MaintenanceFailureMonitor*") {
         $MaintenanceFailureMonitor = $MonitorToInvestigate.split(".")[1]
@@ -251,7 +251,7 @@ Function InvestigateMonitor {
 
 function InvestigateMaintenanceMonitor {
     [cmdletbinding()]
-    Param([String]$MaintenanceFailureMonitor , [String] $ResponderToInvestigate)
+    param([String]$MaintenanceFailureMonitor , [String] $ResponderToInvestigate)
 
     TestFileorCmd $MaintenanceDefinitioncmd;
     $MaintenanceDefinitioncmd = '(' + $MaintenanceDefinitioncmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.ServiceName -like "' + $MaintenanceFailureMonitor + '*" }'
@@ -283,9 +283,9 @@ function InvestigateMaintenanceMonitor {
     }
 }
 
-Function OverrideIfNeeded {
+function OverrideIfNeeded {
     [cmdletbinding()]
-    Param( [String]$ResponderToInvestigate , [String]$ResponderServiceName)
+    param( [String]$ResponderToInvestigate , [String]$ResponderServiceName)
     if ( -not ( $ResponderServiceName)) {
         Write-Host -foreground red ("`nFound no ServiceName for " + $ResponderToInvestigate + " Responder. Thus can't provide the override command to disable this responder if needed.")
         return
@@ -353,9 +353,9 @@ Function OverrideIfNeeded {
     }
 }
 
-Function InvestigateResponder {
+function InvestigateResponder {
     [cmdletbinding()]
-    Param( [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate )
+    param( [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate )
 
     if ($ResponderToInvestigate -eq "ManagedAvailabilityStartup") {
         Write-Host "`nManagedAvailabilityStartup means HealthManager can't find the information about the Responder which triggered this reboot."
@@ -438,7 +438,7 @@ Function InvestigateResponder {
 
 function KnownIssueDetection {
     [cmdletbinding()]
-    Param( [String]$MonitorToInvestigate , [String]$ResponderToInvestigate)
+    param( [String]$MonitorToInvestigate , [String]$ResponderToInvestigate)
 
     if ($MonitorToInvestigate -or $ResponderToInvestigate) {
         Write-Host "`nKnown Issue Detection :"
@@ -457,7 +457,7 @@ function KnownIssueDetection {
 
 function CheckifthiscanbeaknownissueusingResponder {
     [cmdletbinding()]
-    Param( [String]$ResponderToInvestigate )
+    param( [String]$ResponderToInvestigate )
 
     $Script:checkforknownissue = $true
     if (($ResponderToInvestigate -eq "ActiveDirectoryConnectivityConfigDCServerReboot") -and ($Majorexchangeversion -eq 15) -and ($Minorexchangeversion -eq 0) -and ($Buildexchangeversion -lt 775)) {
@@ -487,7 +487,7 @@ function CheckifthiscanbeaknownissueusingResponder {
 
 function CheckifthiscanbeaknownissueusingMonitor {
     [cmdletbinding()]
-    Param( [String]$MonitorToInvestigate )
+    param( [String]$MonitorToInvestigate )
 
     $Script:checkforknownissue = $true
     if (($MonitorToInvestigate -like "*Mapi.Submit.Monitor") -and ($Majorexchangeversion -eq 15) -and ($Minorexchangeversion -eq 0)) {
@@ -588,7 +588,7 @@ function CheckifthiscanbeaknownissueusingMonitor {
 
 function InvestigateUnhealthyMonitor {
     [cmdletbinding()]
-    Param([String]$ServerHealthfile )
+    param([String]$ServerHealthfile )
 
     Write-Progress "Checking MonitorHealth"
     if ($pathforlogsspecified) {
@@ -659,7 +659,7 @@ function InvestigateUnhealthyMonitor {
 
 function CollectMaLogs {
     [cmdletbinding()]
-    Param([String] $InvocationPath )
+    param([String] $InvocationPath )
     try {
         $ExchangeServerinfo = Get-ExchangeServer -identity $env:computername -status | Format-List
     } catch [System.Management.Automation.CommandNotFoundException] {
@@ -698,7 +698,7 @@ function CollectMaLogs {
     $EventLogNames = wevtutil.exe el | Select-String "Microsoft-Exchange"
     $EventLogNames += "Application", "System"
 
-    ForEach ($EventLogName in $EventLogNames) {
+    foreach ($EventLogName in $EventLogNames) {
         $progresseventlogmessage = "Collecting " + $EventLogName + " eventlog"
         Write-Progress $progresseventlogmessage
         $wevtutilcmd = $EventLogName -replace "/", ""
@@ -778,7 +778,7 @@ if ( -not ($pathforlogs)) {
             try {
                 Write-Host -ForegroundColor Yellow "Log structure appears to come from ExchangeLogCollector"
                 $maanalysispath = $pathforlogs + "ManagedAvailabilityTroubleshooterAnalysis\"
-                If (!(Test-Path $maanalysispath)) {
+                if (!(Test-Path $maanalysispath)) {
                     New-Item -ItemType Directory -Force -Path $maanalysispath | Out-Null
                     Write-Progress "Unzip logs from ExchangeLogCollector to ManagedAvailabilityTroubleshooterAnalysis folder"
                     Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -1207,7 +1207,7 @@ if ($Investigationchoose -eq 3) {
     Write-Progress "Checking SCOM Alerts"
     $alertevents = Invoke-Expression $ManagedAvailabilityMonitoringcmd
     $alerteventsprops = ($alertevents | ForEach-Object { [XML]$_.toXml() }).event.userData.eventXml
-    For ($i = 0; $i -lt $alerteventsprops.Count; $i++) {
+    for ($i = 0; $i -lt $alerteventsprops.Count; $i++) {
         $alerteventsprops[$i] | Add-Member TimeCreated $alertevents[$i].TimeCreated
         if ($CheckAlertsForMultipleMachines)
         { $alerteventsprops[$i] | Add-Member MachineName $alertevents[$i].MachineName }

@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-AllTlsSettingsFromRegistry {
+function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
@@ -10,7 +10,7 @@ Function Get-AllTlsSettingsFromRegistry {
     )
     begin {
 
-        Function Get-TLSMemberValue {
+        function Get-TLSMemberValue {
             param(
                 [Parameter(Mandatory = $true)]
                 [string]
@@ -31,7 +31,7 @@ Function Get-AllTlsSettingsFromRegistry {
             }
         }
 
-        Function Get-NETDefaultTLSValue {
+        function Get-NETDefaultTLSValue {
             param(
                 [Parameter(Mandatory = $false)]
                 [object]

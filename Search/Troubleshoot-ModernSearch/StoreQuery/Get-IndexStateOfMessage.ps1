@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-IndexStateOfMessage {
+function Get-IndexStateOfMessage {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(
@@ -48,4 +48,3 @@ Function Get-IndexStateOfMessage {
         return $status
     }
 }
-

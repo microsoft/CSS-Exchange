@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-ErrorContext.ps1
 . $PSScriptRoot\..\New-WriteObject.ps1
 . $PSScriptRoot\..\Test-SetupAssist.ps1
-Function Write-LastErrorInformation {
+function Write-LastErrorInformation {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

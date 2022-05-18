@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Enter-YesNoLoopAction.ps1
-Function Test-NoSwitchesProvided {
+function Test-NoSwitchesProvided {
     if ($EWSLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or
@@ -28,6 +28,7 @@ Function Test-NoSwitchesProvided {
         $OABLogs -or
         $PowerShellLogs -or
         $WindowsSecurityLogs -or
+        $MailboxAssistantsLogs -or
         $ExchangeServerInformation -or
         $MitigationService
     ) {

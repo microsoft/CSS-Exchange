@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-ItemsSize.ps1
 . $PSScriptRoot\IO\Compress-Folder.ps1
-Function Invoke-ZipFolder {
+function Invoke-ZipFolder {
     param(
         [string]$Folder,
         [bool]$ZipItAll,

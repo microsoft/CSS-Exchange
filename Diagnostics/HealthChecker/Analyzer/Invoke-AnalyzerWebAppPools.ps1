@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-Function Invoke-AnalyzerWebAppPools {
+function Invoke-AnalyzerWebAppPools {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

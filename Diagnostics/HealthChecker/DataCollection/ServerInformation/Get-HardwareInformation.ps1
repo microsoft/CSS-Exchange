@@ -5,7 +5,7 @@
 . $PSScriptRoot\Get-ServerType.ps1
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-Function Get-HardwareInformation {
+function Get-HardwareInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-ExchangeRegistryValues {
+function Get-ExchangeRegistryValues {
     [CmdletBinding()]
     param(
         [string]$MachineName,

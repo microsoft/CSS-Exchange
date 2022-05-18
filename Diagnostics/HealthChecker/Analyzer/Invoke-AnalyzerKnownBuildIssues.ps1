@@ -4,7 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Helpers\Invoke-CatchActions.ps1
 
-Function Invoke-AnalyzerKnownBuildIssues {
+function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -24,7 +24,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
     }
 
     # Extract for Pester Testing - Start
-    Function GetVersionFromString {
+    function GetVersionFromString {
         param(
             [object]$VersionString
         )
@@ -36,7 +36,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function GetKnownIssueInformation {
+    function GetKnownIssueInformation {
         param(
             [string]$Name,
             [string]$Url
@@ -48,7 +48,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function GetKnownIssueBuildInformation {
+    function GetKnownIssueBuildInformation {
         param(
             [string]$BuildNumber,
             [string]$FixBuildNumber,
@@ -62,7 +62,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function TestOnKnownBuildIssue {
+    function TestOnKnownBuildIssue {
         [CmdletBinding()]
         [OutputType("System.Boolean")]
         param(
@@ -100,7 +100,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
 
     # Extract for Pester Testing - End
 
-    Function TestForKnownBuildIssues {
+    function TestForKnownBuildIssues {
         param(
             [version]$CurrentVersion,
             [object[]]$KnownBuildIssuesToFixes,
@@ -175,11 +175,13 @@ Function Invoke-AnalyzerKnownBuildIssues {
         Write-Verbose "Working on March 2022 Security Updates - MSExchangeServiceHost service may crash"
         TestForKnownBuildIssues -CurrentVersion $currentVersion `
             -KnownBuildIssuesToFixes @(
-            (GetKnownIssueBuildInformation "15.2.986.22" $null),
+            (GetKnownIssueBuildInformation "15.2.1118.7" "15.2.1118.9"),
+            (GetKnownIssueBuildInformation "15.2.986.22" "15.2.986.26"),
             (GetKnownIssueBuildInformation "15.2.922.27" $null),
-            (GetKnownIssueBuildInformation "15.1.2375.24" $null),
+            (GetKnownIssueBuildInformation "15.1.2507.6" "15.1.2507.9"),
+            (GetKnownIssueBuildInformation "15.1.2375.24" "15.1.2375.28"),
             (GetKnownIssueBuildInformation "15.1.2308.27" $null),
-            (GetKnownIssueBuildInformation "15.0.1497.33" $null)
+            (GetKnownIssueBuildInformation "15.0.1497.33" "15.0.1497.36")
         ) `
             -InformationUrl (GetKnownIssueInformation `
                 "Exchange Service Host service fails after installing March 2022 security update (KB5013118)" `

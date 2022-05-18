@@ -3,7 +3,7 @@
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
 [CmdletBinding(DefaultParameterSetName = "LogAge")]
-Param (
+param (
     [string]$FilePath = "C:\MS_Logs_Collection",
     [array]$Servers = @($env:COMPUTERNAME),
     [switch]$ADDriverLogs,
@@ -29,6 +29,7 @@ Param (
     [switch]$HubProtocolLogs,
     [switch]$IISLogs,
     [switch]$ImapLogs,
+    [switch]$MailboxAssistantsLogs,
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
     [switch]$MailboxProtocolLogs,
@@ -49,7 +50,9 @@ Param (
     [switch]$SendConnectors,
     [Alias("ServerInfo")]
     [switch]$ServerInformation,
+    [switch]$TransportAgentLogs,
     [switch]$TransportConfig,
+    [switch]$TransportRoutingTableLogs,
     [switch]$WindowsSecurityLogs,
     [switch]$AcceptEULA,
     [switch]$AllPossibleLogs,
@@ -80,7 +83,7 @@ if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
 if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth }
 
-Function Invoke-RemoteFunctions {
+function Invoke-RemoteFunctions {
     param(
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
@@ -143,7 +146,7 @@ Function Invoke-RemoteFunctions {
 . $PSScriptRoot\Helpers\Test-PossibleCommonScenarios.ps1
 . $PSScriptRoot\Helpers\Test-RemoteExecutionOfServers.ps1
 
-Function Main {
+function Main {
 
     Start-Sleep 1
     Test-PossibleCommonScenarios

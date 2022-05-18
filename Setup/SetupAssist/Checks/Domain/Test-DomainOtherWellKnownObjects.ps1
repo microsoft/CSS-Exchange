@@ -2,10 +2,10 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-TestResult.ps1
-Function Test-DomainOtherWellKnownObjects {
-    $rootDSE = [ADSI]("LDAP://RootDSE")
-    $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
-    $exchangeContainer = [ADSI]("LDAP://" + $exchangeContainerPath)
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeContainer.ps1
+
+function Test-DomainOtherWellKnownObjects {
+    $exchangeContainer = Get-ExchangeContainer
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=*)", @("otherWellKnownObjects", "distinguishedName"))
     $result = $searcher.FindOne()
 

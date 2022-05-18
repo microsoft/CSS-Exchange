@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Add-ServerNameToFileName {
+function Add-ServerNameToFileName {
     param(
         [Parameter(Mandatory = $true)][string]$FilePath
     )

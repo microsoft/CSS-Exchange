@@ -55,14 +55,14 @@ Outputs to the screen
 
 #>
 
-Param (
+param (
     [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     $SearchResults,
     [switch]$ResolveCaller
 )
 
 # Setup to process incomming results
-Begin {
+begin {
 
     # Set the counter to 1
     $i = 1
@@ -72,7 +72,7 @@ Begin {
 }
 
 # Process thru what ever is comming into the script
-Process {
+process {
 
     # Deal with each object in the input
     $searchresults | ForEach-Object {
@@ -87,7 +87,7 @@ Process {
             [string]$Recipient = (get-recipient $user -ErrorAction silentlycontinue).primarysmtpaddress
 
             # if we get a result then put that in the output otherwise do nothing
-            If (!([string]::IsNullOrEmpty($Recipient))) { $user = $Recipient }
+            if (!([string]::IsNullOrEmpty($Recipient))) { $user = $Recipient }
 
             # Since this is going to take longer to run provide status every 25 entries
             if ($i % 25 -eq 0) { Write-Host "Processed 25 Results" }

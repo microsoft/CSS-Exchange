@@ -4,7 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerKnownBuildIssues.ps1
-Function Invoke-AnalyzerExchangeInformation {
+function Invoke-AnalyzerExchangeInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

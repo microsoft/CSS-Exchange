@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Invoke-AnalyzerSecurityExchangeCertificates {
+function Invoke-AnalyzerSecurityExchangeCertificates {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -77,7 +77,7 @@ Function Invoke-AnalyzerSecurityExchangeCertificates {
         $certStatusWriteType = [string]::Empty
 
         if ($null -ne $certificate.Status) {
-            Switch ($certificate.Status) {
+            switch ($certificate.Status) {
                 ("Unknown") { $certStatusWriteType = "Yellow" }
                 ("Valid") { $certStatusWriteType = "Grey" }
                 ("Revoked") { $certStatusWriteType = "Red" }

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Step-ExPerfWizSize {
+function global:Step-ExPerfWizSize {
     <#
 
     .SYNOPSIS
@@ -57,11 +57,6 @@ Function global:Step-ExPerfWizSize {
     if ($logman | Select-String "Error:") {
         Write-SimpleLogFile -string "[ERROR] - Problem stepping perfwize size:" -Name "ExPerfWiz.log"
         Write-SimpleLogFile -string $logman -Name "ExPerfWiz.log"
-        Throw $logman
+        throw $logman
     } else {}
 }
-
-
-
-
-

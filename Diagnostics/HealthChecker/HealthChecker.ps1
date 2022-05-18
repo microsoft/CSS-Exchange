@@ -147,10 +147,10 @@ if ($PSBoundParameters["Verbose"]) {
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
-Function Main {
+function Main {
 
     if (-not (Confirm-Administrator) -and
         (-not $AnalyzeDataOnly -and
@@ -313,4 +313,3 @@ try {
     }
     RevertProperForegroundColor
 }
-

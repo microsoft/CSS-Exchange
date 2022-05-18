@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
-Function Write-Verbose {
+function Write-Verbose {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Verbose')]
     [CmdletBinding()]
     param(
@@ -16,7 +16,7 @@ Function Write-Verbose {
     }
 }
 
-Function Write-Warning {
+function Write-Warning {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Waring')]
     [CmdletBinding()]
     param(
@@ -30,11 +30,11 @@ Function Write-Warning {
     }
 }
 
-Function Write-DebugLog($Message) {
+function Write-DebugLog($Message) {
     $Script:Logger = $Script:Logger | Write-LoggerInstance $Message
 }
 
-Function Write-OutColumns {
+function Write-OutColumns {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]

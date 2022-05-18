@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Stop-ExPerfWiz {
+function global:Stop-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -44,7 +44,7 @@ Function global:Stop-ExPerfWiz {
         $Server = $env:ComputerName
     )
 
-    Process {
+    process {
         Write-SimpleLogFile -string ("Stopping ExPerfwiz: " + $server + "\" + $Name) -Name "ExPerfWiz.log"
 
         # Remove the experfwiz counter set
@@ -53,18 +53,17 @@ Function global:Stop-ExPerfWiz {
         }
 
         # Check if we have an error and throw and error if needed.
-        If ($logman | Select-String "Error:") {
+        if ($logman | Select-String "Error:") {
             # if we are not running already then just move on
             if ($logman | Select-String "is not running") {
                 Write-SimpleLogFile "Collector Not Running" -Name "ExPerfWiz.log"
             } else {
                 Write-SimpleLogFile "[ERROR] - Unable to Stop Collector" -Name "ExPerfWiz.log"
                 Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
-                Throw $logman
+                throw $logman
             }
         } else {
             Write-SimpleLogFile "ExPerfwiz Stopped" -Name "ExPerfWiz.log"
         }
     }
 }
-
