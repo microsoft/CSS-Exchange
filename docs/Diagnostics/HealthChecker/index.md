@@ -12,10 +12,6 @@ The script can be used to validate the configuration of the following Exchange S
 - Exchange Server 2016
 - Exchange Server 2019
 
-You can use the latest v2 release to validate the configuration of `Exchange Server 2010`. Please note that this version is no longer maintained and some checks are not available.
-
-You can download the latest v2 release [here](https://aka.ms/ExHCDownloadv2)
-
 #### Required Permissions:
 Please make sure that the account used is a member of the `Local Administrator` group. This should be fulfilled on Exchange servers by being a member of the  `Organization Management` group. However, if the group membership was adjusted or in case the script is executed on a non-Exchange system like a management server, you need to add your account to the `Local Administrator` group. You also need to be a member of the following groups:
 
