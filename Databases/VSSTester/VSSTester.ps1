@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
 )
-
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Get-ScriptUpdateAvailable.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\DiskShadow\Invoke-CreateDiskShadowFile.ps1
 . .\DiskShadow\Invoke-DiskShadow.ps1
@@ -39,7 +39,12 @@ param(
 . .\Logging\Invoke-EnableExtraTracing.ps1
 . .\Logging\Invoke-EnableVSSTracing.ps1
 
-Function Main {
+function Main {
+    $updateInfo = Get-ScriptUpdateAvailable
+    if ($updateInfo.UpdateFound) {
+        Write-Warning "An update is available for this script. Current: $($updateInfo.CurrentVersion) Latest: $($updateInfo.LatestVersion)"
+        Write-Warning "Please download the latest: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/"
+    }
 
     # if a transcript is running, we need to stop it as this script will start its own
     try {
@@ -91,7 +96,7 @@ Function Main {
 
     $matchCondition = "^[1|2]$"
     Write-Debug "matchCondition: $matchCondition"
-    Do {
+    do {
         Write-Host "Selection: " -ForegroundColor Yellow -NoNewline;
         $Selection = Read-Host
         if ($Selection -notmatch $matchCondition) {
@@ -190,7 +195,7 @@ Function Main {
                 Write-Host
                 $continue = Read-Host "Please use the <Enter> key to exit..."
             }
-            While ($null -notmatch $continue)
+            while ($null -notmatch $continue)
             exit
         } catch { }
     }

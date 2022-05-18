@@ -5,9 +5,10 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2020-1147.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-1730.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-Function Invoke-AnalyzerSecurityCveCheck {
+function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -20,7 +21,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
         [object]$DisplayGroupingKey
     )
 
-    Function TestVulnerabilitiesByBuildNumbersForDisplay {
+    function TestVulnerabilitiesByBuildNumbersForDisplay {
         param(
             [Parameter(Mandatory = $true)][string]$ExchangeBuildRevision,
             [Parameter(Mandatory = $true)][array]$SecurityFixedBuilds,
@@ -42,12 +43,16 @@ Function Invoke-AnalyzerSecurityCveCheck {
                     ($fileBuildPart -eq $securityFixedBuildPart -and
                 $filePrivatePart -lt $securityFixedPrivatePart)) {
                 foreach ($cveName in $CVENames) {
-                    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Security Vulnerability" `
-                        -Details ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName) `
-                        -DisplayGroupingKey $DisplayGroupingKey `
-                        -DisplayTestingValue $cveName `
-                        -DisplayWriteType "Red" `
-                        -AddHtmlDetailRow $false
+                    $params = @{
+                        AnalyzedInformation = $AnalyzeResults
+                        DisplayGroupingKey  = $DisplayGroupingKey
+                        Name                = "Security Vulnerability"
+                        Details             = ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName)
+                        DisplayWriteType    = "Red"
+                        DisplayTestingValue = $cveName
+                        AddHtmlDetailRow    = $false
+                    }
+                    Add-AnalyzedResultInformation @params
                 }
                 break
             }
@@ -408,5 +413,6 @@ Function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2020-1147 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-1730 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-34470 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2022-21978 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
 }

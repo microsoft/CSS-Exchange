@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-Function Invoke-AnalyzerFrequentConfigurationIssues {
+function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -17,38 +17,60 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keyFrequentConfigIssues = Get-DisplayResultsGroupingKey -Name "Frequent Configuration Issues"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
-
     $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
 
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Frequent Configuration Issues"  -DisplayOrder $Order)
+    }
+
     if ($tcpKeepAlive -eq 0) {
-        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist"
+        $displayValue = "Not Set `r`n`t`tError: Without this value the KeepAliveTime defaults to two hours, which can cause connectivity and performance issues between network devices such as firewalls and load balancers depending on their configuration. `r`n`t`tMore details: https://aka.ms/HC-TcpIpSettingsCheck"
         $displayWriteType = "Red"
     } elseif ($tcpKeepAlive -lt 900000 -or
         $tcpKeepAlive -gt 1800000) {
-        $displayValue = "{0} `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://aka.ms/HC-TSPerformanceChecklist" -f $tcpKeepAlive
+        $displayValue = "$tcpKeepAlive `r`n`t`tWarning: Not configured optimally, recommended value between 15 to 30 minutes (900000 and 1800000 decimal). `r`n`t`tMore details: https://aka.ms/HC-TcpIpSettingsCheck"
         $displayWriteType = "Yellow"
     } else {
         $displayValue = $tcpKeepAlive
         $displayWriteType = "Green"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "TCP/IP Settings" -Details $displayValue `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue $tcpKeepAlive `
-        -HtmlName "TCPKeepAlive"
+    $params = $baseParams + @{
+        Name                = "TCP/IP Settings"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $tcpKeepAlive
+        HtmlName            = "TCPKeepAlive"
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "RPC Min Connection Timeout" -Details ("{0} `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting" -f $osInformation.NetworkInformation.RpcMinConnectionTimeout) `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -DisplayTestingValue $osInformation.NetworkInformation.RpcMinConnectionTimeout `
-        -HtmlName "RPC Minimum Connection Timeout"
+    $params = $baseParams + @{
+        Name                = "RPC Min Connection Timeout"
+        Details             = "$($osInformation.NetworkInformation.RpcMinConnectionTimeout) `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting"
+        DisplayTestingValue = $osInformation.NetworkInformation.RpcMinConnectionTimeout
+        HtmlName            = "RPC Minimum Connection Timeout"
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "FIPS Algorithm Policy Enabled" -Details ($exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled) `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -HtmlName "FipsAlgorithmPolicy-Enabled"
+    if ($exchangeInformation.RegistryValues.DisableGranularReplication -ne 0) {
+        $params = $baseParams + @{
+            Name                = "DisableGranularReplication"
+            Details             = "$($exchangeInformation.RegistryValues.DisableGranularReplication) - Error this can cause work load management issues."
+            DisplayWriteType    = "Red"
+            DisplayTestingValue = $true
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    $params = $baseParams + @{
+        Name     = "FIPS Algorithm Policy Enabled"
+        Details  = $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled
+        HtmlName = "FipsAlgorithmPolicy-Enabled"
+    }
+    Add-AnalyzedResultInformation @params
 
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
@@ -58,11 +80,30 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         $displayValue = "{0} `r`n`t`tError: This can cause an impact to the server's search performance. This should only be used a temporary fix if no other options are available vs a long term solution." -f $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "CTS Processor Affinity Percentage" -Details $displayValue `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue ($exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage) `
-        -HtmlName "CtsProcessorAffinityPercentage"
+    $params = $baseParams + @{
+        Name                = "CTS Processor Affinity Percentage"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
+        HtmlName            = "CtsProcessorAffinityPercentage"
+    }
+    Add-AnalyzedResultInformation @params
+
+    $displayValue = $exchangeInformation.RegistryValues.DisableAsyncNotification
+    $displayWriteType = "Grey"
+
+    if ($displayValue -ne 0) {
+        $displayWriteType = "Yellow"
+        $displayValue = "$($exchangeInformation.RegistryValues.DisableAsyncNotification) Warning: This value should be set back to 0 after you no longer need it for the workaround described in http://support.microsoft.com/kb/5013118"
+    }
+
+    $params = $baseParams + @{
+        Name                = "Disable Async Notification"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $true
+    }
+    Add-AnalyzedResultInformation @params
 
     $displayValue = $osInformation.CredentialGuardEnabled
     $displayWriteType = "Grey"
@@ -72,19 +113,20 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         $displayWriteType = "Red"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Credential Guard Enabled" -Details $displayValue `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -DisplayTestingValue $osInformation.CredentialGuardEnabled `
-        -DisplayWriteType $displayWriteType
+    $params = $baseParams + @{
+        Name                = "Credential Guard Enabled"
+        Details             = $displayValue
+        DisplayTestingValue = $osInformation.CredentialGuardEnabled
+        DisplayWriteType    = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
         $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
 
         foreach ($configKey in $exchangeInformation.ApplicationConfigFileStatus.Keys) {
             $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
-
             $writeType = "Green"
-            $writeName = "{0} Present" -f $configKey
             $writeValue = $configStatus.Present
 
             if (!$configStatus.Present) {
@@ -92,9 +134,12 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
                 $writeValue = "{0} --- Error" -f $writeValue
             }
 
-            $AnalyzeResults | Add-AnalyzedResultInformation -Name $writeName -Details $writeValue `
-                -DisplayGroupingKey $keyFrequentConfigIssues `
-                -DisplayWriteType $writeType
+            $params = $baseParams + @{
+                Name             = "$configKey Present"
+                Details          = $writeValue
+                DisplayWriteType = $writeType
+            }
+            Add-AnalyzedResultInformation @params
         }
     }
 
@@ -125,13 +170,112 @@ Function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Open Relay Wild Card Domain" -Details $displayValue `
-        -DisplayGroupingKey $keyFrequentConfigIssues `
-        -DisplayWriteType $displayWriteType
+    $params = $baseParams + @{
+        Name             = "Open Relay Wild Card Domain"
+        Details          = $displayValue
+        DisplayWriteType = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($additionalDisplayValue -ne [string]::Empty) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details $additionalDisplayValue `
-            -DisplayGroupingKey $keyFrequentConfigIssues `
-            -DisplayWriteType "Red"
+        $params = $baseParams + @{
+            Details          = $additionalDisplayValue
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    if ($null -ne $exchangeInformation.IISConfigurationSettings) {
+        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings |
+            Where-Object {
+                if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -or
+                    $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole) {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Mailbox -and
+                    $_.Location -like "*ClientAccess*") {
+                    return $_
+                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -and
+                    $_.Location -like "*FrontEnd\HttpProxy*") {
+                    return $_
+                }
+            }
+        $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
+        $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $_.DefaultVariable -eq $true }
+        $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }
+
+        if ($null -ne $missingConfigFile) {
+            $params = $baseParams + @{
+                Name                = "Missing Configuration File"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            foreach ($file in $missingConfigFile) {
+                $params = $baseParams + @{
+                    Details                = "Missing: $($file.Location)"
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            $params = $baseParams + @{
+                Details                = "More Information: https://aka.ms/HC-MissingConfig"
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($null -ne $defaultVariableDetected) {
+            $params = $baseParams + @{
+                Name                = "Default Variable Detected"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            foreach ($file in $defaultVariableDetected) {
+                $params = $baseParams + @{
+                    Details                = "$($file.Location)"
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            $params = $baseParams + @{
+                Details                = "More Information: https://aka.ms/HC-DefaultVariableDetected"
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($null -ne $binSearchFoldersNotFound) {
+            $params = $baseParams + @{
+                Name                = "Bin Search Folder Not Found"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            foreach ($file in $binSearchFoldersNotFound) {
+                $params = $baseParams + @{
+                    Details                = "$($file.Location)"
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            $params = $baseParams + @{
+                Details                = "More Information: https://aka.ms/HC-BinSearchFolder"
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-MailboxDatabaseAndMailboxStatistics {
+function Get-MailboxDatabaseAndMailboxStatistics {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $AllDBs = Get-MailboxDatabaseCopyStatus -server $Script:Server -ErrorAction SilentlyContinue

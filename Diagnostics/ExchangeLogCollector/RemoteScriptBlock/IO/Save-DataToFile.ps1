@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Save-DataToFile {
+function Save-DataToFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)][object]$DataIn,

@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 
-Function Get-VisualCRedistributableInstalledVersion {
+function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
@@ -38,7 +38,7 @@ Function Get-VisualCRedistributableInstalledVersion {
     }
 }
 
-Function Get-VisualCRedistributableInfo {
+function Get-VisualCRedistributableInfo {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
@@ -62,7 +62,7 @@ Function Get-VisualCRedistributableInfo {
     }
 }
 
-Function Test-VisualCRedistributableInstalled {
+function Test-VisualCRedistributableInstalled {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
@@ -80,7 +80,7 @@ Function Test-VisualCRedistributableInstalled {
     return ($null -ne ($Installed | Where-Object { $_.DisplayName -like $desired.DisplayName }))
 }
 
-Function Test-VisualCRedistributableUpToDate {
+function Test-VisualCRedistributableUpToDate {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]

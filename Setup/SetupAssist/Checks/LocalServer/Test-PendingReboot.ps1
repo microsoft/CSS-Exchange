@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
-Function Test-PendingReboot {
+function Test-PendingReboot {
     $rebootPending = Get-ServerRebootPending
     $params = @{
         TestName      = "Pending Reboot"

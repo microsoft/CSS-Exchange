@@ -3,10 +3,10 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\UserContext\Test-UserGroupMemberOf.ps1
-Function Test-ExchangeADSetupLevel {
+function Test-ExchangeADSetupLevel {
 
     # Extract for Pester Testing - Start
-    Function TestPrepareAD {
+    function TestPrepareAD {
         param(
             [string]$ExchangeVersion
         )
@@ -63,7 +63,7 @@ Function Test-ExchangeADSetupLevel {
         Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
     }
 
-    Function TestMismatchLevel {
+    function TestMismatchLevel {
         param(
             [string]$ExchangeVersion,
             [object]$ADSetupLevel
@@ -79,7 +79,7 @@ Function Test-ExchangeADSetupLevel {
         TestPrepareAD -ExchangeVersion $ExchangeVersion
     }
 
-    Function TestReadyLevel {
+    function TestReadyLevel {
         param(
             [string]$ExchangeVersion,
             [string]$CULevel
@@ -102,7 +102,7 @@ Function Test-ExchangeADSetupLevel {
         }
     }
 
-    Function GetVersionObject {
+    function GetVersionObject {
         param(
             [object]$SearchResults,
             [string]$VersionValueName = "ObjectVersion"
@@ -113,7 +113,7 @@ Function Test-ExchangeADSetupLevel {
         }
     }
 
-    Function GetExchangeADSetupLevel {
+    function GetExchangeADSetupLevel {
         $rootDSE = [ADSI]("LDAP://RootDSE")
         $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
         $directorySearcher.SearchScope = "Subtree"
@@ -146,11 +146,11 @@ Function Test-ExchangeADSetupLevel {
             UpperRange = 15312
         }
         2016 = [PSCustomObject]@{
-            CU         = "CU22"
+            CU         = "CU23"
             UpperRange = 15334
         }
         2019 = [PSCustomObject]@{
-            CU         = "CU11"
+            CU         = "CU12"
             UpperRange = 17003
         }
     }
@@ -211,6 +211,9 @@ Function Test-ExchangeADSetupLevel {
         } elseif ( $adLevel.MESO.Value -eq 13242 -and
             $adLevel.Org.Value -eq 16222) {
             TestReadyLevel "2016" "CU22"
+        } elseif ($adLevel.MESO.Value -eq 13243 -and
+            $adLevel.Org.Value -eq 16223) {
+            TestReadyLevel "2016" "CU23"
         } else {
             TestMismatchLevel -ExchangeVersion "2016" -ADSetupLevel $adLevel
         }
@@ -232,6 +235,9 @@ Function Test-ExchangeADSetupLevel {
         } elseif ($adLevel.MESO.Value -eq 13242 -and
             $adLevel.Org.Value -eq 16759) {
             TestReadyLevel "2019" "CU11"
+        } elseif ($adLevel.MESO.Value -eq 13243 -and
+            $adLevel.Org.Value -eq 16760) {
+            TestReadyLevel "2019" "CU12"
         } else {
             TestMismatchLevel -ExchangeVersion "2019" -ADSetupLevel $adLevel
         }

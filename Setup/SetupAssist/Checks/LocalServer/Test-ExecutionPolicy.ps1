@@ -3,7 +3,7 @@
 
 
 . $PSScriptRoot\..\New-TestResult.ps1
-Function Test-ExecutionPolicy {
+function Test-ExecutionPolicy {
 
     $executionPolicy = Get-ExecutionPolicy
 

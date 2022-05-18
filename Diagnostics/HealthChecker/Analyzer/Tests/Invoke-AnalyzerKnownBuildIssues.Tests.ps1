@@ -9,9 +9,9 @@ BeforeAll {
     . $PSScriptRoot\..\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
     $scriptContent = Get-PesterScriptContent -FilePath "$PSScriptRoot\..\Invoke-AnalyzerKnownBuildIssues.ps1"
     Invoke-Expression $scriptContent
-    Function Invoke-CatchActions { throw "Called Invoke-CatchActions" }
+    function Invoke-CatchActions { throw "Called Invoke-CatchActions" }
 
-    Function TestPesterResults {
+    function TestPesterResults {
         param(
             [hashtable]$TestGroup,
             [object]$KnownIssue
@@ -19,7 +19,7 @@ BeforeAll {
 
         foreach ($key in $TestGroup.Keys) {
             $currentBuild = GetVersionFromString $key
-            TestOnKnownBuildIssue $KnownIssue $currentBuild -Verbose | Should -Be $TestGroup[$key]
+            TestOnKnownBuildIssue $KnownIssue $currentBuild | Should -Be $TestGroup[$key]
         }
     }
 }

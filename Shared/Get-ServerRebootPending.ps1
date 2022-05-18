@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 
-Function Get-ServerRebootPending {
+function Get-ServerRebootPending {
     [CmdletBinding()]
     param(
         [string]$ServerName = $env:COMPUTERNAME,
@@ -11,7 +11,7 @@ Function Get-ServerRebootPending {
     )
     begin {
 
-        Function Get-PendingFileReboot {
+        function Get-PendingFileReboot {
             try {
                 if ((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" -Name PendingFileRenameOperations -ErrorAction Stop)) {
                     return $true
@@ -22,7 +22,7 @@ Function Get-ServerRebootPending {
             }
         }
 
-        Function Get-PendingCCMReboot {
+        function Get-PendingCCMReboot {
             try {
                 return (Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop)
             } catch {
@@ -30,7 +30,7 @@ Function Get-ServerRebootPending {
             }
         }
 
-        Function Get-PathTestingReboot {
+        function Get-PathTestingReboot {
             param(
                 [string]$TestingPath
             )

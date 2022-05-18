@@ -6,7 +6,7 @@
 . $PSScriptRoot\..\ServerInformation\Get-OperatingSystemInformation.ps1
 . $PSScriptRoot\..\ServerInformation\Get-DotNetDllFileVersions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
-Function Get-HealthCheckerExchangeServer {
+function Get-HealthCheckerExchangeServer {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\Get-StringDataForNotEnoughFreeSpace.ps1
 . $PSScriptRoot\..\Test-FreeSpace.ps1
-Function Copy-FullLogFullPathRecurse {
+function Copy-FullLogFullPathRecurse {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation

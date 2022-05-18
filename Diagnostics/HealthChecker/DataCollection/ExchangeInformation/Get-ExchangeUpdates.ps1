@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-Function Get-ExchangeUpdates {
+function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
     )

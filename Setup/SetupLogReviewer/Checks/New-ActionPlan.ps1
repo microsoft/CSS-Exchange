@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\New-WriteObject.ps1
-Function New-ActionPlan {
+function New-ActionPlan {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Does not change state')]
     [CmdletBinding()]
     param(

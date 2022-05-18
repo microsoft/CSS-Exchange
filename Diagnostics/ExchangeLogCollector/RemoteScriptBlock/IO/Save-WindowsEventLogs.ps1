@@ -3,7 +3,8 @@
 
 . $PSScriptRoot\Copy-BulkItems.ps1
 . $PSScriptRoot\Save-DataInfoToFile.ps1
-Function Save-WindowsEventLogs {
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+function Save-WindowsEventLogs {
 
     Write-Verbose("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
@@ -14,18 +15,35 @@ Function Save-WindowsEventLogs {
             $_.VersionInfo.FileName
         }
 
-    if ($PassedInfo.AppSysLogs) {
-        Write-Verbose("Adding Application and System Logs")
-        $logs = @()
-        $logs += "$rootLogPath\Application.evtx"
-        $logs += "$rootLogPath\System.evtx"
-        $logs += "$rootLogPath\MSExchange Management.evtx"
-    }
-
-    if ($PassedInfo.WindowsSecurityLogs) { $logs += "$rootLogPath\Security.evtx" }
-
     if ($PassedInfo.AppSysLogs -or
         $PassedInfo.WindowsSecurityLogs) {
+
+        $baseRegistryLocation = "SYSTEM\CurrentControlSet\Services\EventLog\"
+        $logs = @()
+        $baseParams = @{
+            MachineName = $env:COMPUTERNAME
+            GetValue    = "File"
+        }
+
+        Write-Verbose("Adding Windows Default Event Logging: AppSysLogs: $($PassedInfo.AppSysLogs) WindowsSecurityLogs: $($PassedInfo.WindowsSecurityLogs)")
+
+        foreach ($logName in @("Application", "System", "MSExchange Management", "Security")) {
+
+            if ((-not ($PassedInfo.WindowsSecurityLogs)) -and
+                $logName -eq "Security") { continue }
+            elseif ((-not ($PassedInfo.AppSysLogs)) -and
+                $logName -ne "Security") { continue }
+
+            Write-Verbose "Adding LogName: $logName"
+            $params = $baseParams + @{
+                SubKey = "$baseRegistryLocation$logName"
+            }
+            $logLocation = Get-RemoteRegistryValue @params
+
+            if ($null -eq $logLocation) { $logLocation = "$rootLogPath\$logName.evtx" }
+            $logs += $logLocation
+        }
+
         $SaveLogs.Add("Windows-Logs", $logs)
     }
 

@@ -15,3 +15,4 @@ Yes
 [Disabling IPv6 And Exchange – Going All The Way](https://blog.rmilne.ca/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way/)
 
 [Guidance for configuring IPv6 in Windows for advanced users](https://support.microsoft.com/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users)
+

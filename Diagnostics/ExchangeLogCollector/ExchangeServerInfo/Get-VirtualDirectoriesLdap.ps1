@@ -1,7 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-VirtualDirectoriesLdap {
+. $PSScriptRoot\..\..\..\Shared\ActiveDirectoryFunctions\Get-OrganizationContainer.ps1
+
+function Get-VirtualDirectoriesLdap {
 
     $authTypeEnum = @"
     namespace AuthMethods
@@ -34,12 +36,9 @@ Function Get-VirtualDirectoriesLdap {
     Write-Host "Collecting Virtual Directory Information..."
     Add-Type -TypeDefinition $authTypeEnum -Language CSharp
 
-    $objRootDSE = [ADSI]"LDAP://rootDSE"
-    $strConfigurationNC = $objRootDSE.configurationNamingContext
-    $objConfigurationNC = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$strConfigurationNC")
     $searcher = New-Object DirectoryServices.DirectorySearcher
     $searcher.filter = "(&(objectClass=msExchVirtualDirectory)(!objectClass=container))"
-    $searcher.SearchRoot = $objConfigurationNC
+    $searcher.SearchRoot = Get-OrganizationContainer
     $searcher.CacheResults = $false
     $searcher.SearchScope = "Subtree"
     $searcher.PageSize = 1000

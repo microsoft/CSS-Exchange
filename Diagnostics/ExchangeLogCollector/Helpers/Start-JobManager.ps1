@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Start-JobManager {
+function Start-JobManager {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'I prefer Start here')]
     [CmdletBinding()]
     param(
@@ -25,7 +25,7 @@ Function Start-JobManager {
             [object]ArgumentList #customized for your scriptblock
     #>
 
-    Function Wait-JobsCompleted {
+    function Wait-JobsCompleted {
         Write-Verbose "Calling Wait-JobsCompleted"
         [System.Diagnostics.Stopwatch]$timer = [System.Diagnostics.Stopwatch]::StartNew()
         # Data returned is a Hash Table that matches to the Server the Script Block ran against

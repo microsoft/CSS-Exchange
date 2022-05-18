@@ -344,17 +344,17 @@ $xml131619 = @"
 if (Confirm-Administrator) {}
 else { Write-Error "Please run as Administrator" -ErrorAction Stop }
 
-Function global:Convert-OnOffBool {
+function global:Convert-OnOffBool {
     [cmdletbinding()]
     [OutputType([bool])]
-    Param(
+    param(
         [Parameter(Mandatory = $true)]
         [string]$tocompare
     )
 
     switch ($tocompare) {
         On { return $true }
-        Default { return $false }
+        default { return $false }
     }
 }
 
@@ -379,5 +379,5 @@ $response = $host.UI.PromptForChoice($title, $message, $options, 0)
 # Perform action based on answer
 switch ($response) {
     0 { New-ExPerfwiz -FolderPath C:\EXPerfWiz } # Yes
-    1 { Break } # No
+    1 { break } # No
 }

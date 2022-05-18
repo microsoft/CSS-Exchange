@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ServerType {
+function Get-ServerType {
     [CmdletBinding()]
     [OutputType("System.String")]
     param(

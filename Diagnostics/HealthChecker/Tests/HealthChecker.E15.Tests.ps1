@@ -32,7 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Operating System Information" {
@@ -107,7 +107,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 7
+            $Script:ActiveGrouping.Count | Should -Be 8
         }
 
         It "Display Results - Security Settings" {
@@ -117,7 +117,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 71
+            $Script:ActiveGrouping.Count | Should -Be 54
         }
 
         It "Display Results - Security Vulnerability" {
@@ -125,7 +125,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 42
+            $cveTests.Count | Should -Be 43
         }
     }
 }

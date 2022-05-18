@@ -104,3 +104,4 @@ Server|Name of the server to stop the collector set on.|Local Machine
 * The default duration is 8 hours to save on disk space meaning that the data collection will stop after 8 hours.
 * Using -Threads should only be done if needed to troubleshoot the issue.  It will SIGNIFICANTLY increase the size of the resulting perfmon files.
 * Do not stop the log gathering thru the Perfmon GUI that can result in an unreadable log file.  Always stop the data gathering with Stop-Experfwiz.
+

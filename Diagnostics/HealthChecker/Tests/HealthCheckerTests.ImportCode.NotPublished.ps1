@@ -16,7 +16,7 @@ $scriptContent = Get-PesterScriptContent -FilePath @(
 
 Invoke-Expression $scriptContent
 
-Function SetActiveDisplayGrouping {
+function SetActiveDisplayGrouping {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -26,7 +26,7 @@ Function SetActiveDisplayGrouping {
     $Script:ActiveGrouping = $Script:results.DisplayResults[$key]
 }
 
-Function GetObject {
+function GetObject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -36,7 +36,7 @@ Function GetObject {
     ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).TestingValue
 }
 
-Function GetWriteTypeObject {
+function GetWriteTypeObject {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -46,7 +46,7 @@ Function GetWriteTypeObject {
     ($Script:ActiveGrouping | Where-Object { $_.TestingName -eq $Name }).WriteType
 }
 
-Function TestObjectMatch {
+function TestObjectMatch {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 1)]
@@ -63,4 +63,43 @@ Function TestObjectMatch {
         Should -Be $ResultValue
     GetWriteTypeObject $Name |
         Should -Be $WriteType
+}
+
+function TestOutColumnObjectCompare {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$CompareObject,
+
+        [Parameter(Mandatory = $true)]
+        [object]$TestObject
+    )
+    $properties = ($CompareObject | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" }).Name
+    foreach ($property in $properties) {
+        if ($TestObject.$property.Value -ne $CompareObject.$property.Value) {
+            Write-Host "Failed Property Value: $property"
+        }
+        $TestObject.$property.Value | Should -Be $CompareObject.$property.Value
+
+        if ($TestObject.$property.DisplayColor -ne $CompareObject.$property.DisplayColor) {
+            Write-Host "Failed Property Display Color: $property"
+        }
+        $TestObject.$property.DisplayColor | Should -Be $CompareObject.$property.DisplayColor
+    }
+}
+
+function NewOutColumnCompareValue {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 1)]
+        [object]$Value,
+
+        [Parameter(Position = 2)]
+        [string]$DisplayColor = "Grey"
+    )
+
+    return [PSCustomObject]@{
+        Value        = $Value
+        DisplayColor = $DisplayColor
+    }
 }

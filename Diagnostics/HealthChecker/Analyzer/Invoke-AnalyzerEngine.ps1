@@ -13,7 +13,7 @@
 . $PSScriptRoot\Invoke-AnalyzerWebAppPools.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecuritySettings.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecurityVulnerability.ps1
-Function Invoke-AnalyzerEngine {
+function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )
@@ -24,12 +24,18 @@ Function Invoke-AnalyzerEngine {
 
     #Display Grouping Keys
     $order = 1
-    $keyBeginningInfo = Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder 0 -DefaultTabNumber 0
+    $baseParams = @{
+        AnalyzedInformation = $analyzedResults
+        DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder 0 -DefaultTabNumber 0)
+    }
 
     if (!$Script:DisplayedScriptVersionAlready) {
-        $analyzedResults | Add-AnalyzedResultInformation -Name "Exchange Health Checker Version" -Details $BuildVersion `
-            -DisplayGroupingKey $keyBeginningInfo `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Name             = "Exchange Health Checker Version"
+            Details          = $BuildVersion
+            AddHtmlDetailRow = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $VirtualizationWarning = @"
@@ -50,9 +56,12 @@ For further details, please review the virtualization recommendations on Microso
 
     if ($HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare -or
         $HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::HyperV) {
-        $analyzedResults | Add-AnalyzedResultInformation -Details $VirtualizationWarning -DisplayWriteType "Yellow" `
-            -DisplayGroupingKey $keyBeginningInfo `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Details          = $VirtualizationWarning
+            DisplayWriteType = "Yellow"
+            AddHtmlDetailRow = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     Invoke-AnalyzerExchangeInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
@@ -67,5 +76,3 @@ For further details, please review the virtualization recommendations on Microso
     Write-Debug("End of Analyzer Engine")
     return $analyzedResults
 }
-
-

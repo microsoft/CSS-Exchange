@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-SearchProcessState {
+function Get-SearchProcessState {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Cmdlet required')]
     [CmdletBinding()]
     param(
@@ -9,7 +9,7 @@ Function Get-SearchProcessState {
     )
     begin {
 
-        Function Get-DefaultSettings {
+        function Get-DefaultSettings {
             return [PSCustomObject]@{
                 PID               = 0
                 ThirdPartyModules = (New-Object 'System.Collections.Generic.List[object]')

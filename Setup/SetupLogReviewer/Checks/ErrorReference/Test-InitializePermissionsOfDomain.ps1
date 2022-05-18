@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-InitializePermissionsOfDomain {
+function Test-InitializePermissionsOfDomain {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

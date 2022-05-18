@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-IndexingErrorMessage.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
-Function Get-MailboxIndexMessageStatistics {
+function Get-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -4,7 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
-Function Invoke-AnalyzerHardwareInformation {
+function Invoke-AnalyzerHardwareInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -18,54 +18,61 @@ Function Invoke-AnalyzerHardwareInformation {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $keyHardwareInformation = Get-DisplayResultsGroupingKey -Name "Processor/Hardware Information"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
+    $baseParams = @{
+        AnalyzedInformation = $AnalyzeResults
+        DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Processor/Hardware Information"  -DisplayOrder $Order)
+    }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Type" -Details ($hardwareInformation.ServerType) `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -AddHtmlOverviewValues $true `
-        -HtmlName "Hardware Type"
+    $params = $baseParams + @{
+        Name                  = "Type"
+        Details               = $hardwareInformation.ServerType
+        AddHtmlOverviewValues = $true
+        HtmlName              = "Hardware Type"
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
         $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Manufacturer" -Details ($hardwareInformation.Manufacturer) `
-            -DisplayGroupingKey $keyHardwareInformation
+        $params = $baseParams + @{
+            Name    = "Manufacturer"
+            Details = $hardwareInformation.Manufacturer
+        }
+        Add-AnalyzedResultInformation @params
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Model" -Details ($hardwareInformation.Model) `
-            -DisplayGroupingKey $keyHardwareInformation
+        $params = $baseParams + @{
+            Name    = "Model"
+            Details = $hardwareInformation.Model
+        }
+        Add-AnalyzedResultInformation @params
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Processor" -Details ($hardwareInformation.Processor.Name) `
-        -DisplayGroupingKey $keyHardwareInformation
+    $params = $baseParams + @{
+        Name    = "Processor"
+        Details = $hardwareInformation.Processor.Name
+    }
+    Add-AnalyzedResultInformation @params
 
-    $value = $hardwareInformation.Processor.NumberOfProcessors
-    $processorName = "Number of Processors"
+    $numberOfProcessors = $hardwareInformation.Processor.NumberOfProcessors
+    $displayWriteType = "Green"
+    $displayValue = $numberOfProcessors
 
     if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::Physical) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name $processorName -Details $value `
-            -DisplayGroupingKey $keyHardwareInformation
-
-        <# Comment out for now. Not sure if we have a lot of value here as i believe this changed in newer vmware hosts versions.
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare) {
-            $AnalyzeResults = Add-AnalyzedResultInformation -Details "Note: Please make sure you are following VMware's performance recommendation to get the most out of your guest machine. VMware blog 'Does corespersocket Affect Performance?' https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html" `
-                -DisplayGroupingKey $keyHardwareInformation `
-                -DisplayCustomTabNumber 2 `
-                -AnalyzedInformation $AnalyzeResults
-        }
-    #>
-    } elseif ($value -gt 2) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name $processorName -Details ("{0} - Error: Recommended to only have 2 Processors" -f $value) `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Red" `
-            -DisplayTestingValue $value `
-            -HtmlDetailsCustomValue $value
-    } else {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name $processorName -Details $value `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Green"
+        $displayWriteType = "Grey"
+    } elseif ($numberOfProcessors -gt 2) {
+        $displayWriteType = "Red"
+        $displayValue = "$numberOfProcessors - Error: Recommended to only have 2 Processors"
     }
+
+    $params = $baseParams + @{
+        Name                = "Number of Processors"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $numberOfProcessors
+    }
+    Add-AnalyzedResultInformation @params
 
     $physicalValue = $hardwareInformation.Processor.NumberOfPhysicalCores
     $logicalValue = $hardwareInformation.Processor.NumberOfLogicalCores
@@ -88,14 +95,20 @@ Function Invoke-AnalyzerHardwareInformation {
         $logicalValueDisplay = "$logicalValue - Error"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Physical Cores" -Details $physicalValueDisplay `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteTypePhysical
+    $params = $baseParams + @{
+        Name             = "Number of Physical Cores"
+        Details          = $physicalValueDisplay
+        DisplayWriteType = $displayWriteTypePhysical
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Number of Logical Cores" -Details $logicalValueDisplay `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteTypeLogic `
-        -AddHtmlOverviewValues $true
+    $params = $baseParams + @{
+        Name                  = "Number of Logical Cores"
+        Details               = $logicalValueDisplay
+        DisplayWriteType      = $displayWriteTypeLogic
+        AddHtmlOverviewValues = $true
+    }
+    Add-AnalyzedResultInformation @params
 
     $displayValue = "Disabled"
     $displayWriteType = "Green"
@@ -125,17 +138,22 @@ Function Invoke-AnalyzerHardwareInformation {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Hyper-Threading" -Details $displayValue `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue $displayTestingValue
+    $params = $baseParams + @{
+        Name                = "Hyper-Threading"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $displayTestingValue
+    }
+    Add-AnalyzedResultInformation @params
 
     if (!([string]::IsNullOrEmpty($additionalDisplayValue))) {
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details $additionalDisplayValue `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType $additionalWriteType `
-            -DisplayCustomTabNumber 2 `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Details                = $additionalDisplayValue
+            DisplayWriteType       = $additionalWriteType
+            DisplayCustomTabNumber = 2
+            AddHtmlDetailRow       = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     #NUMA BIOS CHECK - AKA check to see if we can properly see all of our cores on the box
@@ -173,20 +191,28 @@ Function Invoke-AnalyzerHardwareInformation {
         }
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name $name -Details $displayValue `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayWriteType $displayWriteType `
-        -DisplayTestingValue $testingValue
+    $params = $baseParams + @{
+        Name                = $name
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $testingValue
+    }
+    Add-AnalyzedResultInformation @params
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Max Processor Speed" -Details ($hardwareInformation.Processor.MaxMegacyclesPerCore) `
-        -DisplayGroupingKey $keyHardwareInformation
+    $params = $baseParams + @{
+        Name    = "Max Processor Speed"
+        Details = $hardwareInformation.Processor.MaxMegacyclesPerCore
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($hardwareInformation.Processor.ProcessorIsThrottled) {
-        $currentSpeed = $hardwareInformation.Processor.CurrentMegacyclesPerCore
-        $AnalyzeResults | Add-AnalyzedResultInformation -Name "Current Processor Speed" -Details ("{0} --- Error: Processor appears to be throttled." -f $currentSpeed) `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Red" `
-            -DisplayTestingValue $currentSpeed
+        $params = $baseParams + @{
+            Name                = "Current Processor Speed"
+            Details             = "$($hardwareInformation.Processor.CurrentMegacyclesPerCore) --- Error: Processor appears to be throttled."
+            DisplayWriteType    = "Red"
+            DisplayTestingValue = $hardwareInformation.Processor.CurrentMegacyclesPerCore
+        }
+        Add-AnalyzedResultInformation @params
 
         $displayValue = "Error: Power Plan is NOT set to `"High Performance`". This change doesn't require a reboot and takes affect right away. Re-run script after doing so"
 
@@ -194,12 +220,14 @@ Function Invoke-AnalyzerHardwareInformation {
             $displayValue = "Error: Power Plan is set to `"High Performance`", so it is likely that we are throttling in the BIOS of the computer settings."
         }
 
-        $AnalyzeResults | Add-AnalyzedResultInformation -Details $displayValue `
-            -DisplayGroupingKey $keyHardwareInformation `
-            -DisplayWriteType "Red" `
-            -TestingName "HighPerformanceSet" `
-            -DisplayTestingValue $osInformation.PowerPlan.HighPerformanceSet `
-            -AddHtmlDetailRow $false
+        $params = $baseParams + @{
+            Details             = $displayValue
+            DisplayWriteType    = "Red"
+            TestingName         = "HighPerformanceSet"
+            DisplayTestingValue = $osInformation.PowerPlan.HighPerformanceSet
+            AddHtmlDetailRow    = $false
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $totalPhysicalMemory = [System.Math]::Round($hardwareInformation.TotalMemory / 1024 / 1024 / 1024)
@@ -230,9 +258,12 @@ Function Invoke-AnalyzerHardwareInformation {
         $displayWriteType = "Grey"
     }
 
-    $AnalyzeResults | Add-AnalyzedResultInformation -Name "Physical Memory" -Details $displayDetails `
-        -DisplayGroupingKey $keyHardwareInformation `
-        -DisplayTestingValue $totalPhysicalMemory `
-        -DisplayWriteType $displayWriteType `
-        -AddHtmlOverviewValues $true
+    $params = $baseParams + @{
+        Name                  = "Physical Memory"
+        Details               = $displayDetails
+        DisplayWriteType      = $displayWriteType
+        DisplayTestingValue   = $totalPhysicalMemory
+        AddHtmlOverviewValues = $true
+    }
+    Add-AnalyzedResultInformation @params
 }

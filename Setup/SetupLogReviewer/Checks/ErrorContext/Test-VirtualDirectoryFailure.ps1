@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
 . $PSScriptRoot\..\Test-SetupAssist.ps1
-Function Test-VirtualDirectoryFailure {
+function Test-VirtualDirectoryFailure {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

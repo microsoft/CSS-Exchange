@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-TimeZoneInformationRegistrySettings {
+function Get-TimeZoneInformationRegistrySettings {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
@@ -51,4 +51,3 @@ Function Get-TimeZoneInformationRegistrySettings {
         }
     }
 }
-

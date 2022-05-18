@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-WriteObject.ps1
-Function Test-PrerequisiteCheck {
+function Test-PrerequisiteCheck {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

@@ -8,6 +8,8 @@ param (
 
 #Requires -Version 7
 
+Set-StrictMode -Version Latest
+
 . $PSScriptRoot\BuildFunctions\Get-ScriptProjectMostRecentCommit.ps1
 . $PSScriptRoot\BuildFunctions\Get-ExpandedScriptContent.ps1
 
@@ -55,8 +57,8 @@ $scriptFiles = $scriptFiles | Where-Object {
     $fullName = $_
     $scriptName = [IO.Path]::GetFileName($_)
     $pattern = "\. .*\\$scriptName"
-    $m = $scriptFiles | Get-Item | Select-String -Pattern $pattern
-    $r = $m | Where-Object { $_.Path -ne $fullName }
+    $m = @($scriptFiles | Get-Item | Select-String -Pattern $pattern)
+    $r = @($m | Where-Object { $_.Path -ne $fullName })
     $r.Count -lt 1
 }
 

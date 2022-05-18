@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
-Function Test-ExpiredCertificate {
+function Test-ExpiredCertificate {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

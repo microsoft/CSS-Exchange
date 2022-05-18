@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-InvalidWKObjectTargetException {
+function Test-InvalidWKObjectTargetException {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

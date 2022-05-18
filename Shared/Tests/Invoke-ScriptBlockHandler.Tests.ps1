@@ -10,7 +10,7 @@ BeforeAll {
 
     . "$parent\$scriptName"
 
-    Function Get-WinHttpSettings {
+    function Get-WinHttpSettings {
         param(
             [Parameter(Mandatory = $true)][string]$RegistryLocation
         )
@@ -27,7 +27,7 @@ BeforeAll {
         return $(if ($Proxy -eq [string]::Empty) { "<None>" } else { $Proxy })
     }
 
-    Function Get-PendingSCCMReboot {
+    function Get-PendingSCCMReboot {
 
         begin {
             $returnValue = $false
@@ -55,7 +55,7 @@ BeforeAll {
         }
     }
 
-    Function Test-VerboseOutput {
+    function Test-VerboseOutput {
         param(
             [bool]$Without = $true,
             [bool]$Local = $true
@@ -178,7 +178,7 @@ Describe "Testing $scriptName" {
     Context "Testing catch action script block" {
 
         It "Testing throw" {
-            Function Test-PesterCatchAction {
+            function Test-PesterCatchAction {
                 Write-Host "Test-PesterCatchAction"
             }
             Mock Invoke-Command { throw "Failed Pester Testing" }

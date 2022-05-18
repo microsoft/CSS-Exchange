@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Helpers\PerformanceCountersFunctions.ps1
-Function Get-CASLoadBalancingReport {
+function Get-CASLoadBalancingReport {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $CASServers = @()
@@ -25,10 +25,10 @@ Function Get-CASLoadBalancingReport {
 
     if ($CASServers.Count -eq 0) {
         Write-Red("Error: No CAS servers found using the specified search criteria.")
-        Exit
+        exit
     }
 
-    Function DisplayKeyMatching {
+    function DisplayKeyMatching {
         param(
             [string]$CounterValue,
             [string]$DisplayValue

@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-LmCompatibilityLevelInformation {
+function Get-LmCompatibilityLevelInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -21,7 +21,7 @@ Function Get-LmCompatibilityLevelInformation {
     $ServerLmCompatObject.RegistryValue = $registryValue
     Write-Verbose "LmCompatibilityLevel Registry Value: $registryValue"
 
-    Switch ($ServerLmCompatObject.RegistryValue) {
+    switch ($ServerLmCompatObject.RegistryValue) {
         0 { $ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
         1 { $ServerLmCompatObject.Description = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
         2 { $ServerLmCompatObject.Description = "Clients use only NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controller accepts LM, NTLM, and NTLMv2 authentication." }
@@ -31,5 +31,5 @@ Function Get-LmCompatibilityLevelInformation {
     }
 
     Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
-    Return $ServerLmCompatObject
+    return $ServerLmCompatObject
 }

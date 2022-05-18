@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Set-ExPerfWiz {
+function global:Set-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -95,7 +95,7 @@ Function global:Set-ExPerfWiz {
     }
 
 
-    Process {
+    process {
 
         Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPerfWiz.log"
 
@@ -105,18 +105,17 @@ Function global:Set-ExPerfWiz {
         }
 
         # Check if we generated and error on update
-        If ($null -eq ($logman | Select-String "Error:")) {
+        if ($null -eq ($logman | Select-String "Error:")) {
             Write-SimpleLogFile "Update Successful" -Name "ExPerfWiz.log"
         } else {
             Write-SimpleLogFile -string "[ERROR] - Problem updating perfwiz:" -Name "ExPerfWiz.log"
             Write-SimpleLogFile -string $logman -Name "ExPerfWiz.log"
-            Throw $logman
+            throw $logman
         }
     }
-    End {
+    end {
         # Return the new object and values
         if ($quiet) {}
         else { Get-ExPerfwiz -Name $name -Server $server }
     }
 }
-

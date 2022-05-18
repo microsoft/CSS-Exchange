@@ -30,6 +30,20 @@ function Test-PrerequisiteInstalled {
         New-TestResult @params -Result "Failed"
     }
 
+    $params = @{
+        TestName      = "UCMA Installed"
+        Details       = "Not Installed"
+        ReferenceInfo = "https://aka.ms/SA-ServerPrerequisites"
+    }
+
+    try {
+        $results = Get-ItemProperty -Path "HKLM:SOFTWARE\Microsoft\UCMA\{902F4F35-D5DC-4363-8671-D5EF0D26C21D}" -Name Version -ErrorAction Stop
+        $params.Details = "Installed Version: $($results.Version)"
+        New-TestResult @params -Result "Passed"
+    } catch {
+        New-TestResult @params -Result "Failed"
+    }
+
     $installed = @(Get-VisualCRedistributableInstalledVersion)
     $years = @(2012, 2013)
 

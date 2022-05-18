@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Enter-YesNoLoopAction.ps1
 . $PSScriptRoot\Test-DiskSpace.ps1
-Function Test-RemoteExecutionOfServers {
+function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList
     )

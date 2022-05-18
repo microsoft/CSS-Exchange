@@ -1,0 +1,221 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Deserialized.System.Management.Automation.PSCustomObject</T>
+      <T>Deserialized.System.Object</T>
+    </TN>
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\Autodiscover\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\ecp\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\exchweb\ews\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\mapi\emsmdb\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\mapi\nspi\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="5">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\OAB\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\Owa\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="7">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\PowerShell\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\PowerShell-Proxy\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="9">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\RpcProxy\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="10">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\Sync\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="11">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\autodiscover\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="12">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\ecp\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="13">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\ews\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="14">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\mapi\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="15">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\oab\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="16">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\owa\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="17">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\powershell\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="18">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\pushnotifications\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="19">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\ReportingWebService\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="20">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\rpc\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="21">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\sync\web.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="22">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+  <Obj RefId="23">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="Location">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config</S>
+      <B N="Exist">true</B>
+      <B N="DefaultVariable">false</B>
+      <B N="BinSearchFoldersNotFound">false</B>
+    </MS>
+  </Obj>
+</Objs>

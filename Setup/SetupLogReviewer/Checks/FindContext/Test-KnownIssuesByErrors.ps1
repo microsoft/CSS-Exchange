@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\ErrorContext\Test-ArbitrationMailbox.ps1
 . $PSScriptRoot\..\ErrorContext\Test-DisabledService.ps1
 . $PSScriptRoot\..\ErrorContext\Test-EndpointMapper.ps1
 . $PSScriptRoot\..\ErrorContext\Test-FailedSearchFoundation.ps1
@@ -14,7 +15,7 @@
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
 . $PSScriptRoot\..\ErrorReference\Test-MultiActiveSyncVirtualDirectories.ps1
-Function Test-KnownIssuesByErrors {
+function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]
@@ -23,7 +24,7 @@ Function Test-KnownIssuesByErrors {
     )
     begin {
         #Use this to call similar tests and break when we find a result that we like
-        Function InvokeTest {
+        function InvokeTest {
             [CmdletBinding()]
             param(
                 [object]$PipeObject,
@@ -57,6 +58,7 @@ Function Test-KnownIssuesByErrors {
         InvokeTest -PipeObject ([PSCustomObject]@{
                 ErrorContext = $contextOfError
             }) -Tests @(
+            "Test-ArbitrationMailbox",
             "Test-DisabledService",
             "Test-EndpointMapper",
             "Test-ExceptionADOperationFailedAlreadyExist",
