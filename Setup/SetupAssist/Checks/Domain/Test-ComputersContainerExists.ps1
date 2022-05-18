@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 
-Function Test-ComputersContainerExists {
+function Test-ComputersContainerExists {
     try {
         $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         foreach ($domain in $forest.Domains) {

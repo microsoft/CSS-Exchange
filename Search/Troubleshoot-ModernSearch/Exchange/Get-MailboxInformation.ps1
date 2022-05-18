@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 #Dependencies are based off EMS cmdlets.
-Function Get-MailboxInformation {
+function Get-MailboxInformation {
     [CmdletBinding()]
     param(
         [string]

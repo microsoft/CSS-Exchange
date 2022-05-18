@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
-Function Get-BasicMailboxQueryContext {
+function Get-BasicMailboxQueryContext {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler

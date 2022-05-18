@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Invoke-CatchActions {
+function Invoke-CatchActions {
     param(
         [object]$CopyThisError = $Error[0]
     )

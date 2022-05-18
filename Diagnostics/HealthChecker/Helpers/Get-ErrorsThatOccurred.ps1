@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ErrorsThatOccurred {
+function Get-ErrorsThatOccurred {
 
-    Function WriteErrorInformation {
+    function WriteErrorInformation {
         [CmdletBinding()]
         param(
             [object]$CurrentError
@@ -24,7 +24,7 @@ Function Get-ErrorsThatOccurred {
 
     if ($Error.Count -gt 0) {
         Write-Grey(" "); Write-Grey(" ")
-        Function Write-Errors {
+        function Write-Errors {
             Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
 
             $index = 0

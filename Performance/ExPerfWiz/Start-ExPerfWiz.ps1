@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Start-ExPerfWiz {
+function global:Start-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -44,7 +44,7 @@ Function global:Start-ExPerfWiz {
         $Server = $env:ComputerName
     )
 
-    Process {
+    process {
         Write-SimpleLogFile -string ("Starting ExPerfwiz: " + $Server) -Name "ExPerfWiz.log"
 
         # Check if we have an error and throw and error if needed.
@@ -69,18 +69,17 @@ Function global:Start-ExPerfWiz {
         } while ($repeat -and ($i -lt 3))
 
         # If we have an error then we need to throw else continue
-        If ($logman | Select-String "Error:") {
+        if ($logman | Select-String "Error:") {
             # Don't throw an error if the collector is already started
             if ($logman | Select-String "administrator has refused the request") {
                 Write-SimpleLogFile "Collector already Started" -Name "ExPerfWiz.log"
             } else {
                 Write-SimpleLogFile "[ERROR] - Unable to Start Collector" -Name "ExPerfWiz.log"
                 Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
-                Throw $logman
+                throw $logman
             }
         } else {
             Write-SimpleLogFile "ExPerfwiz Started" -Name "ExPerfWiz.log"
         }
     }
 }
-

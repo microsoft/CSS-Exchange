@@ -10,7 +10,7 @@ BeforeAll {
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\Get-FIPFSScanEngineVersionState.ps1
 
-    Function Invoke-CatchActions {
+    function Invoke-CatchActions {
         param()
     }
 }

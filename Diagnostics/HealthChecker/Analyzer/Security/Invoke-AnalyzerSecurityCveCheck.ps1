@@ -8,7 +8,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-Function Invoke-AnalyzerSecurityCveCheck {
+function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -21,7 +21,7 @@ Function Invoke-AnalyzerSecurityCveCheck {
         [object]$DisplayGroupingKey
     )
 
-    Function TestVulnerabilitiesByBuildNumbersForDisplay {
+    function TestVulnerabilitiesByBuildNumbersForDisplay {
         param(
             [Parameter(Mandatory = $true)][string]$ExchangeBuildRevision,
             [Parameter(Mandatory = $true)][array]$SecurityFixedBuilds,

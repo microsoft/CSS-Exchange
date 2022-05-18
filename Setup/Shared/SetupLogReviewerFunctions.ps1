@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function SelectStringLastRunOfExchangeSetup {
+function SelectStringLastRunOfExchangeSetup {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
@@ -22,7 +22,7 @@ Function SelectStringLastRunOfExchangeSetup {
     }
 }
 
-Function GetEvaluatedSettingOrRule {
+function GetEvaluatedSettingOrRule {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
@@ -43,7 +43,7 @@ Function GetEvaluatedSettingOrRule {
     }
 }
 
-Function TestEvaluatedSettingOrRule {
+function TestEvaluatedSettingOrRule {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
@@ -73,7 +73,7 @@ Function TestEvaluatedSettingOrRule {
     }
 }
 
-Function GetFirstErrorWithContextToLine {
+function GetFirstErrorWithContextToLine {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
@@ -119,13 +119,13 @@ Function GetFirstErrorWithContextToLine {
     }
 }
 
-Function Get-SetupLogReviewer {
+function Get-SetupLogReviewer {
     [CmdletBinding()]
     param(
         [string]$SetupLog
     )
 
-    Function GetDateTimeFromLine {
+    function GetDateTimeFromLine {
         param(
             [string]$line
         )

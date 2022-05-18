@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
-Function Get-ExchangeServerCertificates {
+function Get-ExchangeServerCertificates {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -107,7 +107,7 @@ Function Get-ExchangeServerCertificates {
                             "1.2.840.10045.4.3.3" { $certSignatureHashAlgorithm = "sha384"; $certSignatureHashAlgorithmSecure = 2 }
                             "1.2.840.10045.4.3.4" { $certSignatureHashAlgorithm = "sha512"; $certSignatureHashAlgorithmSecure = 2 }
                             "1.2.840.10045.4.3" { $certSignatureHashAlgorithm = "sha256"; $certSignatureHashAlgorithmSecure = 2 }
-                            Default { $certSignatureHashAlgorithm = "Unknown"; $certSignatureHashAlgorithmSecure = 0 }
+                            default { $certSignatureHashAlgorithm = "Unknown"; $certSignatureHashAlgorithmSecure = 0 }
                         }
                     }
 

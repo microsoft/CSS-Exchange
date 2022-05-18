@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Write-ResultsToScreen {
+function Write-ResultsToScreen {
     param(
         [Hashtable]$ResultsToWrite
     )

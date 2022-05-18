@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-WellKnownGroupSid.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
-Function Test-UserGroupMemberOf {
+function Test-UserGroupMemberOf {
     [CmdletBinding()]
     param(
         [bool]$PrepareAdRequired,

@@ -126,7 +126,7 @@ begin {
                     $sw = New-Object System.Diagnostics.Stopwatch
                     $sw.Start()
 
-                    For ( $i = 0; $i -lt $files.Count; ++$i ) {
+                    for ( $i = 0; $i -lt $files.Count; ++$i ) {
                         if ($sw.ElapsedMilliseconds -gt 1000) {
                             Write-Progress -Activity $Activity -Status "$i / $($files.Count)" -PercentComplete ($i * 100 / $files.Count) -Id $progressId
                             $sw.Restart()
@@ -215,7 +215,7 @@ begin {
                         resetVDirFiles          = [System.Collections.ArrayList]@()
                         setVDirMaliciousUrlLogs = [System.Collections.ArrayList]@()
                     }
-                    For ( $i = 0; $i -lt $files.Count; ++$i ) {
+                    for ( $i = 0; $i -lt $files.Count; ++$i ) {
 
                         if ((Get-ChildItem $files[$i] -ErrorAction SilentlyContinue | Select-String -Pattern "ServerInfo~").Count -gt 0) {
 
@@ -254,7 +254,7 @@ begin {
 
                     Get-ChildItem -Path $env:ProgramData -Recurse -ErrorAction SilentlyContinue |
                         ForEach-Object {
-                            If ( $_.Extension -in $zipFilter ) {
+                            if ( $_.Extension -in $zipFilter ) {
                                 [PSCustomObject]@{
                                     ComputerName = $env:COMPUTERNAME
                                     Type         = 'SuspiciousArchive'

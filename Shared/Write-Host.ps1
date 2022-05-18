@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Write-Host {
+function Write-Host {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
     [CmdletBinding()]
     param(
@@ -48,7 +48,7 @@ Function Write-Host {
     }
 }
 
-Function SetProperForegroundColor {
+function SetProperForegroundColor {
     $Script:OriginalConsoleForegroundColor = $host.UI.RawUI.ForegroundColor
 
     if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.WarningForegroundColor) {
@@ -68,14 +68,14 @@ Function SetProperForegroundColor {
     }
 }
 
-Function RevertProperForegroundColor {
+function RevertProperForegroundColor {
     $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
 }
 
-Function SetWriteHostAction ($DebugAction) {
+function SetWriteHostAction ($DebugAction) {
     $Script:WriteHostDebugAction = $DebugAction
 }
 
-Function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+function SetWriteHostManipulateObjectAction ($ManipulateObject) {
     $Script:WriteHostManipulateObjectAction = $ManipulateObject
 }

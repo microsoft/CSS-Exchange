@@ -1,13 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function WriteLog {
+function WriteLog {
     process {
         $_ | Out-File -FilePath ".\InstallerCacheLogger.log" -Append
     }
 }
 
-Function Write-Host {
+function Write-Host {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Host')]
     [CmdletBinding()]
     param(

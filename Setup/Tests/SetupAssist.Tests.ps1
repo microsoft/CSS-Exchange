@@ -28,7 +28,7 @@ Describe "Testing SetupAssist" {
             Mock TestPrepareAD {}
             Mock Test-UserGroupMemberOf {}
 
-            Function SetGetExchangeADSetupLevel {
+            function SetGetExchangeADSetupLevel {
                 param(
                     [int]$OrgValue,
                     [int]$SchemaValue,

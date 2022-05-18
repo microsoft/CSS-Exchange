@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-Function Invoke-AnalyzerSecurityMitigationService {
+function Invoke-AnalyzerSecurityMitigationService {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -2,11 +2,11 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-HttpProxySetting {
+function Get-HttpProxySetting {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    Function GetWinHttpSettings {
+    function GetWinHttpSettings {
         param(
             [Parameter(Mandatory = $true)][string]$RegistryLocation
         )

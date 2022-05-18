@@ -112,7 +112,7 @@ try {
     throw "Failed to load ManagedStoreDiagnosticFunctions.ps1 Inner Exception: $($Error[0].Exception) Stack Trace: $($Error[0].ScriptStackTrace)"
 }
 
-Function Main {
+function Main {
     @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
         "FolderName: '$FolderName'",

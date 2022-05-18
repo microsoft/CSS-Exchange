@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Search-AllActiveDirectoryDomains.ps1
 
-Function Test-ValidHomeMDB {
+function Test-ValidHomeMDB {
     $testName = "Valid Home MDB"
     $arbitration = 0x800000
     $discovery = 0x20000000

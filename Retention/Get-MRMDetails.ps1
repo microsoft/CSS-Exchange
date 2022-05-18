@@ -36,7 +36,7 @@
 # even if Microsoft has been advised of the possibility of such damages
 ##############################################################################################
 
-Param (
+param (
     [Parameter(Mandatory = $true, HelpMessage = 'You must specify the name of a mailbox user')][string] $Mailbox
 )
 
@@ -301,7 +301,7 @@ function funcConvertPrStartTime {
 }
 
 function funcUltArchive {
-    Param(
+    param(
         [string]$mbx
     )
     $m = get-mailbox $mbx
@@ -336,7 +336,7 @@ function funcUltArchive {
 # MAIN
 #===================================================================
 
-If ($SDE -eq $True) {
+if ($SDE -eq $True) {
     funcConvertPrStartTime
 }
 

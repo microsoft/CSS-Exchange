@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
-Function Test-MissingDirectory {
+function Test-MissingDirectory {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

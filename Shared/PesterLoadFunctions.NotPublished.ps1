@@ -3,7 +3,7 @@
 
 # Common code to get the string value to run Invoke-Expression against.
 # Need to return the string value as we can't run Invoke-Expression from inside this function as it won't expose it to the caller
-Function Get-PesterScriptContent {
+function Get-PesterScriptContent {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Pester testing file')]
     [CmdletBinding()]
     [OutputType("System.String")]

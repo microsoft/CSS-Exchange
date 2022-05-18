@@ -3,7 +3,7 @@
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Vars are in use')]
 [CmdletBinding()]
-Param(
+param(
     #[Parameter(Mandatory=$true,ParameterSetName="FileDirectory")][string]$PerfmonFileDirectory,
     [Parameter(Mandatory = $false, ParameterSetName = "FileDirectory")]
     [Parameter(ParameterSetName = "SingleFile")][int64]$MaxSamples = [Int64]::MaxValue,
@@ -615,7 +615,7 @@ $xmlCountersToAnalyze = [xml]@"
 
 #"\\*\LogicalDisk(*)\Avg. Disk sec/Read","\\*\LogicalDisk(*)\Avg. Disk sec/Write","\\*\LogicalDisk(*)\Avg. Disk sec/Transfer","\\*\LogicalDisk(*)\Disk Transfers/sec","\\*\LogicalDisk(*)\Disk Bytes/sec","\\*\LogicalDisk(*)\Avg. Disk Queue Length","\\*\LogicalDisk(*)\% Idle Time","\\*\Processor(_Total)\% Processor Time","\\*\System\Processor Queue Length","\\*\System\Context Switches/sec","\\*\Memory\Available MBytes","\\*\Netlogon(*)\*","\\*\Processor Information(*)\% of Maximum Frequency"
 #"\LogicalDisk(*)\Avg. Disk sec/Read","\LogicalDisk(*)\Avg. Disk sec/Write","\LogicalDisk(*)\Avg. Disk sec/Transfer","\LogicalDisk(*)\Disk Transfers/sec","\LogicalDisk(*)\Disk Bytes/sec","\LogicalDisk(*)\Avg. Disk Queue Length","\LogicalDisk(*)\% Idle Time","\Processor(_Total)\% Processor Time","\System\Processor Queue Length","\System\Context Switches/sec","\Memory\Available MBytes","\Netlogon(*)\*","\Processor Information(*)\% of Maximum Frequency"
-Function Get-PerformanceDataFromFileLocal {
+function Get-PerformanceDataFromFileLocal {
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.List[PerformanceHealth.PerfFileDataInfo]])]
     param(
@@ -661,7 +661,7 @@ Function Get-PerformanceDataFromFileLocal {
     return $aPerfFileDataInfo
 }
 
-Function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuickAnalyze {
+function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuickAnalyze {
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.List[System.Object]])]
     param(
@@ -675,7 +675,7 @@ Function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuic
     Write-Verbose("Grouped Raw Data in {0} seconds" -f $measure_gData.TotalSeconds)
     Write-Verbose("There are {0} different paths detected" -f $gData.Count)
 
-    Function Get-FullCounterNameObject {
+    function Get-FullCounterNameObject {
         param(
             [Parameter(Mandatory = $true)][object]$PerformanceCounterSample
         )
@@ -701,7 +701,7 @@ Function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuic
         return $obj
     }
 
-    Function Build-ServerPerformanceObject_CounterData {
+    function Build-ServerPerformanceObject_CounterData {
         param(
             [Parameter(Mandatory = $true)][object]$CounterNameObject
         )
@@ -725,7 +725,7 @@ Function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuic
         return $counterDataPerfObject
     }
 
-    Function Build-ServerPerformanceObject_Server {
+    function Build-ServerPerformanceObject_Server {
         param(
             [Parameter(Mandatory = $true)][object]$CounterNameObject
         )
@@ -818,7 +818,7 @@ Function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuic
     return $MasterObject
 }
 
-Function Write-QuickSummaryDetails {
+function Write-QuickSummaryDetails {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][Object]$ServerObject
@@ -829,7 +829,7 @@ Function Write-QuickSummaryDetails {
     $strLength_detail = 48
     $strLength_columnWidth = 12
 
-    Function Add-Line {
+    function Add-Line {
         param(
             [Parameter(Mandatory = $true)][string]$New_line
         )
@@ -958,7 +958,7 @@ Function Write-QuickSummaryDetails {
     &$outFile
 }
 
-Function Get-CountersFromXml {
+function Get-CountersFromXml {
     param(
         [Parameter(Mandatory = $true)][xml]$xmlCounters,
         [Parameter(Mandatory = $false)][bool]$IncludeWildForServers = $false
@@ -977,12 +977,12 @@ Function Get-CountersFromXml {
     return $aCounters
 }
 
-Function Main {
+function Main {
 
     $script:processStartTime = [System.DateTime]::Now
 
     #determine the logic we want out of the script
-    Switch ($PSCmdlet.ParameterSetName) {
+    switch ($PSCmdlet.ParameterSetName) {
         "FileDirectory" {
             Write-Verbose("File Directory Option detected")
             if (-not (Test-Path $PerfmonFileDirectory)) {

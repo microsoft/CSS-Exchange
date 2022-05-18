@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-Function Get-WmiObjectCriticalHandler {
+function Get-WmiObjectCriticalHandler {
     [CmdletBinding()]
     param(
         [string]

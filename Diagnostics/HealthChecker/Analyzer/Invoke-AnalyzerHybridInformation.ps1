@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-Function Invoke-AnalyzerHybridInformation {
+function Invoke-AnalyzerHybridInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -242,7 +242,7 @@ Function Invoke-AnalyzerHybridInformation {
                     if (($connector.ConnectorType -eq "Send") -and
                         ($null -ne $connector.TlsAuthLevel)) {
                         # Check if send connector is configured to relay mails to the internet via M365
-                        Switch ($connector) {
+                        switch ($connector) {
                             { ($_.SmartHosts -like "*.mail.protection.outlook.com") } {
                                 $smartHostsPointToExo = $true
                             }
@@ -295,7 +295,7 @@ Function Invoke-AnalyzerHybridInformation {
                         }
                         Add-AnalyzedResultInformation @params
 
-                        Switch ($connector.TlsAuthLevel) {
+                        switch ($connector.TlsAuthLevel) {
                             "EncryptionOnly" {
                                 $tlsAuthLevelM365RelayWriteType = "Yellow";
                                 break
@@ -312,7 +312,7 @@ Function Invoke-AnalyzerHybridInformation {
                                 };
                                 break
                             }
-                            Default { $tlsAuthLevelM365RelayWriteType = "Red" }
+                            default { $tlsAuthLevelM365RelayWriteType = "Red" }
                         }
 
                         $params = $baseParams + @{
@@ -402,7 +402,7 @@ Function Invoke-AnalyzerHybridInformation {
                                 switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
                                     { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
                                     { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
-                                    Default { $certificateLifetimeWriteType = "Red" }
+                                    default { $certificateLifetimeWriteType = "Red" }
                                 }
 
                                 $params = $baseParams + @{

@@ -92,7 +92,7 @@ $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.303
 $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 
 # Add all database folder paths
-Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
+foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
     $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
     $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
 }
@@ -150,21 +150,21 @@ foreach ($Folder in $FolderList) {
     #Base64 of Eicar string
     [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
 
-    If (!(Test-Path -Path $FilePath)) {
+    if (!(Test-Path -Path $FilePath)) {
 
         # Try writing the encoded string to a the file
-        Try {
+        try {
             [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
             [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
             Set-Content -Value $Eicar -Encoding ascii -Path $FilePath -Force
         }
 
-        Catch {
+        catch {
             Write-Warning "$Folder Eicar.com file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
-    Else {
+    else {
         Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }

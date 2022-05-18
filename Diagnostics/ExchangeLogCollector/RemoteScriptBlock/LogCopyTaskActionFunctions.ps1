@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function NewTaskAction {
+function NewTaskAction {
     [CmdletBinding()]
     param(
         [string]$FunctionName,
@@ -13,7 +13,7 @@ Function NewTaskAction {
     }
 }
 
-Function NewLogCopyParameters {
+function NewLogCopyParameters {
     param(
         [string]$LogPath,
         [string]$CopyToThisLocation
@@ -24,7 +24,7 @@ Function NewLogCopyParameters {
     }
 }
 
-Function NewLogCopyBasedOffTimeParameters {
+function NewLogCopyBasedOffTimeParameters {
     param(
         [string]$LogPath,
         [string]$CopyToThisLocation,
@@ -35,7 +35,7 @@ Function NewLogCopyBasedOffTimeParameters {
     }
 }
 
-Function GetTaskActionToString {
+function GetTaskActionToString {
     [CmdletBinding()]
     [OutputType([string])]
     param(
@@ -50,14 +50,14 @@ Function GetTaskActionToString {
     return $line
 }
 
-Function Add-TaskAction {
+function Add-TaskAction {
     param(
         [string]$FunctionName
     )
     $Script:taskActionList.Add((NewTaskAction $FunctionName))
 }
 
-Function Add-LogCopyBasedOffTimeTaskAction {
+function Add-LogCopyBasedOffTimeTaskAction {
     param(
         [string]$LogPath,
         [string]$CopyToThisLocation,
@@ -75,7 +75,7 @@ Function Add-LogCopyBasedOffTimeTaskAction {
     $Script:taskActionList.Add((NewTaskAction @params))
 }
 
-Function Add-LogCopyFullTaskAction {
+function Add-LogCopyFullTaskAction {
     param (
         [string]$LogPath,
         [string]$CopyToThisLocation
@@ -87,7 +87,7 @@ Function Add-LogCopyFullTaskAction {
     $Script:taskActionList.Add((NewTaskAction @params))
 }
 
-Function Add-DefaultLogCopyTaskAction {
+function Add-DefaultLogCopyTaskAction {
     param(
         [string]$LogPath,
         [string]$CopyToThisLocation

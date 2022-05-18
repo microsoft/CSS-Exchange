@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-SetupAssist {
+function Test-SetupAssist {
     $name = [System.IO.Path]::GetFileName($MyInvocation.ScriptName)
     return $name -eq "SetupAssist.ps1"
 }

@@ -10,7 +10,7 @@ param(
 
 $Overrides = @{"C:\Program Files\Microsoft\Exchange Server\V15\Bin".ToLower() = "D:\Setup\ServerRoles\Common".ToLower() }
 
-Function Get-MatchingObject {
+function Get-MatchingObject {
     param(
         [object]$InstallChildObject,
         [object]$IsoChildObject
@@ -23,7 +23,7 @@ Function Get-MatchingObject {
     }
 }
 
-Function Find-BestObject {
+function Find-BestObject {
     param(
         [object]$InstallChildObject,
         [array]$IsoFoundChildObjects
@@ -75,7 +75,7 @@ Function Find-BestObject {
         }
 
     #only 1 in the install path
-    Function Get-BestFromMultiIsoFound {
+    function Get-BestFromMultiIsoFound {
 
         $testingDirectory = $InstallChildObject.Directory.ToString().ToLower()
 

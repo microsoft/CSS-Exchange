@@ -17,7 +17,7 @@
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
 . $PSScriptRoot\..\..\Helpers\PerformanceCountersFunctions.ps1
-Function Get-OperatingSystemInformation {
+function Get-OperatingSystemInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

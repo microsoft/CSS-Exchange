@@ -10,7 +10,7 @@ param(
 )
 
 
-Function Get-EvaluatedSettingOrRule {
+function Get-EvaluatedSettingOrRule {
     param(
         [string]$SettingName,
         [string]$SettingOrRule = "Setting"
@@ -18,7 +18,7 @@ Function Get-EvaluatedSettingOrRule {
     return Select-String ("Evaluated \[{0}:{1}\].+\[Value:" -f $SettingOrRule, $SettingName) $SetupLog | Select-Object -Last 1
 }
 
-Function Add-SettingOrRuleToCollect {
+function Add-SettingOrRuleToCollect {
     param(
         [string]$Name,
         [string]$SettingOrRule = "Setting"
@@ -117,7 +117,7 @@ while ($i -lt $allContent.Count) {
     $logContent.Add($allContent[$i++])
 }
 
-Function ScrubValuesAndReplace {
+function ScrubValuesAndReplace {
     param(
         [string]$Match,
         [string]$Replace

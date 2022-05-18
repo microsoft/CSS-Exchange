@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Invoke-CatchActionErrorLoop {
+function Invoke-CatchActionErrorLoop {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0)]

@@ -4,7 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Helpers\Invoke-CatchActions.ps1
 
-Function Invoke-AnalyzerKnownBuildIssues {
+function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -24,7 +24,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
     }
 
     # Extract for Pester Testing - Start
-    Function GetVersionFromString {
+    function GetVersionFromString {
         param(
             [object]$VersionString
         )
@@ -36,7 +36,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function GetKnownIssueInformation {
+    function GetKnownIssueInformation {
         param(
             [string]$Name,
             [string]$Url
@@ -48,7 +48,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function GetKnownIssueBuildInformation {
+    function GetKnownIssueBuildInformation {
         param(
             [string]$BuildNumber,
             [string]$FixBuildNumber,
@@ -62,7 +62,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
         }
     }
 
-    Function TestOnKnownBuildIssue {
+    function TestOnKnownBuildIssue {
         [CmdletBinding()]
         [OutputType("System.Boolean")]
         param(
@@ -100,7 +100,7 @@ Function Invoke-AnalyzerKnownBuildIssues {
 
     # Extract for Pester Testing - End
 
-    Function TestForKnownBuildIssues {
+    function TestForKnownBuildIssues {
         param(
             [version]$CurrentVersion,
             [object[]]$KnownBuildIssuesToFixes,

@@ -15,7 +15,7 @@
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
 . $PSScriptRoot\..\ErrorReference\Test-MultiActiveSyncVirtualDirectories.ps1
-Function Test-KnownIssuesByErrors {
+function Test-KnownIssuesByErrors {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]
@@ -24,7 +24,7 @@ Function Test-KnownIssuesByErrors {
     )
     begin {
         #Use this to call similar tests and break when we find a result that we like
-        Function InvokeTest {
+        function InvokeTest {
             [CmdletBinding()]
             param(
                 [object]$PipeObject,

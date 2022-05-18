@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function global:Remove-ExPerfWiz {
+function global:Remove-ExPerfWiz {
     <#
 
     .SYNOPSIS
@@ -46,7 +46,7 @@ Function global:Remove-ExPerfWiz {
         $Server = $env:ComputerName
     )
 
-    Process {
+    process {
 
         Write-SimpleLogFile -string ("Removing Experfwiz for: " + $server) -Name "ExPerfWiz.log"
 
@@ -56,13 +56,12 @@ Function global:Remove-ExPerfWiz {
         }
 
         # Check if we have an error and throw and error if needed.
-        If ([string]::isnullorempty(($logman | Select-String "Error:"))) {
+        if ([string]::isnullorempty(($logman | Select-String "Error:"))) {
             Write-SimpleLogFile "ExPerfwiz removed" -Name "ExPerfWiz.log"
         } else {
             Write-SimpleLogFile "[ERROR] - Unable to remove Collector" -Name "ExPerfWiz.log"
             Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
-            Throw $logman
+            throw $logman
         }
     }
 }
-

@@ -5,7 +5,7 @@
 
 # Common method used to handle Invoke-Command within a script.
 # Avoids using Invoke-Command when running locally on a server.
-Function Invoke-ScriptBlockHandler {
+function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeContainer.ps1
 
-Function Test-DomainOtherWellKnownObjects {
+function Test-DomainOtherWellKnownObjects {
     $exchangeContainer = Get-ExchangeContainer
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=*)", @("otherWellKnownObjects", "distinguishedName"))
     $result = $searcher.FindOne()

@@ -3,7 +3,7 @@
 
 function Invoke-EnableExTRATracing {
 
-    Function Invoke-ExtraTracingCreate {
+    function Invoke-ExtraTracingCreate {
         param(
             [string]$ComputerName,
             [string]$LogmanName

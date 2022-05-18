@@ -6,7 +6,7 @@ $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgrade
 mkdir $ExportPath -Force | Out-Null
 Add-Content -Path $ExportPath\DlToO365GroupUpgradeCheckslogging.csv  -Value '"Function","Description","Status"'
 $Script:Conditionsfailed = 0
-Function log {
+function log {
     param(
         [Parameter(Mandatory = $true)]
         [string]$CurrentStatus,
@@ -25,7 +25,7 @@ Function log {
     $PSobject | Add-Member -NotePropertyName "Status" -NotePropertyValue $CurrentStatus
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeCheckslogging.csv -NoTypeInformation -Append
 }
-Function Connect2EXO {
+function Connect2EXO {
     try {
         #Validate EXO V2 is installed
         if ((Get-Module | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -eq 1) {
@@ -62,7 +62,7 @@ Function Connect2EXO {
     }
 }
 #Check if Distribution Group can't be upgraded because Member*Restriction is set to "Closed"
-Function Debugmemberrestriction {
+function Debugmemberrestriction {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -79,7 +79,7 @@ Function Debugmemberrestriction {
     }
 }
 #Check if Distribution Group can't be upgraded because it is DirSynced
-Function Debugdirsync {
+function Debugdirsync {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -92,7 +92,7 @@ Function Debugdirsync {
     }
 }
 #Check if Distribution Group can't be upgraded because EmailAddressPolicyViolated
-Function Debugmatchingeap {
+function Debugmatchingeap {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -115,7 +115,7 @@ Function Debugmatchingeap {
     }
 }
 #Check if Distribution Group can't be upgraded because DlHasParentGroups
-Function Debuggroupnesting {
+function Debuggroupnesting {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -173,7 +173,7 @@ Function Debuggroupnesting {
     }
 }
 #Check if Distribution Group can't be upgraded because DlHasNonSupportedMemberTypes with RecipientTypeDetails other than UserMailbox, SharedMailbox, TeamMailbox, MailUser
-Function Debugmembersrecipienttypes {
+function Debugmembersrecipienttypes {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -214,7 +214,7 @@ Function Debugmembersrecipienttypes {
     }
 }
 #Check if Distribution Group can't be upgraded because it has more than 100 owners or it has no owner
-Function Debugownerscount {
+function Debugownerscount {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -229,7 +229,7 @@ Function Debugownerscount {
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list owner(s) is non-supported with RecipientTypeDetails other than UserMailbox, MailUser
-Function Debugownersstatus {
+function Debugownersstatus {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -272,7 +272,7 @@ Function Debugownersstatus {
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is part of Sender Restriction in another DL
-Function Debugsenderrestriction {
+function Debugsenderrestriction {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -306,7 +306,7 @@ Function Debugsenderrestriction {
     }
 }
 #Check if Distribution Group can't be upgraded because Distribution lists which were converted to RoomLists or isn't a security group nor Dynamic DG
-Function Debuggrouprecipienttype {
+function Debuggrouprecipienttype {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -320,7 +320,7 @@ Function Debuggrouprecipienttype {
     }
 }
 #Check if Distribution Group can't be upgraded because the distribution list is configured to be a forwarding address for Shared Mailbox
-Function Debugforwardingforsharedmbxs {
+function Debugforwardingforsharedmbxs {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -361,7 +361,7 @@ Function Debugforwardingforsharedmbxs {
     }
 }
 #Check for duplicate Alias,PrimarySmtpAddress,Name,DisplayName on EXO objects
-Function Debugduplicateobjects {
+function Debugduplicateobjects {
     param(
         [Parameter(Mandatory = $true)]
         [PScustomobject]$Distgroup
@@ -435,7 +435,7 @@ try {
     $CurrentStatus = "Failure"
     log -CurrentStatus $CurrentStatus -Function "Retrieving Distribution Group from EXO Directory" -CurrentDescription $CurrentDescription
     Write-Host "You entered an incorrect smtp, the script is quitting!`n" -ForegroundColor Red
-    Break
+    break
 }
 
 #Intro with group name

@@ -3,10 +3,10 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\UserContext\Test-UserGroupMemberOf.ps1
-Function Test-ExchangeADSetupLevel {
+function Test-ExchangeADSetupLevel {
 
     # Extract for Pester Testing - Start
-    Function TestPrepareAD {
+    function TestPrepareAD {
         param(
             [string]$ExchangeVersion
         )
@@ -63,7 +63,7 @@ Function Test-ExchangeADSetupLevel {
         Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
     }
 
-    Function TestMismatchLevel {
+    function TestMismatchLevel {
         param(
             [string]$ExchangeVersion,
             [object]$ADSetupLevel
@@ -79,7 +79,7 @@ Function Test-ExchangeADSetupLevel {
         TestPrepareAD -ExchangeVersion $ExchangeVersion
     }
 
-    Function TestReadyLevel {
+    function TestReadyLevel {
         param(
             [string]$ExchangeVersion,
             [string]$CULevel
@@ -102,7 +102,7 @@ Function Test-ExchangeADSetupLevel {
         }
     }
 
-    Function GetVersionObject {
+    function GetVersionObject {
         param(
             [object]$SearchResults,
             [string]$VersionValueName = "ObjectVersion"
@@ -113,7 +113,7 @@ Function Test-ExchangeADSetupLevel {
         }
     }
 
-    Function GetExchangeADSetupLevel {
+    function GetExchangeADSetupLevel {
         $rootDSE = [ADSI]("LDAP://RootDSE")
         $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
         $directorySearcher.SearchScope = "Subtree"
