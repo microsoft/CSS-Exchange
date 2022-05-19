@@ -5,7 +5,6 @@
 . $PSScriptRoot\..\Exchange\Get-MailboxInformation.ps1
 . $PSScriptRoot\..\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 . $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
-. $PSScriptRoot\Write-ScriptOutput.ps1
 function Write-MailboxStatisticsOnServer {
     [CmdletBinding()]
     param(
@@ -39,11 +38,11 @@ function Write-MailboxStatisticsOnServer {
         $activeDatabase | Group-Object Server |
             ForEach-Object { Write-CheckSearchProcessState -ActiveServer $_.Name }
 
-        Write-ScriptOutput "Getting the mailbox statistics of all these databases"
+        Write-Host "Getting the mailbox statistics of all these databases"
         $activeDatabase | Format-Table |
             Out-String |
-            ForEach-Object { Write-ScriptOutput $_ }
-        Write-ScriptOutput "This may take some time..."
+            ForEach-Object { Write-Host $_ }
+        Write-Host "This may take some time..."
 
         $mailboxStats = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabase.DBName
         $problemMailboxes = $mailboxStats |
@@ -69,26 +68,26 @@ function Write-MailboxStatisticsOnServer {
             IndexPercentage |
             Format-Table |
             Out-String |
-            ForEach-Object { Write-ScriptOutput $_ }
+            ForEach-Object { Write-Host $_ }
 
         if ($ExportData) {
             $filePath = "$PSScriptRoot\MailboxStatistics_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
-            Write-ScriptOutput "Exporting Full Mailbox Stats out to: $filePath"
+            Write-Host "Exporting Full Mailbox Stats out to: $filePath"
             $mailboxStats | Export-Csv -Path $filePath
         }
 
         #Get the top 10 mailboxes and their Category information
-        Write-ScriptOutput "Getting the top 10 mailboxes category information"
+        Write-Host "Getting the top 10 mailboxes category information"
         $problemMailboxes |
             Select-Object -First 10 |
             ForEach-Object {
-                Write-ScriptOutput "----------------------------------------"
+                Write-Host "----------------------------------------"
                 $guid = $_.MailboxGuid
-                Write-ScriptOutput "Getting user mailbox information for $guid"
+                Write-Host "Getting user mailbox information for $guid"
                 try {
                     $mailboxInformation = Get-MailboxInformation -Identity $guid
                 } catch {
-                    Write-ScriptOutput "Failed to find mailbox $guid. could be an Archive, Public Folder, or Arbitration Mailbox"
+                    Write-Host "Failed to find mailbox $guid. could be an Archive, Public Folder, or Arbitration Mailbox"
                     return
                 }
                 Write-BasicMailboxInformation -MailboxInformation $mailboxInformation

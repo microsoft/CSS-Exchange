@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Write-ScriptOutput.ps1
 function Write-DisplayObjectInformation {
     [CmdletBinding()]
     param(
@@ -19,7 +18,7 @@ function Write-DisplayObjectInformation {
         }
 
         foreach ($property in $PropertyToDisplay) {
-            Write-ScriptOutput ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
+            Write-Host ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
         }
     }
 }
