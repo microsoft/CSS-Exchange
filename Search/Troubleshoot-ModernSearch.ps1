@@ -67,10 +67,6 @@ param(
     $ExportData = $true
 )
 
-#Not sure why yet, but if you do -Verbose with the script, we end up in a loop somehow.
-#Going to add in this hard fix for the time being to avoid issues.
-$Script:VerbosePreference = "SilentlyContinue"
-
 $BuildVersion = ""
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
@@ -89,7 +85,6 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-ScriptOutput.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Verbose.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
@@ -127,8 +122,8 @@ function Main {
         "IsArchive: '$IsArchive'",
         "IsPublicFolder: '$IsPublicFolder'",
         "ExportData: '$ExportData'"
-    ) | Write-ScriptOutput -Diagnostic
-    Write-ScriptOutput "" -Diagnostic
+    ) | Write-Verbose
+    Write-Verbose ""
 
     if ($null -ne $Server -and
         $Server.Count -ge 1) {
@@ -137,7 +132,7 @@ function Main {
         return
     }
 
-    Write-ScriptOutput "Getting user mailbox information for $MailboxIdentity"
+    Write-Host "Getting user mailbox information for $MailboxIdentity"
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
@@ -160,7 +155,7 @@ function Main {
         "CreationTime",
         "MailboxNumber"
     )
-    Write-ScriptOutput "----------------------------------------"
+    Write-Host "----------------------------------------"
 
     if ($Category.Count -ge 1) {
 
@@ -192,18 +187,18 @@ function Main {
 
     if ($messages.Count -gt 0) {
 
-        Write-ScriptOutput "Found $($messages.Count) different messages"
-        Write-ScriptOutput "Messages Index State:"
+        Write-Host "Found $($messages.Count) different messages"
+        Write-Host "Messages Index State:"
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
-            Write-ScriptOutput ""
-            Write-ScriptOutput "Found Item $($i + 1): "
-            Write-ScriptOutput $messages[$i]
+            Write-Host ""
+            Write-Host "Found Item $($i + 1): "
+            $messages[$i] | Out-String | Write-Host
         }
 
         if ($ExportData) {
             $filePath = "$PSScriptRoot\MessageResults_$ItemSubject_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
-            Write-ScriptOutput "Exporting Full Mailbox Stats out to: $filePath"
+            Write-Host "Exporting Full Mailbox Stats out to: $filePath"
             $messages | Export-Csv -Path $filePath
         }
 
@@ -219,30 +214,30 @@ function Main {
                     "BigFunnelMatchFilter",
                     "BigFunnelMatchPOI"
                 )
-                Write-ScriptOutput ""
+                Write-Host ""
             }
         }
     } else {
 
         if ($null -ne $DocumentId -and
             $DocumentId -ne 0) {
-            Write-ScriptOutput "Failed to find message with Document ID: $DocumentId"
+            Write-Host "Failed to find message with Document ID: $DocumentId"
         } else {
-            Write-ScriptOutput "Failed to find message with subject '$ItemSubject'"
-            Write-ScriptOutput "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
+            Write-Host "Failed to find message with subject '$ItemSubject'"
+            Write-Host "Make sure the subject is correct for what you are looking for. We should be able to find the item if it is indexed or not."
         }
     }
 
     $categories = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
     if ($categories.Count -gt 0) {
-        Write-ScriptOutput ""
-        Write-ScriptOutput "----------------------------------------"
-        Write-ScriptOutput "Collecting Message Stats on the following Categories:"
-        Write-ScriptOutput ""
-        $categories | Write-ScriptOutput
-        Write-ScriptOutput ""
-        Write-ScriptOutput "This may take some time to collect."
+        Write-Host ""
+        Write-Host "----------------------------------------"
+        Write-Host "Collecting Message Stats on the following Categories:"
+        Write-Host ""
+        $categories | Out-String | Write-Host
+        Write-Host ""
+        Write-Host "This may take some time to collect."
         Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $categories -GroupMessages $GroupMessages
     }
 }
@@ -253,13 +248,13 @@ try {
         exit
     }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
-    Write-ScriptOutput "Starting Script At: $([DateTime]::Now)" -Diagnostic
-    Write-ScriptOutput "Build Version: $BuildVersion" -Diagnostic
+    Write-Verbose "Starting Script At: $([DateTime]::Now)"
+    Write-Verbose "Build Version: $BuildVersion"
     Main
-    Write-ScriptOutput "Finished Script At: $([DateTime]::Now)" -Diagnostic
-    Write-Output "File Written at: $Script:ScriptLogging"
+    Write-Verbose "Finished Script At: $([DateTime]::Now)"
+    Write-Host "File Written at: $Script:ScriptLogging"
 } catch {
-    Write-ScriptOutput "$($Error[0].Exception)"
-    Write-ScriptOutput "$($Error[0].ScriptStackTrace)"
+    Write-Host "$($Error[0].Exception)"
+    Write-Host "$($Error[0].ScriptStackTrace)"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
