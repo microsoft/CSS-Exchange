@@ -249,7 +249,7 @@ try {
     }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     Write-Verbose "Starting Script At: $([DateTime]::Now)"
-    Write-Verbose "Build Version: $BuildVersion"
+    Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
     Main
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
     Write-Host "File Written at: $Script:ScriptLogging"
