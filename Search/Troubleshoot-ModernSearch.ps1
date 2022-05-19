@@ -89,6 +89,7 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\Write-Host.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -248,6 +249,7 @@ try {
         exit
     }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
+    SetWriteHostAction ${Function:Write-LogInformation}
     Write-Verbose "Starting Script At: $([DateTime]::Now)"
     Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
     Main
