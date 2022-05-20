@@ -117,11 +117,11 @@ function Test-VirtualDirectoryConfiguration {
                     Where-Object { $_.Path -like "$($iisSite.Name)$($expectedVdir.Paths[0])*" }).Path
             $customMetadataPaths = ($appHostConfig.LastChild."system.applicationHost".customMetadata.key.GetEnumerator() |
                     Where-Object { $_.Path -like "*$($iisSite.Id)/ROOT$($expectedVdir.Paths[0])*" } ).Path
+            $owaRootPaths = @()
 
             if ($expectedVdir.DirectoryName -eq "owa (Exchange Back End)") {
                 $specialPaths = @("/Exchange", "/Exchweb", "/Public")
                 $tempLocationPaths = @()
-                $owaRootPaths = @()
 
                 foreach ($path in $specialPaths) {
                     $node = $appHostConfig.LastChild.Location.GetEnumerator() | Where-Object { $_.Path -like "$($iisSite.Name)$path" }
