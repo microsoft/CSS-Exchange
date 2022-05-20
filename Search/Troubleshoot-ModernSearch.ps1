@@ -90,6 +90,7 @@ $BuildVersion = ""
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\Write-Host.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
@@ -250,6 +251,12 @@ try {
     }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     SetWriteHostAction ${Function:Write-LogInformation}
+
+    if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/TMS-VersionsUrl")) {
+        Write-Warning "Script was updated. Please rerun the command."
+        return
+    }
+
     Write-Verbose "Starting Script At: $([DateTime]::Now)"
     Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
     Main
