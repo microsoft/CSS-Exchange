@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-Smb1ServerSettings {
+function Get-Smb1ServerSettings {
     [CmdletBinding()]
     param(
         [string]$ServerName = $env:COMPUTERNAME,

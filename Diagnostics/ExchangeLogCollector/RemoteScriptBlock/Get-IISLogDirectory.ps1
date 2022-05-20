@@ -2,10 +2,10 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Test-CommandExists.ps1
-Function Get-IISLogDirectory {
+function Get-IISLogDirectory {
     Write-Verbose("Function Enter: Get-IISLogDirectory")
 
-    Function Get-IISDirectoryFromGetWebSite {
+    function Get-IISDirectoryFromGetWebSite {
         Write-Verbose("Get-WebSite command exists")
         return Get-WebSite |
             ForEach-Object {

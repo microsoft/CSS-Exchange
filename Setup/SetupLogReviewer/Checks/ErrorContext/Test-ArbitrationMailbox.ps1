@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
 . $PSScriptRoot\..\Test-SetupAssist.ps1
-Function Test-ArbitrationMailbox {
+function Test-ArbitrationMailbox {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

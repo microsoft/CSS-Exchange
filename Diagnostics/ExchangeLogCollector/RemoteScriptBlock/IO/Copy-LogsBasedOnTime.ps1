@@ -9,14 +9,14 @@
     If there is a directory that doesn't contain logs within the TimeSpan,
     Collect the latest log or provide there is no logs in the directory
 #>
-Function Copy-LogsBasedOnTime {
+function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation,
         [Parameter(Mandatory = $true)][bool]$IncludeSubDirectory
     )
     begin {
-        Function NoFilesInLocation {
+        function NoFilesInLocation {
             param(
                 [string]$Value = "No data in the location"
             )
@@ -36,7 +36,7 @@ Function Copy-LogsBasedOnTime {
             New-Item @params | Out-Null
         }
 
-        Function CopyItemsFromDirectory {
+        function CopyItemsFromDirectory {
             param(
                 [object]$AllItems,
                 [string]$CopyToLocation

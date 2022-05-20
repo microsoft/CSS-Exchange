@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-RemoteRegistryValue.ps1
 
-Function Get-NETFrameworkVersion {
+function Get-NETFrameworkVersion {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,

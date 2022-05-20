@@ -5,17 +5,20 @@
 . $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
-Function Get-ExchangeAdPermissions {
+function Get-ExchangeAdPermissions {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
         [HealthChecker.ExchangeMajorVersion]
-        $ExchangeVersion
+        $ExchangeVersion,
+        [Parameter(Mandatory = $true)]
+        [HealthChecker.OSServerVersion]
+        $OSVersion
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    Function NewMatchingEntry {
+    function NewMatchingEntry {
         param(
             [ValidateSet("Domain", "AdminSDHolder")]
             [string]$TargetObject,
@@ -30,7 +33,7 @@ Function Get-ExchangeAdPermissions {
         }
     }
 
-    Function NewGroupEntry {
+    function NewGroupEntry {
         param(
             [string]$Name,
             [object[]]$MatchingEntries
@@ -109,6 +112,11 @@ Function Get-ExchangeAdPermissions {
 
             try {
                 try {
+                    # Where() method became available with PowerShell 4.0 (default PS on Server 2012 R2),
+                    # throw to initiate objectVersion (Default) testing, as we can't use Where() to check ACE below
+                    if ($OSVersion -le [HealthChecker.OSServerVersion]::Windows2012) {
+                        throw "Legacy server OS detected, fallback to 'objectVersion (Default)' validation initiated"
+                    }
                     $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
                     $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
                 } catch {
@@ -117,7 +125,7 @@ Function Get-ExchangeAdPermissions {
                     if ($ExchangeVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
                         $objectVersionTestingValue = 13238
                     }
-                    Write-Verbose "Unable to query Acl for Domain: $domainName - fallback to objectVersion (Default) validation"
+
                     $returnedResults.Add([PSCustomObject]@{
                             DomainName = $domainName
                             ObjectDN   = $null

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-FileInformation {
+function Get-FileInformation {
     [CmdletBinding()]
     param(
         [IO.FileInfo]$File,

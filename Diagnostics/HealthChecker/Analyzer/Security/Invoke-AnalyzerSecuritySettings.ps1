@@ -6,7 +6,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityAMSIConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityMitigationService.ps1
-Function Invoke-AnalyzerSecuritySettings {
+function Invoke-AnalyzerSecuritySettings {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -83,7 +83,7 @@ Function Invoke-AnalyzerSecuritySettings {
     }
     Add-AnalyzedResultInformation @params
 
-    Function GetBadTlsValueSetting {
+    function GetBadTlsValueSetting {
         [CmdletBinding()]
         param(
             [Parameter(ValueFromPipeline = $true)]

@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-OrganizationContainer.ps1
 
-Function Test-DomainMultiActiveSyncVirtualDirectories {
+function Test-DomainMultiActiveSyncVirtualDirectories {
     $params = @{
         TestName = "Multiple Active Sync Vdirs Detected"
     }

@@ -6,7 +6,7 @@
 . $PSScriptRoot\Invoke-CatchActions.ps1
 
 # Use this after the counters have been localized.
-Function Get-CounterSamples {
+function Get-CounterSamples {
     param(
         [Parameter(Mandatory = $true)]
         [string[]]$MachineName,
@@ -27,7 +27,7 @@ Function Get-CounterSamples {
 }
 
 # Use this to localize the counters provided
-Function Get-LocalizedCounterSamples {
+function Get-LocalizedCounterSamples {
     param(
         [Parameter(Mandatory = $true)]
         [string[]]$MachineName,
@@ -58,7 +58,7 @@ Function Get-LocalizedCounterSamples {
     return (Get-CounterSamples -MachineName $MachineName -Counter $localizedCounters -CustomErrorAction $CustomErrorAction)
 }
 
-Function Get-LocalizedPerformanceCounterName {
+function Get-LocalizedPerformanceCounterName {
     [CmdletBinding()]
     [OutputType('System.String')]
     param(
@@ -152,7 +152,7 @@ Function Get-LocalizedPerformanceCounterName {
     }
 }
 
-Function Get-CounterFullNameToCounterObject {
+function Get-CounterFullNameToCounterObject {
     param(
         [Parameter(Mandatory = $true)]
         [string]$FullCounterName

@@ -17,7 +17,7 @@ param(
     [switch]$RestartIIS
 )
 
-Function Confirm-Administrator {
+function Confirm-Administrator {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
     if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
         return $true
@@ -85,7 +85,7 @@ function Test-AMSI {
             $CookieContainer.Cookies.Add($Cookie)
             Invoke-WebRequest https://$ExchangeServerFQDN/ecp/x.js -Method POST -Headers @{"Host" = "$ExchangeServerFQDN" } -WebSession $CookieContainer
         } catch [System.Net.WebException] {
-            If ($_.Exception.Message -notlike "*: (400)*") {
+            if ($_.Exception.Message -notlike "*: (400)*") {
                 $Message = ($_.Exception.Message).ToString().Trim()
                 Write-Output $msgNewLine
                 Write-Error $Message

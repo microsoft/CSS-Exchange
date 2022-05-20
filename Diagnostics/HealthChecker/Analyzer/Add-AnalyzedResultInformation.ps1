@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Add-AnalyzedResultInformation {
+function Add-AnalyzedResultInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
@@ -30,7 +30,7 @@ Function Add-AnalyzedResultInformation {
     )
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
-        Function GetOutColumnsColorObject {
+        function GetOutColumnsColorObject {
             param(
                 [object[]]$OutColumns,
                 [scriptblock[]]$OutColumnsColorTests,

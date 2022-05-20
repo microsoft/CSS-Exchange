@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-NewLoggerInstance {
+function Get-NewLoggerInstance {
     [CmdletBinding()]
     param(
         [string]$LogDirectory = (Get-Location).Path,
@@ -45,7 +45,7 @@ Function Get-NewLoggerInstance {
     } | Write-LoggerInstance -Object "Starting Logger Instance $(Get-Date)"
 }
 
-Function Write-LoggerInstance {
+function Write-LoggerInstance {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
@@ -94,7 +94,7 @@ Function Write-LoggerInstance {
     }
 }
 
-Function Invoke-LoggerInstanceCleanup {
+function Invoke-LoggerInstanceCleanup {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]

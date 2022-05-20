@@ -39,7 +39,7 @@ param(
 . .\Logging\Invoke-EnableExtraTracing.ps1
 . .\Logging\Invoke-EnableVSSTracing.ps1
 
-Function Main {
+function Main {
     $updateInfo = Get-ScriptUpdateAvailable
     if ($updateInfo.UpdateFound) {
         Write-Warning "An update is available for this script. Current: $($updateInfo.CurrentVersion) Latest: $($updateInfo.LatestVersion)"
@@ -96,7 +96,7 @@ Function Main {
 
     $matchCondition = "^[1|2]$"
     Write-Debug "matchCondition: $matchCondition"
-    Do {
+    do {
         Write-Host "Selection: " -ForegroundColor Yellow -NoNewline;
         $Selection = Read-Host
         if ($Selection -notmatch $matchCondition) {
@@ -195,7 +195,7 @@ Function Main {
                 Write-Host
                 $continue = Read-Host "Please use the <Enter> key to exit..."
             }
-            While ($null -notmatch $continue)
+            while ($null -notmatch $continue)
             exit
         } catch { }
     }

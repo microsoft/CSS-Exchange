@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function New-PipelineObject {
+function New-PipelineObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Caller knows that this is an action')]
     [CmdletBinding()]
     param(
@@ -16,7 +16,7 @@ Function New-PipelineObject {
     }
 }
 
-Function Invoke-PipelineHandler {
+function Invoke-PipelineHandler {
     [CmdletBinding()]
     param(
         [object[]]$Object
@@ -34,7 +34,7 @@ Function Invoke-PipelineHandler {
     }
 }
 
-Function New-VerbosePipelineObject {
+function New-VerbosePipelineObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Caller knows that this is an action')]
     [CmdletBinding()]
     param(

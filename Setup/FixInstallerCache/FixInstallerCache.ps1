@@ -15,7 +15,7 @@ param(
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
-Function MainIsoCopy {
+function MainIsoCopy {
     $installedVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction SilentlyContinue).PostSetupVersion
     $filterDisplayNames = @("Microsoft Lync Server", "Exchange", "Microsoft Server Speech", "Microsoft Unified Communications")
 
@@ -77,7 +77,7 @@ Function MainIsoCopy {
     "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
 }
 
-Function MainMachineCopy {
+function MainMachineCopy {
 
     $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
     [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
@@ -129,7 +129,7 @@ Function MainMachineCopy {
     "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
 }
 
-Function Main {
+function Main {
 
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
         Write-Host "Starting Fix Installer Cache from CU ISO."

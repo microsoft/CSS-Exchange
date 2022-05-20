@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ClusterNodeFileVersions {
+function Get-ClusterNodeFileVersions {
     [CmdletBinding()]
     param(
         [string]$ClusterDirectory = "C:\Windows\Cluster"

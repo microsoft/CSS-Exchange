@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Write-Verbose {
+function Write-Verbose {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Verbose from Shared functions')]
     [CmdletBinding()]
     param(
@@ -29,14 +29,14 @@ Function Write-Verbose {
     }
 }
 
-Function SetWriteVerboseAction ($DebugAction) {
+function SetWriteVerboseAction ($DebugAction) {
     $Script:WriteVerboseDebugAction = $DebugAction
 }
 
-Function SetWriteRemoteVerboseAction ($DebugAction) {
+function SetWriteRemoteVerboseAction ($DebugAction) {
     $Script:WriteRemoteVerboseDebugAction = $DebugAction
 }
 
-Function SetWriteVerboseManipulateMessageAction ($DebugAction) {
+function SetWriteVerboseManipulateMessageAction ($DebugAction) {
     $Script:WriteVerboseManipulateMessageAction = $DebugAction
 }

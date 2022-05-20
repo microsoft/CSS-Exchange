@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Enter-YesNoLoopAction {
+function Enter-YesNoLoopAction {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$Question,

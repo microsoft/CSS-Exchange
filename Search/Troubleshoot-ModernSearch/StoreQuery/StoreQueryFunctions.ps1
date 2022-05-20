@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function ResetQueryInstances {
+function ResetQueryInstances {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -17,7 +17,7 @@ Function ResetQueryInstances {
     }
 }
 
-Function SetSelect {
+function SetSelect {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -35,7 +35,7 @@ Function SetSelect {
     }
 }
 
-Function AddToSelect {
+function AddToSelect {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -52,7 +52,7 @@ Function AddToSelect {
     }
 }
 
-Function SetFrom {
+function SetFrom {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -67,7 +67,7 @@ Function SetFrom {
     }
 }
 
-Function SetWhere {
+function SetWhere {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -82,7 +82,7 @@ Function SetWhere {
     }
 }
 
-Function AddToWhere {
+function AddToWhere {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
@@ -97,7 +97,7 @@ Function AddToWhere {
     }
 }
 
-Function InvokeGetStoreQuery {
+function InvokeGetStoreQuery {
     [CmdletBinding()]
     [OutputType("System.Object[]")]
     param(
@@ -136,7 +136,7 @@ Function InvokeGetStoreQuery {
     }
 }
 
-Function Get-StoreQueryObject {
+function Get-StoreQueryObject {
     [CmdletBinding()]
     param(
         [object]$MailboxInformation

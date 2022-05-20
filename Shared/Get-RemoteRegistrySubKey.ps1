@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-RemoteRegistrySubKey {
+function Get-RemoteRegistrySubKey {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",

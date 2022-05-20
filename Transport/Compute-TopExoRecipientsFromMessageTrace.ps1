@@ -68,13 +68,13 @@ $GetDeliveredMessageTraceEvents =
     [int]$page=1
     [DateTime]$timeout = (Get-Date).AddMinutes($TimeoutAfter)
 
-    Do {
+    do {
         Write-Host "Processing Page $($page)"
         $pageList = New-Object -TypeName "System.Collections.ArrayList"
         $pageList = Get-MessageTrace -StartDate $StartDate -EndDate $EndDate -Page $page -PageSize 5000 -Status Delivered
         $eventList += $pageList
         $page++
-    }While ($pageList.count -eq 5000 -and (Get-Date) -lt $timeout)
+    }while ($pageList.count -eq 5000 -and (Get-Date) -lt $timeout)
     return $eventList
 }
 
@@ -95,4 +95,3 @@ $props = [ordered]@{
 }
 $results = New-Object -TypeName PSObject -Property $props;
 return $results
-

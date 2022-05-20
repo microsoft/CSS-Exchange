@@ -13,7 +13,7 @@
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
-Function Write-LargeDataObjectsOnMachine {
+function Write-LargeDataObjectsOnMachine {
 
     Write-Verbose("Function Enter Write-LargeDataObjectsOnMachine")
 
@@ -23,7 +23,7 @@ Function Write-LargeDataObjectsOnMachine {
         }
 
     #Collect the Exchange Data that resides on their own machine.
-    Function Invoke-ExchangeResideDataCollectionWrite {
+    function Invoke-ExchangeResideDataCollectionWrite {
         param(
             [Parameter(Mandatory = $true, Position = 1)]
             [string]$SaveToLocation,
@@ -145,7 +145,7 @@ Function Write-LargeDataObjectsOnMachine {
     #Exchange objects can be rather large preventing them to be passed within an Invoke-Command -ArgumentList
     #In order to get around this and to avoid going through a loop of doing an Invoke-Command per server per object,
     #Write the data out locally, copy that directory over to the remote location.
-    Function Write-ExchangeObjectDataLocal {
+    function Write-ExchangeObjectDataLocal {
         param(
             [object]$ServerData,
             [string]$Location
@@ -174,7 +174,7 @@ Function Write-LargeDataObjectsOnMachine {
         }
     }
 
-    Function Write-DatabaseAvailabilityGroupDataLocal {
+    function Write-DatabaseAvailabilityGroupDataLocal {
         param(
             [object]$DAGWriteInfo
         )

@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
 . $PSScriptRoot\..\New-WriteObject.ps1
-Function Test-IsHybridObjectFoundOnPremises {
+function Test-IsHybridObjectFoundOnPremises {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline = $true)]

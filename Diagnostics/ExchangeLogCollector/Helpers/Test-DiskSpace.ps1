@@ -7,7 +7,7 @@
 . $PSScriptRoot\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-Function Test-DiskSpace {
+function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
         [Parameter(Mandatory = $true)][string]$Path,
@@ -20,7 +20,7 @@ Function Test-DiskSpace {
         $Path = "{0}\" -f $Path
     }
 
-    Function Test-ServerDiskSpace {
+    function Test-ServerDiskSpace {
         param(
             [Parameter(Mandatory = $true)][string]$Server,
             [Parameter(Mandatory = $true)][int]$FreeSpace,

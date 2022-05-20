@@ -13,7 +13,7 @@
 . $PSScriptRoot\Invoke-AnalyzerWebAppPools.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecuritySettings.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecurityVulnerability.ps1
-Function Invoke-AnalyzerEngine {
+function Invoke-AnalyzerEngine {
     param(
         [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
     )

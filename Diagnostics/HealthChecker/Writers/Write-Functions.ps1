@@ -45,6 +45,6 @@ function Write-OutColumns($OutColumns) {
     }
 }
 
-Function Write-Break {
+function Write-Break {
     Write-Host ""
 }

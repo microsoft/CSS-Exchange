@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-Function Get-ServerOperatingSystemVersion {
+function Get-ServerOperatingSystemVersion {
     [CmdletBinding()]
     [OutputType("System.String")]
     param(

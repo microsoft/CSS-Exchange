@@ -13,7 +13,7 @@
 . $PSScriptRoot\IO\Save-FailoverClusterInformation.ps1
 . $PSScriptRoot\IO\Save-ServerInfoData.ps1
 . $PSScriptRoot\IO\Save-WindowsEventLogs.ps1
-Function Invoke-RemoteMain {
+function Invoke-RemoteMain {
     [CmdletBinding()]
     param()
     Write-Verbose("Function Enter: Remote-Main")

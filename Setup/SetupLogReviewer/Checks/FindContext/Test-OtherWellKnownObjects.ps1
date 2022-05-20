@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\New-ActionPlan.ps1
 . $PSScriptRoot\..\New-ErrorContext.ps1
 . $PSScriptRoot\..\Test-SetupAssist.ps1
-Function Test-OtherWellKnownObjects {
+function Test-OtherWellKnownObjects {
     param(
         [Parameter(ValueFromPipeline = $true)]
         [object]

@@ -117,7 +117,7 @@ Describe "Testing $scriptName" {
 
         It "Testing a catch script block" {
 
-            Function Write-CustomScriptBlock {
+            function Write-CustomScriptBlock {
                 Write-Host "Write-CustomScriptBlock"
             }
 

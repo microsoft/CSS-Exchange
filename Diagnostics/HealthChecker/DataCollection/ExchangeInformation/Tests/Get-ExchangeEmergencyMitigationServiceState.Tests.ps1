@@ -12,7 +12,7 @@ BeforeAll {
 
     # We need to overwrite the existing 'Get-Service' function because it doesn't support
     # the '-ComputerName' parameter on PowerShell 7
-    Function Get-Service {
+    function Get-Service {
         param(
             [Parameter(Mandatory = $false)]
             [string]

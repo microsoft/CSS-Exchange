@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-AppPool.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-ExchangeAppPoolsInformation {
+function Get-ExchangeAppPoolsInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

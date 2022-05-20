@@ -5,7 +5,7 @@
 . $PSScriptRoot\Save-RegistryHive.ps1
 . $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
-Function Save-FailoverClusterInformation {
+function Save-FailoverClusterInformation {
     Write-Verbose("Function Enter: Save-FailoverClusterInformation")
     $copyTo = "$Script:RootCopyToDirectory\Cluster_Information"
     New-Item -ItemType Directory -Path $copyTo -Force | Out-Null

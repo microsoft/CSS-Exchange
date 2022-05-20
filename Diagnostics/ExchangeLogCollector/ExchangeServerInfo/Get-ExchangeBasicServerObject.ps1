@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 #TODO: Create Pester Testing on this
 # Used to get the Exchange Version information and what roles are set on the server.
-Function Get-ExchangeBasicServerObject {
+function Get-ExchangeBasicServerObject {
     param(
         [Parameter(Mandatory = $true)][string]$ServerName,
         [Parameter(Mandatory = $false)][bool]$AddGetServerProperty = $false

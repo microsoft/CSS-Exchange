@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\ExchangeServerInfo\Get-ServerObjects.ps1
-Function Get-ArgumentList {
+function Get-ArgumentList {
     param(
         [Parameter(Mandatory = $true)][array]$Servers
     )

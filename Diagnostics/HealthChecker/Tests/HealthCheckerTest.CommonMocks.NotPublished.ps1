@@ -22,7 +22,7 @@ Mock Get-WmiObjectHandler {
         "Win32_PageFileSetting" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileSetting.xml" }
         "Win32_NetworkAdapterConfiguration" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_NetworkAdapterConfiguration.xml" }
         "Win32_NetworkAdapter" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_NetworkAdapter.xml" }
-        Default { throw "Failed to find class" }
+        default { throw "Failed to find class" }
     }
 }
 
@@ -49,7 +49,7 @@ Mock Get-RemoteRegistryValue {
         "Enabled" { return 0 }
         "DisableGranularReplication" { return 0 }
         "DisableAsyncNotification" { return 0 }
-        Default { throw "Failed to find GetValue: $GetValue" }
+        default { throw "Failed to find GetValue: $GetValue" }
     }
 }
 
@@ -152,42 +152,42 @@ Mock Get-ExchangeIISConfigSettings {
 Mock Invoke-CatchActions { }
 
 # Need to use function instead of Mock for Exchange cmdlets
-Function Get-ExchangeServer {
+function Get-ExchangeServer {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml"
 }
 
-Function Get-ExchangeCertificate {
+function Get-ExchangeCertificate {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeCertificate.xml"
 }
 
-Function Get-AuthConfig {
+function Get-AuthConfig {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAuthConfig.xml"
 }
 
-Function Get-ExSetupDetails {
+function Get-ExSetupDetails {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
-Function Get-MailboxServer {
+function Get-MailboxServer {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetMailboxServer.xml"
 }
 
-Function Get-OwaVirtualDirectory {
+function Get-OwaVirtualDirectory {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml"
 }
 
-Function Get-WebServicesVirtualDirectory {
+function Get-WebServicesVirtualDirectory {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml"
 }
 
-Function Get-OrganizationConfig {
+function Get-OrganizationConfig {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml"
 }
 
-Function Get-HybridConfiguration { return $null }
+function Get-HybridConfiguration { return $null }
 
 # Needs to be a function as PS core doesn't have -ComputerName parameter
-Function Get-Service {
+function Get-Service {
     [CmdletBinding()]
     param(
         [string]$ComputerName,
@@ -197,26 +197,26 @@ Function Get-Service {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService.xml"
 }
 
-Function Get-ServerComponentState {
+function Get-ServerComponentState {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerComponentState.xml"
 }
 
-Function Test-ServiceHealth {
+function Test-ServiceHealth {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\TestServiceHealth.xml"
 }
 
-Function Get-SettingOverride {
+function Get-SettingOverride {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml"
 }
 
-Function Get-AcceptedDomain {
+function Get-AcceptedDomain {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml"
 }
 
-Function Get-ReceiveConnector {
+function Get-ReceiveConnector {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml"
 }
 
-Function Get-SendConnector {
+function Get-SendConnector {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml"
 }

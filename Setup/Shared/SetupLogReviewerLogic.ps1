@@ -13,7 +13,7 @@
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-PrerequisiteCheck.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Write-LastErrorInformation.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Write-Result.ps1
-Function Invoke-SetupLogReviewer {
+function Invoke-SetupLogReviewer {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,
@@ -21,7 +21,7 @@ Function Invoke-SetupLogReviewer {
         [System.IO.FileInfo]$SetupLog,
         [switch]$DelegatedSetup
     )
-    Function InvokeTests {
+    function InvokeTests {
         [CmdletBinding()]
         param(
             [object]$SetupLogReviewer,

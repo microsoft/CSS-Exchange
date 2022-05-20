@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 
-Function Get-ExchangeIISConfigSettings {
+function Get-ExchangeIISConfigSettings {
     [CmdletBinding()]
     param(
         [string]$MachineName,
@@ -13,7 +13,7 @@ Function Get-ExchangeIISConfigSettings {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Passed ExchangeInstallPath: $ExchangeInstallPath"
-        Function GetExchangeIISConfigSettings {
+        function GetExchangeIISConfigSettings {
             param(
                 [string]$ExchangeInstallPath
             )

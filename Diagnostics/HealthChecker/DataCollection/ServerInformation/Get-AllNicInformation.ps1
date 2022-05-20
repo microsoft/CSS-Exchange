@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
-Function Get-AllNicInformation {
+function Get-AllNicInformation {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
@@ -15,7 +15,7 @@ Function Get-AllNicInformation {
     begin {
 
         # Extract for Pester Testing - Start
-        Function Get-NicPnpCapabilitiesSetting {
+        function Get-NicPnpCapabilitiesSetting {
             [CmdletBinding()]
             param(
                 [ValidateNotNullOrEmpty()]
@@ -60,7 +60,7 @@ Function Get-AllNicInformation {
 
         # Extract for Pester Testing - End
 
-        Function Get-NetworkConfiguration {
+        function Get-NetworkConfiguration {
             [CmdletBinding()]
             param(
                 [string]$ComputerName
@@ -88,7 +88,7 @@ Function Get-AllNicInformation {
             }
         }
 
-        Function Get-NicInformation {
+        function Get-NicInformation {
             [CmdletBinding()]
             param(
                 [array]$NetworkConfiguration,
@@ -96,7 +96,7 @@ Function Get-AllNicInformation {
             )
             begin {
 
-                Function Get-IpvAddresses {
+                function Get-IpvAddresses {
                     return [PSCustomObject]@{
                         Address        = ([string]::Empty)
                         Subnet         = ([string]::Empty)

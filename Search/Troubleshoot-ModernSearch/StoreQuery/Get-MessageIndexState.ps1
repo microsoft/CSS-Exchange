@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-FolderInformation.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
-Function Get-MessageIndexState {
+function Get-MessageIndexState {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -131,4 +131,3 @@ Function Get-MessageIndexState {
         return $messageList
     }
 }
-

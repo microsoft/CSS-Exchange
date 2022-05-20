@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 #This function is to handle all root zipping capabilities and copying of the data over.
-Function Invoke-ServerRootZipAndCopy {
+function Invoke-ServerRootZipAndCopy {
     param(
         [bool]$RemoteExecute = $true
     )
@@ -15,7 +15,7 @@ Function Invoke-ServerRootZipAndCopy {
             return $_.ServerName
         }
 
-    Function Write-CollectFilesFromLocation {
+    function Write-CollectFilesFromLocation {
         Write-Host ""
         Write-Host "Please collect the following files from these servers and upload them: "
         $LogPaths |

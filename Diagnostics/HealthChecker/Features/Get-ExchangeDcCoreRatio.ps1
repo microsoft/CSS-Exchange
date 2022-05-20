@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ComputerCoresObject {
+function Get-ComputerCoresObject {
     param(
         [Parameter(Mandatory = $true)][string]$Machine_Name
     )
@@ -39,7 +39,7 @@ Function Get-ComputerCoresObject {
     return $returnObj
 }
 
-Function Get-ExchangeDCCoreRatio {
+function Get-ExchangeDCCoreRatio {
 
     Invoke-ScriptLogFileLocation -FileName "HealthChecker-ExchangeDCCoreRatio"
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"

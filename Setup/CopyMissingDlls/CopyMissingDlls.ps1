@@ -41,7 +41,7 @@ if ($isoItemRoot.VersionInfo.ProductMinorPart -eq 0) {
     throw "Can't tell what version you are on"
 }
 
-Function Receive-Output {
+function Receive-Output {
     process {
         Write-Host $_
         $_ | Out-File -FilePath $scriptLogging -Append

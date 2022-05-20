@@ -20,7 +20,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         $Script:net2Wow = "SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v2.0.50727"
         $Script:enabledKey = "Enabled"
 
-        Function SetVariables {
+        function SetVariables {
             $Script:result = Get-AllTlsSettingsFromRegistry
             $Script:tls10 = $result.TLS["1.0"]
             $Script:tls11 = $result.TLS["1.1"]
@@ -29,7 +29,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
             $Script:netv2 = $result.NET["NETv2"]
         }
 
-        Function TestObjectCompare {
+        function TestObjectCompare {
             param(
                 [object]$CompareObject,
                 [object]$TestObject
