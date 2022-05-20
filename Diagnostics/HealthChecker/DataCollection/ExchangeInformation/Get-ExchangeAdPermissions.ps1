@@ -10,7 +10,10 @@ function Get-ExchangeAdPermissions {
     param (
         [Parameter(Mandatory = $true)]
         [HealthChecker.ExchangeMajorVersion]
-        $ExchangeVersion
+        $ExchangeVersion,
+        [Parameter(Mandatory = $true)]
+        [HealthChecker.OSServerVersion]
+        $OSVersion
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -109,6 +112,11 @@ function Get-ExchangeAdPermissions {
 
             try {
                 try {
+                    # Where() method became available with PowerShell 4.0 (default PS on Server 2012 R2),
+                    # throw to initiate objectVersion (Default) testing, as we can't use Where() to check ACE below
+                    if ($OSVersion -le [HealthChecker.OSServerVersion]::Windows2012) {
+                        throw "Legacy server OS detected, fallback to 'objectVersion (Default)' validation initiated"
+                    }
                     $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
                     $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
                 } catch {
@@ -117,7 +125,7 @@ function Get-ExchangeAdPermissions {
                     if ($ExchangeVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
                         $objectVersionTestingValue = 13238
                     }
-                    Write-Verbose "Unable to query Acl for Domain: $domainName - fallback to objectVersion (Default) validation"
+
                     $returnedResults.Add([PSCustomObject]@{
                             DomainName = $domainName
                             ObjectDN   = $null
