@@ -2,30 +2,33 @@
 # Licensed under the MIT License.
 
 # Powershell script to enable and collect EAS mailbox logs.
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true)] [string[]] $Mailbox = "",
     [ValidateScript({ Test-Path $_ })]
     [Parameter(Mandatory = $true)] [string] $OutputPath = (Get-Location).Path,
     [Parameter(Mandatory = $false)] [int] $Interval = 30,
-    [Parameter(Mandatory = $false)] [string] $EnableMailboxLoggingVerboseMode = ""
+    [Parameter(Mandatory = $false)] [nullable[bool][]] $EnableMailboxLoggingVerboseMode = $null
 )
 
 #parse $EnableMailboxLoggingVerboseMode and convert it boolean value(s)
 $NeedChangeConfig = $false
 switch ($EnableMailboxLoggingVerboseMode) {
-    $true { $NeedChangeConfig = $true; $EnableVerboseLogging = "true"; break }
-    $false { $NeedChangeConfig = $true; $EnableVerboseLogging = "false"; break }
-    '' { break }
-    default { Write-Warning "Wrong value $EnableMailboxLoggingVerboseMode in EnableMailboxLoggingVerboseMode will be ignored"; Write-Warning "Press any key to continue ..."; $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null }
+    $true { $NeedChangeConfig = $true; $EnableVerboseLogging = "true" }
+    $false { $NeedChangeConfig = $true; $EnableVerboseLogging = "false" }
 }
 
 #Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
+
 If ($NeedChangeConfig) {
-    [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
-    $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value=$EnableVerboseLogging
-    #if ($EnableVerboseLogging) { $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value="true"}
-    #else {$web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = "false"}
-    $web.Save($env:ExchangeInstallPath+"ClientAccess\Sync\web.config")
+    if ($PSCmdlet.ShouldProcess("Set EnableMailboxLoggingVerboseMode attribute to $EnableVerboseLogging in $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config", 'TARGET', 'OPERATION')) {
+        [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
+        Copy-Item $env:ExchangeInstallPath"ClientAccess\Sync\web.config" -Destination $env:ExchangeInstallPath"ClientAccess\Sync\web.config.bak"
+        $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = $EnableVerboseLogging
+        $web.Save($env:ExchangeInstallPath + "ClientAccess\Sync\web.config")
+    } else {
+        break
+    }
 }
 
 Clear-Host
@@ -96,4 +99,3 @@ while ($true) {
     Write-Host "Next set of logs will be retrieved at" (Get-Date).AddSeconds($Interval) -ForegroundColor Green
     Start-Sleep $Interval
 }
-
