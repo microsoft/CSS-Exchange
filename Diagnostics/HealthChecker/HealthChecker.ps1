@@ -133,7 +133,6 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
 . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
 . $PSScriptRoot\Helpers\Import-MyData.ps1
-. $PSScriptRoot\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\Helpers\Invoke-ScriptLogFileLocation.ps1
 . $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
 . $PSScriptRoot\Helpers\Class.ps1
@@ -146,6 +145,7 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
@@ -162,9 +162,7 @@ function Main {
         exit
     }
 
-    $Error.Clear() #Always clear out the errors
-    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues.
-    $Script:ErrorsExcluded = @()
+    Invoke-ErrorMonitoring
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
@@ -250,14 +248,7 @@ function Main {
         Write-Green "Exchange Health Checker version $BuildVersion"
     }
 
-    if ($currentErrors -ne $Error.Count) {
-        $index = 0
-        while ($index -lt ($Error.Count - $currentErrors)) {
-            Invoke-CatchActions $Error[$index]
-            $index++
-        }
-    }
-
+    Invoke-ErrorCatchActionLoopFromIndex $currentErrors
     Test-RequiresServerFqdn
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
@@ -278,13 +269,7 @@ function Main {
 
         $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
     } finally {
-        if ($currentErrors -ne $Error.Count) {
-            $index = 0
-            while ($index -lt ($Error.Count - $currentErrors)) {
-                Invoke-CatchActions $Error[$index]
-                $index++
-            }
-        }
+        Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)

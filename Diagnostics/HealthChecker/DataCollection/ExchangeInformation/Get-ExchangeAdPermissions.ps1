@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeDomainConfigVersion.ps1
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
 
 function Get-ExchangeAdPermissions {
