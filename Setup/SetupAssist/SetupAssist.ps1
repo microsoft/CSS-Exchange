@@ -28,14 +28,14 @@ param(
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
 $BuildVersion = ""
 
 function WriteCatchInfo {
-    Write-Host "$($Error[0].Exception)"
-    Write-Host "$($Error[0].ScriptStackTrace)"
+    Write-ErrorInformation $Error[0] "Write-Host"
     $Script:ErrorOccurred = $true
 }
 
