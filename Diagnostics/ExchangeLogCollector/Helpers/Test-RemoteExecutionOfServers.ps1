@@ -26,7 +26,7 @@ function Test-RemoteExecutionOfServers {
         } catch {
             Write-Host "Failed" -ForegroundColor "Red"
             Write-Host "Removing Server $server from the list to collect data from"
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
         }
     }
 

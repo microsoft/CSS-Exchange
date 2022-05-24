@@ -90,9 +90,9 @@ function Invoke-RemoteFunctions {
 
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\Write-Host.ps1
+    . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1
-    . $PSScriptRoot\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\Write-Verbose.ps1
     . $PSScriptRoot\RemoteScriptBlock\IO\WriteFunctions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
@@ -118,7 +118,7 @@ function Invoke-RemoteFunctions {
         }
     } catch {
         Write-Host "An error occurred in Invoke-RemoteFunctions" -ForegroundColor "Red"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
         #This is a bad place to catch the error that just occurred
         #Being that there is a try catch block around each command that we run now, we should never hit an issue here unless it is is prior to that.
         Write-Verbose "Critical Failure occurred."
@@ -223,7 +223,7 @@ function Main {
             Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
         } catch {
             Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
             exit
         }
 
@@ -256,7 +256,6 @@ function Main {
 $configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
 
 try {
-    $Error.Clear()
     <#
     Added the ability to call functions from within a bundled function so i don't have to duplicate work.
     Loading the functions into memory by using the '.' allows me to do this,
@@ -266,13 +265,15 @@ try {
             ByPass = $true
         })
 
+    Invoke-ErrorMonitoring
+
     if ((Test-Path $configPath) -and
         !$DisableConfigImport) {
         try {
             Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
         } catch {
             Write-Host "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
             Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
         }
     }

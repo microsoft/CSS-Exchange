@@ -15,7 +15,7 @@ function Get-ExchangeBasicServerObject {
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop
     } catch {
         Write-Host "Failed to detect server $ServerName as an Exchange Server" -ForegroundColor "Red"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
         return $null
     }
 
