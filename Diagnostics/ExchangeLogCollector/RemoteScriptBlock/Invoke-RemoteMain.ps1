@@ -13,10 +13,12 @@
 . $PSScriptRoot\IO\Save-FailoverClusterInformation.ps1
 . $PSScriptRoot\IO\Save-ServerInfoData.ps1
 . $PSScriptRoot\IO\Save-WindowsEventLogs.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Invoke-RemoteMain {
     [CmdletBinding()]
     param()
     Write-Verbose("Function Enter: Remote-Main")
+    Invoke-ErrorMonitoring
 
     $Script:localServerObject = $PassedInfo.ServerObjects |
         Where-Object { $_.ServerName -eq $env:COMPUTERNAME }
@@ -152,7 +154,7 @@ function Invoke-RemoteMain {
                 }
             } catch {
                 Write-Verbose "Couldn't get logman info to verify Daily Performance Logs location"
-                Invoke-CatchBlockActions
+                Invoke-CatchActions
             }
             Add-LogCopyBasedOffTimeTaskAction $copyFrom "Daily_Performance_Logs"
         }
@@ -390,13 +392,14 @@ function Invoke-RemoteMain {
             }
         } catch {
             Write-Verbose("Failed to finish running command: $(GetTaskActionToString $taskAction)")
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
         }
     }
 
     if ($Error.Count -ne 0) {
         Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$Script:RootCopyToDirectory\AllErrors")
-        Save-DataInfoToFile -DataIn $Script:ErrorsHandled -SaveToLocation ("$Script:RootCopyToDirectory\HandledErrors")
+        Save-DataInfoToFile -DataIn (Get-UnhandledErrors) -SaveToLocation ("$RootCopyToDirectory\UnhandledErrors")
+        Save-DataInfoToFile -DataIn (Get-HandledErrors) -SaveToLocation ("$RootCopyToDirectory\HandledErrors")
     } else {
         Write-Verbose ("No errors occurred within the script")
     }
