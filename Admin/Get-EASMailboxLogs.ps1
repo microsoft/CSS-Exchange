@@ -19,8 +19,7 @@ switch ($EnableMailboxLoggingVerboseMode) {
 }
 
 #Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
-
-If ($NeedChangeConfig) {
+if ($NeedChangeConfig) {
     if ($PSCmdlet.ShouldProcess("Set EnableMailboxLoggingVerboseMode attribute to $EnableVerboseLogging in $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config", 'TARGET', 'OPERATION')) {
         [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
         Copy-Item $env:ExchangeInstallPath"ClientAccess\Sync\web.config" -Destination $env:ExchangeInstallPath"ClientAccess\Sync\web.config.bak"
