@@ -136,6 +136,10 @@ Mock Get-ExchangeAdPermissions {
     return $null
 }
 
+Mock Get-ExtendedProtectionConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExtendedProtectionConfiguration.xml"
+}
+
 Mock Get-HttpProxySetting {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting.xml"
 }

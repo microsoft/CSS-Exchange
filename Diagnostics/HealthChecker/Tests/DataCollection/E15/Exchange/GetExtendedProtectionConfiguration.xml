@@ -1,0 +1,250 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="ComputerName">E2k16-1.Contoso.lab</S>
+      <Obj N="ExtendedProtectionConfig" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.Generic.List`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">API</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="3">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">API</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="4">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">ECP</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="5">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">ECP</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="6">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">EWS</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="7">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">EWS</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="8">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">Microsoft-Server-ActiveSync</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="9">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">Microsoft-Server-ActiveSync</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="10">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">OAB</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="11">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">OAB</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="12">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">Powershell</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="13">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">Powershell</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="14">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">OWA</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="15">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">OWA</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="16">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">RPC</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="17">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">RPC</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="18">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">MAPI</S>
+              <S N="Type">Default Web Site</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="19">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">PushNotifications</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="20">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">RPCWithCert</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="21">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">MAPI/emsmdb</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+          <Obj RefId="22">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="vDir">MAPI/nspi</S>
+              <S N="Type">Exchange Back End</S>
+              <S N="ExtendedProtection">Require</S>
+              <B N="CheckPass">true</B>
+              <S N="MaxSupportedValue">Require</S>
+              <B N="ConfigSupported">true</B>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>
