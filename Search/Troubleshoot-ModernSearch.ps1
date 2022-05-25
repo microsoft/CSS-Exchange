@@ -76,7 +76,6 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\StoreQueryFunctions.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
@@ -89,24 +88,28 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
+. $PSScriptRoot\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\Shared\Write-Host.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
 try {
-
     $configuredVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction Stop).ConfiguredVersion
 
     if ([version]$configuredVersion -lt [version]"15.2.0.0") {
-        throw "Not running on an Exchange 2019 server or greater."
+        Write-Error "Not running on an Exchange 2019 server or greater. Stopping Script"
+        exit
     }
-
-    $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-    . "$installPath\Scripts\ManagedStoreDiagnosticFunctions.ps1"
 } catch {
+    Write-Error "Failed to determine the configured version of Exchange. Stopping Script"
+    exit
+}
 
-    throw "Failed to load ManagedStoreDiagnosticFunctions.ps1 Inner Exception: $($Error[0].Exception) Stack Trace: $($Error[0].ScriptStackTrace)"
+if (-not (Test-LoadGetStoreQuery)) {
+    Write-Error "Failed to load ManagedStoreDiagnosticFunctions.ps1. Stopping Script"
+    exit
 }
 
 function Main {
@@ -263,7 +266,6 @@ try {
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
     Write-Host "File Written at: $Script:ScriptLogging"
 } catch {
-    Write-Host "$($Error[0].Exception)"
-    Write-Host "$($Error[0].ScriptStackTrace)"
+    Write-ErrorInformation $_ "Write-Host"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }

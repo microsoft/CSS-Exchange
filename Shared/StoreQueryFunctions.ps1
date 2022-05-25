@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Write-ErrorInformation.ps1
 function ResetQueryInstances {
     [CmdletBinding()]
     param (
@@ -134,6 +135,21 @@ function InvokeGetStoreQuery {
 
         return $result
     }
+}
+
+function Test-LoadGetStoreQuery {
+    try {
+        $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+        $scriptPath = "$installPath\Scripts\ManagedStoreDiagnosticFunctions.ps1"
+
+        if ((Test-Path $scriptPath)) {
+            . $scriptPath
+        }
+        return $true
+    } catch {
+        Write-ErrorInformation $_ "Write-Host"
+    }
+    return $false
 }
 
 function Get-StoreQueryObject {
