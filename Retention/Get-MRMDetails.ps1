@@ -14,8 +14,6 @@ param (
     [Parameter(Mandatory = $true, HelpMessage = 'You must specify the name of a mailbox user')][string] $Mailbox
 )
 
-$ErrorActionPreference = 'SilentlyContinue'
-
 
 function funcRetentionProperties {
     # Export's All Retention Policies and Retention Policy Tags for the entire tenant
