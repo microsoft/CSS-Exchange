@@ -26,6 +26,8 @@ using System.Collections;
             public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
             public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
+            public object PrintSpoolerConfiguration; //Stores the print spooler service configuration of the machine
+            public object ExtendedProtectionConfig; //Stores the extended protection configuration
             public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
             public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
@@ -60,6 +62,7 @@ using System.Collections;
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
             public bool March2021SUInstalled;    //True if March 2021 SU is installed
             public object AffectedByFIPFSUpdateIssue; //True if FIP-FS Update issue is detected
+            public bool IsEPSupportedBuild = new bool(); //True if Extended Protection is supported with Exchange build
         }
 
         public class ExchangeNetFrameworkInformation
