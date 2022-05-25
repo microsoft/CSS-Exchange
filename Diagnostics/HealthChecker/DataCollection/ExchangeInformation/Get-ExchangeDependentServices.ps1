@@ -15,7 +15,7 @@ function Get-ExchangeDependentServices {
             "MSExchangeFastSearch", "MSExchangeFrontEndTransport", "MSExchangeIS",
             "MSExchangeRepl", "MSExchangeRPC", "MSExchangeServiceHost",
             "MSExchangeSubmission", "MSExchangeTransport", "HostControllerService").ToLower()
-        $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSExchangeCompliance",
+        $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSComplianceAudit", "MSExchangeCompliance",
             "MSExchangeDagMgmt", "MSExchangeDiagnostics", "MSExchangeEdgeSync",
             "MSExchangeHM", "MSExchangeHMRecovery", "MSExchangeMailboxAssistants",
             "MSExchangeMailboxReplication", "MSExchangeMitigation",
