@@ -89,6 +89,7 @@ $BuildVersion = ""
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
+. $PSScriptRoot\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\Shared\Write-Host.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
@@ -263,7 +264,6 @@ try {
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
     Write-Host "File Written at: $Script:ScriptLogging"
 } catch {
-    Write-Host "$($Error[0].Exception)"
-    Write-Host "$($Error[0].ScriptStackTrace)"
+    Write-ErrorInformation $_ "Write-Host"
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
