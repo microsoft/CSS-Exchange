@@ -96,18 +96,20 @@ $BuildVersion = ""
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
 
 try {
-
     $configuredVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction Stop).ConfiguredVersion
 
     if ([version]$configuredVersion -lt [version]"15.2.0.0") {
-        throw "Not running on an Exchange 2019 server or greater."
+        Write-Error "Not running on an Exchange 2019 server or greater. Stopping Script"
+        exit
     }
-
-    $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-    . "$installPath\Scripts\ManagedStoreDiagnosticFunctions.ps1"
 } catch {
+    Write-Error "Failed to determine the configured version of Exchange. Stopping Script"
+    exit
+}
 
-    throw "Failed to load ManagedStoreDiagnosticFunctions.ps1 Inner Exception: $($Error[0].Exception) Stack Trace: $($Error[0].ScriptStackTrace)"
+if (-not (Test-LoadGetStoreQuery)) {
+    Write-Error "Failed to load ManagedStoreDiagnosticFunctions.ps1. Stopping Script"
+    exit
 }
 
 function Main {
