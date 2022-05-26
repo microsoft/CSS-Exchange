@@ -152,6 +152,68 @@ function Test-LoadGetStoreQuery {
     return $false
 }
 
+# the function used to get the mailbox information required for Get-StoreQueryObject
+function Get-StoreQueryMailboxInformation {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Identity,
+
+        [bool]
+        $IsArchive,
+
+        [bool]
+        $IsPublicFolder
+    )
+    process {
+        try {
+            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+            Write-Verbose "Attempting to run Get-Mailbox"
+            $mailboxInfo = Get-Mailbox -Identity $Identity -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
+
+            if ($IsArchive) {
+                $mbxGuid = $mailboxInfo.ArchiveGuid.ToString()
+                $databaseName = $mailboxInfo.ArchiveDatabase.ToString()
+            } else {
+                $mbxGuid = $mailboxInfo.ExchangeGuid.ToString()
+                $databaseName = $mailboxInfo.Database.ToString()
+            }
+
+            Write-Verbose "Attempting to run Get-MailboxStatistics"
+            $mailboxStatistics = Get-MailboxStatistics -Identity $Identity -Archive:$IsArchive
+
+            Write-Verbose "Attempting to run Get-MailboxDatabaseCopyStatus"
+            $dbCopyStatus = Get-MailboxDatabaseCopyStatus $databaseName\* |
+                Where-Object { $_.Status -like "*Mounted*" }
+            $primaryServer = $dbCopyStatus.MailboxServer
+
+            Write-Verbose "Running Get-ExchangeServer for primary server: $primaryServer"
+            $primaryServerInfo = Get-ExchangeServer -Identity $primaryServer
+
+            Write-Verbose "Running Get-MailboxDatabase"
+            $databaseStatus = Get-MailboxDatabase -Identity $databaseName -Status
+        } catch {
+            Write-ErrorInformation $_ "Write-Host"
+            throw "Failed to find '$Identity' information."
+        }
+    }
+    end {
+        return [PSCustomObject]@{
+            Identity           = $Identity
+            MailboxGuid        = $mbxGuid
+            PrimaryServer      = $primaryServer
+            DBWorkerID         = $dbCopyStatus.WorkerProcessId
+            Database           = $databaseName
+            ExchangeServer     = $primaryServerInfo
+            DatabaseStatus     = $databaseStatus
+            DatabaseCopyStatus = $dbCopyStatus
+            MailboxInfo        = $mailboxInfo
+            MailboxStatistics  = $mailboxStatistics
+        }
+    }
+}
+
 function Get-StoreQueryObject {
     [CmdletBinding()]
     param(
