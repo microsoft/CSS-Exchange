@@ -35,7 +35,7 @@ param(
 $BuildVersion = ""
 
 function WriteCatchInfo {
-    Write-ErrorInformation $Error[0] "Write-Host"
+    Write-HostErrorInformation $Error[0]
     $Script:ErrorOccurred = $true
 }
 

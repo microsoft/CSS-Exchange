@@ -266,6 +266,6 @@ try {
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
     Write-Host "File Written at: $Script:ScriptLogging"
 } catch {
-    Write-ErrorInformation $_ "Write-Host"
+    Write-HostErrorInformation $_
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
 }
