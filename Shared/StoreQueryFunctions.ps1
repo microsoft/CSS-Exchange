@@ -137,21 +137,6 @@ function InvokeGetStoreQuery {
     }
 }
 
-function Test-LoadGetStoreQuery {
-    try {
-        $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
-        $scriptPath = "$installPath\Scripts\ManagedStoreDiagnosticFunctions.ps1"
-
-        if ((Test-Path $scriptPath)) {
-            . $scriptPath
-        }
-        return $true
-    } catch {
-        Write-HostErrorInformation $_
-    }
-    return $false
-}
-
 # the function used to get the mailbox information required for Get-StoreQueryObject
 function Get-StoreQueryMailboxInformation {
     [CmdletBinding()]
@@ -231,4 +216,19 @@ function Get-StoreQueryObject {
         WherePartQuery  = [string]::Empty
         MailboxGuid     = $MailboxGuid
     }
+}
+
+# Needs to be executed in main part of script, otherwise, Get-StoreQuery will not load and be able to be called from other functions.
+try {
+    $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+    $scriptPath = "$installPath\Scripts\ManagedStoreDiagnosticFunctions.ps1"
+
+    if ((Test-Path $scriptPath)) {
+        . $scriptPath
+    } else {
+        throw "Failed to find $scriptPath"
+    }
+} catch {
+    Write-HostErrorInformation $_
+    exit
 }

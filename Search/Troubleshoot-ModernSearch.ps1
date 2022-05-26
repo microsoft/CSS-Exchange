@@ -107,11 +107,6 @@ try {
     exit
 }
 
-if (-not (Test-LoadGetStoreQuery)) {
-    Write-Error "Failed to load ManagedStoreDiagnosticFunctions.ps1. Stopping Script"
-    exit
-}
-
 function Main {
     @("Identity: '$MailboxIdentity'",
         "ItemSubject: '$ItemSubject'",
