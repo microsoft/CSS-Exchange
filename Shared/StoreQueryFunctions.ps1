@@ -147,7 +147,7 @@ function Test-LoadGetStoreQuery {
         }
         return $true
     } catch {
-        Write-ErrorInformation $_ "Write-Host"
+        Write-HostErrorInformation $_
     }
     return $false
 }
@@ -194,7 +194,7 @@ function Get-StoreQueryMailboxInformation {
             Write-Verbose "Running Get-MailboxDatabase"
             $databaseStatus = Get-MailboxDatabase -Identity $databaseName -Status
         } catch {
-            Write-ErrorInformation $_ "Write-Host"
+            Write-HostErrorInformation $_
             throw "Failed to find '$Identity' information."
         }
     }
