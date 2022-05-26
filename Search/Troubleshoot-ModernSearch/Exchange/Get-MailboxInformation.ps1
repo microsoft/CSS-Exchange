@@ -22,6 +22,8 @@ function Get-MailboxInformation {
         if ($storeQueryMailboxInfo.ExchangeServer.AdminDisplayVersion.ToString() -notlike "Version 15.2*") {
             throw "User isn't on an Exchange 2019 server"
         }
+
+        return $storeQueryMailboxInfo
     } catch {
         throw "Failed to find '$Identity' information. InnerException: $($Error[0].Exception)"
     }
