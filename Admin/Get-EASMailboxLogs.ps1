@@ -24,7 +24,7 @@ if ($null -ne $EnableVerboseLogging) {
         try {
             [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
         } catch {
-            Write-Error ("Failed read $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config")
+            Write-Error ("Failed to read $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config")
             exit
         }
         Copy-Item $env:ExchangeInstallPath"ClientAccess\Sync\web.config" -Destination $env:ExchangeInstallPath"ClientAccess\Sync\web.config.bak"
