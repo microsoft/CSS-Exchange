@@ -8,25 +8,30 @@ param(
     [ValidateScript({ Test-Path $_ })]
     [Parameter(Mandatory = $true)] [string] $OutputPath = (Get-Location).Path,
     [Parameter(Mandatory = $false)] [int] $Interval = 30,
-    [Parameter(Mandatory = $false)] [nullable[bool][]] $EnableMailboxLoggingVerboseMode = $null
+    [Parameter(Mandatory = $false)] [nullable[bool]] $EnableMailboxLoggingVerboseMode = $null
 )
 
 #parse $EnableMailboxLoggingVerboseMode and convert it boolean value(s)
-$NeedChangeConfig = $false
 switch ($EnableMailboxLoggingVerboseMode) {
-    $true { $NeedChangeConfig = $true; $EnableVerboseLogging = "true" }
-    $false { $NeedChangeConfig = $true; $EnableVerboseLogging = "false" }
+    $true { $EnableVerboseLogging = "true" }
+    $false { $EnableVerboseLogging = "false" }
+    default { $EnableVerboseLogging = $null }
 }
 
 #Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
-if ($NeedChangeConfig) {
+if ($null -ne $EnableVerboseLogging) {
     if ($PSCmdlet.ShouldProcess("Set EnableMailboxLoggingVerboseMode attribute to $EnableVerboseLogging in $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config", 'TARGET', 'OPERATION')) {
-        [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
+        try {
+            [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
+        } catch {
+            Write-Error ("Failed read $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config")
+            exit
+        }
         Copy-Item $env:ExchangeInstallPath"ClientAccess\Sync\web.config" -Destination $env:ExchangeInstallPath"ClientAccess\Sync\web.config.bak"
         $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = $EnableVerboseLogging
         $web.Save($env:ExchangeInstallPath + "ClientAccess\Sync\web.config")
     } else {
-        break
+        exit
     }
 }
 
