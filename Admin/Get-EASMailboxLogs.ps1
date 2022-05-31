@@ -21,15 +21,26 @@ switch ($EnableMailboxLoggingVerboseMode) {
 #Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
 if ($null -ne $EnableVerboseLogging) {
     if ($PSCmdlet.ShouldProcess("Set EnableMailboxLoggingVerboseMode attribute to $EnableVerboseLogging in $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config", 'TARGET', 'OPERATION')) {
+        $WebConfigPath=$env:ExchangeInstallPath+"ClientAccess\Sync\web.config"
         try {
-            [xml]$web = Get-Content $env:ExchangeInstallPath"ClientAccess\Sync\web.config"
+            [xml]$web = Get-Content $WebConfigPath
         } catch {
-            Write-Error ("Failed to read $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config")
+            Write-Error ("Failed to read $WebConfigPath file. Exception $_")
             exit
         }
-        Copy-Item $env:ExchangeInstallPath"ClientAccess\Sync\web.config" -Destination $env:ExchangeInstallPath"ClientAccess\Sync\web.config.bak"
+        try {
+            Copy-Item $WebConfigPath -Destination $WebConfigPath".bak"
+        } catch {
+            Write-Error ("Failed to make $WebConfigPath.bak file with exception $_")
+            exit
+        }
         $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = $EnableVerboseLogging
-        $web.Save($env:ExchangeInstallPath + "ClientAccess\Sync\web.config")
+        try {
+            $web.Save($WebConfigPath)
+        } catch {
+            Write-Error ("Failed to update $WebConfigPath file. Exception $_")
+            exit
+        }
     } else {
         exit
     }
