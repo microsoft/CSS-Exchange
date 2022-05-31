@@ -111,7 +111,7 @@ function CheckObjects {
                 Write-Host ">> Error: The SOURCE malbox has an auxArchive and as of now this object can't be migrated"
                 exit
             } else {
-                Write-Verbose -Message "No aux archives are present on SOURCE malbox"
+                Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is a member of the SOURCE organization relationship Mail-Enabled Security Group defined on the MailboxMovePublishedScopes"
