@@ -28,14 +28,14 @@ param(
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
 $BuildVersion = ""
 
 function WriteCatchInfo {
-    Write-Host "$($Error[0].Exception)"
-    Write-Host "$($Error[0].ScriptStackTrace)"
+    Write-HostErrorInformation $Error[0]
     $Script:ErrorOccurred = $true
 }
 
@@ -134,10 +134,14 @@ try {
         return
     }
 
-    $Script:Logger = Get-NewLoggerInstance -LogName "SetupAssist-Debug" `
+    $instance = (Get-Date).ToString("yyyyMMddhhmmss")
+    $Script:DebugLogger = Get-NewLoggerInstance -LogName "SetupAssist-$instance-Debug" `
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
-    SetWriteHostAction ${Function:Write-DebugLog}
+    $Script:HostLogger = Get-NewLoggerInstance -LogName "SetupAssist-$instance" `
+        -AppendDateTimeToFileName $false `
+        -ErrorAction SilentlyContinue
+    SetWriteHostAction ${Function:Write-HostLog}
 
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/SA-VersionsUrl")) {
         Write-Host "Script was updated. Please rerun the script."
@@ -153,9 +157,12 @@ try {
 } finally {
     if ($Script:ErrorOccurred) {
         Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing including the SetupAssist-Debug.txt file.")
-    } elseif (-not ($PSBoundParameters["Verbose"])) {
-        $Script:Logger | Invoke-LoggerInstanceCleanup
     }
 
     Write-Host("Do you like the script? Visit https://aka.ms/ExchangeSetupAssist-Feedback to rate it and to provide feedback.") -ForegroundColor Green
+
+    if ((-not ($Script:ErrorOccurred)) -and
+        (-not ($PSBoundParameters["Verbose"]))) {
+        $Script:DebugLogger | Invoke-LoggerInstanceCleanup
+    }
 }

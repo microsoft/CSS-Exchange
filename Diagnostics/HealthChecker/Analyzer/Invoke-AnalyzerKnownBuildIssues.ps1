@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
-. $PSScriptRoot\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 
 function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]

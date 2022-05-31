@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ExchangeServerMaintenanceState {
     param(
         [Parameter(Mandatory = $false)][array]$ComponentsToSkip
