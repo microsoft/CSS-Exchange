@@ -79,7 +79,7 @@ function Get-ExchangeAdPermissions {
 
         foreach ($group in $groupLists) {
             Write-Verbose "Trying to find: $($group.Name)"
-            $wkObject = $otherWellKnownObjects | Where-Object WellKnownName -EQ $group.Name
+            $wkObject = $otherWellKnownObjects | Where-Object { $_.WellKnownName -eq $group.Name }
             if ($null -ne $wkObject) {
                 Write-Verbose "Found DN in otherWellKnownObjects: $($wkObject.DistinguishedName)"
                 $entry = [ADSI]("LDAP://$($wkObject.DistinguishedName)")
