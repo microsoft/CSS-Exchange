@@ -36,7 +36,14 @@ function Get-ExchangeOtherWellKnownObjects {
     foreach ($val in $result.Properties["otherWellKnownObjects"]) {
         $matchResults = $val | Select-String "^B:32:([^:]+):(.*)$"
         if ($matchResults.Matches.Groups.Count -ne 3) {
-            # What should we do with a corrupted entry?
+            # Only output the raw value of a corrupted entry
+            [PSCustomObject]@{
+                WellKnownName     = $null
+                WellKnownGuid     = $null
+                DistinguishedName = $null
+                RawValue          = $val
+            }
+
             continue
         }
 
