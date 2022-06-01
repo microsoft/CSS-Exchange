@@ -108,7 +108,7 @@ function CheckObjects {
             #Check if source mailbox has aux archives and if so throw error, otherwise continue with the rest of validations
             Write-Verbose -Message "Checking if SOURCE mailbox has any aux-archives present"
             if ($SourceObject.MailboxLocations -like '*auxArchive*') {
-                Write-Host ">> Error: The SOURCE malbox has an auxArchive and as of now this object can't be migrated"
+                Write-Host ">> Error: The SOURCE mailbox has an auxArchive and as of now this object can't be migrated"
                 exit
             } else {
                 Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
