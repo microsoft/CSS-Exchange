@@ -3,19 +3,19 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeContainer.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOtherWellKnownObjects.ps1
 
 function Test-DomainOtherWellKnownObjects {
     $exchangeContainer = Get-ExchangeContainer
-    $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=*)", @("otherWellKnownObjects", "distinguishedName"))
-    $result = $searcher.FindOne()
+    $otherWellKnownObjects = Get-ExchangeOtherWellKnownObjects
 
     $importFilePath = "$PSScriptRoot\ExchangeContainerImport.txt"
     $outputLines = New-Object 'System.Collections.Generic.List[string]'
-    $outputLines.Add("dn: $($result.Properties["distinguishedName"][0].ToString())")
+    $outputLines.Add("dn: $($exchangeContainer.Properties["distinguishedName"][0].ToString())")
     $outputLines.Add("changeType: modify")
     $outputLines.Add("replace: otherWellKnownObjects")
     $badItemsFound = $false
-    foreach ($value in $result.Properties["otherWellKnownObjects"]) {
+    foreach ($value in $otherWellKnownObjects.RawValue) {
 
         $params = @{
             TestName = "Other Well Known Objects"
