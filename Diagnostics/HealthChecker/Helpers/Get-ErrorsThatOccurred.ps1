@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ErrorsThatOccurred {
 
     function WriteErrorInformation {
@@ -8,17 +9,7 @@ function Get-ErrorsThatOccurred {
         param(
             [object]$CurrentError
         )
-        Write-Verbose "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())"
-
-        if ($null -ne $CurrentError.Exception -and
-            $null -ne $CurrentError.Exception.StackTrace) {
-            Write-Verbose "Inner Exception: $($CurrentError.Exception.StackTrace)"
-        }
-
-        if ($null -ne $CurrentError.ScriptStackTrace) {
-            Write-Verbose "Script Stack: $($CurrentError.ScriptStackTrace)"
-        }
-
+        Write-VerboseErrorInformation $CurrentError
         Write-Verbose "-----------------------------------`r`n`r`n"
     }
 
@@ -27,37 +18,19 @@ function Get-ErrorsThatOccurred {
         function Write-Errors {
             Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
 
-            $index = 0
-            $Error |
-                ForEach-Object {
-                    $index++
-                    $currentError = $_
-                    $handledError = $Script:ErrorsExcluded |
-                        Where-Object { $_.Equals($currentError) }
-
-                        if ($null -eq $handledError) {
-                            Write-Verbose "Error Index: $index"
-                            WriteErrorInformation $currentError
-                        }
-                    }
+            Get-UnhandledErrors | ForEach-Object {
+                Write-Verbose "Error Index: $($_.Index)"
+                WriteErrorInformation $_.ErrorInformation
+            }
 
             Write-Verbose "`r`n`r`nErrors that were handled"
-            $index = 0
-            $Error |
-                ForEach-Object {
-                    $index++
-                    $currentError = $_
-                    $handledError = $Script:ErrorsExcluded |
-                        Where-Object { $_.Equals($currentError) }
-
-                        if ($null -ne $handledError) {
-                            Write-Verbose "Error Index: $index"
-                            WriteErrorInformation $handledError
-                        }
-                    }
+            Get-HandledErrors | ForEach-Object {
+                Write-Verbose "Error Index: $($_.Index)"
+                WriteErrorInformation $_.ErrorInformation
+            }
         }
 
-        if ($Error.Count -ne $Script:ErrorsExcludedCount) {
+        if ((Test-UnhandledErrorsOccurred)) {
             Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt, HealthChecker-Errors.json, and .xml file to ExToolsFeedback@microsoft.com.")
             $Script:Logger.PreventLogCleanup = $true
             Write-Errors

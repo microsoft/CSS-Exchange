@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Test-CommandExists.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-IISLogDirectory {
     Write-Verbose("Function Enter: Get-IISLogDirectory")
 
@@ -28,7 +29,7 @@ function Get-IISLogDirectory {
                 [array]$iisLogDirectory = Get-IISDirectoryFromGetWebSite
             }
         } catch {
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
             [array]$iisLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs
             Write-Verbose("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $iisLogDirectory)
         }

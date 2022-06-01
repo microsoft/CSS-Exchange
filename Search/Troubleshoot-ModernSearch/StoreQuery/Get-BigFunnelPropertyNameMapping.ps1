@@ -26,9 +26,9 @@ function Get-BigFunnelPropertyNameMapping {
         }
     }
     process {
+        $StoreQueryHandler = $StoreQueryHandler | ResetQueryInstances
         $StoreQueryHandler.IsUnlimited = $true
         $result = $StoreQueryHandler |
-            ResetQueryInstances |
             SetSelect -Value @(
                 "PropName",
                 "PropNumber") |
