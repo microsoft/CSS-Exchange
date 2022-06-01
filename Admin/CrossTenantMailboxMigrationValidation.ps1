@@ -74,7 +74,7 @@ param (
     [System.String]$CSV,
     [Parameter(Mandatory = $True, HelpMessage = "Path pointing to the log file")]
     [System.String]$LogPath,
-    [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Validate the organizations settings like organization relationships, migraiton endpoint and AADApplication")]
+    [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Validate the organizations settings like organization relationships, migration endpoint and AADApplication")]
     [System.Management.Automation.SwitchParameter]$CheckOrgs,
     [Parameter(Mandatory = $True, ParameterSetName = "SDP", HelpMessage = "Collect relevant data for troubleshooting purposes and send it to Microsoft Support if needed")]
     [System.Management.Automation.SwitchParameter]$SDP
