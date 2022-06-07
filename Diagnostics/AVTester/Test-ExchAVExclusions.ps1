@@ -55,6 +55,7 @@ param (
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
 
@@ -91,22 +92,19 @@ $BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compre
 $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
 $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 
+$Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Env:COMPUTERNAME
 
-$CmdAvailable = Get-Command Get-ExchangeServer -ErrorAction SilentlyContinue
-if ( -not $CmdAvailable) {
-    try {
-        Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
-        # Checking if it is a mailbox server to avoid errors if it is an Edge server.
-        if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            # Add all database folder paths
-            foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-                $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
-                $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
-            }
+if (!($Script:ExchangeShellComputer.ShellLoaded)) {
+    Write-Warning "Failed to Load Exchange Shell Module..."
+    Write-Warning "We could not verify the database folder paths"
+} else {
+    # Checking if it is a mailbox server to avoid errors if it is an Edge server.
+    if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+        # Add all database folder paths
+        foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
+            $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
+            $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
         }
-    } catch {
-        Write-Warning "Failed to Load Exchange PowerShell Module..."
-        Write-Warning "We could not verify the database folder paths"
     }
 }
 
