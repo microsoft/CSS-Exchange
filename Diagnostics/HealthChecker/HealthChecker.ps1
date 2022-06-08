@@ -84,7 +84,7 @@
     https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019#requirements-for-hardware-virtualization
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
-[CmdletBinding(DefaultParameterSetName = "HealthChecker")]
+[CmdletBinding(DefaultParameterSetName = "HealthChecker", SupportsShouldProcess)]
 param(
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
