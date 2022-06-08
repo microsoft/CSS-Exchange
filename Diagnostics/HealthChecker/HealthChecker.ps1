@@ -228,7 +228,7 @@ function Main {
 
     if ($ScriptUpdateOnly) {
         Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
-        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl") {
+        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
             ($true) { Write-Green("Script was successfully updated.") }
             ($false) { Write-Yellow("No update of the script performed.") }
             default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
