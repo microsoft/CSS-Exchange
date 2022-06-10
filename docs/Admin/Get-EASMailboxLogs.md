@@ -11,6 +11,7 @@ Get-EASMailboxLogs.ps1
   [-Mailbox <string[]>]
   [-OutputPath <string>]
   [-Interval <int>]
+  [-EnableMailboxLoggingVerboseMode <bool>]
 ```
 
 ## Examples
@@ -24,4 +25,9 @@ The following example collects logs for two mailbox every hour:
 The following example collects logs for a mailbox:
 ```
 .\Get-EASMailboxLogs.ps1 -Mailbox "jim" -OutputPath c:\EASLogs
+```
+
+The following example enables Verbose Logging on the current on premise server and collects logs for a mailbox:
+```
+.\Get-EASMailboxLogs.ps1 -Mailbox "jim" -OutputPath c:\EASLogs -EnableMailboxLoggingVerboseMode $true
 ```
