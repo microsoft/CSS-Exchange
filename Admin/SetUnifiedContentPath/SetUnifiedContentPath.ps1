@@ -46,7 +46,7 @@ end {
             exit
         }
 
-        $exchangeSession = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+        $exchangeSession = Confirm-ExchangeShell -Identity $computerNames[0]
 
         if (-not ($exchangeSession.ShellLoaded)) {
             Write-Warning "Failed to load Exchange Management Shell."
