@@ -53,7 +53,8 @@ function Get-UnifiedContentInformation {
         $splitCleanupFolderValue = $cleanupFolderValue.Split(";")
 
         if ($defaultUnifiedContentPath -ne $temporaryStoragePath) {
-            Write-Verbose "Default TemporaryStoragePath doesn't not equal what is loaded. Add both locations."
+            Write-Verbose "TemporaryStoragePath does not equal default installed Temporary Unified Content Path based off of install location."
+            Write-Verbose "Adding both locations to make sure the Unified Content is removed by maintenance."
             $paths += $temporaryStoragePath
         }
 
