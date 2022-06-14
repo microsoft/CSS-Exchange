@@ -16,7 +16,7 @@
     PS C:\> Get-ExchangeServer | .\SetUnifiedContentPath.ps1
     Will run the SetUnifiedContentPath.ps1 against all the Exchange Servers
 #>
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(ValueFromPipeline = $true)]
     [string[]]
@@ -63,22 +63,26 @@ end {
                     continue
                 } else {
                     Write-Host "$computer : CleanupFolderResponderFolderPaths isn't set to what we expect."
-                    Write-Host "$computer : Expected Values: $($unifiedContentInformation.ExpectedCleanupFolderValue)"
-                    Write-Host "$computer : Attempting to backup and save the Expected Value... " -NoNewline
 
-                    Invoke-ScriptBlockHandler -ComputerName $computer -ArgumentList @($unifiedContentInformation, $computer) -ScriptBlock {
-                        param(
-                            [object]$UnifiedContentInformation,
-                            [string]$Computer
-                        )
-                        try {
-                            Copy-Item $unifiedContentInformation.AntiMalwareFilePath -Destination $unifiedContentInformation.AntiMalwareFilePath.Replace(".xml", ".xml.bak") -Force
-                            $unifiedContentInformation.LoadAntiMalwareFile.Definition.MaintenanceDefinition.ExtensionAttributes.CleanupFolderResponderFolderPaths = $unifiedContentInformation.ExpectedCleanupFolderValue
-                            $unifiedContentInformation.LoadAntiMalwareFile.Save($unifiedContentInformation.AntiMalwareFilePath)
-                            Write-Host "$computer : Successfully backup and save"
-                        } catch {
-                            Write-Host "$computer : Failed to backup and save new value"
-                            Write-HostErrorInformation
+                    if ($PSCmdlet.ShouldProcess("Update the CleanupFolderResponderFolderPaths to '$($unifiedContentInformation.ExpectedCleanupFolderValue)' on server $computer",
+                            "AntiMalware.xml on $computer", "Update CleanupFolderResponderFolderPaths to '$($unifiedContentInformation.ExpectedCleanupFolderValue)'")) {
+                        Write-Host "$computer : Updating to expected values: $($unifiedContentInformation.ExpectedCleanupFolderValue)"
+                        Write-Host "$computer : Attempting to backup and save the Expected Value... " -NoNewline
+
+                        Invoke-ScriptBlockHandler -ComputerName $computer -ArgumentList @($unifiedContentInformation, $computer) -ScriptBlock {
+                            param(
+                                [object]$UnifiedContentInformation,
+                                [string]$Computer
+                            )
+                            try {
+                                Copy-Item $unifiedContentInformation.AntiMalwareFilePath -Destination $unifiedContentInformation.AntiMalwareFilePath.Replace(".xml", ".xml.bak") -Force
+                                $unifiedContentInformation.LoadAntiMalwareFile.Definition.MaintenanceDefinition.ExtensionAttributes.CleanupFolderResponderFolderPaths = $unifiedContentInformation.ExpectedCleanupFolderValue
+                                $unifiedContentInformation.LoadAntiMalwareFile.Save($unifiedContentInformation.AntiMalwareFilePath)
+                                Write-Host "$computer : Successfully backup and save"
+                            } catch {
+                                Write-Host "$computer : Failed to backup and save new value"
+                                Write-HostErrorInformation
+                            }
                         }
                     }
                 }
