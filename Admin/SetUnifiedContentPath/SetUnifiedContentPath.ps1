@@ -15,12 +15,18 @@
 .EXAMPLE
     PS C:\> Get-ExchangeServer | .\SetUnifiedContentPath.ps1
     Will run the SetUnifiedContentPath.ps1 against all the Exchange Servers
+.EXAMPLE
+    PS C:\> Get-ExchangeServer | .\SetUnifiedContentPath.ps1 -RestartService
+    Will run the SetUnifiedContentPath.ps1 against all the Exchange Servers and restart the service MSExchangeHM
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(ValueFromPipeline = $true)]
     [string[]]
-    $ComputerName = $env:COMPUTERNAME
+    $ComputerName = $env:COMPUTERNAME,
+
+    [switch]
+    $RestartService
 )
 
 begin {
@@ -64,21 +70,36 @@ end {
                 } else {
                     Write-Host "$computer : CleanupFolderResponderFolderPaths isn't set to what we expect."
 
-                    if ($PSCmdlet.ShouldProcess("Update the CleanupFolderResponderFolderPaths to '$($unifiedContentInformation.ExpectedCleanupFolderValue)' on server $computer",
+                    if ($RestartService) { $restartWording = "and restart service MSExchangeHM" } else { $restartWording = "and not restart service MSExchangeHM" }
+
+                    if ($PSCmdlet.ShouldProcess("Update the CleanupFolderResponderFolderPaths to '$($unifiedContentInformation.ExpectedCleanupFolderValue)' on server $computer $restartWording",
                             "AntiMalware.xml on $computer", "Update CleanupFolderResponderFolderPaths to '$($unifiedContentInformation.ExpectedCleanupFolderValue)'")) {
                         Write-Host "$computer : Updating to expected values: $($unifiedContentInformation.ExpectedCleanupFolderValue)"
                         Write-Host "$computer : Attempting to backup and save the Expected Value... " -NoNewline
 
-                        Invoke-ScriptBlockHandler -ComputerName $computer -ArgumentList @($unifiedContentInformation, $computer) -ScriptBlock {
+                        Invoke-ScriptBlockHandler -ComputerName $computer -ArgumentList @($unifiedContentInformation, $computer, $RestartService) -ScriptBlock {
                             param(
                                 [object]$UnifiedContentInformation,
-                                [string]$Computer
+                                [string]$Computer,
+                                [bool]$RestartService
                             )
                             try {
                                 Copy-Item $unifiedContentInformation.AntiMalwareFilePath -Destination $unifiedContentInformation.AntiMalwareFilePath.Replace(".xml", ".xml.bak") -Force
                                 $unifiedContentInformation.LoadAntiMalwareFile.Definition.MaintenanceDefinition.ExtensionAttributes.CleanupFolderResponderFolderPaths = $unifiedContentInformation.ExpectedCleanupFolderValue
                                 $unifiedContentInformation.LoadAntiMalwareFile.Save($unifiedContentInformation.AntiMalwareFilePath)
                                 Write-Host "$computer : Successfully backup and save"
+
+                                if ($RestartService) {
+                                    Write-Host "$computer : Restarting MSExchangeHM"
+                                    try {
+                                        Restart-Service MSExchangeHM -ErrorAction Stop
+                                    } catch {
+                                        Write-Host "$computer : Failed to restart the MSExchangeHM service"
+                                        Write-HostErrorInformation
+                                    }
+                                } else {
+                                    Write-Host "$computer : Restart the MSExchangeHM to have new setting take effect."
+                                }
                             } catch {
                                 Write-Host "$computer : Failed to backup and save new value"
                                 Write-HostErrorInformation
