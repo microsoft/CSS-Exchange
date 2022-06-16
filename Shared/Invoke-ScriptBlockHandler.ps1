@@ -65,7 +65,13 @@ function Invoke-ScriptBlockHandler {
 
                 if ($null -ne $ArgumentList) {
                     Write-Verbose "Running Script Block Locally with argument list"
-                    $returnValue = & $ScriptBlock $ArgumentList
+
+                    # if an object array type expect the result to be multiple parameters
+                    if ($ArgumentList.GetType().Name -eq "Object[]") {
+                        $returnValue = & $ScriptBlock @ArgumentList
+                    } else {
+                        $returnValue = & $ScriptBlock $ArgumentList
+                    }
                 } else {
                     Write-Verbose "Running Script Block Locally without argument list"
                     $returnValue = & $ScriptBlock
