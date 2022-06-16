@@ -62,242 +62,157 @@ param (
 # Log file name
 $LogFile = "ExchAvExclusions.log"
 
-$serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
+# Open log file if switched
+if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
-if ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container ) {
-    if ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
-        ( $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) {
-        # Open log file if switched
-        if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
+# Create the Array List
+$BaseFolders = New-Object Collections.Generic.List[string]
 
-        # Create the Array List
-        $BaseFolders = New-Object Collections.Generic.List[string]
+# List of base Folders
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail').tolower())
+$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter').tolower())
+$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
+$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
+$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 
-        $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Env:COMPUTERNAME
+$Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Env:COMPUTERNAME
 
-        if (!($Script:ExchangeShellComputer.ShellLoaded)) {
-            Write-Warning "Failed to Load Exchange Shell Module..."
-            exit
-        }
-
-        # List of base Folders
-        if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            if (Get-DatabaseAvailabilityGroup ) {
-                if ((Get-DatabaseAvailabilityGroup).Servers.name.Contains($env:COMPUTERNAME) ) {
-                    $BaseFolders.Add((Join-Path $($env:SystemRoot) '\Cluster').tolower())
-                    $dag = $null
-                    $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name.Contains($env:COMPUTERNAME) }
-                    #needs local system rigths
-                    if ( $null -ne $dag ) {
-                        $BaseFolders.Add($("\\" + $($dag.WitnessServer.hostname) + "\" + $($dag.WitnessDirectory.PathName.Split("\")[-1])).ToLower())
-                        $BaseFolders.Add($("\\" + $($dag.WitnessServer.Fqdn) + "\" + $($dag.WitnessDirectory.PathName.Split("\")[-1])).ToLower())
-                    }
-                }
-            }
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\ClientAccess\OAB').tolower())
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\FIP-FS').tolower())
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\GroupMetrics').tolower())
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\Logging').tolower())
-
-            $mbxS = (Get-MailboxServer -Identity $($env:COMPUTERNAME))
-            $BaseFolders.Add($($mbxS.CalendarRepairLogPath.PathName).tolower())
-            $BaseFolders.Add($($mbxS.LogPathForManagedFolders.PathName).tolower())
-
-            $BaseFolders.Add(($((Get-PopSettings).LogFileLocation)).tolower())
-            $BaseFolders.Add(($((Get-ImapSettings).LogFileLocation)).tolower())
-
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\Mailbox').tolower())
-
-            # Add all database folder paths
-            foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-                $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
-                $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
-            }
-
-            $fetsLogs = Get-FrontEndTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
-                ReceiveProtocolLogPath, RoutingTableLogPath, SendProtocolLogPath, AgentLogPath, DnsLogPath, `
-                ResourceLogPath, AttributionLogPath, ProxyDestinationsLogPath, TopInboundIpSourcesLogPath
-            $fetsLogs.psobject.Properties.Value.PathName | ForEach-Object {
-                if ( $_) {
-                    if ( Test-Path $_ -PathType Container ) {
-                        $BaseFolders.Add($_.tolower())
-                    }
-                }
-            }
-
-            $mtsLogs = Get-MailboxTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
-                ReceiveProtocolLogPath, DnsLogPath, RoutingTableLogPath, SendProtocolLogPath, MailboxSubmissionAgentLogPath, `
-                SyncDeliveryLogPath, MailboxDeliveryAgentLogPath, MailboxDeliveryHttpDeliveryLogPath, `
-                MailboxDeliveryThrottlingLogPath, AgentGrayExceptionLogPath, PipelineTracingPath
-            $mtsLogs.psobject.Properties.Value.PathName | ForEach-Object {
-                if ( $_ ) {
-                    if ( Test-Path $_ -PathType Container ) {
-                        $BaseFolders.Add($_.tolower())
-                    }
-                }
-            }
-
-            if ( $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 ) {
-
-                $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\UnifiedMessaging\Grammars'))
-                $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\UnifiedMessaging\Prompts'))
-                $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\UnifiedMessaging\Temp'))
-                $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\UnifiedMessaging\Voicemail'))
-            }
-
-            $BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
-            $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
-            $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
-        }
-
-        if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
-            $BaseFolders.Add((Join-Path $($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Data\Adam').tolower())
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Data\IpFilter').tolower())
-        }
-
-        if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Data\Queue').tolower())
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Data\SenderReputation').tolower())
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Data\Temp').tolower())
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\TransportRoles\Logs').tolower())
-
-            $tsLogs = Get-TransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, MessageTrackingLogPath, `
-                IrmLogPath, ActiveUserStatisticsLogPath, ServerStatisticsLogPath, ReceiveProtocolLogPath, RoutingTableLogPath, `
-                SendProtocolLogPath, QueueLogPath, LatencyLogPath, GeneralLogPath, WlmLogPath, AgentLogPath, FlowControlLogPath, `
-                ProcessingSchedulerLogPath, ResourceLogPath, DnsLogPath, JournalLogPath, TransportMaintenanceLogPath, `
-                RequestBrokerLogPath, StorageRESTLogPath, AgentGrayExceptionLogPath, TransportHttpLogPath, PipelineTracingPath, `
-                PickupDirectoryPath, ReplayDirectoryPath
-            $tsLogs.psobject.Properties.Value.PathName | ForEach-Object {
-                if ( $_ ) {
-                    if ( Test-Path $_ -PathType Container ) {
-                        $BaseFolders.Add($_.tolower())
-                    }
-                }
-            }
-
-            $BaseFolders.Add((Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) '\Working\OleConverter').tolower())
-        }
-        # Get transport database path
-        [xml]$TransportConfig = Get-Content (Join-Path ($serverExchangeInstallDirectory.MsiInstallPath) "Bin\EdgeTransport.exe.config")
-        $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
-        $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
-
-        #'$env:SystemRoot\Temp\OICE_<GUID>'
-        $possibleOICEFolders = Get-ChildItem $env:SystemRoot\temp -Directory -Filter OICE_*.0
-        $possibleOICEFolders | ForEach-Object {
-            if ( $_.Name.Length -gt 41) {
-                $possibleGUID = $_.Name.Substring(5, 36)
-                $result = [System.Guid]::Empty
-                if ( [System.Guid]::TryParse($possibleGUID, [System.Management.Automation.PSReference]$result) ) {
-                    $BaseFolders.Add($_.FullName.tolower())
-                }
-            }
-        }
-
-        # Remove any Duplicates
-        $BaseFolders = $BaseFolders | Select-Object -Unique
-
-        Write-SimpleLogfile -String "Starting Test" -Name $LogFile
-
-        # Create list object to hold all Folders we are going to test
-        $FolderList = New-Object Collections.Generic.List[string]
-
-
-        # Confirm that we are an administrator
-        if (Confirm-Administrator) {}
-        else { Write-Error "Please run as Administrator" }
-
-        # Make sure each folders in our list resolve
-        foreach ($path in $BaseFolders) {
-            try {
-                # Resolve path only returns a bool so we have to manually throw to catch
-                if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
-                    throw "Failed to resolve"
-                }
-                # If -recurse then we need to find all subfolders and Add them to the list to be tested
-                if ($Recurse) {
-
-                    # Add the root folder
-                    $FolderList.Add($path)
-
-                    # Get the Folder and all subFolders and just return the fullname value as a string
-                    Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_) }
-                }
-                # Just Add the root folder
-                else { $FolderList.Add($path) }
-            } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
-        }
-
-        Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
-
-        # Create the EICAR file in each path
-        foreach ($Folder in $FolderList) {
-
-            [string] $FilePath = (Join-Path $Folder eicar.com)
-            Write-SimpleLogfile -String ("Creating EICAR file " + $FilePath) -name $LogFile
-
-            #Base64 of Eicar string
-            [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
-
-            if (!(Test-Path -Path $FilePath)) {
-
-                # Try writing the encoded string to a the file
-                try {
-                    [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
-                    [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-                    Set-Content -Value $Eicar -Encoding ascii -Path $FilePath -Force
-                }
-
-                catch {
-                    Write-Warning "$Folder Eicar.com file couldn't be created. Either permissions or AV prevented file creation."
-                }
-            }
-
-            else {
-                Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
-            }
-        }
-
-        # Sleeping 5 minutes for AV to "find" the files
-        Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
-
-        # Create a list of folders that are probably being scanned by AV
-        $BadFolderList = New-Object Collections.Generic.List[string]
-
-        Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
-
-        # Test each location for the EICAR file
-        foreach ($Folder in $FolderList) {
-
-            $FilePath = (Join-Path $Folder eicar.com)
-
-            # If the file exists delete it -- this means the folder is not being scanned
-            if (Test-Path $FilePath ) {
-                Write-SimpleLogfile -String ("Removing " + $FilePath) -name $LogFile
-                Remove-Item $FilePath -Confirm:$false -Force
-            }
-            # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
-            else {
-                Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
-                $BadFolderList.Add($Folder)
-            }
-        }
-
-        # Report what we found
-        if ($BadFolderList.count -gt 0) {
-            $OutputPath = Join-Path $env:LOCALAPPDATA BadFolders.txt
-            $BadFolderList | Out-File $OutputPath
-
-            Write-SimpleLogfile -String "Possbile AV Scanning found" -name $LogFile
-            Write-Warning ("Found " + $BadFolderList.count + " folders that are possibly being scanned!")
-            Write-Warning ("Review " + $OutputPath + " For the full list.")
-        } else {
-            Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
-        }
-    } else {
-        Write-Host "Detected version $($serverExchangeInstallDirectory.MsiProductMajor).$($serverExchangeInstallDirectory.MsiProductMinor)"
-        Write-Warning "Tnis script is for Exchange 2016 or 2019"
-    }
+if (!($Script:ExchangeShellComputer.ShellLoaded)) {
+    Write-Warning "Failed to Load Exchange Shell Module..."
+    Write-Warning "We could not verify the database folder paths"
 } else {
-    Write-Warning "Failed to find the Exchange installation..."
+    # Checking if it is a mailbox server to avoid errors if it is an Edge server.
+    if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+        # Add all database folder paths
+        foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
+            $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
+            $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
+        }
+    }
+}
+
+# Get transport database path
+[xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
+$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
+
+# Remove any Duplicates
+$BaseFolders = $BaseFolders | Select-Object -Unique
+
+#'$env:SystemRoot\Temp\OICE_<GUID>'
+#'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
+
+Write-SimpleLogfile -String "Starting Test" -Name $LogFile
+
+# Create list object to hold all Folders we are going to test
+$FolderList = New-Object Collections.Generic.List[string]
+
+
+# Confirm that we are an administrator
+if (Confirm-Administrator) {}
+else { Write-Error "Please run as Administrator" }
+
+# Make sure each folders in our list resolve
+foreach ($path in $BaseFolders) {
+    try {
+        # Resolve path only returns a bool so we have to manually throw to catch
+        if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
+            throw "Failed to resolve"
+        }
+        # If -recurse then we need to find all subfolders and Add them to the list to be tested
+        if ($Recurse) {
+
+            # Add the root folder
+            $FolderList.Add($path)
+
+            # Get the Folder and all subFolders and just return the fullname value as a string
+            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_) }
+        }
+        # Just Add the root folder
+        else { $FolderList.Add($path) }
+    } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
+}
+
+Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
+
+# Create the EICAR file in each path
+foreach ($Folder in $FolderList) {
+
+    [string] $FilePath = (Join-Path $Folder eicar.com)
+    Write-SimpleLogfile -String ("Creating EICAR file " + $FilePath) -name $LogFile
+
+    #Base64 of Eicar string
+    [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
+
+    if (!(Test-Path -Path $FilePath)) {
+
+        # Try writing the encoded string to a the file
+        try {
+            [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
+            [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
+            Set-Content -Value $Eicar -Encoding ascii -Path $FilePath -Force
+        }
+
+        catch {
+            Write-Warning "$Folder Eicar.com file couldn't be created. Either permissions or AV prevented file creation."
+        }
+    }
+
+    else {
+        Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
+    }
+}
+
+# Sleeping 5 minutes for AV to "find" the files
+Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
+
+# Create a list of folders that are probably being scanned by AV
+$BadFolderList = New-Object Collections.Generic.List[string]
+
+Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
+
+# Test each location for the EICAR file
+foreach ($Folder in $FolderList) {
+
+    $FilePath = (Join-Path $Folder eicar.com)
+
+    # If the file exists delete it -- this means the folder is not being scanned
+    if (Test-Path $FilePath ) {
+        Write-SimpleLogfile -String ("Removing " + $FilePath) -name $LogFile
+        Remove-Item $FilePath -Confirm:$false -Force
+    }
+    # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
+    else {
+        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
+        $BadFolderList.Add($Folder)
+    }
+}
+
+# Report what we found
+if ($BadFolderList.count -gt 0) {
+    $OutputPath = Join-Path $env:LOCALAPPDATA BadFolders.txt
+    $BadFolderList | Out-File $OutputPath
+
+    Write-SimpleLogfile -String "Possbile AV Scanning found" -name $LogFile
+    Write-Warning ("Found " + $BadFolderList.count + " folders that are possibly being scanned!")
+    Write-Warning ("Review " + $OutputPath + " For the full list.")
+} else {
+    Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
 }
