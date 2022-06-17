@@ -10,14 +10,14 @@ function Get-DAGInformation {
         $dag = Get-DatabaseAvailabilityGroup $DAGName -Status -ErrorAction Stop
     } catch {
         Write-Verbose("Failed to run Get-DatabaseAvailabilityGroup on $DAGName")
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         $dagNetwork = Get-DatabaseAvailabilityGroupNetwork $DAGName -ErrorAction Stop
     } catch {
         Write-Verbose("Failed to run Get-DatabaseAvailabilityGroupNetwork on $DAGName")
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     #Now to get the Mailbox Database Information for each server in the DAG.

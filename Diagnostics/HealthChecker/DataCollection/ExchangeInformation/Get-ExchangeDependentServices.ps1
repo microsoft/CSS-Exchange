@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ExchangeDependentServices {
     [CmdletBinding()]
     param(
@@ -15,7 +15,7 @@ function Get-ExchangeDependentServices {
             "MSExchangeFastSearch", "MSExchangeFrontEndTransport", "MSExchangeIS",
             "MSExchangeRepl", "MSExchangeRPC", "MSExchangeServiceHost",
             "MSExchangeSubmission", "MSExchangeTransport", "HostControllerService").ToLower()
-        $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSExchangeCompliance",
+        $commonExchangeServices = @("MSExchangeAntispamUpdate", "MSComplianceAudit", "MSExchangeCompliance",
             "MSExchangeDagMgmt", "MSExchangeDiagnostics", "MSExchangeEdgeSync",
             "MSExchangeHM", "MSExchangeHMRecovery", "MSExchangeMailboxAssistants",
             "MSExchangeMailboxReplication", "MSExchangeMitigation",

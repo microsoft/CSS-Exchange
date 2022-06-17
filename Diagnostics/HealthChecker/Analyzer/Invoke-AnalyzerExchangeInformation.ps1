@@ -67,7 +67,7 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayCustomTabNumber = 2
             TestingName            = "Out of Date"
             DisplayTestingValue    = $true
-            AddHtmlDetailRow       = $false
+            HtmlName               = "Out of date"
         }
         Add-AnalyzedResultInformation @params
     }

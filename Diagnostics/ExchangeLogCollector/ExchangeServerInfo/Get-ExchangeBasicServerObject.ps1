@@ -15,7 +15,7 @@ function Get-ExchangeBasicServerObject {
         $getExchangeServer = Get-ExchangeServer $ServerName -Status -ErrorAction Stop
     } catch {
         Write-Host "Failed to detect server $ServerName as an Exchange Server" -ForegroundColor "Red"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
         return $null
     }
 
@@ -55,7 +55,7 @@ function Get-ExchangeBasicServerObject {
         Mailbox        = $mailbox
         MailboxOnly    = $exchServerRole -eq "Mailbox"
         Hub            = $exchVersion -ge 15 -and (-not ($exchServerRole -eq "ClientAccess"))
-        CAS            = $exchServerRole -like "*ClientAccess*"
+        CAS            = $exchVersion -ge 16 -or $exchServerRole -like "*ClientAccess*"
         CASOnly        = $exchServerRole -eq "ClientAccess"
         Edge           = $exchServerRole -eq "Edge"
         Version        = $exchVersion

@@ -90,7 +90,7 @@ function Confirm-ExchangeShell {
                         [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
 
                         foreach ($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn) {
-                            Write-Verbose "Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name
+                            Write-Verbose ("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
                             Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
                         }
 

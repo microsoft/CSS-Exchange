@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
@@ -481,7 +481,7 @@ function Get-ExchangeInformation {
                 -CatchActionFunction ${Function:Invoke-CatchActions}
 
             Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
-            $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion
+            $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion -OSVersion $OSMajorVersion
         }
 
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)

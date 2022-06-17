@@ -4,6 +4,7 @@
 . $PSScriptRoot\Save-DataInfoToFile.ps1
 . $PSScriptRoot\Save-RegistryHive.ps1
 . $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
 function Save-FailoverClusterInformation {
     Write-Verbose("Function Enter: Save-FailoverClusterInformation")
@@ -14,42 +15,42 @@ function Save-FailoverClusterInformation {
         Save-DataInfoToFile -DataIn (Get-Cluster -ErrorAction Stop) -SaveToLocation "$copyTo\GetCluster"
     } catch {
         Write-Verbose "Failed to run Get-Cluster"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterGroup -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterGroup"
     } catch {
         Write-Verbose "Failed to run Get-ClusterGroup"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNode -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNode"
     } catch {
         Write-Verbose "Failed to run Get-ClusterNode"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNetwork -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNetwork"
     } catch {
         Write-Verbose "Failed to run Get-ClusterNetwork"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNetworkInterface -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNetworkInterface"
     } catch {
         Write-Verbose "Failed to run Get-ClusterNetworkInterface"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
         Get-ClusterLog -Node $env:ComputerName -Destination $copyTo -ErrorAction Stop | Out-Null
     } catch {
         Write-Verbose "Failed to run Get-ClusterLog"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     try {
@@ -58,7 +59,7 @@ function Save-FailoverClusterInformation {
         Save-DataInfoToFile -DataIn ($clusterNodeFileVersions.Files.Values) -SaveToLocation "$copyTo\ClusterNodeFileVersions" -SaveXMLFile $false -FormatList $false
     } catch {
         Write-Verbose "Failed to run Get-ClusterNodeFileVersions"
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
     }
 
     $params = @{

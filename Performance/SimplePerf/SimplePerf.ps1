@@ -238,7 +238,7 @@ begin {
             return
         }
 
-        $counterFullNames = $countersFiltered | ForEach-Object { ("\\localhost" + $_) }
+        $counterFullNames = $countersFiltered | ForEach-Object { ("\\$env:COMPUTERNAME" + $_) }
 
         if ($DisplayFilterResults) {
             Write-Host "$($env:COMPUTERNAME): The following counters matched the specified filters:"

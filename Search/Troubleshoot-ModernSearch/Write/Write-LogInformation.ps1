@@ -9,11 +9,6 @@ function Write-LogInformation {
     )
 
     process {
-
-        if ($VerboseEnabled) {
-            $Object | Write-Verbose -Verbose
-        }
-
         $Object | Out-File -FilePath $Script:ScriptLogging -Append
     }
 }

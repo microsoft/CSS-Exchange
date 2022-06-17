@@ -2,12 +2,49 @@
 # Licensed under the MIT License.
 
 # Powershell script to enable and collect EAS mailbox logs.
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true)] [string[]] $Mailbox = "",
     [ValidateScript({ Test-Path $_ })]
     [Parameter(Mandatory = $true)] [string] $OutputPath = (Get-Location).Path,
-    [Parameter(Mandatory = $false)] [int] $Interval = 30
+    [Parameter(Mandatory = $false)] [int] $Interval = 30,
+    [Parameter(Mandatory = $false)] [nullable[bool]] $EnableMailboxLoggingVerboseMode = $null
 )
+
+#parse $EnableMailboxLoggingVerboseMode and convert it boolean value(s)
+switch ($EnableMailboxLoggingVerboseMode) {
+    $true { $EnableVerboseLogging = "true" }
+    $false { $EnableVerboseLogging = "false" }
+    default { $EnableVerboseLogging = $null }
+}
+
+#Override EnableMailboxLoggingVerboseMode key's value with EnableVerboseLogging
+if ($null -ne $EnableVerboseLogging) {
+    if ($PSCmdlet.ShouldProcess("Set EnableMailboxLoggingVerboseMode attribute to $EnableVerboseLogging in $env:ExchangeInstallPath" + "ClientAccess\Sync\web.config", 'TARGET', 'OPERATION')) {
+        $WebConfigPath=$env:ExchangeInstallPath+"ClientAccess\Sync\web.config"
+        try {
+            [xml]$web = Get-Content $WebConfigPath
+        } catch {
+            Write-Error ("Failed to read $WebConfigPath file. Exception $_")
+            exit
+        }
+        try {
+            Copy-Item $WebConfigPath -Destination $WebConfigPath".bak"
+        } catch {
+            Write-Error ("Failed to make $WebConfigPath.bak file with exception $_")
+            exit
+        }
+        $web.SelectSingleNode('//add[@key="EnableMailboxLoggingVerboseMode"]').Value = $EnableVerboseLogging
+        try {
+            $web.Save($WebConfigPath)
+        } catch {
+            Write-Error ("Failed to update $WebConfigPath file. Exception $_")
+            exit
+        }
+    } else {
+        exit
+    }
+}
 
 Clear-Host
 Write-Host "Do not close this window until you are ready to collect the logs." -ForegroundColor Black -BackgroundColor Yellow

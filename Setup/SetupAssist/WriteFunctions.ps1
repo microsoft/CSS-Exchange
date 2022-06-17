@@ -31,7 +31,12 @@ function Write-Warning {
 }
 
 function Write-DebugLog($Message) {
-    $Script:Logger = $Script:Logger | Write-LoggerInstance $Message
+    $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $Message
+}
+
+function Write-HostLog($Message) {
+    $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $Message
+    Write-DebugLog $Message
 }
 
 function Write-OutColumns {
@@ -73,7 +78,7 @@ function Write-OutColumns {
             -IndentSpaces $IndentSpaces `
             -LinesBetweenObjects $LinesBetweenObjects `
             -StringOutput ([ref]$stringOutput)
-        Write-DebugLog $stringOutput
-        SetWriteHostAction ${Function:Write-DebugLog}
+        Write-HostLog $stringOutput
+        SetWriteHostAction ${Function:Write-HostLog}
     }
 }
