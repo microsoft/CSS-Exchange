@@ -69,7 +69,19 @@ function RunAllTests {
 function Main {
 
     $results = RunAllTests
-    $results | Export-Csv "$PSScriptRoot\SetupAssistResults-$((Get-Date).ToString("yyyyMMddhhmm")).csv" -NoTypeInformation
+    $exportObject = New-Object 'System.Collections.Generic.List[object]'
+
+    $results |
+        ForEach-Object {
+            $exportObject.Add([PSCustomObject]@{
+                    TestName      = $_.TestName
+                    Result        = $_.Result
+                    Details       = $_.Details | Out-String
+                    ReferenceInfo = $_.ReferenceInfo | Out-String
+                })
+        }
+
+    $exportObject | Export-Csv "$PSScriptRoot\SetupAssistResults-$((Get-Date).ToString("yyyyMMddhhmm")).csv" -NoTypeInformation
 
     $sbResults = {
         param($o, $p)

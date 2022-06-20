@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Pester testing file')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Pester testing file')]
 [CmdletBinding()]
 param()
@@ -28,7 +27,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     BeforeAll {
         Mock Get-AuthConfig -MockWith { return Import-Clixml $Script:parentPath\Tests\GetAuthConfig.xml }
         Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificate.xml }
-        Mock Get-Date -MockWith { return ([System.Convert]::ToDateTime("01/01/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) }
+        Mock Get-Date -MockWith { return ([System.Convert]::ToDateTime("01/01/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo).ToUniversalTime()) }
     }
 
     Context "Valid Exchange Server Certificates Detected" {
@@ -44,7 +43,6 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[0].SignatureHashAlgorithm | Should -Be "sha1"
             $results[0].SignatureHashAlgorithmSecure | Should -Be 1
             $results[0].IsSanCertificate | Should -Be $false
-            $results[0].LifetimeInDays | Should -Be 1652
             $results[0].PublicKeySize | Should -Be 2048
         }
 
@@ -57,7 +55,6 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[1].SignatureHashAlgorithmSecure | Should -Be 1
             $results[1].IsSanCertificate | Should -Be $true
             ($results[1].Namespaces).Count | Should -Be 2
-            $results[1].LifetimeInDays | Should -Be 1678
             $results[1].PublicKeySize | Should -Be 2048
         }
 

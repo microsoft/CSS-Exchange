@@ -48,6 +48,7 @@ nav:
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
+      - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
