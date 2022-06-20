@@ -36,10 +36,25 @@ function Get-ExchangeDependentServices {
             param(
                 [object]$Service
             )
+            $name = $Service.Name
+            $status = "Unknown"
+            $startType = "Unknown"
+            try {
+                $status = $Service.Status.ToString()
+            } catch {
+                Write-Verbose "Failed to set Status of service '$name'"
+                Invoke-CatchActions
+            }
+            try {
+                $startType = $Service.StartType.ToString()
+            } catch {
+                Write-Verbose "Failed to set Start Type of service '$name'"
+                Invoke-CatchActions
+            }
             return [PSCustomObject]@{
-                Name      = $Service.Name
-                Status    = $Service.Status.ToString()
-                StartType = $Service.StartType.ToString()
+                Name      = $name
+                Status    = $status
+                StartType = $startType
             }
         }
     } process {
