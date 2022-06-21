@@ -38,7 +38,7 @@ function Test-EPPrerequisites {
         # Admins have option to bypass the prerequisite check. However, it is strongly NOT RECOMMENDED as it can cause some mailbox access issues.
         if ($SkipEx2013OrOlderServers) {
             # Remove all the Ex2013 and older servers from the Exchange Server list
-            Write-Verbose ("Skipping {0}" -f $UnSupportedExchangeServers)
+            Write-Verbose "Skipping $([string]::Join(", ", $UnSupportedExchangeServers))"
             $ExchangeServers = $ExchangeServers | Where-Object { $_ -notin $UnSupportedExchangeServers }
         } else {
             Write-Host ("Older Exchange Servers detected. Enabling EPA on older servers can potentially regress mailbox operations. Please proceed with caution.")
