@@ -92,12 +92,12 @@ Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
 $ExchangeServers = Get-ExchangeServer
 
 if ($null -ne $ExchangeServerNames -and $ExchangeServerNames.Count -gt 0) {
-    Write-Verbose ("Running only on servers: {0}" -f $ExchangeServerNames)
+    Write-Verbose "Running only on servers: $([string]::Join(", " ,$ExchangeServerNames))"
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -in $ExchangeServerNames }
 }
 
 if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0) {
-    Write-Verbose ("Skipping servers: {0}" -f $SkipExchangeServerNames)
+    Write-Verbose "Skipping servers: $([string]::Join(", ", $SkipExchangeServerNames))"
 
     # Remove all the servers present in the SkipExchangeServerNames list
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
