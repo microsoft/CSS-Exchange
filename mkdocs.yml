@@ -10,6 +10,7 @@ nav:
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
     - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
+    - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
   - Databases:
     - VSSTester: Databases/VSSTester.md
@@ -48,6 +49,7 @@ nav:
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
+      - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md

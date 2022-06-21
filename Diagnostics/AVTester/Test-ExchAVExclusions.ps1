@@ -55,6 +55,7 @@ param (
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
 
@@ -63,6 +64,19 @@ $LogFile = "ExchAvExclusions.log"
 
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
+
+# Check Exchange Shell and Exchange instalation
+$exchangeShell = Confirm-ExchangeShell -Identity $env:computerName
+if (-not($exchangeShell.ShellLoaded)) {
+    Write-Warning "Failed to load Exchange Shell Module..."
+    exit
+}
+
+if ($null -eq $env:ExchangeInstallPath -or (
+        -not (Test-Path $env:ExchangeInstallPath))) {
+    Write-Warning "Failed to find Exchange Install Path"
+    exit
+}
 
 # Create the Array List
 $BaseFolders = New-Object Collections.Generic.List[string]
@@ -91,10 +105,13 @@ $BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compre
 $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
 $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 
-# Add all database folder paths
-foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
-    $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
+# Checking if it is a mailbox server to avoid errors if it is an Edge server.
+if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+    # Add all database folder paths
+    foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
+        $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
+        $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
+    }
 }
 
 # Get transport database path
