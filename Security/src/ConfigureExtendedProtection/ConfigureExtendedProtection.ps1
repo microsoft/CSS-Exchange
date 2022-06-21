@@ -78,6 +78,9 @@ param(
 . $PSScriptRoot\ConfigurationAction\Retry-Command.ps1
 . $PSScriptRoot\ConfigurationAction\Stop-SpoolerService.ps1
 
+$BuildVersion = ""
+Write-Host "Version $BuildVersion"
+
 if ($PSCmdlet.ParameterSetName.Equals("VDirOverride")) {
     if (-not ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("FEExtendedProtection") -or $PSCmdlet.MyInvocation.BoundParameters.ContainsKey("BEExtendedProtection"))) {
         Write-Error ("Operation failed, missing required FEExtendedProtection or BEExtendedProtection parameter")
