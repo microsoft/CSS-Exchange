@@ -1,102 +1,89 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Set-TokenChecking.ps1
-. $PSScriptRoot\Set-SSLFlag.ps1
-. $PSScriptRoot\..\DataCollection\Get-SSLFlag.ps1
-. $PSScriptRoot\..\DataCollection\Test-EPPrerequisites.ps1
+. $PSScriptRoot\..\DataCollection\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 
 function Configure-ExtendedProtection {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Work in progress - future adjustment')]
     param()
 
-    Test-EPPrerequisites -Confirm:$true
+    if ($Rollback) {
+        Write-Verbose "Rollback initialized"
 
-    $FEWebSiteName = 'Default Web Site'
-    $BEWebSiteName = 'Exchange Back End'
+        foreach ($server in $ExchangeServers) {
+            Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock {
+                try {
+                    $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+                    $backupLocation = $saveToPath.Replace(".config", ".revert.cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
+                    $restoreFile = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter "*applicationHost.cep.*.bak" | Sort-Object LastWriteTime | Select-Object -First 1).FullName
 
-    # List of all vDirs where Extended Protection needs to be enabled.
-    $FEVDirNames = @("API", "ECP", "EWS", "MAPI", "Microsoft-Server-ActiveSync", "OAB", "Powershell", "OWA", "RPC")
-    $BEVDirNames = @("API", "ECP", "EWS", "Microsoft-Server-ActiveSync", "OAB", "Powershell", "OWA", "RPC", "PushNotifications", "RPCWithCert", "MAPI/emsmdb", "MAPI/nspi")
+                    if ($null -eq $restoreFile) {
+                        throw "Failed to find applicationHost.cep.*.bak file."
+                    }
 
-    # If Rollback scenario then set the extended protection to None.
-    if ($Rollback -and (-not $PSCmdlet.ParameterSetName.Equals("VDirOverride"))) {
-        $FEExtendedProtection = "None"
-        $BEExtendedProtection = "None"
+                    Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop
+                    Write-Host "Restoring file $restoreFile on server $env:COMPUTERNAME"
+                    Copy-Item -Path $restoreFile -Destination $saveToPath -Force -ErrorAction Stop
+                    Write-Host "Successful restore of the application file"
+                } catch {
+                    Write-Host "Failed to restore application host file on server $env:COMPUTERNAME. Inner Exception $_"
+                }
+            }
+        }
+
+        return
     }
 
-    [string[]]$FailedServers = @()
-    [string[]]$PassedServers = @()
+    $extendedProtectionConfigurations = $ExchangeServers | ForEach-Object { Get-ExtendedProtectionConfiguration -ComputerName $_ }
 
-    # Loop all the Exchange servers
-    foreach ($server in $ExchangeServers) {
-        # Run the TokenChecking logic on all the Exchange Servers with supported server roles.
-        if ($server.ServerRole -like "*Mailbox*" -or  $server.ServerRole -like "*ClientAccess*") {
-            Write-Host ("Running ConfigureExtendedProtection on Exchange server: {0}" -f $server)
+    foreach ($serverExtendedProtection in $extendedProtectionConfigurations) {
+        # set the extended protection configuration to the expected and supported configuration if different
+        #$saveRequired = $false
+        #$locationPathList = ($serverExtendedProtection.ApplicationHostConfig.configuration.location.path).ToLower()
+        #$location = $serverExtendedProtection.ApplicationHostConfig.configuration.location
+        $saveInformation = @{}
 
-            try {
-                $flag = 0
+        foreach ($virtualDirectory in $serverExtendedProtection.ExtendedProtectionConfiguration) {
+            Write-Verbose "Virtual Directory Name: $($virtualDirectory.VirtualDirectoryName) Current Set Extended Protection: $($virtualDirectory.ExtendedProtection) Expected Value $($virtualDirectory.ExpectedExtendedConfiguration)"
+            if ($virtualDirectory.ExtendedProtection -ne $virtualDirectory.ExpectedExtendedConfiguration) {
 
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("FEExtendedProtection")) {
-                    $flag = 1
+                $saveInformation.Add($virtualDirectory.VirtualDirectoryName, $virtualDirectory.ExpectedExtendedConfiguration)
+                <# Can't do it this way due to the setting not being there originally in the configuration file. For now use the Set-WebConfigurationProperty
+                $pathIndex = [array]::IndexOf($locationPathList, $virtualDirectory.Configuration.NodePath.ToLower())
+
+                if ($pathIndex -ne -1) {
+                    $configNode = $location[$pathIndex]
+                    $configNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking = $virtualDirectory.ExpectedExtendedConfiguration
+                    $saveRequired = $true
                 }
-
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("BEExtendedProtection")) {
-                    $flag = 2
-                }
-
-                if ($flag -eq 0 -or $flag -eq 1) {
-                    if ($PSCmdlet.ParameterSetName.Equals("VDirOverride")) {
-                        $FEVDirNames = $VirtualDirectoryName
-                    }
-
-                    foreach ($vdirname in $FEVDirNames) {
-                        Set-TokenChecking -Server $server -Website_Name $FEWebSiteName -VDirName $vdirname -TokenChecking $FEExtendedProtection
-
-                        if ($EnforceSSL) {
-                            # Check for SSL flags
-                            $sslflag = Get-SSLFlag -Server $server -Website_Name $FEWebSiteName -VDirName $vdirname
-
-                            # If it's not set then set the SSL flag to true
-                            if ($sslflag -eq '0' -and $sslflag -eq 0) {
-                                Write-Host ("Enabling require SSL on Exchange server: {0}, {1}, VDir: {2}" -f $server, $FEWebSiteName, $vdirname)
-                                Set-SSLFlag -Server $server -Website_Name $FEWebSiteName -VDirName $vdirname
-                            }
-                        }
-                    }
-                }
-
-                if ($flag -eq 0 -or $flag -eq 2) {
-                    if ($PSCmdlet.ParameterSetName.Equals("VDirOverride")) {
-                        $BEVDirNames = $VirtualDirectoryName
-                    }
-
-                    foreach ($vdirname in $BEVDirNames)	{
-                        Set-TokenChecking -Server $server -Website_Name $BEWebSiteName -VDirName $vdirname -TokenChecking $BEExtendedProtection
-
-                        if ($EnforceSSL) {
-                            # Check for SSL flags
-                            $sslflag = Get-SSLFlag -Server $server -Website_Name $BEWebSiteName -VDirName $vdirname
-
-                            # If it's not set then set the SSL flag to true
-                            if ($sslflag -eq '0' -and $sslflag -eq 0) {
-                                Write-Host ("Enabling require SSL on Exchange server: {0}, {1}, VDir: {2}" -f $server, $BEWebSiteName, $vdirname)
-                                Set-SSLFlag -Server $server -Website_Name $BEWebSiteName -VDirName $vdirname
-                            }
-                        }
-                    }
-                }
-            } catch {
-                # Add to failed servers list
-                $FailedServers += $server.ToString()
-                continue
+                #>
             }
-            $PassedServers += $server.ToString()
+        }
+
+        if ($saveInformation.Count -gt 0) {
+            Write-Host "An update has occurred to the application host config file for server $($serverExtendedProtection.ComputerName). Going to backup the application host config file and update it."
+            Invoke-ScriptBlockHandler -ComputerName $serverExtendedProtection.ComputerName -ScriptBlock {
+                param(
+                    [hashtable]$Commands
+                )
+                $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+                $backupLocation = $saveToPath.Replace(".config", ".cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
+                try {
+                    Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop
+                    Write-Host "Successful backup of the application host config file to $backupLocation"
+                    foreach ($siteKey in $Commands.Keys) {
+                        #TODO: Place in a try catch incase we have a failure on 1 setting.
+                        Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands[$siteKey] -Location $siteKey -PSPath IIS:\
+                        Write-Verbose "$env:COMPUTERNAME set the $siteKey with the tokenChecking value of $($Commands[$siteKey])"
+                    }
+                    Write-Host "Successfully backed up and saved new application host config file."
+                } catch {
+                    Write-Host "Failed to save application host file on server $env:COMPUTERNAME. Inner Exception $_"
+                }
+            } -ArgumentList $saveInformation
         } else {
-            Write-Host ("Skipping server {0} as it does not match the supported ServerRole." -f $server)
+            Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName)"
         }
     }
-
-    Write-Host ("ConfigureExtendedProtection Passed on: {0}" -f $([string]::Join(",", $PassedServers)))
-    Write-Host ("ConfigureExtendedProtection Failed on: {0}" -f $([string]::Join(",", $FailedServers)))
 }
