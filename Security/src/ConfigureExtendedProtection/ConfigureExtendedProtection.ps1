@@ -52,6 +52,7 @@ if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl
 }
 
 Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
+Set-ADServerSettings -ViewEntireForest $true
 $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
 
 if ($null -ne $ExchangeServerNames -and $ExchangeServerNames.Count -gt 0) {
