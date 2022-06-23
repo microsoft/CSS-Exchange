@@ -56,7 +56,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
         It "Should Return The Extended Protection Custom Object" {
             $extendedProtectionResults.Count | Should -Be 1
-            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 21
+            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 23
         }
 
         It "Should Return The applicationHost.config As Xml" {
