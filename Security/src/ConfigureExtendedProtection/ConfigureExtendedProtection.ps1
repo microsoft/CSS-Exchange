@@ -41,9 +41,15 @@ param(
 )
 
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 $BuildVersion = ""
 Write-Host "Version $BuildVersion"
+
+if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
+    Write-Warning "Script was updated. Please rerun the command."
+    return
+}
 
 Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
 $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
