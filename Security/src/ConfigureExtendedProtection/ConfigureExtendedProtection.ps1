@@ -28,8 +28,6 @@
 param(
     [Parameter (Mandatory = $false, HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
-    [Parameter (Mandatory = $true, ParameterSetName = 'VDirOverride', HelpMessage = "Enter the name of the Virtual Directory on which you want to execute on")]
-    [string]$VirtualDirectoryName = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Use this switch to Enable require SSL flag across all IIS vdirs which don't have it enabled by default.")]
