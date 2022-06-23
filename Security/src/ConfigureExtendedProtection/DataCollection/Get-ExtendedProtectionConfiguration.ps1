@@ -190,7 +190,7 @@ function Get-ExtendedProtectionConfiguration {
         }
 
         # Is Supported build of Exchange to have the configuration set.
-        # TODO: Handle Edge Server
+        # Edge Server is not accounted for. It is the caller's job to not try to collect this info on Edge.
         $supportedVersion = $false
         $extendedProtectionList = New-Object 'System.Collections.Generic.List[object]'
 
