@@ -32,15 +32,40 @@ BeforeAll {
 
     $Script:buildNumbers = @{
         epUnsupportedExBuildNumber   = "15.0.1497.16"
-        epSupportedExBuildNumber2013 = "15.0.1497.36"
+        epSupportedExBuildNumber2013 = "15.0.1497.37"
         epSupportedExBuildNumber2016 = "15.1.2375.29"
-        epSupportedExBuildNumber2019 = "15.2.1118.19"
+        epSupportedExBuildNumber2019 = "15.2.1118.29"
     }
 }
 
 Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
     BeforeAll {
         $Script:applicationHostEPUnsupportedAndNotConfigured = ConvertXmlToConfig -Path $Script:parentPath\Tests\applicationHostEPUnsupportedAndNotConfigured.xml
+        Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\GetCommand.xml }
+    }
+
+    Context "No ExSetupVersion Passed To The Function" {
+        BeforeAll {
+            $mockParams = @{
+                ComputerName          = $Server
+                ApplicationHostConfig = $applicationHostEPUnsupportedAndNotConfigured
+            }
+
+            $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
+        }
+
+        It "Should Return The Extended Protection Custom Object" {
+            $extendedProtectionResults.Count | Should -Be 1
+            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 21
+        }
+
+        It "Should Return The applicationHost.config As Xml" {
+            $extendedProtectionResults.ApplicationHostConfig.GetType() | Should -Be "xml"
+        }
+
+        It "Build Unsupported To Run Extended Protection" {
+            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $false
+        }
     }
 
     Context "Extended Protection Is Not Configured On Unsupported Exchange 2013 Build" {
