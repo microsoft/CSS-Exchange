@@ -38,8 +38,20 @@ param(
     [switch]$Rollback
 )
 
+. $PSScriptRoot\Write-Verbose.ps1
+. $PSScriptRoot\WriteFunctions.ps1
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
+
+
+$Script:Logger = Get-NewLoggerInstance -LogName "ConfigureExtendedProtection-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
+    -AppendDateTimeToFileName $false `
+    -ErrorAction SilentlyContinue
+
+SetWriteHostAction ${Function:Write-HostLog}
+
 
 $BuildVersion = ""
 Write-Host "Version $BuildVersion"
