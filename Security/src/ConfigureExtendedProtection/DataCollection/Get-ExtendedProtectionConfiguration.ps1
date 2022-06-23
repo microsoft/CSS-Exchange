@@ -137,11 +137,11 @@ function Get-ExtendedProtectionConfiguration {
 
         $default = "Default Web Site"
         $backend = "Exchange Back End"
-        #TODO: Need to fix this logic as it only accounts for the default settings and sites. It is possible that customers have created additional sites.
         $VirtualDirectoryMatchEntries = @(
             (NewVirtualDirMatchingEntry "API" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None") #TODO Verify this setting.
-            (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require") #TODO Verify this setting.
+            (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None")
+            (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+            (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
             (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
             (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
             (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
