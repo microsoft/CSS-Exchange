@@ -6,25 +6,23 @@
     This script enables extended protection on all Exchange servers in the forest.
 .DESCRIPTION
     The Script does the following by default.
-        1. Enables Extended Protection with the 'Require' flag on "Default Web Site" Vdirs and 'Require' on "Exchange Back End" Vdirs
-        2. Stops and Disables the Print Spooler service
+        1. Enables Extended Protection to the recommended value for the corresponding virtual directory and site.
     Extended Protection is a windows security feature which blocks MiTM attacks.
 .PARAMETER Rollback
-    If set then the script execution will Rollback the Extended Protection back to 'None'.
+    If set then the script execution will Rollback the applicationHost.config file to the original state that was backed up with the script.
 .EXAMPLE
     PS C:\> .\ConfigureExtendedProtection.ps1
     This will run the default mode which does the following:
-        1. It will set Extended Protection as 'Require' on "Default Web Site" Vdirs on all the Exchange Servers.
-        2. If will set Extended Protection as 'Require' on "Exchange Back End" Vdirs on all the Exchange Servers.
+        1. It will set Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest.
 .EXAMPLE
     PS C:\> .\ConfigureExtendedProtection.ps1 -ExchangeServerNames <Array_of_Server_Names>
-    This will set the Extended Protection on all 'Default Web Site' and 'Exchange Back End' Vdirs only on the Exchange Servers whose names are provided in the ExchangeServerNames parameter.
+    This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers provided in ExchangeServerNames
 .EXAMPLE
     PS C:\> .\ConfigureExtendedProtection.ps1 -SkipExchangeServerNames <Array_of_Server_Names>
-    This will set the Extended Protection on all 'Default Web Site' and 'Exchange Back End' Vdirs except the Exchange Servers whose names are provided in the SkipExchangeServerNames parameter.
+    This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest except the Exchange Servers whose names are provided in the SkipExchangeServerNames parameter.
 .EXAMPLE
     PS C:\> .\ConfigureExtendedProtection.ps1 -Rollback
-    This will set the Extended Protection on all 'Default Web Site' Vdirs and 'Exchange Back End' Vdirs back to None.
+    This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
