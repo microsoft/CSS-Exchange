@@ -39,25 +39,12 @@ function Configure-ExtendedProtection {
 
     foreach ($serverExtendedProtection in $extendedProtectionConfigurations) {
         # set the extended protection configuration to the expected and supported configuration if different
-        #$saveRequired = $false
-        #$locationPathList = ($serverExtendedProtection.ApplicationHostConfig.configuration.location.path).ToLower()
-        #$location = $serverExtendedProtection.ApplicationHostConfig.configuration.location
         $saveInformation = @{}
 
         foreach ($virtualDirectory in $serverExtendedProtection.ExtendedProtectionConfiguration) {
             Write-Verbose "Virtual Directory Name: $($virtualDirectory.VirtualDirectoryName) Current Set Extended Protection: $($virtualDirectory.ExtendedProtection) Expected Value $($virtualDirectory.ExpectedExtendedConfiguration)"
             if ($virtualDirectory.ExtendedProtection -ne $virtualDirectory.ExpectedExtendedConfiguration) {
-
                 $saveInformation.Add($virtualDirectory.VirtualDirectoryName, $virtualDirectory.ExpectedExtendedConfiguration)
-                <# Can't do it this way due to the setting not being there originally in the configuration file. For now use the Set-WebConfigurationProperty
-                $pathIndex = [array]::IndexOf($locationPathList, $virtualDirectory.Configuration.NodePath.ToLower())
-
-                if ($pathIndex -ne -1) {
-                    $configNode = $location[$pathIndex]
-                    $configNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking = $virtualDirectory.ExpectedExtendedConfiguration
-                    $saveRequired = $true
-                }
-                #>
             }
         }
 
