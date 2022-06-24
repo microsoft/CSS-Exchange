@@ -69,9 +69,9 @@ function Configure-ExtendedProtection {
         }
 
         if ($saveInformation.Count -gt 0) {
-            Write-Host "An update has occurred to the application host config file for server $($serverExtendedProtection.ComputerName). Going to backup the application host config file and update it."
-            # provide what we are going to be changing outside of the script block for remote servers.
-            Write-Verbose "Going to be setting the following values on the server $($serverExtendedProtection.ComputerName)"
+            Write-Host "An update has occurred to the application host config file for server $($serverExtendedProtection.ComputerName). Backing up the application host config file and updating it."
+            # provide what we are changing outside of the script block for remote servers.
+            Write-Verbose "Setting the following values on the server $($serverExtendedProtection.ComputerName)"
             $saveInformation.Keys | ForEach-Object { Write-Verbose "Setting the $_ with the tokenChecking value of $($saveInformation[$_])" }
             $results = Invoke-ScriptBlockHandler -ComputerName $serverExtendedProtection.ComputerName -ScriptBlock {
                 param(
