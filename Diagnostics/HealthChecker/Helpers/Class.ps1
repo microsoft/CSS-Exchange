@@ -62,7 +62,6 @@ using System.Collections;
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
             public bool March2021SUInstalled;    //True if March 2021 SU is installed
             public object AffectedByFIPFSUpdateIssue; //True if FIP-FS Update issue is detected
-            public bool IsEPSupportedBuild = new bool(); //True if Extended Protection is supported with Exchange build
         }
 
         public class ExchangeNetFrameworkInformation
