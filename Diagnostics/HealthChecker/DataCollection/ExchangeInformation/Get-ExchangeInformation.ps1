@@ -6,7 +6,8 @@
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-PrintSpoolerConfiguration.ps1
-. $PSScriptRoot\Get-ExtendedProtectionConfiguration.ps1
+# TODO: Adjust once the function was moved to Shared
+. $PSScriptRoot\..\..\..\..\Security\src\ConfigureExtendedProtection\DataCollection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
@@ -486,7 +487,13 @@ function Get-ExchangeInformation {
             $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion -OSVersion $OSMajorVersion
 
             Write-Verbose "Query extended protection configuration for multiple CVEs testing"
-            $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration -ComputerName $Script:Server -BuildInformationObject $buildInformation
+            $getExtendedProtectionConfigurationParams = @{
+                ComputerName        = $Script:Server
+                ExSetupVersion      = $buildInformation.ExchangeSetup.FileVersion
+                CatchActionFunction = ${Function:Invoke-CatchActions}
+            }
+
+            $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
         }
 
         Write-Verbose "Query print spooler configuration for CVE-2022-21979 testing"

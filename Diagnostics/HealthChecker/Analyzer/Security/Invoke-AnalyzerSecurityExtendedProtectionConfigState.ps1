@@ -16,7 +16,6 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $extendedProtection = $SecurityObject.ExchangeInformation.ExtendedProtectionConfig
-    $isExtendedProtectionSupported = $SecurityObject.ExchangeInformation.BuildInformation.IsEPSupportedBuild
     $showAdditionalContent = $false
 
     $baseParams = @{
@@ -36,21 +35,21 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
             # Fix: Install July 2022 SU & enable extended protection
             # Extended protection is available with IIS 7.5 or higher
             Write-Verbose "Testing CVE: CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
-            if (($extendedProtection.ExtendedProtectionConfig.CheckPass.Contains($false)) -or
-                ($isExtendedProtectionSupported -eq $false)) {
+            if (($extendedProtection.ExtendedProtectionConfiguration.SupportedExtendedProtection.Contains($false)) -or
+                ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
                 $showAdditionalContent = $true
                 $showEPConfigDetail = ("Configure Extended Protection by running: 'ConfigureExtendedProtection.ps1 -ExchangeServerNames {0}'" -f $Script:Server)
                 Write-Verbose "At least one vDir is not configured properly and so, the system may be at risk"
-                if (($extendedProtection.ExtendedProtectionConfig.CheckPass.Contains($false)) -and
-                    ($isExtendedProtectionSupported -eq $false)) {
+                if (($extendedProtection.ExtendedProtectionConfiguration.SupportedExtendedProtection.Contains($false)) -and
+                    ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
                     # This combination means that EP is configured for at least one vDir, but the Exchange build doesn't support it.
                     # Such a combination can break several things like mailbox access, EMS... .
                     # Recommended action: Disable EP, upgrade to a supported build (July 2022 SU+) and enable afterwards.
                     $epDetails = "Extended Protection is configured, but not supported on this Exchange Server build."
                     $showEPConfigDetail = ("Run: 'ConfigExtendedProtection.ps1 -Rollback -ExchangeServerNames {0}' to disable Extended Protection." -f $Script:Server)
                     $showEPConfigDetail += "`r`n`tInstall the latest Exchange Server build and enable Extended Protection afterwards."
-                } elseif ((-not($extendedProtection.ExtendedProtectionConfig.CheckPass.Contains($true))) -and
-                    ($isExtendedProtectionSupported -eq $false)) {
+                } elseif ((-not($extendedProtection.ExtendedProtectionConfiguration.SupportedExtendedProtection.Contains($false))) -and
+                    ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
                     # This combination means that EP is not configured and the Exchange build doesn't support it.
                     # Recommended action: Upgrade to a supported build (July 2022 SU+) and enable EP afterwards.
                     $epDetails = "Your Exchange server is at risk. Install the latest SU and enable Extended Protection."
@@ -74,24 +73,22 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 Add-AnalyzedResultInformation @epCveParams
                 Add-AnalyzedResultInformation @epBasicParams
 
-                $epOutputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
-                foreach ($entry in $extendedProtection.ExtendedProtectionConfig) {
-                    $ssl = $entry.SSLConfiguration
-                    $sslRequired = $ssl.RequireSSL
+                $epOutputObjectDisplayValue = New-Object 'System.Collections.Generic.List[object]'
+                foreach ($entry in $extendedProtection.ExtendedProtectionConfiguration) {
+                    $ssl = $entry.Configuration.SslSettings
+                    $sslRequired = $ssl.RequireSsl
 
-                    if ($ssl.SSL128Bit) {
+                    if ($ssl.Ssl128Bit) {
                         $sslRequired = [System.String]::Join(" ", $ssl.RequireSSL, "(128-bit)")
                     }
 
                     $epOutputObjectDisplayValue.Add(([PSCustomObject]@{
-                                vDir              = $entry.vDir
-                                Site              = $entry.Type
+                                vDir              = $entry.VirtualDirectoryName
                                 Value             = $entry.ExtendedProtection
-                                SupportedValue    = $entry.MaxSupportedValue
-                                ConfigSupported   = $entry.ConfigSupported
+                                SupportedValue    = $entry.ExpectedExtendedConfiguration
+                                ConfigSupported   = $entry.SupportedExtendedProtection
                                 RequireSSL        = $sslRequired
-                                ClientCertificate = $ssl.ClientCertificates
-                                IsConfigSecure    = $entry.CheckPass
+                                ClientCertificate = $ssl.ClientCertificate
                             })
                     )
                 }
@@ -99,12 +96,6 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 $epConfig = {
                     param ($o, $p)
                     if ($p -eq "ConfigSupported") {
-                        if ($o.$p -ne $true) {
-                            "Red"
-                        } else {
-                            "Green"
-                        }
-                    } elseif ($p -eq "IsConfigSecure") {
                         if ($o.$p -ne $true) {
                             "Red"
                         } else {
