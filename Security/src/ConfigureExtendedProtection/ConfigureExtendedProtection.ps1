@@ -40,9 +40,15 @@ param(
 . $PSScriptRoot\WriteFunctions.ps1
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
 
+
+if (-not (Confirm-Administrator)) {
+    Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
+    exit
+}
 
 $Script:Logger = Get-NewLoggerInstance -LogName "ConfigureExtendedProtection-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
     -AppendDateTimeToFileName $false `
