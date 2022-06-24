@@ -45,11 +45,17 @@ function Configure-ExtendedProtection {
                 Write-Host "Successful restored $($results.RestoreFile) on server $server"
                 continue
             } elseif ($results.SuccessBackupCurrent -eq $false) {
-                Write-Host "Failed to backup the current configuration on server $server"
+                $line = "Failed to backup the current configuration on server $server"
+                Write-Verbose $line
+                Write-Warning $line
             } else {
-                Write-Host "Failed to restore $($results.RestoreFile) to be the active application host config file on server $server"
+                $line = "Failed to restore $($results.RestoreFile) to be the active application host config file on server $server"
+                Write-Verbose $line
+                Write-Warning $line
             }
+            Start-Sleep 1
             Write-HostErrorInformation $results.ErrorContext
+            Write-Host ""
         }
 
         return
@@ -89,7 +95,7 @@ function Configure-ExtendedProtection {
                         try {
                             Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
                         } catch {
-                            Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands[$siteKey])"
+                            Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands[$siteKey]). Inner Exception $_"
                             $errorContext.Add($_)
                         }
                     }
@@ -111,11 +117,23 @@ function Configure-ExtendedProtection {
                 Write-Host "Successfully backed up and saved new application host config file."
                 continue
             } elseif ($results.BackupSuccess -eq $false) {
-                Write-Host "Failed to backup the application host config file. No settings were applied."
+                $line = "Failed to backup the application host config file. No settings were applied."
+                Write-Verbose $line
+                Write-Warning $line
             } else {
-                Write-Host "Failed to properly set all the tokenChecking values on the server $($serverExtendedProtection.ComputerName). Recommended to address!"
+                $line = "Failed to properly set all the tokenChecking values on the server $($serverExtendedProtection.ComputerName). Recommended to address!"
+                Write-Verbose $line
+                Write-Warning $line
             }
-            $results.ErrorContext | ForEach-Object { Write-HostErrorInformation $_ }
+            Start-Sleep 5 # Sleep to bring to attention to the customer
+            Write-Host "Errors that occurred on the backup and set attempt:"
+            # Group the events incase they are the same.
+            $results.ErrorContext | Group-Object |
+                ForEach-Object {
+                    Write-Host "There were $($_.Count) errors that occurred with the following information:"
+                    $_.Group | Select-Object -First 1 | ForEach-Object { Write-HostErrorInformation $_ }
+                }
+            Write-Host ""
         } else {
             Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName)"
         }
