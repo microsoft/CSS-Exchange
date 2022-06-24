@@ -21,22 +21,24 @@ function Get-ExtendedProtectionConfiguration {
     begin {
         function NewVirtualDirMatchingEntry {
             param(
+                [Parameter(Mandatory = $true)]
                 [string]$VirtualDirectory,
+                [Parameter(Mandatory = $true)]
                 [string[]]$WebSite,
+                [Parameter(Mandatory = $true)]
                 [ValidateSet("None", "Allow", "Require")]
                 [string[]]$ExtendedProtection
             )
 
-            if ($WebSite.Count -gt 1 -and
-                $ExtendedProtection.Count -eq $WebSite.Count) {
-                # place objects on the pipeline, they should be in order
-                NewVirtualDirMatchingEntry -VirtualDirectory $VirtualDirectory -WebSite $WebSite[0] -ExtendedProtection $ExtendedProtection[0]
-                NewVirtualDirMatchingEntry -VirtualDirectory $VirtualDirectory -WebSite $WebSite[1] -ExtendedProtection $ExtendedProtection[1]
-            } else {
-                return [PSCustomObject]@{
-                    VirtualDirectory   = $VirtualDirectory
-                    WebSite            = $WebSite
-                    ExtendedProtection = $ExtendedProtection
+            if ($WebSite.Count -ne $ExtendedProtection.Count) {
+                throw "Argument count mismatch on $VirtualDirectory"
+            }
+
+            for ($i = 0; $i -lt $WebSite.Count; $i++) {
+                [PSCustomObject]@{
+                    VirtualDirectory   = $virtualDirectory
+                    WebSite            = $WebSite[$i]
+                    ExtendedProtection = $ExtendedProtection[$i]
                 }
             }
         }
@@ -137,22 +139,27 @@ function Get-ExtendedProtectionConfiguration {
 
         $default = "Default Web Site"
         $backend = "Exchange Back End"
-        $VirtualDirectoryMatchEntries = @(
-            (NewVirtualDirMatchingEntry "API" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None")
-            (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
-            (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-            (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
-            (NewVirtualDirMatchingEntry "PushNotifications" -WebSite $backend -ExtendedProtection "Require")
-            (NewVirtualDirMatchingEntry "RPCWithCert" -WebSite $backend -ExtendedProtection "Require")
-            (NewVirtualDirMatchingEntry "MAPI/emsmdb" -WebSite $backend -ExtendedProtection "Require")
-            (NewVirtualDirMatchingEntry "MAPI/nspi" -WebSite $backend -ExtendedProtection "Require")
-        )
+        try {
+            $VirtualDirectoryMatchEntries = @(
+                (NewVirtualDirMatchingEntry "API" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None")
+                (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
+                (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "PushNotifications" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "RPCWithCert" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "MAPI/emsmdb" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "MAPI/nspi" -WebSite $backend -ExtendedProtection "Require")
+            )
+        } catch {
+            # Don't handle with Catch Error as this is a bug in the script.
+            throw "Failed to create NewVirtualDirMatchingEntry. Inner Exception $_"
+        }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
