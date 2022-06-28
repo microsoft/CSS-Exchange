@@ -18,7 +18,7 @@ function Configure-ExtendedProtection {
                 try {
                     $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".revert.cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
-                    $restoreFile = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter "*applicationHost.cep.*.bak" | Sort-Object LastWriteTime | Select-Object -First 1).FullName
+                    $restoreFile = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter "*applicationHost.cep.*.bak" | Sort-Object CreationTime | Select-Object -First 1).FullName
                     $successRestore = $false
                     $successBackupCurrent = $false
 
