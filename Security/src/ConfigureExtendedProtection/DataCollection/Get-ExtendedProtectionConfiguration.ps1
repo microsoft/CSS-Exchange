@@ -163,6 +163,14 @@ function Get-ExtendedProtectionConfiguration {
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+        $computerResult = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock { return $env:COMPUTERNAME }
+        $serverConnected = $null -ne $computerResult
+
+        if ($null -eq $computerResult) {
+            Write-Verbose "Failed to connect to server $ComputerName"
+            return
+        }
+
         if ($null -eq $ExSetupVersion) {
             [System.Version]$ExSetupVersion = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock {
                 (Get-Command Exsetup.exe |
@@ -260,6 +268,7 @@ function Get-ExtendedProtectionConfiguration {
     end {
         return [PSCustomObject]@{
             ComputerName                          = $ComputerName
+            ServerConnected                       = $serverConnected
             SupportedVersionForExtendedProtection = $supportedVersion
             ApplicationHostConfig                 = $ApplicationHostConfig
             ExtendedProtectionConfiguration       = $extendedProtectionList
