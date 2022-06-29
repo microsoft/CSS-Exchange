@@ -1,0 +1,14 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <B N="FIPFSFixedBuild">true</B>
+      <B N="ServerRoleAffected">true</B>
+      <I64 N="HighesVersionNumberDetected">2201010000</I64>
+      <B N="BadVersionNumberDirDetected">true</B>
+    </MS>
+  </Obj>
+</Objs>
