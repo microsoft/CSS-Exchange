@@ -329,26 +329,58 @@ function Invoke-AnalyzerSecuritySettings {
     Invoke-AnalyzerSecurityAMSIConfigState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
 
-    if ($HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
-        $params = $baseParams + @{
+    if ($null -ne $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue) {
+        $fipfsInfoObject = $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue
+        $highestVersion = $fipfsInfoObject.HighesVersionNumberDetected
+        $fipfsIssueBaseParams = @{
             Name             = "FIP-FS Update Issue Detected"
             Details          = $true
             DisplayWriteType = "Red"
         }
-        Add-AnalyzedResultInformation @params
+        $moreInformation = "More Information: https://aka.ms/HC-FIPFSUpdateIssue"
 
-        $params = $baseParams + @{
-            Details                = "More Information: https://aka.ms/HC-FIPFSUpdateIssue"
-            DisplayWriteType       = "Red"
-            DisplayCustomTabNumber = 2
+        if ($fipfsInfoObject.ServerRoleAffected -eq $false) {
+            # Server role is not affected by the FIP-FS issue so we don't need to check for the other conditions.
+            Write-Verbose "The Exchange server runs a role which is not affected by the FIP-FS issue"
+        } elseif (($fipfsInfoObject.FIPFSFixedBuild -eq $false) -and
+            ($fipfsInfoObject.BadVersionNumberDirDetected)) {
+            # Exchange doesn't run a build which is resitent against the problematic pattern
+            # and a folder with the problematic version number was detected on the computer.
+            $params = $baseParams + $fipfsIssueBaseParams
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Details                = $moreInformation
+                DisplayWriteType       = "Red"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        } elseif (($fipfsInfoObject.FIPFSFixedBuild) -and
+            ($fipfsInfoObject.BadVersionNumberDirDetected)) {
+            # Exchange runs a build that can handle the problematic pattern. However, we found
+            # a high-version folder which should be removed (recommendation).
+            $fipfsIssueBaseParams.DisplayWriteType = "Yellow"
+            $params = $baseParams + $fipfsIssueBaseParams
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Details                = "We've detected the problematic FIP-FS version: $highestVersion`r`n`t`tAlthough it should not cause any problems, we recommend performing a FIP-FS reset.`r`n`t`t$moreInformation"
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        } elseif ($null -eq $fipfsInfoObject.HighesVersionNumberDetected) {
+            # No scan engine was found on the Exchange server. This will cause multiple issues on transport.
+            $fipfsIssueBaseParams.Details = "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent."
+            $params = $baseParams + $fipfsIssueBaseParams
+            Add-AnalyzedResultInformation @params
+        } else {
+            Write-Verbose "Server runs a FIP-FS fixed build: $($fipfsInfoObject.FIPFSFixedBuild) - Highest version number: $highestVersion"
         }
-        Add-AnalyzedResultInformation @params
-    } elseif ($null -eq $HealthServerObject.ExchangeInformation.BuildInformation.AffectedByFIPFSUpdateIssue) {
-        $params = $baseParams + @{
-            Name             = "FIP-FS Update Issue Detected"
-            Details          = "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent."
-            DisplayWriteType = "Red"
-        }
+    } else {
+        $fipfsIssueBaseParams.Details = "Warning: Unable to check if the system is vulnerable to the FIP-FS bad pattern issue. Please re-run. $moreInformation"
+        $fipfsIssueBaseParams.DisplayWriteType = "Yellow"
+        $params = $baseParams + $fipfsIssueBaseParams
         Add-AnalyzedResultInformation @params
     }
 }

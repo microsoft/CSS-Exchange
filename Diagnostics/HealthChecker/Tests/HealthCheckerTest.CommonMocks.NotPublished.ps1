@@ -145,7 +145,7 @@ Mock Get-HttpProxySetting {
 }
 
 Mock Get-FIPFSScanEngineVersionState {
-    return $true
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetFIPFSScanEngineVersionState.xml"
 }
 
 Mock Get-ExchangeIISConfigSettings {
