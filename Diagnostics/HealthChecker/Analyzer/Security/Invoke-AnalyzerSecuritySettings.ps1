@@ -328,7 +328,7 @@ function Invoke-AnalyzerSecuritySettings {
             Add-AnalyzedResultInformation @params
 
             $params = $baseParams + @{
-                Details                = "We've detected the problematic FIP-FS version: $highestVersion`r`n`t`tAlthough it should not cause any problems, we recommend performing a FIP-FS reset.`r`n`t`t$moreInformation"
+                Details                = "Detected problematic FIP-FS version $highestVersion directory`r`n`t`tAlthough it should not cause any problems, we recommend performing a FIP-FS reset`r`n`t`t$moreInformation"
                 DisplayWriteType       = "Yellow"
                 DisplayCustomTabNumber = 2
             }
