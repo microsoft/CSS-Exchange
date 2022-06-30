@@ -30,25 +30,73 @@ BeforeAll {
         return $appHostConfig
     }
 
-    $Script:buildNumbers = @{
-        epUnsupportedExBuildNumber   = "15.0.1497.16"
-        epSupportedExBuildNumber2013 = "15.0.1497.37"
-        epSupportedExBuildNumber2016 = "15.1.2375.29"
-        epSupportedExBuildNumber2019 = "15.2.1118.29"
+    function TestUnsupportedNotConfiguredExtendedProtection {
+        param(
+            [object]$TestingExtendedProtectionResults
+        )
+
+        $TestingExtendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $false
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExtendedProtection -ne "None" } |
+            Should -Be $null
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExpectedExtendedConfiguration -ne "None" } |
+            Should -Be $null
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.SupportedExtendedProtection -eq $false } |
+            Should -Be $null
     }
+
+    function TestSupportedConfiguredExtendedProtection {
+        param(
+            [object]$TestingExtendedProtectionResults
+        )
+
+        $TestingExtendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $true
+        ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExtendedProtection -ne "None" }).count |
+                Should -Be 21
+        ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExpectedExtendedConfiguration -ne "None" }).count |
+                Should -Be 21
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.SupportedExtendedProtection -eq $false } |
+            Should -Be $null
+        # Special configs
+        $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExtendedProtection -eq "Allow" }
+        $null -ne $allow | Should -Be $true
+        $allow.configuration.NodePath | Should -Be "Default Web Site/EWS"
+
+        $none = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ExtendedProtection -eq "None" }
+        $null -ne $none | Should -Be $true
+        $none.Count | Should -Be 2
+        $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
+        $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
+    }
+
+    $Script:E15_NotConfigured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
+    $Script:E15_NotConfigured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Cas_ApplicationHost.config
+    $Script:E15_NotConfigured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Mbx_ApplicationHost.config
+    $Script:E16_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_NotConfigured_ApplicationHost.config
+    $Script:E19_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_NotConfigured_ApplicationHost.config
+
+    $Script:E16_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
+    $Script:E19_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_ApplicationHost.config
+
+    $Script:E19_MisConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_MisConfigured_ApplicationHost.config
 }
 
 Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
-    BeforeAll {
-        $Script:applicationHostEPUnsupportedAndNotConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_NotConfigured_ApplicationHost.config
-        Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\Data\GetCommand.xml }
-    }
 
     Context "No ExSetupVersion Passed To The Function" {
         BeforeAll {
+            Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\Data\GetCommand.xml }
+
             $mockParams = @{
                 ComputerName          = $Server
-                ApplicationHostConfig = $applicationHostEPUnsupportedAndNotConfigured
+                ApplicationHostConfig = $E16_NotConfigured_ApplicationHost
             }
 
             $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
@@ -63,177 +111,76 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             $extendedProtectionResults.ApplicationHostConfig.GetType() | Should -Be "xml"
         }
 
-        It "Build Unsupported To Run Extended Protection" {
-            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $false
+        It "TestUnsupportedNotConfiguredExtendedProtection" {
+            TestUnsupportedNotConfiguredExtendedProtection $extendedProtectionResults
         }
     }
 
-    Context "Extended Protection Is Not Configured On Unsupported Exchange 2013 Build" {
-        BeforeAll {
+    Context "Extended Protection Is Not Configured On Unsupported Exchange Version" {
+
+        It "Exchange 2013 CAS/MBX" {
             $mockParams = @{
                 ComputerName          = $Server
-                ExSetupVersion        = $buildNumbers.epUnsupportedExBuildNumber
-                ApplicationHostConfig = $applicationHostEPUnsupportedAndNotConfigured
+                ExSetupVersion        = "15.00.1497.036"
+                ApplicationHostConfig = $E15_NotConfigured_Both_ApplicationHost
             }
-
-            $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
+            TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
 
-        It "Build Unsupported To Run Extended Protection" {
-            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $false
+        It "Exchange 2013 CAS" {
+            $mockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.00.1497.036"
+                ApplicationHostConfig = $E15_NotConfigured_Cas_ApplicationHost
+            }
+            TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
 
-        It "Extended Protection Is Not Configured" {
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration) {
-                $e.ExtendedProtection | Should -Be "None"
-                $e.SupportedExtendedProtection | Should -Be $true
-                $e.ExpectedExtendedConfiguration | Should -Be "None"
+        It "Exchange 2013 Mbx" {
+            $mockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.00.1497.036"
+                ApplicationHostConfig = $E15_NotConfigured_Mbx_ApplicationHost
             }
+            TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
 
-        It "SSL Settings Are Returned For Default Web Site/PowerShell" {
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration.Configuration) {
-                if ($e.NodePath -eq "Default Web Site/PowerShell") {
-                    $e.SslSettings.RequireSsl | Should -Be $false
-                    $e.SslSettings.Ssl128Bit | Should -Be $false
-                    $e.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $e.SslSettings.Value | Should -Be "SslNegotiateCert"
-                }
+        It "Exchange 2016" {
+            $mockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.01.2507.009"
+                ApplicationHostConfig = $E16_NotConfigured_ApplicationHost
             }
+            TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
 
-        It "SSL Settings Are Returned For Exchange Back End/PowerShell" {
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration.Configuration) {
-                if ($e.NodePath -eq "Exchange Back End/PowerShell") {
-                    $e.SslSettings.RequireSsl | Should -Be $true
-                    $e.SslSettings.Ssl128Bit | Should -Be $true
-                    $e.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $e.SslSettings.Value | Should -Be "Ssl, SslNegotiateCert, Ssl128"
-                }
+        It "Exchange 2019" {
+            $mockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.02.1118.009"
+                ApplicationHostConfig = $E19_NotConfigured_ApplicationHost
             }
+            TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
     }
 
-    Context "Extended Protection Is Configured On Supported Exchange 2016 Build" {
-        BeforeAll {
-            $Script:applicationHostEPSupportedAndConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
-
+    Context "Extended Protection Is Configured On Supported Exchange Version" {
+        It "Exchange 2016" {
             $mockParams = @{
                 ComputerName          = $Server
-                ExSetupVersion        = $buildNumbers.epSupportedExBuildNumber2016
-                ApplicationHostConfig = $applicationHostEPSupportedAndConfigured
+                ExSetupVersion        = "15.1.2375.29"
+                ApplicationHostConfig = $E16_Configured_ApplicationHost
             }
-
-            $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
+            TestSupportedConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
 
-        It "Build Supported To Run Support Extended Protection" {
-            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $true
-        }
-
-        It "Extended Protection Is Configured" {
-            # Validated on EWS and PowerShell (Front- and Back End)
-            # Test must be adjusted once the values are finally confirmed
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration) {
-                $configuration = $e.configuration
-                if ($configuration.NodePath -eq "Default Web Site/EWS") {
-                    $e.ExtendedProtection | Should -Be "Allow"
-                    $e.SupportedExtendedProtection | Should -Be $true
-                    $e.ExpectedExtendedConfiguration | Should -Be "Allow"
-                    $configuration.SslSettings.RequireSsl | Should -Be $true
-                    $configuration.SslSettings.Ssl128Bit | Should -Be $true
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Ignore"
-                    $configuration.SslSettings.Value | Should -Be "Ssl, Ssl128"
-                } elseif ($configuration.NodePath -eq "Exchange Back End/EWS") {
-                    $e.ExtendedProtection | Should -Be "Require"
-                    $e.SupportedExtendedProtection | Should -Be $true
-                    $e.ExpectedExtendedConfiguration | Should -Be "Require"
-                    $configuration.SslSettings.RequireSsl | Should -Be $true
-                    $configuration.SslSettings.Ssl128Bit | Should -Be $true
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Ignore"
-                    $configuration.SslSettings.Value | Should -Be "Ssl, Ssl128"
-                } elseif ($configuration.NodePath -eq "Default Web Site/PowerShell ") {
-                    $e.ExtendedProtection | Should -Be "Require"
-                    $e.SupportedExtendedProtection | Should -Be $true
-                    $e.ExpectedExtendedConfiguration | Should -Be "Require"
-                    $configuration.SslSettings.RequireSsl | Should -Be $false
-                    $configuration.SslSettings.Ssl128Bit | Should -Be $false
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $configuration.SslSettings.Value | Should -Be "SslNegotiateCert"
-                } elseif ($configuration.NodePath -eq "Exchange Back End/PowerShell") {
-                    $e.ExtendedProtection | Should -Be "Require"
-                    $e.SupportedExtendedProtection | Should -Be $true
-                    $e.ExpectedExtendedConfiguration | Should -Be "Require"
-                    $configuration.SslSettings.RequireSsl | Should -Be $true
-                    $configuration.SslSettings.Ssl128Bit | Should -Be $true
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $configuration.SslSettings.Value | Should -Be "Ssl, SslNegotiateCert, Ssl128"
-                }
-            }
-        }
-    }
-
-    Context "Insecure Extended Protection Configuration On Supported Exchange 2019 Build" {
-        BeforeAll {
-            $Script:applicationHostEPSupportedButMisconfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_MisConfigured_ApplicationHost.config
-
+        It "Exchange 2019" {
             $mockParams = @{
                 ComputerName          = $Server
-                ExSetupVersion        = $buildNumbers.epSupportedExBuildNumber2019
-                ApplicationHostConfig = $applicationHostEPSupportedButMisconfigured
+                ExSetupVersion        = "15.2.1118.29"
+                ApplicationHostConfig = $E19_Configured_ApplicationHost
             }
-
-            $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
-        }
-
-        It "Build Supported To Run Support Extended Protection" {
-            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $true
-        }
-
-        It "Extended Protection Is Not Configured On Powershell Back-End" {
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration) {
-                $configuration = $e.configuration
-                if ($configuration.NodePath -eq "Exchange Back End/Powershell") {
-                    $e.ExtendedProtection | Should -Be "None"
-                    $e.SupportedExtendedProtection | Should -Be $false
-                    $e.ExpectedExtendedConfiguration | Should -Be "Require"
-                    $configuration.SslSettings.RequireSsl | Should -Be $true
-                    $configuration.SslSettings.Ssl128Bit | Should -Be $true
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $configuration.SslSettings.Value | Should -Be "Ssl, SslNegotiateCert, Ssl128"
-                }
-            }
-        }
-    }
-
-    Context "Secure Extended Protection Configuration On Unsupported Exchange 2013 Build" {
-        BeforeAll {
-            # TODO: Fix broken test.
-            $Script:applicationHostEPUnsupportedAndConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
-
-            $mockParams = @{
-                ComputerName          = $Server
-                ExSetupVersion        = $buildNumbers.epUnsupportedExBuildNumber
-                ApplicationHostConfig = $applicationHostEPUnsupportedAndConfigured
-            }
-
-            $Script:extendedProtectionResults = Get-ExtendedProtectionConfiguration @mockParams
-        }
-
-        It "Build Unsupported To Run Extended Protection" {
-            $extendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $false
-        }
-
-        It "Extended Protection Is Configured On Multiple vDirs But Unsupported" {
-            foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration) {
-                $configuration = $e.configuration
-                if (($configuration.NodePath -notlike "*/Autodiscover") -and
-                    ($configuration.NodePath -notlike "*/EWS")) {
-                    $e.ExtendedProtection | Should -Be "Require"
-                    $e.SupportedExtendedProtection | Should -Be $false
-                    $e.ExpectedExtendedConfiguration | Should -Be "None"
-                }
-            }
+            TestSupportedConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
         }
     }
 }
