@@ -9,6 +9,10 @@ function Configure-ExtendedProtection {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Work in progress - future adjustment')]
     param()
 
+    $failedServers = New-Object 'System.Collections.Generic.List[string]'
+    $noChangesMadeServers = New-Object 'System.Collections.Generic.List[string]'
+    $updatedServers = New-Object 'System.Collections.Generic.List[string]'
+
     if ($Rollback) {
         Write-Verbose "Rollback initialized"
 
@@ -53,17 +57,39 @@ function Configure-ExtendedProtection {
                 Write-Verbose $line
                 Write-Warning $line
             }
+            $failedServers.Add($server)
             Start-Sleep 1
             Write-HostErrorInformation $results.ErrorContext
             Write-Host ""
         }
 
+        if ($failedServers.Count -gt 0) {
+            $line = "These are the servers that failed to rollback: $([string]::Join(", " ,$failedServers))"
+            Write-Verbose $line
+            Write-Warning $line
+        }
         return
     }
 
     $extendedProtectionConfigurations = $ExchangeServers | ForEach-Object { Get-ExtendedProtectionConfiguration -ComputerName $_ }
 
     foreach ($serverExtendedProtection in $extendedProtectionConfigurations) {
+        # Check to make sure server is connected and valid information is provided.
+        if (-not ($serverExtendedProtection.ServerConnected)) {
+            $line = "Server $($serverExtendedProtection.ComputerName) isn't online to get valid Extended Protection Configuration settings"
+            Write-Verbose $line
+            Write-Warning $line
+            $failedServers.Add($serverExtendedProtection.ComputerName)
+            continue
+        }
+
+        if ($serverExtendedProtection.ExtendedProtectionConfiguration.Count -eq 0) {
+            $line = "Server $($serverExtendedProtection.ComputerName) wasn't able to collect Extended Protection Configuration"
+            Write-Verbose $line
+            Write-Warning $line
+            continue
+        }
+
         # set the extended protection configuration to the expected and supported configuration if different
         $saveInformation = @{}
 
@@ -115,6 +141,7 @@ function Configure-ExtendedProtection {
             if ($results.BackupSuccess -and $results.SetAllTokenChecking) {
                 Write-Verbose "Backed up the file to $($results.BackupLocation)"
                 Write-Host "Successfully backed up and saved new application host config file."
+                $updatedServers.Add($serverExtendedProtection.ComputerName)
                 continue
             } elseif ($results.BackupSuccess -eq $false) {
                 $line = "Failed to backup the application host config file. No settings were applied."
@@ -125,6 +152,7 @@ function Configure-ExtendedProtection {
                 Write-Verbose $line
                 Write-Warning $line
             }
+            $failedServers.Add($serverExtendedProtection.ComputerName)
             Start-Sleep 5 # Sleep to bring to attention to the customer
             Write-Host "Errors that occurred on the backup and set attempt:"
             # Group the events incase they are the same.
@@ -136,6 +164,21 @@ function Configure-ExtendedProtection {
             Write-Host ""
         } else {
             Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName)"
+            $noChangesMadeServers.Add($serverExtendedProtection.ComputerName)
         }
+    }
+
+    if ($failedServers.Count -gt 0) {
+        $line = "These are the servers that failed to apply extended protection: $([string]::Join(", " ,$failedServers))"
+        Write-Verbose $line
+        Write-Warning $line
+    }
+
+    if ($noChangesMadeServers.Count -gt 0) {
+        Write-Host "No changes were made to these servers: $([string]::Join(", " ,$noChangesMadeServers))"
+    }
+
+    if ($updatedServers.Count -gt 0 ) {
+        Write-Host "Successfully updated all of the following servers for extended protection:  $([string]::Join(", " ,$updatedServers))"
     }
 }
