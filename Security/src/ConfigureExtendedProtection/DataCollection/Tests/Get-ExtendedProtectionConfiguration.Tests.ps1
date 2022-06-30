@@ -13,21 +13,21 @@ BeforeAll {
         param()
     }
 
-    function ConvertXmlToConfig {
+    function LoadApplicationHostConfig {
         [CmdletBinding()]
         [OutputType("System.Xml.XmlNode")]
         param(
             [string]$Path
         )
 
-        $applicationHostConfigPath = "$env:TEMP\applicationHost.config"
-
-        $xml = New-Object -TypeName xml
-        $config = Import-Clixml -Path $Path
-        $config | Out-File -Path $applicationHostConfigPath
-        $xml.Load($applicationHostConfigPath)
-
-        return $xml
+        $appHostConfig = New-Object -TypeName Xml
+        try {
+            $appHostConfig.Load($Path)
+        } catch {
+            throw "Failed to loaded application host config file. $_"
+            $appHostConfig = $null
+        }
+        return $appHostConfig
     }
 
     $Script:buildNumbers = @{
@@ -40,8 +40,8 @@ BeforeAll {
 
 Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
     BeforeAll {
-        $Script:applicationHostEPUnsupportedAndNotConfigured = ConvertXmlToConfig -Path $Script:parentPath\Tests\applicationHostEPUnsupportedAndNotConfigured.xml
-        Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\GetCommand.xml }
+        $Script:applicationHostEPUnsupportedAndNotConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_NotConfigured_ApplicationHost.config
+        Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\Data\GetCommand.xml }
     }
 
     Context "No ExSetupVersion Passed To The Function" {
@@ -116,7 +116,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
     Context "Extended Protection Is Configured On Supported Exchange 2016 Build" {
         BeforeAll {
-            $Script:applicationHostEPSupportedAndConfigured = ConvertXmlToConfig -Path $Script:parentPath\Tests\applicationHostEPSupportedAndConfigured.xml
+            $Script:applicationHostEPSupportedAndConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
 
             $mockParams = @{
                 ComputerName          = $Server
@@ -136,14 +136,14 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             # Test must be adjusted once the values are finally confirmed
             foreach ($e in $extendedProtectionResults.ExtendedProtectionConfiguration) {
                 $configuration = $e.configuration
-                if ($configuation.NodePath -eq "Default Web Site/EWS") {
+                if ($configuration.NodePath -eq "Default Web Site/EWS") {
                     $e.ExtendedProtection | Should -Be "Allow"
                     $e.SupportedExtendedProtection | Should -Be $true
                     $e.ExpectedExtendedConfiguration | Should -Be "Allow"
                     $configuration.SslSettings.RequireSsl | Should -Be $true
                     $configuration.SslSettings.Ssl128Bit | Should -Be $true
-                    $configuration.SslSettings.ClientCertificate | Should -Be "Accept"
-                    $configuration.SslSettings.Value | Should -Be "Ssl, SslNegotiateCert, Ssl128"
+                    $configuration.SslSettings.ClientCertificate | Should -Be "Ignore"
+                    $configuration.SslSettings.Value | Should -Be "Ssl, Ssl128"
                 } elseif ($configuration.NodePath -eq "Exchange Back End/EWS") {
                     $e.ExtendedProtection | Should -Be "Require"
                     $e.SupportedExtendedProtection | Should -Be $true
@@ -175,7 +175,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
     Context "Insecure Extended Protection Configuration On Supported Exchange 2019 Build" {
         BeforeAll {
-            $Script:applicationHostEPSupportedButMisconfigured = ConvertXmlToConfig -Path $Script:parentPath\Tests\applicationHostEPSupportedButMisconfigured.xml
+            $Script:applicationHostEPSupportedButMisconfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_MisConfigured_ApplicationHost.config
 
             $mockParams = @{
                 ComputerName          = $Server
@@ -208,7 +208,8 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
     Context "Secure Extended Protection Configuration On Unsupported Exchange 2013 Build" {
         BeforeAll {
-            $Script:applicationHostEPUnsupportedAndConfigured = ConvertXmlToConfig -Path $Script:parentPath\Tests\applicationHostEPUnsupportedAndConfigured.xml
+            # TODO: Fix broken test.
+            $Script:applicationHostEPUnsupportedAndConfigured = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
 
             $mockParams = @{
                 ComputerName          = $Server
