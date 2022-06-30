@@ -218,6 +218,9 @@ function Get-ExtendedProtectionConfiguration {
                 $supportedVersion = $ExSetupVersion.Build -gt 2507 -or
                 ($ExSetupVersion.Build -eq 2507 -and $ExSetupVersion.Revision -gt 9) -or
                 ($ExSetupVersion.Build -eq 2375 -and $ExSetupVersion.Revision -gt 28)
+            } elseif ($ExSetupVersion.Minor -eq 0) {
+                $supportedVersion = $ExSetupVersion.Build -gt 1497 -or
+                ($ExSetupVersion.Build -eq 1497 -and $ExSetupVersion.Revision -ge 38)
             }
             Write-Verbose "Build $ExSetupVersion is supported: $supportedVersion"
         } else {
