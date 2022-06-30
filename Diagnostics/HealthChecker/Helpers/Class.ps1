@@ -59,7 +59,7 @@ using System.Collections;
             public object ExchangeSetup;    //Stores the Get-Command ExSetup object
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
             public bool March2021SUInstalled;    //True if March 2021 SU is installed
-            public object AffectedByFIPFSUpdateIssue; //True if FIP-FS Update issue is detected
+            public object FIPFSUpdateIssue; //Stores FIP-FS update issue information
         }
 
         public class ExchangeNetFrameworkInformation

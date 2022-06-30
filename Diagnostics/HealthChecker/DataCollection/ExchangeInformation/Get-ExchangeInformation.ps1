@@ -503,15 +503,14 @@ function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
-        if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)) {
-            Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
-            $buildInformation.AffectedByFIPFSUpdateIssue = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server
-        } else {
-            Write-Verbose "This Exchange server role is not affected by the pattern issue - skipping check"
-            $buildInformation.AffectedByFIPFSUpdateIssue = $false
+        Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
+        $fipfsParams = @{
+            ComputerName   = $Script:Server
+            ExSetupVersion = $buildInformation.ExchangeSetup.FileVersion
+            ServerRole     = $buildInformation.ServerRole
         }
+
+        $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipfsParams
 
         $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
