@@ -65,6 +65,29 @@ $LogFile = "ExchAvExclusions.log"
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
+$serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
+
+# Check Exchange regsitry key
+if (-not  $serverExchangeInstallDirectory ) {
+    Write-Warning "Failed to find the Exchage instalation Path registry key"
+    exit
+}
+
+# Check the installation path
+if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container) ) {
+    Write-Warning "Failed to find the Exchage instalation Path"
+    exit
+}
+
+# Check Exchange is 2016 or 2019
+if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
+        ( $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
+    Write-Warning "This script is desinged for Exchange 2016 or 2019"
+    exit
+}
+
+$ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
+
 # Check Exchange Shell and Exchange instalation
 $exchangeShell = Confirm-ExchangeShell -Identity $env:computerName
 if (-not($exchangeShell.ShellLoaded)) {
@@ -72,52 +95,121 @@ if (-not($exchangeShell.ShellLoaded)) {
     exit
 }
 
-if ($null -eq $env:ExchangeInstallPath -or (
-        -not (Test-Path $env:ExchangeInstallPath))) {
-    Write-Warning "Failed to find Exchange Install Path"
-    exit
-}
-
 # Create the Array List
 $BaseFolders = New-Object Collections.Generic.List[string]
 
 # List of base Folders
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter').tolower())
-$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
-$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
-
-# Checking if it is a mailbox server to avoid errors if it is an Edge server.
 if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+    if (Get-DatabaseAvailabilityGroup ) {
+        if ((Get-DatabaseAvailabilityGroup).Servers.name.Contains($env:COMPUTERNAME) ) {
+            $BaseFolders.Add((Join-Path $($env:SystemRoot) '\Cluster').tolower())
+            $dag = $null
+            $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name.Contains($env:COMPUTERNAME) }
+            #needs local system rigths
+            if ( $null -ne $dag ) {
+                $BaseFolders.Add($("\\" + $($dag.WitnessServer.Fqdn) + "\" + $($dag.WitnessDirectory.PathName.Split("\")[-1])).ToLower())
+            }
+        }
+    }
+    $BaseFolders.Add((Join-Path $ExchangePath '\ClientAccess\OAB').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\FIP-FS').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\GroupMetrics').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\Logging').tolower())
+
+    $mbxS = (Get-MailboxServer -Identity $($env:COMPUTERNAME))
+    $BaseFolders.Add($($mbxS.CalendarRepairLogPath.PathName).tolower())
+    $BaseFolders.Add($($mbxS.LogPathForManagedFolders.PathName).tolower())
+
+    $BaseFolders.Add(($((Get-PopSettings).LogFileLocation)).tolower())
+    $BaseFolders.Add(($((Get-ImapSettings).LogFileLocation)).tolower())
+
+    $BaseFolders.Add((Join-Path $ExchangePath '\Mailbox').tolower())
+
     # Add all database folder paths
     foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
         $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
         $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
     }
+
+    $fetsLogs = Get-FrontEndTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
+        ReceiveProtocolLogPath, RoutingTableLogPath, SendProtocolLogPath, AgentLogPath, DnsLogPath, `
+        ResourceLogPath, AttributionLogPath, ProxyDestinationsLogPath, TopInboundIpSourcesLogPath
+    $fetsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        if ( $_) {
+            if ( Test-Path $_ -PathType Container ) {
+                $BaseFolders.Add($_.tolower())
+            }
+        }
+    }
+
+    $mtsLogs = Get-MailboxTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
+        ReceiveProtocolLogPath, DnsLogPath, RoutingTableLogPath, SendProtocolLogPath, MailboxSubmissionAgentLogPath, `
+        SyncDeliveryLogPath, MailboxDeliveryAgentLogPath, MailboxDeliveryHttpDeliveryLogPath, `
+        MailboxDeliveryThrottlingLogPath, AgentGrayExceptionLogPath, PipelineTracingPath
+    $mtsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        if ( $_ ) {
+            if ( Test-Path $_ -PathType Container ) {
+                $BaseFolders.Add($_.tolower())
+            }
+        }
+    }
+
+    if ( $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 ) {
+
+        $BaseFolders.Add((Join-Path $ExchangePath '\UnifiedMessaging\Grammars'))
+        $BaseFolders.Add((Join-Path $ExchangePath '\UnifiedMessaging\Prompts'))
+        $BaseFolders.Add((Join-Path $ExchangePath '\UnifiedMessaging\Temp'))
+        $BaseFolders.Add((Join-Path $ExchangePath '\UnifiedMessaging\Voicemail'))
+    }
+
+    $BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
+    $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
+    $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
 }
 
+if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Adam').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\IpFilter').tolower())
+}
+
+if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Queue').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\SenderReputation').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Temp').tolower())
+    $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Logs').tolower())
+
+    $tsLogs = Get-TransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, MessageTrackingLogPath, `
+        IrmLogPath, ActiveUserStatisticsLogPath, ServerStatisticsLogPath, ReceiveProtocolLogPath, RoutingTableLogPath, `
+        SendProtocolLogPath, QueueLogPath, LatencyLogPath, GeneralLogPath, WlmLogPath, AgentLogPath, FlowControlLogPath, `
+        ProcessingSchedulerLogPath, ResourceLogPath, DnsLogPath, JournalLogPath, TransportMaintenanceLogPath, `
+        RequestBrokerLogPath, StorageRESTLogPath, AgentGrayExceptionLogPath, TransportHttpLogPath, PipelineTracingPath, `
+        PickupDirectoryPath, ReplayDirectoryPath
+    $tsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        if ( $_ ) {
+            if ( Test-Path $_ -PathType Container ) {
+                $BaseFolders.Add($_.tolower())
+            }
+        }
+    }
+
+    $BaseFolders.Add((Join-Path $ExchangePath '\Working\OleConverter').tolower())
+}
 # Get transport database path
-[xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
+[xml]$TransportConfig = Get-Content (Join-Path $ExchangePath "Bin\EdgeTransport.exe.config")
 $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
 $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
+
+#'$env:SystemRoot\Temp\OICE_<GUID>'
+$possibleOICEFolders = Get-ChildItem $env:SystemRoot\temp -Directory -Filter OICE_*.0
+$possibleOICEFolders | ForEach-Object {
+    if ( $_.Name.Length -gt 41) {
+        $possibleGUID = $_.Name.Substring(5, 36)
+        $result = [System.Guid]::Empty
+        if ( [System.Guid]::TryParse($possibleGUID, [System.Management.Automation.PSReference]$result) ) {
+            $BaseFolders.Add($_.FullName.tolower())
+        }
+    }
+}
 
 # Remove any Duplicates
 $BaseFolders = $BaseFolders | Select-Object -Unique
