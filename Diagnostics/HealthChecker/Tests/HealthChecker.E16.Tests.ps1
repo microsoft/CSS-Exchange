@@ -31,9 +31,10 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - Operating System Information" {
