@@ -79,7 +79,7 @@ if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType
     exit
 }
 
-# Check Exchange is 2016, 2016 or 2019
+# Check Exchange is 2013, 2016 or 2019
 if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
         ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
     Write-Warning "This script is desinged for Exchange 2013, 2016 or 2019"
