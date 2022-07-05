@@ -2,7 +2,7 @@
 name: Health Checker Issue Report
 about: Create a report to help us improve
 title: "[Issue] - Health Checker"
-labels: Issue, "Health Checker"
+labels: Issue, Health Checker
 assignees: ''
 
 ---
