@@ -212,12 +212,12 @@ function Get-ExtendedProtectionConfiguration {
         if ($ExSetupVersion.Major -eq 15) {
             if ($ExSetupVersion.Minor -eq 2) {
                 $supportedVersion = $ExSetupVersion.Build -gt 1118 -or
-                ($ExSetupVersion.Build -eq 1118 -and $ExSetupVersion.Revision -gt 9) -or
-                ($ExSetupVersion.Build -eq 986 -and $ExSetupVersion.Revision -gt 26)
+                ($ExSetupVersion.Build -eq 1118 -and $ExSetupVersion.Revision -ge 11) -or
+                ($ExSetupVersion.Build -eq 986 -and $ExSetupVersion.Revision -ge 28)
             } elseif ($ExSetupVersion.Minor -eq 1) {
                 $supportedVersion = $ExSetupVersion.Build -gt 2507 -or
-                ($ExSetupVersion.Build -eq 2507 -and $ExSetupVersion.Revision -gt 9) -or
-                ($ExSetupVersion.Build -eq 2375 -and $ExSetupVersion.Revision -gt 28)
+                ($ExSetupVersion.Build -eq 2507 -and $ExSetupVersion.Revision -ge 11) -or
+                ($ExSetupVersion.Build -eq 2375 -and $ExSetupVersion.Revision -ge 30)
             } elseif ($ExSetupVersion.Minor -eq 0) {
                 $supportedVersion = $ExSetupVersion.Build -gt 1497 -or
                 ($ExSetupVersion.Build -eq 1497 -and $ExSetupVersion.Revision -ge 38)
