@@ -49,31 +49,38 @@ BeforeAll {
 
     function TestSupportedConfiguredExtendedProtection {
         param(
-            [object]$TestingExtendedProtectionResults
+            [object]$TestingExtendedProtectionResults,
+            [int]$ExtendedProtectionNoneCount = 21,
+            [bool]$SkipAllow = $false,
+            [bool]$SkipAutoDiscover = $false
         )
 
         $TestingExtendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $true
         ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.ExtendedProtection -ne "None" }).count |
-                Should -Be 21
+                Should -Be $ExtendedProtectionNoneCount
         ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.ExpectedExtendedConfiguration -ne "None" }).count |
-                Should -Be 21
+                Should -Be $ExtendedProtectionNoneCount
         $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.SupportedExtendedProtection -eq $false } |
             Should -Be $null
         # Special configs
-        $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-            Where-Object { $_.ExtendedProtection -eq "Allow" }
-        $null -ne $allow | Should -Be $true
-        $allow.configuration.NodePath | Should -Be "Default Web Site/EWS"
+        if (-not $SkipAllow) {
+            $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+                Where-Object { $_.ExtendedProtection -eq "Allow" }
+            $null -ne $allow | Should -Be $true
+            $allow.configuration.NodePath | Should -Be "Default Web Site/EWS"
+        }
 
-        $none = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-            Where-Object { $_.ExtendedProtection -eq "None" }
-        $null -ne $none | Should -Be $true
-        $none.Count | Should -Be 2
-        $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
-        $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
+        if (-not $SkipAutoDiscover) {
+            $none = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+                Where-Object { $_.ExtendedProtection -eq "None" }
+            $null -ne $none | Should -Be $true
+            $none.Count | Should -Be 2
+            $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
+            $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
+        }
     }
 
     $Script:E15_NotConfigured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
@@ -82,6 +89,9 @@ BeforeAll {
     $Script:E16_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_NotConfigured_ApplicationHost.config
     $Script:E19_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_NotConfigured_ApplicationHost.config
 
+    $Script:E15_Configured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Both_ApplicationHost.config
+    $Script:E15_Configured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Cas_ApplicationHost.config
+    $Script:E15_Configured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Mbx_ApplicationHost.config
     $Script:E16_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
     $Script:E19_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_ApplicationHost.config
 
@@ -131,6 +141,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             $mockParams = @{
                 ComputerName          = $Server
                 ExSetupVersion        = "15.00.1497.036"
+                IsMailboxServer       = $false
                 ApplicationHostConfig = $E15_NotConfigured_Cas_ApplicationHost
             }
             TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
@@ -140,6 +151,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             $mockParams = @{
                 ComputerName          = $Server
                 ExSetupVersion        = "15.00.1497.036"
+                IsClientAccessServer  = $false
                 ApplicationHostConfig = $E15_NotConfigured_Mbx_ApplicationHost
             }
             TestUnsupportedNotConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
@@ -165,6 +177,35 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
     }
 
     Context "Extended Protection Is Configured On Supported Exchange Version" {
+        It "Exchange 2013 Mbx/Cas" {
+            $mockParams = @{
+                ComputerName          = $server
+                ExSetupVersion        = "15.00.1497.038"
+                ApplicationHostConfig = $E15_Configured_Both_ApplicationHost
+            }
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 19
+        }
+
+        It "Exchange 2013 Cas" {
+            $mockParams = @{
+                ComputerName          = $server
+                ExSetupVersion        = "15.00.1497.038"
+                IsMailboxServer       = $false
+                ApplicationHostConfig = $E15_Configured_Cas_ApplicationHost
+            }
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 9 -SkipAutoDiscover $true
+        }
+
+        It "Exchange 2013 Mbx" {
+            $mockParams = @{
+                ComputerName          = $server
+                ExSetupVersion        = "15.00.1497.038"
+                IsClientAccessServer  = $false
+                ApplicationHostConfig = $E15_Configured_Mbx_ApplicationHost
+            }
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 12 -SkipAllow $true -SkipAutoDiscover $true
+        }
+
         It "Exchange 2016" {
             $mockParams = @{
                 ComputerName          = $Server
