@@ -71,7 +71,15 @@ function Configure-ExtendedProtection {
         return
     }
 
-    $extendedProtectionConfigurations = $ExchangeServers | ForEach-Object { Get-ExtendedProtectionConfiguration -ComputerName $_ }
+    $extendedProtectionConfigurations = $ExchangeServers |
+        ForEach-Object {
+            $params = @{
+                ComputerName         = $_
+                IsClientAccessServer = $_.IsClientAccessServer
+                IsMailboxServer      = $_.IsMailboxServer
+            }
+            Get-ExtendedProtectionConfiguration @params
+        }
 
     foreach ($serverExtendedProtection in $extendedProtectionConfigurations) {
         # Check to make sure server is connected and valid information is provided.
