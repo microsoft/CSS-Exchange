@@ -15,6 +15,10 @@ function Get-ExtendedProtectionConfiguration {
         [Parameter(Mandatory = $false)]
         [System.Version]$ExSetupVersion,
         [Parameter(Mandatory = $false)]
+        [bool]$IsMailboxServer = $true,
+        [Parameter(Mandatory = $false)]
+        [bool]$IsClientAccessServer = $true,
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
@@ -24,6 +28,7 @@ function Get-ExtendedProtectionConfiguration {
                 [Parameter(Mandatory = $true)]
                 [string]$VirtualDirectory,
                 [Parameter(Mandatory = $true)]
+                [ValidateSet("Default Web Site", "Exchange Back End")]
                 [string[]]$WebSite,
                 [Parameter(Mandatory = $true)]
                 [ValidateSet("None", "Allow", "Require")]
@@ -35,6 +40,14 @@ function Get-ExtendedProtectionConfiguration {
             }
 
             for ($i = 0; $i -lt $WebSite.Count; $i++) {
+                # special conditions for Exchange 2013
+                # powershell is on front and back so skip over those
+                if ($IsExchange2013 -and $virtualDirectory -ne "Powershell") {
+                    # No API virtual directory
+                    if ($virtualDirectory -eq "API") { return }
+                    if ($IsClientAccessServer -eq $false -and $WebSite[$i] -eq "Default Web Site") { continue }
+                    if ($IsMailboxServer -eq $false -and $WebSite[$i] -eq "Exchange Back End") { continue }
+                }
                 [PSCustomObject]@{
                     VirtualDirectory   = $virtualDirectory
                     WebSite            = $WebSite[$i]
@@ -137,30 +150,6 @@ function Get-ExtendedProtectionConfiguration {
             }
         }
 
-        $default = "Default Web Site"
-        $backend = "Exchange Back End"
-        try {
-            $VirtualDirectoryMatchEntries = @(
-                (NewVirtualDirMatchingEntry "API" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None")
-                (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
-                (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
-                (NewVirtualDirMatchingEntry "PushNotifications" -WebSite $backend -ExtendedProtection "Require")
-                (NewVirtualDirMatchingEntry "RPCWithCert" -WebSite $backend -ExtendedProtection "Require")
-                (NewVirtualDirMatchingEntry "MAPI/emsmdb" -WebSite $backend -ExtendedProtection "Require")
-                (NewVirtualDirMatchingEntry "MAPI/nspi" -WebSite $backend -ExtendedProtection "Require")
-            )
-        } catch {
-            # Don't handle with Catch Error as this is a bug in the script.
-            throw "Failed to create NewVirtualDirMatchingEntry. Inner Exception $_"
-        }
-
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
         $computerResult = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock { return $env:COMPUTERNAME }
@@ -202,6 +191,31 @@ function Get-ExtendedProtectionConfiguration {
         } else {
             # Hopefully the caller knows what they are doing, best be from the correct server!!
             Write-Verbose "Caller passed the application host config."
+        }
+
+        $default = "Default Web Site"
+        $backend = "Exchange Back End"
+        $Script:IsExchange2013 = $ExSetupVersion.Major -eq 15 -and $ExSetupVersion.Minor -eq 0
+        try {
+            $VirtualDirectoryMatchEntries = @(
+                (NewVirtualDirMatchingEntry "API" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "Autodiscover" -WebSite $default, $backend -ExtendedProtection "None", "None")
+                (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
+                (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "PushNotifications" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "RPCWithCert" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "MAPI/emsmdb" -WebSite $backend -ExtendedProtection "Require")
+                (NewVirtualDirMatchingEntry "MAPI/nspi" -WebSite $backend -ExtendedProtection "Require")
+            )
+        } catch {
+            # Don't handle with Catch Error as this is a bug in the script.
+            throw "Failed to create NewVirtualDirMatchingEntry. Inner Exception $_"
         }
 
         # Is Supported build of Exchange to have the configuration set.
