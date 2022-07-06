@@ -168,7 +168,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
         It "Exchange 2016" {
             $mockParams = @{
                 ComputerName          = $Server
-                ExSetupVersion        = "15.1.2375.29"
+                ExSetupVersion        = "15.1.2375.30"
                 ApplicationHostConfig = $E16_Configured_ApplicationHost
             }
             TestSupportedConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
@@ -181,6 +181,85 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ApplicationHostConfig = $E19_Configured_ApplicationHost
             }
             TestSupportedConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
+        }
+    }
+
+    Context "Supported/Unsupported Versions Tests" {
+        BeforeAll {
+            function TestVersionSupportedOnly {
+                param(
+                    [string]$Version,
+                    [bool]$Supported
+                )
+
+                $mockParams = @{
+                    ComputerName          = $Server
+                    ExSetupVersion        = $Version
+                    ApplicationHostConfig = $E19_Configured_ApplicationHost
+                }
+
+                (Get-ExtendedProtectionConfiguration @mockParams).SupportedVersionForExtendedProtection | Should -Be $Supported
+            }
+        }
+
+        It "15.02.1119.011 - Supported" {
+            TestVersionSupportedOnly "15.02.1119.011" $true
+        }
+
+        It "15.02.1118.011 - Supported" {
+            TestVersionSupportedOnly "15.02.1118.011" $true
+        }
+
+        It "15.02.1118.010 - Unsupported" {
+            TestVersionSupportedOnly "15.02.1118.010" $false
+        }
+
+        It "15.02.0986.029 - Supported" {
+            TestVersionSupportedOnly "15.02.0986.029" $true
+        }
+
+        It "15.02.0986.028 - Supported" {
+            TestVersionSupportedOnly "15.02.0986.028" $true
+        }
+
+        It "15.02.0986.027 - Unsupported" {
+            TestVersionSupportedOnly "15.02.0986.027" $false
+        }
+
+        It "15.01.2508.011 - Supported" {
+            TestVersionSupportedOnly "15.01.2508.011" $true
+        }
+
+        It "15.01.2507.011 - Supported" {
+            TestVersionSupportedOnly "15.01.2507.011" $true
+        }
+
+        It "15.01.2507.010 - Unsupported" {
+            TestVersionSupportedOnly "15.01.2507.010" $false
+        }
+
+        It "15.01.2375.031 - Supported" {
+            TestVersionSupportedOnly "15.01.2375.031" $true
+        }
+
+        It "15.01.2375.030 - Supported" {
+            TestVersionSupportedOnly "15.01.2375.030" $true
+        }
+
+        It "15.01.2375.029 - Unsupported" {
+            TestVersionSupportedOnly "15.01.2375.029" $false
+        }
+
+        It "15.00.1498.038 - Supported" {
+            TestVersionSupportedOnly "15.00.1498.038" $true
+        }
+
+        It "15.00.1497.038 - Supported" {
+            TestVersionSupportedOnly "15.00.1497.038" $true
+        }
+
+        It "15.00.1497.037 - Unsupported" {
+            TestVersionSupportedOnly "15.00.1497.037" $false
         }
     }
 }
