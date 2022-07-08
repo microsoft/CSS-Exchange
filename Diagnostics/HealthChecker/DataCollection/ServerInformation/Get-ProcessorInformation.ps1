@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-ProcessorInformation {
+function Get-ProcessorInformation {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
@@ -25,7 +25,7 @@ Function Get-ProcessorInformation {
         $previousProcessor = $null
     }
     process {
-        $wmiObject = @(Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction)
+        $wmiObject = @(Get-WmiObjectCriticalHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction)
         $processorName = $wmiObject[0].Name
         $maxClockSpeed = $wmiObject[0].MaxClockSpeed
         Write-Verbose "Evaluating processor results"

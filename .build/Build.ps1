@@ -8,6 +8,8 @@ param (
 
 #Requires -Version 7
 
+Set-StrictMode -Version Latest
+
 . $PSScriptRoot\BuildFunctions\Get-ScriptProjectMostRecentCommit.ps1
 . $PSScriptRoot\BuildFunctions\Get-ExpandedScriptContent.ps1
 
@@ -55,8 +57,8 @@ $scriptFiles = $scriptFiles | Where-Object {
     $fullName = $_
     $scriptName = [IO.Path]::GetFileName($_)
     $pattern = "\. .*\\$scriptName"
-    $m = $scriptFiles | Get-Item | Select-String -Pattern $pattern
-    $r = $m | Where-Object { $_.Path -ne $fullName }
+    $m = @($scriptFiles | Get-Item | Select-String -Pattern $pattern)
+    $r = @($m | Where-Object { $_.Path -ne $fullName })
     $r.Count -lt 1
 }
 
@@ -126,16 +128,6 @@ $scriptFiles | ForEach-Object {
         File    = $scriptName
         Version = $buildVersionString
     }
-}
-
-# Generate version text for release description
-
-$versionFile = "$distFolder\ScriptVersions.txt"
-New-Item -Path $versionFile -ItemType File | Out-Null
-"Script | Version" | Out-File $versionFile -Append
-"-------|--------" | Out-File $versionFile -Append
-foreach ($script in $scriptVersions) {
-    "$($script.File) | $($script.Version)" | Out-File $versionFile -Append
 }
 
 # Generate version CSV for script version checks

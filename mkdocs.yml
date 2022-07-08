@@ -1,0 +1,91 @@
+site_name: 'Microsoft - CSS-Exchange'
+docs_dir: 'docs'
+nav:
+  - Emerging Issues: Emerging-Issues.md
+  - Admin:
+    - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
+    - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
+    - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
+    - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
+    - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
+    - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
+    - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
+    - Test-AMSI: Admin/Test-AMSI.md
+  - Databases:
+    - VSSTester: Databases/VSSTester.md
+  - Diagnostics:
+    - ExchangeLogCollector: Diagnostics/ExchangeLogCollector.md
+    - ExTRA: Diagnostics/ExTRA.md
+    - HealthChecker:
+      - Diagnostics/HealthChecker/index.md
+      - MaintenanceCheck: Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck.md
+      - GCModeCheck: Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck.md
+      - RebootPending: Diagnostics/HealthChecker/RebootPending.md
+      - CTSProcessorAffinityCheck: Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck.md
+      - CredentialGuardCheck: Diagnostics/HealthChecker/CredentialGuardCheck.md
+      - RPCMinConnectionTimeoutCheck: Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck.md
+      - TCPIPSettingsCheck: Diagnostics/HealthChecker/TCPIPSettingsCheck.md
+      - GeneralHardwareInformation: Diagnostics/HealthChecker/GeneralHardwareInformation.md
+      - HyperThreadingCheck: Diagnostics/HealthChecker/HyperThreadingCheck.md
+      - NumaBiosCheck: Diagnostics/HealthChecker/NumaBiosCheck.md
+      - ProcessorCheck: Diagnostics/HealthChecker/ProcessorCheck.md
+      - IPv6EnabledCheck: Diagnostics/HealthChecker/IPv6EnabledCheck.md
+      - PacketsLossCheck: Diagnostics/HealthChecker/PacketsLossCheck.md
+      - RSSEnabledCheck: Diagnostics/HealthChecker/RSSEnabledCheck.md
+      - SleepyNICCheck: Diagnostics/HealthChecker/SleepyNICCheck.md
+      - NETFrameworkCheck: Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck.md
+      - PagefileCheck: Diagnostics/HealthChecker/PagefileSizeCheck.md
+      - VisualCCheck: Diagnostics/HealthChecker/VisualCRedistributableVersionCheck.md
+      - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
+      - CloudConnectorCheck: Diagnostics/HealthChecker/CloudConnectorCheck.md
+      - TLSConfigurationCheck: Diagnostics/HealthChecker/TLSConfigurationCheck.md
+      - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
+      - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
+      - EEMSCheck: Diagnostics/HealthChecker/EEMSCheck.md
+      - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
+      - VulnerabilityCheck: Diagnostics/HealthChecker/VulnerabilityCheck.md
+      - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
+      - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
+      - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
+      - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
+      - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
+    - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
+  - Hybrid:
+    - Test-HMAEAS: Hybrid/Test-HMAEAS.md
+  - M365:
+    - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
+  - Performance:
+    - ExPerfWiz: Performance/ExPerfWiz.md
+    - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
+    - SimplePerf: Performance/SimplePerf.md
+  - PublicFolders:
+    - SourceSideValidations: PublicFolders/SourceSideValidations.md
+    - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
+  - Retention:
+    - Get-MRMDetails: Retention/Get-MRMDetails.md
+  - Search:
+    - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
+  - Security:
+    - EOMT: Security/EOMT.md
+    - ExchangeMitigations: Security/ExchangeMitigations.md
+    - Test-CVE-2021-34470: Security/Test-CVE-2021-34470.md
+    - Test-ProxyLogon: Security/Test-ProxyLogon.md
+  - Setup:
+    - CopyMissingDlls: Setup/CopyMissingDlls.md
+    - FixInstallerCache: Setup/FixInstallerCache.md
+    - SetupAssist:
+      - Setup/SetupAssist/index.md
+      - ComputersContainer: Setup/SetupAssist/ComputersContainer.md
+      - ReadOnlyDomainControllerContainer: Setup/SetupAssist/ReadOnlyDomainControllerContainer.md
+      - RebootPending: Setup/SetupAssist/RebootPending.md
+    - SetupLogReviewer: Setup/SetupLogReviewer.md
+theme:
+  name: 'material'
+  features:
+    - navigation.indexes
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+repo_url: https://github.com/microsoft/CSS-Exchange
+edit_uri: edit/main/docs/
+site_url: https://microsoft.github.io/CSS-Exchange

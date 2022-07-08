@@ -1,8 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
-Function Get-ExchangeServerMaintenanceState {
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+function Get-ExchangeServerMaintenanceState {
     param(
         [Parameter(Mandatory = $false)][array]$ComponentsToSkip
     )
@@ -10,13 +10,6 @@ Function Get-ExchangeServerMaintenanceState {
 
     [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
     $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
-
-    try {
-        $serverMaintenance.GetMailboxServer = Get-MailboxServer -Identity $Script:Server -ErrorAction SilentlyContinue
-    } catch {
-        Write-Verbose "Failed to run Get-MailboxServer"
-        Invoke-CatchActions
-    }
 
     try {
         $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
@@ -31,7 +24,7 @@ Function Get-ExchangeServerMaintenanceState {
         if (($null -ne $ComponentsToSkip -and
                 $ComponentsToSkip.Count -ne 0) -and
             $ComponentsToSkip -notcontains $component.Component) {
-            if ($component.State -ne "Active") {
+            if ($component.State.ToString() -ne "Active") {
                 $latestLocalState = $null
                 $latestRemoteState = $null
 

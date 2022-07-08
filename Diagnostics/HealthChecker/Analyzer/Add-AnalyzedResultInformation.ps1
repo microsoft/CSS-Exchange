@@ -1,11 +1,16 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Add-AnalyzedResultInformation {
+function Add-AnalyzedResultInformation {
+    [CmdletBinding()]
     param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [HealthChecker.AnalyzedInformation]$AnalyzedInformation,
         [object]$Details,
         [string]$Name,
+        [string]$TestingName,
         [object]$OutColumns,
+        [scriptblock[]]$OutColumnsColorTests,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
         [int]$DisplayCustomTabNumber = -1,
@@ -15,111 +20,151 @@ Function Add-AnalyzedResultInformation {
         [bool]$AddHtmlDetailRow = $true,
         [string]$HtmlDetailsCustomValue = "",
         [bool]$AddHtmlOverviewValues = $false,
-        [bool]$AddHtmlActionRow = $false,
+        [bool]$AddHtmlActionRow = $false
         #[string]$ActionSettingClass = "",
         #[string]$ActionSettingValue,
         #[string]$ActionRecommendedDetailsClass = "",
         #[string]$ActionRecommendedDetailsValue,
         #[string]$ActionMoreInformationClass = "",
         #[string]$ActionMoreInformationValue,
-        [HealthChecker.AnalyzedInformation]$AnalyzedInformation
     )
+    begin {
+        Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
+        function GetOutColumnsColorObject {
+            param(
+                [object[]]$OutColumns,
+                [scriptblock[]]$OutColumnsColorTests,
+                [string]$DefaultDisplayColor = ""
+            )
 
-    Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
+            $returnValue = New-Object System.Collections.Generic.List[object]
 
-    if ($AddDisplayResultsLineInfo) {
-        if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
-            Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
-            [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
-            $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
+            foreach ($obj in $OutColumns) {
+                $objectValue = New-Object PSCustomObject
+                foreach ($property in $obj.PSObject.Properties.Name) {
+                    $displayColor = $DefaultDisplayColor
+                    foreach ($func in $OutColumnsColorTests) {
+                        $result = $func.Invoke($obj, $property)
+                        if (-not [string]::IsNullOrEmpty($result)) {
+                            $displayColor = $result[0]
+                            break
+                        }
+                    }
+
+                    $objectValue | Add-Member -MemberType NoteProperty -Name $property -Value ([PSCustomObject]@{
+                            Value        = $obj.$property
+                            DisplayColor = $displayColor
+                        })
+                }
+                $returnValue.Add($objectValue)
+            }
+            return $returnValue
         }
+    }
+    process {
+        Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
 
-        $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
-
-        if ($null -ne $OutColumns) {
-            $lineInfo.OutColumns = $OutColumns
-            $lineInfo.WriteType = "OutColumns"
-            $lineInfo.TestingValue = $OutColumns
-        } else {
-
-            $lineInfo.DisplayValue = $Details
-            $lineInfo.Name = $Name
-
-            if ($DisplayCustomTabNumber -ne -1) {
-                $lineInfo.TabNumber = $DisplayCustomTabNumber
-            } else {
-                $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+        if ($AddDisplayResultsLineInfo) {
+            if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
+                Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
+                [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
+                $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
             }
 
-            if ($null -ne $DisplayTestingValue) {
-                $lineInfo.TestingValue = $DisplayTestingValue
+            $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
+
+            if ($null -ne $OutColumns) {
+                $lineInfo.OutColumns = $OutColumns
+                $lineInfo.WriteType = "OutColumns"
+                $lineInfo.TestingValue = (GetOutColumnsColorObject -OutColumns $OutColumns.DisplayObject -OutColumnsColorTests $OutColumnsColorTests -DefaultDisplayColor "Grey")
+                $lineInfo.TestingName = $TestingName
             } else {
-                $lineInfo.TestingValue = $Details
+
+                $lineInfo.DisplayValue = $Details
+                $lineInfo.Name = $Name
+
+                if ($DisplayCustomTabNumber -ne -1) {
+                    $lineInfo.TabNumber = $DisplayCustomTabNumber
+                } else {
+                    $lineInfo.TabNumber = $DisplayGroupingKey.DefaultTabNumber
+                }
+
+                if ($null -ne $DisplayTestingValue) {
+                    $lineInfo.TestingValue = $DisplayTestingValue
+                } else {
+                    $lineInfo.TestingValue = $Details
+                }
+
+                if (-not ([string]::IsNullOrEmpty($TestingName))) {
+                    $lineInfo.TestingName = $TestingName
+                } else {
+                    $lineInfo.TestingName = $Name
+                }
+
+                $lineInfo.WriteType = $DisplayWriteType
             }
 
-            $lineInfo.WriteType = $DisplayWriteType
+            $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
         }
 
-        $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
+        if ($AddHtmlDetailRow) {
+            if (!($analyzedResults.HtmlServerValues.ContainsKey("ServerDetails"))) {
+                [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+                $AnalyzedInformation.HtmlServerValues.Add("ServerDetails", $list)
+            }
+
+            $detailRow = New-Object HealthChecker.HtmlServerInformationRow
+
+            if ($displayWriteType -ne "Grey") {
+                $detailRow.Class = $displayWriteType
+            }
+
+            if ([string]::IsNullOrEmpty($HtmlName)) {
+                $detailRow.Name = $Name
+            } else {
+                $detailRow.Name = $HtmlName
+            }
+
+            if ($null -ne $OutColumns) {
+                $detailRow.TableValue = (GetOutColumnsColorObject -OutColumns $OutColumns.DisplayObject -OutColumnsColorTests $OutColumnsColorTests)
+            } elseif ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
+                $detailRow.DetailValue = $Details
+            } else {
+                $detailRow.DetailValue = $HtmlDetailsCustomValue
+            }
+
+            $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
+        }
+
+        if ($AddHtmlOverviewValues) {
+            if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues"))) {
+                [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+                $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
+            }
+
+            $overviewValue = New-Object HealthChecker.HtmlServerInformationRow
+
+            if ($displayWriteType -ne "Grey") {
+                $overviewValue.Class = $displayWriteType
+            }
+
+            if ([string]::IsNullOrEmpty($HtmlName)) {
+                $overviewValue.Name = $Name
+            } else {
+                $overviewValue.Name = $HtmlName
+            }
+
+            if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
+                $overviewValue.DetailValue = $Details
+            } else {
+                $overviewValue.DetailValue = $HtmlDetailsCustomValue
+            }
+
+            $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
+        }
+
+        if ($AddHtmlActionRow) {
+            #TODO
+        }
     }
-
-    if ($AddHtmlDetailRow) {
-        if (!($analyzedResults.HtmlServerValues.ContainsKey("ServerDetails"))) {
-            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
-            $AnalyzedInformation.HtmlServerValues.Add("ServerDetails", $list)
-        }
-
-        $detailRow = New-Object HealthChecker.HtmlServerInformationRow
-
-        if ($displayWriteType -ne "Grey") {
-            $detailRow.Class = $displayWriteType
-        }
-
-        if ([string]::IsNullOrEmpty($HtmlName)) {
-            $detailRow.Name = $Name
-        } else {
-            $detailRow.Name = $HtmlName
-        }
-
-        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
-            $detailRow.DetailValue = $Details
-        } else {
-            $detailRow.DetailValue = $HtmlDetailsCustomValue
-        }
-
-        $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
-    }
-
-    if ($AddHtmlOverviewValues) {
-        if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues"))) {
-            [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
-            $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
-        }
-
-        $overviewValue = New-Object HealthChecker.HtmlServerInformationRow
-
-        if ($displayWriteType -ne "Grey") {
-            $overviewValue.Class = $displayWriteType
-        }
-
-        if ([string]::IsNullOrEmpty($HtmlName)) {
-            $overviewValue.Name = $Name
-        } else {
-            $overviewValue.Name = $HtmlName
-        }
-
-        if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
-            $overviewValue.DetailValue = $Details
-        } else {
-            $overviewValue.DetailValue = $HtmlDetailsCustomValue
-        }
-
-        $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
-    }
-
-    if ($AddHtmlActionRow) {
-        #TODO
-    }
-
-    return $AnalyzedInformation
 }

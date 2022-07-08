@@ -13,7 +13,9 @@ Uses EICAR files to verify that all Exchange paths that should be excluded from 
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
-https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019
+https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019 and
+https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help
+
 
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
@@ -58,8 +60,10 @@ param (
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
+. $PSScriptRoot\Get-ExchAVExclusions.ps1
 
 Function Test-UnknownCompany {
     param (
@@ -105,59 +109,52 @@ If (Test-Path $SuspectCSV) { Remove-Item $SuspectCSV -Force -Confirm:$false }
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
-# Create the Array List
-$BaseFolders = New-Object Collections.Generic.List[string]
-
-# List of base Folders
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Cluster').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\ClientAccess\OAB').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\FIP-FS').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\GroupMetrics').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Logging').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Mailbox').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Adam').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\IpFilter').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Queue').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\SenderReputation').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Data\Temp').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Logs').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Pickup').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\TransportRoles\Replay').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Grammars').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Prompts').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Temp').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\UnifiedMessaging\Voicemail').tolower())
-$BaseFolders.Add((Join-Path $env:ExchangeInstallPath '\Working\OleConverter').tolower())
-$BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
-$BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
-$BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
-
-# Add all database folder paths
-Foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-    $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
-    $BaseFolders.Add(($Entry.LogFolderPath.pathname.tolower()))
+# Confirm that we are an administrator
+if (-not (Confirm-Administrator)) {
+    Write-Error "Please run as Administrator"
+    exit
 }
 
-# Get transport database path
-[xml]$TransportConfig = Get-Content (Join-Path $env:ExchangeInstallPath "Bin\EdgeTransport.exe.config")
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
-$BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
+$serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
 
-# Remove any Duplicates
-$BaseFolders = $BaseFolders | Select-Object -Unique
+# Check Exchange regsitry key
+if (-not  $serverExchangeInstallDirectory ) {
+    Write-Warning "Failed to find the Exchage instalation Path registry key"
+    exit
+}
 
-#'$env:SystemRoot\Temp\OICE_<GUID>'
-#'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
+# Check the installation path
+if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container) ) {
+    Write-Warning "Failed to find the Exchage instalation Path"
+    exit
+}
 
-Write-SimpleLogfile -String "Starting Test" -Name $LogFile
+# Check Exchange is 2013, 2016 or 2019
+if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
+        ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
+    Write-Warning "This script is desinged for Exchange 2013, 2016 or 2019"
+    exit
+}
+
+$ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
+
+# Check Exchange Shell and Exchange instalation
+$exchangeShell = Confirm-ExchangeShell -Identity $env:computerName
+if (-not($exchangeShell.ShellLoaded)) {
+    Write-Warning "Failed to load Exchange Shell Module..."
+    exit
+}
+
+# Create the Array List
+$BaseFolders = Get-ExchAVExclusions -ExchangePath $ExchangePath
+
+if ( $BaseFolders.count -eq 0 ) {
+    Write-Warning "We do not detect folders to analyze"
+    exit
+}
 
 # Create list object to hold all Folders we are going to test
 $FolderList = New-Object Collections.Generic.List[string]
-
-
-# Confirm that we are an administrator
-if (Confirm-Administrator) {}
-else { Write-Error "Please run as Administrator" }
 
 # Make sure each folders in our list resolve
 foreach ($Path in $BaseFolders) {
@@ -191,21 +188,21 @@ foreach ($Folder in $FolderList) {
     #Base64 of Eicar string
     [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
 
-    If (!(Test-Path -Path $FilePath)) {
+    if (!(Test-Path -Path $FilePath)) {
 
         # Try writing the encoded string to a the file
-        Try {
+        try {
             [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
             [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
             Set-Content -Value $Eicar -Encoding ascii -Path $FilePath -Force
         }
 
-        Catch {
+        catch {
             Write-Warning "$Folder Eicar.com file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
-    Else {
+    else {
         Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }

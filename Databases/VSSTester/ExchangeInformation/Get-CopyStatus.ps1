@@ -18,7 +18,7 @@ function Get-CopyStatus {
                 exit
             }
         }
-    } Else {
+    } else {
         Write-Host "Not checking database copy status since the selected database is a Public Folder Database..."
     }
     " "

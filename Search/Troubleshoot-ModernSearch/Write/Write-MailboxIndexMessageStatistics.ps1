@@ -2,9 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Write-ScriptOutput.ps1
 . $PSScriptRoot\Write-DisplayObjectInformation.ps1
-Function Write-MailboxIndexMessageStatistics {
+function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -26,22 +25,22 @@ Function Write-MailboxIndexMessageStatistics {
     process {
         $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount + $MailboxStatistics.DeletedItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
 
-        Write-ScriptOutput ""
-        Write-ScriptOutput "All Indexable Items Count: $totalIndexableItems"
-        Write-ScriptOutput ""
+        Write-Host ""
+        Write-Host "All Indexable Items Count: $totalIndexableItems"
+        Write-Host ""
 
         foreach ($categoryType in $Category) {
 
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
-            Write-ScriptOutput "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages" -Diagnostic
+            Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages"
 
             if ($messages.Count -gt 0) {
 
                 if (-not $GroupMessages) {
 
                     foreach ($message in $messages) {
-                        Write-ScriptOutput "---------------------"
+                        Write-Host "---------------------"
                         Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
                             "MessageId",
                             "InternetMessageId",
@@ -64,9 +63,9 @@ Function Write-MailboxIndexMessageStatistics {
                 $groupedStatus = $messages | Group-Object IndexStatus
 
                 foreach ($statusGrouping in $groupedStatus) {
-                    Write-ScriptOutput "---------------------"
-                    Write-ScriptOutput "Message Index Status: $($statusGrouping.Name)"
-                    Write-ScriptOutput "---------------------"
+                    Write-Host "---------------------"
+                    Write-Host "Message Index Status: $($statusGrouping.Name)"
+                    Write-Host "---------------------"
                     $groupedResults = $statusGrouping.Group |
                         Group-Object CondensedErrorMessage, IsPermanentFailure |
                         Sort-Object Count -Descending
@@ -100,11 +99,11 @@ Function Write-MailboxIndexMessageStatistics {
                             "IsPermanentFailure",
                             "EarliestLastIndexingAttemptTime",
                             "LastIndexingAttemptTime")
-                        Write-ScriptOutput ""
+                        Write-Host ""
                     }
                 }
             } else {
-                Write-ScriptOutput "Failed to find any results when doing a search on the category $categoryType"
+                Write-Host "Failed to find any results when doing a search on the category $categoryType"
             }
         }
     }

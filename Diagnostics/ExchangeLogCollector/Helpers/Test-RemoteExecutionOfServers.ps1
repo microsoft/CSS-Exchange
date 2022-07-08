@@ -1,30 +1,32 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-RemoteExecutionOfServers {
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
+. $PSScriptRoot\Test-DiskSpace.ps1
+function Test-RemoteExecutionOfServers {
     param(
         [Parameter(Mandatory = $true)][Array]$ServerList
     )
-    Write-ScriptDebug("Function Enter: Test-RemoteExecutionOfServers")
-    Write-ScriptHost -WriteString "Checking to see if the servers are up in this list:" -ShowServer $false
-    $ServerList | ForEach-Object { Write-ScriptHost -WriteString $_ -ShowServer $false }
+    Write-Verbose("Function Enter: Test-RemoteExecutionOfServers")
+    Write-Host "Checking to see if the servers are up in this list:"
+    $ServerList | ForEach-Object { Write-Host $_ }
     #Going to just use Invoke-Command to see if the servers are up. As ICMP might be disabled in the environment.
-    Write-ScriptHost " " -ShowServer $false
-    Write-ScriptHost -WriteString "For all the servers in the list, checking to see if Invoke-Command will work against them." -ShowServer $false
+    Write-Host ""
+    Write-Host "For all the servers in the list, checking to see if Invoke-Command will work against them."
     #shouldn't need to test if they are Exchange servers, as we should be doing that locally as well.
     $validServers = @()
     foreach ($server in $ServerList) {
 
         try {
-            Write-ScriptHost -WriteString ("Checking Server {0}....." -f $server) -ShowServer $false -NoNewLine $true
+            Write-Host "Checking Server $server....." -NoNewline
             Invoke-Command -ComputerName $server -ScriptBlock { Get-Process | Out-Null } -ErrorAction Stop
             #if that doesn't fail, we should be okay to add it to the working list
-            Write-ScriptHost -WriteString ("Passed") -ShowServer $false -ForegroundColor "Green"
+            Write-Host "Passed" -ForegroundColor "Green"
             $validServers += $server
         } catch {
-            Write-ScriptHost -WriteString "Failed" -ShowServer $false -ForegroundColor "Red"
-            Write-ScriptHost -WriteString ("Removing Server {0} from the list to collect data from" -f $server) -ShowServer $false
-            Invoke-CatchBlockActions
+            Write-Host "Failed" -ForegroundColor "Red"
+            Write-Host "Removing Server $server from the list to collect data from"
+            Invoke-CatchActions
         }
     }
 
@@ -39,11 +41,11 @@ Function Test-RemoteExecutionOfServers {
         #Can't do this on a tools or remote shell
         if ($Script:LocalExchangeShell.ToolsOnly -or
             $Script:LocalExchangeShell.RemoteShell) {
-            Write-ScriptHost -WriteString "Failed to invoke against the machines to do remote collection from a tools box or a remote machine." -ForegroundColor "Red"
+            Write-Host "Failed to invoke against the machines to do remote collection from a tools box or a remote machine." -ForegroundColor "Red"
             exit
         }
 
-        Write-ScriptHost -ShowServer $false -WriteString ("Failed to do remote collection for all the servers in the list...") -ForegroundColor "Yellow"
+        Write-Host "Failed to do remote collection for all the servers in the list..." -ForegroundColor "Yellow"
 
         if ((Enter-YesNoLoopAction -Question "Do you want to collect from the local server only?" -YesAction { return $true } -NoAction { return $false })) {
             $validServers = @($env:COMPUTERNAME)
@@ -53,11 +55,11 @@ Function Test-RemoteExecutionOfServers {
 
         #want to test local server's free space first before moving to just collecting the data
         if ($null -eq (Test-DiskSpace -Servers $validServers -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
-            Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally. We can't continue with the data collection") -ForegroundColor "Yellow"
+            Write-Host "Failed to have enough space available locally. We can't continue with the data collection" -ForegroundColor "Yellow"
             exit
         }
     }
 
-    Write-ScriptDebug("Function Exit: Test-RemoteExecutionOfServers")
+    Write-Verbose("Function Exit: Test-RemoteExecutionOfServers")
     return $validServers
 }

@@ -1,52 +1,56 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Save-DataInfoToFile.ps1
+. $PSScriptRoot\Save-RegistryHive.ps1
+. $PSScriptRoot\..\Get-ClusterNodeFileVersions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 #Save out the failover cluster information for the local node, besides the event logs.
-Function Save-FailoverClusterInformation {
-    Write-ScriptDebug("Function Enter: Save-FailoverClusterInformation")
+function Save-FailoverClusterInformation {
+    Write-Verbose("Function Enter: Save-FailoverClusterInformation")
     $copyTo = "$Script:RootCopyToDirectory\Cluster_Information"
-    New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
 
     try {
         Save-DataInfoToFile -DataIn (Get-Cluster -ErrorAction Stop) -SaveToLocation "$copyTo\GetCluster"
     } catch {
-        Write-ScriptDebug "Failed to run Get-Cluster"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-Cluster"
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterGroup -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterGroup"
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterGroup"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterGroup"
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNode -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNode"
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterNode"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterNode"
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNetwork -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNetwork"
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterNetwork"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterNetwork"
+        Invoke-CatchActions
     }
 
     try {
         Save-DataInfoToFile -DataIn (Get-ClusterNetworkInterface -ErrorAction Stop) -SaveToLocation "$copyTo\GetClusterNetworkInterface"
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterNetworkInterface"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterNetworkInterface"
+        Invoke-CatchActions
     }
 
     try {
         Get-ClusterLog -Node $env:ComputerName -Destination $copyTo -ErrorAction Stop | Out-Null
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterLog"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterLog"
+        Invoke-CatchActions
     }
 
     try {
@@ -54,20 +58,17 @@ Function Save-FailoverClusterInformation {
         Save-DataInfoToFile -DataIn $clusterNodeFileVersions -SaveToLocation "$copyTo\ClusterNodeFileVersions" -SaveTextFile $false
         Save-DataInfoToFile -DataIn ($clusterNodeFileVersions.Files.Values) -SaveToLocation "$copyTo\ClusterNodeFileVersions" -SaveXMLFile $false -FormatList $false
     } catch {
-        Write-ScriptDebug "Failed to run Get-ClusterNodeFileVersions"
-        Invoke-CatchBlockActions
+        Write-Verbose "Failed to run Get-ClusterNodeFileVersions"
+        Invoke-CatchActions
     }
 
-    try {
-        $saveName = "$copyTo\ClusterHive.hiv"
-        reg save "HKEY_LOCAL_MACHINE\Cluster" $saveName | Out-Null
-        "To read the cluster hive. Run 'reg load HKLM\TempHive ClusterHive.hiv'. Then Open your regedit then go to HKLM:\TempHive to view the data." |
-            Out-File -FilePath "$copyTo\ClusterHive_HowToRead.txt"
-    } catch {
-        Write-ScriptDebug "Failed to get the Cluster Hive"
-        Invoke-CatchBlockActions
+    $params = @{
+        RegistryPath    = "HKLM:Cluster"
+        SaveName        = "Cluster_Hive"
+        SaveToPath      = $copyTo
+        UseGetChildItem = $true
     }
-
+    Save-RegistryHive @params
     Invoke-ZipFolder -Folder $copyTo
-    Write-ScriptDebug "Function Exit: Save-FailoverClusterInformation"
+    Write-Verbose "Function Exit: Save-FailoverClusterInformation"
 }

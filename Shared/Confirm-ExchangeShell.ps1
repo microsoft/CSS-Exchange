@@ -4,7 +4,7 @@
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 . $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 
-Function Confirm-ExchangeShell {
+function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -15,19 +15,51 @@ Function Confirm-ExchangeShell {
         [bool]$LoadExchangeShell = $true,
 
         [Parameter(Mandatory = $false)]
+        [bool]$IgnoreToolsIdentity = $false,
+
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
     begin {
+        function Test-GetExchangeServerCmdletError {
+            param(
+                [Parameter(Mandatory = $true)]
+                [object]$ThisError
+            )
+
+            if ($ThisError.FullyQualifiedErrorId -ne "CommandNotFoundException") {
+                Write-Warning "Failed to find '$Identity' as an Exchange Server."
+                return $true
+            }
+            return $false
+        }
+        $currentErrors = $Error.Count
         $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity | IgnoreToolsIdentity: $IgnoreToolsIdentity"
         $params = @{
             Identity    = $Identity
             ErrorAction = "Stop"
         }
+
+        $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
+        ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+
+        if ($toolsServer) {
+            Write-Verbose "Tools Server: $env:ComputerName"
+            if ($env:ComputerName -eq $Identity -and
+                $IgnoreToolsIdentity) {
+                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet"
+                $params.Remove("Identity")
+            } else {
+                Write-Verbose "Didn't remove Identity"
+            }
+        }
+
+        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
     }
     process {
         try {
@@ -39,10 +71,8 @@ Function Confirm-ExchangeShell {
         } catch {
             Write-Verbose "Failed to run Get-ExchangeServer"
             Invoke-CatchActionError $CatchActionFunction
-
-            if (-not ($LoadExchangeShell)) {
-                return
-            }
+            if (Test-GetExchangeServerCmdletError $_) { return }
+            if (-not ($LoadExchangeShell)) { return }
 
             #Test 32 bit process, as we can't see the registry if that is the case.
             if (-not ([System.Environment]::Is64BitProcess)) {
@@ -60,7 +90,7 @@ Function Confirm-ExchangeShell {
                         [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
 
                         foreach ($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn) {
-                            Write-Verbose "Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name
+                            Write-Verbose ("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)
                             Add-PSSnapin -Name $PSSnapIn.Name -ErrorAction Stop
                         }
 
@@ -71,10 +101,16 @@ Function Confirm-ExchangeShell {
                     }
 
                     Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
-                    Get-ExchangeServer @params | Out-Null
-                    $passed = $true
-                    Write-Verbose "Successfully loaded Exchange Management Shell"
-                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+                    try {
+                        Get-ExchangeServer @params | Out-Null
+                        $passed = $true
+                        Write-Verbose "Successfully loaded Exchange Management Shell"
+                        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+                    } catch {
+                        Write-Verbose "Failed to run Get-ExchangeServer again"
+                        Invoke-CatchActionError $CatchActionFunction
+                        if (Test-GetExchangeServerCmdletError $_) { return }
+                    }
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."
                     Invoke-CatchActionError $CatchActionFunction
@@ -94,8 +130,7 @@ Function Confirm-ExchangeShell {
             Build       = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMajor" -ErrorAction SilentlyContinue).MsiBuildMajor)
             Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
             EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
-            ToolsOnly   = $passed -and (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
-            ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+            ToolsOnly   = $passed -and $toolsServer
             RemoteShell = $passed -and (!(Test-Path $setupKey))
         }
 

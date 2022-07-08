@@ -2,11 +2,11 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-ExSetupDetails {
+function Get-ExSetupDetails {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exSetupDetails = [string]::Empty
-    Function Get-ExSetupDetailsScriptBlock {
+    function Get-ExSetupDetailsScriptBlock {
         Get-Command ExSetup | ForEach-Object { $_.FileVersionInfo }
     }
 

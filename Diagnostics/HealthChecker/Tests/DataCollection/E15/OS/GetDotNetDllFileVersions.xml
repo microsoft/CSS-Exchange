@@ -1,0 +1,302 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Collections.Hashtable</T>
+      <T>System.Object</T>
+    </TN>
+    <DCT>
+      <En>
+        <S N="Key">System.Data.dll</S>
+        <Obj N="Value" RefId="1">
+          <TN RefId="1">
+            <T>System.Management.Automation.PSCustomObject</T>
+            <T>System.Object</T>
+          </TN>
+          <MS>
+            <Obj N="GetItem" RefId="2">
+              <TN RefId="2">
+                <T>System.IO.FileInfo</T>
+                <T>System.IO.FileSystemInfo</T>
+                <T>System.MarshalByRefObject</T>
+                <T>System.Object</T>
+              </TN>
+              <ToString>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll</ToString>
+              <Props>
+                <S N="Name">System.Data.dll</S>
+                <I64 N="Length">3540736</I64>
+                <S N="DirectoryName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                <Obj N="Directory" RefId="3">
+                  <TN RefId="3">
+                    <T>System.IO.DirectoryInfo</T>
+                    <T>System.IO.FileSystemInfo</T>
+                    <T>System.MarshalByRefObject</T>
+                    <T>System.Object</T>
+                  </TN>
+                  <ToString>C:\Windows\Microsoft.NET\Framework64\v4.0.30319</ToString>
+                  <Props>
+                    <S N="Name">v4.0.30319</S>
+                    <S N="FullName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                    <S N="Parent">Framework64</S>
+                    <B N="Exists">true</B>
+                    <S N="Root">C:\</S>
+                    <S N="Extension">.30319</S>
+                    <DT N="CreationTime">2013-08-22T08:39:30.9167971-07:00</DT>
+                    <DT N="CreationTimeUtc">2013-08-22T15:39:30.9167971Z</DT>
+                    <DT N="LastAccessTime">2021-10-02T05:52:06.1748298-07:00</DT>
+                    <DT N="LastAccessTimeUtc">2021-10-02T12:52:06.1748298Z</DT>
+                    <DT N="LastWriteTime">2021-10-02T05:52:06.1748298-07:00</DT>
+                    <DT N="LastWriteTimeUtc">2021-10-02T12:52:06.1748298Z</DT>
+                    <S N="Attributes">Directory</S>
+                  </Props>
+                  <MS>
+                    <S N="BaseName">v4.0.30319</S>
+                    <S N="Mode">d----</S>
+                  </MS>
+                </Obj>
+                <B N="IsReadOnly">false</B>
+                <B N="Exists">true</B>
+                <S N="FullName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll</S>
+                <S N="Extension">.dll</S>
+                <DT N="CreationTime">2021-06-08T08:05:56.7451486-07:00</DT>
+                <DT N="CreationTimeUtc">2021-06-08T15:05:56.7451486Z</DT>
+                <DT N="LastAccessTime">2021-06-08T08:05:56.7451486-07:00</DT>
+                <DT N="LastAccessTimeUtc">2021-06-08T15:05:56.7451486Z</DT>
+                <DT N="LastWriteTime">2021-06-08T08:05:56.7451486-07:00</DT>
+                <DT N="LastWriteTimeUtc">2021-06-08T15:05:56.7451486Z</DT>
+                <Obj N="Attributes" RefId="4">
+                  <TN RefId="4">
+                    <T>System.IO.FileAttributes</T>
+                    <T>System.Enum</T>
+                    <T>System.ValueType</T>
+                    <T>System.Object</T>
+                  </TN>
+                  <ToString>Archive</ToString>
+                  <I32>32</I32>
+                </Obj>
+              </Props>
+              <MS>
+                <S N="PSPath">Microsoft.PowerShell.Core\FileSystem::C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll</S>
+                <S N="PSParentPath">Microsoft.PowerShell.Core\FileSystem::C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                <S N="PSChildName">System.Data.dll</S>
+                <Obj N="PSDrive" RefId="5">
+                  <TN RefId="5">
+                    <T>System.Management.Automation.PSDriveInfo</T>
+                    <T>System.Object</T>
+                  </TN>
+                  <ToString>C</ToString>
+                  <Props>
+                    <S N="CurrentLocation">Users\Han\Desktop</S>
+                    <S N="Name">C</S>
+                    <Obj N="Provider" RefId="6">
+                      <TN RefId="6">
+                        <T>System.Management.Automation.ProviderInfo</T>
+                        <T>System.Object</T>
+                      </TN>
+                      <ToString>Microsoft.PowerShell.Core\FileSystem</ToString>
+                      <Props>
+                        <S N="ImplementingType">Microsoft.PowerShell.Commands.FileSystemProvider</S>
+                        <S N="HelpFile">System.Management.Automation.dll-Help.xml</S>
+                        <S N="Name">FileSystem</S>
+                        <S N="PSSnapIn">Microsoft.PowerShell.Core</S>
+                        <S N="ModuleName">Microsoft.PowerShell.Core</S>
+                        <Nil N="Module" />
+                        <S N="Description"></S>
+                        <S N="Capabilities">Filter, ShouldProcess, Credentials</S>
+                        <S N="Home">C:\Users\Han</S>
+                        <Obj N="Drives" RefId="7">
+                          <TN RefId="7">
+                            <T>System.Collections.ObjectModel.Collection`1[[System.Management.Automation.PSDriveInfo, System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+                            <T>System.Object</T>
+                          </TN>
+                          <LST>
+                            <Ref RefId="5" />
+                          </LST>
+                        </Obj>
+                      </Props>
+                    </Obj>
+                    <S N="Root">C:\</S>
+                    <S N="Description"></S>
+                    <Obj N="Credential" RefId="8">
+                      <TN RefId="8">
+                        <T>System.Management.Automation.PSCredential</T>
+                        <T>System.Object</T>
+                      </TN>
+                      <ToString>System.Management.Automation.PSCredential</ToString>
+                      <Props>
+                        <Nil N="UserName" />
+                        <Nil N="Password" />
+                      </Props>
+                    </Obj>
+                    <Nil N="DisplayRoot" />
+                  </Props>
+                  <MS>
+                    <U64 N="Used">66644520960</U64>
+                    <U64 N="Free">69165989888</U64>
+                  </MS>
+                </Obj>
+                <Ref N="PSProvider" RefId="6" />
+                <B N="PSIsContainer">false</B>
+                <Obj N="VersionInfo" RefId="9">
+                  <TN RefId="9">
+                    <T>System.Diagnostics.FileVersionInfo</T>
+                    <T>System.Object</T>
+                  </TN>
+                  <ToString>File:             C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll_x000D__x000A_InternalName:     system.data.dll_x000D__x000A_OriginalFilename: system.data.dll_x000D__x000A_FileVersion:      4.8.3761.0 built by: NET48REL1_x000D__x000A_FileDescription:  .NET Framework_x000D__x000A_Product:          Microsoft® .NET Framework_x000D__x000A_ProductVersion:   4.8.3761.0_x000D__x000A_Debug:            False_x000D__x000A_Patched:          False_x000D__x000A_PreRelease:       False_x000D__x000A_PrivateBuild:     True_x000D__x000A_SpecialBuild:     False_x000D__x000A_Language:         English (United States)_x000D__x000A_</ToString>
+                  <Props>
+                    <S N="Comments">Flavor=Retail</S>
+                    <S N="CompanyName">Microsoft Corporation</S>
+                    <I32 N="FileBuildPart">3761</I32>
+                    <S N="FileDescription">.NET Framework</S>
+                    <I32 N="FileMajorPart">4</I32>
+                    <I32 N="FileMinorPart">8</I32>
+                    <S N="FileName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Data.dll</S>
+                    <I32 N="FilePrivatePart">0</I32>
+                    <S N="FileVersion">4.8.3761.0 built by: NET48REL1</S>
+                    <S N="InternalName">system.data.dll</S>
+                    <B N="IsDebug">false</B>
+                    <B N="IsPatched">false</B>
+                    <B N="IsPrivateBuild">true</B>
+                    <B N="IsPreRelease">false</B>
+                    <B N="IsSpecialBuild">false</B>
+                    <S N="Language">English (United States)</S>
+                    <S N="LegalCopyright">© Microsoft Corporation.  All rights reserved.</S>
+                    <S N="LegalTrademarks"></S>
+                    <S N="OriginalFilename">system.data.dll</S>
+                    <S N="PrivateBuild">DDBLD200D</S>
+                    <I32 N="ProductBuildPart">30319</I32>
+                    <I32 N="ProductMajorPart">4</I32>
+                    <I32 N="ProductMinorPart">0</I32>
+                    <S N="ProductName">Microsoft® .NET Framework</S>
+                    <I32 N="ProductPrivatePart">0</I32>
+                    <S N="ProductVersion">4.8.3761.0</S>
+                    <S N="SpecialBuild"></S>
+                  </Props>
+                </Obj>
+                <S N="BaseName">System.Data</S>
+                <S N="Mode">-a---</S>
+              </MS>
+            </Obj>
+            <DT N="LastWriteTimeUtc">2021-06-08T15:05:56.7451486Z</DT>
+            <Obj N="VersionInfo" RefId="10">
+              <TNRef RefId="1" />
+              <MS>
+                <I32 N="FileMajorPart">4</I32>
+                <I32 N="FileMinorPart">8</I32>
+                <I32 N="FileBuildPart">3761</I32>
+                <I32 N="FilePrivatePart">0</I32>
+              </MS>
+            </Obj>
+          </MS>
+        </Obj>
+      </En>
+      <En>
+        <S N="Key">System.Configuration.dll</S>
+        <Obj N="Value" RefId="11">
+          <TNRef RefId="1" />
+          <MS>
+            <Obj N="GetItem" RefId="12">
+              <TNRef RefId="2" />
+              <ToString>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Configuration.dll</ToString>
+              <Props>
+                <S N="Name">System.Configuration.dll</S>
+                <I64 N="Length">419744</I64>
+                <S N="DirectoryName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                <Obj N="Directory" RefId="13">
+                  <TNRef RefId="3" />
+                  <ToString>C:\Windows\Microsoft.NET\Framework64\v4.0.30319</ToString>
+                  <Props>
+                    <S N="Name">v4.0.30319</S>
+                    <S N="FullName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                    <S N="Parent">Framework64</S>
+                    <B N="Exists">true</B>
+                    <S N="Root">C:\</S>
+                    <S N="Extension">.30319</S>
+                    <DT N="CreationTime">2013-08-22T08:39:30.9167971-07:00</DT>
+                    <DT N="CreationTimeUtc">2013-08-22T15:39:30.9167971Z</DT>
+                    <DT N="LastAccessTime">2021-10-02T05:52:06.1748298-07:00</DT>
+                    <DT N="LastAccessTimeUtc">2021-10-02T12:52:06.1748298Z</DT>
+                    <DT N="LastWriteTime">2021-10-02T05:52:06.1748298-07:00</DT>
+                    <DT N="LastWriteTimeUtc">2021-10-02T12:52:06.1748298Z</DT>
+                    <S N="Attributes">Directory</S>
+                  </Props>
+                  <MS>
+                    <S N="BaseName">v4.0.30319</S>
+                    <S N="Mode">d----</S>
+                  </MS>
+                </Obj>
+                <B N="IsReadOnly">false</B>
+                <B N="Exists">true</B>
+                <S N="FullName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Configuration.dll</S>
+                <S N="Extension">.dll</S>
+                <DT N="CreationTime">2021-06-08T08:06:02.4815056-07:00</DT>
+                <DT N="CreationTimeUtc">2021-06-08T15:06:02.4815056Z</DT>
+                <DT N="LastAccessTime">2021-06-08T08:06:02.4815056-07:00</DT>
+                <DT N="LastAccessTimeUtc">2021-06-08T15:06:02.4815056Z</DT>
+                <DT N="LastWriteTime">2021-06-08T08:06:02.4815056-07:00</DT>
+                <DT N="LastWriteTimeUtc">2021-06-08T15:06:02.4815056Z</DT>
+                <Obj N="Attributes" RefId="14">
+                  <TNRef RefId="4" />
+                  <ToString>Archive</ToString>
+                  <I32>32</I32>
+                </Obj>
+              </Props>
+              <MS>
+                <S N="PSPath">Microsoft.PowerShell.Core\FileSystem::C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Configuration.dll</S>
+                <S N="PSParentPath">Microsoft.PowerShell.Core\FileSystem::C:\Windows\Microsoft.NET\Framework64\v4.0.30319</S>
+                <S N="PSChildName">System.Configuration.dll</S>
+                <Ref N="PSDrive" RefId="5" />
+                <Ref N="PSProvider" RefId="6" />
+                <B N="PSIsContainer">false</B>
+                <Obj N="VersionInfo" RefId="15">
+                  <TNRef RefId="9" />
+                  <ToString>File:             C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Configuration.dll_x000D__x000A_InternalName:     System.Configuration.dll_x000D__x000A_OriginalFilename: System.Configuration.dll_x000D__x000A_FileVersion:      4.8.3761.0 built by: NET48REL1_x000D__x000A_FileDescription:  System.Configuration.dll_x000D__x000A_Product:          Microsoft® .NET Framework_x000D__x000A_ProductVersion:   4.8.3761.0_x000D__x000A_Debug:            False_x000D__x000A_Patched:          False_x000D__x000A_PreRelease:       False_x000D__x000A_PrivateBuild:     True_x000D__x000A_SpecialBuild:     False_x000D__x000A_Language:         English (United States)_x000D__x000A_</ToString>
+                  <Props>
+                    <S N="Comments">Flavor=Retail</S>
+                    <S N="CompanyName">Microsoft Corporation</S>
+                    <I32 N="FileBuildPart">3761</I32>
+                    <S N="FileDescription">System.Configuration.dll</S>
+                    <I32 N="FileMajorPart">4</I32>
+                    <I32 N="FileMinorPart">8</I32>
+                    <S N="FileName">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\System.Configuration.dll</S>
+                    <I32 N="FilePrivatePart">0</I32>
+                    <S N="FileVersion">4.8.3761.0 built by: NET48REL1</S>
+                    <S N="InternalName">System.Configuration.dll</S>
+                    <B N="IsDebug">false</B>
+                    <B N="IsPatched">false</B>
+                    <B N="IsPrivateBuild">true</B>
+                    <B N="IsPreRelease">false</B>
+                    <B N="IsSpecialBuild">false</B>
+                    <S N="Language">English (United States)</S>
+                    <S N="LegalCopyright">© Microsoft Corporation.  All rights reserved.</S>
+                    <S N="LegalTrademarks"></S>
+                    <S N="OriginalFilename">System.Configuration.dll</S>
+                    <S N="PrivateBuild">DDBLD438</S>
+                    <I32 N="ProductBuildPart">30319</I32>
+                    <I32 N="ProductMajorPart">4</I32>
+                    <I32 N="ProductMinorPart">0</I32>
+                    <S N="ProductName">Microsoft® .NET Framework</S>
+                    <I32 N="ProductPrivatePart">0</I32>
+                    <S N="ProductVersion">4.8.3761.0</S>
+                    <S N="SpecialBuild"></S>
+                  </Props>
+                </Obj>
+                <S N="BaseName">System.Configuration</S>
+                <S N="Mode">-a---</S>
+              </MS>
+            </Obj>
+            <DT N="LastWriteTimeUtc">2021-06-08T15:06:02.4815056Z</DT>
+            <Obj N="VersionInfo" RefId="16">
+              <TNRef RefId="1" />
+              <MS>
+                <I32 N="FileMajorPart">4</I32>
+                <I32 N="FileMinorPart">8</I32>
+                <I32 N="FileBuildPart">3761</I32>
+                <I32 N="FilePrivatePart">0</I32>
+              </MS>
+            </Obj>
+          </MS>
+        </Obj>
+      </En>
+    </DCT>
+  </Obj>
+</Objs>

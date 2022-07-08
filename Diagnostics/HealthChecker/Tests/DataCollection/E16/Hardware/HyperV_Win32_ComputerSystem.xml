@@ -1,0 +1,149 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_ComputerSystem</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_UnitaryComputerSystem</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ComputerSystem</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_System</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_ComputerSystem</T>
+      <T>System.Management.ManagementObject#CIM_UnitaryComputerSystem</T>
+      <T>System.Management.ManagementObject#CIM_ComputerSystem</T>
+      <T>System.Management.ManagementObject#CIM_System</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E16A\root\cimv2:Win32_ComputerSystem.Name="SOLO-E16A"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_ComputerSystem</S>
+      <S N="__SUPERCLASS">CIM_UnitaryComputerSystem</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_ComputerSystem.Name="SOLO-E16A"</S>
+      <I32 N="__PROPERTY_COUNT">64</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_UnitaryComputerSystem</S>
+          <S>CIM_ComputerSystem</S>
+          <S>CIM_System</S>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E16A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E16A\root\cimv2:Win32_ComputerSystem.Name="SOLO-E16A"</S>
+      <U16 N="AdminPasswordStatus">3</U16>
+      <B N="AutomaticManagedPagefile">true</B>
+      <B N="AutomaticResetBootOption">true</B>
+      <B N="AutomaticResetCapability">true</B>
+      <Nil N="BootOptionOnLimit" />
+      <Nil N="BootOptionOnWatchDog" />
+      <B N="BootROMSupported">true</B>
+      <Obj N="BootStatus" RefId="2">
+        <TN RefId="2">
+          <T>System.UInt16[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <U16>0</U16>
+          <U16>0</U16>
+          <U16>0</U16>
+          <U16>127</U16>
+          <U16>4</U16>
+          <U16>255</U16>
+          <U16>254</U16>
+          <U16>0</U16>
+          <U16>0</U16>
+          <U16>0</U16>
+        </LST>
+      </Obj>
+      <S N="BootupState">Normal boot</S>
+      <S N="Caption">SOLO-E16A</S>
+      <U16 N="ChassisBootupState">3</U16>
+      <S N="ChassisSKUNumber">Virtual Machine</S>
+      <S N="CreationClassName">Win32_ComputerSystem</S>
+      <I16 N="CurrentTimeZone">-300</I16>
+      <B N="DaylightInEffect">true</B>
+      <S N="Description">AT/AT COMPATIBLE</S>
+      <S N="DNSHostName">Solo-E16A</S>
+      <S N="Domain">Solo.local</S>
+      <U16 N="DomainRole">3</U16>
+      <B N="EnableDaylightSavingsTime">true</B>
+      <U16 N="FrontPanelResetStatus">3</U16>
+      <B N="HypervisorPresent">true</B>
+      <B N="InfraredSupported">false</B>
+      <Nil N="InitialLoadInfo" />
+      <Nil N="InstallDate" />
+      <U16 N="KeyboardPasswordStatus">3</U16>
+      <Nil N="LastLoadInfo" />
+      <S N="Manufacturer">Microsoft Corporation</S>
+      <S N="Model">Virtual Machine</S>
+      <S N="Name">SOLO-E16A</S>
+      <Nil N="NameFormat" />
+      <B N="NetworkServerModeEnabled">true</B>
+      <U32 N="NumberOfLogicalProcessors">6</U32>
+      <U32 N="NumberOfProcessors">1</U32>
+      <Nil N="OEMLogoBitmap" />
+      <Obj N="OEMStringArray" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>[MS_VM_CERT/SHA1/9b80ca0d5dd061ec9da4e494f4c3fd1196270c22]</S>
+          <S>00000000000000000000000000000000</S>
+          <S>To be filled by OEM</S>
+        </LST>
+      </Obj>
+      <B N="PartOfDomain">true</B>
+      <I64 N="PauseAfterReset">-1</I64>
+      <U16 N="PCSystemType">1</U16>
+      <U16 N="PCSystemTypeEx">1</U16>
+      <Nil N="PowerManagementCapabilities" />
+      <Nil N="PowerManagementSupported" />
+      <U16 N="PowerOnPasswordStatus">3</U16>
+      <U16 N="PowerState">0</U16>
+      <U16 N="PowerSupplyState">3</U16>
+      <Nil N="PrimaryOwnerContact" />
+      <S N="PrimaryOwnerName">Windows User</S>
+      <U16 N="ResetCapability">1</U16>
+      <I16 N="ResetCount">-1</I16>
+      <I16 N="ResetLimit">-1</I16>
+      <Obj N="Roles" RefId="4">
+        <TNRef RefId="1" />
+        <LST>
+          <S>LM_Workstation</S>
+          <S>LM_Server</S>
+          <S>NT</S>
+          <S>Server_NT</S>
+        </LST>
+      </Obj>
+      <S N="Status">OK</S>
+      <Nil N="SupportContactDescription" />
+      <S N="SystemFamily">Virtual Machine</S>
+      <S N="SystemSKUNumber">None</S>
+      <Nil N="SystemStartupDelay" />
+      <Nil N="SystemStartupOptions" />
+      <Nil N="SystemStartupSetting" />
+      <S N="SystemType">x64-based PC</S>
+      <U16 N="ThermalState">3</U16>
+      <U64 N="TotalPhysicalMemory">6441385984</U64>
+      <Nil N="UserName" />
+      <U16 N="WakeUpType">6</U16>
+      <Nil N="Workgroup" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E16A</S>
+    </MS>
+  </Obj>
+</Objs>

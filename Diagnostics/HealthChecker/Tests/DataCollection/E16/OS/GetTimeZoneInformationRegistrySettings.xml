@@ -1,0 +1,63 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <I32 N="DynamicDaylightTimeDisabled">0</I32>
+      <S N="TimeZoneKeyName">Central Standard Time</S>
+      <Obj N="StandardStart" RefId="1">
+        <TN RefId="1">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <By>0</By>
+          <By>0</By>
+          <By>11</By>
+          <By>0</By>
+          <By>1</By>
+          <By>0</By>
+          <By>2</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+        </LST>
+      </Obj>
+      <Obj N="DaylightStart" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <By>0</By>
+          <By>0</By>
+          <By>3</By>
+          <By>0</By>
+          <By>2</By>
+          <By>0</By>
+          <By>2</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+          <By>0</By>
+        </LST>
+      </Obj>
+      <B N="DstIssueDetected">false</B>
+      <Obj N="ActionsToTake" RefId="3">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

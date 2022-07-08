@@ -1,9 +1,4 @@
----
-title: VSSTester.ps1
-parent: Databases
----
-
-## VSSTester.ps1
+# VSSTester
 
 Download the latest release: [VSSTester.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/VSSTester.ps1)
 
@@ -46,3 +41,4 @@ Here are the steps to verify that the local Administrators group is allowed to t
 9. Click Okay
 10. Click Apply and Okay
 11. Restart the Computer
+

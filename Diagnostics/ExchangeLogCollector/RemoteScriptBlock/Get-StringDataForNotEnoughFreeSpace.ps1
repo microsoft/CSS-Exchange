@@ -1,11 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-StringDataForNotEnoughFreeSpaceFile {
+function Get-StringDataForNotEnoughFreeSpaceFile {
     param(
         [Parameter(Mandatory = $true)][hashtable]$hasher
     )
-    Write-ScriptDebug("Calling: Get-StringDataForNotEnoughFreeSpaceFile")
+    Write-Verbose("Calling: Get-StringDataForNotEnoughFreeSpaceFile")
     $reader = [string]::Empty
     $totalSizeMB = 0
     foreach ($key in $hasher.Keys) {

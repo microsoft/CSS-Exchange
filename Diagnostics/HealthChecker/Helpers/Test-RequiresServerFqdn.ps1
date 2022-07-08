@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-RequiresServerFqdn {
+function Test-RequiresServerFqdn {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $tempServerName = ($Script:Server).Split(".")

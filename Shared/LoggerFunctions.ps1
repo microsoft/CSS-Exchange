@@ -1,10 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-NewLoggerInstance {
+function Get-NewLoggerInstance {
     [CmdletBinding()]
     param(
-        [ValidateScript( { Test-Path $_ })]
         [string]$LogDirectory = (Get-Location).Path,
 
         [ValidateNotNullOrEmpty()]
@@ -21,13 +20,20 @@ Function Get-NewLoggerInstance {
         [int]$NumberOfLogsToKeep = 10
     )
 
-    $fileName = if ($AppendDateTime) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
+    $fileName = if ($AppendDateTimeToFileName) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
     $fullFilePath = [System.IO.Path]::Combine($LogDirectory, $fileName)
+
+    if (-not (Test-Path $LogDirectory)) {
+        try {
+            New-Item -ItemType Directory -Path $LogDirectory -ErrorAction Stop | Out-Null
+        } catch {
+            throw "Failed to create Log Directory: $LogDirectory"
+        }
+    }
 
     return [PSCustomObject]@{
         FullPath                 = $fullFilePath
         AppendDateTime           = $AppendDateTime
-        AppendDateTimeToFileName = $AppendDateTimeToFileName
         MaxFileSizeMB            = $MaxFileSizeMB
         CheckSizeIntervalMinutes = $CheckSizeIntervalMinutes
         NumberOfLogsToKeep       = $NumberOfLogsToKeep
@@ -39,7 +45,7 @@ Function Get-NewLoggerInstance {
     } | Write-LoggerInstance -Object "Starting Logger Instance $(Get-Date)"
 }
 
-Function Write-LoggerInstance {
+function Write-LoggerInstance {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
@@ -88,7 +94,7 @@ Function Write-LoggerInstance {
     }
 }
 
-Function Invoke-LoggerInstanceCleanup {
+function Invoke-LoggerInstanceCleanup {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]

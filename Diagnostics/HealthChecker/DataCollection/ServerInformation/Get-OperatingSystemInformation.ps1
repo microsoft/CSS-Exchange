@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
+. $PSScriptRoot\Get-AllTlsSettings.ps1
 . $PSScriptRoot\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-CredentialGuardEnabled.ps1
 . $PSScriptRoot\Get-HttpProxySetting.ps1
@@ -14,14 +14,15 @@
 . $PSScriptRoot\Get-ServerOperatingSystemVersion.ps1
 . $PSScriptRoot\Get-Smb1ServerSettings.ps1
 . $PSScriptRoot\Get-TimeZoneInformationRegistrySettings.ps1
+. $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-. $PSScriptRoot\..\..\Helpers\Get-CounterSamples.ps1
-Function Get-OperatingSystemInformation {
+. $PSScriptRoot\..\..\Helpers\PerformanceCountersFunctions.ps1
+function Get-OperatingSystemInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
-    $win32_OperatingSystem = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_OperatingSystem = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
     $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Script:Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
     $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
@@ -72,18 +73,13 @@ Function Get-OperatingSystemInformation {
     $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Script:Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
     $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation
-    $counterSamples = (Get-CounterSamples -MachineNames $Script:Server -Counters "\Network Interface(*)\Packets Received Discarded")
+    $counterSamples = (Get-LocalizedCounterSamples -MachineName $Script:Server -Counter "\Network Interface(*)\Packets Received Discarded")
 
     if ($null -ne $counterSamples) {
         $osInformation.NetworkInformation.PacketsReceivedDiscarded = $counterSamples
     }
-    $serverReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
-    $osInformation.ServerPendingReboot.PendingFileRenameOperations = $serverReboot.PendingFileRenameOperations
-    $osInformation.ServerPendingReboot.SccmReboot = $serverReboot.SccmReboot
-    $osInformation.ServerPendingReboot.SccmRebootPending = $serverReboot.SccmRebootPending
-    $osInformation.ServerPendingReboot.ComponentBasedServicingRebootPending = $serverReboot.ComponentBasedServicingRebootPending
-    $osInformation.ServerPendingReboot.AutoUpdatePendingReboot = $serverReboot.AutoUpdatePendingReboot
-    $osInformation.ServerPendingReboot.PendingReboot = $serverReboot.PendingReboot
+
+    $osInformation.ServerPendingReboot = (Get-ServerRebootPending -ServerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions})
     $timeZoneInformation = Get-TimeZoneInformationRegistrySettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.TimeZone.DynamicDaylightTimeDisabled = $timeZoneInformation.DynamicDaylightTimeDisabled
     $osInformation.TimeZone.TimeZoneKeyName = $timeZoneInformation.TimeZoneKeyName
@@ -95,7 +91,7 @@ Function Get-OperatingSystemInformation {
         -ScriptBlock { ([System.TimeZone]::CurrentTimeZone).StandardName } `
         -ScriptBlockDescription "Getting Current Time Zone" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.TLSSettings = Get-AllTlsSettingsFromRegistry -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.TLSSettings = Get-AllTlsSettings -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled
     $osInformation.RegistryValues.CurrentVersionUbr = Get-RemoteRegistryValue `

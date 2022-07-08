@@ -1,0 +1,371 @@
+[03/07/2021 18:53:15.0468] [0] **********************************************
+[03/07/2021 18:53:15.0476] [0] Starting Microsoft Exchange Server 2016 Setup
+[03/07/2021 18:53:15.0476] [0] **********************************************
+[03/07/2021 18:53:15.0477] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[03/07/2021 18:53:15.0477] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/07/2021 18:53:15.0477] [0] Setup version: 15.1.2106.2.
+[03/07/2021 18:53:15.0478] [0] Logged on user: SOLO\Han.
+[03/07/2021 18:53:15.0493] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[03/07/2021 18:53:15.0493] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[03/07/2021 18:53:15.0493] [0] Command Line Parameter Name='sourcedir', Value='E:\'.
+[03/07/2021 18:53:15.0877] [0] RuntimeAssembly was started with the following command: '/Mode:Upgrade /IAcceptExchangeServerLicenseTerms /sourcedir:E:"'.
+[03/07/2021 18:53:15.0880] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[03/07/2021 18:53:15.0880] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[03/07/2021 18:53:15.0883] [0] Copying Files...
+[03/07/2021 18:53:15.0885] [0] Starting copy from E:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/07/2021 18:53:17.0401] [0] Finished copy from E:\Setup\ServerRoles\Common to C:\Windows\Temp\ExchangeSetup.
+[03/07/2021 18:53:17.0401] [0] File copy complete.  Setup will now collect additional information needed for installation.
+
+[03/07/2021 18:53:17.0403] [0] Assembly dll file location is C:\Windows\Temp\ExchangeSetup\Microsoft.Exchange.Setup.Console.dll
+[03/07/2021 18:53:18.0880] [0] Setup is choosing the domain controller to use
+[03/07/2021 18:53:18.0964] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Child.Solo.local
+[03/07/2021 18:53:19.0680] [0] The MSExchangeADTopology-persisted domain controller DC1.Child.Solo.local is not in the local domain; setup will pick another domain controller.
+[03/07/2021 18:53:19.0680] [0] Setup is choosing a local domain controller...
+[03/07/2021 18:53:19.0736] [0] Setup has chosen the local domain controller DC2.Solo.local for initial queries
+[03/07/2021 18:53:19.0881] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/07/2021 18:53:19.0881] [0] Setup is choosing a global catalog...
+[03/07/2021 18:53:19.0912] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/07/2021 18:53:19.0939] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/07/2021 18:53:19.0939] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/07/2021 18:53:19.0941] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:53:19.0945] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:53:19.0956] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/07/2021 18:53:20.0027] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:53:20.0081] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 18:53:20.0082] [0] The following datacenter roles are unpacked:
+[03/07/2021 18:53:20.0085] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[03/07/2021 18:53:20.0087] [0] The local server has some Exchange files installed.
+[03/07/2021 18:53:20.0095] [0] Server Name=ExSvr1
+[03/07/2021 18:53:20.0101] [0] Setup will use the path 'E:\' for installing Exchange.
+[03/07/2021 18:53:20.0103] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/07/2021 18:53:20.0103] [0] 'BridgeheadRole' is installed on the server object.
+[03/07/2021 18:53:20.0103] [0] 'ClientAccessRole' is installed on the server object.
+[03/07/2021 18:53:20.0103] [0] 'MailboxRole' is installed on the server object.
+[03/07/2021 18:53:20.0103] [0] 'UnifiedMessagingRole' is installed on the server object.
+[03/07/2021 18:53:20.0103] [0] 'CafeRole' is installed on the server object.
+[03/07/2021 18:53:20.0103] [0] 'FrontendTransportRole' is installed on the server object.
+[03/07/2021 18:53:20.0105] [0] The backup copy of the install path is 'D:\Microsoft'.
+[03/07/2021 18:53:20.0105] [0] The backup copy of the previously installed version is '15.1.1261.35'.
+[03/07/2021 18:53:20.0106] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[03/07/2021 18:53:22.0380] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/07/2021 18:53:22.0381] [0] Active Directory Initialization status : 'True'.
+[03/07/2021 18:53:22.0381] [0] Schema Update Required Status : 'False'.
+[03/07/2021 18:53:22.0381] [0] Organization Configuration Update Required Status : 'False'.
+[03/07/2021 18:53:22.0382] [0] Domain Configuration Update Required Status : 'False'.
+[03/07/2021 18:53:22.0382] [0] The locally installed version is 15.1.2106.2.
+[03/07/2021 18:53:22.0382] [0] Exchange Installation Directory : 'D:\Microsoft'.
+[03/07/2021 18:53:22.0516] [0] Setup is determining what organization-level operations to perform.
+[03/07/2021 18:53:22.0516] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/07/2021 18:53:22.0516] [0] The installed MSI is current for this version of Setup.
+[03/07/2021 18:53:22.0523] [0] RootDataHandler has 1 DataHandlers
+[03/07/2021 18:53:22.0523] [0]      Languages
+[03/07/2021 18:53:22.0523] [0]      Management tools
+[03/07/2021 18:53:22.0523] [0]      Mailbox role: Transport service
+[03/07/2021 18:53:22.0523] [0]      Mailbox role: Client Access service
+[03/07/2021 18:53:22.0524] [0]      Mailbox role: Unified Messaging service
+[03/07/2021 18:53:22.0524] [0]      Mailbox role: Mailbox service
+[03/07/2021 18:53:22.0524] [0]      Mailbox role: Front End Transport service
+[03/07/2021 18:53:22.0524] [0]      Mailbox role: Client Access Front End service
+[03/07/2021 18:53:22.0529] [0] Validating options for the 7 requested roles
+[03/07/2021 18:53:22.0530] [0] UpgradeModeDataHandler has 11 handlers and 11 work units
+[03/07/2021 18:53:22.0546] [0] Performing Microsoft Exchange Server Prerequisite Check
+[03/07/2021 18:53:22.0667] [0] **************
+[03/07/2021 18:53:26.0409] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00]
+[03/07/2021 18:57:27.0811] [1] Processing component 'Search Foundation Service Configuration' (Configuring the server.).
+[03/07/2021 18:57:27.0812] [1] Executing:
+            if ($RoleProductPlatform -eq "amd64")
+            {
+                try
+                {
+                    # Need to configure the ETL traces before the fast service is installed. This will ensure that when the service comes up
+                    # it will have the necessary trace session setting available to read from the registry
+                    $fastPerfEtlTraceFolderPath = Join-Path -Path $RoleBinPath -ChildPath "\Search\Ceres\Diagnostics\ETLTraces"
+                    $fastDiagnosticTracingRegKeyPath = 'HKLM:\SOFTWARE\Microsoft\Office Server\16.0\Search\Diagnostics\Tracing'
+                    if(-not(Test-Path -Path $fastPerfEtlTraceFolderPath))
+                    {
+                        $null = New-Item $fastPerfEtlTraceFolderPath -Type 'Directory' -Force
+                    }
+
+                    if (-not(Test-Path -Path $fastDiagnosticTracingRegKeyPath))
+                    {
+                        $null = New-Item -Path $fastDiagnosticTracingRegKeyPath -Force
+                    }
+
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'TracingPath' -PropertyType 'string' -Value $fastPerfEtlTraceFolderPath -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'TracingFileName' -PropertyType 'string' -Value 'DocumentProcessingTrace' -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'DocumentParserSuccessLogMessage' -PropertyType 'Dword' -Value 1 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'DocumentParserLoggingNoInitialisation' -PropertyType 'Dword' -Value 1 -Force
+
+                    # Max trace folder size 50 * 100 = 5GB
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'MaxTraceFileSize' -PropertyType 'Dword' -Value 50 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'MaxTraceFileCount' -PropertyType 'Dword' -Value 100 -Force
+
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'UseGeneralSwitch' -PropertyType 'Dword' -Value 1 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'GeneralSwitch' -PropertyType 'Dword' -Value 0 -Force
+                }
+                catch
+                {
+                    # ETl tracing is not critical. Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while trying to Configure the FAST ETL traces. Exception: " + $_.Exception.Message);
+                }
+
+                try
+                {
+                    $fastFusionRegKeyPath = 'HKLM:\SOFTWARE\Microsoft\Office Server\16.0\Search\FlightControl'
+
+                    if (Test-Path -Path $fastFusionRegKeyPath)
+                    {
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_new_enabled' -Force -ErrorAction SilentlyContinue
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_old_enabled' -Force -ErrorAction SilentlyContinue
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_compare_outputs' -Force -ErrorAction SilentlyContinue
+                    }
+                }
+                catch
+                {
+                    # Removing new fusion keys is not critical. Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while trying to remove the fast new fusion reg keys. Exception: " + $_.Exception.Message);
+                }
+
+                $fastInstallConfigPath = Join-Path -Path $RoleBinPath -ChildPath "Search\Ceres\Installer";
+                $command = Join-Path -Path $fastInstallConfigPath -ChildPath "InstallConfig.ps1";
+                $dataFolderPath = Join-Path -Path $RoleBinPath -ChildPath "Search\Ceres\HostController\Data";
+
+                # Remove previous SearchFoundation configuration
+                &$command -action u -silent;
+                try
+                {
+                    if ([System.IO.Directory]::Exists($dataFolderPath))
+                    {
+                        [System.IO.Directory]::Delete($dataFolderPath, $true);
+                    }
+                }
+                catch
+                {
+                    $deleteErrorMsg = "Failure cleaning up SearchFoundation Data folder. - " + $dataFolderPath + " - " + $_.Exception.Message;
+                    Write-ExchangeSetupLog -Error $deleteErrorMsg;
+                }
+
+                # Re-add the SearchFoundation configuration
+                try
+                {
+                    # the BasePort value MUST be kept in sync with dev\Search\src\OperatorSchema\SearchConfig.cs
+                    &$command -action i -baseport 3800 -dataFolder $dataFolderPath -silent;
+                }
+                catch
+                {
+                    $errorMsg = "Failure configuring SearchFoundation through installconfig.ps1 - " + $_.Exception.Message;
+                    Write-ExchangeSetupLog -Error $errorMsg;
+
+                    # Clean up the failed configuration attempt.
+                    &$command -action u -silent;
+                    try
+                    {
+                        if ([System.IO.Directory]::Exists($dataFolderPath))
+                        {
+                            [System.IO.Directory]::Delete($dataFolderPath, $true);
+                        }
+                    }
+                    catch
+                    {
+                        $deleteErrorMsg = "Failure cleaning up SearchFoundation Data folder. - " + $dataFolderPath + " - " + $_.Exception.Message;
+                        Write-ExchangeSetupLog -Error $deleteErrorMsg;
+                    }
+                }
+
+                # Set the PowerShell Snap-in's public key tokens
+                try
+                {
+                    $PowerShellSnapinsPath = "HKLM:\SOFTWARE\Microsoft\PowerShell\1\PowerShellSnapIns\";
+                    $FastSnapinNames = @("EnginePSSnapin", "HostControllerPSSnapIn", "InteractionEnginePSSnapIn", "JunoPSSnapin", "SearchCorePSSnapIn");
+                    $officePublicKey = "71E9BCE111E9429C";
+                    $exchangePublicKey = "31bf3856ad364e35";
+                    foreach ($fastSnapinName in $FastSnapinNames)
+                    {
+                        $fastSnapinPath = $PowerShellSnapinsPath + $fastSnapinName;
+                        $assemblyNameProperty = Get-ItemProperty -Path $fastSnapinPath -Name "AssemblyName" -ErrorAction SilentlyContinue;
+                        if ($assemblyNameProperty -ne $null -and (-not [string]::IsNullOrEmpty($assemblyNameProperty.AssemblyName)))
+                        {
+                            $newAssemblyName = $assemblyNameProperty.AssemblyName -ireplace ($officePublicKey, $exchangePublicKey);
+                            Set-ItemProperty -Path $fastSnapinPath -Name "AssemblyName" -Value $newAssemblyName;
+                        }
+                    }
+                }
+                catch
+                {
+                    # Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while configuring Search Foundation PowerShell Snapin. Exception: " + $_.Exception.Message);
+                }
+            }
+
+[03/07/2021 19:02:59.0792] [2] Beginning processing Write-ExchangeSetupLog
+[03/07/2021 19:02:59.0794] [2] [ERROR] Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+[03/07/2021 19:02:59.0795] [2] [ERROR] Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+[03/07/2021 19:02:59.0796] [2] Ending processing Write-ExchangeSetupLog
+[03/07/2021 19:03:10.0118] [1] The following 1 error(s) occurred during task execution:
+[03/07/2021 19:03:10.0118] [1] 0.  ErrorRecord: Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+[03/07/2021 19:03:10.0118] [1] 0.  ErrorRecord: System.Exception: Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/07/2021 19:03:10.0119] [1] [ERROR] The following error was generated when "$error.Clear();
+            if ($RoleProductPlatform -eq "amd64")
+            {
+                try
+                {
+                    # Need to configure the ETL traces before the fast service is installed. This will ensure that when the service comes up
+                    # it will have the necessary trace session setting available to read from the registry
+                    $fastPerfEtlTraceFolderPath = Join-Path -Path $RoleBinPath -ChildPath "\Search\Ceres\Diagnostics\ETLTraces"
+                    $fastDiagnosticTracingRegKeyPath = 'HKLM:\SOFTWARE\Microsoft\Office Server\16.0\Search\Diagnostics\Tracing'
+                    if(-not(Test-Path -Path $fastPerfEtlTraceFolderPath))
+                    {
+                        $null = New-Item $fastPerfEtlTraceFolderPath -Type 'Directory' -Force
+                    }
+
+                    if (-not(Test-Path -Path $fastDiagnosticTracingRegKeyPath))
+                    {
+                        $null = New-Item -Path $fastDiagnosticTracingRegKeyPath -Force
+                    }
+
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'TracingPath' -PropertyType 'string' -Value $fastPerfEtlTraceFolderPath -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'TracingFileName' -PropertyType 'string' -Value 'DocumentProcessingTrace' -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'DocumentParserSuccessLogMessage' -PropertyType 'Dword' -Value 1 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'DocumentParserLoggingNoInitialisation' -PropertyType 'Dword' -Value 1 -Force
+
+                    # Max trace folder size 50 * 100 = 5GB
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'MaxTraceFileSize' -PropertyType 'Dword' -Value 50 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'MaxTraceFileCount' -PropertyType 'Dword' -Value 100 -Force
+
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'UseGeneralSwitch' -PropertyType 'Dword' -Value 1 -Force
+                    $null = New-ItemProperty -Path $fastDiagnosticTracingRegKeyPath -Name 'GeneralSwitch' -PropertyType 'Dword' -Value 0 -Force
+                }
+                catch
+                {
+                    # ETl tracing is not critical. Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while trying to Configure the FAST ETL traces. Exception: " + $_.Exception.Message);
+                }
+
+                try
+                {
+                    $fastFusionRegKeyPath = 'HKLM:\SOFTWARE\Microsoft\Office Server\16.0\Search\FlightControl'
+
+                    if (Test-Path -Path $fastFusionRegKeyPath)
+                    {
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_new_enabled' -Force -ErrorAction SilentlyContinue
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_old_enabled' -Force -ErrorAction SilentlyContinue
+                        Remove-ItemProperty -Path $fastFusionRegKeyPath -Name 'fusion_compare_outputs' -Force -ErrorAction SilentlyContinue
+                    }
+                }
+                catch
+                {
+                    # Removing new fusion keys is not critical. Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while trying to remove the fast new fusion reg keys. Exception: " + $_.Exception.Message);
+                }
+
+                $fastInstallConfigPath = Join-Path -Path $RoleBinPath -ChildPath "Search\Ceres\Installer";
+                $command = Join-Path -Path $fastInstallConfigPath -ChildPath "InstallConfig.ps1";
+                $dataFolderPath = Join-Path -Path $RoleBinPath -ChildPath "Search\Ceres\HostController\Data";
+
+                # Remove previous SearchFoundation configuration
+                &$command -action u -silent;
+                try
+                {
+                    if ([System.IO.Directory]::Exists($dataFolderPath))
+                    {
+                        [System.IO.Directory]::Delete($dataFolderPath, $true);
+                    }
+                }
+                catch
+                {
+                    $deleteErrorMsg = "Failure cleaning up SearchFoundation Data folder. - " + $dataFolderPath + " - " + $_.Exception.Message;
+                    Write-ExchangeSetupLog -Error $deleteErrorMsg;
+                }
+
+                # Re-add the SearchFoundation configuration
+                try
+                {
+                    # the BasePort value MUST be kept in sync with dev\Search\src\OperatorSchema\SearchConfig.cs
+                    &$command -action i -baseport 3800 -dataFolder $dataFolderPath -silent;
+                }
+                catch
+                {
+                    $errorMsg = "Failure configuring SearchFoundation through installconfig.ps1 - " + $_.Exception.Message;
+                    Write-ExchangeSetupLog -Error $errorMsg;
+
+                    # Clean up the failed configuration attempt.
+                    &$command -action u -silent;
+                    try
+                    {
+                        if ([System.IO.Directory]::Exists($dataFolderPath))
+                        {
+                            [System.IO.Directory]::Delete($dataFolderPath, $true);
+                        }
+                    }
+                    catch
+                    {
+                        $deleteErrorMsg = "Failure cleaning up SearchFoundation Data folder. - " + $dataFolderPath + " - " + $_.Exception.Message;
+                        Write-ExchangeSetupLog -Error $deleteErrorMsg;
+                    }
+                }
+
+                # Set the PowerShell Snap-in's public key tokens
+                try
+                {
+                    $PowerShellSnapinsPath = "HKLM:\SOFTWARE\Microsoft\PowerShell\1\PowerShellSnapIns\";
+                    $FastSnapinNames = @("EnginePSSnapin", "HostControllerPSSnapIn", "InteractionEnginePSSnapIn", "JunoPSSnapin", "SearchCorePSSnapIn");
+                    $officePublicKey = "71E9BCE111E9429C";
+                    $exchangePublicKey = "31bf3856ad364e35";
+                    foreach ($fastSnapinName in $FastSnapinNames)
+                    {
+                        $fastSnapinPath = $PowerShellSnapinsPath + $fastSnapinName;
+                        $assemblyNameProperty = Get-ItemProperty -Path $fastSnapinPath -Name "AssemblyName" -ErrorAction SilentlyContinue;
+                        if ($assemblyNameProperty -ne $null -and (-not [string]::IsNullOrEmpty($assemblyNameProperty.AssemblyName)))
+                        {
+                            $newAssemblyName = $assemblyNameProperty.AssemblyName -ireplace ($officePublicKey, $exchangePublicKey);
+                            Set-ItemProperty -Path $fastSnapinPath -Name "AssemblyName" -Value $newAssemblyName;
+                        }
+                    }
+                }
+                catch
+                {
+                    # Info only log
+                    Write-ExchangeSetupLog -Info ("An exception ocurred while configuring Search Foundation PowerShell Snapin. Exception: " + $_.Exception.Message);
+                }
+            }
+        " was run: "System.Exception: Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/07/2021 19:03:10.0119] [1] [ERROR] Failure configuring SearchFoundation through installconfig.ps1 - Error occurred while configuring Search Foundation for Exchange.System.TimeoutException: Timed out waiting for Admin node to be up and running
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)
+   at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.Install(String installDirectory, String dataDirectoryPath, Int32 basePort, String logFile, Boolean singleNode, String systemName, Boolean attachedMode)
+   at CallSite.Target(Closure , CallSite , Type , Object , Object , Object , Object , Object , Object , Boolean )
+[03/07/2021 19:03:10.0119] [1] [ERROR-REFERENCE] Id=SearchFoundationComponent___9f5053e82ecb4a8f9790bdf498c0664d Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/07/2021 19:03:10.0119] [1] Setup is stopping now because of one or more critical errors.
+[03/07/2021 19:03:10.0119] [1] Finished executing component tasks.
+[03/07/2021 19:03:10.0150] [1] Ending processing Install-BridgeheadRole
+[03/07/2021 19:03:10.0153] [0] CurrentResult console.ProcessRunInternal:198: 1
+[03/07/2021 19:03:10.0158] [0] CurrentResult launcherbase.maincore:90: 1
+[03/07/2021 19:03:10.0158] [0] CurrentResult console.startmain:52: 1
+[03/07/2021 19:03:10.0158] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[03/07/2021 19:03:10.0158] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[03/07/2021 19:03:10.0159] [0] CurrentResult main.run:235: 1
+[03/07/2021 19:03:10.0159] [0] CurrentResult setupbase.maincore:396: 1
+[03/07/2021 19:03:10.0159] [0] End of Setup
+[03/07/2021 19:03:10.0159] [0] **********************************************

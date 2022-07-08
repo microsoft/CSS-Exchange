@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-TransportLoggingInformationPerServer {
+function Get-TransportLoggingInformationPerServer {
     param(
         [string]$Server,
         [int]$Version,
@@ -9,8 +9,8 @@ Function Get-TransportLoggingInformationPerServer {
         [bool]$CASOnly,
         [bool]$MailboxOnly
     )
-    Write-ScriptDebug("Function Enter: Get-TransportLoggingInformationPerServer")
-    Write-ScriptDebug("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
+    Write-Verbose("Function Enter: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Passed: [string]Server: {0} | [int]Version: {1} | [bool]EdgeServer: {2} | [bool]CASOnly: {3} | [bool]MailboxOnly: {4}" -f $Server, $Version, $EdgeServer, $CASOnly, $MailboxOnly)
     $transportLoggingObject = New-Object PSCustomObject
 
     if ($Version -ge 15) {
@@ -25,6 +25,8 @@ Function Get-TransportLoggingInformationPerServer {
                 ReceiveProtocolLogPath = $data.ReceiveProtocolLogPath.ToString()
                 SendProtocolLogPath    = $data.SendProtocolLogPath.ToString()
                 WlmLogPath             = $data.WlmLogPath.ToString()
+                RoutingTableLogPath    = $data.RoutingTableLogPath.ToString()
+                AgentLogPath           = $data.AgentLogPath.ToString()
             }
 
             if (![string]::IsNullOrEmpty($data.QueueLogPath)) {
@@ -39,11 +41,16 @@ Function Get-TransportLoggingInformationPerServer {
             if (($Version -eq 15 -and (-not ($MailboxOnly))) -or $Version -ge 16) {
                 $data = Get-FrontendTransportService -Identity $Server
 
+                if ($Version -ne 15) {
+                    $routingTableLogPath = $data.RoutingTableLogPath.ToString()
+                }
+
                 $FETransObject = [PSCustomObject]@{
                     ConnectivityLogPath    = $data.ConnectivityLogPath.ToString()
                     ReceiveProtocolLogPath = $data.ReceiveProtocolLogPath.ToString()
                     SendProtocolLogPath    = $data.SendProtocolLogPath.ToString()
                     AgentLogPath           = $data.AgentLogPath.ToString()
+                    RoutingTableLogPath    = $routingTableLogPath
                 }
                 $transportLoggingObject | Add-Member -MemberType NoteProperty -Name FELoggingInfo -Value $FETransObject
             }
@@ -51,12 +58,20 @@ Function Get-TransportLoggingInformationPerServer {
             if (($Version -eq 15 -and (-not ($CASOnly))) -or $Version -ge 16) {
                 #Mailbox Transport Layer
                 $data = Get-MailboxTransportService -Identity $Server
+
+                if ($Version -ne 15) {
+                    $routingTableLogPath = $data.RoutingTableLogPath.ToString()
+                }
+
                 $mbxObject = [PSCustomObject]@{
                     ConnectivityLogPath              = $data.ConnectivityLogPath.ToString()
                     ReceiveProtocolLogPath           = $data.ReceiveProtocolLogPath.ToString()
                     SendProtocolLogPath              = $data.SendProtocolLogPath.ToString()
                     PipelineTracingPath              = $data.PipelineTracingPath.ToString()
                     MailboxDeliveryThrottlingLogPath = $data.MailboxDeliveryThrottlingLogPath.ToString()
+                    MailboxDeliveryAgentLogPath      = $data.MailboxDeliveryAgentLogPath.ToString()
+                    MailboxSubmissionAgentLogPath    = $data.MailboxSubmissionAgentLogPath.ToString()
+                    RoutingTableLogPath              = $routingTableLogPath
                 }
                 $transportLoggingObject | Add-Member -MemberType NoteProperty -Name MBXLoggingInfo -Value $mbxObject
             }
@@ -71,10 +86,10 @@ Function Get-TransportLoggingInformationPerServer {
         $hubObject | Add-Member -MemberType NoteProperty -Name SendProtocolLogPath -Value ($data.SendProtocolLogPath.PathName)
         $transportLoggingObject | Add-Member -MemberType NoteProperty -Name HubLoggingInfo -Value $hubObject
     } else {
-        Write-ScriptHost -WriteString ("trying to determine transport information for server {0} and wasn't able to determine the correct version type" -f $Server) -ShowServer $false
+        Write-Host "trying to determine transport information for server $Server and wasn't able to determine the correct version type"
         return
     }
 
-    Write-ScriptDebug("Function Exit: Get-TransportLoggingInformationPerServer")
+    Write-Verbose("Function Exit: Get-TransportLoggingInformationPerServer")
     return $transportLoggingObject
 }

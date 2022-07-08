@@ -1,0 +1,76 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSample</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSample</ToString>
+    <Props>
+      <S N="Path">\\solo-e15a\\network interface(microsoft hyper-v network adapter)\packets received discarded</S>
+      <S N="InstanceName">microsoft hyper-v network adapter</S>
+      <Db N="CookedValue">0</Db>
+      <U64 N="RawValue">0</U64>
+      <U64 N="SecondValue">0</U64>
+      <U32 N="MultipleCount">1</U32>
+      <Obj N="CounterType" RefId="1">
+        <TN RefId="1">
+          <T>System.Diagnostics.PerformanceCounterType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>NumberOfItems64</ToString>
+        <I32>65792</I32>
+      </Obj>
+      <DT N="Timestamp">2021-10-02T14:15:36.52-07:00</DT>
+      <U64 N="Timestamp100NSec">132776577365200000</U64>
+      <U32 N="Status">0</U32>
+      <U32 N="DefaultScale">0</U32>
+      <U64 N="TimeBase">10000000</U64>
+    </Props>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSample</ToString>
+    <Props>
+      <S N="Path">\\solo-e15a\\network interface(microsoft hyper-v network adapter _2)\packets received discarded</S>
+      <S N="InstanceName">microsoft hyper-v network adapter _2</S>
+      <Db N="CookedValue">0</Db>
+      <U64 N="RawValue">0</U64>
+      <U64 N="SecondValue">0</U64>
+      <U32 N="MultipleCount">1</U32>
+      <Obj N="CounterType" RefId="3">
+        <TNRef RefId="1" />
+        <ToString>NumberOfItems64</ToString>
+        <I32>65792</I32>
+      </Obj>
+      <DT N="Timestamp">2021-10-02T14:15:36.52-07:00</DT>
+      <U64 N="Timestamp100NSec">132776577365200000</U64>
+      <U32 N="Status">0</U32>
+      <U32 N="DefaultScale">0</U32>
+      <U64 N="TimeBase">10000000</U64>
+    </Props>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSample</ToString>
+    <Props>
+      <S N="Path">\\solo-e15a\\network interface(isatap.{54466675-1aa5-4988-bc27-40b89bf0dcbd})\packets received discarded</S>
+      <S N="InstanceName">isatap.{54466675-1aa5-4988-bc27-40b89bf0dcbd}</S>
+      <Db N="CookedValue">0</Db>
+      <U64 N="RawValue">0</U64>
+      <U64 N="SecondValue">0</U64>
+      <U32 N="MultipleCount">1</U32>
+      <Obj N="CounterType" RefId="5">
+        <TNRef RefId="1" />
+        <ToString>NumberOfItems64</ToString>
+        <I32>65792</I32>
+      </Obj>
+      <DT N="Timestamp">2021-10-02T14:15:36.52-07:00</DT>
+      <U64 N="Timestamp100NSec">132776577365200000</U64>
+      <U32 N="Status">0</U32>
+      <U32 N="DefaultScale">0</U32>
+      <U64 N="TimeBase">10000000</U64>
+    </Props>
+  </Obj>
+</Objs>

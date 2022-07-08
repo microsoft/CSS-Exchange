@@ -1,7 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-CommandExists {
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+function Test-CommandExists {
     param(
         [string]$command
     )
@@ -11,7 +12,7 @@ Function Test-CommandExists {
             return $true
         }
     } catch {
-        Invoke-CatchBlockActions
+        Invoke-CatchActions
         return $false
     }
 }

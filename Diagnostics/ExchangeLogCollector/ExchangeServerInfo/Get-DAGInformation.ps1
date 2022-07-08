@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-DAGInformation {
+function Get-DAGInformation {
     param(
         [Parameter(Mandatory = $true)][string]$DAGName
     )
@@ -9,15 +9,15 @@ Function Get-DAGInformation {
     try {
         $dag = Get-DatabaseAvailabilityGroup $DAGName -Status -ErrorAction Stop
     } catch {
-        Write-ScriptDebug("Failed to run Get-DatabaseAvailabilityGroup on $DAGName")
-        Invoke-CatchBlockActions
+        Write-Verbose("Failed to run Get-DatabaseAvailabilityGroup on $DAGName")
+        Invoke-CatchActions
     }
 
     try {
         $dagNetwork = Get-DatabaseAvailabilityGroupNetwork $DAGName -ErrorAction Stop
     } catch {
-        Write-ScriptDebug("Failed to run Get-DatabaseAvailabilityGroupNetwork on $DAGName")
-        Invoke-CatchBlockActions
+        Write-Verbose("Failed to run Get-DatabaseAvailabilityGroupNetwork on $DAGName")
+        Invoke-CatchActions
     }
 
     #Now to get the Mailbox Database Information for each server in the DAG.

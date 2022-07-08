@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-QueryItemResult {
+function Get-QueryItemResult {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

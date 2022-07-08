@@ -1,39 +1,45 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-DiskSpace {
+. $PSScriptRoot\Add-ScriptBlockInjection.ps1
+. $PSScriptRoot\Enter-YesNoLoopAction.ps1
+. $PSScriptRoot\PipelineFunctions.ps1
+. $PSScriptRoot\Start-JobManager.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
         [Parameter(Mandatory = $true)][string]$Path,
         [Parameter(Mandatory = $true)][int]$CheckSize
     )
-    Write-ScriptDebug("Function Enter: Test-DiskSpace")
-    Write-ScriptDebug("Passed: [string]Path: {0} | [int]CheckSize: {1}" -f $Path, $CheckSize)
-    Write-ScriptHost -WriteString ("Checking the free space on the servers before collecting the data...") -ShowServer $false
+    Write-Verbose("Function Enter: Test-DiskSpace")
+    Write-Verbose("Passed: [string]Path: {0} | [int]CheckSize: {1}" -f $Path, $CheckSize)
+    Write-Host "Checking the free space on the servers before collecting the data..."
     if (-not ($Path.EndsWith("\"))) {
         $Path = "{0}\" -f $Path
     }
 
-    Function Test-ServerDiskSpace {
+    function Test-ServerDiskSpace {
         param(
             [Parameter(Mandatory = $true)][string]$Server,
             [Parameter(Mandatory = $true)][int]$FreeSpace,
             [Parameter(Mandatory = $true)][int]$CheckSize
         )
-        Write-ScriptDebug("Calling Test-ServerDiskSpace")
-        Write-ScriptDebug("Passed: [string]Server: {0} | [int]FreeSpace: {1} | [int]CheckSize: {2}" -f $Server, $FreeSpace, $CheckSize)
+        Write-Verbose("Calling Test-ServerDiskSpace")
+        Write-Verbose("Passed: [string]Server: {0} | [int]FreeSpace: {1} | [int]CheckSize: {2}" -f $Server, $FreeSpace, $CheckSize)
 
         if ($FreeSpace -gt $CheckSize) {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have more than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false
+            Write-Host "[Server: $Server] : We have more than $CheckSize GB of free space."
             return $true
         } else {
-            Write-ScriptHost -WriteString ("[Server: {0}] : We have less than {1} GB of free space." -f $Server, $CheckSize) -ShowServer $false
+            Write-Host "[Server: $Server] : We have less than $CheckSize GB of free space."
             return $false
         }
     }
 
     if ($Servers.Count -eq 1 -and $Servers[0] -eq $env:COMPUTERNAME) {
-        Write-ScriptDebug("Local server only check. Not going to invoke Start-JobManager")
+        Write-Verbose("Local server only check. Not going to invoke Start-JobManager")
         $freeSpace = Get-FreeSpace -FilePath $Path
         if (Test-ServerDiskSpace -Server $Servers[0] -FreeSpace $freeSpace -CheckSize $CheckSize) {
             return $Servers[0]
@@ -44,20 +50,24 @@ Function Test-DiskSpace {
 
     $serverArgs = @()
     foreach ($server in $Servers) {
-        $obj = New-Object PSCustomObject
-        $obj | Add-Member -MemberType NoteProperty -Name ServerName -Value $server
-        $obj | Add-Member -MemberType NoteProperty -Name ArgumentList -Value $Path
-        $serverArgs += $obj
+        $serverArgs += [PSCustomObject]@{
+            ServerName   = $server
+            ArgumentList = $Path
+        }
     }
 
-    Write-ScriptDebug("Getting Get-FreeSpace string to create Script Block")
-    $getFreeSpaceString = (${Function:Get-FreeSpace}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
-    Write-ScriptDebug("Creating Script Block")
+    Write-Verbose("Getting Get-FreeSpace string to create Script Block")
+    SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
+    $getFreeSpaceString = Add-ScriptBlockInjection -PrimaryScriptBlock ${Function:Get-FreeSpace} `
+        -IncludeScriptBlock @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject}) `
+        -IncludeUsingParameter "WriteRemoteVerboseDebugAction" `
+        -CatchActionFunction ${Function:Invoke-CatchActions}
+    Write-Verbose("Creating Script Block")
     $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
     $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
         -NeedReturnData $true `
-        -DisplayReceiveJobInCorrectFunction $true `
-        -JobBatchName "Getting the free space for test disk space"
+        -JobBatchName "Getting the free space for test disk space" `
+        -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
     $passedServers = @()
     foreach ($server in $Servers) {
 
@@ -68,17 +78,17 @@ Function Test-DiskSpace {
     }
 
     if ($passedServers.Count -eq 0) {
-        Write-ScriptHost -WriteString("Looks like all the servers didn't pass the disk space check.") -ShowServer $false
-        Write-ScriptHost -WriteString("Because there are no servers left, we will stop the script.") -ShowServer $false
+        Write-Host "Looks like all the servers didn't pass the disk space check."
+        Write-Host "Because there are no servers left, we will stop the script."
         exit
     } elseif ($passedServers.Count -ne $Servers.Count) {
-        Write-ScriptHost -WriteString ("Looks like all the servers didn't pass the disk space check.") -ShowServer $false
-        Write-ScriptHost -WriteString ("We will only collect data from these servers: ") -ShowServer $false
+        Write-Host "Looks like all the servers didn't pass the disk space check."
+        Write-Host "We will only collect data from these servers: "
         foreach ($svr in $passedServers) {
-            Write-ScriptHost -ShowServer $false -WriteString ("{0}" -f $svr)
+            Write-Host $svr
         }
         Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction { exit }
     }
-    Write-ScriptDebug("Function Exit: Test-DiskSpace")
+    Write-Verbose("Function Exit: Test-DiskSpace")
     return $passedServers
 }

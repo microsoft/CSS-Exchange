@@ -2,8 +2,8 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
-[CmdletBinding()]
-Param (
+[CmdletBinding(DefaultParameterSetName = "LogAge")]
+param (
     [string]$FilePath = "C:\MS_Logs_Collection",
     [array]$Servers = @($env:COMPUTERNAME),
     [switch]$ADDriverLogs,
@@ -29,6 +29,7 @@ Param (
     [switch]$HubProtocolLogs,
     [switch]$IISLogs,
     [switch]$ImapLogs,
+    [switch]$MailboxAssistantsLogs,
     [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
     [switch]$MailboxProtocolLogs,
@@ -36,6 +37,7 @@ Param (
     [switch]$ManagedAvailabilityLogs,
     [switch]$MapiLogs,
     [switch]$MessageTrackingLogs,
+    [switch]$MitigationService,
     [switch]$OABLogs,
     [switch]$OrganizationConfig,
     [switch]$OWALogs,
@@ -48,17 +50,25 @@ Param (
     [switch]$SendConnectors,
     [Alias("ServerInfo")]
     [switch]$ServerInformation,
+    [switch]$TransportAgentLogs,
     [switch]$TransportConfig,
+    [switch]$TransportRoutingTableLogs,
     [switch]$WindowsSecurityLogs,
     [switch]$AcceptEULA,
     [switch]$AllPossibleLogs,
-    [bool]$CollectAllLogsBasedOnDaysWorth = $true,
+    [Alias("CollectAllLogsBasedOnDaysWorth")]
+    [bool]$CollectAllLogsBasedOnLogAge = $true,
+    [switch]$ConnectivityLogs,
     [switch]$DatabaseFailoverIssue,
+    [Parameter(ParameterSetName = "Worth")]
     [int]$DaysWorth = 3,
+    [Parameter(ParameterSetName = "Worth")]
+    [int]$HoursWorth = 0,
     [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
-    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz"),
-    [switch]$ConnectivityLogs,
+    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz", "SimplePerf"),
+    [Parameter(ParameterSetName = "LogAge")]
+    [timespan]$LogAge = "3.00:00:00",
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
@@ -69,102 +79,52 @@ Param (
 
 $BuildVersion = ""
 
-$Script:VerboseEnabled = $false
+if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
-if ($PSBoundParameters["Verbose"]) { $Script:VerboseEnabled = $true }
+if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth }
 
-. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
-. .\extern\Enter-YesNoLoopAction.ps1
-. .\extern\Import-ScriptConfigFile.ps1
-. .\extern\Start-JobManager.ps1
-. .\ExchangeServerInfo\Get-DAGInformation.ps1
-. .\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. .\ExchangeServerInfo\Get-ServerObjects.ps1
-. .\ExchangeServerInfo\Get-TransportLoggingInformationPerServer.ps1
-. .\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
-. .\Write\Get-WritersToAddToScriptBlock.ps1
-. .\Write\Write-DataOnlyOnceOnMasterServer.ps1
-. .\Write\Write-LargeDataObjectsOnMachine.ps1
-. .\Helpers\Get-ArgumentList.ps1
-. .\Helpers\Invoke-ServerRootZipAndCopy.ps1
-. .\Helpers\Test-DiskSpace.ps1
-. .\Helpers\Test-NoSwitchesProvided.ps1
-. .\Helpers\Test-PossibleCommonScenarios.ps1
-. .\Helpers\Test-RemoteExecutionOfServers.ps1
-
-Function Invoke-RemoteFunctions {
+function Invoke-RemoteFunctions {
     param(
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
 
-    . .\RemoteScriptBlock\extern\Compress-Folder.ps1
-    . .\RemoteScriptBlock\extern\Get-ClusterNodeFileVersions.ps1
-    . .\RemoteScriptBlock\extern\Get-ExchangeInstallDirectory.ps1
-    . .\RemoteScriptBlock\extern\Get-FreeSpace.ps1
-    . .\RemoteScriptBlock\extern\New-Folder.ps1
-    . $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
-    . .\RemoteScriptBlock\extern\Save-DataToFile.ps1
-    . $PSScriptRoot\..\..\Shared\Write-HostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnHostWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-InvokeCommandReturnVerboseWriter.ps1
-    . .\RemoteScriptBlock\extern\Write-ScriptMethodHostWriter.ps1
-    . $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-    . $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-    . .\RemoteScriptBlock\Add-ServerNameToFileName.ps1
-    . .\RemoteScriptBlock\Get-ItemsSize.ps1
-    . .\RemoteScriptBlock\Get-StringDataForNotEnoughFreeSpace.ps1
-    . .\RemoteScriptBlock\Get-IISLogDirectory.ps1
-    . .\RemoteScriptBlock\Test-CommandExists.ps1
-    . .\RemoteScriptBlock\Test-FreeSpace.ps1
-    . .\RemoteScriptBlock\Invoke-ZipFolder.ps1
-    . .\RemoteScriptBlock\IO\Copy-BulkItems.ps1
-    . .\RemoteScriptBlock\IO\Copy-FullLogFullPathRecurse.ps1
-    . .\RemoteScriptBlock\IO\Copy-LogmanData.ps1
-    . .\RemoteScriptBlock\IO\Copy-LogsBasedOnTime.ps1
-    . .\RemoteScriptBlock\IO\Invoke-CatchBlockActions.ps1
-    . .\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
-    . .\RemoteScriptBlock\IO\Save-FailoverClusterInformation.ps1
-    . .\RemoteScriptBlock\IO\Save-LogmanExmonData.ps1
-    . .\RemoteScriptBlock\IO\Save-LogmanExperfwizData.ps1
-    . .\RemoteScriptBlock\IO\Save-ServerInfoData.ps1
-    . .\RemoteScriptBlock\IO\Save-WindowsEventLogs.ps1
-    . .\RemoteScriptBlock\IO\Write-DebugLog.ps1
-    . .\RemoteScriptBlock\IO\Write-ScriptDebug.ps1
-    . .\RemoteScriptBlock\IO\Write-ScriptHost.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanData.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanExt.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanObject.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanRootPath.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanStartDate.ps1
-    . .\RemoteScriptBlock\Logman\Get-LogmanStatus.ps1
-    . .\RemoteScriptBlock\Logman\Start-Logman.ps1
-    . .\RemoteScriptBlock\Logman\Stop-Logman.ps1
-    . .\RemoteScriptBlock\Invoke-RemoteMain.ps1
+    . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\Write-Host.ps1
+    . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\Write-Verbose.ps1
+    . $PSScriptRoot\RemoteScriptBlock\IO\WriteFunctions.ps1
+    . $PSScriptRoot\RemoteScriptBlock\Invoke-RemoteMain.ps1
 
     try {
-        $Script:VerboseFunctionCaller = ${Function:Write-ScriptDebug}
-        $Script:HostFunctionCaller = ${Function:Write-ScriptHost}
 
         if ($PassedInfo.ByPass -ne $true) {
             $Script:RootCopyToDirectory = "{0}{1}" -f $PassedInfo.RootFilePath, $env:COMPUTERNAME
-            $Script:Logger = New-LoggerObject -LogDirectory $Script:RootCopyToDirectory -LogName ("ExchangeLogCollector-Instance-Debug") `
-                -HostFunctionCaller $Script:HostFunctionCaller `
-                -VerboseFunctionCaller $Script:VerboseFunctionCaller
-            Write-ScriptDebug("Root Copy To Directory: $Script:RootCopyToDirectory")
+            $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Instance-Debug" -LogDirectory $Script:RootCopyToDirectory
+            SetWriteHostManipulateObjectAction ${Function:Get-ManipulateWriteHostValue}
+            SetWriteVerboseManipulateMessageAction ${Function:Get-ManipulateWriteVerboseValue}
+            SetWriteHostAction ${Function:Write-DebugLog}
+            SetWriteVerboseAction ${Function:Write-DebugLog}
+
+            if ($PassedInfo.ScriptDebug) {
+                $Script:VerbosePreference = "Continue"
+            }
+
+            Write-Verbose("Root Copy To Directory: $Script:RootCopyToDirectory")
             Invoke-RemoteMain
         } else {
-            Write-ScriptDebug("Loading common functions")
+            Write-Verbose("Loading common functions")
         }
     } catch {
-        Write-ScriptHost -WriteString ("An error occurred in Invoke-RemoteFunctions") -ForegroundColor "Red"
-        Invoke-CatchBlockActions
+        Write-Host "An error occurred in Invoke-RemoteFunctions" -ForegroundColor "Red"
+        Invoke-CatchActions
         #This is a bad place to catch the error that just occurred
         #Being that there is a try catch block around each command that we run now, we should never hit an issue here unless it is is prior to that.
-        Write-ScriptDebug "Critical Failure occurred."
+        Write-Verbose "Critical Failure occurred."
     } finally {
-        Write-ScriptDebug("Exiting: Invoke-RemoteFunctions")
-        Write-ScriptDebug("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
+        Write-Verbose("Exiting: Invoke-RemoteFunctions")
+        Write-Verbose("[double]TotalBytesSizeCopied: {0} | [double]TotalBytesSizeCompressed: {1} | [double]AdditionalFreeSpaceCushionGB: {2} | [double]CurrentFreeSpaceGB: {3} | [double]FreeSpaceMinusCopiedAndCompressedGB: {4}" -f $Script:TotalBytesSizeCopied,
             $Script:TotalBytesSizeCompressed,
             $Script:AdditionalFreeSpaceCushionGB,
             $Script:CurrentFreeSpaceGB,
@@ -172,7 +132,21 @@ Function Invoke-RemoteFunctions {
     }
 }
 
-Function Main {
+# Need to dot load the files outside of the remote functions after them to avoid issues with encapsulation
+. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\Write\Write-DataOnlyOnceOnMasterServer.ps1
+. $PSScriptRoot\Write\Write-LargeDataObjectsOnMachine.ps1
+. $PSScriptRoot\Helpers\Enter-YesNoLoopAction.ps1
+. $PSScriptRoot\Helpers\Get-ArgumentList.ps1
+. $PSScriptRoot\Helpers\Import-ScriptConfigFile.ps1
+. $PSScriptRoot\Helpers\Invoke-ServerRootZipAndCopy.ps1
+. $PSScriptRoot\Helpers\Test-DiskSpace.ps1
+. $PSScriptRoot\Helpers\Test-NoSwitchesProvided.ps1
+. $PSScriptRoot\Helpers\Test-PossibleCommonScenarios.ps1
+. $PSScriptRoot\Helpers\Test-RemoteExecutionOfServers.ps1
+
+function Main {
 
     Start-Sleep 1
     Test-PossibleCommonScenarios
@@ -200,21 +174,21 @@ Function Main {
 "@ -f $BuildVersion, ($Script:StandardFreeSpaceInGBCheckSize = 10), $Script:StandardFreeSpaceInGBCheckSize
 
     Clear-Host
-    Write-ScriptHost -WriteString $display -ShowServer $false
+    Write-Host $display
 
     if (-not($AcceptEULA)) {
         Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
     }
 
     if (-not (Confirm-Administrator)) {
-        Write-ScriptHost -WriteString ("Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.") -ForegroundColor "Yellow"
+        Write-Host "Hey! The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator." -ForegroundColor "Yellow"
         exit
     }
 
     $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
 
     if (!($Script:LocalExchangeShell.ShellLoaded)) {
-        Write-ScriptHost -WriteString ("It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit.") -ShowServer $false
+        Write-Host "It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit."
         exit
     }
 
@@ -225,7 +199,7 @@ Function Main {
     if ($Script:LocalExchangeShell.EdgeServer) {
         #If we are on an Exchange Edge Server, we are going to treat it like a single server on purpose as we recommend that the Edge Server is a non domain joined computer.
         #Because it isn't a domain joined computer, we can't use remote execution
-        Write-ScriptHost -WriteString ("Determined that we are on an Edge Server, we can only use locally collection for this role.") -ForegroundColor "Yellow"
+        Write-Host "Determined that we are on an Edge Server, we can only use locally collection for this role." -ForegroundColor "Yellow"
         $Script:EdgeRoleDetected = $true
         $Servers = @($env:COMPUTERNAME)
     }
@@ -249,7 +223,7 @@ Function Main {
             Invoke-Command -ComputerName $Script:ValidServers -ScriptBlock ${Function:Invoke-RemoteFunctions} -ArgumentList $argumentList -ErrorAction Stop
         } catch {
             Write-Error "An error has occurred attempting to call Invoke-Command to do a remote collect all at once. Please notify ExToolsFeedback@microsoft.com of this issue. Stopping the script."
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
             exit
         }
 
@@ -259,27 +233,29 @@ Function Main {
     } else {
 
         if ($null -eq (Test-DiskSpace -Servers $env:COMPUTERNAME -Path $FilePath -CheckSize $Script:StandardFreeSpaceInGBCheckSize)) {
-            Write-ScriptHost -ShowServer $false -WriteString ("Failed to have enough space available locally. We can't continue with the data collection") -ForegroundColor "Yellow"
+            Write-Host "Failed to have enough space available locally. We can't continue with the data collection" -ForegroundColor "Yellow"
             exit
         }
         if (-not($Script:EdgeRoleDetected)) {
-            Write-ScriptHost -ShowServer $false -WriteString ("Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers paramater with a list of Exchange Server names") -ForegroundColor "Yellow"
-            Write-ScriptHost -ShowServer $false -WriteString ("Going to collect the data locally")
+            Write-Host "Note: Remote Collection is now possible for Windows Server 2012 and greater on the remote machine. Just use the -Servers parameter with a list of Exchange Server names" -ForegroundColor "Yellow"
+            Write-Host "Going to collect the data locally"
         }
         $Script:ArgumentList = (Get-ArgumentList -Servers $env:COMPUTERNAME)
         Invoke-RemoteFunctions -PassedInfo $Script:ArgumentList
+        # Don't manipulate the host object when running locally after the Invoke-RemoteFunctions to
+        # make it the same as when having multiple servers executing the script against.
+        SetWriteHostManipulateObjectAction $null
         Write-DataOnlyOnceOnMasterServer
         Write-LargeDataObjectsOnMachine
         Invoke-ServerRootZipAndCopy -RemoteExecute $false
     }
 
-    Write-ScriptHost -WriteString "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com." -ShowServer $false
+    Write-Host "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com."
 }
 #Need to do this here otherwise can't find the script path
 $configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
 
 try {
-    $Error.Clear()
     <#
     Added the ability to call functions from within a bundled function so i don't have to duplicate work.
     Loading the functions into memory by using the '.' allows me to do this,
@@ -289,26 +265,28 @@ try {
             ByPass = $true
         })
 
+    Invoke-ErrorMonitoring
+
     if ((Test-Path $configPath) -and
         !$DisableConfigImport) {
         try {
             Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
         } catch {
-            Write-ScriptHost "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
-            Invoke-CatchBlockActions
+            Write-Host "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
+            Invoke-CatchActions
             Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
         }
     }
     $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
-    $Script:Logger = New-LoggerObject -LogDirectory ("{0}{1}" -f $RootFilePath, $env:COMPUTERNAME) -LogName "ExchangeLogCollector-Main-Debug" `
-        -HostFunctionCaller $Script:HostFunctionCaller `
-        -VerboseFunctionCaller $Script:VerboseFunctionCaller
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
+    SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteHostAction ${Function:Write-DebugLog}
 
     Main
 } finally {
 
     if ($Script:VerboseEnabled -or
         ($Error.Count -ne $Script:ErrorsFromStartOfCopy)) {
-        $Script:Logger.RemoveLatestLogFile()
+        #$Script:Logger.RemoveLatestLogFile()
     }
 }

@@ -1,0 +1,25 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <B N="PendingFileRenameOperations">true</B>
+      <B N="ComponentBasedServicingPendingReboot">true</B>
+      <B N="AutoUpdatePendingReboot">false</B>
+      <B N="CcmRebootPending">false</B>
+      <B N="PendingReboot">true</B>
+      <Obj N="PendingRebootLocations" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations</S>
+          <S>HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending</S>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

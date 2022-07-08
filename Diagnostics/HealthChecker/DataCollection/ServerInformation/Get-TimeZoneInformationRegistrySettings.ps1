@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-Function Get-TimeZoneInformationRegistrySettings {
+function Get-TimeZoneInformationRegistrySettings {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
@@ -12,6 +12,7 @@ Function Get-TimeZoneInformationRegistrySettings {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $timeZoneInformationSubKey = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
         $actionsToTake = @()
+        $dstIssueDetected = $false
     }
     process {
         $dynamicDaylightTimeDisabled = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DynamicDaylightTimeDisabled" -CatchActionFunction $CatchActionFunction
@@ -50,4 +51,3 @@ Function Get-TimeZoneInformationRegistrySettings {
         }
     }
 }
-

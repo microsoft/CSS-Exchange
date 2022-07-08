@@ -1,0 +1,46 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_PageFileSetting</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_Setting</T>
+      <T>System.Management.ManagementObject#Win32_PageFileSetting</T>
+      <T>System.Management.ManagementObject#CIM_Setting</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\EXHR-00234\root\cimv2:Win32_PageFileSetting.Name="c:\\pagefile.sys"</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_PageFileSetting</S>
+      <S N="__SUPERCLASS">CIM_Setting</S>
+      <S N="__DYNASTY">CIM_Setting</S>
+      <S N="__RELPATH">Win32_PageFileSetting.Name="c:\\pagefile.sys"</S>
+      <I32 N="__PROPERTY_COUNT">6</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_Setting</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">EXHR-00234</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\EXHR-00234\root\cimv2:Win32_PageFileSetting.Name="c:\\pagefile.sys"</S>
+      <S N="Caption">c:\ 'pagefile.sys'</S>
+      <S N="Description">'pagefile.sys' @ c:\</S>
+      <U32 N="InitialSize">1536</U32>
+      <U32 N="MaximumSize">1536</U32>
+      <S N="Name">c:\pagefile.sys</S>
+      <S N="SettingID">pagefile.sys @ c:</S>
+    </Props>
+    <MS>
+      <S N="PSComputerName">EXHR-00234</S>
+    </MS>
+  </Obj>
+</Objs>

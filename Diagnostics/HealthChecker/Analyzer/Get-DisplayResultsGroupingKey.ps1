@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-DisplayResultsGroupingKey {
+function Get-DisplayResultsGroupingKey {
     param(
         [string]$Name,
         [bool]$DisplayGroupName = $true,

@@ -12,8 +12,14 @@ steps:
 
 - pwsh: |
     cd .\.build
+    .\docs.ps1
+  displayName: "Docs Check"
+
+- pwsh: |
+    cd .\.build
     .\CodeFormatter.ps1
   displayName: "Code Formatting Script"
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
 
 - pwsh: |
     cd .\.build
@@ -24,17 +30,6 @@ steps:
     cd .\.build
     .\Pester.ps1
   displayName: "Running Invoke-Pester"
-
-- pwsh: |
-    Get-Content dist\ScriptVersions.txt
-  displayName: "Display Script Versions file"
-
-- pwsh: |
-    $tag = "v$((Get-Date).ToString(`"yy.MM.dd.HHmm`"))"
-    Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
-    (Get-Content .\dist\ScriptVersions.txt) -replace '^(\S+.ps1)', ('[$1](https://github.com/microsoft/CSS-Exchange/releases/download/' + $tag + '/$1)') | Out-File dist\ScriptVersions.txt
-    Get-Content dist\ScriptVersions.txt
-  displayName: "Setting Script Versions text file"
 
 - task: EsrpCodeSigning@1
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
@@ -77,6 +72,22 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
+
+- pwsh: |
+    cd .\.build
+    .\BuildScriptVersions.ps1
+  displayName: "Build ScriptVersions.txt"
+
+- pwsh: |
+    Get-Content dist\ScriptVersions.txt
+  displayName: "Display Script Versions file"
+
+- pwsh: |
+    $tag = "v$((Get-Date).ToString(`"yy.MM.dd.HHmm`"))"
+    Write-Host "##vso[task.setvariable variable=ReleaseTagValue]$tag"
+    (Get-Content .\dist\ScriptVersions.txt) -replace '^(\S+.ps1)', ('[$1](https://github.com/microsoft/CSS-Exchange/releases/download/' + $tag + '/$1)') | Out-File dist\ScriptVersions.txt
+    Get-Content dist\ScriptVersions.txt
+  displayName: "Setting Script Versions text file"
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Release - Draft'

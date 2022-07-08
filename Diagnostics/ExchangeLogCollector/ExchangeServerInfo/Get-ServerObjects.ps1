@@ -1,21 +1,23 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-ServerObjects {
+. $PSScriptRoot\Get-ExchangeBasicServerObject.ps1
+. $PSScriptRoot\Get-TransportLoggingInformationPerServer.ps1
+function Get-ServerObjects {
     param(
         [Parameter(Mandatory = $true)][Array]$ValidServers
     )
 
-    Write-ScriptDebug ("Function Enter: Get-ServerObjects")
-    Write-ScriptDebug ("Passed: {0} number of Servers" -f $ValidServers.Count)
+    Write-Verbose ("Function Enter: Get-ServerObjects")
+    Write-Verbose ("Passed: {0} number of Servers" -f $ValidServers.Count)
     $svrsObject = @()
     $validServersList = @()
     foreach ($svr in $ValidServers) {
-        Write-ScriptDebug ("Working on Server {0}" -f $svr)
+        Write-Verbose ("Working on Server {0}" -f $svr)
 
         $sobj = Get-ExchangeBasicServerObject -ServerName $svr
         if ($sobj -eq $true) {
-            Write-ScriptHost -WriteString ("Removing Server {0} from the list" -f $svr) -ForegroundColor "Red" -ShowServer $false
+            Write-Host "Removing Server $svr from the list" -ForegroundColor "Red"
             continue
         } else {
             $validServersList += $svr
@@ -48,11 +50,11 @@ Function Get-ServerObjects {
 
     if (($null -eq $svrsObject) -or
         ($svrsObject.Count -eq 0)) {
-        Write-ScriptHost -WriteString ("Something wrong happened in Get-ServerObjects stopping script") -ShowServer $false -ForegroundColor "Red"
+        Write-Host "Something wrong happened in Get-ServerObjects stopping script" -ForegroundColor "Red"
         exit
     }
     #Set the valid servers
     $Script:ValidServers = $validServersList
-    Write-ScriptDebug("Function Exit: Get-ServerObjects")
-    Return $svrsObject
+    Write-Verbose("Function Exit: Get-ServerObjects")
+    return $svrsObject
 }

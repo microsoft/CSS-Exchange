@@ -28,7 +28,7 @@ function Write-Grey($message) {
 
 function Write-DebugLog($message) {
     if (![string]::IsNullOrEmpty($message)) {
-        $Script:Logger.WriteToFileOnly($message)
+        $Script:Logger = $Script:Logger | Write-LoggerInstance $message
     }
 }
 
@@ -45,6 +45,6 @@ function Write-OutColumns($OutColumns) {
     }
 }
 
-Function Write-Break {
+function Write-Break {
     Write-Host ""
 }

@@ -2,7 +2,7 @@
 *   @bill-long @dpaulson45 @lusassl-msft
 
 # Everything in Security is owned by those folks
-/Security/src/   @ethanb-msft @dbacon247 @bill-long @dpaulson45
+/Security/src/   @dbacon247 @bill-long @dpaulson45
 
 # Except these which are owned by Exchange
 /Security/src/Test-ProxyLogon.ps1   @bill-long @dpaulson45 @lusassl-msft

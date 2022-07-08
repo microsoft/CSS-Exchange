@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Test-PossibleCommonScenarios {
+function Test-PossibleCommonScenarios {
 
     #all possible logs
     if ($AllPossibleLogs) {
@@ -33,6 +33,8 @@ Function Test-PossibleCommonScenarios {
         $Script:CollectFailoverMetrics = $true
         $Script:ConnectivityLogs = $true
         $Script:ProtocolLogs = $true
+        $Script:MitigationService = $true
+        $Script:MailboxAssistantsLogs = $true
     }
 
     if ($DefaultTransportLogging) {
@@ -41,7 +43,9 @@ Function Test-PossibleCommonScenarios {
         $Script:QueueInformation = $true
         $Script:SendConnectors = $true
         $Script:ReceiveConnectors = $true
+        $Script:TransportAgentLogs = $true
         $Script:TransportConfig = $true
+        $Script:TransportRoutingTableLogs = $true
         $Script:FrontEndConnectivityLogs = $true
         $Script:MailboxConnectivityLogs = $true
         $Script:FrontEndProtocolLogs = $true
@@ -115,6 +119,8 @@ Function Test-PossibleCommonScenarios {
         $MailboxConnectivityLogs -or
         $MailboxProtocolLogs -or
         $MailboxDeliveryThrottlingLogs -or
+        $TransportAgentLogs -or
+        $TransportRoutingTableLogs -or
         $DefaultTransportLogging) {
         $Script:AnyTransportSwitchesEnabled = $true
     }

@@ -1,8 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Start-JobManager.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
+. $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 #This function is to handle all root zipping capabilities and copying of the data over.
-Function Invoke-ServerRootZipAndCopy {
+function Invoke-ServerRootZipAndCopy {
     param(
         [bool]$RemoteExecute = $true
     )
@@ -12,24 +15,22 @@ Function Invoke-ServerRootZipAndCopy {
             return $_.ServerName
         }
 
-    Function Write-CollectFilesFromLocation {
-        Write-ScriptHost -ShowServer $false -WriteString (" ")
-        Write-ScriptHost -ShowServer $false -WriteString ("Please collect the following files from these servers and upload them: ")
+    function Write-CollectFilesFromLocation {
+        Write-Host ""
+        Write-Host "Please collect the following files from these servers and upload them: "
         $LogPaths |
             ForEach-Object {
-                Write-ScriptHost -ShowServer $false -WriteString ("Server: {0} Path: {1}" -f $_.ServerName, $_.ZipFolder)
+                Write-Host "Server: $($_.ServerName) Path: $($_.ZipFolder)"
             }
     }
 
     if ($RemoteExecute) {
         $Script:ErrorsFromStartOfCopy = $Error.Count
-        $Script:Logger = New-LoggerObject -LogDirectory $Script:RootFilePath -LogName "ExchangeLogCollector-ZipAndCopy-Debug" `
-            -HostFunctionCaller $Script:HostFunctionCaller `
-            -VerboseFunctionCaller $Script:VerboseFunctionCaller
+        $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-ZipAndCopy-Debug" -LogDirectory $Script:RootFilePath
 
-        Write-ScriptDebug("Getting Compress-Folder string to create Script Block")
-        $compressFolderString = (${Function:Compress-Folder}).ToString().Replace("#Function Version", (Get-WritersToAddToScriptBlock))
-        Write-ScriptDebug("Creating script block")
+        Write-Verbose("Getting Compress-Folder string to create Script Block")
+        $compressFolderString = (${Function:Compress-Folder}).ToString()
+        Write-Verbose("Creating script block")
         $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
 
         $serverArgListZipFolder = @()
@@ -39,17 +40,12 @@ Function Invoke-ServerRootZipAndCopy {
             $folder = "{0}{1}" -f $Script:RootFilePath, $serverName
             $serverArgListZipFolder += [PSCustomObject]@{
                 ServerName   = $serverName
-                ArgumentList = [PSCustomObject]@{
-                    Folder                = $folder
-                    IncludeMonthDay       = $true
-                    IncludeDisplayZipping = $true
-                }
+                ArgumentList = @($folder, $true, $true)
             }
         }
 
-        Write-ScriptDebug("Calling Compress-Folder")
+        Write-Verbose("Calling Compress-Folder")
         Start-JobManager -ServersWithArguments $serverArgListZipFolder -ScriptBlock $compressFolderScriptBlock `
-            -DisplayReceiveJobInCorrectFunction $true `
             -JobBatchName "Zipping up the data for Invoke-ServerRootZipAndCopy"
 
         $LogPaths = Invoke-Command -ComputerName $serverNames -ScriptBlock {
@@ -77,23 +73,23 @@ Function Invoke-ServerRootZipAndCopy {
             $totalSizeGB = $totalSizeToCopyOver / 1GB
 
             if ($freeSpace -gt ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) {
-                Write-ScriptHost -ShowServer $true -WriteString ("Looks like we have enough free space at the path to copy over the data")
-                Write-ScriptHost -ShowServer $true -WriteString ("FreeSpace: {0} TestSize: {1} Path: {2}" -f $freeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
-                Write-ScriptHost -ShowServer $false -WriteString (" ")
-                Write-ScriptHost -ShowServer $false -WriteString ("Copying over the data may take some time depending on the network")
+                Write-Host "Looks like we have enough free space at the path to copy over the data"
+                Write-Host "FreeSpace: $freeSpace TestSize: $(($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) Path: $RootPath"
+                Write-Host ""
+                Write-Host "Copying over the data may take some time depending on the network"
 
                 $LogPaths |
                     ForEach-Object {
                         if ($_.ServerName -ne $env:COMPUTERNAME) {
                             $remoteCopyLocation = "\\{0}\{1}" -f $_.ServerName, ($_.ZipFolder.Replace(":", "$"))
-                            Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Copying File {1}...." -f $_.ServerName, $remoteCopyLocation)
+                            Write-Host "[$($_.ServerName)] : Copying File $remoteCopyLocation...."
                             Copy-Item -Path $remoteCopyLocation -Destination $Script:RootFilePath
-                            Write-ScriptHost -ShowServer $false -WriteString ("[{0}] : Done copying file" -f $_.ServerName)
+                            Write-Host "[$($_.ServerName)] : Done copying file"
                         }
                     }
             } else {
-                Write-ScriptHost -ShowServer $true -WriteString("Looks like we don't have enough free space to copy over the data") -ForegroundColor "Yellow"
-                Write-ScriptHost -ShowServer $true -WriteString("FreeSpace: {0} TestSize: {1} Path: {2}" -f $FreeSpace, ($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize), $RootPath)
+                Write-Host "Looks like we don't have enough free space to copy over the data" -ForegroundColor "Yellow"
+                Write-Host "FreeSpace: $FreeSpace TestSize: $(($totalSizeGB + $Script:StandardFreeSpaceInGBCheckSize)) Path: $RootPath"
                 Write-CollectFilesFromLocation
             }
         } else {

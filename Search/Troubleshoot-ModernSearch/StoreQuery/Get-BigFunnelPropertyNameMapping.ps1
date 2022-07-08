@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-BigFunnelPropertyNameMapping {
+function Get-BigFunnelPropertyNameMapping {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler,
@@ -26,9 +26,9 @@ Function Get-BigFunnelPropertyNameMapping {
         }
     }
     process {
+        $StoreQueryHandler = $StoreQueryHandler | ResetQueryInstances
         $StoreQueryHandler.IsUnlimited = $true
         $result = $StoreQueryHandler |
-            ResetQueryInstances |
             SetSelect -Value @(
                 "PropName",
                 "PropNumber") |

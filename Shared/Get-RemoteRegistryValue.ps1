@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
 
-Function Get-RemoteRegistryValue {
+function Get-RemoteRegistryValue {
     [CmdletBinding()]
     param(
         [string]$RegistryHive = "LocalMachine",

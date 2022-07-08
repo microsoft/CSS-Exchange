@@ -1,0 +1,314 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.ManagementObject#root\cimv2\Win32_QuickFixEngineering</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#root\cimv2\CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject#Win32_QuickFixEngineering</T>
+      <T>System.Management.ManagementObject#CIM_LogicalElement</T>
+      <T>System.Management.ManagementObject#CIM_ManagedSystemElement</T>
+      <T>System.Management.ManagementObject</T>
+      <T>System.Management.ManagementBaseObject</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2919355",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2919355",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2919355",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2919355</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2919355</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2919442",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2919442",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2919442",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2919442</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2919442</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2934520",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2934520",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="5">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2934520",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2934520</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2934520</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">7/6/2016</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2016-07-06T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2937220",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2937220",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="7">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2937220",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2937220</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2937220</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2938772",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2938772",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2938772",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2938772</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2938772</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="10">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2939471",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2939471",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="11">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2939471",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2939471</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2939471</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="12">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2949621",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB2949621",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="13">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB2949621",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=2949621</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Hotfix</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB2949621</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO-E15A\Administrator</S>
+      <S N="InstalledOn">3/18/2014</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2014-03-18T00:00:00</DT>
+    </MS>
+  </Obj>
+  <Obj RefId="14">
+    <TNRef RefId="0" />
+    <ToString>\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4486105",ServicePackInEffect=""</ToString>
+    <Props>
+      <I32 N="__GENUS">2</I32>
+      <S N="__CLASS">Win32_QuickFixEngineering</S>
+      <S N="__SUPERCLASS">CIM_LogicalElement</S>
+      <S N="__DYNASTY">CIM_ManagedSystemElement</S>
+      <S N="__RELPATH">Win32_QuickFixEngineering.HotFixID="KB4486105",ServicePackInEffect=""</S>
+      <I32 N="__PROPERTY_COUNT">11</I32>
+      <Obj N="__DERIVATION" RefId="15">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CIM_LogicalElement</S>
+          <S>CIM_ManagedSystemElement</S>
+        </LST>
+      </Obj>
+      <S N="__SERVER">SOLO-E15A</S>
+      <S N="__NAMESPACE">root\cimv2</S>
+      <S N="__PATH">\\SOLO-E15A\root\cimv2:Win32_QuickFixEngineering.HotFixID="KB4486105",ServicePackInEffect=""</S>
+      <S N="Caption">http://support.microsoft.com/?kbid=4486105</S>
+      <S N="CSName">SOLO-E15A</S>
+      <S N="Description">Update</S>
+      <S N="FixComments"></S>
+      <S N="HotFixID">KB4486105</S>
+      <Nil N="InstallDate" />
+      <S N="InstalledBy">SOLO\Han</S>
+      <S N="InstalledOn">6/8/2021</S>
+      <Nil N="Name" />
+      <S N="ServicePackInEffect"></S>
+      <Nil N="Status" />
+    </Props>
+    <MS>
+      <S N="PSComputerName">SOLO-E15A</S>
+      <DT N="InstalledOn">2021-06-08T00:00:00</DT>
+    </MS>
+  </Obj>
+</Objs>

@@ -3,7 +3,9 @@
 
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 
-Function Invoke-ScriptBlockHandler {
+# Common method used to handle Invoke-Command within a script.
+# Avoids using Invoke-Command when running locally on a server.
+function Invoke-ScriptBlockHandler {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -63,7 +65,13 @@ Function Invoke-ScriptBlockHandler {
 
                 if ($null -ne $ArgumentList) {
                     Write-Verbose "Running Script Block Locally with argument list"
-                    $returnValue = & $ScriptBlock $ArgumentList
+
+                    # if an object array type expect the result to be multiple parameters
+                    if ($ArgumentList.GetType().Name -eq "Object[]") {
+                        $returnValue = & $ScriptBlock @ArgumentList
+                    } else {
+                        $returnValue = & $ScriptBlock $ArgumentList
+                    }
                 } else {
                     Write-Verbose "Running Script Block Locally without argument list"
                     $returnValue = & $ScriptBlock

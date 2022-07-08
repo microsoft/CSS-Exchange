@@ -647,7 +647,7 @@ function Set-LogActivity {
         $FullRegMessage = "1 $RegMessage"
         $Level = "Info"
     }
-    If ($Level -eq "Info") {
+    if ($Level -eq "Info") {
         Write-Verbose -Message $Message -Verbose
     } elseif ($Level -eq "Notice") {
         Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
@@ -883,7 +883,7 @@ try {
 
                 try {
                     & $eomtLatestFilepath @PSBoundParameters
-                    Exit
+                    exit
                 } catch {
                     $Message = "Run failed for latest EOMT version $latestEOMTVersion downloaded to $eomtLatestFilepath, please re-run $eomtLatestFilepath manually. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
                     $RegMessage = "Run failed for latest EOMT version $latestEOMTVersion"

@@ -1,9 +1,4 @@
----
-title: DLT365Groupsupgrade.ps1
-parent: M365
----
-
-## DLT365Groupsupgrade.ps1
+# DLT365Groupsupgrade
 
 Download the latest release: [DLT365Groupsupgrade.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1)
 

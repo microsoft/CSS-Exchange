@@ -1,15 +1,17 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Get-IISLogDirectory {
-    Write-ScriptDebug("Function Enter: Get-IISLogDirectory")
+. $PSScriptRoot\Test-CommandExists.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+function Get-IISLogDirectory {
+    Write-Verbose("Function Enter: Get-IISLogDirectory")
 
-    Function Get-IISDirectoryFromGetWebSite {
-        Write-ScriptDebug("Get-WebSite command exists")
+    function Get-IISDirectoryFromGetWebSite {
+        Write-Verbose("Get-WebSite command exists")
         return Get-WebSite |
             ForEach-Object {
                 $logFile = "$($_.LogFile.Directory)\W3SVC$($_.id)".Replace("%SystemDrive%", $env:SystemDrive)
-                Write-ScriptDebug("Found Directory: $logFile")
+                Write-Verbose("Found Directory: $logFile")
                 return $logFile
             }
     }
@@ -19,20 +21,20 @@ Function Get-IISLogDirectory {
     } else {
         #May need to load the module
         try {
-            Write-ScriptDebug("Going to attempt to load the WebAdministration Module")
+            Write-Verbose("Going to attempt to load the WebAdministration Module")
             Import-Module WebAdministration -ErrorAction Stop
-            Write-ScriptDebug("Successful loading the module")
+            Write-Verbose("Successful loading the module")
 
             if ((Test-CommandExists -command "Get-WebSite")) {
                 [array]$iisLogDirectory = Get-IISDirectoryFromGetWebSite
             }
         } catch {
-            Invoke-CatchBlockActions
+            Invoke-CatchActions
             [array]$iisLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs
-            Write-ScriptDebug("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $iisLogDirectory)
+            Write-Verbose("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $iisLogDirectory)
         }
     }
 
-    Write-ScriptDebug("Function Exit: Get-IISLogDirectory")
+    Write-Verbose("Function Exit: Get-IISLogDirectory")
     return $iisLogDirectory
 }

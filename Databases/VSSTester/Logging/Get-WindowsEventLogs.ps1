@@ -4,7 +4,7 @@
 
 function Get-WindowsEventLogs {
 
-    Function Get-WindowEventsPerServer {
+    function Get-WindowEventsPerServer {
         param(
             [string]$CompunterName
         )

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Import-MyData {
+function Import-MyData {
     param(
         [Parameter(Mandatory = $true)][array]$FilePaths
     )

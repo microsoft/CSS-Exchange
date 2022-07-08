@@ -1,0 +1,110 @@
+[08/05/2021 23:45:58.0206] [0] **********************************************
+[08/05/2021 23:45:58.0268] [0] Starting Microsoft Exchange Server 2016 Setup
+[08/05/2021 23:45:58.0268] [0] **********************************************
+[08/05/2021 23:45:58.0284] [0] Local time zone: (UTC-07:00) Mountain Time (US & Canada).
+[08/05/2021 23:45:58.0284] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[08/05/2021 23:45:58.0284] [0] Setup version: 15.1.2308.8.
+[08/05/2021 23:45:58.0284] [0] Logged on user: SOLO\Han.
+[08/05/2021 23:45:58.0331] [0] Command Line Parameter Name='sourcedir', Value='C:\install\CU21'.
+[08/05/2021 23:45:58.0331] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[08/05/2021 23:45:58.0347] [0] RuntimeAssembly was started with the following command: '/sourcedir:C:\install\CU21 /mode:Upgrade'.
+[08/05/2021 23:45:58.0722] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[08/05/2021 23:45:59.0128] [0] Finished loading screen CheckForUpdatesPage.
+[08/05/2021 23:46:01.0565] [0] Starting file's copying...
+[08/05/2021 23:46:01.0581] [0] Setup copy files from 'C:\install\CU21\Setup\ServerRoles\Common' to 'C:\Windows\Temp\ExchangeSetup'
+[08/05/2021 23:46:01.0612] [0] Disk space required: 2100560063 bytes.
+[08/05/2021 23:46:01.0612] [0] Disk space available: 1266460921856 bytes.
+[08/05/2021 23:46:01.0768] [0] Finished loading screen CopyFilesPage.
+[08/05/2021 23:47:03.0659] [0] File's copying finished.
+[08/05/2021 23:47:03.0863] [0] Finished loading screen InitializingSetupPage.
+[08/05/2021 23:47:06.0316] [0] Setup is choosing the domain controller to use
+[08/05/2021 23:47:06.0644] [0] The MSExchangeADTopology has a persisted domain controller: DC2.Solo.local
+[08/05/2021 23:47:09.0597] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[08/05/2021 23:47:09.0597] [0] Setup is choosing a global catalog...
+[08/05/2021 23:47:09.0644] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[08/05/2021 23:47:09.0691] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[08/05/2021 23:47:09.0691] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[08/05/2021 23:47:09.0691] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[08/05/2021 23:47:09.0691] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[08/05/2021 23:47:09.0706] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[08/05/2021 23:47:09.0894] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[08/05/2021 23:47:09.0909] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[08/05/2021 23:47:09.0909] [0] The following datacenter roles are unpacked:
+[08/05/2021 23:47:09.0909] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[08/05/2021 23:47:09.0909] [0] The local server has some Exchange files installed.
+[08/05/2021 23:47:09.0909] [0] Server Name=ExSvr1
+[08/05/2021 23:47:09.0925] [0] Setup will use the path 'C:\install\CU21' for installing Exchange.
+[08/05/2021 23:47:09.0925] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[08/05/2021 23:47:09.0925] [0] 'BridgeheadRole' is installed on the server object.
+[08/05/2021 23:47:09.0925] [0] 'ClientAccessRole' is installed on the server object.
+[08/05/2021 23:47:09.0925] [0] 'MailboxRole' is installed on the server object.
+[08/05/2021 23:47:09.0925] [0] 'UnifiedMessagingRole' is installed on the server object.
+[08/05/2021 23:47:09.0925] [0] 'CafeRole' is installed on the server object.
+[08/05/2021 23:47:09.0925] [0] 'FrontendTransportRole' is installed on the server object.
+[08/05/2021 23:47:09.0941] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[08/05/2021 23:47:14.0503] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[08/05/2021 23:47:14.0503] [0] Active Directory Initialization status : 'True'.
+[08/05/2021 23:47:14.0503] [0] Schema Update Required Status : 'False'.
+[08/05/2021 23:47:14.0503] [0] Organization Configuration Update Required Status : 'False'.
+[08/05/2021 23:47:14.0503] [0] Domain Configuration Update Required Status : 'False'.
+[08/05/2021 23:47:14.0519] [0] The locally installed version is 15.1.2242.4.
+[08/05/2021 23:47:14.0519] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[08/05/2021 23:47:14.0566] [0] Setup is determining what organization-level operations to perform.
+[08/05/2021 23:47:14.0566] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[08/05/2021 23:47:14.0581] [0] RootDataHandler has 1 DataHandlers
+[08/05/2021 23:47:14.0581] [0] Validating options for the 7 requested roles
+[08/05/2021 23:47:14.0581] [0] UpgradeModeDataHandler has 17 handlers and 17 work units
+[08/05/2021 23:47:14.0691] [0] CurrentResult launcherbase.maincore:90: 0
+[08/05/2021 23:47:14.0894] [0] Finished loading screen WelcomePage.
+[08/05/2021 23:47:42.0503] [0] Finished loading screen EULAPage.
+[08/05/2021 23:47:45.0222] [0] **************
+[08/05/2021 23:47:51.0472] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:115] [Duration:00:00:00]
+[08/06/2021 01:49:58.0914] [2] Beginning processing register-ComInteropTLB
+[08/06/2021 01:49:58.0914] [2] Starting: C:\Windows\Microsoft.NET\Framework64\v4.0.30319\regasm.exe with arguments: /tlb:"C:\Program Files\Microsoft\Exchange Server\V15\Bin\ComInterop.tlb" "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Microsoft.Exchange.Transport.Agent.ContentFilter.ComInterop.dll"
+[08/06/2021 01:49:59.0477] [2] Process standard output: Microsoft .NET Framework Assembly Registration Utility version 4.8.3761.0
+for Microsoft .NET Framework version 4.8.3761.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+Type library exporter warning processing 'Microsoft.Exchange.Data.Transport.Interop.IProxyCallback.SetWriteStream(writeStream), Microsoft.Exchange.Transport.Agent.ContentFilter.ComInterop'. Warning: Type library exporter could not find the type library for 'System.Runtime.InteropServices.ComTypes.IStream'.  IUnknown was substituted for the interface.
+Assembly exported to 'C:\Program Files\Microsoft\Exchange Server\V15\Bin\ComInterop.tlb', and the type library was registered successfully
+
+[08/06/2021 01:49:59.0477] [2] Process standard error:
+[08/06/2021 01:49:59.0477] [2] Ending processing register-ComInteropTLB
+[08/06/2021 01:49:59.0477] [1] Executing:
+          uninstall-MsiPackage -ProductCode '{C3F10D8C-BD70-4516-B2B4-BF6901980741}' -LogFile ($RoleSetupLoggingPath + "\UninstallASDat.msilog")
+
+[08/06/2021 01:49:59.0477] [2] Active Directory session settings for 'Uninstall-MsiPackage' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[08/06/2021 01:49:59.0477] [2] User specified parameters:  -ProductCode:'c3f10d8c-bd70-4516-b2b4-bf6901980741' -LogFile:'C:\ExchangeSetupLogs\UninstallASDat.msilog'
+[08/06/2021 01:49:59.0477] [2] Beginning processing uninstall-MsiPackage
+[08/06/2021 01:49:59.0492] [2] Removing MSI package with code 'c3f10d8c-bd70-4516-b2b4-bf6901980741'.
+[08/06/2021 02:09:07.0545] [2] [ERROR] Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'.
+[08/06/2021 02:09:07.0545] [2] [ERROR] Fatal error during installation
+[08/06/2021 02:09:07.0545] [2] [ERROR] Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'.
+[08/06/2021 02:09:07.0545] [2] [ERROR] Fatal error during installation
+[08/06/2021 02:09:07.0545] [2] Ending processing uninstall-MsiPackage
+[08/06/2021 02:09:07.0545] [1] The following 1 error(s) occurred during task execution:
+[08/06/2021 02:09:07.0545] [1] 0.  ErrorRecord: Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'.
+[08/06/2021 02:09:07.0545] [1] 0.  ErrorRecord: Microsoft.Exchange.Configuration.Tasks.TaskException: Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'. ---> System.ComponentModel.Win32Exception: Fatal error during installation
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.RemoveProductCode(Guid productCode)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[08/06/2021 02:09:07.0545] [1] [ERROR] The following error was generated when "$error.Clear();
+          uninstall-MsiPackage -ProductCode '{C3F10D8C-BD70-4516-B2B4-BF6901980741}' -LogFile ($RoleSetupLoggingPath + "\UninstallASDat.msilog")
+        " was run: "Microsoft.Exchange.Configuration.Tasks.TaskException: Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'. ---> System.ComponentModel.Win32Exception: Fatal error during installation
+   --- End of inner exception stack trace ---
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.RemoveProductCode(Guid productCode)
+   at Microsoft.Exchange.Management.Deployment.UninstallMsi.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[08/06/2021 02:09:07.0545] [1] [ERROR] Unable to remove product with code c3f10d8c-bd70-4516-b2b4-bf6901980741. Fatal error during installation. Error code is 1603. Last error reported by the MSI package is 'Error reading from file: C:\Windows\Installer\MSI3D2F.tmp.   Verify that the file exists and that you can access it.'.
+[08/06/2021 02:09:07.0545] [1] [ERROR] Fatal error during installation
+[08/06/2021 02:09:07.0545] [1] [ERROR-REFERENCE] Id=TransportCommonComponent___0ac71b0d1d014ed0a5bd16b072c22d1e Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[08/06/2021 02:09:07.0545] [1] Setup is stopping now because of one or more critical errors.
+[08/06/2021 02:09:07.0545] [1] Finished executing component tasks.
+[08/06/2021 02:09:07.0560] [1] Ending processing Install-BridgeheadRole
+[08/06/2021 02:22:43.0611] [0] CurrentResult setupbase.maincore:396: 0
+[08/06/2021 02:22:43.0611] [0] End of Setup
+[08/06/2021 02:22:43.0611] [0] **********************************************

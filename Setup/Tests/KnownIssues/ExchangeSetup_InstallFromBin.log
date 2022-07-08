@@ -1,0 +1,105 @@
+[12/17/2021 16:47:41.0778] [0] **********************************************
+[12/17/2021 16:47:41.0783] [0] Starting Microsoft Exchange Server 2016 Setup
+[12/17/2021 16:47:41.0783] [0] **********************************************
+[12/17/2021 16:47:41.0790] [0] Local time zone: (UTC-06:00) Central Time (US & Canada).
+[12/17/2021 16:47:41.0790] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[12/17/2021 16:47:41.0792] [0] Setup version: 15.1.2176.9.
+[12/17/2021 16:47:41.0793] [0] Logged on user: SOLO\Han.
+[12/17/2021 16:47:41.0826] [0] Command Line Parameter Name='mode', Value='Upgrade'.
+[12/17/2021 16:47:41.0826] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
+[12/17/2021 16:47:41.0826] [0] Command Line Parameter Name='sourcedir', Value='D:\Program Files\Microsoft\Exchange Server\V15\bin'.
+[12/17/2021 16:47:42.0207] [0] RuntimeAssembly was started with the following command: '/mode:upgrade /IacceptExchangeServerLicenseTerms /sourcedir:D:\Program Files\Microsoft\Exchange Server\V15\bin'.
+[12/17/2021 16:47:42.0212] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Exchange\v8.0, wasn't found.
+[12/17/2021 16:47:42.0213] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v14, wasn't found.
+[12/17/2021 16:47:42.0224] [0] Assembly dll file location is D:\Program Files\Microsoft\Exchange Server\V15\bin\Microsoft.Exchange.Setup.Console.dll
+[12/17/2021 16:47:43.0882] [0] Setup is choosing the domain controller to use
+[12/17/2021 16:47:44.0085] [0] The MSExchangeADTopology has a persisted domain controller: DC1.Child.Solo.local
+[12/17/2021 16:47:45.0790] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC1.Child.Solo.local
+[12/17/2021 16:47:45.0790] [0] Setup is choosing a global catalog...
+[12/17/2021 16:47:45.0807] [0] Setup has chosen the global catalog server DC1.Child.Solo.local.
+[12/17/2021 16:47:45.0836] [0] Setup will use the domain controller 'DC1.Child.Solo.local'.
+[12/17/2021 16:47:45.0836] [0] Setup will use the global catalog 'DC1.Child.Solo.local'.
+[12/17/2021 16:47:45.0840] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[12/17/2021 16:47:45.0846] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[12/17/2021 16:47:45.0873] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[12/17/2021 16:47:46.0198] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[12/17/2021 16:47:46.0309] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[12/17/2021 16:47:46.0310] [0] The following datacenter roles are unpacked:
+[12/17/2021 16:47:46.0311] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole UnifiedMessagingRole FrontendTransportRole AdminToolsRole CafeRole
+[12/17/2021 16:47:46.0316] [0] The local server has some Exchange files installed.
+[12/17/2021 16:47:46.0334] [0] Server Name=ExSvr1
+[12/17/2021 16:47:46.0351] [0] Setup will use the path 'D:\Program Files\Microsoft\Exchange Server\V15\bin' for installing Exchange.
+[12/17/2021 16:47:46.0353] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Child,DC=Solo,DC=local'.
+[12/17/2021 16:47:46.0353] [0] 'BridgeheadRole' is installed on the server object.
+[12/17/2021 16:47:46.0354] [0] 'ClientAccessRole' is installed on the server object.
+[12/17/2021 16:47:46.0354] [0] 'MailboxRole' is installed on the server object.
+[12/17/2021 16:47:46.0354] [0] 'UnifiedMessagingRole' is installed on the server object.
+[12/17/2021 16:47:46.0354] [0] 'CafeRole' is installed on the server object.
+[12/17/2021 16:47:46.0354] [0] 'FrontendTransportRole' is installed on the server object.
+[12/17/2021 16:47:46.0359] [0] The installation mode is set to: 'BuildToBuildUpgrade'.
+[12/17/2021 16:47:46.0770] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[12/17/2021 16:47:46.0771] [0] Active Directory Initialization status : 'True'.
+[12/17/2021 16:47:46.0771] [0] Schema Update Required Status : 'False'.
+[12/17/2021 16:47:46.0772] [0] Organization Configuration Update Required Status : 'False'.
+[12/17/2021 16:47:46.0772] [0] Domain Configuration Update Required Status : 'False'.
+[12/17/2021 16:47:46.0773] [0] The locally installed version is 15.1.2176.2.
+[12/17/2021 16:47:46.0774] [0] Exchange Installation Directory : 'D:\Program Files\Microsoft\Exchange Server\V15'.
+[12/17/2021 16:47:46.0872] [0] Setup is determining what organization-level operations to perform.
+[12/17/2021 16:47:46.0873] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[12/17/2021 16:47:46.0899] [0] RootDataHandler has 1 DataHandlers
+[12/17/2021 16:47:46.0900] [0]      Languages
+[12/17/2021 16:47:46.0904] [0]      Management tools
+[12/17/2021 16:47:46.0907] [0]      Mailbox role: Transport service
+[12/17/2021 16:47:46.0909] [0]      Mailbox role: Client Access service
+[12/17/2021 16:47:46.0910] [0]      Mailbox role: Unified Messaging service
+[12/17/2021 16:47:46.0912] [0]      Mailbox role: Mailbox service
+[12/17/2021 16:47:46.0914] [0]      Mailbox role: Front End Transport service
+[12/17/2021 16:47:46.0917] [0]      Mailbox role: Client Access Front End service
+[12/17/2021 16:47:46.0932] [0] Validating options for the 7 requested roles
+[12/17/2021 16:47:46.0933] [0] UpgradeModeDataHandler has 17 handlers and 17 work units
+[12/17/2021 16:47:47.0044] [0] Performing Microsoft Exchange Server Prerequisite Check
+[12/17/2021 16:47:47.0844] [0] **************
+[12/17/2021 16:47:55.0464] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Child.Solo.local"] [ParentValue:"<NULL>"] [Thread:8] [Duration:00:00:00.0010002]
+[12/17/2021 16:48:24.0814] [2] Beginning processing Write-ExchangeSetupLog
+[12/17/2021 16:48:24.0817] [2] [ServiceControl.ps1] Disabling service 'MSExchangeEdgeSync'.
+[12/17/2021 16:51:06.0743] [2] Beginning processing Write-ExchangeSetupLog
+[12/17/2021 16:51:06.0744] [2] [ServiceControl.ps1] Killing instead of Stopping 'FMS'.
+[12/17/2021 16:51:06.0744] [2] Ending processing Write-ExchangeSetupLog
+[12/17/2021 16:51:06.0779] [2] Beginning processing Write-ExchangeSetupLog
+[12/17/2021 16:51:06.0780] [2] [ServiceControl.ps1] Script completed succesfully.
+[12/17/2021 16:51:06.0780] [2] Ending processing Write-ExchangeSetupLog
+[12/17/2021 16:51:06.0783] [1] The following 1 error(s) occurred during task execution:
+[12/17/2021 16:51:06.0784] [1] 0.  ErrorRecord: The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+[12/17/2021 16:51:06.0784] [1] 0.  ErrorRecord: System.Management.Automation.CommandNotFoundException: The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+   at System.Management.Automation.CommandDiscovery.LookupCommandInfo(String commandName, CommandTypes commandTypes, SearchResolutionOptions searchResolutionOptions, CommandOrigin commandOrigin, ExecutionContext context)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(String commandName, CommandOrigin commandOrigin, Nullable`1 useLocalScope)
+   at System.Management.Automation.ExecutionContext.CreateCommand(String command, Boolean dotSource)
+   at System.Management.Automation.PipelineOps.AddCommand(PipelineProcessor pipe, CommandParameterInternal[] commandElements, CommandBaseAst commandBaseAst, CommandRedirection[] redirections, ExecutionContext context)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+[12/17/2021 16:51:06.0806] [1] [ERROR] The following error was generated when "$error.Clear();
+          & $RoleBinPath\ServiceControl.ps1 -Operation:DisableServices -Roles:($RoleRoles.Replace('Role','').Split(',')) -SetupScriptsDirectory:$RoleBinPath;
+          & $RoleBinPath\ServiceControl.ps1 -Operation:Stop -Roles:($RoleRoles.Replace('Role','').Split(',')) -IsDatacenter:([bool]$RoleIsDatacenter)
+        " was run: "System.Management.Automation.CommandNotFoundException: The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+   at System.Management.Automation.CommandDiscovery.LookupCommandInfo(String commandName, CommandTypes commandTypes, SearchResolutionOptions searchResolutionOptions, CommandOrigin commandOrigin, ExecutionContext context)
+   at System.Management.Automation.CommandDiscovery.LookupCommandProcessor(String commandName, CommandOrigin commandOrigin, Nullable`1 useLocalScope)
+   at System.Management.Automation.ExecutionContext.CreateCommand(String command, Boolean dotSource)
+   at System.Management.Automation.PipelineOps.AddCommand(PipelineProcessor pipe, CommandParameterInternal[] commandElements, CommandBaseAst commandBaseAst, CommandRedirection[] redirections, ExecutionContext context)
+   at System.Management.Automation.PipelineOps.InvokePipeline(Object input, Boolean ignoreInput, CommandParameterInternal[][] pipeElements, CommandBaseAst[] pipeElementAsts, CommandRedirection[][] commandRedirections, FunctionContext funcContext)
+   at System.Management.Automation.Interpreter.ActionCallInstruction`6.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)".
+[12/17/2021 16:51:06.0806] [1] [ERROR] The term 'D:\Program Files\Microsoft\Exchange Server\V15\Bin\ManageScheduledTask.ps1' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+[12/17/2021 16:51:06.0807] [1] [ERROR-REFERENCE] Id=AllRolesPreFileCopyComponent___2f7e3804a2b340c69e930798211fb8fd Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[12/17/2021 16:51:06.0821] [1] Setup is stopping now because of one or more critical errors.
+[12/17/2021 16:51:06.0821] [1] Finished executing component tasks.
+[12/17/2021 16:51:06.0850] [1] Ending processing Start-PreFileCopy
+[12/17/2021 16:51:06.0853] [0] CurrentResult console.ProcessRunInternal:198: 1
+[12/17/2021 16:51:06.0861] [0] CurrentResult launcherbase.maincore:90: 1
+[12/17/2021 16:51:06.0867] [0] CurrentResult console.startmain:52: 1
+[12/17/2021 16:51:06.0867] [0] CurrentResult SetupLauncherHelper.loadassembly:452: 1
+[12/17/2021 16:51:06.0868] [0] The Exchange Server setup operation didn't complete.  More details can be found in ExchangeSetup.log located in the <SystemDrive>:\ExchangeSetupLogs folder.
+[12/17/2021 16:51:06.0870] [0] CurrentResult main.run:235: 1
+[12/17/2021 16:51:06.0870] [0] CurrentResult setupbase.maincore:396: 1
+[12/17/2021 16:51:06.0871] [0] End of Setup
+[12/17/2021 16:51:06.0871] [0] **********************************************

@@ -1,43 +1,58 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Save-ServerInfoData {
-    Write-ScriptDebug("Function Enter: Save-ServerInfoData")
+. $PSScriptRoot\Save-DataInfoToFile.ps1
+. $PSScriptRoot\Save-RegistryHive.ps1
+. $PSScriptRoot\..\Add-ServerNameToFileName.ps1
+. $PSScriptRoot\..\Test-CommandExists.ps1
+function Save-ServerInfoData {
+    Write-Verbose("Function Enter: Save-ServerInfoData")
     $copyTo = $Script:RootCopyToDirectory + "\General_Server_Info"
-    New-Folder -NewFolder $copyTo -IncludeDisplayCreate $true
+    New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
 
     #Get MSInfo from server
     msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
-    Write-ScriptHost -WriteString ("Waiting for msinfo32.exe process to end before moving on...") -ForegroundColor "Yellow"
+    Write-Host "Waiting for msinfo32.exe process to end before moving on..." -ForegroundColor "Yellow"
     while ((Get-Process | Where-Object { $_.ProcessName -eq "msinfo32" }).ProcessName -eq "msinfo32") {
         Start-Sleep 5;
     }
 
-    #Include TLS Registry Information #84
-    $tlsSettings = @()
-    try {
-        $tlsSettings += Get-ChildItem "HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols" -Recurse | Where-Object { $_.Name -like "*TLS*" } -ErrorAction stop
-    } catch {
-        Write-ScriptDebug("Failed to get child items of 'HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols'")
-        Invoke-CatchBlockActions
+    $tlsRegistrySettingsName = "TLS_RegistrySettings"
+    $tlsProtocol = @{
+        RegistryPath    = "HKLM:SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols"
+        SaveName        = $tlsRegistrySettingsName
+        SaveToPath      = $copyTo
+        UseGetChildItem = $true
     }
-    try {
-        $regBaseV4 = "HKLM:SOFTWARE\{0}\.NETFramework\v4.0.30319"
-        $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Microsoft") -ErrorAction stop
-        $tlsSettings += Get-Item ($currentKey = $regBaseV4 -f "Wow6432Node\Microsoft") -ErrorAction stop
-    } catch {
-        Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
-        Invoke-CatchBlockActions
+    Save-RegistryHive @tlsProtocol
+
+    $net4Protocol = @{
+        RegistryPath = "HKLM:SOFTWARE\Microsoft\.NETFramework\v4.0.30319"
+        SaveName     = "NET4_$tlsRegistrySettingsName"
+        SaveToPath   = $copyTo
     }
-    try {
-        $regBaseV2 = "HKLM:SOFTWARE\{0}\.NETFramework\v2.0.50727"
-        $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Microsoft") -ErrorAction stop
-        $tlsSettings += Get-Item ($currentKey = $regBaseV2 -f "Wow6432Node\Microsoft") -ErrorAction stop
-    } catch {
-        Write-ScriptDebug("Failed to get child items of '{0}'" -f $currentKey)
-        Invoke-CatchBlockActions
+    Save-RegistryHive @net4Protocol
+
+    $net4WowProtocol = @{
+        RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319"
+        SaveName     = "NET4_Wow_$tlsRegistrySettingsName"
+        SaveToPath   = $copyTo
     }
-    Save-DataInfoToFile -DataIn $tlsSettings -SaveToLocation ("{0}\TLS_RegistrySettings" -f $copyTo) -FormatList $false
+    Save-RegistryHive @net4WowProtocol
+
+    $net2Protocol = @{
+        RegistryPath = "HKLM:SOFTWARE\Microsoft\.NETFramework\v2.0.50727"
+        SaveName     = "NET2_$tlsRegistrySettingsName"
+        SaveToPath   = $copyTo
+    }
+    Save-RegistryHive @net2Protocol
+
+    $net2WowProtocol = @{
+        RegistryPath = "HKLM:SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v2.0.50727"
+        SaveName     = "NET2_Wow_$tlsRegistrySettingsName"
+        SaveToPath   = $copyTo
+    }
+    Save-RegistryHive @net2WowProtocol
 
     #Running Processes #35
     Save-DataInfoToFile -dataIn (Get-Process) -SaveToLocation ("{0}\Running_Processes" -f $copyTo) -FormatList $false
@@ -73,15 +88,22 @@ Function Save-ServerInfoData {
     Save-DataInfoToFile -DataIn (TASKLIST /M) -SaveToLocation ("{0}\TaskList_Modules" -f $copyTo) -SaveXMLFile $false
 
     if (!$Script:localServerObject.Edge) {
-        $hiveKey = @()
-        try {
-            $hiveKey = Get-ChildItem HKLM:\SOFTWARE\Microsoft\Exchange\ -Recurse -ErrorAction Stop
-        } catch {
-            Write-ScriptDebug("Failed to get child item on HKLM:\SOFTWARE\Microsoft\Exchange\")
-            Invoke-CatchBlockActions
+
+        $params = @{
+            RegistryPath    = "HKLM:\SOFTWARE\Microsoft\Exchange"
+            SaveName        = "Exchange_Registry_Hive"
+            SaveToPath      = $copyTo
+            UseGetChildItem = $true
         }
-        $hiveKey += Get-ChildItem HKLM:\SOFTWARE\Microsoft\ExchangeServer\ -Recurse
-        Save-DataInfoToFile -DataIn $hiveKey -SaveToLocation ("{0}\Exchange_Registry_Hive" -f $copyTo) -SaveTextFile $false
+        Save-RegistryHive @params
+
+        $params = @{
+            RegistryPath    = "HKLM:\SOFTWARE\Microsoft\ExchangeServer"
+            SaveName        = "ExchangeServer_Registry_Hive"
+            SaveToPath      = $copyTo
+            UseGetChildItem = $true
+        }
+        Save-RegistryHive @params
     }
 
     Save-DataInfoToFile -DataIn (gpresult /R /Z) -SaveToLocation ("{0}\GPResult" -f $copyTo) -SaveXMLFile $false
@@ -91,21 +113,21 @@ Function Save-ServerInfoData {
     if (Test-CommandExists -command "Get-Volume") {
         Save-DataInfoToFile -DataIn (Get-Volume) -SaveToLocation ("{0}\Volume" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Volume isn't a valid command")
+        Write-Verbose("Get-Volume isn't a valid command")
     }
 
     if (Test-CommandExists -command "Get-Disk") {
         Save-DataInfoToFile -DataIn (Get-Disk) -SaveToLocation ("{0}\Disk" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Disk isn't a valid command")
+        Write-Verbose("Get-Disk isn't a valid command")
     }
 
     if (Test-CommandExists -command "Get-Partition") {
         Save-DataInfoToFile -DataIn (Get-Partition) -SaveToLocation ("{0}\Partition" -f $copyTo)
     } else {
-        Write-ScriptDebug("Get-Partition isn't a valid command")
+        Write-Verbose("Get-Partition isn't a valid command")
     }
 
     Invoke-ZipFolder -Folder $copyTo
-    Write-ScriptDebug("Function Exit: Save-ServerInfoData")
+    Write-Verbose("Function Exit: Save-ServerInfoData")
 }

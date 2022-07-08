@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-Function Get-ExchangeApplicationConfigurationFileValidation {
+function Get-ExchangeApplicationConfigurationFileValidation {
     param(
         [string[]]$ConfigFileLocation
     )

@@ -84,7 +84,7 @@
     https://docs.microsoft.com/en-us/exchange/plan-and-deploy/virtualization?view=exchserver-2019#requirements-for-hardware-virtualization
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
-[CmdletBinding(DefaultParameterSetName = "HealthChecker")]
+[CmdletBinding(DefaultParameterSetName = "HealthChecker", SupportsShouldProcess)]
 param(
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
@@ -118,22 +118,6 @@ param(
 
 $BuildVersion = ""
 
-$VirtualizationWarning = @"
-Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
-
-    - There is no more than a 1:1 Physical Core to Virtual CPU ratio (no oversubscribing)
-    - If Hyper-Threading is enabled do NOT count Hyper-Threaded cores as physical cores
-    - Do not oversubscribe memory or use dynamic memory allocation
-
-Although Exchange technically supports up to a 2:1 physical core to vCPU ratio, a 1:1 ratio is strongly recommended for performance reasons.  Certain third party Hyper-Visors such as VMWare have their own guidance.
-
-VMWare recommends a 1:1 ratio.  Their guidance can be found at https://aka.ms/HC-VMwareBP2019.
-Related specifically to VMWare, if you notice you are experiencing packet loss on your VMXNET3 adapter, you may want to review the following article from VMWare:  https://aka.ms/HC-VMwareLostPackets.
-
-For further details, please review the virtualization recommendations on Microsoft Docs here: https://aka.ms/HC-Virtualization.
-
-"@
-
 $Script:VerboseEnabled = $false
 #this is to set the verbose information to a different color
 if ($PSBoundParameters["Verbose"]) {
@@ -149,7 +133,6 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
 . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
 . $PSScriptRoot\Helpers\Import-MyData.ps1
-. $PSScriptRoot\Helpers\Invoke-CatchActions.ps1
 . $PSScriptRoot\Helpers\Invoke-ScriptLogFileLocation.ps1
 . $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
 . $PSScriptRoot\Helpers\Class.ps1
@@ -161,17 +144,13 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
 . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
-#TODO: Address this
-. $PSScriptRoot\extern\Write-ScriptMethodHostWriters.ps1
-. $PSScriptRoot\..\..\Shared\Write-VerboseWriter.ps1
-. $PSScriptRoot\..\..\Shared\Write-ScriptMethodVerboseWriter.ps1
-
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\New-LoggerObject.ps1
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
-Function Main {
+function Main {
 
     if (-not (Confirm-Administrator) -and
         (-not $AnalyzeDataOnly -and
@@ -183,9 +162,7 @@ Function Main {
         exit
     }
 
-    $Error.Clear() #Always clear out the errors
-    $Script:ErrorsExcludedCount = 0 #this is a way to determine if the only errors occurred were in try catch blocks. If there is a combination of errors in and out, then i will just dump it all out to avoid complex issues.
-    $Script:ErrorsExcluded = @()
+    Invoke-ErrorMonitoring
     $Script:date = (Get-Date)
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
@@ -205,7 +182,7 @@ Function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport" -IgnoreToolsIdentity $true
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -251,7 +228,7 @@ Function Main {
 
     if ($ScriptUpdateOnly) {
         Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
-        switch (Test-ScriptVersion -AutoUpdate) {
+        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
             ($true) { Write-Green("Script was successfully updated.") }
             ($false) { Write-Yellow("No update of the script performed.") }
             default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
@@ -263,7 +240,7 @@ Function Main {
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
-        (Test-ScriptVersion -AutoUpdate)) {
+        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
         Write-Yellow "Script was updated. Please rerun the command."
         return
     } else {
@@ -271,14 +248,7 @@ Function Main {
         Write-Green "Exchange Health Checker version $BuildVersion"
     }
 
-    if ($currentErrors -ne $Error.Count) {
-        $index = 0
-        while ($index -lt ($Error.Count - $currentErrors)) {
-            Invoke-CatchActions $Error[$index]
-            $index++
-        }
-    }
-
+    Invoke-ErrorCatchActionLoopFromIndex $currentErrors
     Test-RequiresServerFqdn
     [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
     $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
@@ -299,13 +269,7 @@ Function Main {
 
         $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
     } finally {
-        if ($currentErrors -ne $Error.Count) {
-            $index = 0
-            while ($index -lt ($Error.Count - $currentErrors)) {
-                Invoke-CatchActions $Error[$index]
-                $index++
-            }
-        }
+        Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
@@ -313,10 +277,9 @@ Function Main {
 }
 
 try {
-    $Script:Logger = New-LoggerObject -LogName "HealthChecker-$($Script:Server)-Debug" `
+    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-$($Script:Server)-Debug" `
         -LogDirectory $OutputFilePath `
-        -VerboseEnabled $Script:VerboseEnabled `
-        -EnableDateTime $false `
+        -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     Main
@@ -325,10 +288,13 @@ try {
     if ($Script:VerboseEnabled) {
         $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
     }
-    $Script:Logger.RemoveLatestLogFile()
+    $Script:Logger | Invoke-LoggerInstanceCleanup
     if ($Script:Logger.PreventLogCleanup) {
         Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
     }
+    if (((Get-Date).Ticks % 2) -eq 1) {
+        Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
+        Write-Host
+    }
     RevertProperForegroundColor
 }
-

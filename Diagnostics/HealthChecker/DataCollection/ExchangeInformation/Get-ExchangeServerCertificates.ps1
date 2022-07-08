@@ -1,12 +1,67 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\Helpers\Invoke-CatchActions.ps1
-Function Get-ExchangeServerCertificates {
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+function Get-ExchangeServerCertificates {
+    param()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+    function NewCertificateExclusionEntry {
+        [OutputType("System.Object")]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]
+            $IssuerOrSubjectPattern,
+            [Parameter(Mandatory = $true)]
+            [bool]
+            $IsSelfSigned
+        )
+
+        return [PSCustomObject]@{
+            IorSPattern  = $IssuerOrSubjectPattern
+            IsSelfSigned = $IsSelfSigned
+        }
+    }
+
+    function ShouldCertificateBeSkipped {
+        [OutputType("System.Boolean")]
+        param (
+            [Parameter(Mandatory = $true)]
+            [PSCustomObject]
+            $Exclusions,
+            [Parameter(Mandatory = $true)]
+            [System.Security.Cryptography.X509Certificates.X509Certificate2]
+            $Certificate
+        )
+
+        $certificateMatch = $Exclusions | Where-Object {
+            ((($Certificate.Subject -match $_.IorSPattern) -or
+            ($Certificate.Issuer -match $_.IorSPattern)) -and
+            ($Certificate.IsSelfSigned -eq $_.IsSelfSigned))
+        } | Select-Object -First 1
+
+        if ($null -ne $certificateMatch) {
+            return $certificateMatch.IsSelfSigned -eq $Certificate.IsSelfSigned
+        }
+        return $false
+    }
+
     try {
+        Write-Verbose "Build certificate exclusion list"
+        # Add the certificates that should be excluded from the Exchange certificate check (we don't return an object for them)
+        # Exclude "MS-Organization-P2P-Access [YYYY]" certificate with one day lifetime on Azure hosted machines.
+        # See: What are the MS-Organization-P2P-Access certificates present on our Windows 10/11 devices?
+        # https://docs.microsoft.com/azure/active-directory/devices/faq
+        # Exclude "DC=Windows Azure CRP Certificate Generator" (TenantEncryptionCertificate)
+        # The certificates are built by the Azure fabric controller and passed to the Azure VM Agent.
+        # If you stop and start the VM every day, the fabric controller might create a new certificate.
+        # These certificates can be deleted. The Azure VM Agent re-creates certificates if needed.
+        # https://docs.microsoft.com/azure/virtual-machines/extensions/features-windows
+        $certificatesToExclude = @(
+            NewCertificateExclusionEntry "CN=MS-Organization-P2P-Access \[[12][0-9]{3}\]$" $true
+            NewCertificateExclusionEntry "DC=Windows Azure CRP Certificate Generator" $true
+        )
         Write-Verbose "Trying to receive certificates from Exchange server: $($Script:Server)"
         $exchangeServerCertificates = Get-ExchangeCertificate -Server $Script:Server -ErrorAction Stop
 
@@ -24,6 +79,13 @@ Function Get-ExchangeServerCertificates {
                 try {
                     $certificateLifetime = ([System.Convert]::ToDateTime($cert.NotAfter, [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days
                     $sanCertificateInfo = $false
+
+                    $excludeCertificate = ShouldCertificateBeSkipped -Exclusions $certificatesToExclude -Certificate $cert
+
+                    if ($excludeCertificate) {
+                        Write-Verbose "Excluding certificate $($cert.Subject). Moving to next certificate"
+                        continue
+                    }
 
                     $currentErrors = $Error.Count
                     if ($null -ne $cert.DnsNameList -and
@@ -107,11 +169,13 @@ Function Get-ExchangeServerCertificates {
                             "1.2.840.10045.4.3.3" { $certSignatureHashAlgorithm = "sha384"; $certSignatureHashAlgorithmSecure = 2 }
                             "1.2.840.10045.4.3.4" { $certSignatureHashAlgorithm = "sha512"; $certSignatureHashAlgorithmSecure = 2 }
                             "1.2.840.10045.4.3" { $certSignatureHashAlgorithm = "sha256"; $certSignatureHashAlgorithmSecure = 2 }
-                            Default { $certSignatureHashAlgorithm = "Unknown"; $certSignatureHashAlgorithmSecure = 0 }
+                            default { $certSignatureHashAlgorithm = "Unknown"; $certSignatureHashAlgorithmSecure = 0 }
                         }
                     }
 
                     $certInformationObj = New-Object PSCustomObject
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Issuer" -Value $cert.Issuer
+                    $certInformationObj | Add-Member -MemberType NoteProperty -Name "Subject" -Value $cert.Subject
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "FriendlyName" -Value $certFriendlyName
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "Thumbprint" -Value $cert.Thumbprint
                     $certInformationObj | Add-Member -MemberType NoteProperty -Name "PublicKeySize" -Value $cert.PublicKey.Key.KeySize

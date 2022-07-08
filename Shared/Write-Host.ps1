@@ -1,23 +1,26 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-Function Write-Host {
+function Write-Host {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
     [CmdletBinding()]
     param(
-        [Parameter(Position = 1)]
+        [Parameter(Position = 1, ValueFromPipeline)]
         [object]$Object,
         [switch]$NoNewLine,
         [string]$ForegroundColor
     )
-    begin {
+    process {
         $consoleHost = $host.Name -eq "ConsoleHost"
+
+        if ($null -ne $Script:WriteHostManipulateObjectAction) {
+            $Object = & $Script:WriteHostManipulateObjectAction $Object
+        }
+
         $params = @{
             Object    = $Object
             NoNewLine = $NoNewLine
         }
-    }
-    process {
 
         if ([string]::IsNullOrEmpty($ForegroundColor)) {
             if ($null -ne $host.UI.RawUI.ForegroundColor -and
@@ -37,10 +40,15 @@ Function Write-Host {
         }
 
         Microsoft.PowerShell.Utility\Write-Host @params
+
+        if ($null -ne $Script:WriteHostDebugAction -and
+            $null -ne $Object) {
+            &$Script:WriteHostDebugAction $Object
+        }
     }
 }
 
-Function SetProperForegroundColor {
+function SetProperForegroundColor {
     $Script:OriginalConsoleForegroundColor = $host.UI.RawUI.ForegroundColor
 
     if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.WarningForegroundColor) {
@@ -60,6 +68,14 @@ Function SetProperForegroundColor {
     }
 }
 
-Function RevertProperForegroundColor {
+function RevertProperForegroundColor {
     $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
+}
+
+function SetWriteHostAction ($DebugAction) {
+    $Script:WriteHostDebugAction = $DebugAction
+}
+
+function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+    $Script:WriteHostManipulateObjectAction = $ManipulateObject
 }
