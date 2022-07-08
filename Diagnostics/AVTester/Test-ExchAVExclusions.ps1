@@ -185,7 +185,7 @@ Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
-    $FilePath = (Join-Path $Folder eicar.com)
+    $FilePath = (Join-Path $Folder eicar.bat)
 
     # If the file exists delete it -- this means the folder is not being scanned
     if (Test-Path $FilePath ) {
