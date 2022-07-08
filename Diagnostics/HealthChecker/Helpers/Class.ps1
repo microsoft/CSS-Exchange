@@ -211,6 +211,7 @@ using System.Collections;
             public bool ComponentBasedServicingPendingReboot;   // bool HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending
             public bool AutoUpdatePendingReboot;                // bool HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired
             public bool PendingReboot;                         // bool if reboot types are set to true
+            public bool UpdateExeVolatile;                      // bool HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\Flags
         }
 
         public class InstalledUpdatesInformation
