@@ -139,9 +139,11 @@ foreach ($path in $BaseFolders) {
 Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
 
 # Create the EICAR file in each path
+$EicarFileName = "eicar.bat"
+
 foreach ($Folder in $FolderList) {
 
-    [string] $FilePath = (Join-Path $Folder eicar.com)
+    [string] $FilePath = (Join-Path $Folder $EicarFileName)
     Write-SimpleLogfile -String ("Creating EICAR file " + $FilePath) -name $LogFile
 
     #Base64 of Eicar string
@@ -153,21 +155,29 @@ foreach ($Folder in $FolderList) {
         try {
             [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
             [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-            Set-Content -Value $Eicar -Encoding ascii -Path $FilePath -Force
+            [IO.File]::WriteAllText($FilePath, $Eicar)
         }
 
         catch {
-            Write-Warning "$Folder Eicar.com file couldn't be created. Either permissions or AV prevented file creation."
+            Write-Warning "$Folder $EicarFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
     else {
-        Write-SimpleLogfile -string ("[WARNING] - Eicar.com already exists!: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogfile -string ("[WARNING] - $EicarFileName already exists!: " + $FilePath) -name $LogFile -OutHost
+    }
+}
+
+# Try to open each EICAR file to force detection
+foreach ($Folder in $FolderList) {
+    $FilePath = (Join-Path $Folder $EicarFileName)
+    if (Test-Path $FilePath -PathType Leaf) {
+        Start-Process $FilePath -ErrorAction SilentlyContinue -WindowStyle Minimized
     }
 }
 
 # Sleeping 5 minutes for AV to "find" the files
-Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
+Start-SleepWithProgress -sleeptime 500 -message "Allowing time for AV to Scan"
 
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
@@ -177,7 +187,7 @@ Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
-    $FilePath = (Join-Path $Folder eicar.com)
+    $FilePath = (Join-Path $Folder $EicarFileName)
 
     # If the file exists delete it -- this means the folder is not being scanned
     if (Test-Path $FilePath ) {
@@ -186,7 +196,7 @@ foreach ($Folder in $FolderList) {
     }
     # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
     else {
-        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $Folder) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
     }
 }
