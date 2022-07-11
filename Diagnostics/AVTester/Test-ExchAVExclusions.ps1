@@ -10,17 +10,21 @@
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Examines Exchange processes to look for 3rd party modules loaded in the processes.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
 https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019 and
 https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help
 
-
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
-
 Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
+
+Tries to pull the Exchange Processes that were published in the AV exclusion document.
+If present will examine the loaded modules looking for one that are NOT well known.
+Reports any modules that are not well known.
+
 
 .PARAMETER Recurse
 Will test not just the root folders but all subfolders.
@@ -40,11 +44,13 @@ $env:LOCALAPPDATA\SuspectProcesses.csv
 .\Test-ExchAVExclusions.ps1
 
 Puts and removes an EICAR file in all test paths.
+Examines all Exchange processes.
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1 -Recurse
 
 Puts and Remove an EICAR file in all test paths + all subfolders.
+Examines all Exchange processes.
 
 #>
 [CmdletBinding()]
@@ -65,7 +71,8 @@ param (
 . $PSScriptRoot\Start-SleepWithProgress.ps1
 . $PSScriptRoot\Get-ExchAVExclusions.ps1
 
-Function Test-UnknownCompany {
+# Check the company name of the loaded module against a white list
+function Test-UnknownCompany {
     param (
         [Parameter()]
         [string]
@@ -78,11 +85,12 @@ Function Test-UnknownCompany {
         'Google Inc.' { return $false }
         'Oracle Corporation' { return $false }
         'Fraunhofer Institut Integrierte Schaltungen IIS' { return $false }
-        Default { Return $true }
+        default { return $true }
     }
 }
 
-Function Test-UnknownModule {
+# Check the module name against a white list
+function Test-UnknownModule {
     param (
         [Parameter()]
         [string]
@@ -94,7 +102,7 @@ Function Test-UnknownModule {
         'ExDBFailureItemAPI.dll' { return $false }
         'ManagedBlingSigned.dll' { return $false }
         'System.IdentityModel.Tokens.jwt.ni.dll' { return $false }
-        Default { Return $true }
+        default { return $true }
     }
 }
 
@@ -104,7 +112,7 @@ $LogFile = "ExchAvExclusions.log"
 $SuspectCSV = (Join-Path $env:LOCALAPPDATA SuspectProcesses.csv)
 
 # Remove the suspectCSV if it is already there
-If (Test-Path $SuspectCSV) { Remove-Item $SuspectCSV -Force -Confirm:$false }
+if (Test-Path $SuspectCSV) { Remove-Item $SuspectCSV -Force -Confirm:$false }
 
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
@@ -115,6 +123,7 @@ if (-not (Confirm-Administrator)) {
     exit
 }
 
+# Determine the Exchange install directory from the registry
 $serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
 
 # Check Exchange regsitry key
@@ -207,7 +216,7 @@ foreach ($Folder in $FolderList) {
     }
 }
 
-# Sleeping 5 minutes for AV to "find" the files
+# Sleeping 1 minute for AV to "find" the files
 Start-SleepWithProgress -sleeptime 60 -message "Allowing time for AV to Scan"
 
 # Create a list of folders that are probably being scanned by AV
@@ -246,9 +255,6 @@ if ($BadFolderList.count -gt 0) {
 
 # Check thru all of the Processes that are supposed to be excluded and verify if there are non-msft modules loaded
 Write-SimpleLogFile -string "Checking Processes for 3rd party Modules" -name $LogFile -OutHost
-
-# Get all of the processes on the server
-$ServerProcessList = Get-Process
 
 # List of Exchange processes to check that we document
 $ExchProcessList = ('ComplianceAuditService',
@@ -301,25 +307,34 @@ $ExchProcessList = ('ComplianceAuditService',
     'wsbexchange'
 )
 
+# Flag to see if we find an unknown module
+$UnknownModule = $False
+$i = 1
+
 # Determine if the process contains 3rd party DLLs
-Foreach ($Process in $ExchProcessList) {
+foreach ($Process in $ExchProcessList) {
     [array]$RunningProcess = $null
 
+    Write-Progress -Activity "Examining loaded modules in Exchange processes." -CurrentOperation "Examining process: $Process" -PercentComplete (($i / $ExchProcessList.Length) * 100) -Status " "
+
     # First see if the process is running
-    [array]$RunningProcess = $ServerProcessList | Where-Object { $_.name -like $Process }
+    [array]$RunningProcess = Get-Process $process -ErrorAction SilentlyContinue
+
+    # Look at if we have found it
     if ($null -eq $RunningProcess) {
         Write-SimpleLogFile -string "Process $Process not found" -name $LogFile
     } else {
         Write-SimpleLogFile -string "Found $Process" -name $LogFile
 
         # Pull each instance of the process
-        Foreach ($Instance in $RunningProcess) {
+        foreach ($Instance in $RunningProcess) {
 
             # Grab the modules in that instance
-            Foreach ($Module in $Instance.Modules) {
+            foreach ($Module in $Instance.Modules) {
                 # Test if they are known or unknown
                 if (Test-UnknownCompany $Module.Company) {
                     if (Test-UnknownModule $Module.ModuleName) {
+                        $UnknownModule = $true
                         # If unknown then we want to pull some data on them push to a CSV file
                         $Module | Select-Object -Property @{Name = "PID"; Expression = { $Instance.id } }, @{Name = "Name"; Expression = { $Instance.ProcessName } }, company, ModuleName | Export-Csv -Path $SuspectCSV -Append -NoTypeInformation
                     }
@@ -327,4 +342,18 @@ Foreach ($Process in $ExchProcessList) {
             }
         }
     }
+
+    $i++
+}
+
+Write-Progress -Completed -Activity "Examining loaded modules in Exchange processes." -Status " "
+
+# Found an unknown module so open the csv file
+if ($UnknownModule) {
+    Write-SimpleLogFile -string "[WARNING] - Found unkown modules loaded in Exchange Processes." -name $LogFile -OutHost
+    Write-SimpleLogFile -string "Please review the output CSV $SuspectCSV" -name $LogFile -OutHost
+}
+# Report clean run
+else {
+    Write-SimpleLogFile -string "Exchange Processes appear clean" -name $LogFile -OutHost
 }
