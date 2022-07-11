@@ -136,7 +136,7 @@ function CheckObjects {
                 if ($SourceObject.ExchangeGuid -eq $TargetObject.ExchangeGuid) {
                     Write-Host ">> ExchangeGuid match ok" -ForegroundColor Green
                 } else {
-                    Write-Host ">> Error: ExchangeGuid mismatch. Expected Vaue: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
+                    Write-Host ">> Error: ExchangeGuid mismatch. Expected Value: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
                     $ExchangeGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
                     Write-Host " Your input: "$ExchangeGuidSetOption
                     if ($ExchangeGuidSetOption.ToLower() -eq "y") {
