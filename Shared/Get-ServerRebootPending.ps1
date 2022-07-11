@@ -24,8 +24,8 @@ function Get-ServerRebootPending {
 
         function Get-UpdateExeVolatile {
             try {
-                $updateFlags = Get-ItemProperty -Path "HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\"  -Name "Flags" -ErrorAction Stop
-                if ($null -ne $updateFlags -and $updateFlags.Flags -ne "" -and $updateFlags.Flags -ne "0") {
+                $updateExeVolatileProps = Get-ItemProperty -Path "HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\" -ErrorAction Stop
+                if ($null -ne $updateExeVolatileProps -and $null -ne $updateExeVolatileProps.Flags) {
                     return $true
                 }
                 return $false
