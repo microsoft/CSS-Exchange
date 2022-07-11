@@ -8,6 +8,7 @@
       <B N="PendingFileRenameOperations">true</B>
       <B N="ComponentBasedServicingPendingReboot">true</B>
       <B N="AutoUpdatePendingReboot">false</B>
+      <B N="UpdateExeVolatileValue">true</B>
       <B N="CcmRebootPending">false</B>
       <B N="PendingReboot">true</B>
       <Obj N="PendingRebootLocations" RefId="1">
@@ -18,6 +19,7 @@
         <LST>
           <S>HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations</S>
           <S>HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending</S>
+          <S>HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\Flags</S>
         </LST>
       </Obj>
     </MS>
