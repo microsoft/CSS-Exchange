@@ -12,8 +12,11 @@ Writes an [EICAR test file](https://en.wikipedia.org/wiki/EICAR_test_file) to al
 
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
-
 Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
+
+Tries to pull the Exchange Processes that were published in the AV exclusion document.
+If present will examine the loaded modules looking for one that are NOT well known.
+Reports any modules that are not well known.
 
 ...
 .\Test-ExchAVExclusions.ps1
@@ -34,3 +37,6 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 
 List of Folders Scanned by AV:
 $env:LOCALAPPDATA\BadFolders.txt
+
+List of suspect Processes
+$env:LOCALAPPDATA\SuspectProcesses.csv
