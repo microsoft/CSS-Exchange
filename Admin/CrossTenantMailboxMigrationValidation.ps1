@@ -237,7 +237,7 @@ function CheckObjects {
                 }
 
                 #Sync X500 addresses from source mailbox to target mailUser
-                Write-Verbose -Message "Informational: Checking for missing X500 adresses on TARGET that are present on SOURCE mailbox"
+                Write-Verbose -Message "Informational: Checking for missing X500 addresses on TARGET that are present on SOURCE mailbox"
                 if ($SourceObject.EmailAddresses -like '*500:*') {
                     Write-Verbose -Message "SOURCE mailbox contains X500 addresses, checking if they're present on the TARGET MailUser"
                     foreach ($Address in ($SourceObject.EmailAddresses | Where-Object { $_ -like '*500:*' })) {
