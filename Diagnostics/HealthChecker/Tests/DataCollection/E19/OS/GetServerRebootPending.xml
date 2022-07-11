@@ -8,6 +8,7 @@
       <B N="PendingFileRenameOperations">false</B>
       <B N="ComponentBasedServicingPendingReboot">false</B>
       <B N="AutoUpdatePendingReboot">false</B>
+      <B N="UpdateExeVolatileValue">false</B>
       <B N="CcmRebootPending">false</B>
       <B N="PendingReboot">false</B>
       <Obj N="PendingRebootLocations" RefId="1">
