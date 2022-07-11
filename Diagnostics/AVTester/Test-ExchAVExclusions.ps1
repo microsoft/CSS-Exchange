@@ -139,9 +139,11 @@ foreach ($path in $BaseFolders) {
 Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
 
 # Create the EICAR file in each path
+$EicarFileName = "eicar.bat"
+
 foreach ($Folder in $FolderList) {
 
-    [string] $FilePath = (Join-Path $Folder eicar.bat)
+    [string] $FilePath = (Join-Path $Folder $EicarFileName)
     Write-SimpleLogfile -String ("Creating EICAR file " + $FilePath) -name $LogFile
 
     #Base64 of Eicar string
@@ -157,18 +159,18 @@ foreach ($Folder in $FolderList) {
         }
 
         catch {
-            Write-Warning "$Folder Eicar.bat file couldn't be created. Either permissions or AV prevented file creation."
+            Write-Warning "$Folder $EicarFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
     else {
-        Write-SimpleLogfile -string ("[WARNING] - Eicar.bat already exists!: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogfile -string ("[WARNING] - $EicarFileName already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }
 
 # Try to open each EICAR file to force detection
 foreach ($Folder in $FolderList) {
-    $FilePath = (Join-Path $Folder eicar.bat)
+    $FilePath = (Join-Path $Folder $EicarFileName)
     if (Test-Path $FilePath -PathType Leaf) {
         Start-Process $FilePath -ErrorAction SilentlyContinue -WindowStyle Minimized
     }
@@ -185,7 +187,7 @@ Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
-    $FilePath = (Join-Path $Folder eicar.bat)
+    $FilePath = (Join-Path $Folder $EicarFileName)
 
     # If the file exists delete it -- this means the folder is not being scanned
     if (Test-Path $FilePath ) {
@@ -194,7 +196,7 @@ foreach ($Folder in $FolderList) {
     }
     # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
     else {
-        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning: " + $Folder) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
     }
 }
