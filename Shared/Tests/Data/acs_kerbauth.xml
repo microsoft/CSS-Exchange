@@ -1,0 +1,52 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.Signature</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Management.Automation.Signature</ToString>
+    <Props>
+      <Obj N="SignerCertificate" RefId="1">
+        <TN RefId="1">
+          <T>System.Security.Cryptography.X509Certificates.X509Certificate2</T>
+          <T>System.Security.Cryptography.X509Certificates.X509Certificate</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>[Subject]_x000D__x000A_  CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US_x000D__x000A__x000D__x000A_[Issuer]_x000D__x000A_  CN=Microsoft Code Signing PCA 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US_x000D__x000A__x000D__x000A_[Serial Number]_x000D__x000A_  33000002528B33AAF895F339DB000000000252_x000D__x000A__x000D__x000A_[Not Before]_x000D__x000A_  9/2/2021 6:32:59 PM_x000D__x000A__x000D__x000A_[Not After]_x000D__x000A_  9/1/2022 6:32:59 PM_x000D__x000A__x000D__x000A_[Thumbprint]_x000D__x000A_  8740DF4ACB749640AD318E4BE842F72EC651AD80_x000D__x000A_</ToString>
+        <Props>
+          <BA N="RawData">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</BA>
+        </Props>
+      </Obj>
+      <Obj N="TimeStamperCertificate" RefId="2">
+        <TNRef RefId="1" />
+        <ToString>[Subject]_x000D__x000A_  CN=Microsoft Time-Stamp Service, OU=Thales TSS ESN:3BBD-E338-E9A1, OU=Microsoft America Operations, O=Microsoft Corporation, L=Redmond, S=Washington, C=US_x000D__x000A__x000D__x000A_[Issuer]_x000D__x000A_  CN=Microsoft Time-Stamp PCA 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US_x000D__x000A__x000D__x000A_[Serial Number]_x000D__x000A_  330000019DFE89E5F97BBB4CC000010000019D_x000D__x000A__x000D__x000A_[Not Before]_x000D__x000A_  12/2/2021 7:05:19 PM_x000D__x000A__x000D__x000A_[Not After]_x000D__x000A_  2/28/2023 7:05:19 PM_x000D__x000A__x000D__x000A_[Thumbprint]_x000D__x000A_  B7E9434915FDD8A1728A3EF5267DB40A84B2CAE0_x000D__x000A_</ToString>
+        <Props>
+          <BA N="RawData">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</BA>
+        </Props>
+      </Obj>
+      <Obj N="Status" RefId="3">
+        <TN RefId="2">
+          <T>System.Management.Automation.SignatureStatus</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Valid</ToString>
+        <I32>0</I32>
+      </Obj>
+      <S N="StatusMessage">Signature verified.</S>
+      <S N="Path">F:\Program Files\Microsoft\Exchange\Bin\kerbauth.dll</S>
+      <Obj N="SignatureType" RefId="4">
+        <TN RefId="3">
+          <T>System.Management.Automation.SignatureType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Authenticode</ToString>
+        <I32>1</I32>
+      </Obj>
+      <B N="IsOSBinary">false</B>
+    </Props>
+  </Obj>
+</Objs>

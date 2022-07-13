@@ -43,7 +43,7 @@ using System.Collections;
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
             public object DependentServices; // store the results for the dependent services of Exchange.
-            public object IISConfigurationSettings; // store the results for the IIS Settings test
+            public object IISSettings;  //Stores the IISConfigurationSettings, applicationHostConfig and IISModulesInformation
         }
 
         public class ExchangeBuildInformation
