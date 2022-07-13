@@ -7,6 +7,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
@@ -409,6 +410,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         OsInformation       = $osInformation
     }
 
+    Invoke-AnalyzerSecurityIISModules -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2020-0796 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2020-1147 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-1730 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
