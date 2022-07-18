@@ -59,12 +59,14 @@ function Test-ExtendedProtectionTlsPrerequisites {
 
             $tlsMisconfiguredList = New-Object 'System.Collections.Generic.List[object]'
             $majorityFound = $false
+            $stopProcessing = $false
             $refIndex = 0
 
             # We loop through the collected TLS settings and trying to find a valid configuration that exists on the majority of
             # the Exchange servers within the organization. We compare the properties of any other servers TLS settings
             # against the reference configuration.
-            while (($majorityFound -eq $false) -or
+            while ((($majorityFound -eq $false) -and
+                ($stopProcessing -eq $false)) -or
                 ($TlsSettingsList.Count -lt $refIndex)) {
                 $matchIndex = 0
                 $referenceTlsObject = $TlsSettingsList[$refIndex]
@@ -135,6 +137,10 @@ function Test-ExtendedProtectionTlsPrerequisites {
                 } else {
                     Write-Verbose "Server: $($referenceTlsObject.ComputerName) has invalid TLS settings and will be skipped as reference"
                     $refIndex++
+                    if ($TlsSettingsList.Count -eq $refIndex) {
+                        Write-Verbose "We did not find any server returning a valid Tls configuration"
+                        $stopProcessing = $true
+                    }
                 }
             }
 
