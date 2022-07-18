@@ -1,0 +1,448 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <Obj N="Registry" RefId="1">
+        <TNRef RefId="0" />
+        <MS>
+          <Obj N="TLS" RefId="2">
+            <TN RefId="1">
+              <T>System.Collections.Hashtable</T>
+              <T>System.Object</T>
+            </TN>
+            <DCT>
+              <En>
+                <S N="Key">1.1</S>
+                <Obj N="Value" RefId="3">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="TLSVersion">1.1</S>
+                    <B N="ServerEnabled">false</B>
+                    <I32 N="ServerEnabledValue">0</I32>
+                    <B N="ServerDisabledByDefault">false</B>
+                    <I32 N="ServerDisabledByDefaultValue">0</I32>
+                    <B N="ClientEnabled">true</B>
+                    <Nil N="ClientEnabledValue" />
+                    <B N="ClientDisabledByDefault">false</B>
+                    <Nil N="ClientDisabledByDefaultValue" />
+                    <B N="TLSVersionDisabled">false</B>
+                    <B N="TLSMisconfigured">true</B>
+                    <B N="TLSHalfDisabled">true</B>
+                    <S N="TLSConfiguration">Misconfigured</S>
+                  </MS>
+                </Obj>
+              </En>
+              <En>
+                <S N="Key">1.2</S>
+                <Obj N="Value" RefId="4">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="TLSVersion">1.2</S>
+                    <B N="ServerEnabled">true</B>
+                    <I32 N="ServerEnabledValue">1</I32>
+                    <B N="ServerDisabledByDefault">false</B>
+                    <I32 N="ServerDisabledByDefaultValue">0</I32>
+                    <B N="ClientEnabled">true</B>
+                    <Nil N="ClientEnabledValue" />
+                    <B N="ClientDisabledByDefault">false</B>
+                    <Nil N="ClientDisabledByDefaultValue" />
+                    <B N="TLSVersionDisabled">false</B>
+                    <B N="TLSMisconfigured">false</B>
+                    <B N="TLSHalfDisabled">false</B>
+                    <S N="TLSConfiguration">Enabled</S>
+                  </MS>
+                </Obj>
+              </En>
+              <En>
+                <S N="Key">1.0</S>
+                <Obj N="Value" RefId="5">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="TLSVersion">1.0</S>
+                    <B N="ServerEnabled">false</B>
+                    <I32 N="ServerEnabledValue">0</I32>
+                    <B N="ServerDisabledByDefault">false</B>
+                    <Nil N="ServerDisabledByDefaultValue" />
+                    <B N="ClientEnabled">true</B>
+                    <Nil N="ClientEnabledValue" />
+                    <B N="ClientDisabledByDefault">false</B>
+                    <Nil N="ClientDisabledByDefaultValue" />
+                    <B N="TLSVersionDisabled">false</B>
+                    <B N="TLSMisconfigured">true</B>
+                    <B N="TLSHalfDisabled">true</B>
+                    <S N="TLSConfiguration">Misconfigured</S>
+                  </MS>
+                </Obj>
+              </En>
+            </DCT>
+          </Obj>
+          <Obj N="NET" RefId="6">
+            <TNRef RefId="1" />
+            <DCT>
+              <En>
+                <S N="Key">NETv4</S>
+                <Obj N="Value" RefId="7">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="NetVersion">v4.0.30319</S>
+                    <B N="SystemDefaultTlsVersions">false</B>
+                    <Nil N="SystemDefaultTlsVersionsValue" />
+                    <B N="SchUseStrongCrypto">false</B>
+                    <B N="WowSystemDefaultTlsVersions">false</B>
+                    <Nil N="WowSystemDefaultTlsVersionsValue" />
+                    <B N="WowSchUseStrongCrypto">false</B>
+                    <B N="SdtvConfiguredCorrectly">true</B>
+                    <B N="SdtvEnabled">false</B>
+                  </MS>
+                </Obj>
+              </En>
+              <En>
+                <S N="Key">NETv2</S>
+                <Obj N="Value" RefId="8">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="NetVersion">v2.0.50727</S>
+                    <B N="SystemDefaultTlsVersions">false</B>
+                    <Nil N="SystemDefaultTlsVersionsValue" />
+                    <B N="SchUseStrongCrypto">false</B>
+                    <B N="WowSystemDefaultTlsVersions">false</B>
+                    <Nil N="WowSystemDefaultTlsVersionsValue" />
+                    <B N="WowSchUseStrongCrypto">false</B>
+                    <B N="SdtvConfiguredCorrectly">true</B>
+                    <B N="SdtvEnabled">false</B>
+                  </MS>
+                </Obj>
+              </En>
+            </DCT>
+          </Obj>
+        </MS>
+      </Obj>
+      <S N="SecurityProtocol">Ssl3, Tls</S>
+      <Obj N="TlsCipherSuite" RefId="9">
+        <TN RefId="2">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="10">
+            <TN RefId="3">
+              <T>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <Nil N="Certificate" />
+              <U32 N="MaximumExchangeLength">0</U32>
+              <U32 N="MinimumExchangeLength">0</U32>
+              <Nil N="Exchange" />
+              <U32 N="HashLength">0</U32>
+              <Nil N="Hash" />
+              <U32 N="CipherBlockLength">0</U32>
+              <U32 N="CipherLength">0</U32>
+              <U32 N="BaseCipherSuite">0</U32>
+              <U32 N="CipherSuite">0</U32>
+              <Nil N="Cipher" />
+              <S N="Name">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256_P256</S>
+              <Obj N="Protocols" RefId="11">
+                <TN RefId="4">
+                  <T>System.Collections.Generic.List`1[[System.UInt32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+                  <T>System.Object</T>
+                </TN>
+                <LST />
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="12">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <Nil N="Certificate" />
+              <U32 N="MaximumExchangeLength">0</U32>
+              <U32 N="MinimumExchangeLength">0</U32>
+              <Nil N="Exchange" />
+              <U32 N="HashLength">0</U32>
+              <Nil N="Hash" />
+              <U32 N="CipherBlockLength">0</U32>
+              <U32 N="CipherLength">0</U32>
+              <U32 N="BaseCipherSuite">0</U32>
+              <U32 N="CipherSuite">0</U32>
+              <Nil N="Cipher" />
+              <S N="Name">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256_P256</S>
+              <Obj N="Protocols" RefId="13">
+                <TNRef RefId="4" />
+                <LST />
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="14">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <Nil N="Certificate" />
+              <U32 N="MaximumExchangeLength">0</U32>
+              <U32 N="MinimumExchangeLength">0</U32>
+              <Nil N="Exchange" />
+              <U32 N="HashLength">0</U32>
+              <Nil N="Hash" />
+              <U32 N="CipherBlockLength">0</U32>
+              <U32 N="CipherLength">0</U32>
+              <U32 N="BaseCipherSuite">0</U32>
+              <U32 N="CipherSuite">0</U32>
+              <Nil N="Cipher" />
+              <S N="Name">TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256_P256</S>
+              <Obj N="Protocols" RefId="15">
+                <TNRef RefId="4" />
+                <LST />
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="16">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <Nil N="Certificate" />
+              <U32 N="MaximumExchangeLength">0</U32>
+              <U32 N="MinimumExchangeLength">0</U32>
+              <Nil N="Exchange" />
+              <U32 N="HashLength">0</U32>
+              <Nil N="Hash" />
+              <U32 N="CipherBlockLength">0</U32>
+              <U32 N="CipherLength">0</U32>
+              <U32 N="BaseCipherSuite">0</U32>
+              <U32 N="CipherSuite">0</U32>
+              <Nil N="Cipher" />
+              <S N="Name">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256</S>
+              <Obj N="Protocols" RefId="17">
+                <TNRef RefId="4" />
+                <LST />
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="18">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <Nil N="Certificate" />
+              <U32 N="MaximumExchangeLength">0</U32>
+              <U32 N="MinimumExchangeLength">0</U32>
+              <Nil N="Exchange" />
+              <U32 N="HashLength">0</U32>
+              <Nil N="Hash" />
+              <U32 N="CipherBlockLength">0</U32>
+              <U32 N="CipherLength">0</U32>
+              <U32 N="BaseCipherSuite">0</U32>
+              <U32 N="CipherSuite">0</U32>
+              <Nil N="Cipher" />
+              <S N="Name">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA_P256</S>
+              <Obj N="Protocols" RefId="19">
+                <TNRef RefId="4" />
+                <LST />
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="20">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">0</U32>
+              <S N="Hash"></S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">256</U32>
+              <U32 N="BaseCipherSuite">157</U32>
+              <U32 N="CipherSuite">157</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_256_GCM_SHA384</S>
+              <Obj N="Protocols" RefId="21">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>771</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="22">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">0</U32>
+              <S N="Hash"></S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">128</U32>
+              <U32 N="BaseCipherSuite">156</U32>
+              <U32 N="CipherSuite">156</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_128_GCM_SHA256</S>
+              <Obj N="Protocols" RefId="23">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>771</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="24">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">256</U32>
+              <S N="Hash">SHA256</S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">256</U32>
+              <U32 N="BaseCipherSuite">61</U32>
+              <U32 N="CipherSuite">61</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_256_CBC_SHA256</S>
+              <Obj N="Protocols" RefId="25">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>771</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="26">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">256</U32>
+              <S N="Hash">SHA256</S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">128</U32>
+              <U32 N="BaseCipherSuite">60</U32>
+              <U32 N="CipherSuite">60</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_128_CBC_SHA256</S>
+              <Obj N="Protocols" RefId="27">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>771</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="28">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">160</U32>
+              <S N="Hash">SHA1</S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">256</U32>
+              <U32 N="BaseCipherSuite">53</U32>
+              <U32 N="CipherSuite">53</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_256_CBC_SHA</S>
+              <Obj N="Protocols" RefId="29">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>769</U32>
+                  <U32>770</U32>
+                  <U32>771</U32>
+                  <U32>65279</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="30">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">160</U32>
+              <S N="Hash">SHA1</S>
+              <U32 N="CipherBlockLength">16</U32>
+              <U32 N="CipherLength">128</U32>
+              <U32 N="BaseCipherSuite">47</U32>
+              <U32 N="CipherSuite">47</U32>
+              <S N="Cipher">AES</S>
+              <S N="Name">TLS_RSA_WITH_AES_128_CBC_SHA</S>
+              <Obj N="Protocols" RefId="31">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>769</U32>
+                  <U32>770</U32>
+                  <U32>771</U32>
+                  <U32>65279</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+          <Obj RefId="32">
+            <TNRef RefId="3" />
+            <ToString>Microsoft.WindowsAuthenticationProtocols.Commands.TlsCipherSuite</ToString>
+            <Props>
+              <U32 N="KeyType">0</U32>
+              <S N="Certificate">RSA</S>
+              <U32 N="MaximumExchangeLength">16384</U32>
+              <U32 N="MinimumExchangeLength">512</U32>
+              <S N="Exchange">RSA</S>
+              <U32 N="HashLength">160</U32>
+              <S N="Hash">SHA1</S>
+              <U32 N="CipherBlockLength">8</U32>
+              <U32 N="CipherLength">168</U32>
+              <U32 N="BaseCipherSuite">10</U32>
+              <U32 N="CipherSuite">10</U32>
+              <S N="Cipher">3DES</S>
+              <S N="Name">TLS_RSA_WITH_3DES_EDE_CBC_SHA</S>
+              <Obj N="Protocols" RefId="33">
+                <TNRef RefId="4" />
+                <LST>
+                  <U32>769</U32>
+                  <U32>770</U32>
+                  <U32>771</U32>
+                  <U32>768</U32>
+                  <U32>65279</U32>
+                  <U32>65277</U32>
+                </LST>
+              </Obj>
+            </Props>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>
