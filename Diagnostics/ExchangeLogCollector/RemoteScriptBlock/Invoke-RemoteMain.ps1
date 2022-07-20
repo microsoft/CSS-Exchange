@@ -172,6 +172,7 @@ function Invoke-RemoteMain {
 
         if ($PassedInfo.PowerShellLogs) {
             Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\PowerShell" "PowerShell_Proxy_Logs"
+            Add-LogCopyFullTaskAction "$Script:localExinstall`Logging\CmdletInfra" "CmdletInfra_Logs"
         }
 
         if ($Script:localServerObject.DAGMember -and
