@@ -38,7 +38,7 @@ param(
 
 . $PSScriptRoot\Write-Verbose.ps1
 . $PSScriptRoot\WriteFunctions.ps1
-. $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Test-ExtendedProtectionTlsPrerequisites.ps1
+. $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
@@ -69,7 +69,7 @@ if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl
 Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
 Set-ADServerSettings -ViewEntireForest $true
 $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
-$AllSupportedExchangeServers = $ExchangeServers
+$ExchangeServersTlsSettingsCheck = $ExchangeServers
 
 if ($null -ne $ExchangeServerNames -and $ExchangeServerNames.Count -gt 0) {
     Write-Verbose "Running only on servers: $([string]::Join(", " ,$ExchangeServerNames))"
@@ -83,117 +83,52 @@ if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
 }
 
-Write-Verbose "Running 'Test-ExtendedProtectionTlsPrerequisites' to validate required configurations to run the Extended Protection feature"
-$tlsPrerequisites = Test-ExtendedProtectionTlsPrerequisites -ExchangeServers $AllSupportedExchangeServers
+Write-Verbose "Running 'Invoke-ExtendedProtectionTlsPrerequisitesCheck' to validate required configurations to run the Extended Protection feature"
+$tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -ExchangeServers $ExchangeServersTlsSettingsCheck.Fqdn
 
 if ($null -ne $tlsPrerequisites) {
 
-    function NewActionObject {
-        param(
-            [string]$Name,
-            [array]$List,
-            [string]$Action
-        )
+    $tlsPrerequisitesSummaryWording = ("Summary: $($tlsPrerequisites.ServerPassed.Count) servers passed the check " +
+        "| $($tlsPrerequisites.ServerFailed.Count) servers failed the check " +
+        "| $($tlsPrerequisites.ServerFailedToReach.Count) servers were unreachable")
 
-        return [PSCustomObject]@{
-            Name   = $Name
-            List   = $List
-            Action = $Action
-        }
-    }
+    Write-Host ""
+    Write-Host $tlsPrerequisitesSummaryWording
+    Write-Host "Tested TLS configuration against reference configuration from server: $($tlsPrerequisites.ReferenceServer)"
+    $tlsPrerequisites.TlsVersions | Sort-Object -Property TlsVersion | Format-Table | Out-String | Write-Host
+    $tlsPrerequisites.NetVersions | Sort-Object -Property NETVersion | Format-Table | Out-String | Write-Host
 
-    $askForConfirmation = $false
-    $tlsConfig = $tlsPrerequisites.TlsConfiguration
-    $tlsCompared = $tlsPrerequisites.TlsComparedInfo
-    $actionsRequiredList = New-Object 'System.Collections.Generic.List[object]'
-
-    if ($tlsConfig.NumberOfServersPassed -ne $tlsConfig.NumberOfTlsSettingsReturned) {
-        $action = NewActionObject -Name "Not all servers are reachable" -List $tlsConfig.UnreachableServers -Action "Check connectivity and validate the TLS configuration manually"
-        Write-Verbose "We were not able to compare the TLS configuration for all servers within your organization"
-        $actionsRequiredList.Add($action)
-    }
-
-    if ($tlsCompared.MajorityFound -eq $false) {
-        $action = NewActionObject -Name "No majority TLS configuration found" -Action "Please ensure that all of your servers are running the same TLS configuration"
-        Write-Verbose "We were not able to find a majority of correct TLS configurations within your organization"
-        $actionsRequiredList.Add($action)
+    if ($tlsPrerequisites.CheckPassed) {
+        Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
+        Write-Host ""
     } else {
-        $tlsVersionList = New-Object 'System.Collections.Generic.List[object]'
-        Write-Host "Tested TLS configuration against reference from server: $($tlsCompared.MajorityServer)"
-        $tlsCompared.MajorityConfig.Registry.TLS.GetEnumerator() | ForEach-Object {
-            $tlsVersionObject = [PSCustomObject]@{
-                TlsVersion    = $_.key
-                ServerEnabled = $_.value.ServerEnabled
-                ClientEnabled = $_.Value.ClientEnabled
-            }
-            $tlsVersionList.Add($tlsVersionObject)
-        }
-        $tlsVersionList | Sort-Object -Property TlsVersion | Format-Table | Out-String | Write-Host
-
-        $netVersionList = New-Object 'System.Collections.Generic.List[object]'
-        $tlsCompared.MajorityConfig.Registry.NET.GetEnumerator() | ForEach-Object {
-            $netVersionObject = [PSCustomObject]@{
-                NETVersion                  = $_.key
-                SystemDefaultTlsVersions    = $_.value.SystemDefaultTlsVersions
-                WowSystemDefaultTlsVersions = $_.value.WowSystemDefaultTlsVersions
-                SchUseStrongCrypto          = $_.value.SchUseStrongCrypto
-                WowSchUseStrongCrypto       = $_.value.WowSchUseStrongCrypto
-            }
-            $netVersionList.Add($netVersionObject)
-            if ($_.key -ne "NETv2") {
-                if (($_.value.SchUseStrongCrypto -eq $false) -or
-                    ($_.value.WowSchUseStrongCrypto -eq $false)) {
-                    $action = NewActionObject -Name "SchUseStrongCrypto is not configured as expected" -Action "Configure SchUseStrongCrypto for $($_.key) as described here: https://aka.ms/PlaceHolderLink"
-                    $actionsRequiredList.Add($action)
-                }
-
-                if (($_.value.SystemDefaultTlsVersions -eq $false) -or
-                    ($_.value.WowSystemDefaultTlsVersions -eq $false)) {
-                    $action = NewActionObject -Name "SystemDefaultTlsVersions is not configured as expected" -Action "Configure SystemDefaultTlsVersions for $($_.key) as described here: https://aka.ms/PlaceHolderLink"
-                    $actionsRequiredList.Add($action)
+        foreach ($entry in $tlsPrerequisites.ActionsRequired) {
+            Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
+            if ($null -ne $entry.List) {
+                foreach ($list in $entry.List) {
+                    Write-Host "System affected: $list" -ForegroundColor Red
                 }
             }
-        }
-        $netVersionList | Sort-Object -Property NETVersion | Format-Table | Out-String | Write-Host
-
-        if ($tlsCompared.MisconfiguredList.Count -ge 1) {
-            $action = NewActionObject -Name "$($tlsCompared.MisconfiguredList.Count) server(s) have a different TLS configuration" -List $tlsCompared.MisconfiguredList.ComputerName -Action "Please ensure that the listed servers are running the same TLS configuration as: $($tlsCompared.MajorityServer)"
-            $actionsRequiredList.Add($action)
-        } else {
-            Write-Host "All servers in your envionrment are running the same TLS configuration" -ForegroundColor Green
+            Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
             Write-Host ""
         }
-    }
 
-    foreach ($o in $actionsRequiredList) {
-        $askForConfirmation = $true
-        Write-Host "Test Failed: $($o.Name)" -ForegroundColor Red
-        if ($null -ne $o.List) {
-            foreach ($l in $o.List) {
-                Write-Host "System affected: $l" -ForegroundColor Red
-            }
-        }
-        Write-Host "Action required: $($o.Action)" -ForegroundColor Red
-        Write-Host ""
-    }
-
-    if ($askForConfirmation) {
         $askForConfirmationWording = ("We found problems with your TLS configuration that can lead " +
             "to problems once Extended Protection is turned on.`n`r" +
-            "We recommend to run the 'Exchange HealthChecker' script to validate the TLS settings on your " +
-            "servers before processing with Extended Protection.`n`r" +
+            "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
+            "to validate the TLS settings on your servers before processing with Extended Protection.`n`r" +
             "Do you want to continue? (Y/N)")
     }
 } else {
-    $askForConfirmationWording = ("We were not able to check the TLS settings of your servers. " +
+    $askForConfirmationWording = ("We were not able to query and check the TLS settings of your servers. " +
         "Misconfigured TLS settings may lead to problems onces Extended Protection is turned on.`n`r" +
-        "We recommend to run the 'Exchange HealthChecker' script to validate your TLS settings " +
-        "before processing with Extended Protection.`n`r" +
+        "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
+        "to validate your TLS settings before processing with Extended Protection.`n`r" +
         "Do you want to continue? (Y/N)")
 }
 
 if ($null -ne $askForConfirmationWording) {
-    $shoudProcess = Read-Host $askForConfirmationWording
+    $shoudProcess = $(Write-Host $askForConfirmationWording -ForegroundColor Red -NoNewline; Read-Host)
 } else {
     $shoudProcess = "y"
 }
