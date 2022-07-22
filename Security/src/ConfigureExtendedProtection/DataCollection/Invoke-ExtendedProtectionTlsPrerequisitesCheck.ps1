@@ -9,7 +9,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
     [OutputType("System.Object")]
     param(
         [Parameter(Mandatory = $true)]
-        [String[]]$ExchangeServers
+        [string[]]$ExchangeServers
     )
 
     begin {
@@ -31,7 +31,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             [CmdletBinding()]
             [OutputType("System.Object")]
             param(
-                [String[]]$ExchangeServers
+                [string[]]$ExchangeServers
             )
 
             $tlsSettingsList = New-Object 'System.Collections.Generic.List[object]'
@@ -42,7 +42,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                 $tlsSettings = Get-AllTlsSettings -MachineName $server
                 $counter = $counter + 1
                 $completed = ($counter/($ExchangeServers.Count)*100)
-                Write-Progress -Activity "Querying TLS Settings" -Status "Progress:" -PercentComplete $completed
+                Write-Progress -Activity "Querying TLS Settings" -Status "Processing: $server" -PercentComplete $completed
 
                 if ($null -ne $tlsSettings.SecurityProtocol) {
                     Write-Verbose "TLS settings successfully received"
