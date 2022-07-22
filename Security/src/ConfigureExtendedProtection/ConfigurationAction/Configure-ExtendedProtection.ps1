@@ -184,6 +184,7 @@ function Configure-ExtendedProtection {
 
     if ($noChangesMadeServers.Count -gt 0) {
         Write-Host "No changes were made to these servers: $([string]::Join(", " ,$noChangesMadeServers))"
+        Write-Host "Extended Protection configuration is as expected for this Exchange build"
     }
 
     if ($updatedServers.Count -gt 0 ) {
