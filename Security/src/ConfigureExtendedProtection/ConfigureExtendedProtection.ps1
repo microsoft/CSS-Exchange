@@ -44,6 +44,7 @@ param(
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
 
@@ -59,6 +60,10 @@ $Script:Logger = Get-NewLoggerInstance -LogName "ConfigureExtendedProtection-$((
 
 SetWriteHostAction ${Function:Write-HostLog}
 
+if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
+    Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
+    exit
+}
 
 $BuildVersion = ""
 Write-Host "Version $BuildVersion"
