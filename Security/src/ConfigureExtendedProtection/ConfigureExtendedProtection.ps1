@@ -32,6 +32,8 @@ param(
     [string[]]$SkipExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Use this switch to Enable require SSL flag across all IIS vdirs which don't have it enabled by default.")]
     [switch]$EnforceSSL,
+    [Parameter (Mandatory = $false, HelpMessage = "Use this switch to skip the TLS prerequisites check. Be careful, because a faulty TLS configuration in combination with EP can lead to problems.")]
+    [switch]$SkipTlsPrerequisitesCheck,
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Use this switch to set the ExtendedProtection value on VDirs in 'Default Web Site' and 'Exchange Back End' to 'None'")]
     [switch]$Rollback
 )
@@ -83,57 +85,64 @@ if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
 }
 
-Write-Verbose "Running 'Invoke-ExtendedProtectionTlsPrerequisitesCheck' to validate required configurations to run the Extended Protection feature"
-$tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -ExchangeServers $ExchangeServersTlsSettingsCheck.Fqdn
+if ((-not($Rollback)) -and
+    (-not($SkipTlsPrerequisitesCheck))) {
+    Write-Verbose "Running 'Invoke-ExtendedProtectionTlsPrerequisitesCheck' to validate required configurations to run the Extended Protection feature"
+    $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -ExchangeServers $ExchangeServersTlsSettingsCheck.Fqdn
 
-if ($null -ne $tlsPrerequisites) {
+    if ($null -ne $tlsPrerequisites) {
 
-    $tlsPrerequisitesSummaryWording = ("Summary: $($tlsPrerequisites.ServerPassed.Count) servers passed the check " +
-        "| $($tlsPrerequisites.ServerFailed.Count) servers failed the check " +
-        "| $($tlsPrerequisites.ServerFailedToReach.Count) servers were unreachable")
+        $tlsPrerequisitesSummaryWording = ("Summary: $($tlsPrerequisites.ServerPassed.Count) servers passed the check " +
+            "| $($tlsPrerequisites.ServerFailed.Count) servers failed the check " +
+            "| $($tlsPrerequisites.ServerFailedToReach.Count) servers were unreachable")
 
-    Write-Host ""
-    Write-Host $tlsPrerequisitesSummaryWording
-    Write-Host "Tested TLS configuration against reference configuration from server: $($tlsPrerequisites.ReferenceServer)"
-    $tlsPrerequisites.TlsVersions | Sort-Object -Property TlsVersion | Format-Table | Out-String | Write-Host
-    $tlsPrerequisites.NetVersions | Sort-Object -Property NETVersion | Format-Table | Out-String | Write-Host
-
-    if ($tlsPrerequisites.CheckPassed) {
-        Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
         Write-Host ""
-    } else {
-        foreach ($entry in $tlsPrerequisites.ActionsRequired) {
-            Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
-            if ($null -ne $entry.List) {
-                foreach ($list in $entry.List) {
-                    Write-Host "System affected: $list" -ForegroundColor Red
-                }
-            }
-            Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
-            Write-Host ""
-        }
+        Write-Host $tlsPrerequisitesSummaryWording
+        Write-Host "Tested TLS configuration against reference configuration from server: $($tlsPrerequisites.ReferenceServer)"
+        $tlsPrerequisites.TlsVersions | Sort-Object -Property TlsVersion | Format-Table | Out-String | Write-Host
+        $tlsPrerequisites.NetVersions | Sort-Object -Property NETVersion | Format-Table | Out-String | Write-Host
 
-        $askForConfirmationWording = ("We found problems with your TLS configuration that can lead " +
-            "to problems once Extended Protection is turned on.`n`r" +
+        if ($tlsPrerequisites.CheckPassed) {
+            Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
+            Write-Host ""
+        } else {
+            foreach ($entry in $tlsPrerequisites.ActionsRequired) {
+                Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
+                if ($null -ne $entry.List) {
+                    foreach ($list in $entry.List) {
+                        Write-Host "System affected: $list" -ForegroundColor Red
+                    }
+                }
+                Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
+                Write-Host ""
+            }
+
+            $askForConfirmationWording = ("We found problems with your TLS configuration that can lead " +
+                "to problems once Extended Protection is turned on.`n`r" +
+                "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
+                "to validate the TLS settings on your servers before processing with Extended Protection.`n`r" +
+                "Do you want to continue? (Y/N)")
+        }
+    } else {
+        $askForConfirmationWording = ("We were not able to query and check the TLS settings of your servers. " +
+            "Misconfigured TLS settings may lead to problems onces Extended Protection is turned on.`n`r" +
             "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
-            "to validate the TLS settings on your servers before processing with Extended Protection.`n`r" +
+            "to validate your TLS settings before processing with Extended Protection.`n`r" +
             "Do you want to continue? (Y/N)")
     }
+
+    if ($null -ne $askForConfirmationWording) {
+        $shouldProcess = $(Write-Host $askForConfirmationWording -ForegroundColor Red -NoNewline; Read-Host)
+    } else {
+        $shouldProcess = "y"
+    }
 } else {
-    $askForConfirmationWording = ("We were not able to query and check the TLS settings of your servers. " +
-        "Misconfigured TLS settings may lead to problems onces Extended Protection is turned on.`n`r" +
-        "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
-        "to validate your TLS settings before processing with Extended Protection.`n`r" +
-        "Do you want to continue? (Y/N)")
+    Write-Host "TLS prerequisited check will be skipped due to: $(if ($Rollback) {'Rollback'} elseif ($SkipTlsPrerequisitesCheck) {'SkipTlsPrerequisitesCheck'})"
 }
 
-if ($null -ne $askForConfirmationWording) {
-    $shoudProcess = $(Write-Host $askForConfirmationWording -ForegroundColor Red -NoNewline; Read-Host)
-} else {
-    $shoudProcess = "y"
-}
-
-if ($shoudProcess -eq "y") {
+if (($shouldProcess -eq "y") -or
+    ($Rollback) -or
+    ($SkipTlsPrerequisitesCheck)) {
     # Configure Extended Protection based on given parameters
     Configure-ExtendedProtection
 } else {
