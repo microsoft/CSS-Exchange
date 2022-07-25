@@ -41,7 +41,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             foreach ($server in $ExchangeServers) {
                 $tlsSettings = Get-AllTlsSettings -MachineName $server
                 $counter = $counter + 1
-                $completed = ($counter/($ExchangeServers.Count)*100)
+                $completed = ($counter / ($ExchangeServers.Count) * 100)
                 Write-Progress -Activity "Querying TLS Settings" -Status "Processing: $server" -PercentComplete $completed
 
                 if ($null -ne $tlsSettings.SecurityProtocol) {
@@ -71,106 +71,73 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                 [System.Collections.Generic.List[object]]$TlsSettingsList
             )
 
-            $tlsMisconfiguredList = New-Object 'System.Collections.Generic.List[object]'
-            $tlsServersPassedList = New-Object 'System.Collections.Generic.List[object]'
-            $majorityFound = $false
-            $stopProcessing = $false
-            $refIndex = 0
+            $groupedResults = New-Object 'System.Collections.Generic.List[object]'
 
-            # We loop through the collected TLS settings and trying to find a valid configuration that exists on the majority of
-            # the Exchange servers within the organization. We compare the properties of any other servers TLS settings
-            # against the reference configuration.
-            while ((($majorityFound -eq $false) -and
-                ($stopProcessing -eq $false)) -or
-                ($TlsSettingsList.Count -lt $refIndex)) {
-                $matchIndex = 0
-                $referenceTlsObject = $TlsSettingsList[$refIndex]
+            # loop through the least amount of times to compare the TLS settings
+            # if the values are different add them to the list
+            $tlsKeys = @("1.0", "1.1", "1.2")
+            $netKeys = @("NETv4") # Only think we care about v4
 
-                # Validate whether the TLS settings are Enabled or Disabled and skip if server has misconfigured settings
-                if ((-not($referenceTlsObject.TlsSettings.Registry.TLS.Values.TLSConfiguration.Contains("Half Disabled"))) -and
-                    (-not($referenceTlsObject.TlsSettings.Registry.TLS.Values.TLSConfiguration.Contains("Misconfigured")))) {
-                    foreach ($tls in $TlsSettingsList) {
-                        $tlsMismatchFound = $false
-                        $netMismatchFound = $false
+            foreach ($serverTls in $TlsSettingsList) {
+                $currentServer = $serverTls.ComputerName
+                $tlsSettings = $serverTls.TlsSettings
+                $tlsRegistry = $tlsSettings.Registry.TLS
+                $netRegistry = $tlsSettings.Registry.NET
+                $listIndex = 0
+                $addNewGroupList = $true
+                Write-Verbose "Working on Server $currentServer"
 
-                        Write-Verbose "Comparing TLS settings"
-                        $referenceTlsObject.TlsSettings.Registry.Tls.GetEnumerator() | ForEach-Object {
-                            Write-Verbose "$($_.key) - Current TLS mismatch value: $tlsMismatchFound"
-                            $tlsParams = @{
-                                ReferenceObject  = $_.value
-                                DifferenceObject = $tls.TlsSettings.Registry.Tls["$($_.key)"]
-                                Property         = "TLSConfiguration"
-                                IncludeEqual     = $true
-                            }
-                            $tlsResults = Compare-Object @tlsParams
-                            foreach ($tlsR in $tlsResults) {
-                                if ($tlsR.SideIndicator -ne "==") {
-                                    $tlsMismatchFound = $true
-                                }
-                            }
-                        }
+                # only need to compare against the current groupedResults List
+                # if this is the first time, we don't compare we just add
+                while ($listIndex -lt $groupedResults.Count) {
+                    $referenceTlsSettings = $groupedResults[$listIndex].TlsSettings
+                    $nextServer = $false
+                    Write-Verbose "Working on TLS Setting index $listIndex"
 
-                        Write-Verbose "Comparing .NET settings"
-                        $referenceTlsObject.TlsSettings.Registry.NET.GetEnumerator() | ForEach-Object {
-                            if ($_.key -ne "NETv2") {
-                                Write-Verbose "$($_.key) - Current .NET mismatch value: $netMismatchFound"
-                                $netParams = @{
-                                    ReferenceObject  = $_.value
-                                    DifferenceObject = $tls.TlsSettings.Registry.NET["$($_.key)"]
-                                    Property         = "SchUseStrongCrypto", "WowSchUseStrongCrypto", "SystemDefaultTlsVersions", "WowSystemDefaultTlsVersions"
-                                    IncludeEqual     = $true
-                                }
-                                $netResults = Compare-Object @netParams
-                                foreach ($netR in $netResults) {
-                                    if ($netR.SideIndicator -ne "==") {
-                                        $netMismatchFound = $true
-                                    }
-                                }
-                            } else {
-                                Write-Verbose "NETv2 is only required for Exchange 2010 - going to skip validation"
-                            }
-                        }
-
-                        if (($tlsMismatchFound -eq $false) -and
-                            ($netMismatchFound -eq $false)) {
-                            Write-Verbose "TLS settings are the same on both systems - Reference: $($referenceTlsObject.ComputerName) Server: $($tls.ComputerName)"
-                            $tlsServersPassedList.Add($tls)
-                            $matchIndex++
-                        } else {
-                            Write-Verbose "TLS settings are different - Reference: $($referenceTlsObject.ComputerName) Server: $($tls.ComputerName)"
-                            $tlsMisconfiguredList.Add($tls)
+                    foreach ($key in $tlsKeys) {
+                        $props = $tlsRegistry[$key].PSObject.Properties.Name
+                        $result = Compare-Object -ReferenceObject $referenceTlsSettings.Registry.TLS[$key] -DifferenceObject $tlsRegistry[$key] -Property $props
+                        if ($null -ne $result) {
+                            Write-Verbose "Found difference in TLS for $key"
+                            $nextServer = $true
+                            break;
                         }
                     }
 
-                    if ($matchIndex -ge $tlsMisconfiguredList.Count) {
-                        Write-Verbose "We found the TLS configuration that exists on the most systems within the organization"
-                        $majorityFound = $true
-                    } else {
-                        Write-Verbose "We did no find the TLS configuration that exists on the most systems. Retrying with the next server"
-                        $tlsServersPassedList.Clear()
-                        $tlsMisconfiguredList.Clear()
-                        $refIndex++
-                    }
-                } else {
-                    Write-Verbose "Server: $($referenceTlsObject.ComputerName) has invalid TLS settings and will be skipped as reference"
-                    $refIndex++
-                    if ($TlsSettingsList.Count -eq $refIndex) {
-                        Write-Verbose "We did not find any server returning a valid Tls configuration"
-                        foreach ($tls in $TlsSettingsList) {
-                            $tlsMisconfiguredList.Add($tls)
+                    if ($nextServer) { $listIndex++; continue; }
+
+                    foreach ($key in $netKeys) {
+                        $props = $netRegistry[$key].PSObject.Properties.Name
+                        $result = Compare-Object -ReferenceObject $referenceTlsSettings.Registry.NET[$key] -DifferenceObject $netRegistry[$key] -Property $props
+                        if ($null -ne $result) {
+                            Write-Verbose "Found difference in NET for $key"
+                            $nextServer = $true
+                            break
                         }
-                        $stopProcessing = $true
                     }
+
+                    if ($nextServer) { $listIndex++; continue; }
+                    if ($tlsSettings.SecurityProtocol -ne $referenceTlsSettings.SecurityProtocol) { Write-Verbose "Security Protocol didn't match"; $listIndex++; continue; }
+
+                    # we must match so add to the current groupResults and break
+                    Write-Verbose "Server appears to match current reference TLS Object"
+                    $groupedResults[$listIndex].MatchedServer.Add($currentServer)
+                    Write-Verbose "Now $($groupedResults[$listIndex].MatchedServer.Count) servers match this reference"
+                    $addNewGroupList = $false
+                    break
+                }
+
+                if ($addNewGroupList) {
+                    Write-Verbose "Added new grouped result because of server $currentServer"
+                    $obj = [PSCustomObject]@{
+                        TlsSettings   = $tlsSettings
+                        MatchedServer = New-Object 'System.Collections.Generic.List[string]'
+                    }
+                    $obj.MatchedServer.Add($currentServer)
+                    $groupedResults.Add($obj)
                 }
             }
-
-            return [PSCustomObject]@{
-                MajorityFound     = $majorityFound
-                MajorityConfig    = if ($majorityFound) { $referenceTlsObject.TlsSettings } else { $null }
-                MajorityServer    = if ($majorityFound) { $referenceTlsObject.ComputerName } else { $null }
-                ServersPassedList = $tlsServersPassedList
-                MisconfiguredList = $tlsMisconfiguredList
-            }
+            return $groupedResults
         }
     } process {
         $tlsConfiguration = GetTLSConfigurationForAllServers -ExchangeServers $ExchangeServers
@@ -191,79 +158,52 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                 $actionsRequiredList.Add($action)
             }
 
-            if ($tlsCompared.MajorityFound -eq $false) {
-                $majorityFoundParam = @{
-                    Name   = "No majority TLS configuration found"
-                    Action = "Please ensure that all of your servers are running the same TLS configuration"
+            foreach ($tlsResults in $tlsCompared) {
+                # Check for actions to take against
+                $netKeys = @("NETv4")
+                $netRegistry = $tlsResults.TlsSettings.Registry.NET
+                foreach ($key in $netKeys) {
+                    if ($netRegistry[$key].SchUseStrongCrypto -eq $false -or
+                        $netRegistry[$key].WowSchUseStrongCrypto -eq $false -or
+                        $null -eq $netRegistry[$key].SchUseStrongCryptoValue -or
+                        $null -eq $netRegistry[$key].WowSchUseStrongCryptoValue) {
+                        $params = @{
+                            Name   = "SchUseStrongCrypto is not configured as expected"
+                            List   = $tlsResults.MatchedServer
+                            Action = "Configure SchUseStrongCrypto for $key as described here: https://aka.ms/PlaceHolderLink"
+                        }
+                        $actionsRequiredList.Add((NewActionObject @params))
+                        Write-Verbose "SchUseStrongCrypto doesn't match the expected configuration"
+                    }
+
+                    if ($netRegistry[$key].SystemDefaultTlsVersions -eq $false -or
+                        $netRegistry[$key].WowSystemDefaultTlsVersions -eq $false -or
+                        $null -eq $netRegistry[$key].SystemDefaultTlsVersionsValue -or
+                        $null -eq $netRegistry[$key].WowSystemDefaultTlsVersionsValue) {
+                        $params = @{
+                            Name   = "SystemDefaultTlsVersions is not configured as expected"
+                            List   = $tlsResults.MatchedServer
+                            Action = "Configure SystemDefaultTlsVersions for $key as described here: https://aka.ms/PlaceHolderLink"
+                        }
+                        $actionsRequiredList.Add((NewActionObject @params))
+                        Write-Verbose "SystemDefaultTlsVersions doesn't match the expected configuration"
+                    }
                 }
-                $action = NewActionObject @majorityFoundParam
-                Write-Verbose "Unable to find a majority of correct TLS configurations within your organization"
+            }
+
+            if ($tlsCompared.Count -gt 1) {
+                $params = @{
+                    Name   = "Multiple TLS differences have been detected"
+                    Action = "Please ensure that all servers are running the same TLS configuration"
+                }
+                $action = NewActionObject @params
                 $actionsRequiredList.Add($action)
-            } else {
-                $tlsVersionList = New-Object 'System.Collections.Generic.List[object]'
-                $tlsCompared.MajorityConfig.Registry.TLS.GetEnumerator() | ForEach-Object {
-                    $tlsVersionObject = [PSCustomObject]@{
-                        TlsVersion    = $_.key
-                        ServerEnabled = $_.value.ServerEnabled
-                        ClientEnabled = $_.Value.ClientEnabled
-                    }
-                    $tlsVersionList.Add($tlsVersionObject)
-                }
-
-                $netVersionList = New-Object 'System.Collections.Generic.List[object]'
-                $tlsCompared.MajorityConfig.Registry.NET.GetEnumerator() | ForEach-Object {
-                    $netVersionObject = [PSCustomObject]@{
-                        NETVersion                  = $_.key
-                        SystemDefaultTlsVersions    = $_.value.SystemDefaultTlsVersions
-                        WowSystemDefaultTlsVersions = $_.value.WowSystemDefaultTlsVersions
-                        SchUseStrongCrypto          = $_.value.SchUseStrongCrypto
-                        WowSchUseStrongCrypto       = $_.value.WowSchUseStrongCrypto
-                    }
-                    $netVersionList.Add($netVersionObject)
-                    if ($_.key -ne "NETv2") {
-                        if (($_.value.SchUseStrongCrypto -eq $false) -or
-                            ($_.value.WowSchUseStrongCrypto -eq $false)) {
-                            $netv4StrongCryptoParams = @{
-                                Name   = "SchUseStrongCrypto is not configured as expected"
-                                Action = "Configure SchUseStrongCrypto for $($_.key) as described here: https://aka.ms/PlaceHolderLink"
-                            }
-                            $action = NewActionObject @netv4StrongCryptoParams
-                            Write-Verbose "SchUseStrongCrypto doesn't match the expected configuration"
-                            $actionsRequiredList.Add($action)
-                        }
-
-                        if (($_.value.SystemDefaultTlsVersions -eq $false) -or
-                            ($_.value.WowSystemDefaultTlsVersions -eq $false)) {
-                            $netv4SystemDefaultParams = @{
-                                Name   = "SystemDefaultTlsVersions is not configured as expected"
-                                Action = "Configure SystemDefaultTlsVersions for $($_.key) as described here: https://aka.ms/PlaceHolderLink"
-                            }
-                            $action = NewActionObject @netv4SystemDefaultParams
-                            Write-Verbose "SystemDefaultTlsVersions doesn't match the expected configuration"
-                            $actionsRequiredList.Add($action)
-                        }
-                    }
-                }
-
-                if ($tlsCompared.MisconfiguredList.Count -ge 1) {
-                    $misconfiguredListParams = @{
-                        Name   = "$($tlsCompared.MisconfiguredList.Count) server(s) have a different TLS configuration"
-                        List   = $tlsCompared.MisconfiguredList.ComputerName
-                        Action = "Please ensure that the listed servers are running the same TLS configuration as: $($tlsCompared.MajorityServer)"
-                    }
-                    $action = NewActionObject @misconfiguredListParams
-                    $actionsRequiredList.Add($action)
-                }
             }
         }
     } end {
         return [PSCustomObject]@{
             CheckPassed         = ($actionsRequiredList.Count -eq 0)
-            TlsVersions         = $tlsVersionList
-            NetVersions         = $netVersionList
-            ServerPassed        = $tlsCompared.ServersPassedList
-            ServerFailed        = $tlsCompared.MisconfiguredList
-            ReferenceServer     = $tlsCompared.MajorityServer
+            TlsSettings         = $tlsCompared
             ActionsRequired     = $actionsRequiredList
             ServerFailedToReach = $tlsConfiguration.UnreachableServers
         }
