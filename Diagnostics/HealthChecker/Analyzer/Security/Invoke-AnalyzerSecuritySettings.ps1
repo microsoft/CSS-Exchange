@@ -83,21 +83,11 @@ function Invoke-AnalyzerSecuritySettings {
     }
     Add-AnalyzedResultInformation @params
 
-    function GetBadTlsValueSetting {
-        [CmdletBinding()]
-        param(
-            [Parameter(ValueFromPipeline = $true)]
-            $TlsSetting,
-            $PropertyName
-        )
-        process {
-            return $TlsSetting | Where-Object { $null -ne $_."$PropertyName" -and $_."$PropertyName" -ne 0 -and $_."$PropertyName" -ne 1 }
-        }
-    }
     $testValues = @("ServerEnabledValue", "ClientEnabledValue", "ServerDisabledByDefaultValue", "ClientDisabledByDefaultValue")
 
     foreach ($testValue in $testValues) {
-        $results = $tlsSettings.Values | GetBadTlsValueSetting -PropertyName $testValue
+        # If value not set to a 0 or a 1.
+        $results = $tlsSettings.Values | Where-Object { $null -ne $_."$testValue" -and $_."$testValue" -ne 0 -and $_."$testValue" -ne 1 }
 
         if ($null -ne $results) {
             $displayLinkToDocsPage = $true
@@ -105,6 +95,21 @@ function Invoke-AnalyzerSecuritySettings {
                 $params = $baseParams + @{
                     Name             = "$($result.TLSVersion) $testValue"
                     Details          = "$($result."$testValue") --- Error: Must be a value of 1 or 0."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+
+        # if value not defined, we should call that out.
+        $results = $tlsSettings.Values | Where-Object { $null -eq $_."$testValue" }
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.TLSVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
                     DisplayWriteType = "Red"
                 }
                 Add-AnalyzedResultInformation @params
@@ -189,6 +194,37 @@ function Invoke-AnalyzerSecuritySettings {
         TestingName = "NET TLS Settings Group"
     }
     Add-AnalyzedResultInformation @params
+
+    # Check for NULL values on NETv4 registry settings
+    $testValues = @("SystemDefaultTlsVersionsValue", "SchUseStrongCryptoValue", "WowSystemDefaultTlsVersionsValue", "WowSchUseStrongCryptoValue")
+    $displayLinkToDocsPage = $false
+
+    foreach ($testValue in $testValues) {
+        $results = $osInformation.TLSSettings.Registry.NET["NETv4"] | Where-Object { $null -eq $_."$testValue" }
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.NetVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+    }
+
+    if ($displayLinkToDocsPage) {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-TLSConfigDocs"
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "Display Link to Docs Page"
+        }
+        Add-AnalyzedResultInformation @params
+    }
 
     $params = $baseParams + @{
         Name    = "SecurityProtocol"
