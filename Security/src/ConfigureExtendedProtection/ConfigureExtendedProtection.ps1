@@ -92,15 +92,25 @@ if ((-not($Rollback)) -and
 
     if ($null -ne $tlsPrerequisites) {
 
-        $tlsPrerequisitesSummaryWording = ("Summary: $($tlsPrerequisites.ServerPassed.Count) servers passed the check " +
-            "| $($tlsPrerequisites.ServerFailed.Count) servers failed the check " +
-            "| $($tlsPrerequisites.ServerFailedToReach.Count) servers were unreachable")
-
         Write-Host ""
-        Write-Host $tlsPrerequisitesSummaryWording
-        Write-Host "Tested TLS configuration against reference configuration from server: $($tlsPrerequisites.ReferenceServer)"
-        $tlsPrerequisites.TlsVersions | Sort-Object -Property TlsVersion | Format-Table | Out-String | Write-Host
-        $tlsPrerequisites.NetVersions | Sort-Object -Property NETVersion | Format-Table | Out-String | Write-Host
+        foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
+            Write-Host "The following servers have the TLS Configuration below"
+            Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
+            $tlsSettings.TlsSettings.Registry.Tls.Values |
+                Select-Object TLSVersion, ServerEnabled, ClientEnabled, TLSConfiguration |
+                Sort-Object TLSVersion |
+                Format-Table |
+                Out-String |
+                Write-Host
+            $tlsSettings.TlsSettings.Registry.Net.Values |
+                Select-Object NetVersion, SystemDefaultTlsVersions, WowSystemDefaultTlsVersions, SchUseStrongCrypto, WowSchUseStrongCrypto |
+                Sort-Object NetVersion |
+                Format-Table |
+                Out-String |
+                Write-Host
+            Write-Host ""
+            Write-Host ""
+        }
 
         if ($tlsPrerequisites.CheckPassed) {
             Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
