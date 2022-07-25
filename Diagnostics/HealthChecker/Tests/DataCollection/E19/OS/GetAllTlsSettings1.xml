@@ -91,9 +91,11 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <I32 N="SystemDefaultTlsVersionsValue">1</I32>
                     <B N="SchUseStrongCrypto">false</B>
+                    <I32 N="SchUseStrongCryptoValue">0</I32>
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <I32 N="WowSystemDefaultTlsVersionsValue">1</I32>
                     <B N="WowSchUseStrongCrypto">false</B>
+                    <I32 N="WowSchUseStrongCryptoValue">0</I32>
                     <B N="SdtvConfiguredCorrectly">false</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -108,9 +110,11 @@
                     <B N="SystemDefaultTlsVersions">true</B>
                     <I32 N="SystemDefaultTlsVersionsValue">1</I32>
                     <B N="SchUseStrongCrypto">true</B>
+                    <I32 N="SchUseStrongCryptoValue">1</I32>
                     <B N="WowSystemDefaultTlsVersions">true</B>
                     <I32 N="WowSystemDefaultTlsVersionsValue">1</I32>
                     <B N="WowSchUseStrongCrypto">true</B>
+                    <I32 N="WowSchUseStrongCryptoValue">1</I32>
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">true</B>
                   </MS>
