@@ -41,7 +41,7 @@ param(
 . $PSScriptRoot\Write-Verbose.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 . $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
-. $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
+. $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
 . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
