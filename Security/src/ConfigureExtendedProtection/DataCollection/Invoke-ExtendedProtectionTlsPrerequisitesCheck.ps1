@@ -1,15 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# TODO: Move this to shared functions onces the script goes public
-. $PSScriptRoot\..\..\..\..\Diagnostics\HealthChecker\DataCollection\ServerInformation\Get-AllTlsSettings.ps1
-
+# Used to test the TLS Configuration
 function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
     [CmdletBinding()]
     [OutputType("System.Object")]
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$ExchangeServers
+        [object[]]$TlsConfiguration
     )
 
     begin {
@@ -27,46 +25,8 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             }
         }
 
-        function GetTLSConfigurationForAllServers {
+        function GroupTlsServerSettings {
             [CmdletBinding()]
-            [OutputType("System.Object")]
-            param(
-                [string[]]$ExchangeServers
-            )
-
-            $tlsSettingsList = New-Object 'System.Collections.Generic.List[object]'
-            $serversUnreachableList = New-Object 'System.Collections.Generic.List[string]'
-
-            $counter = 0
-            foreach ($server in $ExchangeServers) {
-                $tlsSettings = Get-AllTlsSettings -MachineName $server
-                $counter = $counter + 1
-                $completed = ($counter / ($ExchangeServers.Count) * 100)
-                Write-Progress -Activity "Querying TLS Settings" -Status "Processing: $server" -PercentComplete $completed
-
-                if ($null -ne $tlsSettings.SecurityProtocol) {
-                    Write-Verbose "TLS settings successfully received"
-                    $tlsSettingsList.Add([PSCustomObject]@{
-                            ComputerName = $server
-                            TlsSettings  = $tlsSettings
-                        })
-                } else {
-                    Write-Verbose "Unable to query TLS settings"
-                    $serversUnreachableList.Add($server)
-                }
-            }
-
-            return [PSCustomObject]@{
-                NumberOfServersPassed       = $ExchangeServers.Count
-                NumberOfTlsSettingsReturned = $tlsSettingsList.Count
-                UnreachableServers          = $serversUnreachableList
-                TlsSettingsReturned         = $tlsSettingsList
-            }
-        }
-
-        function CompareTlsServerSettings {
-            [CmdletBinding()]
-            [OutputType("System.Object")]
             param(
                 [System.Collections.Generic.List[object]]$TlsSettingsList
             )
@@ -80,7 +40,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
 
             foreach ($serverTls in $TlsSettingsList) {
                 $currentServer = $serverTls.ComputerName
-                $tlsSettings = $serverTls.TlsSettings
+                $tlsSettings = $serverTls.Settings
                 $tlsRegistry = $tlsSettings.Registry.TLS
                 $netRegistry = $tlsSettings.Registry.NET
                 $listIndex = 0
@@ -139,26 +99,17 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             }
             return $groupedResults
         }
+
+        $actionsRequiredList = New-Object 'System.Collections.Generic.List[object]'
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     } process {
-        $tlsConfiguration = GetTLSConfigurationForAllServers -ExchangeServers $ExchangeServers
-        $tlsCompared = CompareTlsServerSettings -TlsSettingsList $tlsConfiguration.TlsSettingsReturned
 
-        if (($null -ne $tlsConfiguration) -and
-            ($null -ne $tlsCompared)) {
-            $actionsRequiredList = New-Object 'System.Collections.Generic.List[object]'
+        $tlsGroupedResults = @(GroupTlsServerSettings -TlsSettingsList $TlsConfiguration)
 
-            if ($tlsConfiguration.NumberOfServersPassed -ne $tlsConfiguration.NumberOfTlsSettingsReturned) {
-                $serverReachableParam = @{
-                    Name   = "Not all servers are reachable"
-                    List   = $tlsConfiguration.UnreachableServers
-                    Action = "Check connectivity and validate the TLS configuration manually"
-                }
-                $action = NewActionObject @serverReachableParam
-                Write-Verbose "Unable to compare the TLS configuration for all servers within your organization"
-                $actionsRequiredList.Add($action)
-            }
+        if ($null -ne $tlsGroupedResults -and
+            $tlsGroupedResults.Count -gt 0) {
 
-            foreach ($tlsResults in $tlsCompared) {
+            foreach ($tlsResults in $tlsGroupedResults) {
                 # Check for actions to take against
                 $netKeys = @("NETv4")
                 $netRegistry = $tlsResults.TlsSettings.Registry.NET
@@ -191,7 +142,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                 }
             }
 
-            if ($tlsCompared.Count -gt 1) {
+            if ($tlsGroupedResults.Count -gt 1) {
                 $params = @{
                     Name   = "Multiple TLS differences have been detected"
                     Action = "Please ensure that all servers are running the same TLS configuration"
@@ -202,10 +153,9 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
         }
     } end {
         return [PSCustomObject]@{
-            CheckPassed         = ($actionsRequiredList.Count -eq 0)
-            TlsSettings         = $tlsCompared
-            ActionsRequired     = $actionsRequiredList
-            ServerFailedToReach = $tlsConfiguration.UnreachableServers
+            CheckPassed     = ($actionsRequiredList.Count -eq 0)
+            TlsSettings     = $tlsGroupedResults
+            ActionsRequired = $actionsRequiredList
         }
     }
 }

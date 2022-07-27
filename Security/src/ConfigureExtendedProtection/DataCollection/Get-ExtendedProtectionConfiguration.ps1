@@ -289,6 +289,7 @@ function Get-ExtendedProtectionConfiguration {
             SupportedVersionForExtendedProtection = $supportedVersion
             ApplicationHostConfig                 = $ApplicationHostConfig
             ExtendedProtectionConfiguration       = $extendedProtectionList
+            ExtendedProtectionConfigured          = $null -ne ($extendedProtectionList.ExtendedProtection | Where-Object { $_ -ne "None" })
         }
     }
 }

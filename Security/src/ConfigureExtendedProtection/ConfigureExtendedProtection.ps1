@@ -38,6 +38,7 @@ param(
 
 . $PSScriptRoot\Write-Verbose.ps1
 . $PSScriptRoot\WriteFunctions.ps1
+. $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
 . $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
 . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
 . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
@@ -75,7 +76,7 @@ if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl
 Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
 Set-ADServerSettings -ViewEntireForest $true
 $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
-$ExchangeServersTlsSettingsCheck = $ExchangeServers
+$ExchangeServersPrerequisitesCheckSettingsCheck = $ExchangeServers
 
 if ($null -ne $ExchangeServerNames -and $ExchangeServerNames.Count -gt 0) {
     Write-Verbose "Running only on servers: $([string]::Join(", " ,$ExchangeServerNames))"
@@ -89,12 +90,16 @@ if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
 }
 
-if (-not($Rollback)) {
-    $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -ExchangeServers $ExchangeServersTlsSettingsCheck.Fqdn
+$serverNames = New-Object 'System.Collections.Generic.List[string]'
+$ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
 
-    if ($null -ne $tlsPrerequisites) {
+if (-not($Rollback)) {
+    $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck
+
+    if ($null -ne $prerequisitesCheck) {
 
         Write-Host ""
+        $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $prerequisitesCheck.TlsSettings
         foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
             Write-Host "The following servers have the TLS Configuration below"
             Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
@@ -114,6 +119,9 @@ if (-not($Rollback)) {
             Write-Host ""
         }
 
+        # If TLS Prerequisites Check passed, then we are good to go.
+        # If it doesn't, now we need to verify the servers we are trying to enable EP on
+        # will pass the TLS Prerequisites and all other servers that have EP enabled on.
         if ($tlsPrerequisites.CheckPassed) {
             Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
             Write-Host ""
@@ -128,25 +136,25 @@ if (-not($Rollback)) {
                 Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
                 Write-Host ""
             }
+            $checkAgainst = $prerequisitesCheck |
+                Where-Object {
+                    $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
+                    $_.ComputerName -in $serverNames
+                }
 
-            $askForConfirmationWording = ("We found problems with your TLS configuration that can lead " +
-                "to problems once Extended Protection is turned on.`n`r" +
-                "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
-                "to validate the TLS settings on your servers before processing with Extended Protection.`n`r" +
-                "Do you want to continue? (Y/N)")
+            $results = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
+
+            if ($results.CheckPassed) {
+                Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
+                Write-Host ""
+            } else {
+                Write-Warning "Failed to pass the TLS prerequisites. Unable to continue."
+                exit
+            }
         }
     } else {
-        $askForConfirmationWording = ("We were not able to query and check the TLS settings of your servers. " +
-            "Misconfigured TLS settings may lead to problems onces Extended Protection is turned on.`n`r" +
-            "We recommend to run the 'Exchange HealthChecker (https://aka.ms/ExchangeHealthChecker)' " +
-            "to validate your TLS settings before processing with Extended Protection.`n`r" +
-            "Do you want to continue? (Y/N)")
-    }
-
-    if ($null -ne $askForConfirmationWording) {
-        $shouldProcess = $(Write-Host $askForConfirmationWording -ForegroundColor Red -NoNewline; Read-Host)
-    } else {
-        $shouldProcess = "y"
+        Write-Warning "Failed to get Extended Protection Prerequisites Information to be able to continue"
+        exit
     }
 } else {
     Write-Host "Prerequisite check will be skipped due to Rollback"
@@ -157,9 +165,7 @@ if ($Rollback) {
     return
 }
 
-if (($shouldProcess -eq "y")) {
-    # Configure Extended Protection based on given parameters
-    Invoke-ConfigureExtendedProtection -ExchangeServers $ExchangeServers
-} else {
-    Write-Host "Process was cancelled and no configuration has been changed"
-}
+# Configure Extended Protection based on given parameters
+$extendedProtectionConfigurations = ($prerequisitesCheck |
+        Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
+Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations

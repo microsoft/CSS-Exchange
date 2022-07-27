@@ -8,7 +8,7 @@
 function Invoke-ConfigureExtendedProtection {
     [CmdletBinding()]
     param(
-        [object[]]$ExchangeServers
+        [object[]]$ExtendedProtectionConfigurations
     )
 
     begin {
@@ -17,17 +17,7 @@ function Invoke-ConfigureExtendedProtection {
         $updatedServers = New-Object 'System.Collections.Generic.List[string]'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     } process {
-        $extendedProtectionConfigurations = $ExchangeServers |
-            ForEach-Object {
-                $params = @{
-                    ComputerName         = $_
-                    IsClientAccessServer = $_.IsClientAccessServer
-                    IsMailboxServer      = $_.IsMailboxServer
-                }
-                Get-ExtendedProtectionConfiguration @params
-            }
-
-        foreach ($serverExtendedProtection in $extendedProtectionConfigurations) {
+        foreach ($serverExtendedProtection in $ExtendedProtectionConfigurations) {
             # Check to make sure server is connected and valid information is provided.
             if (-not ($serverExtendedProtection.ServerConnected)) {
                 $line = "Server $($serverExtendedProtection.ComputerName) isn't online to get valid Extended Protection Configuration settings"
