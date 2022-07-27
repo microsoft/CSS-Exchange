@@ -42,6 +42,7 @@ param(
 . $PSScriptRoot\WriteFunctions.ps1
 . $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
 . $PSScriptRoot\ConfigurationAction\Configure-ExtendedProtection.ps1
+. $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -155,11 +156,15 @@ if ((-not($Rollback)) -and
     Write-Host "TLS prerequisited check will be skipped due to: $(if ($Rollback) {'Rollback'} elseif ($SkipTlsPrerequisitesCheck) {'SkipTlsPrerequisitesCheck'})"
 }
 
+if ($Rollback) {
+    Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+    return
+}
+
 if (($shouldProcess -eq "y") -or
-    ($Rollback) -or
     ($SkipTlsPrerequisitesCheck)) {
     # Configure Extended Protection based on given parameters
-    Configure-ExtendedProtection
+    Invoke-ConfigureExtendedProtection -ExchangeServers $ExchangeServers
 } else {
     Write-Host "Process was cancelled and no configuration has been changed"
 }
