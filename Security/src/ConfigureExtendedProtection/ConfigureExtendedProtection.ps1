@@ -32,8 +32,6 @@ param(
     [string[]]$SkipExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Use this switch to Enable require SSL flag across all IIS vdirs which don't have it enabled by default.")]
     [switch]$EnforceSSL,
-    [Parameter (Mandatory = $false, HelpMessage = "Use this switch to skip the TLS prerequisites check. Be careful, because a faulty TLS configuration in combination with EP can lead to problems.")]
-    [switch]$SkipTlsPrerequisitesCheck,
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Use this switch to set the ExtendedProtection value on VDirs in 'Default Web Site' and 'Exchange Back End' to 'None'")]
     [switch]$Rollback
 )
@@ -91,9 +89,7 @@ if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0
     $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
 }
 
-if ((-not($Rollback)) -and
-    (-not($SkipTlsPrerequisitesCheck))) {
-    Write-Verbose "Running 'Invoke-ExtendedProtectionTlsPrerequisitesCheck' to validate required configurations to run the Extended Protection feature"
+if (-not($Rollback)) {
     $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -ExchangeServers $ExchangeServersTlsSettingsCheck.Fqdn
 
     if ($null -ne $tlsPrerequisites) {
@@ -153,7 +149,7 @@ if ((-not($Rollback)) -and
         $shouldProcess = "y"
     }
 } else {
-    Write-Host "TLS prerequisited check will be skipped due to: $(if ($Rollback) {'Rollback'} elseif ($SkipTlsPrerequisitesCheck) {'SkipTlsPrerequisitesCheck'})"
+    Write-Host "Prerequisite check will be skipped due to Rollback"
 }
 
 if ($Rollback) {
@@ -161,8 +157,7 @@ if ($Rollback) {
     return
 }
 
-if (($shouldProcess -eq "y") -or
-    ($SkipTlsPrerequisitesCheck)) {
+if (($shouldProcess -eq "y")) {
     # Configure Extended Protection based on given parameters
     Invoke-ConfigureExtendedProtection -ExchangeServers $ExchangeServers
 } else {
