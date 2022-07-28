@@ -10,7 +10,9 @@ function Get-ExtendedProtectionPrerequisitesCheck {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [object[]]$ExchangeServers
+        [object[]]$ExchangeServers,
+        [Parameter(Mandatory = $false)]
+        [bool]$SkipEWS
     )
     begin {
         $results = New-Object 'System.Collections.Generic.List[object]'
@@ -37,6 +39,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 ComputerName         = $server.ToString()
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
+                ExcludeEWS           = $SkipEWS
             }
             $extendedProtectionConfiguration = Get-ExtendedProtectionConfiguration @params
 
