@@ -19,6 +19,8 @@ function Get-ExtendedProtectionConfiguration {
         [Parameter(Mandatory = $false)]
         [bool]$IsClientAccessServer = $true,
         [Parameter(Mandatory = $false)]
+        [bool]$ExcludeEWS = $false,
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
@@ -48,6 +50,9 @@ function Get-ExtendedProtectionConfiguration {
                     if ($IsClientAccessServer -eq $false -and $WebSite[$i] -eq "Default Web Site") { continue }
                     if ($IsMailboxServer -eq $false -and $WebSite[$i] -eq "Exchange Back End") { continue }
                 }
+                # Set EWS Vdir to None for known issues
+                if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
+
                 [PSCustomObject]@{
                     VirtualDirectory   = $virtualDirectory
                     WebSite            = $WebSite[$i]
