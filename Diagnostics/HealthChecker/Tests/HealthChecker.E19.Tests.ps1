@@ -32,9 +32,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - Operating System Information" {
@@ -338,6 +339,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Server Pending Reboot" "True" -WriteType "Yellow"
             TestObjectMatch "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations" "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\PendingFileRenameOperations" -WriteType "Yellow"
             TestObjectMatch "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" -WriteType "Yellow"
+            TestObjectMatch "HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\Flags" "HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\Flags" -WriteType "Yellow"
             TestObjectMatch "Reboot More Information" "True" -WriteType "Yellow"
         }
 

@@ -119,6 +119,13 @@ function Get-ExchangeAdPermissions {
                     }
                     $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
                     $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
+
+                    if ($null -eq $domainAcl -or
+                        $null -eq $domainAcl.Access -or
+                        $null -eq $adminSdHolderAcl -or
+                        $null -eq $adminSdHolderAcl.Access) {
+                        throw "Failed to get required ACL information. Fallback to 'objectVersion (Default)' validation initiated."
+                    }
                 } catch {
                     Invoke-CatchActions
                     $objectVersionTestingValue = 13243
