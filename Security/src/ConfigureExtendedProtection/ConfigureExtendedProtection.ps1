@@ -104,17 +104,27 @@ if (-not($Rollback)) {
             Write-Host "The following servers have the TLS Configuration below"
             Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
             $tlsSettings.TlsSettings.Registry.Tls.Values |
-                Select-Object TLSVersion, ServerEnabled, ClientEnabled, TLSConfiguration |
+                Select-Object TLSVersion,
+                @{Label = "ServerEnabled"; Expression = { $_.ServerEnabledValue } },
+                @{Label = "ServerDbD"; Expression = { $_.ServerDisabledByDefaultValue } },
+                @{Label = "ClientEnabled"; Expression = { $_.ClientEnabledValue } },
+                @{Label = "ClientDbD"; Expression = { $_.ClientDisabledByDefaultValue } },
+                TLSConfiguration |
                 Sort-Object TLSVersion |
                 Format-Table |
                 Out-String |
                 Write-Host
             $tlsSettings.TlsSettings.Registry.Net.Values |
-                Select-Object NetVersion, SystemDefaultTlsVersions, WowSystemDefaultTlsVersions, SchUseStrongCrypto, WowSchUseStrongCrypto |
+                Select-Object NetVersion,
+                @{Label = "SystemTlsVersions"; Expression = { $_.SystemDefaultTlsVersionsValue } },
+                @{Label = "WowSystemTlsVersions"; Expression = { $_.WowSystemDefaultTlsVersionsValue } },
+                @{Label = "SchUseStrongCrypto"; Expression = { $_.SchUseStrongCryptoValue } },
+                @{Label = "WowSchUseStrongCrypto"; Expression = { $_.WowSchUseStrongCryptoValue } } |
                 Sort-Object NetVersion |
                 Format-Table |
                 Out-String |
                 Write-Host
+            Write-Host "Security Protocol: $($tlsSettings.TlsSettings.SecurityProtocol)"
             Write-Host ""
             Write-Host ""
         }
