@@ -49,6 +49,7 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
 } process {
@@ -78,6 +79,14 @@ begin {
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
         Write-Warning "Script was updated. Please rerun the command."
         return
+    }
+
+    if (-not($Rollback)) {
+        $epDisclaimer = "Extended Protection is currently not supported if you are using layer 7 load balancing " +
+        "or systems that do ssl offloading. After turning Extended Protection on, " +
+        "you will no longer be able to access Exchange protocols in such scenarios. " +
+        "You can find more information on: https://aka.ms/PlaceHolderLink. Do you want to proceed?"
+        Show-Disclaimer $epDisclaimer "Enabling Extended Protection"
     }
 
     Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
