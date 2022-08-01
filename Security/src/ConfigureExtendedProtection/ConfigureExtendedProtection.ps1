@@ -50,7 +50,12 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
+    $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
 } process {
+    foreach ($server in $ExchangeServerNames) {
+        $includeExchangeServerNames.Add($server)
+    }
+} end {
     if (-not (Confirm-Administrator)) {
         Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
         exit
@@ -80,9 +85,9 @@ begin {
     $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
     $ExchangeServersPrerequisitesCheckSettingsCheck = $ExchangeServers
 
-    if ($null -ne $ExchangeServerNames -and $ExchangeServerNames.Count -gt 0) {
-        Write-Verbose "Running only on servers: $([string]::Join(", " ,$ExchangeServerNames))"
-        $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -in $ExchangeServerNames }
+    if ($null -ne $includeExchangeServerNames -and $includeExchangeServerNames.Count -gt 0) {
+        Write-Verbose "Running only on servers: $([string]::Join(", " ,$includeExchangeServerNames))"
+        $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -in $includeExchangeServerNames }
     }
 
     if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0) {
