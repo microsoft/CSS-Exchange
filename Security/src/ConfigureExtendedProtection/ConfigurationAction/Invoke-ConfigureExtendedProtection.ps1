@@ -107,7 +107,7 @@ function Invoke-ConfigureExtendedProtection {
                     }
                 Write-Host ""
             } else {
-                Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName)"
+                Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName) - Exchange build supports Extended Protection? $($serverExtendedProtection.SupportedVersionForExtendedProtection)"
                 $noChangesMadeServers.Add($serverExtendedProtection.ComputerName)
             }
         }
@@ -120,7 +120,6 @@ function Invoke-ConfigureExtendedProtection {
 
         if ($noChangesMadeServers.Count -gt 0) {
             Write-Host "No changes were made to these servers: $([string]::Join(", " ,$noChangesMadeServers))"
-            Write-Host "Extended Protection configuration is as expected for this Exchange build"
         }
 
         if ($updatedServers.Count -gt 0 ) {
