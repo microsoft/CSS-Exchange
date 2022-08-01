@@ -87,14 +87,14 @@ begin {
 
     if ($null -ne $includeExchangeServerNames -and $includeExchangeServerNames.Count -gt 0) {
         Write-Verbose "Running only on servers: $([string]::Join(", " ,$includeExchangeServerNames))"
-        $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -in $includeExchangeServerNames }
+        $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -in $includeExchangeServerNames) -or ($_.FQDN -in $includeExchangeServerNames) }
     }
 
     if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0) {
         Write-Verbose "Skipping servers: $([string]::Join(", ", $SkipExchangeServerNames))"
 
         # Remove all the servers present in the SkipExchangeServerNames list
-        $ExchangeServers = $ExchangeServers | Where-Object { $_.Name -notin $SkipExchangeServerNames }
+        $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
     }
 
     $serverNames = New-Object 'System.Collections.Generic.List[string]'
