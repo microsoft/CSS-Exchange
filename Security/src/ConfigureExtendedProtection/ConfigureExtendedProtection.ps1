@@ -8,8 +8,8 @@
     The Script does the following by default.
         1. Enables Extended Protection to the recommended value for the corresponding virtual directory and site.
     Extended Protection is a windows security feature which blocks MiTM attacks.
-.PARAMETER Rollback
-    If set then the script execution will Rollback the applicationHost.config file to the original state that was backed up with the script.
+.PARAMETER RollbackType
+    Use this parameter to execute a Rollback Type that should be executed.
 .EXAMPLE
     PS C:\> .\ConfigureExtendedProtection.ps1
     This will run the default mode which does the following:
@@ -21,7 +21,7 @@
     PS C:\> .\ConfigureExtendedProtection.ps1 -SkipExchangeServerNames <Array_of_Server_Names>
     This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest except the Exchange Servers whose names are provided in the SkipExchangeServerNames parameter.
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1 -Rollback
+    PS C:\> .\ConfigureExtendedProtection.ps1 -RollbackType "RestoreConfig"
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -32,8 +32,9 @@ param(
     [string[]]$SkipExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Use this switch to skip over EWS Vdir")]
     [switch]$SkipEWS,
-    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Use this switch to set the ExtendedProtection value on VDirs in 'Default Web Site' and 'Exchange Back End' to 'None'")]
-    [switch]$Rollback
+    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback the applicationHost.config file to various stages.")]
+    [ValidateSet("RestoreConfig")]
+    [string]$RollbackType
 )
 
 begin {
@@ -50,6 +51,12 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
+    if ($PsCmdlet.ParameterSetName -eq "Rollback") {
+        $RollbackSelected = $true
+        if ($RollbackType -eq "RestoreConfig") {
+            $RollbackRestoreConfig = $true
+        }
+    }
 } process {
     foreach ($server in $ExchangeServerNames) {
         $includeExchangeServerNames.Add($server)
@@ -79,7 +86,7 @@ begin {
         return
     }
 
-    if (-not($Rollback)) {
+    if (-not($RollbackSelected)) {
         $epDisclaimer = "Extended Protection is currently not supported if you are using layer 7 load balancing " +
         "or systems that do ssl offloading. After turning Extended Protection on, " +
         "you will no longer be able to access Exchange protocols in such scenarios. " +
@@ -108,7 +115,7 @@ begin {
     $serverNames = New-Object 'System.Collections.Generic.List[string]'
     $ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
 
-    if (-not($Rollback)) {
+    if (-not($RollbackSelected)) {
         $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
 
         if ($null -ne $prerequisitesCheck) {
@@ -183,10 +190,10 @@ begin {
         }
     } else {
         Write-Host "Prerequisite check will be skipped due to Rollback"
-    }
 
-    if ($Rollback) {
-        Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+        if ($RollbackRestoreConfig) {
+            Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+        }
         return
     }
 
