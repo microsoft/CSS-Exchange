@@ -30,8 +30,6 @@ param(
     [string[]]$ExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
-    [Parameter (Mandatory = $false, HelpMessage = "Use this switch to Enable require SSL flag across all IIS vdirs which don't have it enabled by default.")]
-    [switch]$EnforceSSL,
     [Parameter (Mandatory = $false, HelpMessage = "Use this switch to skip over EWS Vdir")]
     [switch]$SkipEWS,
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Use this switch to set the ExtendedProtection value on VDirs in 'Default Web Site' and 'Exchange Back End' to 'None'")]
