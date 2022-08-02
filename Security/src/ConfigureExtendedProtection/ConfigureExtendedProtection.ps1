@@ -83,6 +83,7 @@ begin {
         $epDisclaimer = "Extended Protection is currently not supported if you are using layer 7 load balancing " +
         "or systems that do ssl offloading. After turning Extended Protection on, " +
         "you will no longer be able to access Exchange protocols in such scenarios. " +
+        "If using Exchange Online Archives, the Move to Archive Tag will no longer work if Extended Protection is enabled."
         "You can find more information on: https://aka.ms/PlaceHolderLink. Do you want to proceed?"
         Show-Disclaimer $epDisclaimer "Enabling Extended Protection"
     }
