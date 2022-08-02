@@ -77,7 +77,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                     }
 
                     if ($nextServer) { $listIndex++; continue; }
-                    if ($tlsSettings.SecurityProtocol -ne $referenceTlsSettings.SecurityProtocol) { Write-Verbose "Security Protocol didn't match"; $listIndex++; continue; }
+                    Write-Verbose "This server's Security Protocol is set to $($tlsSettings.SecurityProtocol)"
 
                     # we must match so add to the current groupResults and break
                     Write-Verbose "Server appears to match current reference TLS Object"
