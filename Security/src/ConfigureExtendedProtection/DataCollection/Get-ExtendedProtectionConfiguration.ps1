@@ -34,7 +34,10 @@ function Get-ExtendedProtectionConfiguration {
                 [string[]]$WebSite,
                 [Parameter(Mandatory = $true)]
                 [ValidateSet("None", "Allow", "Require")]
-                [string[]]$ExtendedProtection
+                [string[]]$ExtendedProtection,
+                # Need to define this twice once for Default Web Site and Exchange Back End for the default values
+                [Parameter(Mandatory = $false)]
+                [string[]]$SslFlags = @("Ssl, Ssl128", "Ssl, Ssl128")
             )
 
             if ($WebSite.Count -ne $ExtendedProtection.Count) {
@@ -57,6 +60,7 @@ function Get-ExtendedProtectionConfiguration {
                     VirtualDirectory   = $virtualDirectory
                     WebSite            = $WebSite[$i]
                     ExtendedProtection = $ExtendedProtection[$i]
+                    SslFlags           = $SslFlags[$i]
                 }
             }
         }
@@ -209,7 +213,7 @@ function Get-ExtendedProtectionConfiguration {
                 (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl, Ssl128, SslNegotiateCert")
                 (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
@@ -268,6 +272,23 @@ function Get-ExtendedProtectionConfiguration {
                         Write-Verbose "Extended protection setting was not queried because it wasn't found on the system."
                     }
 
+                    $sslFlagsToSet = $extendedConfiguration.SslSettings.Value
+                    $currentSetFlags = $sslFlagsToSet.Split(",").Trim()
+                    foreach ($sslFlag in $matchEntry.SslFlags.Split(",").Trim()) {
+                        if (-not($currentSetFlags.Contains($sslFlag))) {
+                            Write-Verbose "Failed to find SSL Flag $sslFlag"
+                            # We do not want to include None in the flags as that takes priority over the other options.
+                            if ($sslFlagsToSet -eq "None") {
+                                $sslFlagsToSet = "$sslFlag"
+                            } else {
+                                $sslFlagsToSet += ", $sslFlag"
+                            }
+                            Write-Verbose "Updated SSL Flags Value: $sslFlagsToSet"
+                        } else {
+                            Write-Verbose "SSL Flag $sslFlag set."
+                        }
+                    }
+
                     $expectedExtendedConfiguration = if ($supportedVersion) { $matchEntry.ExtendedProtection } else { "None" }
 
                     $extendedProtectionList.Add([PSCustomObject]@{
@@ -276,6 +297,9 @@ function Get-ExtendedProtectionConfiguration {
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
+                            ExpectedSslFlags              = $matchEntry.SslFlags
+                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
+                            SslFlagsToSet                 = $sslFlagsToSet
                         })
                 } catch {
                     Write-Verbose "Failed to get extended protection match entry."
