@@ -34,24 +34,35 @@ function Invoke-ConfigureExtendedProtection {
                 continue
             }
 
-            # set the extended protection configuration to the expected and supported configuration if different
-            $saveInformation = @{}
+            # set the extended protection (TokenChecking) configuration to the expected and supported configuration if different
+            # only Set SSLFlags option if we are not setting extended protection to None
+            $commandParameters = [PSCustomObject]@{
+                TokenChecking = @{}
+                SSLFlags      = @{}
+            }
 
             foreach ($virtualDirectory in $serverExtendedProtection.ExtendedProtectionConfiguration) {
                 Write-Verbose "Virtual Directory Name: $($virtualDirectory.VirtualDirectoryName) Current Set Extended Protection: $($virtualDirectory.ExtendedProtection) Expected Value $($virtualDirectory.ExpectedExtendedConfiguration)"
+                Write-Verbose "Current Set SSL Flags: $($virtualDirectory.Configuration.SslSettings.Value) Expected SSL Flags: $($virtualDirectory.ExpectedSslFlags) Set Correctly: $($virtualDirectory.SslFlagsSetCorrectly)"
                 if ($virtualDirectory.ExtendedProtection -ne $virtualDirectory.ExpectedExtendedConfiguration) {
-                    $saveInformation.Add($virtualDirectory.VirtualDirectoryName, $virtualDirectory.ExpectedExtendedConfiguration)
+                    $commandParameters.TokenChecking.Add($virtualDirectory.VirtualDirectoryName, $virtualDirectory.ExpectedExtendedConfiguration)
+
+                    if ($virtualDirectory.ExpectedExtendedConfiguration -ne "None" -and
+                        $virtualDirectory.SslFlagsSetCorrectly -eq $false) {
+                        $commandParameters.SSLFlags.Add($virtualDirectory.VirtualDirectoryName, $virtualDirectory.SslFlagsToSet)
+                    }
                 }
             }
 
-            if ($saveInformation.Count -gt 0) {
+            if ($commandParameters.TokenChecking.Count -gt 0) {
                 Write-Host "An update has occurred to the application host config file for server $($serverExtendedProtection.ComputerName). Backing up the application host config file and updating it."
                 # provide what we are changing outside of the script block for remote servers.
                 Write-Verbose "Setting the following values on the server $($serverExtendedProtection.ComputerName)"
-                $saveInformation.Keys | ForEach-Object { Write-Verbose "Setting the $_ with the tokenChecking value of $($saveInformation[$_])" }
+                $commandParameters.TokenChecking.Keys | ForEach-Object { Write-Verbose "Setting the $_ with the tokenChecking value of $($commandParameters.TokenChecking[$_])" }
+                $commandParameters.SSLFlags.Keys | ForEach-Object { Write-Verbose "Setting the $_ with the SSLFlags value of $($commandParameters.SSLFlags[$_])" }
                 $results = Invoke-ScriptBlockHandler -ComputerName $serverExtendedProtection.ComputerName -ScriptBlock {
                     param(
-                        [hashtable]$Commands
+                        [object]$Commands
                     )
                     $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
@@ -60,12 +71,24 @@ function Invoke-ConfigureExtendedProtection {
                         Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop
                         $backupSuccessful = $true
                         $errorContext = New-Object 'System.Collections.Generic.List[object]'
+                        $setAllTokenChecking = $true
+                        $setAllSslFlags = $true
                         Write-Host "Successful backup of the application host config file to $backupLocation"
-                        foreach ($siteKey in $Commands.Keys) {
+                        foreach ($siteKey in $Commands.TokenChecking.Keys) {
                             try {
-                                Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
+                                Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands.TokenChecking[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
                             } catch {
-                                Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands[$siteKey]). Inner Exception $_"
+                                Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.TokenChecking[$siteKey]). Inner Exception $_"
+                                $setAllTokenChecking = $false
+                                $errorContext.Add($_)
+                            }
+                        }
+                        foreach ($siteKey in $Commands.SSLFlags.Keys) {
+                            try {
+                                Set-WebConfigurationProperty -Filter "system.WebServer/security/access" -Name sslFlags -Value $Commands.SSLFlags[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
+                            } catch {
+                                Write-Host "Failed to set sslFlags for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.SSLFlags[$siteKey]). Inner Exception $_"
+                                $setAllSslFlags = $false
                                 $errorContext.Add($_)
                             }
                         }
@@ -75,14 +98,15 @@ function Invoke-ConfigureExtendedProtection {
                     return [PSCustomObject]@{
                         BackupSuccess       = $backupSuccessful
                         BackupLocation      = $backupLocation
-                        SetAllTokenChecking = $errorContext.Count -eq 0
+                        SetAllTokenChecking = $setAllTokenChecking
+                        SetAllSslFlags      = $setAllSslFlags
                         ErrorContext        = $errorContext
                     }
-                } -ArgumentList $saveInformation
+                } -ArgumentList $commandParameters
 
-                Write-Verbose "Backup Success: $($results.BackupSuccess) SetAllTokenChecking: $($results.SetAllTokenChecking)"
+                Write-Verbose "Backup Success: $($results.BackupSuccess) SetAllTokenChecking: $($results.SetAllTokenChecking) SetAllSslFlags: $($results.SetAllSslFlags)"
 
-                if ($results.BackupSuccess -and $results.SetAllTokenChecking) {
+                if ($results.BackupSuccess -and ($results.SetAllTokenChecking -and $results.SetAllSslFlags)) {
                     Write-Verbose "Backed up the file to $($results.BackupLocation)"
                     Write-Host "Successfully backed up and saved new application host config file."
                     $updatedServers.Add($serverExtendedProtection.ComputerName)
@@ -92,19 +116,15 @@ function Invoke-ConfigureExtendedProtection {
                     Write-Verbose $line
                     Write-Warning $line
                 } else {
-                    $line = "Failed to properly set all the tokenChecking values on the server $($serverExtendedProtection.ComputerName). Recommended to address!"
+                    $line = "Failed to properly set all the correct values on the server $($serverExtendedProtection.ComputerName) required for Extended Protection. Recommended to address!"
                     Write-Verbose $line
                     Write-Warning $line
                 }
                 $failedServers.Add($serverExtendedProtection.ComputerName)
                 Start-Sleep 5 # Sleep to bring to attention to the customer
                 Write-Host "Errors that occurred on the backup and set attempt:"
-                # Group the events incase they are the same.
-                $results.ErrorContext | Group-Object |
-                    ForEach-Object {
-                        Write-Host "There were $($_.Count) errors that occurred with the following information:"
-                        $_.Group | Select-Object -First 1 | ForEach-Object { Write-HostErrorInformation $_ }
-                    }
+                # Not able to group the error from remote context, so need to display them all.
+                $results.ErrorContext | ForEach-Object { Write-HostErrorInformation $_ }
                 Write-Host ""
             } else {
                 Write-Host "No change was made for the server $($serverExtendedProtection.ComputerName) - Exchange build supports Extended Protection? $($serverExtendedProtection.SupportedVersionForExtendedProtection)"
