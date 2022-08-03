@@ -167,7 +167,6 @@ begin {
                     Format-Table |
                     Out-String |
                     Write-Host
-                Write-Host "Security Protocol: $($tlsSettings.TlsSettings.SecurityProtocol)"
                 Write-Host ""
                 Write-Host ""
             }
