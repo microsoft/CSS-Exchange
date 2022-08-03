@@ -30,7 +30,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
         if ($null -ne $extendedProtection) {
             Write-Verbose "Exchange extended protection information found - performing vulnerability testing"
 
-            # Description: Check for CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134 vulnerability
+            # Description: Check for CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134 vulnerability
             # Affected Exchange versions: 2013, 2016, 2019
             # Fix: Install July 2022 SU & enable extended protection
             # Extended protection is available with IIS 7.5 or higher
@@ -62,7 +62,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 }
                 $epCveParams = $baseParams + @{
                     Name             = "Security Vulnerability"
-                    Details          = "CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    Details          = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
                     DisplayWriteType = "Red"
                 }
                 $epBasicParams = $baseParams + @{

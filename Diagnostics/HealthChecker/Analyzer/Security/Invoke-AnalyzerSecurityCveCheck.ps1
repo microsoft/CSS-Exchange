@@ -7,7 +7,6 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21979.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 function Invoke-AnalyzerSecurityCveCheck {
@@ -418,6 +417,5 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2022-21978 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
-    Invoke-AnalyzerSecurityCve-2022-21979 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
 }
