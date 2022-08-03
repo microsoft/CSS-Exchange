@@ -70,7 +70,9 @@ BeforeAll {
             $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "Allow" }
             $null -ne $allow | Should -Be $true
-            $allow.configuration.NodePath | Should -Be "Default Web Site/EWS"
+            $allow.Count | Should -Be 2
+            $allow.configuration.NodePath.Contains("Default Web Site/EWS") | Should -Be $true
+            $allow.configuration.NodePath.Contains("Default Web Site/Microsoft-Server-ActiveSync") | Should -Be $true
         }
 
         if (-not $SkipAutoDiscover) {
