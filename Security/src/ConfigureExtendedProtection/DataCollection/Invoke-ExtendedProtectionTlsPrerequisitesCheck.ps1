@@ -121,7 +121,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                         $params = @{
                             Name   = "SchUseStrongCrypto is not configured as expected"
                             List   = $tlsResults.MatchedServer
-                            Action = "Configure SchUseStrongCrypto for $key as described here: https://aka.ms/PlaceHolderLink"
+                            Action = "Configure SchUseStrongCrypto for $key as described here: https://aka.ms/ExchangeEPDoc"
                         }
                         $actionsRequiredList.Add((NewActionObject @params))
                         Write-Verbose "SchUseStrongCrypto doesn't match the expected configuration"
@@ -134,7 +134,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                         $params = @{
                             Name   = "SystemDefaultTlsVersions is not configured as expected"
                             List   = $tlsResults.MatchedServer
-                            Action = "Configure SystemDefaultTlsVersions for $key as described here: https://aka.ms/PlaceHolderLink"
+                            Action = "Configure SystemDefaultTlsVersions for $key as described here: https://aka.ms/ExchangeEPDoc"
                         }
                         $actionsRequiredList.Add((NewActionObject @params))
                         Write-Verbose "SystemDefaultTlsVersions doesn't match the expected configuration"
