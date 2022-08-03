@@ -6,7 +6,6 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
-. $PSScriptRoot\Get-PrintSpoolerConfiguration.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
@@ -494,9 +493,6 @@ function Get-ExchangeInformation {
 
             $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
         }
-
-        Write-Verbose "Query print spooler configuration for CVE-2022-21979 testing"
-        $exchangeInformation.PrintSpoolerConfiguration = Get-PrintSpoolerConfiguration -ComputerName $Script:Server
 
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
