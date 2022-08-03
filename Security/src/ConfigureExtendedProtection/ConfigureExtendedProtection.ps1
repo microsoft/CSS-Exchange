@@ -120,13 +120,46 @@ begin {
             Write-Host ""
             # Remove the down servers from $ExchangeServers list.
             $downServerName = New-Object 'System.Collections.Generic.List[string]'
-            $onlineServers = New-Object 'System.Collections.Generic.List[object]'
+            $onlineSupportedServers = New-Object 'System.Collections.Generic.List[object]'
+            $unsupportedServers = New-Object 'System.Collections.Generic.List[string]'
+            $unsupportedAndConfiguredServers = New-Object 'System.Collections.Generic.List[object]'
             $prerequisitesCheck | ForEach-Object {
-                if ($_.ServerOnline) {
-                    $onlineServers.Add($_)
+                if ($_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -and
+                    $_.ExtendedProtectionConfiguration.SupportedVersionForExtendedProtection -eq $false) {
+                    $unsupportedAndConfiguredServers.Add($_)
+                } elseif ($_.ExtendedProtectionConfiguration.SupportedVersionForExtendedProtection -eq $false) {
+                    $unsupportedServers.Add($_.ComputerName)
+                } elseif ($_.ServerOnline) {
+                    $onlineSupportedServers.Add($_)
                 } else {
                     $downServerName.Add($_.ComputerName)
                 }
+            }
+
+            # We don't care about the TLS version on servers that aren't yet upgraded on
+            # Therefore, we can skip over them for this check.
+            # However, if there is an unsupported version of Exchange that does have EP enabled,
+            # We need to prompt to the admin stating that we are going to revert the change to get back to a supported state.
+            Write-Verbose ("Found the following servers configured for EP and Unsupported: " +
+                "$(if ($unsupportedAndConfiguredServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedAndConfiguredServers.ComputerName)})")
+
+            Write-Verbose ("Found the following servers that not supported to configure EP and not enabled: " +
+                "$(if ($unsupportedServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedServers)})")
+
+            if ($unsupportedAndConfiguredServers.Count -gt 0) {
+                $promptMessage = "Found Servers that have Extended Protection Enabled, but are on an unsupported build of Exchange." +
+                "`r`nBecause of this, we will be setting them back to None for Extended Protection with the execution of this script to be in a supported state." +
+                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
+                Show-Disclaimer $promptMessage "Set Unsupported Version of Exchange Back to None for Extended Protection"
+                Write-Host ""
+            }
+
+            if ($unsupportedServers.Count -gt 0) {
+                $line = "Removing the following servers from the list ot configure because they are not on a supported build of Exchange: $([string]::Join(", " ,$unsupportedServers))"
+                Write-Verbose $line
+                Write-Warning $line
+                $ExchangeServers = $ExchangeServers | Where-Object { $($_.Name -notin $unsupportedServers) }
+                Write-Host ""
             }
 
             if ($downServerName.Count -gt 0) {
@@ -138,10 +171,17 @@ begin {
             }
 
             # Only need to set the server names for the ones we are trying to configure and the ones that are up.
+            # Also need to add Unsupported Configured EP servers to the list.
             $serverNames = New-Object 'System.Collections.Generic.List[string]'
             $ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
 
-            $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineServers.TlsSettings
+            if ($unsupportedAndConfiguredServers.Count -gt 0) {
+                $unsupportedAndConfiguredServers |
+                    Where-Object { $_.ComputerName -notin $serverNames } |
+                    ForEach-Object { $serverNames.Add($_.ComputerName) }
+            }
+
+            $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineSupportedServers.TlsSettings
 
             foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
                 Write-Host "The following servers have the TLS Configuration below"
@@ -188,7 +228,7 @@ begin {
                     Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
                     Write-Host ""
                 }
-                $checkAgainst = $onlineServers |
+                $checkAgainst = $onlineSupportedServers |
                     Where-Object {
                         $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
                         $_.ComputerName -in $serverNames
@@ -218,7 +258,10 @@ begin {
     }
 
     # Configure Extended Protection based on given parameters
-    $extendedProtectionConfigurations = ($onlineServers |
+    # Prior to executing, add back any unsupported versions back into the list
+    # for onlineSupportedServers, because the are online and we want to revert them.
+    $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
+    $extendedProtectionConfigurations = ($onlineSupportedServers |
             Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
     Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
 }
