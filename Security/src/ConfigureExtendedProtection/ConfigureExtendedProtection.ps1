@@ -112,16 +112,37 @@ begin {
         $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
     }
 
-    $serverNames = New-Object 'System.Collections.Generic.List[string]'
-    $ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
-
     if (-not($RollbackSelected)) {
         $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
 
         if ($null -ne $prerequisitesCheck) {
 
             Write-Host ""
-            $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $prerequisitesCheck.TlsSettings
+            # Remove the down servers from $ExchangeServers list.
+            $downServerName = New-Object 'System.Collections.Generic.List[string]'
+            $onlineServers = New-Object 'System.Collections.Generic.List[object]'
+            $prerequisitesCheck | ForEach-Object {
+                if ($_.ServerOnline) {
+                    $onlineServers.Add($_)
+                } else {
+                    $downServerName.Add($_.ComputerName)
+                }
+            }
+
+            if ($downServerName.Count -gt 0) {
+                $line = "Removing the following servers from the list to configure because we weren't able to reach them: $([string]::Join(", " ,$downServerName))"
+                Write-Verbose $line
+                Write-Warning $line
+                $ExchangeServers = $ExchangeServers | Where-Object { $($_.Name -notin $downServerName) }
+                Write-Host ""
+            }
+
+            # Only need to set the server names for the ones we are trying to configure and the ones that are up.
+            $serverNames = New-Object 'System.Collections.Generic.List[string]'
+            $ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
+
+            $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineServers.TlsSettings
+
             foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
                 Write-Host "The following servers have the TLS Configuration below"
                 Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
@@ -168,7 +189,7 @@ begin {
                     Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
                     Write-Host ""
                 }
-                $checkAgainst = $prerequisitesCheck |
+                $checkAgainst = $onlineServers |
                     Where-Object {
                         $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
                         $_.ComputerName -in $serverNames
@@ -198,7 +219,7 @@ begin {
     }
 
     # Configure Extended Protection based on given parameters
-    $extendedProtectionConfigurations = ($prerequisitesCheck |
+    $extendedProtectionConfigurations = ($onlineServers |
             Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
     Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
 }

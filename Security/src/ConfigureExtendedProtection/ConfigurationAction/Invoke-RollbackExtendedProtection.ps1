@@ -49,6 +49,13 @@ function Invoke-RollbackExtendedProtection {
                 $line = "Failed to backup the current configuration on server $server"
                 Write-Verbose $line
                 Write-Warning $line
+            } elseif ($null -eq $results) {
+                $line = "Failed to restore application host config file on server $server, because we weren't able to reach it."
+                Write-Verbose $line
+                Write-Warning $line
+                # need to add to list and continue because there is no error context
+                $failedServers.Add($server)
+                continue
             } else {
                 $line = "Failed to restore $($results.RestoreFile) to be the active application host config file on server $server"
                 Write-Verbose $line
