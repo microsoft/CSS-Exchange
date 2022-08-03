@@ -30,8 +30,8 @@ param(
     [string[]]$ExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
-    [Parameter (Mandatory = $false, HelpMessage = "Use this switch to skip over EWS Vdir")]
-    [switch]$SkipEWS,
+    [Parameter (Mandatory = $false, HelpMessage = "Used for internal options")]
+    [string]$InternalOption,
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback the applicationHost.config file to various stages.")]
     [ValidateSet("RestoreConfig")]
     [string]$RollbackType
@@ -56,6 +56,13 @@ begin {
         if ($RollbackType -eq "RestoreConfig") {
             $RollbackRestoreConfig = $true
         }
+    }
+
+    if ($InternalOption -eq "SkipEWS") {
+        Write-Verbose "SkipEWS option enabled."
+        $Script:SkipEWS = $true
+    } else {
+        $Script:SkipEWS = $false
     }
 } process {
     foreach ($server in $ExchangeServerNames) {
