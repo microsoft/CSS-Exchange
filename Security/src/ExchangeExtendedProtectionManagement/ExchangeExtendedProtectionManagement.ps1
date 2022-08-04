@@ -11,17 +11,17 @@
 .PARAMETER RollbackType
     Use this parameter to execute a Rollback Type that should be executed.
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1
     This will run the default mode which does the following:
         1. It will set Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest.
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1 -ExchangeServerNames <Array_of_Server_Names>
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -ExchangeServerNames <Array_of_Server_Names>
     This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers provided in ExchangeServerNames
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1 -SkipExchangeServerNames <Array_of_Server_Names>
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -SkipExchangeServerNames <Array_of_Server_Names>
     This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest except the Exchange Servers whose names are provided in the SkipExchangeServerNames parameter.
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1 -RollbackType "RestoreIISAppConfig"
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreIISAppConfig"
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -40,10 +40,10 @@ param(
 begin {
     . $PSScriptRoot\Write-Verbose.ps1
     . $PSScriptRoot\WriteFunctions.ps1
-    . $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
-    . $PSScriptRoot\..\ConfigureExtendedProtection\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
+    . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
+    . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -74,7 +74,7 @@ begin {
         exit
     }
 
-    $Script:Logger = Get-NewLoggerInstance -LogName "ConfigureExtendedProtection-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
 
