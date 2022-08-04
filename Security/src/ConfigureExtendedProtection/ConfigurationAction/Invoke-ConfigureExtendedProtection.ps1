@@ -6,7 +6,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
 function Invoke-ConfigureExtendedProtection {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [object[]]$ExtendedProtectionConfigurations
     )
@@ -62,13 +62,14 @@ function Invoke-ConfigureExtendedProtection {
                 $commandParameters.SSLFlags.Keys | ForEach-Object { Write-Verbose "Setting the $_ with the SSLFlags value of $($commandParameters.SSLFlags[$_])" }
                 $results = Invoke-ScriptBlockHandler -ComputerName $serverExtendedProtection.ComputerName -ScriptBlock {
                     param(
-                        [object]$Commands
+                        [object]$Commands,
+                        [bool]$PassedWhatIf
                     )
                     $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
                     try {
                         $backupSuccessful = $false
-                        Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop
+                        Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop -WhatIf:$PassedWhatIf
                         $backupSuccessful = $true
                         $errorContext = New-Object 'System.Collections.Generic.List[object]'
                         $setAllTokenChecking = $true
@@ -76,7 +77,7 @@ function Invoke-ConfigureExtendedProtection {
                         Write-Host "Successful backup of the application host config file to $backupLocation"
                         foreach ($siteKey in $Commands.TokenChecking.Keys) {
                             try {
-                                Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands.TokenChecking[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
+                                Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands.TokenChecking[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop -WhatIf:$PassedWhatIf
                             } catch {
                                 Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.TokenChecking[$siteKey]). Inner Exception $_"
                                 $setAllTokenChecking = $false
@@ -85,7 +86,7 @@ function Invoke-ConfigureExtendedProtection {
                         }
                         foreach ($siteKey in $Commands.SSLFlags.Keys) {
                             try {
-                                Set-WebConfigurationProperty -Filter "system.WebServer/security/access" -Name sslFlags -Value $Commands.SSLFlags[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop
+                                Set-WebConfigurationProperty -Filter "system.WebServer/security/access" -Name sslFlags -Value $Commands.SSLFlags[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop -WhatIf:$PassedWhatIf
                             } catch {
                                 Write-Host "Failed to set sslFlags for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.SSLFlags[$siteKey]). Inner Exception $_"
                                 $setAllSslFlags = $false
@@ -102,7 +103,7 @@ function Invoke-ConfigureExtendedProtection {
                         SetAllSslFlags      = $setAllSslFlags
                         ErrorContext        = $errorContext
                     }
-                } -ArgumentList $commandParameters
+                } -ArgumentList $commandParameters, $WhatIfPreference
 
                 Write-Verbose "Backup Success: $($results.BackupSuccess) SetAllTokenChecking: $($results.SetAllTokenChecking) SetAllSslFlags: $($results.SetAllSslFlags)"
 

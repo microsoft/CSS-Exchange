@@ -94,12 +94,17 @@ begin {
     }
 
     if (-not($RollbackSelected)) {
-        $epDisclaimer = "Extended Protection is recommended to be enabled for security reasons. " +
-        "However, here are the known issues after enabling Extended Protection." +
-        "`r`n    - Using a layer 7 load balancing that is doing SSL Offloading or SSL Bridging." +
-        "`r`n    - Using Archive Mailboxes." +
-        "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
-        Show-Disclaimer $epDisclaimer "Enabling Extended Protection"
+        $params = @{
+            Message   = "Display Warning about Extended Protection"
+            Target    = "Extended Protection is recommended to be enabled for security reasons. " +
+            "However, here are the known issues after enabling Extended Protection." +
+            "`r`n    - Using a layer 7 load balancing that is doing SSL Offloading or SSL Bridging." +
+            "`r`n    - Using Archive Mailboxes." +
+            "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
+            Operation = "Enabling Extended Protection"
+        }
+
+        Show-Disclaimer @params
     }
 
     Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
@@ -154,10 +159,15 @@ begin {
                 "$(if ($unsupportedServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedServers)})")
 
             if ($unsupportedAndConfiguredServers.Count -gt 0) {
-                $promptMessage = "Found Servers that have Extended Protection Enabled, but are on an unsupported build of Exchange." +
-                "`r`nBecause of this, we will be setting them back to None for Extended Protection with the execution of this script to be in a supported state." +
-                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
-                Show-Disclaimer $promptMessage "Set Unsupported Version of Exchange Back to None for Extended Protection"
+                $params = @{
+                    Message   = "Display Warning about switching Extended Protection Back to None for Unsupported Build of Exchange"
+                    Target    = "Found Servers that have Extended Protection Enabled, but are on an unsupported build of Exchange." +
+                    "`r`nBecause of this, we will be setting them back to None for Extended Protection with the execution of this script to be in a supported state." +
+                    "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
+                    Operation = "Set Unsupported Version of Exchange Back to None for Extended Protection"
+                }
+
+                Show-Disclaimer @params
                 Write-Host ""
             }
 
