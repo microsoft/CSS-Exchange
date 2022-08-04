@@ -45,7 +45,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     # Such a combination can break several things like mailbox access, EMS... .
                     # Recommended action: Disable EP, upgrade to a supported build (July 2022 SU+) and enable afterwards.
                     $epDetails = "Extended Protection is configured, but not supported on this Exchange Server build."
-                    $showEPConfigDetail = "Run: 'ConfigExtendedProtection.ps1 -Rollback -ExchangeServerNames $($extendedProtection.ComputerName)' to disable Extended Protection."
+                    $showEPConfigDetail = "Run: 'ExchangeExtendedProtectionManagement.ps1 -Rollback -ExchangeServerNames $($extendedProtection.ComputerName)' to disable Extended Protection."
                     $showEPConfigDetail += "`r`n`tInstall the latest Exchange Server build and enable Extended Protection afterwards."
                 } elseif ((-not($extendedProtection.ExtendedProtectionConfiguration.SupportedExtendedProtection.Contains($false))) -and
                     ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
@@ -53,11 +53,11 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     # Recommended action: Upgrade to a supported build (July 2022 SU+) and enable EP afterwards.
                     $epDetails = "Your Exchange server is at risk. Install the latest SU and enable Extended Protection."
                     $showEPConfigDetail = "Install the latest Exchange Server build and enable Extended Protection by running:"
-                    $showEPConfigDetail += "`r`n`t'ConfigureExtendedProtection.ps1 -ExchangeServerNames $($extendedProtection.ComputerName)'"
+                    $showEPConfigDetail += "`r`n`t'ExchangeExtendedProtectionManagement.ps1 -ExchangeServerNames $($extendedProtection.ComputerName)'"
                 } else {
                     # This means that EP is supported but not configured for at least one vDir.
                     # Recommended action: Enable EP for each vDir on the system by using the script provided by us.
-                    $showEPConfigDetail = "Configure Extended Protection by running: 'ConfigureExtendedProtection.ps1 -ExchangeServerNames $($extendedProtection.ComputerName)'"
+                    $showEPConfigDetail = "Configure Extended Protection by running: 'ExchangeExtendedProtectionManagement.ps1 -ExchangeServerNames $($extendedProtection.ComputerName)'"
                     $epDetails = "Extended Protection should be configured."
                 }
                 $epCveParams = $baseParams + @{
