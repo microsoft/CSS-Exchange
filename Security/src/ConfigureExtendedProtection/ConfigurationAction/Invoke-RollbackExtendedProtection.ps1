@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
 function Invoke-RollbackExtendedProtection {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [string[]]$ExchangeServers
     )
@@ -16,6 +16,9 @@ function Invoke-RollbackExtendedProtection {
         foreach ($server in $ExchangeServers) {
             Write-Host "Attempting to rollback on $server"
             $results = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock {
+                param(
+                    [bool]$PassedWhatIf
+                )
                 try {
                     $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".revert.cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
@@ -27,9 +30,9 @@ function Invoke-RollbackExtendedProtection {
                         throw "Failed to find applicationHost.cep.*.bak file."
                     }
 
-                    Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop
+                    Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop -WhatIf:$PassedWhatIf
                     $successBackupCurrent = $true
-                    Copy-Item -Path $restoreFile -Destination $saveToPath -Force -ErrorAction Stop
+                    Copy-Item -Path $restoreFile -Destination $saveToPath -Force -ErrorAction Stop -WhatIf:$PassedWhatIf
                     $successRestore = $true
                 } catch {
                     Write-Host "Failed to restore application host file on server $env:COMPUTERNAME. Inner Exception $_"
@@ -40,7 +43,7 @@ function Invoke-RollbackExtendedProtection {
                     SuccessBackupCurrent = $successBackupCurrent
                     ErrorContext         = $Error[0]
                 }
-            }
+            } -ArgumentList $WhatIfPreference
 
             if ($results.SuccessRestore -and $results.SuccessBackupCurrent) {
                 Write-Host "Successful restored $($results.RestoreFile) on server $server"

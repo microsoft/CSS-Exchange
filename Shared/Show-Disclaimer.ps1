@@ -7,10 +7,13 @@ function Show-Disclaimer {
         [ValidateNotNullOrEmpty()]
         [string]$Message,
         [ValidateNotNullOrEmpty()]
-        [string]$Headline
+        [string]$Target,
+        [ValidateNotNullOrEmpty()]
+        [string]$Operation
     )
 
-    if ($PSCmdlet.ShouldProcess('MESSAGE', $Message, $Headline)) {
+    if ($PSCmdlet.ShouldProcess($Message, $Target, $Operation) -or
+        $WhatIfPreference) {
         return
     } else {
         exit
