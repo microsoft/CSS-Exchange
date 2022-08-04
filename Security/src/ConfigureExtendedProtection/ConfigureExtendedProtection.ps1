@@ -21,7 +21,7 @@
     PS C:\> .\ConfigureExtendedProtection.ps1 -SkipExchangeServerNames <Array_of_Server_Names>
     This will set the Extended Protection to the recommended value for the corresponding virtual directory and site on all Exchange Servers in the forest except the Exchange Servers whose names are provided in the SkipExchangeServerNames parameter.
 .EXAMPLE
-    PS C:\> .\ConfigureExtendedProtection.ps1 -RollbackType "RestoreConfig"
+    PS C:\> .\ConfigureExtendedProtection.ps1 -RollbackType "RestoreIISAppConfig"
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -32,8 +32,8 @@ param(
     [string[]]$SkipExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Used for internal options")]
     [string]$InternalOption,
-    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback the applicationHost.config file to various stages.")]
-    [ValidateSet("RestoreConfig")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
+    [ValidateSet("RestoreIISAppConfig")]
     [string]$RollbackType
 )
 
@@ -53,8 +53,8 @@ begin {
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
     if ($PsCmdlet.ParameterSetName -eq "Rollback") {
         $RollbackSelected = $true
-        if ($RollbackType -eq "RestoreConfig") {
-            $RollbackRestoreConfig = $true
+        if ($RollbackType -eq "RestoreIISAppConfig") {
+            $RollbackRestoreIISAppConfig = $true
         }
     }
 
@@ -258,7 +258,7 @@ begin {
     } else {
         Write-Host "Prerequisite check will be skipped due to Rollback"
 
-        if ($RollbackRestoreConfig) {
+        if ($RollbackRestoreIISAppConfig) {
             Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
         }
         return
