@@ -57,13 +57,6 @@ begin {
             $RollbackRestoreIISAppConfig = $true
         }
     }
-
-    if ($InternalOption -eq "SkipEWS") {
-        Write-Verbose "SkipEWS option enabled."
-        $Script:SkipEWS = $true
-    } else {
-        $Script:SkipEWS = $false
-    }
 } process {
     foreach ($server in $ExchangeServerNames) {
         $includeExchangeServerNames.Add($server)
@@ -79,6 +72,13 @@ begin {
         -ErrorAction SilentlyContinue
 
     SetWriteHostAction ${Function:Write-HostLog}
+
+    if ($InternalOption -eq "SkipEWS") {
+        Write-Verbose "SkipEWS option enabled."
+        $Script:SkipEWS = $true
+    } else {
+        $Script:SkipEWS = $false
+    }
 
     if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
         Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
