@@ -37,7 +37,7 @@ function Get-ExtendedProtectionConfiguration {
                 [string[]]$ExtendedProtection,
                 # Need to define this twice once for Default Web Site and Exchange Back End for the default values
                 [Parameter(Mandatory = $false)]
-                [string[]]$SslFlags = @("Ssl, Ssl128", "Ssl, Ssl128")
+                [string[]]$SslFlags = @("Ssl,Ssl128", "Ssl,Ssl128")
             )
 
             if ($WebSite.Count -ne $ExtendedProtection.Count) {
@@ -213,7 +213,7 @@ function Get-ExtendedProtectionConfiguration {
                 (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl, Ssl128, SslNegotiateCert")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
                 (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
@@ -281,7 +281,7 @@ function Get-ExtendedProtectionConfiguration {
                             if ($sslFlagsToSet -eq "None") {
                                 $sslFlagsToSet = "$sslFlag"
                             } else {
-                                $sslFlagsToSet += ", $sslFlag"
+                                $sslFlagsToSet += ",$sslFlag"
                             }
                             Write-Verbose "Updated SSL Flags Value: $sslFlagsToSet"
                         } else {
