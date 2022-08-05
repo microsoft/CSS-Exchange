@@ -77,7 +77,16 @@ function Invoke-ConfigureExtendedProtection {
                         Write-Host "Successful backup of the application host config file to $backupLocation"
                         foreach ($siteKey in $Commands.TokenChecking.Keys) {
                             try {
-                                Set-WebConfigurationProperty -Filter "system.WebServer/security/authentication/windowsAuthentication" -Name extendedProtection.tokenChecking -Value $Commands.TokenChecking[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop -WhatIf:$PassedWhatIf
+                                $params = @{
+                                    Filter      = "system.WebServer/security/authentication/windowsAuthentication"
+                                    Name        = "extendedProtection.tokenChecking"
+                                    Value       = $Commands.TokenChecking[$siteKey]
+                                    Location    = $siteKey
+                                    PSPath      = "IIS:\"
+                                    ErrorAction = "Stop"
+                                    WhatIf      = $PassedWhatIf
+                                }
+                                Set-WebConfigurationProperty @params
                             } catch {
                                 Write-Host "Failed to set tokenChecking for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.TokenChecking[$siteKey]). Inner Exception $_"
                                 $setAllTokenChecking = $false
@@ -86,7 +95,16 @@ function Invoke-ConfigureExtendedProtection {
                         }
                         foreach ($siteKey in $Commands.SSLFlags.Keys) {
                             try {
-                                Set-WebConfigurationProperty -Filter "system.WebServer/security/access" -Name sslFlags -Value $Commands.SSLFlags[$siteKey] -Location $siteKey -PSPath IIS:\ -ErrorAction Stop -WhatIf:$PassedWhatIf
+                                $params = @{
+                                    Filter      = "system.WebServer/security/access"
+                                    Name        = "sslFlags"
+                                    Value       = $Commands.SSLFlags[$siteKey]
+                                    Location    = $siteKey
+                                    PSPath      = "IIS:\"
+                                    ErrorAction = "Stop"
+                                    WhatIf      = $PassedWhatIf
+                                }
+                                Set-WebConfigurationProperty @params
                             } catch {
                                 Write-Host "Failed to set sslFlags for $env:COMPUTERNAME SITE: $siteKey with the value $($Commands.SSLFlags[$siteKey]). Inner Exception $_"
                                 $setAllSslFlags = $false
