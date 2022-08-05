@@ -30,6 +30,8 @@ param(
     [string[]]$ExchangeServerNames = $null,
     [Parameter (Mandatory = $false, HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
+    [Parameter (Mandatory = $false, HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
+    [switch]$ShowExtendedProtection,
     [Parameter (Mandatory = $false, HelpMessage = "Used for internal options")]
     [string]$InternalOption,
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
@@ -93,7 +95,8 @@ begin {
         return
     }
 
-    if (-not($RollbackSelected)) {
+    if (-not($RollbackSelected) -and
+        -not($ShowExtendedProtection)) {
         $params = @{
             Message   = "Display Warning about Extended Protection"
             Target    = "Extended Protection is recommended to be enabled for security reasons. " +
@@ -122,6 +125,44 @@ begin {
 
         # Remove all the servers present in the SkipExchangeServerNames list
         $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
+    }
+
+    if ($ShowExtendedProtection) {
+        Write-Verbose "Showing Extended Protection Information Only"
+        $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
+        foreach ($server in $ExchangeServers) {
+            $params = @{
+                ComputerName         = $server.ToString()
+                IsClientAccessServer = $server.IsClientAccessServer
+                IsMailboxServer      = $server.IsMailboxServer
+                ExcludeEWS           = $SkipEWS
+            }
+            $extendedProtectionConfigurations.Add((Get-ExtendedProtectionConfiguration @params))
+        }
+
+        foreach ($configuration in $extendedProtectionConfigurations) {
+            Write-Verbose "Working on server $($configuration.ComputerName)"
+            $epOutputObjectDisplayValue = New-Object 'System.Collections.Generic.List[object]'
+            foreach ($entry in $configuration.ExtendedProtectionConfiguration) {
+                $ssl = $entry.Configuration.SslSettings
+
+                $epOutputObjectDisplayValue.Add(([PSCustomObject]@{
+                            VirtualDirectory  = $entry.VirtualDirectoryName
+                            Value             = $entry.ExtendedProtection
+                            SupportedValue    = $entry.ExpectedExtendedConfiguration
+                            ConfigSupported   = $entry.SupportedExtendedProtection
+                            RequireSSL        = "$($ssl.RequireSSL) $(if($ssl.Ssl128Bit) { "(128-bit)" })".Trim()
+                            ClientCertificate = $ssl.ClientCertificate
+                        }))
+            }
+
+            Write-Host "Results for Server: $($configuration.ComputerName)"
+            $epOutputObjectDisplayValue | Format-Table | Out-String | Write-Host
+            Write-Host ""
+            Write-Host ""
+        }
+
+        return
     }
 
     if (-not($RollbackSelected)) {
