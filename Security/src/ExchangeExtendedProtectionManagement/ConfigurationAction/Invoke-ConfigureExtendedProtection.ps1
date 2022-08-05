@@ -111,6 +111,8 @@ function Invoke-ConfigureExtendedProtection {
                                 $errorContext.Add($_)
                             }
                         }
+                        # Save out our changes
+                        Copy-Item -Path $saveToPath -Destination $backupLocation.Replace(".cep.", ".cepChanges") -ErrorAction Stop -WhatIf:$PassedWhatIf
                     } catch {
                         Write-Host "Failed to save application host file on server $env:COMPUTERNAME. Inner Exception $_"
                     }
