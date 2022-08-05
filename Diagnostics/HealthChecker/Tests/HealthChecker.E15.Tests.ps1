@@ -124,7 +124,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
         It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { $_.StartsWith("CVE") }
+            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.Gettype().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Count | Should -Be 43
         }

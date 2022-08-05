@@ -12,7 +12,7 @@
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
-. $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
+. $PSScriptRoot\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -476,9 +476,14 @@ function Get-ExchangeInformation {
                 -ComputerName $Script:Server `
                 -CertificateObject $exchangeInformation.ExchangeCertificates
 
-            $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
-                -ExchangeInstallPath $serverExchangeInstallDirectory `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $exchangeServerIISParams = @{
+                ComputerName        = $Script:Server
+                ExchangeInstallPath = $serverExchangeInstallDirectory
+                CatchActionFunction = ${Function:Invoke-CatchActions}
+            }
+
+            Write-Verbose "Trying to query Exchange Server IIS settings"
+            $exchangeInformation.IISSettings = Get-ExchangeServerIISSettings @exchangeServerIISParams
 
             Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
             $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion -OSVersion $OSMajorVersion
