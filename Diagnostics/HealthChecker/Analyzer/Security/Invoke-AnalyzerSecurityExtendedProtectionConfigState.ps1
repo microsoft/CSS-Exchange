@@ -33,7 +33,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
             # Affected Exchange versions: 2013, 2016, 2019
             # Fix: Install Aug 2022 SU & enable extended protection
             # Extended protection is available with IIS 7.5 or higher
-            Write-Verbose "Testing CVE: CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+            Write-Verbose "Testing CVE: CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
             if (($extendedProtection.ExtendedProtectionConfiguration.SupportedExtendedProtection.Contains($false)) -or
                 ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
                 Write-Verbose "At least one vDir is not configured properly and so, the system may be at risk"
@@ -99,7 +99,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                             ColorizerFunctions = @($epConfig)
                             IndentSpaces       = 8
                         })
-                    DisplayTestingValue = "CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    DisplayTestingValue = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
                 }
                 Add-AnalyzedResultInformation @epParams
 
@@ -109,7 +109,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 }
                 Add-AnalyzedResultInformation @moreInformationParams
             } else {
-                Write-Verbose "System NOT vulnerable to CVE-2022-24516, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                Write-Verbose "System NOT vulnerable to CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
             }
         } else {
             Write-Verbose "No Extended Protection configuration found - check will be skipped"

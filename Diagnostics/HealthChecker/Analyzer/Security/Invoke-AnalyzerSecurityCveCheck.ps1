@@ -291,6 +291,12 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "2308.27", "2375.24" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
         }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "2375.31", "2507.12" `
+                -CVENames "CVE-2022-34692"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -396,6 +402,12 @@ function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "922.27", "986.22" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
+        }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "986.29", "1118.12" `
+                -CVENames "CVE-2022-34692"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"
