@@ -100,9 +100,11 @@ begin {
         $params = @{
             Message   = "Display Warning about Extended Protection"
             Target    = "Extended Protection is recommended to be enabled for security reasons. " +
-            "However, here are the known issues after enabling Extended Protection." +
-            "`r`n    - Using a layer 7 load balancing that is doing SSL Offloading or SSL Bridging." +
-            "`r`n    - Using Archive Mailboxes." +
+            "Known Issues: Following scenarios will not work when Extended Protection is enabled." +
+            "`r`n    - SSL offloading or SSL termination via Layer 7 load balancing." +
+            "`r`n    - Automated Archiving using Archive policy" +
+            "`r`n    - Exchange Hybrid Features if using Modern Hybrid." +
+            "`r`n    - Access to Public folders on Exchange 2013 Servers." +
             "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
             Operation = "Enabling Extended Protection"
         }
@@ -213,7 +215,7 @@ begin {
             }
 
             if ($unsupportedServers.Count -gt 0) {
-                $line = "Removing the following servers from the list ot configure because they are not on a supported build of Exchange: $([string]::Join(", " ,$unsupportedServers))"
+                $line = "Removing the following servers from the list to configure because they are not on a supported build of Exchange: $([string]::Join(", " ,$unsupportedServers))"
                 Write-Verbose $line
                 Write-Warning $line
                 $ExchangeServers = $ExchangeServers | Where-Object { $($_.Name -notin $unsupportedServers) }
