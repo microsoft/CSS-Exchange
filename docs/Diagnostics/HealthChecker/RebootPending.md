@@ -9,6 +9,7 @@ We show a warning if we detect an outstanding pending reboot. We also display th
 - SccmRebootPending
 - ComponentBasedServicingRebootPending
 - AutoUpdatePendingReboot
+- UpdateExeVolatile\Flags
 
 It is best to reboot the server to address these issues. It may take some time after a reboot to have the keys automatically removed. However, if they don't remove automatically, follow these steps to address the issue for the keys that were provided to be a problem.
 

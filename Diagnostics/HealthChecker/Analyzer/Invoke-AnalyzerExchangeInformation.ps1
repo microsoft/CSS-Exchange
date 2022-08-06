@@ -163,6 +163,27 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Hub) -and
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
+
+        Write-Verbose "Working on MRS Proxy Settings"
+        $mrsProxyDetails = $exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled
+        if ($exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled) {
+            $mrsProxyDetails = "$mrsProxyDetails`n`r`t`tKeep MRS Proxy disabled if you do not plan to move mailboxes cross-forest or remote"
+            $mrsProxyWriteType = "Yellow"
+        } else {
+            $mrsProxyWriteType = "Grey"
+        }
+
+        $params = $baseParams + @{
+            Name             = "MRS Proxy Enabled"
+            Details          = $mrsProxyDetails
+            DisplayWriteType = $mrsProxyWriteType
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
         $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
         $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Mailbox) {

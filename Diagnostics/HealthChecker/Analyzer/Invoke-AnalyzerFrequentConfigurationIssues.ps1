@@ -185,8 +185,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($null -ne $exchangeInformation.IISConfigurationSettings) {
-        $iisConfigurationSettings = $exchangeInformation.IISConfigurationSettings |
+    if ($null -ne $exchangeInformation.IISSettings.IISConfigurationSettings) {
+        $iisConfigurationSettings = $exchangeInformation.IISSettings.IISConfigurationSettings |
             Where-Object {
                 if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -or
                     $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole) {
