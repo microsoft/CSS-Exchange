@@ -121,7 +121,7 @@ function Invoke-AnalyzerSecuritySettings {
         ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
         $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
         $params = $baseParams + @{
-            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2"
+            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Red"
             DisplayCustomTabNumber = 2
         }
@@ -136,27 +136,14 @@ function Invoke-AnalyzerSecuritySettings {
         }
         Add-AnalyzedResultInformation @params
 
-        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
-            "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
-            "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
-
         $params = $baseParams + @{
-            Details                = "For More Information on how to properly set TLS follow these blog posts:"
+            Details                = "For More Information on how to properly set TLS follow this guide: https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Yellow"
             DisplayTestingValue    = $true
             DisplayCustomTabNumber = 2
             TestingName            = "Detected TLS Mismatch Display More Info"
         }
         Add-AnalyzedResultInformation @params
-
-        foreach ($displayValue in $displayValues) {
-            $params = $baseParams + @{
-                Details                = $displayValue
-                DisplayWriteType       = "Yellow"
-                DisplayCustomTabNumber = 3
-            }
-            Add-AnalyzedResultInformation @params
-        }
     }
 
     if ($displayLinkToDocsPage) {
