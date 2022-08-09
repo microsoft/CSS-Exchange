@@ -35,7 +35,12 @@ $ConfigureMitigation = {
 
         $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
         $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
-        $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        if ($null -eq $ExistingRules -or $ExistingRules.Length -eq 0) {
+            $BackupFilteringConfiguration = @{DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        } else {
+            $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        }
+
         $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
 
         return $true
@@ -82,9 +87,7 @@ $ConfigureMitigation = {
         )
 
         $backupPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/','-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
-
-        Backup-currentIpFilteringRules -BackupPath $backupPath
-        $results.IsBackUpSuccessful = $true
+        $results.IsBackUpSuccessful = Backup-currentIpFilteringRules -BackupPath $backupPath
 
         $Filter = 'system.webServer/security/ipSecurity'
         $IISPath = 'IIS:\'
@@ -104,15 +107,15 @@ $ConfigureMitigation = {
                     $RulesToBeAdded += @{ipAddress=$IpFilteringRule.IP; subnetMask=$IpFilteringRule.SubnetMask; allowed=$IpFilteringRule.Allowed; }
                 }
             } else {
-                if ($IpFilteringRule.Type -eq "Single IP") {
-                    $IpString = $IpFilteringRule.IP
-                    # Write-Verbose ("Unable to add allow rule for ip address: {0} as an already existing rule exist for this." -f $IpFilteringRule.IP )
-                } else {
-                    $IpString = ("{0}/{1}" -f $IpFilteringRule.IP, $IpFilteringRule.SubnetMask)
-                    # Write-Verbose ("Unable to add allow rule for ip subnet: {0}/{1} as an already existing rule exist for this." -f $IpFilteringRule.IP, $IpFilteringRule.SubnetMask )
-                }
+                if ($ExistingIPSubnetRule.allowed -ne $IpFilteringRule.Allowed) {
+                    if ($IpFilteringRule.Type -eq "Single IP") {
+                        $IpString = $IpFilteringRule.IP
+                    } else {
+                        $IpString = ("{0}/{1}" -f $IpFilteringRule.IP, $IpFilteringRule.SubnetMask)
+                    }
 
-                $IPsNotAdded += $IpString
+                    $IPsNotAdded += $IpString
+                }
             }
         }
 
@@ -141,8 +144,10 @@ $ConfigureMitigation = {
             $localIPs = Get-LocalIpAddresses
             $results.IsGetLocalIPSuccessful = $true
 
-            $localIPs | ForEach-Object {
-                $IpRangesForFiltering += @{Type="Single IP"; IP=$_; SubnetMask=$null; Allowed=$true }
+            ForEach ($localIP in $localIPs) {
+                if ($null -eq ($IpRangesForFiltering | Where-Object {$_.Type -eq "Single IP" -and $_.IP -eq $localIP -and $_.Allowed -eq $true})) {
+                    $IpRangesForFiltering += @{Type="Single IP"; IP=$localIP; Allowed=$true }
+                }
             }
 
             $results.LocalIPs = $localIPs
@@ -269,9 +274,10 @@ function Invoke-ConfigureMitigation {
             if ($resultsInvoke.IsCreateIPRulesSuccessful) {
                 Write-Host ("Successfully updated IP filtering allow list") -ForegroundColor Green
                 if ($resultsInvoke.IPsNotAdded.Length -gt 0) {
-                    $line = ("We didn't add the below IPs to the allow list as there are already existing rules present.`n{0}" -f (GetCommaSaperatedString -list $resultsInvoke.IPsNotAdded))
+                    $line = ("We didn't add a few IPs to the allow list because deny rules for these IPs are already present.")
                     Write-Warning $line
                     Write-Verbose $line
+                    Write-Verbose (GetCommaSaperatedString -list $resultsInvoke.IPsNotAdded)
                 }
             } else {
                 Write-Host ("Script failed to update IP filtering allow list with the Inner Exception:") -ForegroundColor Red

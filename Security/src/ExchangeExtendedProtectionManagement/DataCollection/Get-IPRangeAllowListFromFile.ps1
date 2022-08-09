@@ -85,13 +85,12 @@ function Get-IPRangeAllowListFromFile {
                         $results.IsError = $true
                         return
                     }
-
-                    $results.ipRangeAllowListRules  += @{Type = "Subnet"; IP=$IpAddressString; SubnetMask=$SubnetMaskString; Allowed=$true }
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object {$_.Type -eq "Subnet" -and $_.IP -eq $IpAddressString -and $_.SubnetMask -eq $SubnetMaskString -and $_.Allowed -eq $true})) {
+                        $results.ipRangeAllowListRules  += @{Type = "Subnet"; IP=$IpAddressString; SubnetMask=$SubnetMaskString; Allowed=$true }
+                    }
                 } else {
-                    if ($IsIPv6) {
-                        $results.ipRangeAllowListRules  += @{Type = "Single IP"; IP=$IpAddressString; SubnetMask="128"; Allowed=$true }
-                    } else {
-                        $results.ipRangeAllowListRules  += @{Type = "Single IP"; IP=$IpAddressString; SubnetMask="32"; Allowed=$true }
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object {$_.Type -eq "Single IP" -and $_.IP -eq $IpAddressString -and $_.Allowed -eq $true})) {
+                        $results.ipRangeAllowListRules  += @{Type = "Single IP"; IP=$IpAddressString; Allowed=$true }
                     }
                 }
             }

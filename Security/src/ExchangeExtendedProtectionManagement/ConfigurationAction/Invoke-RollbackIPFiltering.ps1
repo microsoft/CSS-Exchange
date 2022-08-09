@@ -32,9 +32,17 @@ $RollbackIPFiltering = {
             $BackupPath
         )
 
+        $Filter = 'system.webServer/security/ipSecurity'
+        $IISPath = 'IIS:\'
+
         $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
         $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
-        $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        if ($null -eq $ExistingRules -or $ExistingRules.Length -eq 0) {
+            $BackupFilteringConfiguration = @{DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        } else {
+            $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        }
+
         $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
 
         return $true
