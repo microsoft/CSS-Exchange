@@ -335,6 +335,7 @@ begin {
                                 Write-Warning "'$($server.Name)\RPC (Default Web Site)' has SSLOffloading set to true. Therefore we can't configure Extended Protection."
                                 Write-Host "Please run the following to fix: Set-OutlookAnywhere -Identity '$($server.Name)\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
                                 Write-Host "Recommended to do this for all your servers in the environment so they are on the same configuration."
+                                exit
                             }
                         } catch {
                             Write-Warning "Failed to run Get-OutlookAnywhere on server $($server.Name). Failing out the script. Inner Exception: $_"
