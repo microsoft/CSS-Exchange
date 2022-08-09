@@ -20,8 +20,8 @@
                   <TNRef RefId="0" />
                   <MS>
                     <S N="TLSVersion">1.1</S>
-                    <B N="ServerEnabled">true</B>
-                    <I32 N="ServerEnabledValue">1</I32>
+                    <B N="ServerEnabled">false</B>
+                    <I32 N="ServerEnabledValue">0</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <I32 N="ServerDisabledByDefaultValue">0</I32>
                     <B N="ClientEnabled">true</B>
@@ -29,9 +29,9 @@
                     <B N="ClientDisabledByDefault">false</B>
                     <Nil N="ClientDisabledByDefaultValue" />
                     <B N="TLSVersionDisabled">false</B>
-                    <B N="TLSMisconfigured">false</B>
-                    <B N="TLSHalfDisabled">false</B>
-                    <S N="TLSConfiguration">Enabled</S>
+                    <B N="TLSMisconfigured">true</B>
+                    <B N="TLSHalfDisabled">true</B>
+                    <S N="TLSConfiguration">Misconfigured</S>
                   </MS>
                 </Obj>
               </En>
@@ -62,8 +62,8 @@
                   <TNRef RefId="0" />
                   <MS>
                     <S N="TLSVersion">1.0</S>
-                    <B N="ServerEnabled">true</B>
-                    <I32 N="ServerEnabledValue">1</I32>
+                    <B N="ServerEnabled">false</B>
+                    <I32 N="ServerEnabledValue">0</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <Nil N="ServerDisabledByDefaultValue" />
                     <B N="ClientEnabled">true</B>
@@ -71,9 +71,9 @@
                     <B N="ClientDisabledByDefault">false</B>
                     <Nil N="ClientDisabledByDefaultValue" />
                     <B N="TLSVersionDisabled">false</B>
-                    <B N="TLSMisconfigured">false</B>
-                    <B N="TLSHalfDisabled">false</B>
-                    <S N="TLSConfiguration">Enabled</S>
+                    <B N="TLSMisconfigured">true</B>
+                    <B N="TLSHalfDisabled">true</B>
+                    <S N="TLSConfiguration">Misconfigured</S>
                   </MS>
                 </Obj>
               </En>
@@ -91,11 +91,9 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
-                    <Nil N="SchUseStrongCryptoValue" />
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
-                    <Nil N="WowSchUseStrongCryptoValue" />
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -110,11 +108,9 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
-                    <Nil N="SchUseStrongCryptoValue" />
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
-                    <Nil N="WowSchUseStrongCryptoValue" />
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -124,7 +120,7 @@
           </Obj>
         </MS>
       </Obj>
-      <S N="SecurityProtocol">Tls12</S>
+      <S N="SecurityProtocol">Ssl3, Tls</S>
       <Obj N="TlsCipherSuite" RefId="9">
         <TN RefId="2">
           <T>System.Object[]</T>

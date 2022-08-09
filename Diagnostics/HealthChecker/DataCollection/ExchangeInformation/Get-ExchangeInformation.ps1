@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Security\src\ExchangeExtendedProtectionManagement\DataCollection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
@@ -487,6 +488,15 @@ function Get-ExchangeInformation {
 
             Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
             $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion -OSVersion $OSMajorVersion
+
+            Write-Verbose "Query extended protection configuration for multiple CVEs testing"
+            $getExtendedProtectionConfigurationParams = @{
+                ComputerName        = $Script:Server
+                ExSetupVersion      = $buildInformation.ExchangeSetup.FileVersion
+                CatchActionFunction = ${Function:Invoke-CatchActions}
+            }
+
+            $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
         }
 
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)

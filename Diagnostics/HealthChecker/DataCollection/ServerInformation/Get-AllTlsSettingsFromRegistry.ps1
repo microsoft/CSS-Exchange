@@ -165,9 +165,11 @@ function Get-AllTlsSettingsFromRegistry {
                 SystemDefaultTlsVersions         = $systemDefaultTlsVersions
                 SystemDefaultTlsVersionsValue    = $systemDefaultTlsVersionsValue
                 SchUseStrongCrypto               = (Get-NETDefaultTLSValue -KeyValue $schUseStrongCryptoValue -NetVersion $netVersion -KeyName "SchUseStrongCrypto")
+                SchUseStrongCryptoValue          = $schUseStrongCryptoValue
                 WowSystemDefaultTlsVersions      = $wowSystemDefaultTlsVersions
                 WowSystemDefaultTlsVersionsValue = $wowSystemDefaultTlsVersionsValue
                 WowSchUseStrongCrypto            = (Get-NETDefaultTLSValue -KeyValue $wowSchUseStrongCryptoValue -NetVersion $netVersion -KeyName "WowSchUseStrongCrypto")
+                WowSchUseStrongCryptoValue       = $wowSchUseStrongCryptoValue
                 SdtvConfiguredCorrectly          = $systemDefaultTlsVersions -eq $wowSystemDefaultTlsVersions
                 SdtvEnabled                      = $systemDefaultTlsVersions -and $wowSystemDefaultTlsVersions
             }
