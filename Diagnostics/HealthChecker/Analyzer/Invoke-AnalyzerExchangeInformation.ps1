@@ -299,6 +299,15 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+        $null -ne $exchangeInformation.ExtendedProtectionConfig) {
+        $params = $baseParams + @{
+            Name    = "Extended Protection Enabled (Any Vdir)"
+            Details = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfigured
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
     $getMailboxServer = $exchangeInformation.GetMailboxServer

@@ -91,11 +91,9 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
-                    <Nil N="SchUseStrongCryptoValue" />
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
-                    <Nil N="WowSchUseStrongCryptoValue" />
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -110,11 +108,9 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
-                    <Nil N="SchUseStrongCryptoValue" />
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
-                    <Nil N="WowSchUseStrongCryptoValue" />
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -124,7 +120,7 @@
           </Obj>
         </MS>
       </Obj>
-      <S N="SecurityProtocol">Tls12</S>
+      <S N="SecurityProtocol">Ssl3, Tls</S>
       <Obj N="TlsCipherSuite" RefId="9">
         <TN RefId="2">
           <T>System.Object[]</T>
