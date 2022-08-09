@@ -15,10 +15,12 @@ $ValidateMitigationScriptBlock = {
     $results = @{
         IsEPVerified            = $false
         IsEPOff                 = $false
+        IsWindowsFeatureInstalled = $false
+        IsWindowsFeatureVerified = $false
         AreIPRulesVerified      = $false
         IsDefaultFilterVerified = $false
         IsDefaultFilterDeny     = $false
-        RulesNotFound           = $null
+        RulesNotFound           = @()
         ErrorContext            = $null
     }
 
@@ -57,6 +59,13 @@ $ValidateMitigationScriptBlock = {
             [Parameter(Mandatory = $true)]
             [hashtable]$results
         )
+        
+        $results.IsWindowsFeatureInstalled = (Get-WindowsFeature -Name "Web-IP-Security").InstallState -eq "Installed"
+        $results.IsWindowsFeatureVerified = $true
+
+        if (-not $results.IsWindowsFeatureInstalled) {
+            return
+        }
 
         $Filter = 'system.webServer/security/ipSecurity'
         $IISPath = 'IIS:\'
@@ -77,9 +86,8 @@ $ValidateMitigationScriptBlock = {
 
         $results.AreIPRulesVerified = $true
 
-        $results.IsDefaultFilterDeny = -not (Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted")
+        $results.IsDefaultFilterDeny = -not ((Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted").Value)
         $results.IsDefaultFilterVerified = $true
-        return $results
     }
 
     try {
@@ -172,7 +180,7 @@ function Invoke-ValidateMitigation {
             Write-Progress @progressParams
             $counter ++;
 
-            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, [string]::Join(", ", $ipRangeAllowListRules))
+            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: list of length" -f $Server, $SiteVDirLocation, $ipRangeAllowListRules.Length.ToString())
             Write-Host ("Validating Mitigations on Server {0}" -f $Server)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
 
@@ -193,29 +201,46 @@ function Invoke-ValidateMitigation {
                 continue
             }
 
-            if ($resultsInvoke.AreIPRulesVerified) {
-                Write-Host ("Unknown: Script failed to verify IP Filtering Rules with Inner Exception") -ForegroundColor Red
+            $IsFilterUnMitigated = $false
+
+            if (-not $resultsInvoke.IsWindowsFeatureVerified) {
+                Write-Host ("Unknown: Script failed to verify if the Windows feature Web-IP-Security is present with Inner Exception") -ForegroundColor Red
                 Write-HostErrorInformation $results.ErrorContext
                 $FailedServersFilter += $Server
                 continue
-            } elseif ($null -eq $resultsInvoke.RulesNotFound -and $resultsInvoke.RulesNotFound -gt 0) {
-                Write-Host ("Unexpected: Some or all the rules present in the file specified aren't applied") -ForegroundColor Red
-                Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $resultsInvoke.RulesNotFound))
-                $UnMitigatedServersFilter += $Server
+            } elseif (-not $resultsInvoke.IsWindowsFeatureInstalled) {
+                Write-Host ("Unexpected: Windows feature Web-IP-Security is not present on the server") -ForegroundColor Red
+                $IsFilterUnMitigated = $true
             } else {
-                Write-Host ("Expected: Successfully verified all the IP filtering rules") -ForegroundColor Green
+                Write-Host ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server") -ForegroundColor Green
+                if (-not $resultsInvoke.AreIPRulesVerified) {
+                    Write-Host ("Unknown: Script failed to verify IP Filtering Rules with Inner Exception") -ForegroundColor Red
+                    Write-HostErrorInformation $results.ErrorContext
+                    $FailedServersFilter += $Server
+                    continue
+                } elseif ($null -ne $resultsInvoke.RulesNotFound -and $resultsInvoke.RulesNotFound.Length -gt 0) {
+                    Write-Host ("Unexpected: Some or all the rules present in the file specified aren't applied") -ForegroundColor Red
+                    Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $resultsInvoke.RulesNotFound))
+                    $IsFilterUnMitigated = $true
+                } else {
+                    Write-Host ("Expected: Successfully verified all the IP filtering rules") -ForegroundColor Green
+                }
+
+                if ($resultsInvoke.IsDefaultFilterDeny) {
+                    Write-Host ("Expected: The default IP Filtering rule is set to deny") -ForegroundColor Green
+                } elseif ($resultsInvoke.IsDefaultFilterVerified) {
+                    Write-Host ("Unexpected: The default IP Filtering rule is not set to deny") -ForegroundColor Red
+                    $IsFilterUnMitigated = $true
+                } else {
+                    Write-Host ("Unknown: Script failed to get the default IP Filtering rule with Inner Exception") -ForegroundColor Red
+                    Write-HostErrorInformation $results.ErrorContext
+                    $FailedServersFilter += $Server
+                    continue
+                }
             }
 
-            if ($resultsInvoke.IsDefaultFilterDeny) {
-                Write-Host ("Expected: The default IP Filtering rule is set to deny") -ForegroundColor Green
-            } elseif ($resultsInvoke.IsDefaultFilterVerified) {
-                Write-Host ("Unexpected: The default IP Filtering rule is not set to deny") -ForegroundColor Red
+            if ($IsFilterUnMitigated) {
                 $UnMitigatedServersFilter += $Server
-            } else {
-                Write-Host ("Unknown: Script failed to get the default IP Filtering rule with Inner Exception") -ForegroundColor Red
-                Write-HostErrorInformation $results.ErrorContext
-                $FailedServersFilter += $Server
-                continue
             }
         }
     } end {
