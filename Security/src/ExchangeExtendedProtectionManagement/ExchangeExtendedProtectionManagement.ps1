@@ -241,68 +241,73 @@ begin {
                     ForEach-Object { $serverNames.Add($_.ComputerName) }
             }
 
-            $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineSupportedServers.TlsSettings
+            # If there aren't any servers to check against for TLS settings, bypass this check.
+            if ($null -ne $onlineSupportedServers.TlsSettings) {
+                $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineSupportedServers.TlsSettings
 
-            foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
-                Write-Host "The following servers have the TLS Configuration below"
-                Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
-                $tlsSettings.TlsSettings.Registry.Tls.Values |
-                    Select-Object TLSVersion,
-                    @{Label = "ServerEnabled"; Expression = { $_.ServerEnabledValue } },
-                    @{Label = "ServerDbD"; Expression = { $_.ServerDisabledByDefaultValue } },
-                    @{Label = "ClientEnabled"; Expression = { $_.ClientEnabledValue } },
-                    @{Label = "ClientDbD"; Expression = { $_.ClientDisabledByDefaultValue } },
-                    TLSConfiguration |
-                    Sort-Object TLSVersion |
-                    Format-Table |
-                    Out-String |
-                    Write-Host
-                $tlsSettings.TlsSettings.Registry.Net.Values |
-                    Select-Object NetVersion,
-                    @{Label = "SystemTlsVersions"; Expression = { $_.SystemDefaultTlsVersionsValue } },
-                    @{Label = "WowSystemTlsVersions"; Expression = { $_.WowSystemDefaultTlsVersionsValue } },
-                    @{Label = "SchUseStrongCrypto"; Expression = { $_.SchUseStrongCryptoValue } },
-                    @{Label = "WowSchUseStrongCrypto"; Expression = { $_.WowSchUseStrongCryptoValue } } |
-                    Sort-Object NetVersion |
-                    Format-Table |
-                    Out-String |
-                    Write-Host
-                Write-Host ""
-                Write-Host ""
-            }
-
-            # If TLS Prerequisites Check passed, then we are good to go.
-            # If it doesn't, now we need to verify the servers we are trying to enable EP on
-            # will pass the TLS Prerequisites and all other servers that have EP enabled on.
-            if ($tlsPrerequisites.CheckPassed) {
-                Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
-                Write-Host ""
-            } else {
-                foreach ($entry in $tlsPrerequisites.ActionsRequired) {
-                    Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
-                    if ($null -ne $entry.List) {
-                        foreach ($list in $entry.List) {
-                            Write-Host "System affected: $list" -ForegroundColor Red
-                        }
-                    }
-                    Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
+                foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
+                    Write-Host "The following servers have the TLS Configuration below"
+                    Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
+                    $tlsSettings.TlsSettings.Registry.Tls.Values |
+                        Select-Object TLSVersion,
+                        @{Label = "ServerEnabled"; Expression = { $_.ServerEnabledValue } },
+                        @{Label = "ServerDbD"; Expression = { $_.ServerDisabledByDefaultValue } },
+                        @{Label = "ClientEnabled"; Expression = { $_.ClientEnabledValue } },
+                        @{Label = "ClientDbD"; Expression = { $_.ClientDisabledByDefaultValue } },
+                        TLSConfiguration |
+                        Sort-Object TLSVersion |
+                        Format-Table |
+                        Out-String |
+                        Write-Host
+                    $tlsSettings.TlsSettings.Registry.Net.Values |
+                        Select-Object NetVersion,
+                        @{Label = "SystemTlsVersions"; Expression = { $_.SystemDefaultTlsVersionsValue } },
+                        @{Label = "WowSystemTlsVersions"; Expression = { $_.WowSystemDefaultTlsVersionsValue } },
+                        @{Label = "SchUseStrongCrypto"; Expression = { $_.SchUseStrongCryptoValue } },
+                        @{Label = "WowSchUseStrongCrypto"; Expression = { $_.WowSchUseStrongCryptoValue } } |
+                        Sort-Object NetVersion |
+                        Format-Table |
+                        Out-String |
+                        Write-Host
+                    Write-Host ""
                     Write-Host ""
                 }
-                $checkAgainst = $onlineSupportedServers |
-                    Where-Object {
-                        $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
-                        $_.ComputerName -in $serverNames
-                    }
 
-                $results = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
-
-                if ($results.CheckPassed) {
-                    Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
+                # If TLS Prerequisites Check passed, then we are good to go.
+                # If it doesn't, now we need to verify the servers we are trying to enable EP on
+                # will pass the TLS Prerequisites and all other servers that have EP enabled on.
+                if ($tlsPrerequisites.CheckPassed) {
+                    Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
                     Write-Host ""
                 } else {
-                    Write-Warning "Failed to pass the TLS prerequisites. Unable to continue."
-                    exit
+                    foreach ($entry in $tlsPrerequisites.ActionsRequired) {
+                        Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
+                        if ($null -ne $entry.List) {
+                            foreach ($list in $entry.List) {
+                                Write-Host "System affected: $list" -ForegroundColor Red
+                            }
+                        }
+                        Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
+                        Write-Host ""
+                    }
+                    $checkAgainst = $onlineSupportedServers |
+                        Where-Object {
+                            $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
+                            $_.ComputerName -in $serverNames
+                        }
+
+                    $results = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
+
+                    if ($results.CheckPassed) {
+                        Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
+                        Write-Host ""
+                    } else {
+                        Write-Warning "Failed to pass the TLS prerequisites. Unable to continue."
+                        exit
+                    }
                 }
+            } else {
+                Write-Verbose "No online servers that are in a supported state. Skipping over TLS Check."
             }
         } else {
             Write-Warning "Failed to get Extended Protection Prerequisites Information to be able to continue"
@@ -323,5 +328,10 @@ begin {
     $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
     $extendedProtectionConfigurations = ($onlineSupportedServers |
             Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
-    Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
+
+    if ($null -ne $extendedProtectionConfigurations) {
+        Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
+    } else {
+        Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
+    }
 }
