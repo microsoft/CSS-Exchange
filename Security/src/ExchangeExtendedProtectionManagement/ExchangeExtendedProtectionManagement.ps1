@@ -57,7 +57,7 @@ param(
     [string]$RestrictType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
-    [switch]$ValidateMitigation,
+    [string]$ValidateMitigation,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [string]$RollbackType
@@ -82,11 +82,13 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
+    
     enum MitigationTypes {
         OnlyEP
         Full
     }
 
+    $SupportedRestrictTypes = @('EWSBackend')
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
         "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
@@ -112,37 +114,56 @@ begin {
         "MAPI-emsmdbBackend"                  ="Exchange Back End/MAPI/emsmdb"
         "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
     }
+
     $RollbackSelected = $false
     $RollbackRestrictType = $false
     $ConfigureEPSelected = $false
     $ConfigureMitigationSelected = $false
+    $ValidateMitigationSelected = $false
     $Script:SkipEWS = $false
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
     if ($PsCmdlet.ParameterSetName -eq "Rollback") {
         $RollbackSelected = $true
-        if (-not ($RollbackType -eq "RestoreIISAppConfig" -or $RollbackType.StartsWith("RestrictType"))) {
-            Write-Host "Please provide a valid value of RollbackType" -ForegroundColor Red
-            return  
-        }
 
         if ($RollbackType -eq "RestoreIISAppConfig") {
             $RollbackRestoreIISAppConfig = $true
-        } else {
+        } elseif ($SupportedRestrictTypes -contains $RollbackType.Replace("RestrictType", "")) {
             $RollbackRestrictType = $true
-            $RestrictType = $RollbackType.Split("RestrictType")[1]
+            $RestrictType = $RollbackType.Replace("RestrictType", "")
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
+        } else {
+            Write-Host "Please provide a valid value of RollbackType" -ForegroundColor Red
+            exit
         }
     }
 
-    if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-        if ($RestrictTypeToSiteVDirMap.ContainsKey($RestrictType)) {
-            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
-        } else {
-            Write-Host "The value specified for RestrictType is not valid." -ForegroundColor Red
-            return
+    
+
+    if(($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")){   
+        
+        if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation"){
+            if ($SupportedRestrictTypes -contains $RestrictType) {
+                $ConfigureMitigationSelected = $true
+                $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
+                $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
+            } else {
+                Write-Host "Please provide a valid value of RestrictType" -ForegroundColor Red
+                exit
+            }
+        }
+
+        if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
+            if($SupportedRestrictTypes -contains $ValidateMitigation.Replace("RestrictType", "")) {
+                $ValidateMitigationSelected = $true
+                $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
+                $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
+                $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
+            } else {
+                Write-Host "Please provide a valid value of ValidateMitigation" -ForegroundColor Red
+                exit
+            }
         }
 
         if ($PSBoundParameters.ContainsKey("IPRange")) {
@@ -150,13 +171,8 @@ begin {
         } else {
             $MitigationTypeSelected = [MitigationTypes]::OnlyEP
         }
-
-        if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
-            $ConfigureMitigationSelected = $true
-        } else {
-            $ValidateMitigation = $true
-        }
     }
+    
 
     if ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection) {
         $ConfigureEPSelected = $true
@@ -485,8 +501,7 @@ begin {
                     Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
                 }
             }
-
-            if ($ConfigureMitigationSelected) {
+            elseif ($ConfigureMitigationSelected) {
                 if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
                     # Get list of IPs in object form from the file specified
                     $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
@@ -501,11 +516,8 @@ begin {
                 } else {
                     Invoke-ConfigureMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
-
-                return
             }
-
-            if ($ValidateMitigation) {
+            elseif ($ValidateMitigationSelected) {
                 if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
                     # Get list of IPs in object form from the file specified
                     $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
@@ -520,8 +532,6 @@ begin {
                 } else {
                     Invoke-ValidateMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
-
-                return
             }
         } elseif ($RollbackSelected) {
             Write-Host "Prerequisite check will be skipped due to Rollback"

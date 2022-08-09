@@ -12,6 +12,8 @@ $ConfigureMitigation = {
 
     $SiteVDirLocation = $Arguments.SiteVDirLocation
     $IpRangesForFiltering = $Arguments.IpRangesForFiltering
+    $Filter = 'system.webServer/security/ipSecurity'
+    $IISPath = 'IIS:\'
 
     $results = @{
         IsTurnOffEPSuccessful      = $false
@@ -30,20 +32,15 @@ $ConfigureMitigation = {
             $BackupPath
         )
 
-        $Filter = 'system.webServer/security/ipSecurity'
-        $IISPath = 'IIS:\'
-
-        $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
-        $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
-        if ($null -eq $ExistingRules -or $ExistingRules.Length -eq 0) {
-            $BackupFilteringConfiguration = @{DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-        } else {
-            $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-        }
-
-        $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
-
-        return $true
+       $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+       $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
+       if ($null -eq $ExistingRules){
+           $ExistingRules = @()
+       }
+       
+       $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+       $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
+       return $true
     }
 
     function Get-LocalIpAddresses {
@@ -73,6 +70,8 @@ $ConfigureMitigation = {
         if ($ExtendedProtection -ne "None") {
             Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "None"
         }
+
+        return $true
     }
 
     # Create ip allow list from user provided ip subnets
@@ -130,8 +129,7 @@ $ConfigureMitigation = {
     }
 
     try {
-        TurnOffEP -SiteVDirLocation $SiteVDirLocation
-        $results.IsTurnOffEPSuccessful = $true
+        $results.IsTurnOffEPSuccessful = TurnOffEP -SiteVDirLocation $SiteVDirLocation 
 
         if ($null -ne $IpRangesForFiltering) {
             $installResult = Install-WindowsFeature Web-IP-Security
@@ -221,7 +219,12 @@ function Invoke-ConfigureMitigation {
             Write-Progress @progressParams
             $counter ++;
 
-            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, [string]::Join(", ", $ipRangeAllowListRules))
+            if($ipRangeAllowListRules -eq $null){
+                $ipRangeAllowListString = "null"
+            } else {
+                $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
+            }
+            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             Write-Host ("Applying Mitigations on Server {0}" -f $Server)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
@@ -273,9 +276,9 @@ function Invoke-ConfigureMitigation {
 
             if ($resultsInvoke.IsCreateIPRulesSuccessful) {
                 Write-Host ("Successfully updated IP filtering allow list") -ForegroundColor Green
-                if ($resultsInvoke.IPsNotAdded.Length -gt 0) {
-                    $line = ("We didn't add a few IPs to the allow list because deny rules for these IPs are already present.")
-                    Write-Warning $line
+                if ($resultsInvoke.IPsNotAdded.Length -gt 0) { 
+                    $line = ("Few IPs were not added to the allow list as deny rules for these IPs were already present.")
+                    Write-Warning ($line + "Check logs for further details.")
                     Write-Verbose $line
                     Write-Verbose (GetCommaSaperatedString -list $resultsInvoke.IPsNotAdded)
                 }
