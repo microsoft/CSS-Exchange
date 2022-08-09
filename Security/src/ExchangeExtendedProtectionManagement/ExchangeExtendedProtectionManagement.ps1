@@ -215,11 +215,17 @@ begin {
             }
 
             if ($unsupportedServers.Count -gt 0) {
-                $line = "Removing the following servers from the list to configure because they are not on a supported build of Exchange: $([string]::Join(", " ,$unsupportedServers))"
-                Write-Verbose $line
-                Write-Warning $line
-                $ExchangeServers = $ExchangeServers | Where-Object { $($_.Name -notin $unsupportedServers) }
-                Write-Host ""
+
+                $serverInList = $null -ne ($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
+
+                if ($serverInList) {
+                    $line = "Found an unsupported version of Exchange that we were trying to configure. Please re-run the script with a refine filter."
+                    Write-Verbose $line
+                    Write-Warning $line
+                    exit
+                }
+
+                Write-Verbose "The following servers are unsupported but not included in the list to configure: $([string]::Join(", " ,$unsupportedServers))"
             }
 
             if ($downServerName.Count -gt 0) {
