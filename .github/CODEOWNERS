@@ -1,14 +1,6 @@
 # Default owners
 *   @bill-long @dpaulson45 @lusassl-msft
 
-# Everything in Security is owned by those folks
-/Security/src/   @dbacon247 @bill-long @dpaulson45
-
-# Except these which are owned by Exchange
-/Security/src/Test-ProxyLogon.ps1   @bill-long @dpaulson45 @lusassl-msft
-/Security/src/Test-CVE-2021-34470.ps1   @bill-long @dpaulson45 @lusassl-msft
-/Security/src/ConfigureExtendedProtection @bill-long @dpaulson45 @lusassl-msft
-
 # Rob Whaley owns these
 /Hybrid/        @tweekerz @bill-long @dpaulson45 @lusassl-msft
 /Retention/     @tweekerz @bill-long @dpaulson45 @lusassl-msft
