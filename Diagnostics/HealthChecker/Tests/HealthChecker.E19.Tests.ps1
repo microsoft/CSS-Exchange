@@ -35,7 +35,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Operating System Information" {
@@ -132,7 +132,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 13
+            $cveTests.Count | Should -Be 15
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
         }
@@ -216,7 +216,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 5
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 10
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
@@ -235,6 +235,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeAdPermissions -Exactly 1
+            Assert-MockCalled Get-ExtendedProtectionConfiguration -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
@@ -253,6 +254,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
+            Assert-MockCalled Get-IISModules -Exactly 1
         }
     }
 

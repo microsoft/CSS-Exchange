@@ -1,0 +1,103 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.ApplicationInfo</T>
+      <T>System.Management.Automation.CommandInfo</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>ExSetup.exe</ToString>
+    <Props>
+      <S N="Path">F:\Program Files\Microsoft\Exchange\bin\ExSetup.exe</S>
+      <S N="Extension">.exe</S>
+      <S N="Definition">F:\Program Files\Microsoft\Exchange\bin\ExSetup.exe</S>
+      <S N="Source">F:\Program Files\Microsoft\Exchange\bin\ExSetup.exe</S>
+      <Version N="Version">15.1.2507.9</Version>
+      <Obj N="Visibility" RefId="1">
+        <TN RefId="1">
+          <T>System.Management.Automation.SessionStateEntryVisibility</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Public</ToString>
+        <I32>0</I32>
+      </Obj>
+      <Obj N="OutputType" RefId="2">
+        <TN RefId="2">
+          <T>System.Collections.ObjectModel.ReadOnlyCollection`1[[System.Management.Automation.PSTypeName, System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>System.String</S>
+        </LST>
+      </Obj>
+      <S N="Name">ExSetup.exe</S>
+      <Obj N="CommandType" RefId="3">
+        <TN RefId="3">
+          <T>System.Management.Automation.CommandTypes</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Application</ToString>
+        <I32>32</I32>
+      </Obj>
+      <S N="ModuleName"></S>
+      <Nil N="Module" />
+      <Obj N="RemotingCapability" RefId="4">
+        <TN RefId="4">
+          <T>System.Management.Automation.RemotingCapability</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>PowerShell</ToString>
+        <I32>1</I32>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="Namespace"></S>
+      <S N="HelpUri"></S>
+      <Obj N="FileVersionInfo" RefId="5">
+        <TN RefId="5">
+          <T>System.Diagnostics.FileVersionInfo</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>File:             F:\Program Files\Microsoft\Exchange\bin\ExSetup.exe_x000D__x000A_InternalName:     ExSetup.exe_x000D__x000A_OriginalFilename: ExSetup.exe_x000D__x000A_FileVersion:      15.01.2507.009_x000D__x000A_FileDescription:  _x000D__x000A_Product:          Microsoft® Exchange_x000D__x000A_ProductVersion:   15.01.2507.009_x000D__x000A_Debug:            False_x000D__x000A_Patched:          False_x000D__x000A_PreRelease:       False_x000D__x000A_PrivateBuild:     False_x000D__x000A_SpecialBuild:     False_x000D__x000A_Language:         Language Neutral_x000D__x000A_</ToString>
+        <Props>
+          <S N="Comments">Service Pack 1</S>
+          <S N="CompanyName">Microsoft Corporation</S>
+          <I32 N="FileBuildPart">2507</I32>
+          <S N="FileDescription"></S>
+          <I32 N="FileMajorPart">15</I32>
+          <I32 N="FileMinorPart">1</I32>
+          <S N="FileName">F:\Program Files\Microsoft\Exchange\bin\ExSetup.exe</S>
+          <I32 N="FilePrivatePart">9</I32>
+          <S N="FileVersion">15.01.2507.009</S>
+          <S N="InternalName">ExSetup.exe</S>
+          <B N="IsDebug">false</B>
+          <B N="IsPatched">false</B>
+          <B N="IsPrivateBuild">false</B>
+          <B N="IsPreRelease">false</B>
+          <B N="IsSpecialBuild">false</B>
+          <S N="Language">Language Neutral</S>
+          <S N="LegalCopyright">© 2014 Microsoft Corporation. All rights reserved.</S>
+          <S N="LegalTrademarks">Microsoft® is a registered trademark of Microsoft Corporation.</S>
+          <S N="OriginalFilename">ExSetup.exe</S>
+          <S N="PrivateBuild"></S>
+          <I32 N="ProductBuildPart">2507</I32>
+          <I32 N="ProductMajorPart">15</I32>
+          <I32 N="ProductMinorPart">1</I32>
+          <S N="ProductName">Microsoft® Exchange</S>
+          <I32 N="ProductPrivatePart">9</I32>
+          <S N="ProductVersion">15.01.2507.009</S>
+          <S N="SpecialBuild"></S>
+        </Props>
+        <MS>
+          <Version N="FileVersionRaw">15.1.2507.9</Version>
+          <Version N="ProductVersionRaw">15.1.2507.9</Version>
+        </MS>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

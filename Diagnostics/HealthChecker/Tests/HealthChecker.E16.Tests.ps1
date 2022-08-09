@@ -34,7 +34,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Operating System Information" {
@@ -122,7 +122,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 60
+            $Script:ActiveGrouping.Count | Should -Be 73
         }
 
         It "Display Results - Security Vulnerability" {
@@ -130,11 +130,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 13
+            $cveTests.Count | Should -Be 15
             $downlaodDomains = GetObject "CVE-2021-1730"
             $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 14
+            $Script:ActiveGrouping.Count | Should -Be 20
         }
     }
 

@@ -7,6 +7,8 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
@@ -290,6 +292,12 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "2308.27", "2375.24" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
         }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "2375.31", "2507.12" `
+                -CVENames "CVE-2022-34692"
+        }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
         if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
@@ -396,6 +404,12 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "922.27", "986.22" `
                 -CVENames "CVE-2022-23277", "CVE-2022-24463"
         }
+
+        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12) {
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "986.29", "1118.12" `
+                -CVENames "CVE-2022-34692"
+        }
     } else {
         Write-Verbose "Unknown Version of Exchange"
     }
@@ -409,10 +423,13 @@ function Invoke-AnalyzerSecurityCveCheck {
         OsInformation       = $osInformation
     }
 
+    Invoke-AnalyzerSecurityIISModules -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2020-0796 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2020-1147 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-1730 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-34470 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2022-21978 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    # Make sure that these stay as the last one to keep the output more readable
+    Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
 }

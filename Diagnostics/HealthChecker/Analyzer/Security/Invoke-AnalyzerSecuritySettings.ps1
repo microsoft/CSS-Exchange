@@ -83,21 +83,11 @@ function Invoke-AnalyzerSecuritySettings {
     }
     Add-AnalyzedResultInformation @params
 
-    function GetBadTlsValueSetting {
-        [CmdletBinding()]
-        param(
-            [Parameter(ValueFromPipeline = $true)]
-            $TlsSetting,
-            $PropertyName
-        )
-        process {
-            return $TlsSetting | Where-Object { $null -ne $_."$PropertyName" -and $_."$PropertyName" -ne 0 -and $_."$PropertyName" -ne 1 }
-        }
-    }
     $testValues = @("ServerEnabledValue", "ClientEnabledValue", "ServerDisabledByDefaultValue", "ClientDisabledByDefaultValue")
 
     foreach ($testValue in $testValues) {
-        $results = $tlsSettings.Values | GetBadTlsValueSetting -PropertyName $testValue
+        # If value not set to a 0 or a 1.
+        $results = $tlsSettings.Values | Where-Object { $null -ne $_."$testValue" -and $_."$testValue" -ne 0 -and $_."$testValue" -ne 1 }
 
         if ($null -ne $results) {
             $displayLinkToDocsPage = $true
@@ -110,13 +100,28 @@ function Invoke-AnalyzerSecuritySettings {
                 Add-AnalyzedResultInformation @params
             }
         }
+
+        # if value not defined, we should call that out.
+        $results = $tlsSettings.Values | Where-Object { $null -eq $_."$testValue" }
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.TLSVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
     }
 
     if ($lowerTlsVersionDisabled -and
         ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
         $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
         $params = $baseParams + @{
-            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2"
+            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Red"
             DisplayCustomTabNumber = 2
         }
@@ -131,27 +136,14 @@ function Invoke-AnalyzerSecuritySettings {
         }
         Add-AnalyzedResultInformation @params
 
-        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
-            "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
-            "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
-
         $params = $baseParams + @{
-            Details                = "For More Information on how to properly set TLS follow these blog posts:"
+            Details                = "For More Information on how to properly set TLS follow this guide: https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Yellow"
             DisplayTestingValue    = $true
             DisplayCustomTabNumber = 2
             TestingName            = "Detected TLS Mismatch Display More Info"
         }
         Add-AnalyzedResultInformation @params
-
-        foreach ($displayValue in $displayValues) {
-            $params = $baseParams + @{
-                Details                = $displayValue
-                DisplayWriteType       = "Yellow"
-                DisplayCustomTabNumber = 3
-            }
-            Add-AnalyzedResultInformation @params
-        }
     }
 
     if ($displayLinkToDocsPage) {
@@ -189,6 +181,37 @@ function Invoke-AnalyzerSecuritySettings {
         TestingName = "NET TLS Settings Group"
     }
     Add-AnalyzedResultInformation @params
+
+    # Check for NULL values on NETv4 registry settings
+    $testValues = @("SystemDefaultTlsVersionsValue", "SchUseStrongCryptoValue", "WowSystemDefaultTlsVersionsValue", "WowSchUseStrongCryptoValue")
+    $displayLinkToDocsPage = $false
+
+    foreach ($testValue in $testValues) {
+        $results = $osInformation.TLSSettings.Registry.NET["NETv4"] | Where-Object { $null -eq $_."$testValue" }
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.NetVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+    }
+
+    if ($displayLinkToDocsPage) {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-TLSConfigDocs"
+            DisplayWriteType       = "Yellow"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "Display Link to Docs Page"
+        }
+        Add-AnalyzedResultInformation @params
+    }
 
     $params = $baseParams + @{
         Name    = "SecurityProtocol"

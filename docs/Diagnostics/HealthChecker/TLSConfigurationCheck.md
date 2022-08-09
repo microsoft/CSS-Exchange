@@ -8,6 +8,8 @@ An invalid TLS configuration can cause issues within Exchange for communication.
 
 Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.
 
+By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible.
+
 The `Configuration` result can provide a value of `Enabled`, `Disabled`, `Half Disabled`, or `Misconfigured`. They are defined by the following conditions:
 
 Value | Definition
@@ -42,6 +44,8 @@ At each location, we are looking at the value of `SystemDefaultTlsVersions` and 
 Yes
 
 **Additional resources:**
+
+[Exchange Server TLS configuration best practices](https://aka.ms/HC-TLSGuide)
 
 [Exchange Server TLS guidance, part 1: Getting Ready for TLS 1.2](https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649)
 

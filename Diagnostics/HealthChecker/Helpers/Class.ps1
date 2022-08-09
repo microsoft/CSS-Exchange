@@ -26,6 +26,7 @@ using System.Collections;
             public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
             public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
+            public object ExtendedProtectionConfig; //Stores the extended protection configuration
             public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
             public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
@@ -42,7 +43,7 @@ using System.Collections;
             public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
             public object DependentServices; // store the results for the dependent services of Exchange.
-            public object IISConfigurationSettings; // store the results for the IIS Settings test
+            public object IISSettings;  //Stores the IISConfigurationSettings, applicationHostConfig and IISModulesInformation
         }
 
         public class ExchangeBuildInformation
