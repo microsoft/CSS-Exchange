@@ -99,11 +99,13 @@ function Get-ExtendedProtectionConfiguration {
                         $ep = $configNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking
 
                         if (-not ([string]::IsNullOrEmpty($ep))) {
-                            Write-Verbose "Failed to find tokenChecking"
+                            Write-Verbose "Found tokenChecking: $ep"
                             $extendedProtection = $ep
+                        } else {
+                            Write-Verbose "Failed to find tokenChecking. Using default value of None."
                         }
 
-                        $sslSettings = $configNode.'system.webServer'.security.access.sslFlags
+                        [string]$sslSettings = $configNode.'system.webServer'.security.access.sslFlags
 
                         if ([string]::IsNullOrEmpty($sslSettings)) {
                             Write-Verbose "Failed to find SSL settings for the path. Falling back to the root."
@@ -111,7 +113,7 @@ function Get-ExtendedProtectionConfiguration {
                             if ($rootIndex -ne -1) {
                                 Write-Verbose "Found root path."
                                 $rootConfigNode = $Xml.configuration.location[$rootIndex]
-                                $sslSettings = $rootConfigNode.'system.webServer'.security.access.sslFlags
+                                [string]$sslSettings = $rootConfigNode.'system.webServer'.security.access.sslFlags
                             }
                         }
 
@@ -119,6 +121,8 @@ function Get-ExtendedProtectionConfiguration {
 
                         if ($null -ne $sslSettings) {
                             [array]$sslFlags = ($sslSettings.Split(",").ToLower()).Trim()
+                        } else {
+                            $sslFlags = $null
                         }
 
                         # SSL flags: https://docs.microsoft.com/iis/configuration/system.webserver/security/access#attributes
@@ -126,7 +130,9 @@ function Get-ExtendedProtectionConfiguration {
                         $ssl128Bit = $false
                         $clientCertificate = "Unknown"
 
-                        if ($sslFlags.Contains("none")) {
+                        if ($null -eq $sslFlags) {
+                            Write-Verbose "Failed to find SSLFlags"
+                        } elseif ($sslFlags.Contains("none")) {
                             $clientCertificate = "Ignore"
                         } else {
                             if ($sslFlags.Contains("ssl")) { $requireSsl = $true }
