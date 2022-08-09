@@ -39,10 +39,19 @@ function Get-IPRangeAllowListFromFile {
             return
         }
 
-        <#if ($null -eq $SubnetStrings -or $SubnetStrings.Length -eq 0) {
-            Write-Host "The provided file is empty."
-            return
-        }#>
+        if ($null -eq $SubnetStrings -or $SubnetStrings.Length -eq 0) {
+            $SubnetStrings = @()
+            Write-Warning "The provided file is empty."
+            $params = @{
+                Message   = "Display Warning about using an empty ip file for ip filtering"
+                Target    = "The file provided to create the ip filtering allow list is empty." +
+                " Using this will block all external inbound connections." +
+                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
+                Operation = "Enabling IP Filtering Mitigation"
+            }
+
+            Show-Disclaimer @params
+        }
 
         # Log all the IPs present in the txt file supplied by user
         Write-Verbose ("Read the contents of the file Successfully. List of IP ranges received from user: {0}" -f [string]::Join(", ", $SubnetStrings))
