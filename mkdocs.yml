@@ -67,6 +67,7 @@ nav:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
     - EOMT: Security/EOMT.md
+    - Extended Protection: Security/Extended-Protection.md
     - ExchangeMitigations: Security/ExchangeMitigations.md
     - Test-CVE-2021-34470: Security/Test-CVE-2021-34470.md
     - Test-ProxyLogon: Security/Test-ProxyLogon.md
