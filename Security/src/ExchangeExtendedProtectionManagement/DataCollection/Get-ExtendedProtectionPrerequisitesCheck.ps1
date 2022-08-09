@@ -63,6 +63,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                     ServerOnline                    = $extendedProtectionConfiguration.ServerConnected
                 })
         }
+        Write-Progress @progressParams -Completed
     } end {
         return $results
     }
