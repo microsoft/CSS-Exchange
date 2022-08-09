@@ -92,4 +92,5 @@ repo_url: https://github.com/microsoft/CSS-Exchange
 edit_uri: edit/main/docs/
 site_url: https://microsoft.github.io/CSS-Exchange
 plugins:
+  - search
   - git-revision-date-localized
