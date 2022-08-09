@@ -1455,6 +1455,10 @@
         
           
         
+          
+        
+          
+        
       
       
         <label class="md-nav__link" for="__nav_11">
@@ -1477,6 +1481,34 @@
     <li class="md-nav__item">
       <a href="../../../Security/EOMT/" class="md-nav__link">
         EOMT
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../Security/Extended-Protection/" class="md-nav__link">
+        Extended Protection
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
+        ExchangeExtendedProtectionManagement
       </a>
     </li>
   
@@ -1753,6 +1785,7 @@
 <p>We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.</p>
 <p>An invalid TLS configuration can cause issues within Exchange for communication.</p>
 <p>Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.</p>
+<p>By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible.</p>
 <p>The <code>Configuration</code> result can provide a value of <code>Enabled</code>, <code>Disabled</code>, <code>Half Disabled</code>, or <code>Misconfigured</code>. They are defined by the following conditions:</p>
 <table>
 <thead>
@@ -1797,6 +1830,7 @@
 <p><strong>Included in HTML Report?</strong></p>
 <p>Yes</p>
 <p><strong>Additional resources:</strong></p>
+<p><a href="https://aka.ms/HC-TLSGuide">Exchange Server TLS configuration best practices</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649">Exchange Server TLS guidance, part 1: Getting Ready for TLS 1.2</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761">Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898">Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1</a></p>
@@ -1806,7 +1840,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 20, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 9, 2022</span>
       
     
   </small>

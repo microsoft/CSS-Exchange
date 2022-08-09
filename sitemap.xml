@@ -286,7 +286,17 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Security/ExchangeExtendedProtectionManagement/</loc>
+         <lastmod>2022-08-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Security/ExchangeMitigations/</loc>
+         <lastmod>2022-08-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Security/Extended-Protection/</loc>
          <lastmod>2022-08-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
