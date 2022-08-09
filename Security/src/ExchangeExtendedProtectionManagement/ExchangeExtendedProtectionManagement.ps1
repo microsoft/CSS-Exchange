@@ -312,6 +312,34 @@ begin {
                         exit
                     }
                 }
+
+                # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC vdir check for SSLOffloading.
+                # TODO: Improve by doing an LDAP query instead.
+                $counter = 0
+                $totalCount = $ExchangeServers.Count
+                $progressParams = @{
+                    Activity        = "Prerequisites Check"
+                    Status          = [string]::Empty
+                    PercentComplete = 0
+                }
+
+                foreach ($server in $ExchangeServers) {
+                    $counter++
+                    $progressParams.Status = "Checking RPC FE SSLOffloading - $($server.Name)"
+                    $progressParams.PercentComplete = ($counter / $totalCount * 100)
+                    Write-Progress @progressParams
+                    try {
+                        if ((Get-OutlookAnywhere -Identity "$($server.Name)\RPC (Default Web Site)" -ErrorAction Stop).SSLOffloading -eq $true) {
+                            Write-Warning "'$($server.Name)\RPC (Default Web Site)' has SSLOffloading set to true. Therefore we can't configure Extended Protection."
+                            Write-Host "Please run the following to fix: Set-OutlookAnywhere -Identity '$($server.Name)\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
+                            Write-Host "Recommended to do this for all your servers in the environment so they are on the same configuration."
+                        }
+                    } catch {
+                        Write-Warning "Failed to run Get-OutlookAnywhere on server $($server.Name). Failing out the script. Inner Exception: $_"
+                        exit
+                    }
+                }
+                Write-Progress @progressParams -Completed
             } else {
                 Write-Verbose "No online servers that are in a supported state. Skipping over TLS Check."
             }
