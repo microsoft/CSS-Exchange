@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Diagnostics\HealthChecker\DataCollection\ServerInformation\Get-AllNicInformation.ps1
+. $PSScriptRoot\..\..\..\..\Diagnostics\HealthChecker\DataCollection\ServerInformation\Get-AllNicInformation.ps1
 
 # This function is used to get a list of all the IP in use by the Exchange Servers accross the topology
 function Get-ExchangeServerIPs {
