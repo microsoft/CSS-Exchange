@@ -512,9 +512,9 @@ begin {
 
                     $ipRangeAllowListRules = $results.ipRangeAllowListRules
                     # Apply rules
-                    Invoke-ConfigureMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
+                    Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
-                    Invoke-ConfigureMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $null -Site $Site -VDir $VDir
+                    Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
             }
             elseif ($ValidateMitigationSelected) {
@@ -528,9 +528,9 @@ begin {
 
                     $ipRangeAllowListRules = $results.ipRangeAllowListRules
                     # Validate mitigation
-                    Invoke-ValidateMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
+                    Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
-                    Invoke-ValidateMitigation -ExchangeServers $onlineSupportedServers.ComputerName -ipRangeAllowListRules $null -Site $Site -VDir $VDir
+                    Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
             }
         } elseif ($RollbackSelected) {
