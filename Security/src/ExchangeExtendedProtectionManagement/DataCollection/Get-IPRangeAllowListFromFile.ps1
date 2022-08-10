@@ -31,7 +31,7 @@ function Get-IPRangeAllowListFromFile {
         }
 
         try {
-            $SubnetStrings = (Get-Content -Path $FilePath)
+            $SubnetStrings = (Get-Content -Path $FilePath) | ? {$_.trim() -ne "" } 
         } catch {
             Write-Host "Unable to read the content of specified file. Inner Exception" -ForegroundColor Red
             Write-HostErrorInformation $_
@@ -51,10 +51,13 @@ function Get-IPRangeAllowListFromFile {
             }
 
             Show-Disclaimer @params
+            $ipRangesString = "{}"
+        } else {
+            $ipRangesString  = [string]::Join(", ", $SubnetStrings)
         }
 
         # Log all the IPs present in the txt file supplied by user
-        Write-Verbose ("Read the contents of the file Successfully. List of IP ranges received from user: {0}" -f [string]::Join(", ", $SubnetStrings))
+        Write-Verbose ("Read the contents of the file Successfully. List of IP ranges received from user: {0}" -f $ipRangesString)
 
         Write-Verbose "Validating the IP ranges specified in the file"
         try {
@@ -103,6 +106,13 @@ function Get-IPRangeAllowListFromFile {
                     }
                 }
             }
+
+            if($results.ipRangeAllowListRules.count -gt 500){
+                Write-Host ("Too many IP filtering rules. Please reduce the specified entries by providing appropriate subnets." -f $SubnetMaskString) -ForegroundColor Red
+                $results.IsError = $true
+                return
+            }
+
         } catch {
             Write-Host ("Unable to create IP allow rules. Inner Exception") -ForegroundColor Red
             Write-HostErrorInformation $_

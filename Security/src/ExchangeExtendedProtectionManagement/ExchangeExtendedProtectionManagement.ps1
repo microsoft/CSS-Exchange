@@ -258,6 +258,11 @@ begin {
             $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
         }
 
+        if($ExchangeServers -eq $null){
+            Write-Host "No exchange servers to process. Please specify server filters correctly"
+            exit
+        }
+
         if ($ShowExtendedProtection) {
             Write-Verbose "Showing Extended Protection Information Only"
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
