@@ -13,15 +13,15 @@ $ValidateMitigationScriptBlock = {
     $IpRangesForFiltering = $Arguments.IpRangesForFiltering
 
     $results = @{
-        IsEPVerified            = $false
-        IsEPOff                 = $false
+        IsEPVerified              = $false
+        IsEPOff                   = $false
         IsWindowsFeatureInstalled = $false
-        IsWindowsFeatureVerified = $false
-        AreIPRulesVerified      = $false
-        IsDefaultFilterVerified = $false
-        IsDefaultFilterDeny     = $false
-        RulesNotFound           = @()
-        ErrorContext            = $null
+        IsWindowsFeatureVerified  = $false
+        AreIPRulesVerified        = $false
+        IsDefaultFilterVerified   = $false
+        IsDefaultFilterDeny       = $false
+        RulesNotFound             = @()
+        ErrorContext              = $null
     }
 
     function Get-LocalIpAddresses {
@@ -59,7 +59,7 @@ $ValidateMitigationScriptBlock = {
             [Parameter(Mandatory = $true)]
             [hashtable]$results
         )
-        
+
         $results.IsWindowsFeatureInstalled = (Get-WindowsFeature -Name "Web-IP-Security").InstallState -eq "Installed"
         $results.IsWindowsFeatureVerified = $true
 

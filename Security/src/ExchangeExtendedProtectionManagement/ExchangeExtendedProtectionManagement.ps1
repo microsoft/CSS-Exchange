@@ -83,9 +83,9 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
-    
+
     $SupportedVDirTypes = @('EWSBackend')
-    $SupportedRestrictTypes = $SupportedVDirTypes | ForEach-Object {"RestrictType$_"}
+    $SupportedRestrictTypes = $SupportedVDirTypes | ForEach-Object { "RestrictType$_" }
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
         "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
@@ -113,8 +113,8 @@ begin {
     }
 
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
-            -AppendDateTimeToFileName $false `
-            -ErrorAction SilentlyContinue
+        -AppendDateTimeToFileName $false `
+        -ErrorAction SilentlyContinue
 
     SetWriteHostAction ${Function:Write-HostLog}
 
@@ -142,11 +142,8 @@ begin {
         }
     }
 
-    
-
-    if(($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")){   
-        
-        if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation"){
+    if (($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")) {
+        if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
             if ($SupportedVDirTypes -contains $RestrictType) {
                 $ConfigureMitigationSelected = $true
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
@@ -158,7 +155,7 @@ begin {
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-            if($SupportedRestrictTypes -contains $ValidateMitigation) {
+            if ($SupportedRestrictTypes -contains $ValidateMitigation) {
                 $ValidateMitigationSelected = $true
                 $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
@@ -182,7 +179,6 @@ begin {
             $MitigationTypeSelected = 'OnlyEWSOffMitigation'
         }
     }
-    
 
     if ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection) {
         $ConfigureEPSelected = $true
@@ -205,7 +201,6 @@ begin {
     }
 
     try {
-
         if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
             exit
@@ -263,7 +258,7 @@ begin {
             $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
         }
 
-        if($ExchangeServers -eq $null){
+        if ($null -eq $ExchangeServers) {
             Write-Host "No exchange servers to process. Please specify server filters correctly"
             exit
         }
@@ -318,7 +313,6 @@ begin {
             $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
 
             if ($null -ne $prerequisitesCheck) {
-
                 Write-Host ""
                 # Remove the down servers from $ExchangeServers list.
                 $downServerName = New-Object 'System.Collections.Generic.List[string]'
@@ -362,7 +356,6 @@ begin {
                 }
 
                 if ($unsupportedServers.Count -gt 0) {
-
                     $serverInList = $null -ne ($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
 
                     if ($serverInList) {
@@ -509,16 +502,14 @@ begin {
                 } else {
                     Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
                 }
-            }
-            elseif ($ConfigureMitigationSelected) {
+            } elseif ($ConfigureMitigationSelected) {
                 if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Apply rules
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
-            }
-            elseif ($ValidateMitigationSelected) {
+            } elseif ($ValidateMitigationSelected) {
                 if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Validate mitigation
                     Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir

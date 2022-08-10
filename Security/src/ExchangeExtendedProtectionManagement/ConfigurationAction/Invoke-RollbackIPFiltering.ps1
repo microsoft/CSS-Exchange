@@ -33,15 +33,15 @@ $RollbackIPFiltering = {
             $BackupPath
         )
 
-       $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
-       $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
-       if ($null -eq $ExistingRules){
-           $ExistingRules = @()
-       }
-       
-       $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-       $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
-       return $true
+        $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+        $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
+        if ($null -eq $ExistingRules) {
+            $ExistingRules = @()
+        }
+
+        $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+        $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
+        return $true
     }
 
     function Restore-OriginalIpFilteringRules {
@@ -62,13 +62,13 @@ $RollbackIPFiltering = {
     }
 
     try {
-        $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/','-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
-        if($results.RestorePath -eq $null){
+        $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
+        if ($results.RestorePath -eq $null) {
             throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
         }
         $results.RestoreFileExists = $true
 
-        $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/','-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
+        $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
         $results.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $results.BackUpPath
 
         $originalIpFilteringConfigurations = (Get-Content $results.RestorePath | Out-String | ConvertFrom-Json)
@@ -122,7 +122,7 @@ function Invoke-RollbackIPFiltering {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
             $Failed = $false
 
-            if($resultsInvoke.RestoreFileExists){
+            if ($resultsInvoke.RestoreFileExists) {
                 if ($resultsInvoke.BackupCurrentSuccessful) {
                     Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($resultsInvoke.BackUpPath)"
                     if ($resultsInvoke.RestoreSuccessful) {
@@ -138,8 +138,8 @@ function Invoke-RollbackIPFiltering {
                     $Failed = $true
                 }
             } else {
-                 Write-Host "No restore file exists on server $($Server.Name). Aborting rollback on the server $($Server.Name)." -ForegroundColor Red                 
-                 $Failed = $true
+                Write-Host "No restore file exists on server $($Server.Name). Aborting rollback on the server $($Server.Name)." -ForegroundColor Red
+                $Failed = $true
             }
 
             if ($Failed) {

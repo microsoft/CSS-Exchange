@@ -31,7 +31,7 @@ function Get-IPRangeAllowListFromFile {
         }
 
         try {
-            $SubnetStrings = (Get-Content -Path $FilePath) | ? {$_.trim() -ne "" } 
+            $SubnetStrings = (Get-Content -Path $FilePath) | Where-Object { $_.trim() -ne "" }
         } catch {
             Write-Host "Unable to read the content of file provided for IPRange. Inner Exception" -ForegroundColor Red
             Write-HostErrorInformation $_
@@ -97,22 +97,21 @@ function Get-IPRangeAllowListFromFile {
                         $results.IsError = $true
                         return
                     }
-                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object {$_.Type -eq "Subnet" -and $_.IP -eq $IpAddressString -and $_.SubnetMask -eq $SubnetMaskString -and $_.Allowed -eq $true})) {
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Subnet" -and $_.IP -eq $IpAddressString -and $_.SubnetMask -eq $SubnetMaskString -and $_.Allowed -eq $true })) {
                         $results.ipRangeAllowListRules  += @{Type = "Subnet"; IP=$IpAddressString; SubnetMask=$SubnetMaskString; Allowed=$true }
                     }
                 } else {
-                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object {$_.Type -eq "Single IP" -and $_.IP -eq $IpAddressString -and $_.Allowed -eq $true})) {
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $IpAddressString -and $_.Allowed -eq $true })) {
                         $results.ipRangeAllowListRules  += @{Type = "Single IP"; IP=$IpAddressString; Allowed=$true }
                     }
                 }
             }
 
-            if($results.ipRangeAllowListRules.count -gt 500){
+            if ($results.ipRangeAllowListRules.count -gt 500) {
                 Write-Host ("Too many IP filtering rules. Please reduce the specified entries by providing appropriate subnets." -f $SubnetMaskString) -ForegroundColor Red
                 $results.IsError = $true
                 return
             }
-
         } catch {
             Write-Host ("Unable to create IP allow rules. Inner Exception") -ForegroundColor Red
             Write-HostErrorInformation $_
