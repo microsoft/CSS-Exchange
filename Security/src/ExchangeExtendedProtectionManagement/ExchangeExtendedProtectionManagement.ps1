@@ -28,11 +28,13 @@
 param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
@@ -82,12 +84,8 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     
-    enum MitigationTypes {
-        OnlyEP
-        Full
-    }
-
-    $SupportedRestrictTypes = @('EWSBackend')
+    $SupportedVDirTypes = @('EWSBackend')
+    $SupportedRestrictTypes = $SupportedVDirTypes | ForEach-Object {"RestrictType$_"}
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
         "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
@@ -114,6 +112,12 @@ begin {
         "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
     }
 
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
+            -AppendDateTimeToFileName $false `
+            -ErrorAction SilentlyContinue
+
+    SetWriteHostAction ${Function:Write-HostLog}
+
     $RollbackSelected = $false
     $RollbackRestrictType = $false
     $ConfigureEPSelected = $false
@@ -127,13 +131,13 @@ begin {
 
         if ($RollbackType -eq "RestoreIISAppConfig") {
             $RollbackRestoreIISAppConfig = $true
-        } elseif ($SupportedRestrictTypes -contains $RollbackType.Replace("RestrictType", "")) {
+        } elseif ($SupportedRestrictTypes -contains $RollbackType) {
             $RollbackRestrictType = $true
             $RestrictType = $RollbackType.Replace("RestrictType", "")
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         } else {
-            Write-Host "Please provide a valid value of RollbackType" -ForegroundColor Red
+            Write-Host "Please provide a valid value of RollbackType. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
             exit
         }
     }
@@ -143,32 +147,39 @@ begin {
     if(($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")){   
         
         if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation"){
-            if ($SupportedRestrictTypes -contains $RestrictType) {
+            if ($SupportedVDirTypes -contains $RestrictType) {
                 $ConfigureMitigationSelected = $true
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of RestrictType" -ForegroundColor Red
+                Write-Host "Please provide a valid value of RestrictType. Valid Values: $([string]::Join("/ " ,$SupportedVDirTypes))" -ForegroundColor Red
                 exit
             }
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-            if($SupportedRestrictTypes -contains $ValidateMitigation.Replace("RestrictType", "")) {
+            if($SupportedRestrictTypes -contains $ValidateMitigation) {
                 $ValidateMitigationSelected = $true
                 $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of ValidateMitigation" -ForegroundColor Red
+                Write-Host "Please provide a valid value of ValidateMitigation. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
                 exit
             }
         }
 
         if ($PSBoundParameters.ContainsKey("IPRange")) {
-            $MitigationTypeSelected = [MitigationTypes]::Full
+            $MitigationTypeSelected = 'EWSOffAndIPMitigation'
+            # Get list of IPs in object form from the file specified
+            $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
+            if ($ipResults.IsError) {
+                exit
+            }
+
+            $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
         } else {
-            $MitigationTypeSelected = [MitigationTypes]::OnlyEP
+            $MitigationTypeSelected = 'OnlyEWSOffMitigation'
         }
     }
     
@@ -194,12 +205,6 @@ begin {
     }
 
     try {
-
-        $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
-            -AppendDateTimeToFileName $false `
-            -ErrorAction SilentlyContinue
-
-        SetWriteHostAction ${Function:Write-HostLog}
 
         if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
@@ -506,15 +511,7 @@ begin {
                 }
             }
             elseif ($ConfigureMitigationSelected) {
-                if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
-                    # Get list of IPs in object form from the file specified
-                    $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
-
-                    if ($results.IsError) {
-                        exit
-                    }
-
-                    $ipRangeAllowListRules = $results.ipRangeAllowListRules
+                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Apply rules
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
@@ -522,15 +519,7 @@ begin {
                 }
             }
             elseif ($ValidateMitigationSelected) {
-                if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
-                    # Get list of IPs in object form from the file specified
-                    $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
-
-                    if ($results.IsError) {
-                        exit
-                    }
-
-                    $ipRangeAllowListRules = $results.ipRangeAllowListRules
+                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Validate mitigation
                     Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
