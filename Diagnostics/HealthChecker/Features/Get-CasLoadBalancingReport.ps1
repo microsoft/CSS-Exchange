@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Helpers\PerformanceCountersFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
 function Get-CASLoadBalancingReport {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -59,16 +60,7 @@ function Get-CASLoadBalancingReport {
     ) `
         -CustomErrorAction "SilentlyContinue"
 
-
-    if ($currentErrors -ne $Error.Count) {
-        $i = 0
-        while ($i -lt ($Error.Count - $currentErrors)) {
-            Invoke-CatchActions -CopyThisError $Error[$i]
-            $i++
-        }
-
-        Write-Verbose("Failed to get some counters")
-    }
+    Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
 
     foreach ($counterSample in $counterSamples) {
         $counterObject = Get-CounterFullNameToCounterObject -FullCounterName $counterSample.Path
