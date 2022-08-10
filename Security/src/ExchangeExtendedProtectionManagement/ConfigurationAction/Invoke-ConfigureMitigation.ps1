@@ -224,12 +224,13 @@ function Invoke-ConfigureMitigation {
             } else {
                 $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
             }
-            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
-            Write-Host ("Applying Mitigations on Server {0}" -f $Server)
+
+            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
+            Write-Host ("Setting Extended protection flag to None on Server {0}" -f $Server)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
             if ($resultsInvoke.IsTurnOffEPSuccessful) {
-                Write-Host ("Successfully turned Off Extended Protection") -ForegroundColor Green
+                Write-Host ("Successfully turned Off Extended Protection") 
             } else {
                 Write-Host ("Script failed to Turn Off Extended protection with the Inner Exception:") -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
@@ -242,8 +243,10 @@ function Invoke-ConfigureMitigation {
                 continue
             }
 
+            Write-Host ("Adding IP Restriction rules on Server {0}" -f $Server)
+
             if ($resultsInvoke.IsWindowsFeatureInstalled) {
-                Write-Host ("Successfully installed windows feature - Web-IP-Security") -ForegroundColor Green
+                Write-Host ("Successfully installed windows feature - Web-IP-Security") 
             } else {
                 Write-Host ("Script failed to install windows feature - Web-IP-Security with the Inner Exception:") -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
@@ -252,7 +255,7 @@ function Invoke-ConfigureMitigation {
             }
 
             if ($resultsInvoke.IsGetLocalIPSuccessful) {
-                Write-Host ("Successfully retrieved local IPs for the server") -ForegroundColor Green
+                Write-Host ("Successfully retrieved local IPs for the server") 
                 if ($null -ne $resultsInvoke.LocalIPs -and $resultsInvoke.LocalIPs.Length -gt 0) {
                     Write-Verbose ("Local IPs detected for this server: {0}" -f (GetCommaSaperatedString -list $resultsInvoke.LocalIPs))
                 } else {
@@ -266,7 +269,7 @@ function Invoke-ConfigureMitigation {
             }
 
             if ($resultsInvoke.IsBackUpSuccessful) {
-                Write-Host ("Successfully backed up IP filtering allow list") -ForegroundColor Green
+                Write-Host ("Successfully backed up IP filtering allow list") 
             } else {
                 Write-Host ("Script failed to backup IP filtering allow list with the Inner Exception:") -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
@@ -275,7 +278,7 @@ function Invoke-ConfigureMitigation {
             }
 
             if ($resultsInvoke.IsCreateIPRulesSuccessful) {
-                Write-Host ("Successfully updated IP filtering allow list") -ForegroundColor Green
+                Write-Host ("Successfully updated IP filtering allow list") 
                 if ($resultsInvoke.IPsNotAdded.Length -gt 0) { 
                     $line = ("Few IPs were not added to the allow list as deny rules for these IPs were already present.")
                     Write-Warning ($line + "Check logs for further details.")
@@ -290,7 +293,7 @@ function Invoke-ConfigureMitigation {
             }
 
             if ($resultsInvoke.IsSetDefaultRuleSuccessful) {
-                Write-Host ("Successfully set the default IP filtering rule to deny") -ForegroundColor Green
+                Write-Host ("Successfully set the default IP filtering rule to deny") 
             } else {
                 Write-Host ("Script failed to set the default IP filtering rule to deny with the Inner Exception:") -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext

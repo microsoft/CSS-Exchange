@@ -25,7 +25,7 @@ function Get-IPRangeAllowListFromFile {
         $IsPathValid = Test-Path -Path $FilePath
 
         if ($IsPathValid -eq $false) {
-            Write-Host "The path to file specified is invalid. Please provide a valid path." -ForegroundColor Red
+            Write-Host "Input file name for provided for IPRange isn't valid. Rexecute the command with correct path for IPRange parameter." -ForegroundColor Red
             $results.IsError = $true
             return
         }
@@ -33,7 +33,7 @@ function Get-IPRangeAllowListFromFile {
         try {
             $SubnetStrings = (Get-Content -Path $FilePath) | ? {$_.trim() -ne "" } 
         } catch {
-            Write-Host "Unable to read the content of specified file. Inner Exception" -ForegroundColor Red
+            Write-Host "Unable to read the content of file provided for IPRange. Inner Exception" -ForegroundColor Red
             Write-HostErrorInformation $_
             $results.IsError = $true
             return
@@ -76,7 +76,7 @@ function Get-IPRangeAllowListFromFile {
 
                 if ($null -eq $IpAddress -or ($IpAddress.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetwork -and $IpAddress.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetworkV6)) {
                     # Invalid IP address found
-                    Write-Host ("Invalid IP address: {0} found in CSV." -f $IpAddressString) -ForegroundColor Red
+                    Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid IP address detected: {0}." -f $IpAddressString) -ForegroundColor Red
                     $results.IsError = $true
                     return
                 } elseif ($IpAddress.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetworkV6) {
@@ -89,11 +89,11 @@ function Get-IPRangeAllowListFromFile {
                     # Check if the subnet value is valid (IPv4 <= 32, IPv6 <= 128 or empty)
                     $SubnetMask = $SubnetMaskString -as [int]
                     if ($null -eq $SubnetMask) {
-                        Write-Host ("Invalid Subnet Mask found: Unable to parse Subnet Mask {0}. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
+                        Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid Subnet Mask found: Unable to parse Subnet Mask {0}. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
                         $results.IsError = $true
                         return
                     } elseif (($SubnetMask -gt 32 -and -not $IsIPv6) -or $SubnetMask -gt 128 -or $SubnetMask -lt 0) {
-                        Write-Host ("Invalid Subnet Mask found: The Subnet Mask {0} is not in valid range. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
+                        Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid Subnet Mask found: The Subnet Mask {0} is not in valid range. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
                         $results.IsError = $true
                         return
                     }

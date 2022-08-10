@@ -303,11 +303,11 @@ begin {
 
         if ($ConfigureEPSelected -or $ConfigureMitigationSelected -or $ValidateMitigation) {
             if ($ConfigureMitigationSelected) {
-                Write-Host "Mitigations will only be applied on the servers which pass the Extended Protection Prerequisite Check"
+                Write-Host "IP Restrictions will only be applied on the servers which pass the Extended Protection Prerequisite Check"
             }
 
             if ($ValidateMitigation) {
-                Write-Host "Mitigations will only be verified on the servers which pass the Extended Protection Prerequisite Check"
+                Write-Host "IP Restrictions will only be validated on the servers which pass the Extended Protection Prerequisite Check"
             }
 
             $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS

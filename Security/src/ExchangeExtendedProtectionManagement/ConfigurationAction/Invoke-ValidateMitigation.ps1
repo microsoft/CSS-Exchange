@@ -181,11 +181,11 @@ function Invoke-ValidateMitigation {
             $counter ++;
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: list of length" -f $Server, $SiteVDirLocation, $ipRangeAllowListRules.Length.ToString())
-            Write-Host ("Validating Mitigations on Server {0}" -f $Server)
+            Write-Host ("Validating state of Extended protection flag on Server {0}" -f $Server)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
 
             if ($resultsInvoke.IsEPOff) {
-                Write-Host ("Expected: The state of Extended protection flag is None") -ForegroundColor Green
+                Write-Host ("Expected: The state of Extended protection flag is None")
             } elseif ($resultsInvoke.IsEPVerified) {
                 Write-Host ("Unexpected: The state of Extended protection flag is not set to None") -ForegroundColor Red
                 $UnMitigatedServersEP += $Server
@@ -201,6 +201,7 @@ function Invoke-ValidateMitigation {
                 continue
             }
 
+            Write-Host ("Validating IP restrictions on Server {0}" -f $Server)
             $IsFilterUnMitigated = $false
 
             if (-not $resultsInvoke.IsWindowsFeatureVerified) {
@@ -212,7 +213,7 @@ function Invoke-ValidateMitigation {
                 Write-Host ("Unexpected: Windows feature Web-IP-Security is not present on the server") -ForegroundColor Red
                 $IsFilterUnMitigated = $true
             } else {
-                Write-Host ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server") -ForegroundColor Green
+                Write-Host ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server")
                 if (-not $resultsInvoke.AreIPRulesVerified) {
                     Write-Host ("Unknown: Script failed to verify IP Filtering Rules with Inner Exception") -ForegroundColor Red
                     Write-HostErrorInformation $results.ErrorContext
@@ -223,11 +224,11 @@ function Invoke-ValidateMitigation {
                     Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $resultsInvoke.RulesNotFound))
                     $IsFilterUnMitigated = $true
                 } else {
-                    Write-Host ("Expected: Successfully verified all the IP filtering rules") -ForegroundColor Green
+                    Write-Host ("Expected: Successfully verified all the IP filtering rules")
                 }
 
                 if ($resultsInvoke.IsDefaultFilterDeny) {
-                    Write-Host ("Expected: The default IP Filtering rule is set to deny") -ForegroundColor Green
+                    Write-Host ("Expected: The default IP Filtering rule is set to deny")
                 } elseif ($resultsInvoke.IsDefaultFilterVerified) {
                     Write-Host ("Unexpected: The default IP Filtering rule is not set to deny") -ForegroundColor Red
                     $IsFilterUnMitigated = $true

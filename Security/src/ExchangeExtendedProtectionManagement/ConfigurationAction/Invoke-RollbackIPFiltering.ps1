@@ -126,7 +126,7 @@ function Invoke-RollbackIPFiltering {
                 if ($resultsInvoke.BackupCurrentSuccessful) {
                     Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($resultsInvoke.BackUpPath)"
                     if ($resultsInvoke.RestoreSuccessful) {
-                        Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($resultsInvoke.RestorePath)" -ForegroundColor Green
+                        Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($resultsInvoke.RestorePath)"
                     } else {
                         Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
                         Write-HostErrorInformation $resultsInvoke.ErrorContext
