@@ -176,7 +176,7 @@ function Invoke-ValidateMitigation {
         foreach ($Server in $ExchangeServers) {
             $baseStatus = "Processing: $Server -"
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
-            $progressParams.Status = "$baseStatus Applying rules"
+            $progressParams.Status = "$baseStatus Validating rules"
             Write-Progress @progressParams
             $counter ++;
 
