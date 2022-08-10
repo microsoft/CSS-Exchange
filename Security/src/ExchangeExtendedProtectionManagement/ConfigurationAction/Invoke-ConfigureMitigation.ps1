@@ -225,10 +225,10 @@ function Invoke-ConfigureMitigation {
                 $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
             }
 
-            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
-            Write-Host ("Setting Extended protection flag to None on Server {0}" -f $Server)
+            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
+            Write-Host ("Setting Extended protection flag to None on Server {0}" -f $Server)
             if ($resultsInvoke.IsTurnOffEPSuccessful) {
                 Write-Host ("Successfully turned Off Extended Protection")
             } else {
@@ -244,7 +244,6 @@ function Invoke-ConfigureMitigation {
             }
 
             Write-Host ("Adding IP Restriction rules on Server {0}" -f $Server)
-            Write-Verbose ("Allow rules for the following IPs will be added: {0}" -f $ipRangeAllowListString)
             if ($resultsInvoke.IsWindowsFeatureInstalled) {
                 Write-Host ("Successfully installed windows feature - Web-IP-Security")
             } else {

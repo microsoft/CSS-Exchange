@@ -180,10 +180,16 @@ function Invoke-ValidateMitigation {
             Write-Progress @progressParams
             $counter ++;
 
-            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: list of length" -f $Server, $SiteVDirLocation, $ipRangeAllowListRules.Length.ToString())
-            Write-Host ("Validating state of Extended protection flag on Server {0}" -f $Server)
+            if ($null -eq $ipRangeAllowListRules) {
+                $ipRangeAllowListString = "null"
+            } else {
+                $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
+            }
+
+            Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
 
+            Write-Host ("Validating state of Extended protection flag on Server {0}" -f $Server)
             if ($resultsInvoke.IsEPOff) {
                 Write-Host ("Expected: The state of Extended protection flag is None")
             } elseif ($resultsInvoke.IsEPVerified) {
