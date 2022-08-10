@@ -53,7 +53,6 @@ param(
     [string]$IPRange,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
-    [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir for which you want to validate mitigation.")]
     [string]$RestrictType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
