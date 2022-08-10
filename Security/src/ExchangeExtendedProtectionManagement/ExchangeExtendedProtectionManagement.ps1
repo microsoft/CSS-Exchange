@@ -137,7 +137,7 @@ begin {
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         } else {
-            Write-Host "Please provide a valid value of RollbackType. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes)" -ForegroundColor Red
+            Write-Host "Please provide a valid value of RollbackType. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
             exit
         }
     }
@@ -152,7 +152,7 @@ begin {
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of RestrictType. Valid Values: $([string]::Join("/ " ,$SupportedVDirTypes)" -ForegroundColor Red
+                Write-Host "Please provide a valid value of RestrictType. Valid Values: $([string]::Join("/ " ,$SupportedVDirTypes))" -ForegroundColor Red
                 exit
             }
         }
@@ -164,7 +164,7 @@ begin {
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of ValidateMitigation. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes)" -ForegroundColor Red
+                Write-Host "Please provide a valid value of ValidateMitigation. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
                 exit
             }
         }
