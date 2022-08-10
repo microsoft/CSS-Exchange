@@ -73,7 +73,7 @@ $ValidateMitigationScriptBlock = {
         $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
 
         foreach ($IpFilteringRule in $IpFilteringRules) {
-            $ExistingIPSubnetRule = $ExistingRules | Where-Object { $_.ipAddress -eq $IpFilteringRule.IP -and ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") }
+            $ExistingIPSubnetRule = $ExistingRules | Where-Object { $_.ipAddress -eq $IpFilteringRule.IP -and ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") -and $_.allowed -eq $IpFilteringRule.Allowed }
             if ($null -eq $ExistingIPSubnetRule) {
                 if ($IpFilteringRule.Type -eq "Single IP") {
                     $IpString = $IpFilteringRule.IP
