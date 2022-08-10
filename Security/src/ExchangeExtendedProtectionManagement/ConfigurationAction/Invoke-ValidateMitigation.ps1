@@ -101,7 +101,7 @@ $ValidateMitigationScriptBlock = {
 
         $results.IsEPVerified = $true
 
-        if ($IpRangesForFiltering -ne $null) {
+        if ($null -ne $IpRangesForFiltering) {
             $localIPs = Get-LocalIpAddresses
 
             $localIPs | ForEach-Object {
