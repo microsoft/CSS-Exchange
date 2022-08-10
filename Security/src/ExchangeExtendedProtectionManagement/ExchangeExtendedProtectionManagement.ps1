@@ -84,7 +84,8 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     
-    $SupportedRestrictTypes = @('EWSBackend')
+    $SupportedVDirTypes = @('EWSBackend')
+    $SupportedRestrictTypes = $SupportedVDirTypes | ForEach-Object {"RestrictType$_"}
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
         "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
@@ -124,13 +125,13 @@ begin {
 
         if ($RollbackType -eq "RestoreIISAppConfig") {
             $RollbackRestoreIISAppConfig = $true
-        } elseif ($SupportedRestrictTypes -contains $RollbackType.Replace("RestrictType", "")) {
+        } elseif ($SupportedRestrictTypes -contains $RollbackType) {
             $RollbackRestrictType = $true
             $RestrictType = $RollbackType.Replace("RestrictType", "")
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         } else {
-            Write-Host "Please provide a valid value of RollbackType" -ForegroundColor Red
+            Write-Host "Please provide a valid value of RollbackType. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes)" -ForegroundColor Red
             exit
         }
     }
@@ -140,24 +141,24 @@ begin {
     if(($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")){   
         
         if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation"){
-            if ($SupportedRestrictTypes -contains $RestrictType) {
+            if ($SupportedVDirTypes -contains $RestrictType) {
                 $ConfigureMitigationSelected = $true
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of RestrictType" -ForegroundColor Red
+                Write-Host "Please provide a valid value of RestrictType. Valid Values: $([string]::Join("/ " ,$SupportedVDirTypes)" -ForegroundColor Red
                 exit
             }
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-            if($SupportedRestrictTypes -contains $ValidateMitigation.Replace("RestrictType", "")) {
+            if($SupportedRestrictTypes -contains $ValidateMitigation) {
                 $ValidateMitigationSelected = $true
                 $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
                 $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
                 $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
             } else {
-                Write-Host "Please provide a valid value of ValidateMitigation" -ForegroundColor Red
+                Write-Host "Please provide a valid value of ValidateMitigation. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes)" -ForegroundColor Red
                 exit
             }
         }
