@@ -102,6 +102,10 @@ Extended Protection is not supported in environments that use SSL offloading. SS
 
 **Note:** We will provide additional guidance for this scenario in the near future.
 
+### SSL Bridging supported scenarios
+
+Extended Protection is supported in environments that use SSL Bridging under certain conditions. To enable Extended Protection in your Exchange environment using SSL Bridging, **you must use the same SSL certificate on Exchange and your Load Balancers**. If not this will cause Extended Protection to fail.
+
 ### TLS configuration must be consistent across all Exchange servers
 
 Before enabling Extended Protection, you must ensure that all TLS configurations are consistent across all Exchange servers. For example, if one of the servers uses TLS 1.2, you must ensure that all the servers in the organization are configured using TLS 1.2. Any variation in TLS version use across servers can cause client connections to fail.
