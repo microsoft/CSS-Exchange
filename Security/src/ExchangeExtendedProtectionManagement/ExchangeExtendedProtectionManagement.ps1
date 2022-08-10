@@ -112,6 +112,12 @@ begin {
         "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
     }
 
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
+            -AppendDateTimeToFileName $false `
+            -ErrorAction SilentlyContinue
+
+    SetWriteHostAction ${Function:Write-HostLog}
+
     $RollbackSelected = $false
     $RollbackRestrictType = $false
     $ConfigureEPSelected = $false
@@ -199,12 +205,6 @@ begin {
     }
 
     try {
-
-        $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
-            -AppendDateTimeToFileName $false `
-            -ErrorAction SilentlyContinue
-
-        SetWriteHostAction ${Function:Write-HostLog}
 
         if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
