@@ -1592,6 +1592,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ssl-bridging-supported-scenarios" class="md-nav__link">
+    SSL Bridging supported scenarios
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tls-configuration-must-be-consistent-across-all-exchange-servers" class="md-nav__link">
     TLS configuration must be consistent across all Exchange servers
   </a>
@@ -2108,6 +2115,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ssl-bridging-supported-scenarios" class="md-nav__link">
+    SSL Bridging supported scenarios
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tls-configuration-must-be-consistent-across-all-exchange-servers" class="md-nav__link">
     TLS configuration must be consistent across all Exchange servers
   </a>
@@ -2418,6 +2432,8 @@
 <h3 id="ssl-offloading-scenarios-are-not-supported">SSL Offloading scenarios are not supported</h3>
 <p>Extended Protection is not supported in environments that use SSL offloading. SSL termination during SSL offloading causes Extended Protection to fail. To enable Extended Protection in your Exchange environment, <strong>you must not be using SSL offloading</strong> with your Load Balancers.</p>
 <p><strong>Note:</strong> We will provide additional guidance for this scenario in the near future.</p>
+<h3 id="ssl-bridging-supported-scenarios">SSL Bridging supported scenarios</h3>
+<p>Extended Protection is supported in environments that use SSL Bridging under certain conditions. To enable Extended Protection in your Exchange environment using SSL Bridging, <strong>you must use the same SSL certificate on Exchange and your Load Balancers</strong>. If not this will cause Extended Protection to fail.</p>
 <h3 id="tls-configuration-must-be-consistent-across-all-exchange-servers">TLS configuration must be consistent across all Exchange servers</h3>
 <p>Before enabling Extended Protection, you must ensure that all TLS configurations are consistent across all Exchange servers. For example, if one of the servers uses TLS 1.2, you must ensure that all the servers in the organization are configured using TLS 1.2. Any variation in TLS version use across servers can cause client connections to fail.</p>
 <p>In addition to this, the value of <em>SchUseStrongCrypto</em> registry key should be either set to 1 (recommended) or 0 across all the Exchange Servers in the organization. If this value is not explicitly set, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries. This can cause TLS mismatch, leading to client connectivity issues.</p>
@@ -2708,7 +2724,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 9, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 10, 2022</span>
       
     
   </small>
