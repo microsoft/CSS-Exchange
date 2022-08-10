@@ -28,11 +28,13 @@
 param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
@@ -82,11 +84,6 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     
-    enum MitigationTypes {
-        OnlyEP
-        Full
-    }
-
     $SupportedRestrictTypes = @('EWSBackend')
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
@@ -166,9 +163,16 @@ begin {
         }
 
         if ($PSBoundParameters.ContainsKey("IPRange")) {
-            $MitigationTypeSelected = [MitigationTypes]::Full
+            $MitigationTypeSelected = 'EWSOffAndIPMitigation'
+            # Get list of IPs in object form from the file specified
+            $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
+            if ($ipResults.IsError) {
+                exit
+            }
+
+            $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
         } else {
-            $MitigationTypeSelected = [MitigationTypes]::OnlyEP
+            $MitigationTypeSelected = 'OnlyEWSOffMitigation'
         }
     }
     
@@ -506,15 +510,7 @@ begin {
                 }
             }
             elseif ($ConfigureMitigationSelected) {
-                if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
-                    # Get list of IPs in object form from the file specified
-                    $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
-
-                    if ($results.IsError) {
-                        exit
-                    }
-
-                    $ipRangeAllowListRules = $results.ipRangeAllowListRules
+                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Apply rules
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
@@ -522,15 +518,7 @@ begin {
                 }
             }
             elseif ($ValidateMitigationSelected) {
-                if ($MitigationTypeSelected -eq [MitigationTypes]::Full) {
-                    # Get list of IPs in object form from the file specified
-                    $results = Get-IPRangeAllowListFromFile -FilePath $IPRange
-
-                    if ($results.IsError) {
-                        exit
-                    }
-
-                    $ipRangeAllowListRules = $results.ipRangeAllowListRules
+                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
                     # Validate mitigation
                     Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
