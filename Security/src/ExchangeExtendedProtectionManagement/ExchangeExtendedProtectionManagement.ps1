@@ -54,8 +54,11 @@ param(
         })]
     [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
 
-    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to apply IP filters.")]
-    [Parameter (Mandatory = $false, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to validate IP filters.")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to apply IP filters.")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to validate IP filters.")]
+    [ValidateScript({
+        (Test-Path -Path $_)
+        })]
     [string]$IPRange,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
@@ -116,6 +119,13 @@ begin {
         "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
     }
 
+    if ($RestrictType -ne "EWSBackend") {
+        # Currently this code path won't hit but it is just to indicate that in future if we want to add
+        # additional restict type for some other Vdirs we will have to make changes to Get-ExtendedProtectionConfiguration
+        Write-Host "Invalid RestrictType"
+        return
+    }
+
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
@@ -145,6 +155,7 @@ begin {
 
     if (($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")) {
         if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
+            $ConfigureEPSelected = $true
             $ConfigureMitigationSelected = $true
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
@@ -157,25 +168,20 @@ begin {
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         }
 
-        if ($PSBoundParameters.ContainsKey("IPRange")) {
-            $MitigationTypeSelected = 'EPOffAndIPMitigation'
-            # Get list of IPs in object form from the file specified
-            $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
-            if ($ipResults.IsError) {
-                return
-            }
-
-            $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
-        } else {
-            $MitigationTypeSelected = 'OnlyEPOffMitigation'
+        # Get list of IPs in object form from the file specified
+        $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
+        if ($ipResults.IsError) {
+            return
         }
+
+        $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
     }
 
     if ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection) {
         $ConfigureEPSelected = $true
     }
 
-    if ($InternalOption -eq "SkipEWS") {
+    if ($InternalOption -eq "SkipEWS" -or $PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
         Write-Verbose "SkipEWS option enabled."
         $Script:SkipEWS = $true
     } else {
@@ -251,12 +257,8 @@ begin {
         }
 
         if ($ValidateMitigationSelected) {
-            if ($MitigationTypeSelected -eq 'EPOffAndIPMitigation') {
-                # Validate mitigation
-                Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
-            } else {
-                Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -Site $Site -VDir $VDir
-            }
+            # Validate mitigation
+            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
         }
 
         if ($ShowExtendedProtection) {
@@ -297,11 +299,7 @@ begin {
             return
         }
 
-        if ($ConfigureEPSelected -or $ConfigureMitigationSelected -or $ValidateMitigation) {
-            if ($ConfigureMitigationSelected) {
-                Write-Host "IP Restrictions will only be applied on the servers which pass the Extended Protection Prerequisite Check"
-            }
-
+        if ($ConfigureEPSelected) {
             $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
 
             if ($null -ne $prerequisitesCheck) {
@@ -481,26 +479,22 @@ begin {
                 exit
             }
 
-            if ($ConfigureEPSelected) {
-                # Configure Extended Protection based on given parameters
-                # Prior to executing, add back any unsupported versions back into the list
-                # for onlineSupportedServers, because the are online and we want to revert them.
-                $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
-                $extendedProtectionConfigurations = ($onlineSupportedServers |
-                        Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
+            # Configure Extended Protection based on given parameters
+            # Prior to executing, add back any unsupported versions back into the list
+            # for onlineSupportedServers, because the are online and we want to revert them.
+            $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
+            $extendedProtectionConfigurations = ($onlineSupportedServers |
+                    Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
 
-                if ($null -ne $extendedProtectionConfigurations) {
-                    Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
-                } else {
-                    Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
-                }
-            } elseif ($ConfigureMitigationSelected) {
-                if ($MitigationTypeSelected -eq 'EPOffAndIPMitigation') {
-                    # Apply rules
-                    Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
-                } else {
-                    Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
-                }
+            if ($null -ne $extendedProtectionConfigurations) {
+                Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
+            } else {
+                Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
+            }
+
+            if ($ConfigureMitigationSelected) {
+                # Apply rules
+                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
             }
         } elseif ($RollbackSelected) {
             Write-Host "Prerequisite check will be skipped due to Rollback"

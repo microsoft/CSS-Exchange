@@ -30,18 +30,8 @@ function Get-IPRangeAllowListFromFile {
         }
 
         if ($null -eq $SubnetStrings -or $SubnetStrings.Length -eq 0) {
-            $SubnetStrings = New-Object 'System.Collections.Generic.List[string]'
-            Write-Warning "The provided file is empty."
-            $params = @{
-                Message   = "Display Warning about using an empty ip file for ip filtering"
-                Target    = "The file provided to create the ip filtering allow list is empty." +
-                " Using this will block all external inbound connections." +
-                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
-                Operation = "Enabling IP Filtering Mitigation"
-            }
-
-            Show-Disclaimer @params
-            $ipRangesString = "{}"
+            Write-Host "The file provided is empty. Please provide a valid file." -ForegroundColor Red
+            return
         } else {
             $ipRangesString  = [string]::Join(", ", $SubnetStrings)
         }
@@ -53,9 +43,6 @@ function Get-IPRangeAllowListFromFile {
         try {
             foreach ($SubnetString in $SubnetStrings) {
                 $SubnetString = $SubnetString.Trim()
-                if ([string]::IsNullOrEmpty($SubnetString)) {
-                    continue
-                }
 
                 $IpAddressString = $SubnetString.Split("/")[0]
                 $SubnetMaskString = $SubnetString.Split("/")[1]

@@ -10,7 +10,7 @@ function Invoke-ConfigureMitigation {
     param(
         [Parameter(Mandatory = $true)]
         [string[]]$ExchangeServers,
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [object[]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
         [string]$Site,
@@ -19,11 +19,10 @@ function Invoke-ConfigureMitigation {
     )
 
     begin {
-        $FailedServersEP = New-Object 'System.Collections.Generic.List[string]'
         $FailedServersFilter = New-Object 'System.Collections.Generic.List[string]'
 
         $progressParams = @{
-            Activity        = "Turning Off EP and applying IP filtering Rules"
+            Activity        = "Applying IP filtering Rules"
             Status          = [string]::Empty
             PercentComplete = 0
         }
@@ -43,7 +42,6 @@ function Invoke-ConfigureMitigation {
             $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
 
             $results = @{
-                IsTurnOffEPSuccessful      = $false
                 IsWindowsFeatureInstalled  = $false
                 IsGetLocalIPSuccessful     = $false
                 IsBackUpSuccessful         = $false
@@ -65,7 +63,7 @@ function Invoke-ConfigureMitigation {
                 }
 
                 $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-                if(-not $WhatIf){
+                if (-not $WhatIf) {
                     $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
                 }
 
@@ -82,21 +80,6 @@ function Invoke-ConfigureMitigation {
                 }
 
                 return $ips
-            }
-
-            # Set EP to None
-            function TurnOffEP {
-                param (
-                    [Parameter(Mandatory = $true)]
-                    [string]$SiteVDirLocation
-                )
-
-                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
-                if ($ExtendedProtection -ne "None") {
-                    Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "None" -WhatIf:$WhatIf
-                }
-
-                return $true
             }
 
             # Create ip allow list from user provided ip subnets
@@ -146,33 +129,29 @@ function Invoke-ConfigureMitigation {
             }
 
             try {
-                $results.IsTurnOffEPSuccessful = TurnOffEP -SiteVDirLocation $SiteVDirLocation
-
-                if ($null -ne $IpRangesForFiltering) {
-                    try {
-                        $baseError = "Installation of IP and Domain filtering Module failed."
-                        $InstallResult = Install-WindowsFeature Web1-IP-Security -ErrorAction Stop -WhatIf:$WhatIf
-                        if (-not $InstallResult.Success) {
-                            throw $baseError
-                        }
-                    } catch {
-                        throw "$baseError Inner exception: $_"
+                try {
+                    $baseError = "Installation of IP and Domain filtering Module failed."
+                    $InstallResult = Install-WindowsFeature Web1-IP-Security -ErrorAction Stop -WhatIf:$WhatIf
+                    if (-not $InstallResult.Success) {
+                        throw $baseError
                     }
-
-                    $results.IsWindowsFeatureInstalled = $true
-
-                    $localIPs = Get-LocalIpAddresses
-                    $results.IsGetLocalIPSuccessful = $true
-
-                    foreach ($localIP in $localIPs) {
-                        if ($null -eq ($IpRangesForFiltering | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $localIP })) {
-                            $IpRangesForFiltering += @{Type="Single IP"; IP=$localIP; Allowed=$true }
-                        }
-                    }
-
-                    $results.LocalIPs = $localIPs
-                    CreateIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -results $results
+                } catch {
+                    throw "$baseError Inner exception: $_"
                 }
+
+                $results.IsWindowsFeatureInstalled = $true
+
+                $localIPs = Get-LocalIpAddresses
+                $results.IsGetLocalIPSuccessful = $true
+
+                foreach ($localIP in $localIPs) {
+                    if ($null -eq ($IpRangesForFiltering | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $localIP })) {
+                        $IpRangesForFiltering += @{Type="Single IP"; IP=$localIP; Allowed=$true }
+                    }
+                }
+
+                $results.LocalIPs = $localIPs
+                CreateIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -results $results
             } catch {
                 $results.ErrorContext = $_
             }
@@ -224,21 +203,8 @@ function Invoke-ConfigureMitigation {
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
-            #Write-Host ("Setting Extended protection flag to None on Server {0}" -f $Server)
-            if ($resultsInvoke.IsTurnOffEPSuccessful) {
-                Write-Verbose ("Successfully turned Off Extended Protection on server {0}" -f $Server)
-            } else {
-                Write-Host ("Script failed to Turn Off Extended protection on server {0} with the Inner Exception:" -f $Server) -ForegroundColor Red
-                Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersEP += $Server
-                $FailedServersFilter += $Server
-                continue
-            }
-
-            if ($null -eq $ipRangeAllowListRules) {
-                continue
-            }
-
+            Write-Host ("Adding IP Restriction rules on Server {0}") -f $Server
+            Write-Host ("Adding IP Restriction rules on Server {0}" -f $Server)
             if ($resultsInvoke.IsWindowsFeatureInstalled) {
                 Write-Verbose ("Successfully installed windows feature - Web-IP-Security on server {0}" -f $Server)
             } else {
@@ -295,7 +261,7 @@ function Invoke-ConfigureMitigation {
                 continue
             }
 
-            Write-Host ("Enabled ip filtering rules on server {0}" -f $Server) 
+            Write-Host ("Enabled ip filtering rules on server {0}" -f $Server)
         }
     } end {
         if ($FailedServersEP.Length -gt 0) {
