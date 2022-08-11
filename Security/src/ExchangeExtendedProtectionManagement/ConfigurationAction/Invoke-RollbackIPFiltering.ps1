@@ -4,82 +4,6 @@
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
-$RollbackIPFiltering = {
-    param(
-        [Object]$Arguments
-    )
-
-    $Site = $Arguments.Site
-    $VDir = $Arguments.VDir
-    $Filter = 'system.webServer/security/ipSecurity'
-    $IISPath = 'IIS:\'
-
-    $SiteVDirLocation = $Site
-    if ($VDir -ne '') {
-        $SiteVDirLocation += '/' + $VDir
-    }
-
-    $results = @{
-        RestoreFileExists       = $false
-        BackUpPath              = $null
-        BackupCurrentSuccessful = $false
-        RestorePath             = $null
-        RestoreSuccessful       = $false
-        ErrorContext            = $null
-    }
-
-    function Backup-currentIpFilteringRules {
-        param(
-            $BackupPath
-        )
-
-        $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
-        $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
-        if ($null -eq $ExistingRules) {
-            $ExistingRules = @()
-        }
-
-        $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-        $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
-        return $true
-    }
-
-    function Restore-OriginalIpFilteringRules {
-        param(
-            $OriginalIpFilteringRules,
-            $DefaultForUnspecifiedIPs
-        )
-
-        Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop
-        $RulesToBeAdded = @()
-        foreach ($IpFilteringRule in $OriginalIpFilteringRules) {
-            $RulesToBeAdded += @{ipAddress=$IpFilteringRule.ipAddress; subnetMask=$IpFilteringRule.subnetMask; domainName=$IpFilteringRule.domainName; allowed=$IpFilteringRule.allowed; }
-        }
-        Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $DefaultForUnspecifiedIPs.Value
-        Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop
-
-        return $true
-    }
-
-    try {
-        $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
-        if ($results.RestorePath -eq $null) {
-            throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
-        }
-        $results.RestoreFileExists = $true
-
-        $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
-        $results.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $results.BackUpPath
-
-        $originalIpFilteringConfigurations = (Get-Content $results.RestorePath | Out-String | ConvertFrom-Json)
-        $results.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs)
-    } catch {
-        $results.ErrorContext = $_
-    }
-
-    return $results
-}
-
 function Invoke-RollbackIPFiltering {
     [OutputType([System.Collections.Hashtable])]
     [CmdletBinding()]
@@ -99,6 +23,82 @@ function Invoke-RollbackIPFiltering {
             Activity        = "Rolling back IP filtering Rules"
             Status          = [string]::Empty
             PercentComplete = 0
+        }
+
+        $RollbackIPFiltering = {
+            param(
+                [Object]$Arguments
+            )
+
+            $Site = $Arguments.Site
+            $VDir = $Arguments.VDir
+            $Filter = 'system.webServer/security/ipSecurity'
+            $IISPath = 'IIS:\'
+
+            $SiteVDirLocation = $Site
+            if ($VDir -ne '') {
+                $SiteVDirLocation += '/' + $VDir
+            }
+
+            $results = @{
+                RestoreFileExists       = $false
+                BackUpPath              = $null
+                BackupCurrentSuccessful = $false
+                RestorePath             = $null
+                RestoreSuccessful       = $false
+                ErrorContext            = $null
+            }
+
+            function Backup-currentIpFilteringRules {
+                param(
+                    $BackupPath
+                )
+
+                $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+                $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
+                if ($null -eq $ExistingRules) {
+                    $ExistingRules = New-Object 'System.Collections.Generic.List[object]'
+                }
+
+                $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
+                $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
+                return $true
+            }
+
+            function Restore-OriginalIpFilteringRules {
+                param(
+                    $OriginalIpFilteringRules,
+                    $DefaultForUnspecifiedIPs
+                )
+
+                Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop
+                $RulesToBeAdded = New-Object 'System.Collections.Generic.List[object]'
+                foreach ($IpFilteringRule in $OriginalIpFilteringRules) {
+                    $RulesToBeAdded += @{ipAddress=$IpFilteringRule.ipAddress; subnetMask=$IpFilteringRule.subnetMask; domainName=$IpFilteringRule.domainName; allowed=$IpFilteringRule.allowed; }
+                }
+                Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $DefaultForUnspecifiedIPs.Value
+                Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop
+
+                return $true
+            }
+
+            try {
+                $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
+                if ($null -eq $results.RestorePath) {
+                    throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
+                }
+                $results.RestoreFileExists = $true
+
+                $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
+                $results.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $results.BackUpPath
+
+                $originalIpFilteringConfigurations = (Get-Content $results.RestorePath | Out-String | ConvertFrom-Json)
+                $results.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs)
+            } catch {
+                $results.ErrorContext = $_
+            }
+
+            return $results
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

@@ -13,8 +13,8 @@ function Get-ExchangeServerIPs {
     )
 
     begin {
-        $IPs           = @()
-        $FailedServers = @()
+        $IPs           = New-Object 'System.Collections.Generic.List[string]'
+        $FailedServers = New-Object 'System.Collections.Generic.List[string]'
 
         $progressParams = @{
             Activity        = "Getting List of IPs in use by Exchange Servers"
@@ -26,11 +26,11 @@ function Get-ExchangeServerIPs {
     }
     process {
         try {
-            $ExchangeServers = Get-ExchangeServer
+            $ExchangeServers = Get-ExchangeServer -ErrorAction Stop
         } catch {
             Write-Host ("Unable to run Get-ExchangeServer due to: Inner Exception") -ForegroundColor Red
             Write-HostErrorInformation $_
-            exit
+            return
         }
 
         $counter = 0
@@ -54,13 +54,17 @@ function Get-ExchangeServerIPs {
                         $IPs += $address.Address
                     }
                 }
-            } else {
+            }
+
+            if ($IPs.Length -eq 0) {
                 $FailedServers += $Server.Name
                 Write-Verbose "Ip of $($Server.Name) cannot be found and will not be added to ip allow list." -ForegroundColor Red
             }
 
             $counter++
         }
+
+        Write-Progress @progressParams -Completed
     }
     end {
         if ($FailedServers -gt 0) {

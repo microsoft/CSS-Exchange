@@ -14,33 +14,23 @@ function Get-IPRangeAllowListFromFile {
 
     begin {
         $results = @{
-            ipRangeAllowListRules = @()
-            IsError               = $false
+            ipRangeAllowListRules = New-Object 'System.Collections.Generic.List[object]'
+            IsError               = $true
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     }
     process {
-        $FilePath = $FilePath.Trim('"', "'")
-        $IsPathValid = Test-Path -Path $FilePath
-
-        if ($IsPathValid -eq $false) {
-            Write-Host "Input file name for provided for IPRange isn't valid. Rexecute the command with correct path for IPRange parameter." -ForegroundColor Red
-            $results.IsError = $true
-            return
-        }
-
         try {
-            $SubnetStrings = (Get-Content -Path $FilePath) | Where-Object { $_.trim() -ne "" }
+            $SubnetStrings = (Get-Content -Path $FilePath -ErrorAction Stop) | Where-Object { $_.trim() -ne "" }
         } catch {
             Write-Host "Unable to read the content of file provided for IPRange. Inner Exception" -ForegroundColor Red
             Write-HostErrorInformation $_
-            $results.IsError = $true
-            return
+            return $results
         }
 
         if ($null -eq $SubnetStrings -or $SubnetStrings.Length -eq 0) {
-            $SubnetStrings = @()
+            $SubnetStrings = New-Object 'System.Collections.Generic.List[string]'
             Write-Warning "The provided file is empty."
             $params = @{
                 Message   = "Display Warning about using an empty ip file for ip filtering"
@@ -71,55 +61,54 @@ function Get-IPRangeAllowListFromFile {
                 $SubnetMaskString = $SubnetString.Split("/")[1]
 
                 # Check the type of IP address (IPv4/IPv6)
-                $IsIPv6 = $false
                 $IpAddress = $IpAddressString -as [IPAddress]
 
-                if ($null -eq $IpAddress -or ($IpAddress.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetwork -and $IpAddress.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetworkV6)) {
+                if ($null -eq $IpAddress -or $null -eq $IpAddress.AddressFamily) {
                     # Invalid IP address found
                     Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid IP address detected: {0}." -f $IpAddressString) -ForegroundColor Red
-                    $results.IsError = $true
-                    return
-                } elseif ($IpAddress.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetworkV6) {
-                    $IsIPv6 = $true;
+                    return $results
                 }
 
-                $IsSubnetMaskPresent = [Bool]$SubnetMaskString
+                $IsIPv6 = $IpAddress.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetworkV6
 
-                if ($IsSubnetMaskPresent) {
+                if ($SubnetMaskString) {
                     # Check if the subnet value is valid (IPv4 <= 32, IPv6 <= 128 or empty)
                     $SubnetMask = $SubnetMaskString -as [int]
                     if ($null -eq $SubnetMask) {
                         Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid Subnet Mask found: Unable to parse Subnet Mask {0}. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
                         $results.IsError = $true
-                        return
+                        return $results
                     } elseif (($SubnetMask -gt 32 -and -not $IsIPv6) -or $SubnetMask -gt 128 -or $SubnetMask -lt 0) {
                         Write-Host ("Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Rexecute the command with proper input file for IPRange parameter. Invalid Subnet Mask found: The Subnet Mask {0} is not in valid range. Note: Subnet Mask must be either empty or a non-negative integer. For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128." -f $SubnetMaskString) -ForegroundColor Red
                         $results.IsError = $true
-                        return
+                        return $results
                     }
-                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Subnet" -and $_.IP -eq $IpAddressString -and $_.SubnetMask -eq $SubnetMaskString -and $_.Allowed -eq $true })) {
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Subnet" -and $_.IP -eq $IpAddressString -and $_.SubnetMask -eq $SubnetMaskString })) {
                         $results.ipRangeAllowListRules  += @{Type = "Subnet"; IP=$IpAddressString; SubnetMask=$SubnetMaskString; Allowed=$true }
+                    } else {
+                        Write-Verbose ("Not adding $IpAddressString/$SubnetMaskString to the list as it is a duplicate entry in the file provided.")
                     }
                 } else {
-                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $IpAddressString -and $_.Allowed -eq $true })) {
+                    if ($null -eq ($results.ipRangeAllowListRules | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $IpAddressString })) {
                         $results.ipRangeAllowListRules  += @{Type = "Single IP"; IP=$IpAddressString; Allowed=$true }
+                    } else {
+                        Write-Verbose ("Not adding $IpAddressString to the list as it is a duplicate entry in the file provided.")
                     }
                 }
             }
 
             if ($results.ipRangeAllowListRules.count -gt 500) {
                 Write-Host ("Too many IP filtering rules. Please reduce the specified entries by providing appropriate subnets." -f $SubnetMaskString) -ForegroundColor Red
-                $results.IsError = $true
-                return
+                return $results
             }
         } catch {
             Write-Host ("Unable to create IP allow rules. Inner Exception") -ForegroundColor Red
             Write-HostErrorInformation $_
-            $results.IsError = $true
-            return
+            return $results
         }
     }
     end {
+        $results.IsError = $false
         return $results
     }
 }

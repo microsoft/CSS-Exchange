@@ -25,6 +25,7 @@
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+
 param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
@@ -48,19 +49,25 @@ param(
     [switch]$FindExchangeServerIPAddresses,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to specify the path to the output file.")]
-    [string]$OutputFilePath,
+    [ValidateScript({
+        (Test-Path -Path $_ -IsValid) -and (Test-Path -Path (Split-Path -Parent $_))
+        })]
+    [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to apply IP filters.")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to validate IP filters.")]
     [string]$IPRange,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
+    [ValidateSet('EWSBackend')]
     [string]$RestrictType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
+    [ValidateSet('RestrictTypeEWSBackend')]
     [string]$ValidateMitigation,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
+    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
     [string]$RollbackType
 )
 
@@ -72,7 +79,6 @@ begin {
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackIPFiltering.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
-    . $PSScriptRoot\DataCollection\Get-IPFilteringPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Get-ExchangeServerIPs.ps1
     . $PSScriptRoot\DataCollection\Get-IPRangeAllowListFromFile.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
@@ -84,8 +90,6 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
 
-    $SupportedVDirTypes = @('EWSBackend')
-    $SupportedRestrictTypes = $SupportedVDirTypes | ForEach-Object { "RestrictType$_" }
     $RestrictTypeToSiteVDirMap = @{
         "APIFrontend"                         ="Default Web Site/API"
         "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
@@ -131,52 +135,39 @@ begin {
 
         if ($RollbackType -eq "RestoreIISAppConfig") {
             $RollbackRestoreIISAppConfig = $true
-        } elseif ($SupportedRestrictTypes -contains $RollbackType) {
+        } else {
             $RollbackRestrictType = $true
             $RestrictType = $RollbackType.Replace("RestrictType", "")
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
-        } else {
-            Write-Host "Please provide a valid value of RollbackType. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
-            exit
         }
     }
 
     if (($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")) {
         if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
-            if ($SupportedVDirTypes -contains $RestrictType) {
-                $ConfigureMitigationSelected = $true
-                $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-                $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
-            } else {
-                Write-Host "Please provide a valid value of RestrictType. Valid Values: $([string]::Join("/ " ,$SupportedVDirTypes))" -ForegroundColor Red
-                exit
-            }
+            $ConfigureMitigationSelected = $true
+            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
+            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-            if ($SupportedRestrictTypes -contains $ValidateMitigation) {
-                $ValidateMitigationSelected = $true
-                $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
-                $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-                $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
-            } else {
-                Write-Host "Please provide a valid value of ValidateMitigation. Valid Values: $([string]::Join("/ " ,$SupportedRestrictTypes))" -ForegroundColor Red
-                exit
-            }
+            $ValidateMitigationSelected = $true
+            $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
+            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
+            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         }
 
         if ($PSBoundParameters.ContainsKey("IPRange")) {
-            $MitigationTypeSelected = 'EWSOffAndIPMitigation'
+            $MitigationTypeSelected = 'EPOffAndIPMitigation'
             # Get list of IPs in object form from the file specified
             $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
             if ($ipResults.IsError) {
-                exit
+                return
             }
 
             $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
         } else {
-            $MitigationTypeSelected = 'OnlyEWSOffMitigation'
+            $MitigationTypeSelected = 'OnlyEPOffMitigation'
         }
     }
 
@@ -215,10 +206,6 @@ begin {
         }
 
         if ($FindExchangeServerIPAddresses) {
-            if ([String]::IsNullOrEmpty($OutputFilePath)) {
-                $OutputFilePath =  [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt")
-            }
-
             Get-ExchangeServerIPs -OutputFilePath $OutputFilePath
             return
         }
@@ -260,7 +247,16 @@ begin {
 
         if ($null -eq $ExchangeServers) {
             Write-Host "No exchange servers to process. Please specify server filters correctly"
-            exit
+            return
+        }
+
+        if ($ValidateMitigationSelected) {
+            if ($MitigationTypeSelected -eq 'EPOffAndIPMitigation') {
+                # Validate mitigation
+                Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
+            } else {
+                Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -Site $Site -VDir $VDir
+            }
         }
 
         if ($ShowExtendedProtection) {
@@ -304,10 +300,6 @@ begin {
         if ($ConfigureEPSelected -or $ConfigureMitigationSelected -or $ValidateMitigation) {
             if ($ConfigureMitigationSelected) {
                 Write-Host "IP Restrictions will only be applied on the servers which pass the Extended Protection Prerequisite Check"
-            }
-
-            if ($ValidateMitigation) {
-                Write-Host "IP Restrictions will only be validated on the servers which pass the Extended Protection Prerequisite Check"
             }
 
             $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
@@ -503,18 +495,11 @@ begin {
                     Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
                 }
             } elseif ($ConfigureMitigationSelected) {
-                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
+                if ($MitigationTypeSelected -eq 'EPOffAndIPMitigation') {
                     # Apply rules
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
                 } else {
                     Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
-                }
-            } elseif ($ValidateMitigationSelected) {
-                if ($MitigationTypeSelected -eq 'EWSOffAndIPMitigation') {
-                    # Validate mitigation
-                    Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
-                } else {
-                    Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $null -Site $Site -VDir $VDir
                 }
             }
         } elseif ($RollbackSelected) {
