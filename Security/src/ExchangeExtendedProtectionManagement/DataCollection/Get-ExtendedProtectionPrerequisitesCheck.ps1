@@ -11,6 +11,11 @@ function Get-ExtendedProtectionPrerequisitesCheck {
     param(
         [Parameter(Mandatory = $true)]
         [object[]]$ExchangeServers,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("EWSBackend")]
+        [string[]]$MitigationAppliedType,
+
         [Parameter(Mandatory = $false)]
         [bool]$SkipEWS
     )
@@ -36,10 +41,11 @@ function Get-ExtendedProtectionPrerequisitesCheck {
             Write-Verbose "$($progressParams.Status)"
 
             $params = @{
-                ComputerName         = $server.ToString()
-                IsClientAccessServer = $server.IsClientAccessServer
-                IsMailboxServer      = $server.IsMailboxServer
-                ExcludeEWS           = $SkipEWS
+                ComputerName          = $server.ToString()
+                IsClientAccessServer  = $server.IsClientAccessServer
+                IsMailboxServer       = $server.IsMailboxServer
+                ExcludeEWS            = $SkipEWS
+                MitigationAppliedType = $MitigationAppliedType
             }
             $extendedProtectionConfiguration = Get-ExtendedProtectionConfiguration @params
 
