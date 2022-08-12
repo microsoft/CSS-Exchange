@@ -119,13 +119,6 @@ begin {
         "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
     }
 
-    if ($RestrictType -ne "EWSBackend") {
-        # Currently this code path won't hit but it is just to indicate that in future if we want to add
-        # additional restict type for some other Vdirs we will have to make changes to Get-ExtendedProtectionConfiguration
-        Write-Host "Invalid RestrictType"
-        return
-    }
-
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
@@ -138,6 +131,7 @@ begin {
     $ConfigureMitigationSelected = $false
     $ValidateMitigationSelected = $false
     $Script:SkipEWS = $false
+    $MitigationAppliedType = New-Object 'System.Collections.Generic.List[string]'
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
     if ($PsCmdlet.ParameterSetName -eq "Rollback") {
@@ -159,6 +153,7 @@ begin {
             $ConfigureMitigationSelected = $true
             $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
             $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
+            $MitigationAppliedType += $RestrictType
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
@@ -181,7 +176,7 @@ begin {
         $ConfigureEPSelected = $true
     }
 
-    if ($InternalOption -eq "SkipEWS" -or $PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
+    if ($InternalOption -eq "SkipEWS") {
         Write-Verbose "SkipEWS option enabled."
         $Script:SkipEWS = $true
     } else {
@@ -232,8 +227,6 @@ begin {
             Show-Disclaimer @params
         }
 
-        # TODO : Show some disclaimer for mitigation script
-
         Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
         Set-ADServerSettings -ViewEntireForest $true
         $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
@@ -266,10 +259,11 @@ begin {
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
             foreach ($server in $ExchangeServers) {
                 $params = @{
-                    ComputerName         = $server.ToString()
-                    IsClientAccessServer = $server.IsClientAccessServer
-                    IsMailboxServer      = $server.IsMailboxServer
-                    ExcludeEWS           = $SkipEWS
+                    ComputerName          = $server.ToString()
+                    IsClientAccessServer  = $server.IsClientAccessServer
+                    IsMailboxServer       = $server.IsMailboxServer
+                    ExcludeEWS            = $SkipEWS
+                    MitigationAppliedType = $MitigationAppliedType
                 }
                 $extendedProtectionConfigurations.Add((Get-ExtendedProtectionConfiguration @params))
             }
@@ -300,7 +294,7 @@ begin {
         }
 
         if ($ConfigureEPSelected) {
-            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
+            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -MitigationAppliedType $MitigationAppliedType
 
             if ($null -ne $prerequisitesCheck) {
                 Write-Host ""
