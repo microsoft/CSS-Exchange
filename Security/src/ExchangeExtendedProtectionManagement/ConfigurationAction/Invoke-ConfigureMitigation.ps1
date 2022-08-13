@@ -120,6 +120,11 @@ function Invoke-ConfigureMitigation {
                     }
                 }
 
+                if ($RulesToBeAdded.Count + $ExistingRules.Count -gt 500) {
+                    $results.IPsNotAdded += $RulesToBeAdded
+                    throw 'Too many IP filtering rules (Existing rules [$($ExistingRules.Count)] + New rules [$($RulesToBeAdded.Count)] > 500). Please reduce the specified entries by providing appropriate subnets.'
+                }
+
                 Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
                 $results.IsCreateIPRulesSuccessful = $true
 

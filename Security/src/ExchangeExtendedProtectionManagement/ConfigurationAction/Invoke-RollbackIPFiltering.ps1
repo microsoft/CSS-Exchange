@@ -32,6 +32,7 @@ function Invoke-RollbackIPFiltering {
 
             $Site = $Arguments.Site
             $VDir = $Arguments.VDir
+            $WhatIf = $Arguments.PassedWhatIf
             $Filter = 'system.webServer/security/ipSecurity'
             $IISPath = 'IIS:\'
 
@@ -61,7 +62,10 @@ function Invoke-RollbackIPFiltering {
                 }
 
                 $BackupFilteringConfiguration = @{Rules=$ExistingRules; DefaultForUnspecifiedIPs=$DefaultForUnspecifiedIPs }
-                $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
+                if (-not $WhatIf) {
+                    $BackupFilteringConfiguration |  ConvertTo-Json -Depth 2 | Out-File $BackupPath
+                }
+
                 return $true
             }
 
@@ -71,13 +75,13 @@ function Invoke-RollbackIPFiltering {
                     $DefaultForUnspecifiedIPs
                 )
 
-                Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop
+                Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop -WhatIf:$WhatIf
                 $RulesToBeAdded = New-Object 'System.Collections.Generic.List[object]'
                 foreach ($IpFilteringRule in $OriginalIpFilteringRules) {
                     $RulesToBeAdded += @{ipAddress=$IpFilteringRule.ipAddress; subnetMask=$IpFilteringRule.subnetMask; domainName=$IpFilteringRule.domainName; allowed=$IpFilteringRule.allowed; }
                 }
-                Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $DefaultForUnspecifiedIPs.Value
-                Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop
+                Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $DefaultForUnspecifiedIPs.Value -WhatIf:$WhatIf
+                Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
 
                 return $true
             }
@@ -104,8 +108,9 @@ function Invoke-RollbackIPFiltering {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     } process {
         $scriptblockArgs = [PSCustomObject]@{
-            Site = $Site
-            VDir = $VDir
+            Site         = $Site
+            VDir         = $VDir
+            PassedWhatIf = $WhatIfPreference
         }
 
         $exchangeServersProcessed = 0
@@ -118,7 +123,7 @@ function Invoke-RollbackIPFiltering {
             $exchangeServersProcessed++;
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with Arguments Site: {1}, VDir: {2}" -f $Server.Name, $Site, $VDir)
-            Write-Host ("Restoring previous state for Server {0}" -f $Server.Name)
+            Write-Verbose ("Restoring previous state for Server {0}" -f $Server.Name)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
             $Failed = $false
 
