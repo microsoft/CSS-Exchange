@@ -13,7 +13,6 @@ function Get-ExtendedProtectionPrerequisitesCheck {
         [object[]]$ExchangeServers,
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet("EWSBackend")]
         [string[]]$MitigationAppliedType,
 
         [Parameter(Mandatory = $false)]

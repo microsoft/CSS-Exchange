@@ -40,6 +40,7 @@ param(
     [string[]]$SkipExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
     [switch]$ShowExtendedProtection,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
@@ -63,11 +64,17 @@ param(
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
     [ValidateSet('EWSBackend')]
-    [string]$RestrictType,
+    [ValidateScript({
+        ($null -ne $_) -and ($_.Length -gt 0)
+        })]
+    [string[]]$RestrictType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
     [ValidateSet('RestrictTypeEWSBackend')]
-    [string]$ValidateMitigation,
+    [ValidateScript({
+        ($null -ne $_) -and ($_.Length -gt 0)
+        })]
+    [string[]]$ValidateMitigation,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
@@ -93,32 +100,6 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
 
-    $RestrictTypeToSiteVDirMap = @{
-        "APIFrontend"                         ="Default Web Site/API"
-        "AutodiscoverFrontend"                ="Default Web Site/Autodiscover"
-        "ECPFrontend"                         ="Default Web Site/ECP"
-        "EWSFrontend"                         ="Default Web Site/EWS"
-        "Microsoft-Server-ActiveSyncFrontend" ="Default Web Site/Microsoft-Server-ActiveSync"
-        "OABFrontend"                         ="Default Web Site/OAB"
-        "PowershellFrontend"                  ="Default Web Site/Powershell"
-        "OWAFrontend"                         ="Default Web Site/OWA"
-        "RPCFrontend"                         ="Default Web Site/RPC"
-        "MAPIFrontend"                        ="Default Web Site/MAPI"
-        "APIBackend"                          ="Exchange Back End/API"
-        "AutodiscoverBackend"                 ="Exchange Back End/Autodiscover"
-        "ECPBackend"                          ="Exchange Back End/ECP"
-        "EWSBackend"                          ="Exchange Back End/EWS"
-        "Microsoft-Server-ActiveSyncBackend"  ="Exchange Back End/Microsoft-Server-ActiveSync"
-        "OABBackend"                          ="Exchange Back End/OAB"
-        "PowershellBackend"                   ="Exchange Back End/Powershell"
-        "OWABackend"                          ="Exchange Back End/OWA"
-        "RPCBackend"                          ="Exchange Back End/RPC"
-        "PushNotificationsBackend"            ="Exchange Back End/PushNotifications"
-        "RPCWithCertBackend"                  ="Exchange Back End/RPCWithCert"
-        "MAPI-emsmdbBackend"                  ="Exchange Back End/MAPI/emsmdb"
-        "MAPI-nspiBackend"                    ="Exchange Back End/MAPI/nspi"
-    }
-
     $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
@@ -131,19 +112,21 @@ begin {
     $ConfigureMitigationSelected = $false
     $ValidateMitigationSelected = $false
     $Script:SkipEWS = $false
-    $MitigationAppliedType = New-Object 'System.Collections.Generic.List[string]'
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
     if ($PsCmdlet.ParameterSetName -eq "Rollback") {
         $RollbackSelected = $true
 
-        if ($RollbackType -eq "RestoreIISAppConfig") {
+        if ($RollbackType.Contains("RestoreIISAppConfig")) {
+            if ($RollbackType.Length -gt 1) {
+                Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+                return
+            }
+
             $RollbackRestoreIISAppConfig = $true
         } else {
             $RollbackRestrictType = $true
             $RestrictType = $RollbackType.Replace("RestrictType", "")
-            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
         }
     }
 
@@ -151,16 +134,13 @@ begin {
         if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
             $ConfigureEPSelected = $true
             $ConfigureMitigationSelected = $true
-            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
-            $MitigationAppliedType += $RestrictType
+            $RestrictType = $RestrictType | Get-Unique
         }
 
         if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
             $ValidateMitigationSelected = $true
-            $RestrictType = $ValidateMitigation.Replace("RestrictType", "")
-            $Site = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[0]
-            $VDir = $RestrictTypeToSiteVDirMap[$RestrictType].Split("/", 2)[1]
+            $RestrictType = New-Object 'System.Collections.Generic.List[string]'
+            $ValidateMitigation | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
         }
 
         # Get list of IPs in object form from the file specified
@@ -251,7 +231,7 @@ begin {
 
         if ($ValidateMitigationSelected) {
             # Validate mitigation
-            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
+            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -MitigationAppliedType $RestrictType
         }
 
         if ($ShowExtendedProtection) {
@@ -263,7 +243,7 @@ begin {
                     IsClientAccessServer  = $server.IsClientAccessServer
                     IsMailboxServer       = $server.IsMailboxServer
                     ExcludeEWS            = $SkipEWS
-                    MitigationAppliedType = $MitigationAppliedType
+                    MitigationAppliedType = $RestrictType
                 }
                 $extendedProtectionConfigurations.Add((Get-ExtendedProtectionConfiguration @params))
             }
@@ -294,7 +274,7 @@ begin {
         }
 
         if ($ConfigureEPSelected) {
-            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -MitigationAppliedType $MitigationAppliedType
+            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -MitigationAppliedType $RestrictType
 
             if ($null -ne $prerequisitesCheck) {
                 Write-Host ""
@@ -488,7 +468,7 @@ begin {
 
             if ($ConfigureMitigationSelected) {
                 # Apply rules
-                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -Site $Site -VDir $VDir
+                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -MitigationAppliedType $RestrictType
             }
         } elseif ($RollbackSelected) {
             Write-Host "Prerequisite check will be skipped due to Rollback"
@@ -498,6 +478,8 @@ begin {
             }
 
             if ($RollbackRestrictType) {
+                $Site = $RestrictType[0].Split("/", 2)[0]
+                $VDir = $RestrictType[0].Split("/", 2)[1]
                 Invoke-RollbackIPFiltering -ExchangeServers $ExchangeServers -Site $Site -VDir $VDir
             }
             return

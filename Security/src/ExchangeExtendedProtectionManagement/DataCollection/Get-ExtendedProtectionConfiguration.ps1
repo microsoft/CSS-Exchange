@@ -27,7 +27,6 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet("EWSBackend")]
         [string[]]$MitigationAppliedType,
 
         [Parameter(Mandatory = $false)]

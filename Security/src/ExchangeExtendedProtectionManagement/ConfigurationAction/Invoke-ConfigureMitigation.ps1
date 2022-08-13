@@ -13,13 +13,39 @@ function Invoke-ConfigureMitigation {
         [Parameter(Mandatory = $true)]
         [object[]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
-        [string]$Site,
-        [Parameter(Mandatory = $true)]
-        [string]$VDir
+        [string[]]$MitigationAppliedType
     )
 
     begin {
-        $FailedServersFilter = New-Object 'System.Collections.Generic.List[string]'
+        # TODO: Move this so it isn't duplicated
+        # matching restrictions
+        $restrictionToSite = @{
+            "APIFrontend"                         = "Default Web Site/API"
+            "AutodiscoverFrontend"                = "Default Web Site/Autodiscover"
+            "ECPFrontend"                         = "Default Web Site/ECP"
+            "EWSFrontend"                         = "Default Web Site/EWS"
+            "Microsoft-Server-ActiveSyncFrontend" = "Default Web Site/Microsoft-Server-ActiveSync"
+            "OABFrontend"                         = "Default Web Site/OAB"
+            "PowershellFrontend"                  = "Default Web Site/Powershell"
+            "OWAFrontend"                         = "Default Web Site/OWA"
+            "RPCFrontend"                         = "Default Web Site/RPC"
+            "MAPIFrontend"                        = "Default Web Site/MAPI"
+            "APIBackend"                          = "Exchange Back End/API"
+            "AutodiscoverBackend"                 = "Exchange Back End/Autodiscover"
+            "ECPBackend"                          = "Exchange Back End/ECP"
+            "EWSBackend"                          = "Exchange Back End/EWS"
+            "Microsoft-Server-ActiveSyncBackend"  = "Exchange Back End/Microsoft-Server-ActiveSync"
+            "OABBackend"                          = "Exchange Back End/OAB"
+            "PowershellBackend"                   = "Exchange Back End/Powershell"
+            "OWABackend"                          = "Exchange Back End/OWA"
+            "RPCBackend"                          = "Exchange Back End/RPC"
+            "PushNotificationsBackend"            = "Exchange Back End/PushNotifications"
+            "RPCWithCertBackend"                  = "Exchange Back End/RPCWithCert"
+            "MAPI-emsmdbBackend"                  = "Exchange Back End/MAPI/emsmdb"
+            "MAPI-nspiBackend"                    = "Exchange Back End/MAPI/nspi"
+        }
+
+        $FailedServersFilter = @{}
 
         $progressParams = @{
             Activity        = "Applying IP filtering Rules"
@@ -34,27 +60,29 @@ function Invoke-ConfigureMitigation {
                 [Object]$Arguments
             )
 
-            $SiteVDirLocation = $Arguments.SiteVDirLocation
+            $SiteVDirLocations = $Arguments.SiteVDirLocations
             $IpRangesForFiltering = $Arguments.IpRangesForFiltering
             $WhatIf = $Arguments.PassedWhatIf
-            $Filter = 'system.webServer/security/ipSecurity'
-            $IISPath = 'IIS:\'
-            $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
 
             $results = @{
-                IsWindowsFeatureInstalled  = $false
-                IsGetLocalIPSuccessful     = $false
-                IsBackUpSuccessful         = $false
-                IsCreateIPRulesSuccessful  = $false
-                IsSetDefaultRuleSuccessful = $false
-                ErrorContext               = $null
-                IPsNotAdded                = New-Object 'System.Collections.Generic.List[string]'
-                LocalIPs                   = New-Object 'System.Collections.Generic.List[string]'
+                IsWindowsFeatureInstalled = $false
+                IsGetLocalIPSuccessful    = $false
+                LocalIPs                  = New-Object 'System.Collections.Generic.List[string]'
+                ErrorContext              = $null
             }
 
             function Backup-currentIpFilteringRules {
                 param(
-                    $BackupPath
+                    [Parameter(Mandatory = $true)]
+                    [string]$BackupPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$Filter,
+                    [Parameter(Mandatory = $true)]
+                    [string]$IISPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$SiteVDirLocation,
+                    [Parameter(Mandatory = $false)]
+                    [object[]]$ExistingRules
                 )
 
                 $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
@@ -90,11 +118,14 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [object[]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
-                    [hashtable] $results
+                    [hashtable] $state
                 )
 
                 $backupPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
-                $results.IsBackUpSuccessful = Backup-currentIpFilteringRules -BackupPath $backupPath
+                $Filter = 'system.webServer/security/ipSecurity'
+                $IISPath = 'IIS:\'
+                $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+                $state.IsBackUpSuccessful = Backup-currentIpFilteringRules -BackupPath $backupPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                 $RulesToBeAdded = New-Object 'System.Collections.Generic.List[object]'
 
@@ -115,28 +146,31 @@ function Invoke-ConfigureMitigation {
                                 $IpString = ("{0}/{1}" -f $IpFilteringRule.IP, $IpFilteringRule.SubnetMask)
                             }
 
-                            $results.IPsNotAdded += $IpString
+                            $state.IPsNotAdded += $IpString
                         }
                     }
                 }
 
                 if ($RulesToBeAdded.Count + $ExistingRules.Count -gt 500) {
-                    $results.IPsNotAdded += $RulesToBeAdded
+                    $state.IPsNotAdded += $RulesToBeAdded
                     throw 'Too many IP filtering rules (Existing rules [$($ExistingRules.Count)] + New rules [$($RulesToBeAdded.Count)] > 500). Please reduce the specified entries by providing appropriate subnets.'
                 }
 
-                Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
-                $results.IsCreateIPRulesSuccessful = $true
+                if ($RulesToBeAdded.Count -gt 0) {
+                    Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
+                }
+
+                $state.IsCreateIPRulesSuccessful = $true
 
                 # Setting default to deny
                 Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $false -WhatIf:$WhatIf
-                $results.IsSetDefaultRuleSuccessful = $true
+                $state.IsSetDefaultRuleSuccessful = $true
             }
 
             try {
                 try {
                     $baseError = "Installation of IP and Domain filtering Module failed."
-                    $InstallResult = Install-WindowsFeature Web1-IP-Security -ErrorAction Stop -WhatIf:$WhatIf
+                    $InstallResult = Install-WindowsFeature Web-IP-Security -ErrorAction Stop -WhatIf:$WhatIf
                     if (-not $InstallResult.Success) {
                         throw $baseError
                     }
@@ -156,7 +190,23 @@ function Invoke-ConfigureMitigation {
                 }
 
                 $results.LocalIPs = $localIPs
-                CreateIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -results $results
+                foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                    $state = @{
+                        IsBackUpSuccessful         = $false
+                        IsCreateIPRulesSuccessful  = $false
+                        IsSetDefaultRuleSuccessful = $false
+                        ErrorContext               = $null
+                        IPsNotAdded                = New-Object 'System.Collections.Generic.List[string]'
+                    }
+
+                    try {
+                        CreateIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -state $state
+                    } catch {
+                        $state.ErrorContext = $_
+                    }
+
+                    $results[$SiteVDirLocation] = $state
+                }
             } catch {
                 $results.ErrorContext = $_
             }
@@ -178,13 +228,20 @@ function Invoke-ConfigureMitigation {
             return $string.Trim(", ")
         }
     } process {
-        $SiteVDirLocation = $Site
-        if ($VDir -ne '') {
-            $SiteVDirLocation += '/' + $VDir
+        $SiteVDirLocations = New-Object 'System.Collections.Generic.List[string]'
+        foreach ($key in $MitigationAppliedType) {
+            $Site = $restrictionToSite[$key].Split("/")[0]
+            $VDir = $restrictionToSite[$key].Split("/")[1]
+            $SiteVDirLocation = $Site
+            if ($VDir -ne '') {
+                $SiteVDirLocation += '/' + $VDir
+            }
+
+            $SiteVDirLocations += $SiteVDirLocation
         }
 
         $scriptblockArgs = [PSCustomObject]@{
-            SiteVDirLocation     = $SiteVDirLocation
+            SiteVDirLocations    = $SiteVDirLocations
             IpRangesForFiltering = $ipRangeAllowListRules
             PassedWhatIf         = $WhatIfPreference
         }
@@ -208,7 +265,6 @@ function Invoke-ConfigureMitigation {
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
-            Write-Host ("Adding IP Restriction rules on Server {0}") -f $Server
             Write-Host ("Adding IP Restriction rules on Server {0}" -f $Server)
             if ($resultsInvoke.IsWindowsFeatureInstalled) {
                 Write-Verbose ("Successfully installed windows feature - Web-IP-Security on server {0}" -f $Server)
@@ -233,48 +289,51 @@ function Invoke-ConfigureMitigation {
                 continue
             }
 
-            if ($resultsInvoke.IsBackUpSuccessful) {
-                Write-Verbose ("Successfully backed up IP filtering allow list")
-            } else {
-                Write-Host ("Script failed to backup IP filtering allow list with the Inner Exception:") -ForegroundColor Red
-                Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersFilter += $Server
-                continue
-            }
+            foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                $state = $resultsInvoke[$SiteVDirLocation]
+                $FailedServersFilter[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
 
-            if ($resultsInvoke.IsCreateIPRulesSuccessful) {
-                Write-Verbose ("Successfully updated IP filtering allow list")
-                if ($resultsInvoke.IPsNotAdded.Length -gt 0) {
-                    $line = ("Few IPs were not added to the allow list as deny rules for these IPs were already present.")
-                    Write-Warning ($line + "Check logs for further details.")
-                    Write-Verbose $line
-                    Write-Verbose (GetCommaSaperatedString -list $resultsInvoke.IPsNotAdded)
+                if ($state.IsBackUpSuccessful) {
+                    Write-Verbose ("Successfully backed up IP filtering allow list for VDir $SiteVDirLocation")
+                } else {
+                    Write-Host ("Script failed to backup IP filtering allow list for VDir $SiteVDirLocation with the Inner Exception:") -ForegroundColor Red
+                    Write-HostErrorInformation $state.ErrorContext
+                    $FailedServersFilter[$SiteVDirLocation] += $Server
+                    continue
                 }
-            } else {
-                Write-Host ("Script failed to update IP filtering allow list with the Inner Exception:") -ForegroundColor Red
-                Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersFilter += $Server
-                continue
-            }
 
-            if ($resultsInvoke.IsSetDefaultRuleSuccessful) {
-                Write-Verbose ("Successfully set the default IP filtering rule to deny")
-            } else {
-                Write-Host ("Script failed to set the default IP filtering rule to deny with the Inner Exception:") -ForegroundColor Red
-                Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersFilter += $Server
-                continue
-            }
+                if ($state.IsCreateIPRulesSuccessful) {
+                    Write-Verbose ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation")
+                    if ($state.IPsNotAdded.Length -gt 0) {
+                        $line = ("Few IPs were not added to the allow list as deny rules for these IPs were already present.")
+                        Write-Warning ($line + "Check logs for further details.")
+                        Write-Verbose $line
+                        Write-Verbose (GetCommaSaperatedString -list $state.IPsNotAdded)
+                    }
+                } else {
+                    Write-Host ("Script failed to update IP filtering allow list for VDir $SiteVDirLocation. with the Inner Exception:") -ForegroundColor Red
+                    Write-HostErrorInformation $state.ErrorContext
+                    $FailedServersFilter[$SiteVDirLocation] += $Server
+                    continue
+                }
 
-            Write-Host ("Enabled ip filtering rules on server {0}" -f $Server)
+                if ($state.IsSetDefaultRuleSuccessful) {
+                    Write-Verbose ("Successfully set the default IP filtering rule to deny for VDir $SiteVDirLocation")
+                } else {
+                    Write-Host ("Script failed to set the default IP filtering rule to deny for VDir $SiteVDirLocation with the Inner Exception:") -ForegroundColor Red
+                    Write-HostErrorInformation $state.ErrorContext
+                    $FailedServersFilter[$SiteVDirLocation] += $Server
+                    continue
+                }
+
+                Write-Host ("Enabled ip filtering rules on server {0} for VDir $SiteVDirLocation" -f $Server)
+            }
         }
     } end {
-        if ($FailedServersEP.Length -gt 0) {
-            Write-Host ("Unable to Turn Off Extended Protection on the following servers: {0}" -f [string]::Join(", ", $FailedServersEP)) -ForegroundColor Red
-        }
-
-        if ($FailedServersFilter.Length -gt 0) {
-            Write-Host ("Unable to create IP Filtering Rules on the following servers: {0}" -f [string]::Join(", ", $FailedServersFilter)) -ForegroundColor Red
+        foreach ($SiteVDirLocation in $SiteVDirLocations) {
+            if ($FailedServersFilter[$SiteVDirLocation].Length -gt 0) {
+                Write-Host ("Unable to create IP Filtering Rules for VDir $SiteVDirLocation on the following servers: {0}" -f [string]::Join(", ", $FailedServersFilter[$SiteVDirLocation])) -ForegroundColor Red
+            }
         }
     }
 }
