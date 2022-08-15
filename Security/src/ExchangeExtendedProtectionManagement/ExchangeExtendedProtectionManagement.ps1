@@ -51,7 +51,7 @@ param(
 
     [Parameter (Mandatory = $false, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to specify the path to the output file.")]
     [ValidateScript({
-        (Test-Path -Path $_ -IsValid) -and (Test-Path -Path (Split-Path -Parent $_))
+        (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((split-path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
         })]
     [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
 
@@ -60,7 +60,7 @@ param(
     [ValidateScript({
         (Test-Path -Path $_)
         })]
-    [string]$IPRange,
+    [string]$IPRangeFilePath,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
     [ValidateSet('EWSBackend')]
@@ -172,7 +172,7 @@ begin {
         }
 
         # Get list of IPs in object form from the file specified
-        $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRange
+        $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRangeFilePath
         if ($ipResults.IsError) {
             return
         }
