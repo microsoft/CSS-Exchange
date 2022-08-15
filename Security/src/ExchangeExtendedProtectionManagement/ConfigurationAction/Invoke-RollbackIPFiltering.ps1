@@ -17,6 +17,7 @@ function Invoke-RollbackIPFiltering {
     )
 
     begin {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $FailedServers = New-Object 'System.Collections.Generic.List[string]'
 
         $progressParams = @{
@@ -42,6 +43,7 @@ function Invoke-RollbackIPFiltering {
             }
 
             $results = @{
+                TurnOnEPSuccessful      = $false
                 RestoreFileExists       = $false
                 BackUpPath              = $null
                 BackupCurrentSuccessful = $false
@@ -86,12 +88,22 @@ function Invoke-RollbackIPFiltering {
                 return $true
             }
 
+            function TurnONEP {
+                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
+                if ($ExtendedProtection -ne "Require") {
+                   Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "Require"
+                }
+            }
+
             try {
                 $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
                 if ($null -eq $results.RestorePath) {
                     throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
                 }
                 $results.RestoreFileExists = $true
+
+                TurnONEP
+                $results.TurnOnEPSuccessful = $true
 
                 $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                 $results.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $results.BackUpPath
@@ -104,8 +116,6 @@ function Invoke-RollbackIPFiltering {
 
             return $results
         }
-
-        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     } process {
         $scriptblockArgs = [PSCustomObject]@{
             Site         = $Site
@@ -128,17 +138,24 @@ function Invoke-RollbackIPFiltering {
             $Failed = $false
 
             if ($resultsInvoke.RestoreFileExists) {
-                if ($resultsInvoke.BackupCurrentSuccessful) {
-                    Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($resultsInvoke.BackUpPath)"
-                    if ($resultsInvoke.RestoreSuccessful) {
-                        Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($resultsInvoke.RestorePath)"
+                if($resultsInvoke.TurnOnEPSuccessful) {
+                    Write-Host "Turned on EP on server $($Server.Name)"
+                    if ($resultsInvoke.BackupCurrentSuccessful) {
+                        Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($resultsInvoke.BackUpPath)"
+                        if ($resultsInvoke.RestoreSuccessful) {
+                            Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($resultsInvoke.RestorePath)"
+                        } else {
+                            Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
+                            Write-HostErrorInformation $resultsInvoke.ErrorContext
+                            $Failed = $true
+                        }
                     } else {
-                        Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
+                        Write-Host "Failed to backup the current configuration on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
                         Write-HostErrorInformation $resultsInvoke.ErrorContext
                         $Failed = $true
                     }
                 } else {
-                    Write-Host "Failed to backup the current configuration on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
+                    Write-Host "Failed to turn on EP on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
                     Write-HostErrorInformation $resultsInvoke.ErrorContext
                     $Failed = $true
                 }
