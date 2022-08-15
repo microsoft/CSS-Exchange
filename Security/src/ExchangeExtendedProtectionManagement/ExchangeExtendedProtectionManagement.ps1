@@ -218,10 +218,10 @@ begin {
 
                 if ($unsupportedServers.Count -gt 0) {
 
-                    $serverInList = $null -ne ($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
+                    $serversInList = @($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
 
-                    if ($serverInList) {
-                        $line = "Found an unsupported version of Exchange that we were trying to configure. Please re-run the script with a refine filter."
+                    if ($serversInList.Count -gt 0) {
+                        $line = "The following servers are not the minimum required version to support Extended Protection. Please update them, or re-run the script without including them in the list: $($serversInList -Join " ")"
                         Write-Verbose $line
                         Write-Warning $line
                         exit
@@ -316,7 +316,9 @@ begin {
                     }
 
                     # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC vdir check for SSLOffloading.
-                    # TODO: Improve by doing an LDAP query instead.
+                    $rpcFailedServers = New-Object 'System.Collections.Generic.List[string]'
+                    $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
+                    $canNotConfigure = "Therefore, we can not configure Extended Protection."
                     $counter = 0
                     $totalCount = $ExchangeServers.Count
                     $progressParams = @{
@@ -325,24 +327,49 @@ begin {
                         PercentComplete = 0
                     }
 
+                    try {
+                        $outlookAnywhere = Get-OutlookAnywhere -ErrorAction Stop
+                    } catch {
+                        Write-Warning "Failed to run Get-OutlookAnywhere. Failing out the script. Inner Exception: $_"
+                        exit
+                    }
+
                     foreach ($server in $ExchangeServers) {
                         $counter++
                         $progressParams.Status = "Checking RPC FE SSLOffloading - $($server.Name)"
                         $progressParams.PercentComplete = ($counter / $totalCount * 100)
                         Write-Progress @progressParams
-                        try {
-                            if ((Get-OutlookAnywhere -Identity "$($server.Name)\RPC (Default Web Site)" -ErrorAction Stop).SSLOffloading -eq $true) {
-                                Write-Warning "'$($server.Name)\RPC (Default Web Site)' has SSLOffloading set to true. Therefore we can't configure Extended Protection."
-                                Write-Host "Please run the following to fix: Set-OutlookAnywhere -Identity '$($server.Name)\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
-                                Write-Host "Recommended to do this for all your servers in the environment so they are on the same configuration."
-                                exit
-                            }
-                        } catch {
-                            Write-Warning "Failed to run Get-OutlookAnywhere on server $($server.Name). Failing out the script. Inner Exception: $_"
-                            exit
+                        if (-not ($server.IsClientAccessServer)) {
+                            Write-Verbose "Server $($server.Name) is not a CAS. Skipping over the RPC FE Check."
+                            continue
+                        }
+                        $rpcSettings = $outlookAnywhere | Where-Object { $_.ServerName -eq $server.Name }
+
+                        if ($null -eq $rpcSettings) {
+                            $line = "Failed to find '$($server.Name)\RPC (Default Web Site)' Virtual Directory to determine SSLOffloading value. $canNotConfigure"
+                            Write-Verbose $line
+                            Write-Warning $line
+                            $rpcNullServers.Add($server.Name)
+                        } elseif ($rpcSettings.SSLOffloading -eq $true) {
+                            $line = "'$($server.Name)\RPC (Default Web Site)' has SSLOffloading set to true. $canNotConfigure"
+                            Write-Verbose $line
+                            Write-Warning $line
+                            $rpcFailedServers.Add($server.Name)
+                        } else {
+                            Write-Verbose "Server $($server.Name) passed RPC SSLOffloading check"
                         }
                     }
                     Write-Progress @progressParams -Completed
+                    if ($rpcFailedServers.Count -gt 0) {
+                        Write-Warning "Please address the following server regarding RPC (Default Web Site) and SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
+                        Write-Warning "The following cmdlet should be run against each of the servers: Set-OutlookAnywhere 'SERVERNAME\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
+                        exit
+                    } elseif ($rpcNullServers.Count -gt 0) {
+                        Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
+                        Write-Warning $canNotConfigure
+                        exit
+                    }
+                    Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                 } else {
                     Write-Verbose "No online servers that are in a supported state. Skipping over TLS Check."
                 }
