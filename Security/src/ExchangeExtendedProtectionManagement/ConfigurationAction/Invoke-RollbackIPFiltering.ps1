@@ -32,6 +32,7 @@ function Invoke-RollbackIPFiltering {
             $SiteVDirLocations = $Arguments.SiteVDirLocations
             $WhatIf = $Arguments.PassedWhatIf
             $Filter = 'system.webServer/security/ipSecurity'
+            $FilterEP = 'system.WebServer/security/authentication/windowsAuthentication'
             $IISPath = 'IIS:\'
 
             $results = @{}
@@ -71,7 +72,7 @@ function Invoke-RollbackIPFiltering {
                     [string]$IISPath,
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
-                    [Parameter(Mandatory = $true)]
+                    [Parameter(Mandatory = $false)]
                     [object[]]$OriginalIpFilteringRules,
                     [Parameter(Mandatory = $true)]
                     [object]$DefaultForUnspecifiedIPs
@@ -97,9 +98,9 @@ function Invoke-RollbackIPFiltering {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation
                 )
-                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
+                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name "extendedProtection.tokenChecking"
                 if ($ExtendedProtection -ne "Require") {
-                    Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "Require"
+                    Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "extendedProtection.tokenChecking" -Value "Require"
                 }
             }
 
@@ -120,7 +121,7 @@ function Invoke-RollbackIPFiltering {
                     }
                     $state.RestoreFileExists = $true
 
-                    TurnONEP -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
+                    TurnONEP -Filter $FilterEP -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
                     $state.TurnOnEPSuccessful = $true
 
                     $state.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
@@ -128,7 +129,7 @@ function Invoke-RollbackIPFiltering {
                     $state.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                     $originalIpFilteringConfigurations = (Get-Content $state.RestorePath | Out-String | ConvertFrom-Json)
-                    $state.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs)
+                    $state.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs) -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
                 } catch {
                     $state.ErrorContext = $_
                 }

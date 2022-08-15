@@ -51,7 +51,7 @@ param(
 
     [Parameter (Mandatory = $false, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to specify the path to the output file.")]
     [ValidateScript({
-        (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((split-path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
+        (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((Split-Path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
         })]
     [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
 
