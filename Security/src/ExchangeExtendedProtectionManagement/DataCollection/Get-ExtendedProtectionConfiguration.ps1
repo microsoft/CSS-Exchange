@@ -27,42 +27,13 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
-        [string[]]$MitigationAppliedType,
+        [string[]]$SiteVDirLocations,
 
         [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
     begin {
-
-        # TODO: Move this so it isn't duplicated
-        # matching restrictions
-        $restrictionToSite = @{
-            "APIFrontend"                         = "Default Web Site/API"
-            "AutodiscoverFrontend"                = "Default Web Site/Autodiscover"
-            "ECPFrontend"                         = "Default Web Site/ECP"
-            "EWSFrontend"                         = "Default Web Site/EWS"
-            "Microsoft-Server-ActiveSyncFrontend" = "Default Web Site/Microsoft-Server-ActiveSync"
-            "OABFrontend"                         = "Default Web Site/OAB"
-            "PowershellFrontend"                  = "Default Web Site/Powershell"
-            "OWAFrontend"                         = "Default Web Site/OWA"
-            "RPCFrontend"                         = "Default Web Site/RPC"
-            "MAPIFrontend"                        = "Default Web Site/MAPI"
-            "APIBackend"                          = "Exchange Back End/API"
-            "AutodiscoverBackend"                 = "Exchange Back End/Autodiscover"
-            "ECPBackend"                          = "Exchange Back End/ECP"
-            "EWSBackend"                          = "Exchange Back End/EWS"
-            "Microsoft-Server-ActiveSyncBackend"  = "Exchange Back End/Microsoft-Server-ActiveSync"
-            "OABBackend"                          = "Exchange Back End/OAB"
-            "PowershellBackend"                   = "Exchange Back End/Powershell"
-            "OWABackend"                          = "Exchange Back End/OWA"
-            "RPCBackend"                          = "Exchange Back End/RPC"
-            "PushNotificationsBackend"            = "Exchange Back End/PushNotifications"
-            "RPCWithCertBackend"                  = "Exchange Back End/RPCWithCert"
-            "MAPI-emsmdbBackend"                  = "Exchange Back End/MAPI/emsmdb"
-            "MAPI-nspiBackend"                    = "Exchange Back End/MAPI/nspi"
-        }
-
         function NewVirtualDirMatchingEntry {
             param(
                 [Parameter(Mandatory = $true)]
@@ -94,10 +65,10 @@ function Get-ExtendedProtectionConfiguration {
                 # Set EWS Vdir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
 
-                if ($null -ne $MitigationAppliedType -and
-                    $MitigationAppliedType.Count -gt 0) {
-                    foreach ($key in $MitigationAppliedType) {
-                        if ($restrictionToSite[$key] -eq "$($WebSite[$i])/$virtualDirectory") {
+                if ($null -ne $SiteVDirLocations -and
+                    $SiteVDirLocations.Count -gt 0) {
+                    foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                        if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
                             Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
                             $ExtendedProtection[$i] = "None"
                             break;

@@ -11,14 +11,12 @@ function Invoke-RollbackIPFiltering {
         [Parameter(Mandatory = $true)]
         [object[]]$ExchangeServers,
         [Parameter(Mandatory = $true)]
-        [string]$Site,
-        [Parameter(Mandatory = $true)]
-        [string]$VDir
+        [string[]]$SiteVDirLocations
     )
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $FailedServers = New-Object 'System.Collections.Generic.List[string]'
+        $FailedServers = @{}
 
         $progressParams = @{
             Activity        = "Rolling back IP filtering Rules"
@@ -31,33 +29,27 @@ function Invoke-RollbackIPFiltering {
                 [Object]$Arguments
             )
 
-            $Site = $Arguments.Site
-            $VDir = $Arguments.VDir
+            $SiteVDirLocations = $Arguments.SiteVDirLocations
             $WhatIf = $Arguments.PassedWhatIf
             $Filter = 'system.webServer/security/ipSecurity'
             $IISPath = 'IIS:\'
 
-            $SiteVDirLocation = $Site
-            if ($VDir -ne '') {
-                $SiteVDirLocation += '/' + $VDir
-            }
-
-            $results = @{
-                TurnOnEPSuccessful      = $false
-                RestoreFileExists       = $false
-                BackUpPath              = $null
-                BackupCurrentSuccessful = $false
-                RestorePath             = $null
-                RestoreSuccessful       = $false
-                ErrorContext            = $null
-            }
+            $results = @{}
 
             function Backup-currentIpFilteringRules {
                 param(
-                    $BackupPath
+                    [Parameter(Mandatory = $true)]
+                    [string]$BackupPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$Filter,
+                    [Parameter(Mandatory = $true)]
+                    [string]$IISPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$SiteVDirLocation,
+                    [Parameter(Mandatory = $false)]
+                    [object[]]$ExistingRules
                 )
 
-                $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
                 $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
                 if ($null -eq $ExistingRules) {
                     $ExistingRules = New-Object 'System.Collections.Generic.List[object]'
@@ -73,8 +65,16 @@ function Invoke-RollbackIPFiltering {
 
             function Restore-OriginalIpFilteringRules {
                 param(
-                    $OriginalIpFilteringRules,
-                    $DefaultForUnspecifiedIPs
+                    [Parameter(Mandatory = $true)]
+                    [string]$Filter,
+                    [Parameter(Mandatory = $true)]
+                    [string]$IISPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$SiteVDirLocation,
+                    [Parameter(Mandatory = $true)]
+                    [object[]]$OriginalIpFilteringRules,
+                    [Parameter(Mandatory = $true)]
+                    [object]$DefaultForUnspecifiedIPs
                 )
 
                 Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop -WhatIf:$WhatIf
@@ -89,44 +89,65 @@ function Invoke-RollbackIPFiltering {
             }
 
             function TurnONEP {
+                param(
+                    [Parameter(Mandatory = $true)]
+                    [string]$Filter,
+                    [Parameter(Mandatory = $true)]
+                    [string]$IISPath,
+                    [Parameter(Mandatory = $true)]
+                    [string]$SiteVDirLocation
+                )
                 $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
                 if ($ExtendedProtection -ne "Require") {
-                   Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "Require"
+                    Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name tokenChecking -Value "Require"
                 }
             }
 
-            try {
-                $results.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
-                if ($null -eq $results.RestorePath) {
-                    throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
+            foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                $state = @{
+                    TurnOnEPSuccessful      = $false
+                    RestoreFileExists       = $false
+                    BackUpPath              = $null
+                    BackupCurrentSuccessful = $false
+                    RestorePath             = $null
+                    RestoreSuccessful       = $false
+                    ErrorContext            = $null
                 }
-                $results.RestoreFileExists = $true
+                try {
+                    $state.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
+                    if ($null -eq $state.RestorePath) {
+                        throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
+                    }
+                    $state.RestoreFileExists = $true
 
-                TurnONEP
-                $results.TurnOnEPSuccessful = $true
+                    TurnONEP -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
+                    $state.TurnOnEPSuccessful = $true
 
-                $results.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
-                $results.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $results.BackUpPath
+                    $state.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
+                    $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+                    $state.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
-                $originalIpFilteringConfigurations = (Get-Content $results.RestorePath | Out-String | ConvertFrom-Json)
-                $results.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs)
-            } catch {
-                $results.ErrorContext = $_
+                    $originalIpFilteringConfigurations = (Get-Content $state.RestorePath | Out-String | ConvertFrom-Json)
+                    $state.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs)
+                } catch {
+                    $state.ErrorContext = $_
+                }
+
+                $results[$SiteVDirLocation] = $state
             }
 
             return $results
         }
     } process {
         $scriptblockArgs = [PSCustomObject]@{
-            Site         = $Site
-            VDir         = $VDir
-            PassedWhatIf = $WhatIfPreference
+            SiteVDirLocations = $SiteVDirLocations
+            PassedWhatIf      = $WhatIfPreference
         }
 
         $exchangeServersProcessed = 0
         $totalExchangeServers = $ExchangeServers.Count
         foreach ($Server in $ExchangeServers) {
-            $baseStatus = "Processing: $($Server.Name) -" # Should this be at the start as the server is already processed?
+            $baseStatus = "Processing: $($Server.Name) -"
             $progressParams.PercentComplete = ($exchangeServersProcessed / $totalExchangeServers * 100)
             $progressParams.Status = "$baseStatus Rolling back rules"
             Write-Progress @progressParams
@@ -135,42 +156,48 @@ function Invoke-RollbackIPFiltering {
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with Arguments Site: {1}, VDir: {2}" -f $Server.Name, $Site, $VDir)
             Write-Verbose ("Restoring previous state for Server {0}" -f $Server.Name)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
-            $Failed = $false
 
-            if ($resultsInvoke.RestoreFileExists) {
-                if($resultsInvoke.TurnOnEPSuccessful) {
-                    Write-Host "Turned on EP on server $($Server.Name)"
-                    if ($resultsInvoke.BackupCurrentSuccessful) {
-                        Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($resultsInvoke.BackUpPath)"
-                        if ($resultsInvoke.RestoreSuccessful) {
-                            Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($resultsInvoke.RestorePath)"
+            foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                $Failed = $false
+                $state = $resultsInvoke[$SiteVDirLocation]
+                $FailedServers[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
+                if ($state.RestoreFileExists) {
+                    if ($state.TurnOnEPSuccessful) {
+                        Write-Host "Turned on EP on server $($Server.Name) for VDir $SiteVDirLocation"
+                        if ($state.BackupCurrentSuccessful) {
+                            Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($state.BackUpPath) for VDir $SiteVDirLocation"
+                            if ($state.RestoreSuccessful) {
+                                Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($state.RestorePath) for VDir $SiteVDirLocation"
+                            } else {
+                                Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
+                                Write-HostErrorInformation $state.ErrorContext
+                                $Failed = $true
+                            }
                         } else {
-                            Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
-                            Write-HostErrorInformation $resultsInvoke.ErrorContext
+                            Write-Host "Failed to backup the current configuration on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
+                            Write-HostErrorInformation $state.ErrorContext
                             $Failed = $true
                         }
                     } else {
-                        Write-Host "Failed to backup the current configuration on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
-                        Write-HostErrorInformation $resultsInvoke.ErrorContext
+                        Write-Host "Failed to turn on EP on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
+                        Write-HostErrorInformation $state.ErrorContext
                         $Failed = $true
                     }
                 } else {
-                    Write-Host "Failed to turn on EP on server $($Server.Name). Aborting rollback on the server $($Server.Name). Inner Exception:" -ForegroundColor Red
-                    Write-HostErrorInformation $resultsInvoke.ErrorContext
+                    Write-Host "No restore file exists on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation." -ForegroundColor Red
                     $Failed = $true
                 }
-            } else {
-                Write-Host "No restore file exists on server $($Server.Name). Aborting rollback on the server $($Server.Name)." -ForegroundColor Red
-                $Failed = $true
-            }
 
-            if ($Failed) {
-                $FailedServers += $Server.Name
+                if ($Failed) {
+                    $FailedServers[$SiteVDirLocation] += $Server.Name
+                }
             }
         }
     } end {
-        if ($FailedServers.Length -gt 0) {
-            Write-Host ("Unable to rollback for the following servers: {0}" -f [string]::Join(", ", $FailedServers)) -ForegroundColor Red
+        foreach ($SiteVDirLocation in $SiteVDirLocations) {
+            if ($FailedServers[$SiteVDirLocation].Length -gt 0) {
+                Write-Host ("Unable to rollback for VDir $SiteVDirLocation on the following servers: {0}" -f [string]::Join(", ", $FailedServers)) -ForegroundColor Red
+            }
         }
     }
 }

@@ -62,7 +62,7 @@ function Get-IPRangeAllowListFromFile {
                     # Check if the subnet value is valid (IPv4 <= 32, IPv6 <= 128 or empty)
                     $SubnetMask = $SubnetMaskString -as [int]
 
-                    $InvalidSubnetMaskString = "Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Invalid Subnet Mask found: The Subnet Mask {0} is not in valid range.Note: Subnet Mask must be either empty or a non-negative integer.  For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128. Re-execute the command with proper input file for IPRange parameter." 
+                    $InvalidSubnetMaskString = "Input file provided for IPRange doesn't have correct syntax of IPs or IP subnets. Invalid Subnet Mask found: The Subnet Mask {0} is not in valid range.Note: Subnet Mask must be either empty or a non-negative integer.  For IPv4 the value must be <= 32 and for IPv6 the value must be <= 128. Re-execute the command with proper input file for IPRange parameter."
                     if ($null -eq $SubnetMask) {
                         Write-Host ($InvalidSubnetMaskString -f $SubnetMaskString) -ForegroundColor Red
                         $results.IsError = $true

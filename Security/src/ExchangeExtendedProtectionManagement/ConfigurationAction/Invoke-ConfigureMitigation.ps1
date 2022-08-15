@@ -13,38 +13,10 @@ function Invoke-ConfigureMitigation {
         [Parameter(Mandatory = $true)]
         [object[]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
-        [string[]]$MitigationAppliedType
+        [string[]]$SiteVDirLocations
     )
 
     begin {
-        # TODO: Move this so it isn't duplicated
-        # matching restrictions
-        $restrictionToSite = @{
-            "APIFrontend"                         = "Default Web Site/API"
-            "AutodiscoverFrontend"                = "Default Web Site/Autodiscover"
-            "ECPFrontend"                         = "Default Web Site/ECP"
-            "EWSFrontend"                         = "Default Web Site/EWS"
-            "Microsoft-Server-ActiveSyncFrontend" = "Default Web Site/Microsoft-Server-ActiveSync"
-            "OABFrontend"                         = "Default Web Site/OAB"
-            "PowershellFrontend"                  = "Default Web Site/Powershell"
-            "OWAFrontend"                         = "Default Web Site/OWA"
-            "RPCFrontend"                         = "Default Web Site/RPC"
-            "MAPIFrontend"                        = "Default Web Site/MAPI"
-            "APIBackend"                          = "Exchange Back End/API"
-            "AutodiscoverBackend"                 = "Exchange Back End/Autodiscover"
-            "ECPBackend"                          = "Exchange Back End/ECP"
-            "EWSBackend"                          = "Exchange Back End/EWS"
-            "Microsoft-Server-ActiveSyncBackend"  = "Exchange Back End/Microsoft-Server-ActiveSync"
-            "OABBackend"                          = "Exchange Back End/OAB"
-            "PowershellBackend"                   = "Exchange Back End/Powershell"
-            "OWABackend"                          = "Exchange Back End/OWA"
-            "RPCBackend"                          = "Exchange Back End/RPC"
-            "PushNotificationsBackend"            = "Exchange Back End/PushNotifications"
-            "RPCWithCertBackend"                  = "Exchange Back End/RPCWithCert"
-            "MAPI-emsmdbBackend"                  = "Exchange Back End/MAPI/emsmdb"
-            "MAPI-nspiBackend"                    = "Exchange Back End/MAPI/nspi"
-        }
-
         $FailedServersFilter = @{}
 
         $progressParams = @{
@@ -228,18 +200,6 @@ function Invoke-ConfigureMitigation {
             return $string.Trim(", ")
         }
     } process {
-        $SiteVDirLocations = New-Object 'System.Collections.Generic.List[string]'
-        foreach ($key in $MitigationAppliedType) {
-            $Site = $restrictionToSite[$key].Split("/")[0]
-            $VDir = $restrictionToSite[$key].Split("/")[1]
-            $SiteVDirLocation = $Site
-            if ($VDir -ne '') {
-                $SiteVDirLocation += '/' + $VDir
-            }
-
-            $SiteVDirLocations += $SiteVDirLocation
-        }
-
         $scriptblockArgs = [PSCustomObject]@{
             SiteVDirLocations    = $SiteVDirLocations
             IpRangesForFiltering = $ipRangeAllowListRules
