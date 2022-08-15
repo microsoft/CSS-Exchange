@@ -218,10 +218,10 @@ begin {
 
                 if ($unsupportedServers.Count -gt 0) {
 
-                    $serverInList = $null -ne ($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
+                    $serversInList = @($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
 
-                    if ($serverInList) {
-                        $line = "Found an unsupported version of Exchange that we were trying to configure. Please re-run the script with a refine filter."
+                    if ($serversInList.Count -gt 0) {
+                        $line = "The following servers are not the minimum required version to support Extended Protection. Please update them, or re-run the script without including them in the list: $($serversInList -Join " ")"
                         Write-Verbose $line
                         Write-Warning $line
                         exit
