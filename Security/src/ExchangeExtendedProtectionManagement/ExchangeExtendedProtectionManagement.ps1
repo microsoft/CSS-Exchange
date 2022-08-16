@@ -221,11 +221,6 @@ begin {
             return
         }
 
-        if ($FindExchangeServerIPAddresses) {
-            Get-ExchangeServerIPs -OutputFilePath $OutputFilePath
-            return
-        }
-
         if ($ConfigureEPSelected) {
 
             $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy"
@@ -251,6 +246,12 @@ begin {
         Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
         Set-ADServerSettings -ViewEntireForest $true
         $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
+
+        if ($FindExchangeServerIPAddresses) {
+            Get-ExchangeServerIPs -OutputFilePath $OutputFilePath -ExchangeServers $ExchangeServers
+            return
+        }
+
         $ExchangeServersPrerequisitesCheckSettingsCheck = $ExchangeServers
 
         if ($null -ne $includeExchangeServerNames -and $includeExchangeServerNames.Count -gt 0) {

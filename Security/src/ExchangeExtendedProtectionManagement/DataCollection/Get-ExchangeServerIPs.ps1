@@ -9,7 +9,9 @@ function Get-ExchangeServerIPs {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$OutputFilePath
+        [string]$OutputFilePath,
+        [Parameter(Mandatory = $false)]
+        [object[]]$ExchangeServers
     )
 
     begin {
@@ -25,14 +27,6 @@ function Get-ExchangeServerIPs {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     }
     process {
-        try {
-            $ExchangeServers = Get-ExchangeServer -ErrorAction Stop
-        } catch {
-            Write-Host ("Unable to run Get-ExchangeServer due to: Inner Exception") -ForegroundColor Red
-            Write-HostErrorInformation $_
-            return
-        }
-
         $counter = 0
         $totalCount = $ExchangeServers.Count
 
