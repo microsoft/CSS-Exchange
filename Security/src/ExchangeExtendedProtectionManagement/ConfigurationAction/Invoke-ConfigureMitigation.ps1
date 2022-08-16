@@ -129,7 +129,7 @@ function Invoke-ConfigureMitigation {
                 }
 
                 if ($RulesToBeAdded.Count -gt 0) {
-                    Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
+                    Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded.ToArray() -ErrorAction Stop -WhatIf:$WhatIf
                 }
 
                 $state.IsCreateIPRulesSuccessful = $true
@@ -215,6 +215,10 @@ function Invoke-ConfigureMitigation {
             $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
         }
 
+        $SiteVDirLocations | ForEach-Object {
+            $FailedServersFilter[$_] = New-Object 'System.Collections.Generic.List[string]'
+        }
+
         foreach ($Server in $ExchangeServers) {
             $baseStatus = "Processing: $Server -"
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
@@ -251,7 +255,6 @@ function Invoke-ConfigureMitigation {
 
             foreach ($SiteVDirLocation in $SiteVDirLocations) {
                 $state = $resultsInvoke[$SiteVDirLocation]
-                $FailedServersFilter[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
 
                 if ($state.IsBackUpSuccessful) {
                     Write-Verbose ("Successfully backed up IP filtering allow list for VDir $SiteVDirLocation")

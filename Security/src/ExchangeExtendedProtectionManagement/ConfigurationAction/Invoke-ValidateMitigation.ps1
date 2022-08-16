@@ -175,6 +175,14 @@ function Invoke-ValidateMitigation {
             $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
         }
 
+        $SiteVDirLocations | ForEach-Object {
+            $FailedServersEP[$_] = New-Object 'System.Collections.Generic.List[string]'
+            $FailedServersFilter[$_] = New-Object 'System.Collections.Generic.List[string]'
+
+            $UnMitigatedServersEP[$_] = New-Object 'System.Collections.Generic.List[string]'
+            $UnMitigatedServersFilter[$_] = New-Object 'System.Collections.Generic.List[string]'
+        }
+
         foreach ($Server in $ExchangeServers) {
             $baseStatus = "Processing: $Server -"
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
@@ -186,11 +194,6 @@ function Invoke-ValidateMitigation {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
             foreach ($SiteVDirLocation in $SiteVDirLocations) {
                 $state = $resultsInvoke[$SiteVDirLocation]
-                $FailedServersEP[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
-                $FailedServersFilter[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
-
-                $UnMitigatedServersEP[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
-                $UnMitigatedServersFilter[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
 
                 if ($state.IsEPOff) {
                     Write-Verbose ("Expected: The state of Extended protection flag is None for Vdir: $($SiteVDirLocation)")
