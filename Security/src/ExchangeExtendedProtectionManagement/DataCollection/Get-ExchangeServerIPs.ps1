@@ -69,7 +69,8 @@ function Get-ExchangeServerIPs {
             $IPs | Out-File $OutputFilePath
             Write-Host ("Please find the collected IPs at {0}" -f $OutputFilePath)
         } catch {
-            Write-Host "Unable to write to file. Please check the path provided." -ForegroundColor Red
+            Write-Host "Unable to write to file. Please check the path provided. Inner Exception:" -ForegroundColor Red
+            Write-HostErrorInformation $_
         }
     }
 }

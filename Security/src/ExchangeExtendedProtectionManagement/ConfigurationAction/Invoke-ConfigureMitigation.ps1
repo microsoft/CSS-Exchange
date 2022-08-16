@@ -106,9 +106,9 @@ function Invoke-ConfigureMitigation {
 
                     if ($null -eq $ExistingIPSubnetRule) {
                         if ($IpFilteringRule.Type -eq "Single IP") {
-                            $RulesToBeAdded += @{ipAddress=$IpFilteringRule.IP; allowed=$IpFilteringRule.Allowed; }
+                            $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.IP; allowed=$IpFilteringRule.Allowed; })
                         } else {
-                            $RulesToBeAdded += @{ipAddress=$IpFilteringRule.IP; subnetMask=$IpFilteringRule.SubnetMask; allowed=$IpFilteringRule.Allowed; }
+                            $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.IP; subnetMask=$IpFilteringRule.SubnetMask; allowed=$IpFilteringRule.Allowed; })
                         }
                     } else {
                         if ($ExistingIPSubnetRule.allowed -ne $IpFilteringRule.Allowed) {
@@ -157,7 +157,7 @@ function Invoke-ConfigureMitigation {
 
                 foreach ($localIP in $localIPs) {
                     if ($null -eq ($IpRangesForFiltering | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $localIP })) {
-                        $IpRangesForFiltering += @{Type="Single IP"; IP=$localIP; Allowed=$true }
+                        $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$localIP; Allowed=$true })
                     }
                 }
 

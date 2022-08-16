@@ -147,7 +147,7 @@ function Invoke-ValidateMitigation {
                         $localIPs = Get-LocalIpAddresses
 
                         $localIPs | ForEach-Object {
-                            $IpRangesForFiltering += @{Type="Single IP"; IP=$_; Allowed=$true }
+                            $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$_; Allowed=$true })
                         }
 
                         VerifyIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -state $state
