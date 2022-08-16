@@ -212,7 +212,15 @@ function Invoke-ConfigureMitigation {
         if ($null -eq $ipRangeAllowListRules) {
             $ipRangeAllowListString = "null"
         } else {
-            $ipRangeAllowListString = [string]::Join(", ", $ipRangeAllowListRules)
+            $IpStrings = @() 
+            $ipRangeAllowListRules | ForEach-Object {
+                if ($_.Type -eq "Single IP") {
+                    $IpStrings += $_.IP
+                } else {
+                    $IpStrings += ("{0}/{1}" -f $_.IP, $_.SubnetMask)
+                }
+            }
+            $ipRangeAllowListString = [string]::Join(", ", $IpStrings)
         }
 
         $SiteVDirLocations | ForEach-Object {
