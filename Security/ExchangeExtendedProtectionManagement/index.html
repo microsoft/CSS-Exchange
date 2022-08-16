@@ -1533,19 +1533,6 @@
     Requirements
   </a>
   
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#required-permissions" class="md-nav__link">
-    Required Permissions:
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1844,19 +1831,6 @@
     Requirements
   </a>
   
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#required-permissions" class="md-nav__link">
-    Required Permissions:
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1908,24 +1882,31 @@
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeExtendedProtectionManagement.ps1">ExchangeExtendedProtectionManagement.ps1</a></p>
 <p>The Exchange Extended Protection Management is a script to help automate the Extended Protection feature on the Windows Authentication Module on Exchange Servers. Prior to configuration, it validates that all servers that we are trying to enable Extended Protection on and the servers that already have Extended Protection enabled have the same TLS settings and other prerequisites that are required for Extended Protection to be enabled successfully.</p>
 <h2 id="requirements">Requirements</h2>
-<h4 id="required-permissions">Required Permissions:</h4>
-<p>However, if the group membership was adjusted or in case the script is executed on a non-Exchange system like a management server, you need to add your account to the <code>Local Administrator</code> group. You also need to be a member of the group <code>Organization Management</code></p>
+<p>The user must be in <code>Organization Management</code> and must run this script from an
+elevated Exchange Management Shell (EMS) command prompt.</p>
 <h2 id="how-to-run">How To Run</h2>
-<p>This script <strong>must</strong> be run as Administrator in Exchange Management Shell on an Exchange Server or already in an Exchange Management Shell session.</p>
 <h4 id="examples">Examples:</h4>
-<p>This cmdlet will run Exchange Extended Protection Management by default and try to configure all the Exchange Servers that are online that we can reach.</p>
+<p>This syntax enables Extended Protection on all Exchange Servers that are online that we can reach.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span>
 </code></pre></div>
-<p>This cmdlet will run Exchange Extended Protection Management and configure only the ExchangeServerNames that are passed. However, TLS checks will still occur against all online servers that have Extended Protection already enabled on.</p>
+<p>This syntax enables Extended Protection on only the Exchange Servers specified
+in the -ExchangeServerNames parameter. However, TLS checks will still occur against all
+servers, and the script will confirm that the TLS settings are correct on all servers
+with Extended Protection enabled and all servers specified in the -ExchangeServerNames parameter.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExchangeServerNames</span> <span class="p">&lt;</span><span class="n">Array_of_Server_Names</span><span class="p">&gt;</span>
 </code></pre></div>
-<p>This cmdlet will run Exchange Extended Protection Management and remove the Exchange Servers within the list of servers passed with the <code>SkipExchangeServerNames</code> parameter. However, TLS checks will still occur against these servers if Extended Protection is already enabled on them.</p>
+<p>This syntax enables Extended Protection on all Exchange Servers that are online that we
+can reach, excluding any servers specified in the -SkipExchangeServerNames parameter.
+As above, TLS checks will still occur against all servers, and the script will confirm
+that the TLS settings are correct on all servers with Extended Protection enabled and all
+servers being enabled.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SkipExchangeServerNames</span> <span class="p">&lt;</span><span class="n">Array_of_Server_Names</span><span class="p">&gt;</span>
 </code></pre></div>
-<p>This cmdlet will run Exchange Extended Protection Management rollback for all the Exchange Servers that are online where Extended Protection was previously configured. <strong>NOTE:</strong> This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.</p>
+<p>This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.</p>
+<p><strong>NOTE:</strong> This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackType</span> <span class="s2">&quot;RestoreIISAppConfig&quot;</span>
 </code></pre></div>
-<p>This cmdlet will show the current Extended Protection configuration for all the Exchange Servers that are online.</p>
+<p>This syntax displays the current Extended Protection configuration for all the Exchange Servers that are online.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ShowExtendedProtection</span>
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
@@ -1961,7 +1942,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 9, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 16, 2022</span>
       
     
   </small>
