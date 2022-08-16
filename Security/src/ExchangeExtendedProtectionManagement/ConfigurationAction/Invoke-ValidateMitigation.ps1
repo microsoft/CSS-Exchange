@@ -100,7 +100,7 @@ function Invoke-ValidateMitigation {
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
 
-                $ExistingRules = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection
+                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
 
                 foreach ($IpFilteringRule in $IpFilteringRules) {
                     $ExistingIPSubnetRule = $ExistingRules | Where-Object { $_.ipAddress -eq $IpFilteringRule.IP -and ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") -and $_.allowed -eq $IpFilteringRule.Allowed }
