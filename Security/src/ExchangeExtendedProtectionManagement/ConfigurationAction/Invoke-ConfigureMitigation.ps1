@@ -11,7 +11,7 @@ function Invoke-ConfigureMitigation {
         [Parameter(Mandatory = $true)]
         [string[]]$ExchangeServers,
         [Parameter(Mandatory = $true)]
-        [System.Collections.Generic.List[object]]$ipRangeAllowListRules,
+        [object[]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
         [string[]]$SiteVDirLocations
     )
@@ -54,7 +54,7 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $false)]
-                    [System.Collections.Generic.List[object]]$ExistingRules
+                    [object[]]$ExistingRules
                 )
 
                 $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
@@ -88,7 +88,7 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $true)]
-                    [System.Collections.Generic.List[object]]$IpFilteringRules,
+                    [object[]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
                     [hashtable] $state
                 )
@@ -129,7 +129,7 @@ function Invoke-ConfigureMitigation {
                 }
 
                 if ($RulesToBeAdded.Count -gt 0) {
-                    Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded.ToArray() -ErrorAction Stop -WhatIf:$WhatIf
+                    Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
                 }
 
                 $state.IsCreateIPRulesSuccessful = $true
@@ -157,7 +157,7 @@ function Invoke-ConfigureMitigation {
 
                 foreach ($localIP in $localIPs) {
                     if ($null -eq ($IpRangesForFiltering | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $localIP })) {
-                        $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$localIP; Allowed=$true }) > $null
+                        $IpRangesForFiltering += @{Type="Single IP"; IP=$localIP; Allowed=$true }
                     }
                 }
 

@@ -11,7 +11,7 @@ function Invoke-ValidateMitigation {
         [Parameter(Mandatory = $true)]
         [string[]]$ExchangeServers,
         [Parameter(Mandatory = $false)]
-        [System.Collections.Generic.List[object]]$ipRangeAllowListRules,
+        [object[]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
         [string[]]$SiteVDirLocations
     )
@@ -85,7 +85,7 @@ function Invoke-ValidateMitigation {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $true)]
-                    [System.Collections.Generic.List[object]]$IpFilteringRules,
+                    [object[]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
                     [hashtable]$state
                 )
@@ -147,7 +147,7 @@ function Invoke-ValidateMitigation {
                         $localIPs = Get-LocalIpAddresses
 
                         $localIPs | ForEach-Object {
-                            $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$_; Allowed=$true }) > $null
+                            $IpRangesForFiltering += @{Type="Single IP"; IP=$_; Allowed=$true }
                         }
 
                         VerifyIPRangeAllowList -SiteVDirLocation $SiteVDirLocation -IpFilteringRules $IpRangesForFiltering -state $state
