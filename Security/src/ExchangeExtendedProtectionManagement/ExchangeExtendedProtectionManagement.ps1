@@ -459,10 +459,11 @@ begin {
                         PercentComplete = 0
                     }
 
-                    try {
-                        $outlookAnywhere = Get-OutlookAnywhere -ErrorAction Stop
-                    } catch {
-                        Write-Warning "Failed to run Get-OutlookAnywhere. Failing out the script. Inner Exception: $_"
+                    # Needs to be SilentlyContinue to handle down servers
+                    $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue
+
+                    if ($null -eq $outlookAnywhere) {
+                        Write-Warning "Failed to run Get-OutlookAnywhere. Failing out the script."
                         exit
                     }
 
