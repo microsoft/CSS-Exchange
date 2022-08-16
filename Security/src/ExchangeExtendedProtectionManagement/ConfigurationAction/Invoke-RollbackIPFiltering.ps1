@@ -149,6 +149,11 @@ function Invoke-RollbackIPFiltering {
 
         $exchangeServersProcessed = 0
         $totalExchangeServers = $ExchangeServers.Count
+
+        $SiteVDirLocations | ForEach-Object {
+            $FailedServers[$_] = New-Object 'System.Collections.Generic.List[string]'
+        }
+
         foreach ($Server in $ExchangeServers) {
             $baseStatus = "Processing: $($Server.Name) -"
             $progressParams.PercentComplete = ($exchangeServersProcessed / $totalExchangeServers * 100)
@@ -160,10 +165,17 @@ function Invoke-RollbackIPFiltering {
             Write-Verbose ("Restoring previous state for Server {0}" -f $Server.Name)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
 
+            if ($null -eq $resultsInvoke) {
+                $line = "Failed to restore application host config file on server $($Server.Name), because we weren't able to reach it."
+                Write-Verbose $line
+                Write-Warning $line
+                $SiteVDirLocations | ForEach-Object { $FailedServers[$_].Add($Server.Name) }
+                continue
+            }
+
             foreach ($SiteVDirLocation in $SiteVDirLocations) {
                 $Failed = $false
                 $state = $resultsInvoke[$SiteVDirLocation]
-                $FailedServers[$SiteVDirLocation] = New-Object 'System.Collections.Generic.List[string]'
                 if ($state.RestoreFileExists) {
                     if ($state.TurnOnEPSuccessful) {
                         Write-Host "Turned on EP on server $($Server.Name) for VDir $SiteVDirLocation"
@@ -199,7 +211,7 @@ function Invoke-RollbackIPFiltering {
     } end {
         foreach ($SiteVDirLocation in $SiteVDirLocations) {
             if ($FailedServers[$SiteVDirLocation].Length -gt 0) {
-                Write-Host ("Unable to rollback for VDir $SiteVDirLocation on the following servers: {0}" -f [string]::Join(", ", $FailedServers)) -ForegroundColor Red
+                Write-Host ("Unable to rollback for VDir $SiteVDirLocation on the following servers: {0}" -f [string]::Join(", ", $FailedServers[$SiteVDirLocation])) -ForegroundColor Red
             }
         }
     }
