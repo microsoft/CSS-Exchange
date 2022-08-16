@@ -212,7 +212,7 @@ function Invoke-ConfigureMitigation {
         if ($null -eq $ipRangeAllowListRules) {
             $ipRangeAllowListString = "null"
         } else {
-            $IpStrings = @() 
+            $IpStrings = @()
             $ipRangeAllowListRules | ForEach-Object {
                 if ($_.Type -eq "Single IP") {
                     $IpStrings += $_.IP
