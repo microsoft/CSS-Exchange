@@ -78,7 +78,7 @@ param(
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
-    [string]$RollbackType
+    [string[]]$RollbackType
 )
 
 begin {
