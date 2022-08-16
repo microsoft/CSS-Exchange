@@ -11,7 +11,7 @@ function Invoke-ConfigureMitigation {
         [Parameter(Mandatory = $true)]
         [string[]]$ExchangeServers,
         [Parameter(Mandatory = $true)]
-        [object[]]$ipRangeAllowListRules,
+        [System.Collections.Generic.List[object]]$ipRangeAllowListRules,
         [Parameter(Mandatory = $true)]
         [string[]]$SiteVDirLocations
     )
@@ -54,7 +54,7 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $false)]
-                    [object[]]$ExistingRules
+                    [System.Collections.Generic.List[object]]$ExistingRules
                 )
 
                 $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
@@ -88,7 +88,7 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $true)]
-                    [object[]]$IpFilteringRules,
+                    [System.Collections.Generic.List[object]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
                     [hashtable] $state
                 )
@@ -157,7 +157,7 @@ function Invoke-ConfigureMitigation {
 
                 foreach ($localIP in $localIPs) {
                     if ($null -eq ($IpRangesForFiltering | Where-Object { $_.Type -eq "Single IP" -and $_.IP -eq $localIP })) {
-                        $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$localIP; Allowed=$true })
+                        $IpRangesForFiltering.Add(@{Type="Single IP"; IP=$localIP; Allowed=$true }) > $null
                     }
                 }
 

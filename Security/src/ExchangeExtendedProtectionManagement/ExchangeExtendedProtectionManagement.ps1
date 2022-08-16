@@ -148,7 +148,7 @@ begin {
         if ($RollbackType.Contains("RestoreIISAppConfig")) {
             if ($RollbackType.Length -gt 1) {
                 Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
-                return
+                exit
             }
 
             $RollbackRestoreIISAppConfig = $true
@@ -174,7 +174,7 @@ begin {
         # Get list of IPs in object form from the file specified
         $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRangeFilePath
         if ($ipResults.IsError) {
-            return
+            exit
         }
 
         $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
@@ -218,7 +218,7 @@ begin {
 
         if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
             Write-Warning "Script was updated. Please rerun the command."
-            return
+            exit
         }
 
         if ($ConfigureEPSelected) {
@@ -268,7 +268,7 @@ begin {
 
         if ($null -eq $ExchangeServers) {
             Write-Host "No exchange servers to process. Please specify server filters correctly"
-            return
+            exit
         }
 
         if ($ValidateMitigationSelected) {

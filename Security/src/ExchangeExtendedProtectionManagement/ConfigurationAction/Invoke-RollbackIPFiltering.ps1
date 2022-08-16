@@ -48,7 +48,7 @@ function Invoke-RollbackIPFiltering {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $false)]
-                    [object[]]$ExistingRules
+                    [System.Collections.Generic.List[object]]$ExistingRules
                 )
 
                 $DefaultForUnspecifiedIPs = Get-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted"
@@ -73,7 +73,7 @@ function Invoke-RollbackIPFiltering {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation,
                     [Parameter(Mandatory = $false)]
-                    [object[]]$OriginalIpFilteringRules,
+                    [System.Collections.Generic.List[object]]$OriginalIpFilteringRules,
                     [Parameter(Mandatory = $true)]
                     [object]$DefaultForUnspecifiedIPs
                 )
@@ -81,7 +81,7 @@ function Invoke-RollbackIPFiltering {
                 Clear-WebConfiguration -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -ErrorAction Stop -WhatIf:$WhatIf
                 $RulesToBeAdded = New-Object 'System.Collections.Generic.List[object]'
                 foreach ($IpFilteringRule in $OriginalIpFilteringRules) {
-                    $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.ipAddress; subnetMask=$IpFilteringRule.subnetMask; domainName=$IpFilteringRule.domainName; allowed=$IpFilteringRule.allowed; })
+                    $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.ipAddress; subnetMask=$IpFilteringRule.subnetMask; domainName=$IpFilteringRule.domainName; allowed=$IpFilteringRule.allowed; }) > $null
                 }
                 Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "allowUnlisted" -Value $DefaultForUnspecifiedIPs.Value -WhatIf:$WhatIf
                 Add-WebConfigurationProperty  -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "." -Value $RulesToBeAdded -ErrorAction Stop -WhatIf:$WhatIf
