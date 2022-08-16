@@ -99,16 +99,16 @@ function Invoke-ConfigureMitigation {
                 $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
                 $state.IsBackUpSuccessful = Backup-currentIpFilteringRules -BackupPath $backupPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
-                $RulesToBeAdded = New-Object 'System.Collections.Generic.List[object]'
+                $RulesToBeAdded = @()
 
                 foreach ($IpFilteringRule in $IpFilteringRules) {
                     $ExistingIPSubnetRule = $ExistingRules | Where-Object { $_.ipAddress -eq $IpFilteringRule.IP -and ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") }
 
                     if ($null -eq $ExistingIPSubnetRule) {
                         if ($IpFilteringRule.Type -eq "Single IP") {
-                            $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.IP; allowed=$IpFilteringRule.Allowed; })
+                            $RulesToBeAdded += @{ipAddress=$IpFilteringRule.IP; allowed=$IpFilteringRule.Allowed; }
                         } else {
-                            $RulesToBeAdded.Add(@{ipAddress=$IpFilteringRule.IP; subnetMask=$IpFilteringRule.SubnetMask; allowed=$IpFilteringRule.Allowed; })
+                            $RulesToBeAdded += @{ipAddress=$IpFilteringRule.IP; subnetMask=$IpFilteringRule.SubnetMask; allowed=$IpFilteringRule.Allowed; }
                         }
                     } else {
                         if ($ExistingIPSubnetRule.allowed -ne $IpFilteringRule.Allowed) {
