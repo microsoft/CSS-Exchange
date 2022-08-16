@@ -39,8 +39,7 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
-    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
-    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
     [switch]$ShowExtendedProtection,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
@@ -270,11 +269,10 @@ begin {
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
             foreach ($server in $ExchangeServers) {
                 $params = @{
-                    ComputerName          = $server.ToString()
-                    IsClientAccessServer  = $server.IsClientAccessServer
-                    IsMailboxServer       = $server.IsMailboxServer
-                    ExcludeEWS            = $SkipEWS
-                    MitigationAppliedType = $RestrictType
+                    ComputerName         = $server.ToString()
+                    IsClientAccessServer = $server.IsClientAccessServer
+                    IsMailboxServer      = $server.IsMailboxServer
+                    ExcludeEWS           = $SkipEWS
                 }
                 $extendedProtectionConfigurations.Add((Get-ExtendedProtectionConfiguration @params))
             }
