@@ -39,8 +39,7 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
-    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
-    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
     [switch]$ShowExtendedProtection,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
@@ -134,43 +133,36 @@ begin {
 
     SetWriteHostAction ${Function:Write-HostLog}
 
-    $RollbackSelected = $false
-    $RollbackRestrictType = $false
-    $ConfigureEPSelected = $false
-    $ConfigureMitigationSelected = $false
-    $ValidateMitigationSelected = $false
-    $Script:SkipEWS = $false
+    # The ParameterSetName options
+    $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
+    $RollbackRestoreIISAppConfig = $RollbackType.Contains("RestoreIISAppConfig")
+    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig)
+    $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
+    $ConfigureEPSelected = $ConfigureMitigationSelected -or
+        ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
+    $ValidateMitigationSelected = $PsCmdlet.ParameterSetName -eq "ValidateMitigation"
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
-    if ($PsCmdlet.ParameterSetName -eq "Rollback") {
-        $RollbackSelected = $true
 
-        if ($RollbackType.Contains("RestoreIISAppConfig")) {
-            if ($RollbackType.Length -gt 1) {
-                Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
-                exit
-            }
-
-            $RollbackRestoreIISAppConfig = $true
-        } else {
-            $RollbackRestrictType = $true
-            $RestrictType = $RollbackType.Replace("RestrictType", "")
-        }
+    if ($RollbackRestoreIISAppConfig -and $RollbackType.Length -gt 1) {
+        Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+        exit
     }
 
-    if (($PsCmdlet.ParameterSetName -eq "ConfigureMitigation" -or $PsCmdlet.ParameterSetName -eq "ValidateMitigation")) {
-        if ($PsCmdlet.ParameterSetName -eq "ConfigureMitigation") {
-            $ConfigureEPSelected = $true
-            $ConfigureMitigationSelected = $true
-            $RestrictType = $RestrictType | Get-Unique
-        }
+    if ($RollbackRestrictType) {
+        $RestrictType = $RollbackType.Replace("RestrictType", "")
+    }
 
-        if ($PsCmdlet.ParameterSetName -eq "ValidateMitigation") {
-            $ValidateMitigationSelected = $true
-            $RestrictType = New-Object 'System.Collections.Generic.List[string]'
-            $ValidateMitigation | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
-        }
+    if ($ConfigureMitigationSelected) {
+        $RestrictType = $RestrictType | Get-Unique
+    }
 
+    if ($ValidateMitigationSelected) {
+        $RestrictType = New-Object 'System.Collections.Generic.List[string]'
+        $ValidateMitigation | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
+    }
+
+    if (($ConfigureMitigationSelected -or $ValidateMitigationSelected)) {
         # Get list of IPs in object form from the file specified
         $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRangeFilePath
         if ($ipResults.IsError) {
@@ -178,10 +170,6 @@ begin {
         }
 
         $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
-    }
-
-    if ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection) {
-        $ConfigureEPSelected = $true
     }
 
     if ($InternalOption -eq "SkipEWS") {
@@ -281,11 +269,10 @@ begin {
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
             foreach ($server in $ExchangeServers) {
                 $params = @{
-                    ComputerName          = $server.ToString()
-                    IsClientAccessServer  = $server.IsClientAccessServer
-                    IsMailboxServer       = $server.IsMailboxServer
-                    ExcludeEWS            = $SkipEWS
-                    MitigationAppliedType = $RestrictType
+                    ComputerName         = $server.ToString()
+                    IsClientAccessServer = $server.IsClientAccessServer
+                    IsMailboxServer      = $server.IsMailboxServer
+                    ExcludeEWS           = $SkipEWS
                 }
                 $extendedProtectionConfigurations.Add((Get-ExtendedProtectionConfiguration @params))
             }
