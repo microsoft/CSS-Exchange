@@ -166,7 +166,7 @@ function Invoke-RollbackIPFiltering {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
 
             if ($null -eq $resultsInvoke) {
-                $line = "Failed to restore application host config file on server $($Server.Name), because we weren't able to reach it."
+                $line = "Failed to rollback ip filtering rules on server $($Server.Name), because we weren't able to reach it."
                 Write-Verbose $line
                 Write-Warning $line
                 $SiteVDirLocations | ForEach-Object { $FailedServers[$_].Add($Server.Name) }

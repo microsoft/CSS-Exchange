@@ -192,6 +192,16 @@ function Invoke-ValidateMitigation {
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocations: {1}, ipRangeAllowListRules: {2}" -f $Server, [string]::Join(", ", $SiteVDirLocations), $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
+
+            if ($null -eq $resultsInvoke) {
+                $line = "Failed to validate ip filtering rules on server $($Server), because we weren't able to reach it."
+                Write-Verbose $line
+                Write-Warning $line
+                $SiteVDirLocations | ForEach-Object { $FailedServersEP[$_].Add($Server) }
+                $SiteVDirLocations | ForEach-Object { $FailedServersFilter[$_].Add($Server) }
+                continue
+            }
+
             foreach ($SiteVDirLocation in $SiteVDirLocations) {
                 $state = $resultsInvoke[$SiteVDirLocation]
 
