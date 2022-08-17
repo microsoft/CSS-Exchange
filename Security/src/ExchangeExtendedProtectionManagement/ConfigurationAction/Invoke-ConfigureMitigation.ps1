@@ -268,7 +268,7 @@ function Invoke-ConfigureMitigation {
                 if ($state.IsCreateIPRulesSuccessful) {
                     if (-not $state.AreIPRulesModified) {
                         Write-Verbose ("No changes were made to IP filtering rules for VDir $SiteVDirLocation on server $Server")
-                        $UnchangedFilterServers[$SiteVDirLocations] += $Server
+                        $UnchangedFilterServers[$SiteVDirLocation] += $Server
                     } else {
                         Write-Verbose ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation on server $Server")
                     }
