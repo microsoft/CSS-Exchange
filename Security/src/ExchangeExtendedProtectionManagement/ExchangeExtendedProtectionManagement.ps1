@@ -84,7 +84,7 @@ begin {
             $Script:SkipEWS = $false
         }
 
-        if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
+        if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME -IgnoreToolsIdentity $true).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
             exit
         }
