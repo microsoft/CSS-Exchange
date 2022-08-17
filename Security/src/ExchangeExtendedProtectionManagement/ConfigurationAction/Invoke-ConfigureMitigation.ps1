@@ -235,7 +235,7 @@ function Invoke-ConfigureMitigation {
             } else {
                 Write-Host ("Script failed to install windows feature - Web-IP-Security on server {0} with the Inner Exception:" -f $Server) -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersFilter += $Server
+                $FailedServersFilter[$SiteVDirLocation] += $Server
                 continue
             }
 
@@ -249,7 +249,7 @@ function Invoke-ConfigureMitigation {
             } else {
                 Write-Host ("Script failed to retrieve local IPs for server {0}. Reapply IP filtering on server. Inner Exception:" -f $Server) -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
-                $FailedServersFilter += $Server
+                $FailedServersFilter[$SiteVDirLocation] += $Server
                 continue
             }
 
