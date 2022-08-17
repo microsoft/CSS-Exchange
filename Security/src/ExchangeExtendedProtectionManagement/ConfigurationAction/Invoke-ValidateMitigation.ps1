@@ -79,7 +79,7 @@ function Invoke-ValidateMitigation {
                 return $ExtendedProtection
             }
 
-            # Create ip allow list from user provided ip subnets
+            # Create IP allow list from user provided IP subnets
             function VerifyIPRangeAllowList {
                 param (
                     [Parameter(Mandatory = $true)]
@@ -206,12 +206,12 @@ function Invoke-ValidateMitigation {
                 $state = $resultsInvoke[$SiteVDirLocation]
 
                 if ($state.IsEPOff) {
-                    Write-Verbose ("Expected: The state of Extended protection flag is None for Vdir: $($SiteVDirLocation)")
+                    Write-Verbose ("Expected: The state of Extended protection flag is None for Vdir $($SiteVDirLocation) on server $Server")
                 } elseif ($state.IsEPVerified) {
-                    Write-Host ("Unexpected: The state of Extended protection flag is not set to None for Vdir: $($SiteVDirLocation)") -ForegroundColor Red
+                    Write-Host ("Unexpected: The state of Extended protection flag is not set to None for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                     $UnMitigatedServersEP[$SiteVDirLocation] += $Server
                 } else {
-                    Write-Host ("Unknown: Script failed to get state of Extended protection flag for Vdir: $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
+                    Write-Host ("Unknown: Script failed to get state of Extended protection flag for Vdir $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
                     Write-HostErrorInformation $results.ErrorContext
                     $FailedServersEP[$SiteVDirLocation] += $Server
                     $FailedServersFilter[$SiteVDirLocation] += $Server
@@ -221,35 +221,35 @@ function Invoke-ValidateMitigation {
                 $IsFilterUnMitigated = $false
 
                 if (-not $state.IsWindowsFeatureVerified) {
-                    Write-Host ("Unknown: Script failed to verify if the Windows feature Web-IP-Security is present for Vdir: $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
+                    Write-Host ("Unknown: Script failed to verify if the Windows feature Web-IP-Security is present for Vdir $($SiteVDirLocation) on server $Server with Inner Exception") -ForegroundColor Red
                     Write-HostErrorInformation $results.ErrorContext
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 } elseif (-not $state.IsWindowsFeatureInstalled) {
-                    Write-Host ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir: $($SiteVDirLocation)") -ForegroundColor Red
+                    Write-Host ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                     $IsFilterUnMitigated = $true
                 } else {
-                    Write-Verbose ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server for Vdir: $($SiteVDirLocation)")
+                    Write-Verbose ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server for Vdir $($SiteVDirLocation) on server $Server")
                     if (-not $state.AreIPRulesVerified) {
-                        Write-Host ("Unknown: Script failed to verify IP Filtering Rules for Vdir: $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
+                        Write-Host ("Unknown: Script failed to verify IP Filtering Rules for Vdir $($SiteVDirLocation) on server $Server with Inner Exception") -ForegroundColor Red
                         Write-HostErrorInformation $results.ErrorContext
                         $FailedServersFilter[$SiteVDirLocation] += $Server
                         continue
                     } elseif ($null -ne $state.RulesNotFound -and $state.RulesNotFound.Length -gt 0) {
-                        Write-Host ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir: $($SiteVDirLocation)") -ForegroundColor Red
+                        Write-Host ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                         Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $state.RulesNotFound))
                         $IsFilterUnMitigated = $true
                     } else {
-                        Write-Verbose ("Expected: Successfully verified all the IP filtering rules for Vdir: $($SiteVDirLocation)")
+                        Write-Verbose ("Expected: Successfully verified all the IP filtering rules for Vdir $($SiteVDirLocation) on server $Server")
                     }
 
                     if ($state.IsDefaultFilterDeny) {
-                        Write-Verbose ("Expected: The default IP Filtering rule is set to deny for Vdir: $($SiteVDirLocation)")
+                        Write-Verbose ("Expected: The default IP Filtering rule is set to deny for Vdir $($SiteVDirLocation) on server $Server")
                     } elseif ($state.IsDefaultFilterVerified) {
-                        Write-Host ("Unexpected: The default IP Filtering rule is not set to deny for Vdir: $($SiteVDirLocation)") -ForegroundColor Red
+                        Write-Host ("Unexpected: The default IP Filtering rule is not set to deny for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                         $IsFilterUnMitigated = $true
                     } else {
-                        Write-Host ("Unknown: Script failed to get the default IP Filtering rule for Vdir: $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
+                        Write-Host ("Unknown: Script failed to get the default IP Filtering rule for Vdir $($SiteVDirLocation) on server $Server with Inner Exception") -ForegroundColor Red
                         Write-HostErrorInformation $results.ErrorContext
                         $FailedServersFilter[$SiteVDirLocation] += $Server
                         continue

@@ -55,7 +55,7 @@ function Get-ExchangeServerIPs {
 
             if (-not $IpsFound) {
                 $FailedServers += $Server.Name
-                Write-Verbose "Ip of $($Server.Name) cannot be found and will not be added to ip allow list."
+                Write-Verbose "IP of $($Server.Name) cannot be found and will not be added to IP allow list."
             }
 
             $counter++
