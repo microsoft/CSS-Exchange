@@ -18,6 +18,9 @@ function Confirm-ExchangeShell {
         [bool]$IgnoreToolsIdentity = $false,
 
         [Parameter(Mandatory = $false)]
+        [bool]$AllowPSSessionUsage = $false,
+
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
@@ -34,12 +37,13 @@ function Confirm-ExchangeShell {
             }
             return $false
         }
+        $activeExchangePSSessionFound = $false
         $currentErrors = $Error.Count
         $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity | IgnoreToolsIdentity: $IgnoreToolsIdentity"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity | IgnoreToolsIdentity: $IgnoreToolsIdentity | AllowPSSessionUsage: $AllowPSSessionUsage"
         $params = @{
             Identity    = $Identity
             ErrorAction = "Stop"
@@ -47,6 +51,10 @@ function Confirm-ExchangeShell {
 
         $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
         ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+
+        $exchangePSSession = Get-PSSession -ErrorAction SilentlyContinue |
+            Where-Object { ($_.ConfigurationName -eq "Microsoft.Exchange") -and ($_.State -eq "Opened") } |
+            Select-Object -First 1
 
         if ($toolsServer) {
             Write-Verbose "Tools Server: $env:ComputerName"
@@ -56,6 +64,16 @@ function Confirm-ExchangeShell {
                 $params.Remove("Identity")
             } else {
                 Write-Verbose "Didn't remove Identity"
+            }
+        } elseif (($exchangePSSession.Count -eq 1) -and
+            ($AllowPSSessionUsage)) {
+            Write-Verbose "Exchange PowerShell session found: $($exchangePSSession.Name)"
+            $activeExchangePSSessionFound = $true
+            if ($env:ComputerName -ne (($exchangePSSession.ComputerName).Split("."))[0]) {
+                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet"
+                $params.Remove("Identity")
+            } else {
+                Write-Verbose "PowerShell session is established to the local computer and will not be removed"
             }
         }
 
@@ -71,7 +89,9 @@ function Confirm-ExchangeShell {
         } catch {
             Write-Verbose "Failed to run Get-ExchangeServer"
             Invoke-CatchActionError $CatchActionFunction
-            if (Test-GetExchangeServerCmdletError $_) { return }
+            if ($activeExchangePSSessionFound -eq $false) {
+                if (Test-GetExchangeServerCmdletError $_) { return }
+            }
             if (-not ($LoadExchangeShell)) { return }
 
             #Test 32 bit process, as we can't see the registry if that is the case.
@@ -113,6 +133,18 @@ function Confirm-ExchangeShell {
                     }
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."
+                    Invoke-CatchActionError $CatchActionFunction
+                }
+            } elseif ($activeExchangePSSessionFound) {
+                Write-Verbose "Active Exchange PSSession that needs to be imported found"
+                try {
+                    Import-PSSession -Session $exchangePSSession -DisableNameChecking -ErrorAction Stop
+                    Get-ExchangeServer @params | Out-Null
+                    $passed = $true
+                    Write-Verbose "Successfully imported PSSession: $($exchangePSSession.Name)"
+                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+                } catch {
+                    Write-Warning "Failed to import PSSession: $($exchangePSSession.Name)"
                     Invoke-CatchActionError $CatchActionFunction
                 }
             } else {
