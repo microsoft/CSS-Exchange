@@ -31,19 +31,6 @@ function Invoke-ValidateMitigation {
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-        function GetCommaSaperatedString {
-            param(
-                $list
-            )
-
-            $string = ""
-            foreach ($element in $list) {
-                $string += ($element.ToString() + ", ")
-            }
-
-            return $string.Trim(", ")
-        }
-
         $ValidateMitigationScriptBlock = {
             param(
                 [Object]$Arguments
@@ -242,7 +229,7 @@ function Invoke-ValidateMitigation {
                         continue
                     } elseif ($null -ne $state.RulesNotFound -and $state.RulesNotFound.Length -gt 0) {
                         Write-Verbose ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
-                        Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $state.RulesNotFound))
+                        Write-Verbose ("Following Rules weren't found: {0}" -f [string]::Join(", ", [string[]]$state.RulesNotFound))
                         $IsFilterUnMitigated = $true
                     } else {
                         Write-Verbose ("Expected: Successfully verified all the IP filtering rules for Vdir $($SiteVDirLocation) on server $Server")

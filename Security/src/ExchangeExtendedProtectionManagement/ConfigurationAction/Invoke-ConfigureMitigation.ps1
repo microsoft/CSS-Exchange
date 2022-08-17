@@ -190,20 +190,6 @@ function Invoke-ConfigureMitigation {
 
             return $results
         }
-
-        function GetCommaSaperatedString {
-            param(
-                [Parameter(Mandatory = $true)]
-                [object[]]$list
-            )
-
-            $string = ""
-            foreach ($element in $list) {
-                $string += ($element.ToString() + ", ")
-            }
-
-            return $string.Trim(", ")
-        }
     } process {
         $scriptblockArgs = [PSCustomObject]@{
             SiteVDirLocations    = $SiteVDirLocations
@@ -256,7 +242,7 @@ function Invoke-ConfigureMitigation {
             if ($resultsInvoke.IsGetLocalIPSuccessful) {
                 Write-Verbose ("Successfully retrieved local IPs for the server")
                 if ($null -ne $resultsInvoke.LocalIPs -and $resultsInvoke.LocalIPs.Length -gt 0) {
-                    Write-Verbose ("Local IPs detected for this server: {0}" -f (GetCommaSaperatedString -list $resultsInvoke.LocalIPs))
+                    Write-Verbose ("Local IPs detected for this server: {0}" -f [string]::Join(", ", [string[]]$resultsInvoke.LocalIPs))
                 } else {
                     Write-Verbose ("No Local IPs detected for this server")
                 }
@@ -291,7 +277,7 @@ function Invoke-ConfigureMitigation {
                         $line = ("Some IPs provided in the IPRange file were present in deny rules, hence these IPs were not added in the Allow List for VDir $SiteVDirLocation on server $Server. If you wish to add these IPs in allow list, remove these IPs from deny list in module name and reapply IP restrictions again.")
                         Write-Warning ($line + "Check logs for further details.")
                         Write-Verbose $line
-                        Write-Verbose (GetCommaSaperatedString -list $state.IPsNotAdded)
+                        Write-Verbose ([string]::Join(", ", $state.IPsNotAdded))
                     }
                 } else {
                     Write-Host ("Script failed to update IP filtering allow list for VDir $SiteVDirLocation on server $Server with the Inner Exception:") -ForegroundColor Red
