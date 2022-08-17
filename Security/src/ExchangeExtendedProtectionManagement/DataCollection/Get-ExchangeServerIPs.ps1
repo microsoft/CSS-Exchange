@@ -36,23 +36,26 @@ function Get-ExchangeServerIPs {
             $progressParams.Status = "$baseStatus Getting IPs"
             Write-Progress @progressParams
 
+            $IpsFound = $false
             $HostNetworkInfo = Get-AllNicInformation -ComputerName $Server.Name -ComputerFQDN $Server.FQDN
             if ($null -ne $HostNetworkInfo) {
                 if ($null -ne $HostNetworkInfo.IPv4Addresses) {
                     foreach ($address in $HostNetworkInfo.IPv4Addresses) {
                         $IPs += $address.Address
+                        $IpsFound = $true
                     }
                 }
                 if ($null -ne $HostNetworkInfo.IPv6Addresses) {
                     foreach ($address in $HostNetworkInfo.IPv6Addresses) {
                         $IPs += $address.Address
+                        $IpsFound = $true
                     }
                 }
             }
 
-            if ($IPs.Length -eq 0) {
+            if (-not $IpsFound) {
                 $FailedServers += $Server.Name
-                Write-Verbose "Ip of $($Server.Name) cannot be found and will not be added to ip allow list." -ForegroundColor Red
+                Write-Verbose "Ip of $($Server.Name) cannot be found and will not be added to ip allow list."
             }
 
             $counter++
