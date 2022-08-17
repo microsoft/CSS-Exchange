@@ -266,18 +266,18 @@ function Invoke-ConfigureMitigation {
                 }
 
                 if ($state.IsCreateIPRulesSuccessful) {
-                    if (-not $state.AreIPRulesModified) {
-                        Write-Verbose ("No changes were made to IP filtering rules for VDir $SiteVDirLocation on server $Server")
-                        $UnchangedFilterServers[$SiteVDirLocation] += $Server
-                    } else {
-                        Write-Verbose ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation on server $Server")
-                    }
-
                     if ($state.IPsNotAdded.Length -gt 0) {
                         $line = ("Some IPs provided in the IPRange file were present in deny rules, hence these IPs were not added in the Allow List for VDir $SiteVDirLocation on server $Server. If you wish to add these IPs in allow list, remove these IPs from deny list in module name and reapply IP restrictions again.")
                         Write-Warning ($line + "Check logs for further details.")
                         Write-Verbose $line
                         Write-Verbose ([string]::Join(", ", $state.IPsNotAdded))
+                    }
+
+                    if (-not $state.AreIPRulesModified) {
+                        Write-Verbose ("No changes were made to IP filtering rules for VDir $SiteVDirLocation on server $Server")
+                        $UnchangedFilterServers[$SiteVDirLocation] += $Server
+                    } else {
+                        Write-Host ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation on server $Server")
                     }
                 } else {
                     Write-Host ("Script failed to update IP filtering allow list for VDir $SiteVDirLocation on server $Server with the Inner Exception:") -ForegroundColor Red
@@ -294,8 +294,6 @@ function Invoke-ConfigureMitigation {
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 }
-
-                Write-Host ("Enabled IP filtering rules on server {0} for VDir $SiteVDirLocation" -f $Server)
             }
         }
     } end {
@@ -305,7 +303,7 @@ function Invoke-ConfigureMitigation {
             }
 
             if ($UnchangedFilterServers[$SiteVDirLocation].Length -gt 0) {
-                Write-Host ("No changes in IP Restriction rules for VDir $SiteVDirLocation in : {0}" -f [string]::Join(", ", $UnchangedFilterServers[$SiteVDirLocation]))
+                Write-Host ("IP Restrictions are applied. No changes made in IP Restriction rules for VDir $SiteVDirLocation in : {0}" -f [string]::Join(", ", $UnchangedFilterServers[$SiteVDirLocation]))
             }
         }
     }
