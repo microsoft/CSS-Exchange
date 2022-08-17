@@ -82,7 +82,7 @@ function Invoke-ConfigureMitigation {
                 return $ips
             }
 
-            # Create ip allow list from user provided ip subnets
+            # Create IP allow list from user provided IP subnets
             function CreateIPRangeAllowList {
                 param (
                     [Parameter(Mandatory = $true)]
@@ -237,7 +237,7 @@ function Invoke-ConfigureMitigation {
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, ipRangeAllowListRules: {2}" -f $Server, $SiteVDirLocation, $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
 
-            Write-Host ("Adding IP Restriction rules on Server {0}" -f $Server)
+            Write-Verbose ("Adding IP Restriction rules on Server {0}" -f $Server)
             if ($resultsInvoke.IsWindowsFeatureInstalled) {
                 Write-Verbose ("Successfully installed windows feature - Web-IP-Security on server {0}" -f $Server)
             } else {
@@ -265,39 +265,39 @@ function Invoke-ConfigureMitigation {
                 $state = $resultsInvoke[$SiteVDirLocation]
 
                 if ($state.IsBackUpSuccessful) {
-                    Write-Verbose ("Successfully backed up IP filtering allow list for VDir $SiteVDirLocation")
+                    Write-Verbose ("Successfully backed up IP filtering allow list for VDir $SiteVDirLocation on server $Server")
                 } else {
-                    Write-Host ("Script failed to backup IP filtering allow list for VDir $SiteVDirLocation with the Inner Exception:") -ForegroundColor Red
+                    Write-Host ("Script failed to backup IP filtering allow list for VDir $SiteVDirLocation on server $Server with the Inner Exception:") -ForegroundColor Red
                     Write-HostErrorInformation $state.ErrorContext
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 }
 
                 if ($state.IsCreateIPRulesSuccessful) {
-                    Write-Verbose ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation")
+                    Write-Verbose ("Successfully updated IP filtering allow list for VDir $SiteVDirLocation on server $Server")
                     if ($state.IPsNotAdded.Length -gt 0) {
-                        $line = ("Few IPs were not added to the allow list as deny rules for these IPs were already present.")
+                        $line = ("Some IPs provided in the IPRange file were present in deny rules, hence these IPs were not added in the Allow List for VDir $SiteVDirLocation on server $Server. If you wish to add these IPs in allow list, remove these IPs from deny list in module name and reapply IP restrictions again.")
                         Write-Warning ($line + "Check logs for further details.")
                         Write-Verbose $line
                         Write-Verbose (GetCommaSaperatedString -list $state.IPsNotAdded)
                     }
                 } else {
-                    Write-Host ("Script failed to update IP filtering allow list for VDir $SiteVDirLocation. with the Inner Exception:") -ForegroundColor Red
+                    Write-Host ("Script failed to update IP filtering allow list for VDir $SiteVDirLocation on server $Server with the Inner Exception:") -ForegroundColor Red
                     Write-HostErrorInformation $state.ErrorContext
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 }
 
                 if ($state.IsSetDefaultRuleSuccessful) {
-                    Write-Verbose ("Successfully set the default IP filtering rule to deny for VDir $SiteVDirLocation")
+                    Write-Verbose ("Successfully set the default IP filtering rule to deny for VDir $SiteVDirLocation on server $Server")
                 } else {
-                    Write-Host ("Script failed to set the default IP filtering rule to deny for VDir $SiteVDirLocation with the Inner Exception:") -ForegroundColor Red
+                    Write-Host ("Script failed to set the default IP filtering rule to deny for VDir $SiteVDirLocation on server $Server with the Inner Exception:") -ForegroundColor Red
                     Write-HostErrorInformation $state.ErrorContext
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 }
 
-                Write-Host ("Enabled ip filtering rules on server {0} for VDir $SiteVDirLocation" -f $Server)
+                Write-Host ("Enabled IP filtering rules on server {0} for VDir $SiteVDirLocation" -f $Server)
             }
         }
     } end {

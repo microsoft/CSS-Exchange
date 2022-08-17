@@ -166,7 +166,7 @@ function Invoke-RollbackIPFiltering {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
 
             if ($null -eq $resultsInvoke) {
-                $line = "Failed to rollback ip filtering rules on server $($Server.Name), because we weren't able to reach it."
+                $line = "Failed to rollback IP filtering rules on server $($Server.Name), because we weren't able to reach it."
                 Write-Verbose $line
                 Write-Warning $line
                 $SiteVDirLocations | ForEach-Object { $FailedServers[$_].Add($Server.Name) }
@@ -182,9 +182,9 @@ function Invoke-RollbackIPFiltering {
                         if ($state.BackupCurrentSuccessful) {
                             Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($state.BackUpPath) for VDir $SiteVDirLocation"
                             if ($state.RestoreSuccessful) {
-                                Write-Host "Successfully rolled back ip filtering rules on server $($Server.Name) from $($state.RestorePath) for VDir $SiteVDirLocation"
+                                Write-Host "Successfully rolled back IP filtering rules on server $($Server.Name) from $($state.RestorePath) for VDir $SiteVDirLocation"
                             } else {
-                                Write-Host "Failed to rollback ip filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
+                                Write-Host "Failed to rollback IP filtering rules on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
                                 Write-HostErrorInformation $state.ErrorContext
                                 $Failed = $true
                             }

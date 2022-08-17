@@ -30,7 +30,7 @@ function Get-IPRangeAllowListFromFile {
         }
 
         if ($null -eq $SubnetStrings -or $SubnetStrings.Length -eq 0) {
-            Write-Host "The Ip range file provided is empty. Please provide a valid file." -ForegroundColor Red
+            Write-Host "The IP range file provided is empty. Please provide a valid file." -ForegroundColor Red
             return
         } else {
             $ipRangesString  = [string]::Join(", ", $SubnetStrings)
