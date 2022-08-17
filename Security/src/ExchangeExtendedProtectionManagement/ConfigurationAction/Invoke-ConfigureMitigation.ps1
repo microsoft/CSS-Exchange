@@ -255,7 +255,7 @@ function Invoke-ConfigureMitigation {
                     Write-Verbose ("No Local IPs detected for this server")
                 }
             } else {
-                Write-Host ("Script failed to retrieve local IPs for server {0} with the Inner Exception:" -f $Server) -ForegroundColor Red
+                Write-Host ("Script failed to retrieve local IPs for server {0}. Reapply IP filtering on server. Inner Exception:" -f $Server) -ForegroundColor Red
                 Write-HostErrorInformation $resultsInvoke.ErrorContext
                 $FailedServersFilter += $Server
                 continue
