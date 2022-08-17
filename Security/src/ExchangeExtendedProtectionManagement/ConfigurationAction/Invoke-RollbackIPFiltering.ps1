@@ -37,7 +37,7 @@ function Invoke-RollbackIPFiltering {
 
             $results = @{}
 
-            function Backup-currentIpFilteringRules {
+            function BackupCurrentIPFilteringRules {
                 param(
                     [Parameter(Mandatory = $true)]
                     [string]$BackupPath,
@@ -64,7 +64,7 @@ function Invoke-RollbackIPFiltering {
                 return $true
             }
 
-            function Restore-OriginalIpFilteringRules {
+            function RestoreOriginalIPFilteringRules {
                 param(
                     [Parameter(Mandatory = $true)]
                     [string]$Filter,
@@ -91,7 +91,7 @@ function Invoke-RollbackIPFiltering {
                 return $true
             }
 
-            function TurnONEP {
+            function TurnONExtendedProtection {
                 param(
                     [Parameter(Mandatory = $true)]
                     [string]$Filter,
@@ -123,15 +123,15 @@ function Invoke-RollbackIPFiltering {
                     }
                     $state.RestoreFileExists = $true
 
-                    TurnONEP -Filter $FilterEP -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
+                    TurnONExtendedProtection -Filter $FilterEP -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
                     $state.TurnOnEPSuccessful = $true
 
                     $state.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                     $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
-                    $state.BackupCurrentSuccessful = Backup-currentIpFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
+                    $state.BackupCurrentSuccessful = BackupCurrentIPFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                     $originalIpFilteringConfigurations = (Get-Content $state.RestorePath | Out-String | ConvertFrom-Json)
-                    $state.RestoreSuccessful = Restore-OriginalIpFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs) -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
+                    $state.RestoreSuccessful = RestoreOriginalIPFilteringRules -OriginalIpFilteringRules ($originalIpFilteringConfigurations.Rules) -DefaultForUnspecifiedIPs ($originalIpFilteringConfigurations.DefaultForUnspecifiedIPs) -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
                 } catch {
                     $state.ErrorContext = $_
                 }
