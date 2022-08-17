@@ -200,7 +200,7 @@ function Invoke-ValidateMitigation {
                 if ($state.IsEPOff) {
                     Write-Verbose ("Expected: The state of Extended protection flag is None for Vdir $($SiteVDirLocation) on server $Server")
                 } elseif ($state.IsEPVerified) {
-                    Write-Verbose ("Unexpected: The state of Extended protection flag is not set to None for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                    Write-Verbose ("Unexpected: The state of Extended protection flag is not set to None for Vdir $($SiteVDirLocation) on server $Server")
                     $UnMitigatedServersEP[$SiteVDirLocation] += $Server
                 } else {
                     Write-Host ("Unknown: Script failed to get state of Extended protection flag for Vdir $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
@@ -218,7 +218,7 @@ function Invoke-ValidateMitigation {
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 } elseif (-not $state.IsWindowsFeatureInstalled) {
-                    Write-Verbose ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                    Write-Verbose ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir $($SiteVDirLocation) on server $Server")
                     $IsFilterUnMitigated = $true
                 } else {
                     Write-Verbose ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server for Vdir $($SiteVDirLocation) on server $Server")
@@ -228,7 +228,7 @@ function Invoke-ValidateMitigation {
                         $FailedServersFilter[$SiteVDirLocation] += $Server
                         continue
                     } elseif ($null -ne $state.RulesNotFound -and $state.RulesNotFound.Length -gt 0) {
-                        Write-Verbose ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                        Write-Verbose ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server")
                         Write-Verbose ("Following Rules weren't found: {0}" -f [string]::Join(", ", [string[]]$state.RulesNotFound))
                         $IsFilterUnMitigated = $true
                     } else {
@@ -238,7 +238,7 @@ function Invoke-ValidateMitigation {
                     if ($state.IsDefaultFilterDeny) {
                         Write-Verbose ("Expected: The default IP Filtering rule is set to deny for Vdir $($SiteVDirLocation) on server $Server")
                     } elseif ($state.IsDefaultFilterVerified) {
-                        Write-Verbose ("Unexpected: The default IP Filtering rule is not set to deny for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                        Write-Verbose ("Unexpected: The default IP Filtering rule is not set to deny for Vdir $($SiteVDirLocation) on server $Server")
                         $IsFilterUnMitigated = $true
                     } else {
                         Write-Host ("Unknown: Script failed to get the default IP Filtering rule for Vdir $($SiteVDirLocation) on server $Server with Inner Exception") -ForegroundColor Red
