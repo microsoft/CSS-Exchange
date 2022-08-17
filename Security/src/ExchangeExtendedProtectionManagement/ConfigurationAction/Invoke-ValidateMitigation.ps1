@@ -31,19 +31,6 @@ function Invoke-ValidateMitigation {
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-        function GetCommaSaperatedString {
-            param(
-                $list
-            )
-
-            $string = ""
-            foreach ($element in $list) {
-                $string += ($element.ToString() + ", ")
-            }
-
-            return $string.Trim(", ")
-        }
-
         $ValidateMitigationScriptBlock = {
             param(
                 [Object]$Arguments
@@ -54,7 +41,7 @@ function Invoke-ValidateMitigation {
 
             $results = @{}
 
-            function Get-LocalIpAddresses {
+            function GetLocalIPAddresses {
                 $ips = New-Object 'System.Collections.Generic.List[string]'
                 $interfaces = Get-NetIPAddress
                 foreach ($interface in $interfaces) {
@@ -67,7 +54,7 @@ function Invoke-ValidateMitigation {
             }
 
             # Set EP to None
-            function GetEPState {
+            function GetExtendedProtectionState {
                 param (
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation
@@ -103,7 +90,12 @@ function Invoke-ValidateMitigation {
                 $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
 
                 foreach ($IpFilteringRule in $IpFilteringRules) {
-                    $ExistingIPSubnetRule = $ExistingRules | Where-Object { $_.ipAddress -eq $IpFilteringRule.IP -and ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") -and $_.allowed -eq $IpFilteringRule.Allowed }
+                    $ExistingIPSubnetRule = $ExistingRules | Where-Object {
+                        $_.ipAddress -eq $IpFilteringRule.IP -and
+                        ($_.subnetMask -eq $IpFilteringRule.SubnetMask -or $IpFilteringRule.Type -eq "Single IP") -and
+                        $_.allowed -eq $IpFilteringRule.Allowed
+                    }
+
                     if ($null -eq $ExistingIPSubnetRule) {
                         if ($IpFilteringRule.Type -eq "Single IP") {
                             $IpString = $IpFilteringRule.IP
@@ -134,7 +126,7 @@ function Invoke-ValidateMitigation {
                         ErrorContext              = $null
                     }
 
-                    $EPState = GetEPState -SiteVDirLocation $SiteVDirLocation
+                    $EPState = GetExtendedProtectionState -SiteVDirLocation $SiteVDirLocation
                     if ($EPState -eq "None") {
                         $state.IsEPOff = $true
                     } else {
@@ -144,7 +136,7 @@ function Invoke-ValidateMitigation {
                     $state.IsEPVerified = $true
 
                     if ($null -ne $IpRangesForFiltering) {
-                        $localIPs = Get-LocalIpAddresses
+                        $localIPs = GetLocalIPAddresses
 
                         $localIPs | ForEach-Object {
                             $IpRangesForFiltering += @{Type="Single IP"; IP=$_; Allowed=$true }
@@ -208,7 +200,7 @@ function Invoke-ValidateMitigation {
                 if ($state.IsEPOff) {
                     Write-Verbose ("Expected: The state of Extended protection flag is None for Vdir $($SiteVDirLocation) on server $Server")
                 } elseif ($state.IsEPVerified) {
-                    Write-Host ("Unexpected: The state of Extended protection flag is not set to None for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                    Write-Verbose ("Unexpected: The state of Extended protection flag is not set to None for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                     $UnMitigatedServersEP[$SiteVDirLocation] += $Server
                 } else {
                     Write-Host ("Unknown: Script failed to get state of Extended protection flag for Vdir $($SiteVDirLocation) with Inner Exception") -ForegroundColor Red
@@ -226,7 +218,7 @@ function Invoke-ValidateMitigation {
                     $FailedServersFilter[$SiteVDirLocation] += $Server
                     continue
                 } elseif (-not $state.IsWindowsFeatureInstalled) {
-                    Write-Host ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                    Write-Verbose ("Unexpected: Windows feature Web-IP-Security is not present on the server for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                     $IsFilterUnMitigated = $true
                 } else {
                     Write-Verbose ("Expected: Successfully verified that the Windows feature Web-IP-Security is present on the server for Vdir $($SiteVDirLocation) on server $Server")
@@ -236,8 +228,8 @@ function Invoke-ValidateMitigation {
                         $FailedServersFilter[$SiteVDirLocation] += $Server
                         continue
                     } elseif ($null -ne $state.RulesNotFound -and $state.RulesNotFound.Length -gt 0) {
-                        Write-Host ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
-                        Write-Verbose ("Following Rules weren't found: {0}" -f (GetCommaSaperatedString -list $state.RulesNotFound))
+                        Write-Verbose ("Unexpected: Some or all the rules present in the file specified aren't applied for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                        Write-Verbose ("Following Rules weren't found: {0}" -f [string]::Join(", ", [string[]]$state.RulesNotFound))
                         $IsFilterUnMitigated = $true
                     } else {
                         Write-Verbose ("Expected: Successfully verified all the IP filtering rules for Vdir $($SiteVDirLocation) on server $Server")
@@ -246,7 +238,7 @@ function Invoke-ValidateMitigation {
                     if ($state.IsDefaultFilterDeny) {
                         Write-Verbose ("Expected: The default IP Filtering rule is set to deny for Vdir $($SiteVDirLocation) on server $Server")
                     } elseif ($state.IsDefaultFilterVerified) {
-                        Write-Host ("Unexpected: The default IP Filtering rule is not set to deny for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
+                        Write-Verbose ("Unexpected: The default IP Filtering rule is not set to deny for Vdir $($SiteVDirLocation) on server $Server") -ForegroundColor Red
                         $IsFilterUnMitigated = $true
                     } else {
                         Write-Host ("Unknown: Script failed to get the default IP Filtering rule for Vdir $($SiteVDirLocation) on server $Server with Inner Exception") -ForegroundColor Red
@@ -270,7 +262,7 @@ function Invoke-ValidateMitigation {
             }
 
             if ($UnMitigatedServersFilter[$SiteVDirLocation].Length -gt 0) {
-                Write-Host ("IP Filtering Rules or Default IP rule on the following servers is not as expected for VDir {0}: {1}" -f $SiteVDirLocation, [string]::Join(", ", $UnMitigatedServersFilter[$SiteVDirLocation])) -ForegroundColor Red
+                Write-Host ("IP Filtering Rules or Default IP rule on the following servers does not contain all the IP Ranges/addresses provided for validation in VDir {0}: {1}" -f $SiteVDirLocation, [string]::Join(", ", $UnMitigatedServersFilter[$SiteVDirLocation])) -ForegroundColor Red
                 $FoundFailedOrUnmitigated = $true
             }
 
