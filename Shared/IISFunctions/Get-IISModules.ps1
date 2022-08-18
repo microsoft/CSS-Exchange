@@ -10,11 +10,48 @@ function Get-IISModules {
         [System.Xml.XmlNode]$ApplicationHostConfig,
 
         [Parameter(Mandatory = $false)]
+        [bool]$SkipLegacyOSModulesCheck = $false,
+
+        [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $modulesToCheckList = New-Object 'System.Collections.Generic.List[object]'
+
+        # Add all modules here which should be skipped on legacy OS (pre-Windows Server 2016)
+        $modulesToSkip = @(
+            "$env:windir\system32\inetsrv\cachuri.dll",
+            "$env:windir\system32\inetsrv\cachfile.dll",
+            "$env:windir\system32\inetsrv\cachtokn.dll",
+            "$env:windir\system32\inetsrv\cachhttp.dll",
+            "$env:windir\system32\inetsrv\compstat.dll",
+            "$env:windir\system32\inetsrv\defdoc.dll",
+            "$env:windir\system32\inetsrv\dirlist.dll",
+            "$env:windir\system32\inetsrv\protsup.dll",
+            "$env:windir\system32\inetsrv\redirect.dll",
+            "$env:windir\system32\inetsrv\static.dll",
+            "$env:windir\system32\inetsrv\authanon.dll",
+            "$env:windir\system32\inetsrv\custerr.dll",
+            "$env:windir\system32\inetsrv\loghttp.dll",
+            "$env:windir\system32\inetsrv\iisetw.dll",
+            "$env:windir\system32\inetsrv\iisfreb.dll",
+            "$env:windir\system32\inetsrv\iisreqs.dll",
+            "$env:windir\system32\inetsrv\isapi.dll",
+            "$env:windir\system32\inetsrv\compdyn.dll",
+            "$env:windir\system32\inetsrv\authcert.dll",
+            "$env:windir\system32\inetsrv\authbas.dll",
+            "$env:windir\system32\inetsrv\authsspi.dll",
+            "$env:windir\system32\inetsrv\authmd5.dll",
+            "$env:windir\system32\inetsrv\modrqflt.dll",
+            "$env:windir\system32\inetsrv\filter.dll",
+            "$env:windir\system32\rpcproxy\rpcproxy.dll",
+            "$env:windir\system32\inetsrv\validcfg.dll",
+            "$env:windir\system32\wsmsvc.dll",
+            "$env:windir\system32\inetsrv\iprestr.dll",
+            "$env:windir\system32\inetsrv\diprestr.dll")
+
         function GetModulePath {
             [CmdletBinding()]
             [OutputType([System.String])]
@@ -43,7 +80,6 @@ function Get-IISModules {
 
             return $returnPath
         }
-
         function GetIISModulesSignatureStatus {
             [CmdletBinding()]
             param(
@@ -115,7 +151,17 @@ function Get-IISModules {
         }
     }
     process {
-        $modules = GetIISModulesSignatureStatus -Modules $ApplicationHostConfig.configuration.'system.webServer'.globalModules.add
+        $ApplicationHostConfig.configuration.'system.webServer'.globalModules.add | ForEach-Object {
+            if ($SkipLegacyOSModulesCheck) {
+                if ((GetModulePath $_.image) -notin $modulesToSkip) {
+                    $modulesToCheckList.Add($_)
+                }
+            } else {
+                $modulesToCheckList.Add($_)
+            }
+        }
+
+        $modules = GetIISModulesSignatureStatus -Modules $modulesToCheckList
 
         # Validate if all modules that are loaded are digitally signed
         $allModulesAreSigned = (-not($modules.Signed.Contains($false)))

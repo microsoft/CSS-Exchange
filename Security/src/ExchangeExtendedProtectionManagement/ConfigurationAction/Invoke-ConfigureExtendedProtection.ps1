@@ -15,9 +15,18 @@ function Invoke-ConfigureExtendedProtection {
         $failedServers = New-Object 'System.Collections.Generic.List[string]'
         $noChangesMadeServers = New-Object 'System.Collections.Generic.List[string]'
         $updatedServers = New-Object 'System.Collections.Generic.List[string]'
+        $counter = 0
+        $totalCount = $ExtendedProtectionConfigurations.Count
+        $progressParams = @{
+            Id              = 1
+            Activity        = "Configuring Extended Protection"
+            Status          = [string]::Empty
+            PercentComplete = 0
+        }
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     } process {
         foreach ($serverExtendedProtection in $ExtendedProtectionConfigurations) {
+            $counter++
             # Check to make sure server is connected and valid information is provided.
             if (-not ($serverExtendedProtection.ServerConnected)) {
                 $line = "$($serverExtendedProtection.ComputerName): Server not online. Cannot get Extended Protection configuration settings."
@@ -41,6 +50,11 @@ function Invoke-ConfigureExtendedProtection {
                 SSLFlags      = @{}
             }
 
+            $baseStatus = "Processing: $($serverExtendedProtection.ComputerName) -"
+            $progressParams.PercentComplete = ($counter / $totalCount * 100)
+            $progressParams.Status = "$baseStatus Evaluating Extended Protection Settings"
+            Write-Progress @progressParams
+
             foreach ($virtualDirectory in $serverExtendedProtection.ExtendedProtectionConfiguration) {
                 Write-Verbose "$($serverExtendedProtection.ComputerName): Virtual Directory Name: $($virtualDirectory.VirtualDirectoryName) Current Set Extended Protection: $($virtualDirectory.ExtendedProtection) Expected Value $($virtualDirectory.ExpectedExtendedConfiguration)"
                 Write-Verbose "$($serverExtendedProtection.ComputerName): Current Set SSL Flags: $($virtualDirectory.Configuration.SslSettings.Value) Expected SSL Flags: $($virtualDirectory.ExpectedSslFlags) Set Correctly: $($virtualDirectory.SslFlagsSetCorrectly)"
@@ -55,6 +69,8 @@ function Invoke-ConfigureExtendedProtection {
             }
 
             if ($commandParameters.TokenChecking.Count -gt 0) {
+                $progressParams.Status = "$baseStatus Executing Actions on Server"
+                Write-Progress @progressParams
                 Write-Host "$($serverExtendedProtection.ComputerName): Backing up applicationHost.config."
                 # provide what we are changing outside of the script block for remote servers.
                 $commandParameters.TokenChecking.Keys | ForEach-Object { Write-Verbose "$($serverExtendedProtection.ComputerName): Setting the $_ with the tokenChecking value of $($commandParameters.TokenChecking[$_])" }
@@ -66,6 +82,15 @@ function Invoke-ConfigureExtendedProtection {
                     )
                     $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
+                    $internalTotalCommands = $Commands.TokenChecking.Count + $Commands.SSLFlags.Count
+                    $internalCounter = 0
+                    $internalProgressParams = @{
+                        ParentId        = 1
+                        Activity        = "Executing Actions on $env:ComputerName"
+                        Status          = "Backing Up ApplicationHost.Config"
+                        PercentComplete = 0
+                    }
+                    Write-Progress @internalProgressParams
                     try {
                         $backupSuccessful = $false
                         Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop -WhatIf:$PassedWhatIf
@@ -75,6 +100,10 @@ function Invoke-ConfigureExtendedProtection {
                         $setAllSslFlags = $true
                         Write-Host "$($env:COMPUTERNAME): Successful backup to $backupLocation"
                         foreach ($siteKey in $Commands.TokenChecking.Keys) {
+                            $internalCounter++
+                            $internalProgressParams.Status = "Setting TokenChecking for $siteKey"
+                            $internalProgressParams.PercentComplete = ($internalCounter / $internalTotalCommands * 100)
+                            Write-Progress @internalProgressParams
                             try {
                                 $params = @{
                                     Filter      = "system.WebServer/security/authentication/windowsAuthentication"
@@ -94,6 +123,10 @@ function Invoke-ConfigureExtendedProtection {
                         }
                         foreach ($siteKey in $Commands.SSLFlags.Keys) {
                             try {
+                                $internalCounter++
+                                $internalProgressParams.Status = "Setting SSLFlags for $siteKey"
+                                $internalProgressParams.PercentComplete = ($internalCounter / $internalTotalCommands * 100)
+                                Write-Progress @internalProgressParams
                                 $params = @{
                                     Filter      = "system.WebServer/security/access"
                                     Name        = "sslFlags"
@@ -115,6 +148,7 @@ function Invoke-ConfigureExtendedProtection {
                     } catch {
                         Write-Host "$($env:COMPUTERNAME): Failed to backup applicationHost.config. Inner Exception $_"
                     }
+                    Write-Progress @internalProgressParams -Completed
                     return [PSCustomObject]@{
                         BackupSuccess       = $backupSuccessful
                         BackupLocation      = $backupLocation
@@ -149,6 +183,7 @@ function Invoke-ConfigureExtendedProtection {
             }
         }
     } end {
+        Write-Progress @progressParams -Completed
         Write-Host ""
         if ($failedServers.Count -gt 0) {
             $line = "Failed to enable Extended Protection: $([string]::Join(", " ,$failedServers))"
