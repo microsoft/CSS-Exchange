@@ -363,7 +363,7 @@ begin {
                     Write-Progress @progressParams -Completed
                     if ($rpcFailedServers.Count -gt 0) {
                         Write-Warning "Please address the following server regarding RPC (Default Web Site) and SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
-                        Write-Warning "The following cmdlet should be run against each of the servers: Set-OutlookAnywhere 'SERVERNAME\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
+                        Write-Warning "The following cmdlet should be run against each of the servers: Set-OutlookAnywhere -Identity 'SERVERNAME\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
                         exit
                     } elseif ($rpcNullServers.Count -gt 0) {
                         Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
