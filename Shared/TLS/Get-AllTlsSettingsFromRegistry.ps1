@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\Get-RemoteRegistryValue.ps1
 function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
