@@ -62,7 +62,9 @@ function Confirm-ExchangeShell {
     process {
         try {
             $currentErrors = $Error.Count
-            Get-ExchangeServer @params | Out-Null
+            $isEMS = Get-ExchangeServer @params |
+                Select-Object -First 1 |
+                ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
             Write-Verbose "Exchange PowerShell Module already loaded."
             $passed = $true
             Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
@@ -100,7 +102,9 @@ function Confirm-ExchangeShell {
 
                     Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
                     try {
-                        Get-ExchangeServer @params | Out-Null
+                        $isEMS = Get-ExchangeServer @params |
+                            Select-Object -First 1 |
+                            ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
                         $passed = $true
                         Write-Verbose "Successfully loaded Exchange Management Shell"
                         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
@@ -130,6 +134,7 @@ function Confirm-ExchangeShell {
             EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
             ToolsOnly   = $passed -and $toolsServer
             RemoteShell = $passed -and $remoteShell
+            EMS         = $isEMS
         }
 
         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
