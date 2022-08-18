@@ -178,7 +178,7 @@ function Invoke-RollbackIPFiltering {
                 $state = $resultsInvoke[$SiteVDirLocation]
                 if ($state.RestoreFileExists) {
                     if ($state.TurnOnEPSuccessful) {
-                        Write-Host "Turned on EP on server $($Server.Name) for VDir $SiteVDirLocation"
+                        Write-Host "Turned on Extended Protection on server $($Server.Name) for VDir $SiteVDirLocation"
                         if ($state.BackupCurrentSuccessful) {
                             Write-Verbose "Successfully backed up current configuration on server $($Server.Name) at $($state.BackUpPath) for VDir $SiteVDirLocation"
                             if ($state.RestoreSuccessful) {
@@ -194,7 +194,7 @@ function Invoke-RollbackIPFiltering {
                             $Failed = $true
                         }
                     } else {
-                        Write-Host "Failed to turn on EP on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
+                        Write-Host "Failed to turn on Extended Protection on server $($Server.Name). Aborting rollback on the server $($Server.Name) for VDir $SiteVDirLocation. Inner Exception:" -ForegroundColor Red
                         Write-HostErrorInformation $state.ErrorContext
                         $Failed = $true
                     }
