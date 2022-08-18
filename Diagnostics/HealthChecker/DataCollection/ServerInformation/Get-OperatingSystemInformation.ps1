@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\Get-AllTlsSettings.ps1
+. $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-CredentialGuardEnabled.ps1
 . $PSScriptRoot\Get-HttpProxySetting.ps1
