@@ -1,8 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# TODO: Move this to shared functions onces the script goes public
-. $PSScriptRoot\..\..\..\..\Diagnostics\HealthChecker\DataCollection\ServerInformation\Get-AllTlsSettings.ps1
+. $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\Get-ExtendedProtectionConfiguration.ps1
 
 # This function is used to collect the required information needed to determine if a server is ready for Extended Protection
