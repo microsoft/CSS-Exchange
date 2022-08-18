@@ -323,11 +323,12 @@ begin {
                     $totalCount = $ExchangeServers.Count
                     $progressParams = @{
                         Activity        = "Prerequisites Check"
-                        Status          = [string]::Empty
+                        Status          = "Running Get-OutlookAnywhere"
                         PercentComplete = 0
                     }
 
                     # Needs to be SilentlyContinue to handle down servers
+                    Write-Progress @progressParams
                     $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue
 
                     if ($null -eq $outlookAnywhere) {
