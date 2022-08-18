@@ -253,32 +253,42 @@ begin {
                 if ($null -ne $onlineSupportedServers.TlsSettings) {
                     $tlsPrerequisites = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $onlineSupportedServers.TlsSettings
 
+                    function NewDisplayObject {
+                        param(
+                            [string]$RegistryName,
+                            [string]$Location,
+                            [object]$Value
+                        )
+                        return [PSCustomObject]@{
+                            RegistryName = $RegistryName
+                            Location     = $Location
+                            Value        = $Value
+                        }
+                    }
+
                     foreach ($tlsSettings in $tlsPrerequisites.TlsSettings) {
                         Write-Host "The following servers have the TLS Configuration below"
                         Write-Host "$([string]::Join(", " ,$tlsSettings.MatchedServer))"
+                        $displayObject = @()
                         $tlsSettings.TlsSettings.Registry.Tls.Values |
-                            Select-Object TLSVersion,
-                            @{Label = "ServerEnabled"; Expression = { $_.ServerEnabledValue } },
-                            @{Label = "ServerDbD"; Expression = { $_.ServerDisabledByDefaultValue } },
-                            @{Label = "ClientEnabled"; Expression = { $_.ClientEnabledValue } },
-                            @{Label = "ClientDbD"; Expression = { $_.ClientDisabledByDefaultValue } },
-                            TLSConfiguration |
-                            Sort-Object TLSVersion |
-                            Format-Table |
-                            Out-String |
-                            Write-Host
+                            ForEach-Object {
+                                $displayObject += NewDisplayObject "Enabled" -Location $_.ServerRegistryPath -Value $_.ServerEnabledValue
+                                $displayObject += NewDisplayObject "DisabledByDefault" -Location $_.ServerRegistryPath -Value $_.ServerDisabledByDefaultValue
+                                $displayObject += NewDisplayObject "Enabled" -Location $_.ClientRegistryPath -Value $_.ClientEnabledValue
+                                $displayObject += NewDisplayObject "DisabledByDefault" -Location $_.ClientRegistryPath -Value $_.ClientDisabledByDefaultValue
+                            }
+
                         $tlsSettings.TlsSettings.Registry.Net.Values |
-                            Select-Object NetVersion,
-                            @{Label = "SystemTlsVersions"; Expression = { $_.SystemDefaultTlsVersionsValue } },
-                            @{Label = "WowSystemTlsVersions"; Expression = { $_.WowSystemDefaultTlsVersionsValue } },
-                            @{Label = "SchUseStrongCrypto"; Expression = { $_.SchUseStrongCryptoValue } },
-                            @{Label = "WowSchUseStrongCrypto"; Expression = { $_.WowSchUseStrongCryptoValue } } |
-                            Sort-Object NetVersion |
+                            ForEach-Object {
+                                $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.MicrosoftRegistryLocation -Value $_.SystemDefaultTlsVersionsValue
+                                $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.MicrosoftRegistryLocation -Value $_.SchUseStrongCryptoValue
+                                $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
+                                $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.WowRegistryLocation -Value $_.WowSchUseStrongCryptoValue
+                            }
+                        $displayObject | Sort-Object Location, RegistryName |
                             Format-Table |
                             Out-String |
                             Write-Host
-                        Write-Host ""
-                        Write-Host ""
                     }
 
                     # If TLS Prerequisites Check passed, then we are good to go.
