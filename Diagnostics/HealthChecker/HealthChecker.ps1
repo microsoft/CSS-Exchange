@@ -182,7 +182,7 @@ function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport" -IgnoreToolsIdentity $true
+        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
