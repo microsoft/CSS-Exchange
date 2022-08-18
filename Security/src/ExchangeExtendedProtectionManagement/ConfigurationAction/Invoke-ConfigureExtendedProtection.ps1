@@ -18,6 +18,7 @@ function Invoke-ConfigureExtendedProtection {
         $counter = 0
         $totalCount = $ExtendedProtectionConfigurations.Count
         $progressParams = @{
+            Id              = 1
             Activity        = "Configuring Extended Protection"
             Status          = [string]::Empty
             PercentComplete = 0
@@ -84,7 +85,7 @@ function Invoke-ConfigureExtendedProtection {
                     $internalTotalCommands = $Commands.TokenChecking.Count + $Commands.SSLFlags.Count
                     $internalCounter = 0
                     $internalProgressParams = @{
-                        Id              = 1
+                        ParentId        = 1
                         Activity        = "Executing Actions on $env:ComputerName"
                         Status          = "Backing Up ApplicationHost.Config"
                         PercentComplete = 0
