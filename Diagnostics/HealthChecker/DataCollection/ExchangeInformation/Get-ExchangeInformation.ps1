@@ -480,6 +480,7 @@ function Get-ExchangeInformation {
             $exchangeServerIISParams = @{
                 ComputerName        = $Script:Server
                 ExchangeInstallPath = $serverExchangeInstallDirectory
+                IsLegacyOS          = ($OSMajorVersion -lt [HealthChecker.OSServerVersion]::Windows2016)
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
 

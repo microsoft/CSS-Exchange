@@ -9,6 +9,7 @@ function Get-ExchangeServerIISSettings {
     param(
         [string]$ComputerName,
         [string]$ExchangeInstallPath,
+        [bool]$IsLegacyOS = $false,
         [scriptblock]$CatchActionFunction
     )
     process {
@@ -28,8 +29,9 @@ function Get-ExchangeServerIISSettings {
         if ($null -ne $applicationHostConfig) {
             Write-Verbose "Trying to query the modules which are loaded by IIS"
             $iisModulesParams = @{
-                ApplicationHostConfig = $applicationHostConfig
-                CatchActionFunction   = $CatchActionFunction
+                ApplicationHostConfig    = $applicationHostConfig
+                SkipLegacyOSModulesCheck = $IsLegacyOS
+                CatchActionFunction      = $CatchActionFunction
             }
             $iisModulesInformation = Get-IISModules @iisModulesParams
         } else {

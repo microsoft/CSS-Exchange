@@ -457,14 +457,32 @@ begin {
                     $canNotConfigure = "Therefore, we can not configure Extended Protection."
                     $counter = 0
                     $totalCount = $ExchangeServers.Count
+                    $outlookAnywhereCount = 0
+                    $outlookAnywhereTotalCount = ($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }).Count
+
                     $progressParams = @{
+                        Id              = 1
                         Activity        = "Prerequisites Check"
-                        Status          = [string]::Empty
+                        Status          = "Running Get-OutlookAnywhere"
                         PercentComplete = 0
                     }
 
+                    $outlookAnywhereProgressParams = @{
+                        ParentId        = 1
+                        Activity        = "Collecting Get-OutlookAnywhere Results"
+                        PercentComplete = 0
+                    }
+
+                    Write-Progress @progressParams
+                    Write-Progress @outlookAnywhereProgressParams
                     # Needs to be SilentlyContinue to handle down servers
-                    $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue
+                    $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue |
+                        ForEach-Object {
+                            $outlookAnywhereCount++
+                            $outlookAnywhereProgressParams.PercentComplete = ($outlookAnywhereCount / $outlookAnywhereTotalCount * 100)
+                            Write-Progress @outlookAnywhereProgressParams
+                            $_
+                        }
 
                     if ($null -eq $outlookAnywhere) {
                         Write-Warning "Failed to run Get-OutlookAnywhere. Failing out the script."

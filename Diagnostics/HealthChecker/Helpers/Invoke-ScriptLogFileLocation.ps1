@@ -5,7 +5,6 @@
 function Invoke-ScriptLogFileLocation {
     param(
         [Parameter(Mandatory = $true)][string]$FileName,
-        [Parameter(Mandatory = $false)][bool]$IgnoreToolsIdentity = $false,
         [Parameter(Mandatory = $false)][bool]$IncludeServerName = $false
     )
     $endName = "-{0}.txt" -f $dateTimeStringFormat
@@ -24,7 +23,6 @@ function Invoke-ScriptLogFileLocation {
     }
 
     $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Script:Server `
-        -IgnoreToolsIdentity $IgnoreToolsIdentity `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if (!($Script:ExchangeShellComputer.ShellLoaded)) {
