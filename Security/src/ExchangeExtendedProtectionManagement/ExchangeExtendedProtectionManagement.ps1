@@ -237,10 +237,10 @@ begin {
 
         if ($FindExchangeServerIPAddresses) {
             Get-ExchangeServerIPs -OutputFilePath $OutputFilePath -ExchangeServers $ExchangeServers
-            Write-Warning "The file generated contains all the IPv4 and IPv6 addresses of all Exchange Servers in the organization." +
-            " This file should be used as a reference. Please change the file to include/remove IP addresses for the IP filtering allow list." +
-            " If the number of Exchange Servers in your organanization is high (>100), consider using a IPRange file with IP Range Subnets [x.x.x.x/n] instead of IP addresses which is more efficient." +
-            "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc."
+            Write-Warning ("The file generated contains all the IPv4 and IPv6 addresses of all Exchange Servers in the organization." +
+                " This file should be used as a reference. Please change the file to include/remove IP addresses for the IP filtering allow list." +
+                " If the number of Exchange Servers in your organanization is high (>100), consider using a IPRange file with IP Range Subnets [x.x.x.x/n] instead of IP addresses which is more efficient." +
+                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc.")
             return
         }
 
