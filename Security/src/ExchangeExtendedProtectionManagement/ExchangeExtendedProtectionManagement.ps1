@@ -73,7 +73,7 @@ param(
     [ValidateScript({
         ($null -ne $_) -and ($_.Length -gt 0)
         })]
-    [string[]]$ValidateMitigation,
+    [string[]]$ValidateType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
@@ -140,7 +140,7 @@ begin {
     $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
     $ConfigureEPSelected = $ConfigureMitigationSelected -or
         ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
-    $ValidateMitigationSelected = $PsCmdlet.ParameterSetName -eq "ValidateMitigation"
+    $ValidateTypeSelected = $PsCmdlet.ParameterSetName -eq "ValidateMitigation"
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
 
@@ -157,12 +157,12 @@ begin {
         $RestrictType = $RestrictType | Get-Unique
     }
 
-    if ($ValidateMitigationSelected) {
+    if ($ValidateTypeSelected) {
         $RestrictType = New-Object 'System.Collections.Generic.List[string]'
-        $ValidateMitigation | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
+        $ValidateType | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
     }
 
-    if (($ConfigureMitigationSelected -or $ValidateMitigationSelected)) {
+    if (($ConfigureMitigationSelected -or $ValidateTypeSelected)) {
         # Get list of IPs in object form from the file specified
         $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRangeFilePath
         if ($ipResults.IsError) {
@@ -263,7 +263,7 @@ begin {
             exit
         }
 
-        if ($ValidateMitigationSelected) {
+        if ($ValidateTypeSelected) {
             # Validate mitigation
             Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
         }
