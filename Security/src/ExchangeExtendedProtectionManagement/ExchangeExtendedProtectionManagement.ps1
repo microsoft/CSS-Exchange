@@ -332,7 +332,8 @@ begin {
                     $counter = 0
                     $totalCount = $ExchangeServers.Count
                     $outlookAnywhereCount = 0
-                    $outlookAnywhereTotalCount = ($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }).Count
+                    $outlookAnywhereServers = $ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }
+                    $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
 
                     $progressParams = @{
                         Id              = 1
@@ -349,8 +350,8 @@ begin {
 
                     Write-Progress @progressParams
                     Write-Progress @outlookAnywhereProgressParams
-                    # Needs to be SilentlyContinue to handle down servers
-                    $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue |
+                    # Needs to be SilentlyContinue to handle down servers, we must also exclude pre Exchange 2013 servers
+                    $outlookAnywhere = $outlookAnywhereServers | Get-OutlookAnywhere -ErrorAction SilentlyContinue |
                         ForEach-Object {
                             $outlookAnywhereCount++
                             $outlookAnywhereProgressParams.PercentComplete = ($outlookAnywhereCount / $outlookAnywhereTotalCount * 100)
