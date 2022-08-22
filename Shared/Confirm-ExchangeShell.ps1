@@ -7,15 +7,12 @@
 function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
-        [string]$Identity,
+        [string]$Identity = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [bool]$LoadExchangeShell = $true,
-
-        [Parameter(Mandatory = $false)]
-        [bool]$IgnoreToolsIdentity = $false,
 
         [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
@@ -39,7 +36,7 @@ function Confirm-ExchangeShell {
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity | IgnoreToolsIdentity: $IgnoreToolsIdentity"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity"
         $params = @{
             Identity    = $Identity
             ErrorAction = "Stop"
@@ -47,12 +44,13 @@ function Confirm-ExchangeShell {
 
         $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
         ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+        $remoteShell = (!(Test-Path $setupKey))
 
-        if ($toolsServer) {
-            Write-Verbose "Tools Server: $env:ComputerName"
-            if ($env:ComputerName -eq $Identity -and
-                $IgnoreToolsIdentity) {
-                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet"
+        if ($toolsServer -or $remoteShell) {
+            Write-Verbose "Exchange Server Check against local: $env:ComputerName"
+            if ($env:ComputerName -eq $Identity -or
+                $env:ComputerName -eq $Identity.Split(".")[0]) {
+                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet due to passed value isn't an Exchange Server"
                 $params.Remove("Identity")
             } else {
                 Write-Verbose "Didn't remove Identity"
@@ -64,7 +62,9 @@ function Confirm-ExchangeShell {
     process {
         try {
             $currentErrors = $Error.Count
-            Get-ExchangeServer @params | Out-Null
+            $isEMS = Get-ExchangeServer @params |
+                Select-Object -First 1 |
+                ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
             Write-Verbose "Exchange PowerShell Module already loaded."
             $passed = $true
             Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
@@ -102,7 +102,9 @@ function Confirm-ExchangeShell {
 
                     Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
                     try {
-                        Get-ExchangeServer @params | Out-Null
+                        $isEMS = Get-ExchangeServer @params |
+                            Select-Object -First 1 |
+                            ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
                         $passed = $true
                         Write-Verbose "Successfully loaded Exchange Management Shell"
                         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
@@ -131,7 +133,8 @@ function Confirm-ExchangeShell {
             Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
             EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
             ToolsOnly   = $passed -and $toolsServer
-            RemoteShell = $passed -and (!(Test-Path $setupKey))
+            RemoteShell = $passed -and $remoteShell
+            EMS         = $isEMS
         }
 
         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction

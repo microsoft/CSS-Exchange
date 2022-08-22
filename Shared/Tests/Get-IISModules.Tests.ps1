@@ -158,4 +158,25 @@ Describe "Testing Get-IISModules.ps1" {
             }
         }
     }
+
+    Context "Exchange 2016 Default applicationHost.config On Pre-Windows 2016 Server" {
+        BeforeAll {
+            $Script:iisModules = Get-IISModules -ApplicationHostConfig $E16_ApplicationHost_Default -SkipLegacyOSModulesCheck $true
+        }
+
+        It "Should Return The IISModules Object" {
+            $iisModules.GetType() | Should -Be PSCustomObject
+            $iisModules.ModuleList.GetType() | Should -Be System.Object[]
+            $iisModules.Count | Should -Be 1
+            $iisModules.ModuleList.Count | Should -Be 6
+        }
+
+        It "Should Not Contain Default Modules Which Are Excluded" {
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\protsup.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\iisfreb.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\protsup.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\isapi.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\rpcproxy\rpcproxy.dll") | Should -Be $false
+        }
+    }
 }

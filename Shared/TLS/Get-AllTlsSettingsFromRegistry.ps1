@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\Get-RemoteRegistryValue.ps1
 function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
@@ -122,10 +122,12 @@ function Get-AllTlsSettingsFromRegistry {
                 "Server$enabledKey`Value"  = $serverEnabledValue
                 "Server$disabledKey"       = $serverDisabledByDefault
                 "Server$disabledKey`Value" = $serverDisabledByDefaultValue
+                "ServerRegistryPath"       = $registryServer
                 "Client$enabledKey"        = $clientEnabled
                 "Client$enabledKey`Value"  = $clientEnabledValue
                 "Client$disabledKey"       = $clientDisabledByDefault
                 "Client$disabledKey`Value" = $clientDisabledByDefaultValue
+                "ClientRegistryPath"       = $registryClient
                 "TLSVersionDisabled"       = $disabled
                 "TLSMisconfigured"         = $misconfigured
                 "TLSHalfDisabled"          = $halfDisabled
@@ -136,24 +138,27 @@ function Get-AllTlsSettingsFromRegistry {
 
         foreach ($netVersion in $netVersions) {
 
+            $msRegistryKey = $netRegistryBase -f "Microsoft", $netVersion
+            $wowMsRegistryKey = $netRegistryBase -f "Wow6432Node\Microsoft", $netVersion
+
             $systemDefaultTlsVersionsValue = Get-RemoteRegistryValue `
                 -MachineName $MachineName `
-                -SubKey ($netRegistryBase -f "Microsoft", $netVersion) `
+                -SubKey $msRegistryKey `
                 -GetValue "SystemDefaultTlsVersions" `
                 -CatchActionFunction $CatchActionFunction
             $schUseStrongCryptoValue = Get-RemoteRegistryValue `
                 -MachineName $MachineName `
-                -SubKey ($netRegistryBase -f "Microsoft", $netVersion) `
+                -SubKey $msRegistryKey `
                 -GetValue "SchUseStrongCrypto" `
                 -CatchActionFunction $CatchActionFunction
             $wowSystemDefaultTlsVersionsValue = Get-RemoteRegistryValue `
                 -MachineName $MachineName `
-                -SubKey ($netRegistryBase -f "Wow6432Node\Microsoft", $netVersion) `
+                -SubKey $wowMsRegistryKey `
                 -GetValue "SystemDefaultTlsVersions" `
                 -CatchActionFunction $CatchActionFunction
             $wowSchUseStrongCryptoValue = Get-RemoteRegistryValue `
                 -MachineName $MachineName `
-                -SubKey ($netRegistryBase -f "Wow6432Node\Microsoft", $netVersion) `
+                -SubKey $wowMsRegistryKey `
                 -GetValue "SchUseStrongCrypto" `
                 -CatchActionFunction $CatchActionFunction
 
@@ -166,10 +171,12 @@ function Get-AllTlsSettingsFromRegistry {
                 SystemDefaultTlsVersionsValue    = $systemDefaultTlsVersionsValue
                 SchUseStrongCrypto               = (Get-NETDefaultTLSValue -KeyValue $schUseStrongCryptoValue -NetVersion $netVersion -KeyName "SchUseStrongCrypto")
                 SchUseStrongCryptoValue          = $schUseStrongCryptoValue
+                MicrosoftRegistryLocation        = $msRegistryKey
                 WowSystemDefaultTlsVersions      = $wowSystemDefaultTlsVersions
                 WowSystemDefaultTlsVersionsValue = $wowSystemDefaultTlsVersionsValue
                 WowSchUseStrongCrypto            = (Get-NETDefaultTLSValue -KeyValue $wowSchUseStrongCryptoValue -NetVersion $netVersion -KeyName "WowSchUseStrongCrypto")
                 WowSchUseStrongCryptoValue       = $wowSchUseStrongCryptoValue
+                WowRegistryLocation              = $wowMsRegistryKey
                 SdtvConfiguredCorrectly          = $systemDefaultTlsVersions -eq $wowSystemDefaultTlsVersions
                 SdtvEnabled                      = $systemDefaultTlsVersions -and $wowSystemDefaultTlsVersions
             }
