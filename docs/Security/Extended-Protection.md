@@ -96,6 +96,26 @@ Extended Protection **should not be enabled for hybrid servers that are publishe
 
     **Note**: Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.
 
+### NTLMv1 is not supported when Extended Protection is enabled
+
+> [!NOTE]
+> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.
+
+NTLMv1 is weak and doesn't provide protection against man-in-the-middle (MitM) attacks. It should be [considered as vulnerable](https://support.microsoft.com/topic/security-guidance-for-ntlmv1-and-lm-network-authentication-da2168b6-4a31-0088-fb03-f081acde6e73) and so, no longer be used. Therefore NTLMv1 should not be used together with Extended Protection. Additionally, if you enforce a client to use NTLMv1 instead of NTLMv2 and you have Extended Protection enabled on your Exchange server, this will lead to password prompts on the client side without a way to authenticate successfully against Exchange.
+
+If you experience password prompts on your clients once Extended Protection is enabled, you should check the following registry key and value on client and Exchange server side:
+
+Registry key: `HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa`
+
+Registry value: `LmCompatibilityLevel`
+
+It must be set to at least `3` or higher (best practice is to set it to `5` which is: *Send NTLMv2 response only. Refuse LM & NTLM*). It's also possible to delete this value to enforce the system default. If it's not set, we treat it as if it is set to `3` (on Windows Server 2008 R2 and later) which is: *Send NTLMv2 response only*.
+If you want to manage the setting centrally, you can do so via Group Policy:
+
+Policy location: `Computer Configuration\Windows Settings\Security Settings\Local Policies\Security Options`
+
+More information: [Network security: LAN Manager authentication level](https://docs.microsoft.com/windows/security/threat-protection/security-policy-settings/network-security-lan-manager-authentication-level)
+
 ### SSL Offloading scenarios are not supported
 
 Extended Protection is not supported in environments that use SSL offloading. SSL termination during SSL offloading causes Extended Protection to fail. To enable Extended Protection in your Exchange environment, **you must not be using SSL offloading** with your Load Balancers.
