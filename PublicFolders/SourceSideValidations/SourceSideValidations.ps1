@@ -45,6 +45,9 @@ param (
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
 
+# For HashSet support
+Add-Type -AssemblyName System.Core -ErrorAction Stop
+
 try {
     if (-not $SkipVersionCheck) {
         if (Test-ScriptVersion -AutoUpdate) {
