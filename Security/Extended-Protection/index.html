@@ -2445,8 +2445,7 @@
 </ol>
 <h3 id="ntlmv1-is-not-supported-when-extended-protection-is-enabled">NTLMv1 is not supported when Extended Protection is enabled</h3>
 <blockquote>
-<p>[!NOTE]
-To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
+<p><strong>Note:</strong> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
 </blockquote>
 <p>NTLMv1 is weak and doesn't provide protection against man-in-the-middle (MitM) attacks. It should be <a href="https://support.microsoft.com/topic/security-guidance-for-ntlmv1-and-lm-network-authentication-da2168b6-4a31-0088-fb03-f081acde6e73">considered as vulnerable</a> and so, no longer be used. Therefore NTLMv1 should not be used together with Extended Protection. Additionally, if you enforce a client to use NTLMv1 instead of NTLMv2 and you have Extended Protection enabled on your Exchange server, this will lead to password prompts on the client side without a way to authenticate successfully against Exchange.</p>
 <p>If you experience password prompts on your clients once Extended Protection is enabled, you should check the following registry key and value on client and Exchange server side:</p>
@@ -2751,7 +2750,7 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 22, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 23, 2022</span>
       
     
   </small>
