@@ -2,8 +2,9 @@
 *   @microsoft/css-exchange-admins
 
 # Rob Whaley owns these
-/Hybrid/        @tweekerz @microsoft/css-exchange-admins
-/Retention/     @tweekerz @microsoft/css-exchange-admins
+/Hybrid/                                @tweekerz @microsoft/css-exchange-admins
+/Retention/                             @tweekerz @microsoft/css-exchange-admins
+/docs/Security/Extended-Protection.md   @tweekerz @microsoft/css-exchange-admins
 
 # Supportability owns this doc
 /docs/Emerging-Issues.md    @Batre-MSFT @tweekerz @ninobb @nasir1786 @microsoft/css-exchange-admins
