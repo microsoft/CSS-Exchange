@@ -98,8 +98,7 @@ Extended Protection **should not be enabled for hybrid servers that are publishe
 
 ### NTLMv1 is not supported when Extended Protection is enabled
 
-> [!NOTE]
-> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.
+> **Note:** To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.
 
 NTLMv1 is weak and doesn't provide protection against man-in-the-middle (MitM) attacks. It should be [considered as vulnerable](https://support.microsoft.com/topic/security-guidance-for-ntlmv1-and-lm-network-authentication-da2168b6-4a31-0088-fb03-f081acde6e73) and so, no longer be used. Therefore NTLMv1 should not be used together with Extended Protection. Additionally, if you enforce a client to use NTLMv1 instead of NTLMv2 and you have Extended Protection enabled on your Exchange server, this will lead to password prompts on the client side without a way to authenticate successfully against Exchange.
 
