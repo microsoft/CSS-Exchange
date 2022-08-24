@@ -521,6 +521,81 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
     }
 
+    Context "Testing TLS 1.3 Differences with NULL Check" {
+
+        BeforeAll {
+            $Script:tlsCompareObject = [PSCustomObject]@{
+                ServerEnabled                = $true
+                ServerEnabledValue           = $null
+                ClientEnabled                = $true
+                ClientEnabledValue           = $null
+                ServerDisabledByDefault      = $false
+                ServerDisabledByDefaultValue = $null
+                ClientDisabledByDefault      = $false
+                ClientDisabledByDefaultValue = $null
+                TLSConfiguration             = "Enabled"
+            }
+
+            $Script:tls13CompareObject = [PSCustomObject]@{
+                ServerEnabled                = $false
+                ServerEnabledValue           = $null
+                ClientEnabled                = $false
+                ClientEnabledValue           = $null
+                ServerDisabledByDefault      = $false
+                ServerDisabledByDefaultValue = $null
+                ClientDisabledByDefault      = $false
+                ClientDisabledByDefaultValue = $null
+                TLSConfiguration             = "Disabled"
+            }
+
+            $Script:netCompareObject = [PSCustomObject]@{
+                SystemDefaultTlsVersions    = $false
+                SchUseStrongCrypto          = $false
+                WowSystemDefaultTlsVersions = $false
+                WowSchUseStrongCrypto       = $false
+                SdtvConfiguredCorrectly     = $true
+                SdtvEnabled                 = $false
+            }
+
+            Mock Get-RemoteRegistryValue {
+                param (
+                    [string]$MachineName,
+                    [string]$SubKey,
+                    [string]$GetValue,
+                    [string]$ValueType,
+                    [scriptblock]$CatchActionFunction
+                )
+                return $null
+            }
+
+            SetVariables
+        }
+
+        It "TLS 1.0 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls10
+        }
+
+        It "TLS 1.1 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls11
+        }
+
+        It "TLS 1.2 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tls13CompareObject $tls13
+        }
+
+        It "NET v4 Testing Values" {
+            TestObjectCompare $Script:netCompareObject $netv4
+        }
+
+        It "NET v2 Testing Values" {
+            TestObjectCompare $Script:netCompareObject $netv2
+        }
+    }
+
     Context "Testing NET Settings Enabled" {
         BeforeAll {
             $Script:netCompareObject = [PSCustomObject]@{
