@@ -41,6 +41,8 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             foreach ($serverTls in $TlsSettingsList) {
                 $currentServer = $serverTls.ComputerName
                 $tlsSettings = $serverTls.Settings
+                # Removing TLS 1.3 here to avoid it being displayed
+                $tlsSettings.Registry.TLS.Remove("1.3")
                 $tlsRegistry = $tlsSettings.Registry.TLS
                 $netRegistry = $tlsSettings.Registry.NET
                 $listIndex = 0
