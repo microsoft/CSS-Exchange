@@ -1,6 +1,8 @@
 # TLS Configuration Check
 
-We check and validate Exchange servers TLS 1.0 - 1.2 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.
+We check and validate Exchange servers TLS 1.0 - 1.3 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.
+
+At this time TLS 1.3 is **not** supported by Exchange and has been known to cause issues if enabled. If detected to be anything but disabled on Exchange, it will be thrown as an error and needs to be addressed right away.
 
 We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.
 
@@ -27,6 +29,8 @@ The location where we are checking for the TLS values are here:
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server`
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client`
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server`
+`SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client`
+`SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server`
 
 At each location, we are looking at the value of `Enabled` and `DisabledByDefault`. If the key isn't present, `Enabled` is set to `true` and `DisabledByDefault` is set to `false`.
 

@@ -18,12 +18,16 @@ function Get-AllTlsSettingsFromRegistry {
 
                 [Parameter(Mandatory = $false)]
                 [object]
-                $KeyValue
+                $KeyValue,
+
+                [Parameter( Mandatory = $false)]
+                [bool]
+                $NullIsEnabled
             )
-            Write-Verbose "KeyValue is null: '$($null -eq $KeyValue)' | KeyValue: '$KeyValue' | GetKeyType: $GetKeyType"
+            Write-Verbose "KeyValue is null: '$($null -eq $KeyValue)' | KeyValue: '$KeyValue' | GetKeyType: $GetKeyType | NullIsEnabled: $NullIsEnabled"
             switch ($GetKeyType) {
                 "Enabled" {
-                    return $null -eq $KeyValue -or $KeyValue -eq 1
+                    return ($null -eq $KeyValue -and $NullIsEnabled) -or $KeyValue -eq 1
                 }
                 "DisabledByDefault" {
                     return $null -ne $KeyValue -and $KeyValue -eq 1
@@ -52,7 +56,7 @@ function Get-AllTlsSettingsFromRegistry {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Passed - MachineName: '$MachineName'"
         $registryBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
-        $tlsVersions = @("1.0", "1.1", "1.2")
+        $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
         $enabledKey = "Enabled"
         $disabledKey = "DisabledByDefault"
         $netVersions = @("v2.0.50727", "v4.0.30319")
@@ -89,16 +93,18 @@ function Get-AllTlsSettingsFromRegistry {
                 -GetValue $disabledKey `
                 -CatchActionFunction $CatchActionFunction
 
-            $serverEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $serverEnabledValue)
+            $serverEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $serverEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
             $serverDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $serverDisabledByDefaultValue)
-            $clientEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue)
+            $clientEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
             $clientDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $clientDisabledByDefaultValue)
-            $disabled = $serverEnabled -eq $false -and $serverDisabledByDefault -and $clientEnabled -eq $false -and $clientDisabledByDefault
+            $disabled = $serverEnabled -eq $false -and ($serverDisabledByDefault -or $null -eq $serverDisabledByDefaultValue) -and
+            $clientEnabled -eq $false -and ($clientDisabledByDefault -or $null -eq $clientDisabledByDefaultValue)
             $misconfigured = $serverEnabled -ne $clientEnabled -or $serverDisabledByDefault -ne $clientDisabledByDefault
             # only need to test server settings here, because $misconfigured will be set and will be the official status.
             # want to check for if Server is Disabled and Disabled By Default is not set or the reverse. This would be only part disabled
             # and not what we recommend on the blog post.
-            $halfDisabled = ($serverEnabled -eq $false -and $serverDisabledByDefault -eq $false) -or ($serverEnabled -and $serverDisabledByDefault)
+            $halfDisabled = ($serverEnabled -eq $false -and $serverDisabledByDefault -eq $false -and $null -ne $serverDisabledByDefaultValue) -or
+                ($serverEnabled -and $serverDisabledByDefault)
             $configuration = "Enabled"
 
             if ($disabled) {
