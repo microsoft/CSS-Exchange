@@ -392,6 +392,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
+            Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings2.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
@@ -417,6 +418,23 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Disable Async Notification" {
             TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
+        }
+
+        It "TLS Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.1" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.2" "Enabled" -WriteType "Green"
+            TestObjectMatch "TLS 1.3" "Enabled" -WriteType "Red"
+
+            TestObjectMatch "TLS 1.3 not disabled" $true -WriteType "Red"
+
+            TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
+
+            TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
+
+            $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
+            $tlsCipherSuite.Count | Should -Be 8
         }
 
         It "Enabled Domains" {
