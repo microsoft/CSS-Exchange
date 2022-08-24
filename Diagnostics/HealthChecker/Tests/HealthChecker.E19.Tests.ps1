@@ -124,7 +124,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 60
+            $Script:ActiveGrouping.Count | Should -Be 67
         }
 
         It "Display Results - Security Vulnerability" {
@@ -347,55 +347,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            $tlsSettings = GetObject "TLS Settings Group"
-            $tls10 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.0" }
-            $tls11 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.1" }
-            $tls12 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.2" }
-
-            $tls10CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $false)
-                ServerDbd     = (NewOutColumnCompareValue $true)
-                ClientEnabled = (NewOutColumnCompareValue $true)
-                ClientDbd     = (NewOutColumnCompareValue $true)
-                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
-            }
-
-            $tls11CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $true)
-                ServerDbd     = (NewOutColumnCompareValue $true)
-                ClientEnabled = (NewOutColumnCompareValue $false)
-                ClientDbd     = (NewOutColumnCompareValue $true)
-                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
-            }
-
-            $tls12CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $true)
-                ServerDbd     = (NewOutColumnCompareValue $false)
-                ClientEnabled = (NewOutColumnCompareValue $true)
-                ClientDbd     = (NewOutColumnCompareValue $false)
-                Configuration = (NewOutColumnCompareValue "Enabled" "Green")
-            }
-
-            TestOutColumnObjectCompare $tls10CompareObject $tls10
-
-            TestOutColumnObjectCompare $tls11CompareObject $tls11
-
-            TestOutColumnObjectCompare $tls12CompareObject $tls12
+            TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.1" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.2" "Enabled" -WriteType "Green"
+            TestObjectMatch "TLS 1.3" "Disabled" -WriteType "Green"
 
             TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
 
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
-
-            $netTlsSettings = (GetObject "NET TLS Settings Group") | Where-Object { $_.FrameworkVersion.Value -eq "NETv4" }
-
-            $netv4CompareObject = [PSCustomObject]@{
-                SystemDefaultTlsVersions            = (NewOutColumnCompareValue $false)
-                Wow6432NodeSystemDefaultTlsVersions = (NewOutColumnCompareValue $false)
-                SchUseStrongCrypto                  = (NewOutColumnCompareValue $false)
-                Wow6432NodeSchUseStrongCrypto       = (NewOutColumnCompareValue $false)
-            }
-
-            TestOutColumnObjectCompare $netv4CompareObject $netTlsSettings
 
             $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
             $tlsCipherSuite.Count | Should -Be 8
