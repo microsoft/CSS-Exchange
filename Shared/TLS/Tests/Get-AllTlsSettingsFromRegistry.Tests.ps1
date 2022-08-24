@@ -11,9 +11,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         $Script:tlsServer10 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server"
         $Script:tlsServer11 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server"
         $Script:tlsServer12 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server"
+        $Script:tlsServer13 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server"
         $Script:tlsClient10 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client"
         $Script:tlsClient11 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client"
         $Script:tlsClient12 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client"
+        $Script:tlsClient13 = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client"
         $Script:net4 = "SOFTWARE\Microsoft\.NETFramework\v4.0.30319"
         $Script:net4Wow = "SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319"
         $Script:net2 = "SOFTWARE\Microsoft\.NETFramework\v2.0.50727"
@@ -25,6 +27,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
             $Script:tls10 = $result.TLS["1.0"]
             $Script:tls11 = $result.TLS["1.1"]
             $Script:tls12 = $result.TLS["1.2"]
+            $Script:tls13 = $result.TLS["1.3"]
             $Script:netv4 = $result.NET["NETv4"]
             $Script:netv2 = $result.NET["NETv2"]
         }
@@ -65,6 +68,9 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 } elseif ($SubKey -eq $Script:tlsServer12) {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
+                } elseif ($SubKey -eq $Script:tlsServer13) {
+                    if ($GetValue -eq $Script:enabledKey) { return 1 }
+                    return 0
                 } elseif ($SubKey -eq $Script:tlsClient10) {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
@@ -72,6 +78,9 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
                 } elseif ($SubKey -eq $Script:tlsClient12) {
+                    if ($GetValue -eq $Script:enabledKey) { return 1 }
+                    return 0
+                } elseif ($SubKey -eq $Script:tlsClient13) {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
                 } elseif ($SubKey -eq $Script:net4) {
@@ -117,6 +126,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
 
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
         }
 
         It "NET v4 Testing Values" {
@@ -165,6 +178,9 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 } elseif ($SubKey -eq $Script:tlsServer12) {
                     if ($GetValue -eq $Script:enabledKey) { return 0 }
                     return 1
+                } elseif ($SubKey -eq $Script:tlsServer13) {
+                    if ($GetValue -eq $Script:enabledKey) { return 0 }
+                    return 1
                 } elseif ($SubKey -eq $Script:tlsClient10) {
                     if ($GetValue -eq $Script:enabledKey) { return 0 }
                     return 1
@@ -172,6 +188,9 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     if ($GetValue -eq $Script:enabledKey) { return 0 }
                     return 1
                 } elseif ($SubKey -eq $Script:tlsClient12) {
+                    if ($GetValue -eq $Script:enabledKey) { return 0 }
+                    return 1
+                } elseif ($SubKey -eq $Script:tlsClient13) {
                     if ($GetValue -eq $Script:enabledKey) { return 0 }
                     return 1
                 } elseif ($SubKey -eq $Script:net4) {
@@ -200,6 +219,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
 
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
         }
 
         It "NET v4 Testing Values" {
@@ -246,6 +269,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
         }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
+        }
     }
 
     Context "Testing TLS Half Disabled - Part 2" {
@@ -283,6 +310,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
         }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
+        }
     }
 
     Context "Testing TLS Misconfigured - Part 1" {
@@ -309,11 +340,15 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     return 1
                 } elseif ($SubKey -eq $Script:tlsServer12) {
                     return 1
+                } elseif ($SubKey -eq $Script:tlsServer13) {
+                    return 1
                 } elseif ($SubKey -eq $Script:tlsClient10) {
                     return 0
                 } elseif ($SubKey -eq $Script:tlsClient11) {
                     return 0
                 } elseif ($SubKey -eq $Script:tlsClient12) {
+                    return 0
+                } elseif ($SubKey -eq $Script:tlsClient13) {
                     return 0
                 } elseif ($SubKey -eq $Script:net4) {
                     return 1
@@ -341,6 +376,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
 
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
         }
     }
 
@@ -368,11 +407,15 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     return 0
                 } elseif ($SubKey -eq $Script:tlsServer12) {
                     return 0
+                } elseif ($SubKey -eq $Script:tlsServer13) {
+                    return 0
                 } elseif ($SubKey -eq $Script:tlsClient10) {
                     return 1
                 } elseif ($SubKey -eq $Script:tlsClient11) {
                     return 1
                 } elseif ($SubKey -eq $Script:tlsClient12) {
+                    return 1
+                } elseif ($SubKey -eq $Script:tlsClient13) {
                     return 1
                 } elseif ($SubKey -eq $Script:net4) {
                     return 1
@@ -400,6 +443,10 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
 
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
         }
     }
 
@@ -427,6 +474,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     return 1
                 } elseif ($SubKey -eq $Script:tlsServer12) {
                     return 1
+                } elseif ($SubKey -eq $Script:tlsServer13) {
+                    return 1
                 } elseif ($SubKey -eq $Script:tlsClient10) {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
@@ -434,6 +483,9 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
                 } elseif ($SubKey -eq $Script:tlsClient12) {
+                    if ($GetValue -eq $Script:enabledKey) { return 1 }
+                    return 0
+                } elseif ($SubKey -eq $Script:tlsClient13) {
                     if ($GetValue -eq $Script:enabledKey) { return 1 }
                     return 0
                 } elseif ($SubKey -eq $Script:net4) {
@@ -462,6 +514,85 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
 
         It "TLS 1.2 Testing Values" {
             TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls13
+        }
+    }
+
+    Context "Testing TLS 1.3 Differences with NULL Check" {
+
+        BeforeAll {
+            $Script:tlsCompareObject = [PSCustomObject]@{
+                ServerEnabled                = $true
+                ServerEnabledValue           = $null
+                ClientEnabled                = $true
+                ClientEnabledValue           = $null
+                ServerDisabledByDefault      = $false
+                ServerDisabledByDefaultValue = $null
+                ClientDisabledByDefault      = $false
+                ClientDisabledByDefaultValue = $null
+                TLSConfiguration             = "Enabled"
+            }
+
+            $Script:tls13CompareObject = [PSCustomObject]@{
+                ServerEnabled                = $false
+                ServerEnabledValue           = $null
+                ClientEnabled                = $false
+                ClientEnabledValue           = $null
+                ServerDisabledByDefault      = $false
+                ServerDisabledByDefaultValue = $null
+                ClientDisabledByDefault      = $false
+                ClientDisabledByDefaultValue = $null
+                TLSConfiguration             = "Disabled"
+            }
+
+            $Script:netCompareObject = [PSCustomObject]@{
+                SystemDefaultTlsVersions    = $false
+                SchUseStrongCrypto          = $false
+                WowSystemDefaultTlsVersions = $false
+                WowSchUseStrongCrypto       = $false
+                SdtvConfiguredCorrectly     = $true
+                SdtvEnabled                 = $false
+            }
+
+            Mock Get-RemoteRegistryValue {
+                param (
+                    [string]$MachineName,
+                    [string]$SubKey,
+                    [string]$GetValue,
+                    [string]$ValueType,
+                    [scriptblock]$CatchActionFunction
+                )
+                return $null
+            }
+
+            SetVariables
+        }
+
+        It "TLS 1.0 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls10
+        }
+
+        It "TLS 1.1 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls11
+        }
+
+        It "TLS 1.2 Testing Values" {
+            TestObjectCompare $Script:tlsCompareObject $tls12
+        }
+
+        It "TLS 1.3 Testing Values" {
+            TestObjectCompare $Script:tls13CompareObject $tls13
+        }
+
+        It "NET v4 Testing Values" {
+            TestObjectCompare $Script:netCompareObject $netv4
+        }
+
+        It "NET v2 Testing Values" {
+            TestObjectCompare $Script:netCompareObject $netv2
         }
     }
 
