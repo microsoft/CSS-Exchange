@@ -90,7 +90,7 @@ $BuildVersion = ""
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
 . $PSScriptRoot\..\Shared\Write-ErrorInformation.ps1
-. $PSScriptRoot\..\Shared\Write-Host.ps1
+. $PSScriptRoot\..\Shared\BuiltInCmdlets\Write-Host.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"

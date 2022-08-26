@@ -88,9 +88,9 @@ function Invoke-RemoteFunctions {
         [Parameter(Mandatory = $true)][object]$PassedInfo
     )
 
+    . $PSScriptRoot\..\..\Shared\BuiltInCmdlets\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\BuiltInCmdlets\Write-Verbose.ps1
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-    . $PSScriptRoot\..\..\Shared\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
     . $PSScriptRoot\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
     . $PSScriptRoot\RemoteScriptBlock\Invoke-ZipFolder.ps1

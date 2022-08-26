@@ -46,13 +46,13 @@ begin {
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
+    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Host.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
-    . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
     if ($PsCmdlet.ParameterSetName -eq "Rollback") {
         $RollbackSelected = $true
