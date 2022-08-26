@@ -40,13 +40,15 @@ param(
 )
 
 begin {
-    . $PSScriptRoot\Write-Verbose.ps1
     . $PSScriptRoot\WriteFunctions.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
     . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Host.ps1
+    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Progress.ps1
+    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Warning.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -77,6 +79,9 @@ begin {
             -ErrorAction SilentlyContinue
 
         SetWriteHostAction ${Function:Write-HostLog}
+        SetWriteVerboseAction ${Function:Write-VerboseLog}
+        SetWriteWarningAction ${Function:Write-HostLog}
+        SetWriteProgressAction ${Function:Write-HostLog}
 
         if ($InternalOption -eq "SkipEWS") {
             Write-Verbose "SkipEWS option enabled."
