@@ -10,7 +10,7 @@ An invalid TLS configuration can cause issues within Exchange for communication.
 
 Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.
 
-By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible.
+By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible. To correct this, you create the missing `DWORD` registry key with the value you wish to have.
 
 The `Configuration` result can provide a value of `Enabled`, `Disabled`, `Half Disabled`, or `Misconfigured`. They are defined by the following conditions:
 
@@ -32,7 +32,7 @@ The location where we are checking for the TLS values are here:
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client`
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server`
 
-At each location, we are looking at the value of `Enabled` and `DisabledByDefault`. If the key isn't present, `Enabled` is set to `true` and `DisabledByDefault` is set to `false`.
+At each location, we are looking at the value of `Enabled` and `DisabledByDefault`. If the key isn't present, `Enabled` is set to `true` and `DisabledByDefault` is set to `false`. With the exception of TLS 1.3, if that isn't present it is disabled by default.
 
 The location for the .NET Framework TLS related settings are located here:
 
