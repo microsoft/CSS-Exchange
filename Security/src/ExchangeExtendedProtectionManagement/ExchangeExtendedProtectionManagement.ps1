@@ -50,6 +50,7 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
@@ -289,10 +290,12 @@ begin {
                                 $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
                                 $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.WowRegistryLocation -Value $_.WowSchUseStrongCryptoValue
                             }
+                        $stringOutput = [string]::Empty
+                        SetWriteHostAction $null
                         $displayObject | Sort-Object Location, RegistryName |
-                            Format-Table |
-                            Out-String |
-                            Write-Host
+                            Out-Columns -StringOutput ([ref]$stringOutput)
+                        Write-HostLog $stringOutput
+                        SetWriteHostAction ${Function:Write-HostLog}
                     }
 
                     # If TLS Prerequisites Check passed, then we are good to go.
