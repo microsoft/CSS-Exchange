@@ -50,6 +50,7 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
@@ -84,8 +85,12 @@ begin {
             $Script:SkipEWS = $false
         }
 
-        if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
+        $exchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+        if (-not($exchangeShell.ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
+            exit
+        } elseif (-not ($exchangeShell.EMS)) {
+            Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
             exit
         }
 
@@ -285,10 +290,12 @@ begin {
                                 $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
                                 $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.WowRegistryLocation -Value $_.WowSchUseStrongCryptoValue
                             }
+                        $stringOutput = [string]::Empty
+                        SetWriteHostAction $null
                         $displayObject | Sort-Object Location, RegistryName |
-                            Format-Table |
-                            Out-String |
-                            Write-Host
+                            Out-Columns -StringOutput ([ref]$stringOutput)
+                        Write-HostLog $stringOutput
+                        SetWriteHostAction ${Function:Write-HostLog}
                     }
 
                     # If TLS Prerequisites Check passed, then we are good to go.
