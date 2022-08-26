@@ -84,13 +84,13 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Verbose.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Warning.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
 . $PSScriptRoot\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\Shared\BuiltInCmdlets\Write-Host.ps1
+. $PSScriptRoot\..\Shared\BuiltInCmdlets\Write-Verbose.ps1
+. $PSScriptRoot\..\Shared\BuiltInCmdlets\Write-Warning.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 $Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
@@ -249,6 +249,9 @@ try {
     }
     Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     SetWriteHostAction ${Function:Write-LogInformation}
+    SetWriteVerboseAction ${Function:Write-LogInformation}
+    SetWriteWarningAction ${Function:Write-LogInformation}
+    SetWriteWarningManipulateMessageAction { param($Message) "WARNING: $Message" }
 
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/TMS-VersionsUrl")) {
         Write-Warning "Script was updated. Please rerun the command."
