@@ -28,9 +28,9 @@ param(
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
-. $PSScriptRoot\..\..\Shared\BuiltInCmdlets\Write-Host.ps1
-. $PSScriptRoot\..\..\Shared\BuiltInCmdlets\Write-Verbose.ps1
-. $PSScriptRoot\..\..\Shared\BuiltInCmdlets\Write-Warning.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 

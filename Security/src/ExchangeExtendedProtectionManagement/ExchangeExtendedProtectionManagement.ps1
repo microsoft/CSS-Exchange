@@ -45,10 +45,10 @@ begin {
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
-    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Host.ps1
-    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Progress.ps1
-    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Verbose.ps1
-    . $PSScriptRoot\..\..\..\Shared\BuiltInCmdlets\Write-Warning.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Host.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Progress.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Warning.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
