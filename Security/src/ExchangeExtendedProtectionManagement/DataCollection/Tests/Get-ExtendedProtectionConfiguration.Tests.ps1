@@ -51,8 +51,12 @@ BeforeAll {
         param(
             [object]$TestingExtendedProtectionResults,
             [int]$ExtendedProtectionNoneCount = 21,
+            [int]$ExpectedExtendedProtectionNoneCount = 21,
             [bool]$SkipAllow = $false,
-            [bool]$SkipAutoDiscover = $false
+            [bool]$SkipAutoDiscover = $false,
+            [bool]$IPFilterEnabled = $false,
+            [string]$IPFilteredvDir = $null,
+            [string[]]$AllowedIpAddresses
         )
 
         $TestingExtendedProtectionResults.SupportedVersionForExtendedProtection | Should -Be $true
@@ -61,10 +65,16 @@ BeforeAll {
                 Should -Be $ExtendedProtectionNoneCount
         ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.ExpectedExtendedConfiguration -ne "None" }).count |
-                Should -Be $ExtendedProtectionNoneCount
-        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-            Where-Object { $_.SupportedExtendedProtection -eq $false } |
-            Should -Be $null
+                Should -Be $ExpectedExtendedProtectionNoneCount
+        if ($IPFilterEnabled -eq $false) {
+            $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+                Where-Object { $_.SupportedExtendedProtection -eq $false } |
+                Should -Be $null
+        } else {
+            ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+                Where-Object { $_.SupportedExtendedProtection -eq $false }).Count |
+                    Should -Be 1
+        }
         # Special configs
         if (-not $SkipAllow) {
             $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
@@ -83,6 +93,21 @@ BeforeAll {
             $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
             $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
         }
+
+        if ($IPFilterEnabled) {
+            $ipFilter = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+                Where-Object {
+                    ($_.ExtendedProtection -eq "None") -and
+                    ($_.VirtualDirectoryName -eq $IPFilteredvDir)
+                }
+            $ipFilter.MitigationEnabled | Should -Be $true
+            $ipFilter.ProperlySecuredConfiguration | Should -Be $true
+            $ipFilter.Configuration.MitigationSettings.AllowUnlisted | Should -Be "false"
+            $ipFilter.Configuration.MitigationSettings.Restrictions.keys.Count | Should -Be $AllowedIpAddresses.Count
+            ($ipFilter.Configuration.MitigationSettings.Restrictions.GetEnumerator() |
+                Where-Object { $_.key -in $AllowedIpAddresses }).Count | Should -Be $AllowedIpAddresses.Count
+            $ipFilter.Configuration.MitigationSettings.Restrictions.values | Should -Not -Contain "false"
+        }
     }
 
     $Script:E15_NotConfigured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
@@ -95,7 +120,9 @@ BeforeAll {
     $Script:E15_Configured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Cas_ApplicationHost.config
     $Script:E15_Configured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Mbx_ApplicationHost.config
     $Script:E16_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
+    $Script:E16_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_IPFilter_ApplicationHost.config
     $Script:E19_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_ApplicationHost.config
+    $Script:E19_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_IPFilter_ApplicationHost.config
 
     $Script:E19_MisConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_MisConfigured_ApplicationHost.config
 }
@@ -185,7 +212,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ExSetupVersion        = "15.00.1497.038"
                 ApplicationHostConfig = $E15_Configured_Both_ApplicationHost
             }
-            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 19
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 19 -ExpectedExtendedProtectionNoneCount 19
         }
 
         It "Exchange 2013 Cas" {
@@ -195,7 +222,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 IsMailboxServer       = $false
                 ApplicationHostConfig = $E15_Configured_Cas_ApplicationHost
             }
-            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 9 -SkipAutoDiscover $true
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 9 -ExpectedExtendedProtectionNoneCount 9 -SkipAutoDiscover $true
         }
 
         It "Exchange 2013 Mbx" {
@@ -205,7 +232,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 IsClientAccessServer  = $false
                 ApplicationHostConfig = $E15_Configured_Mbx_ApplicationHost
             }
-            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 12 -SkipAllow $true -SkipAutoDiscover $true
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 12 -ExpectedExtendedProtectionNoneCount 12 -SkipAllow $true -SkipAutoDiscover $true
         }
 
         It "Exchange 2016" {
@@ -224,6 +251,46 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ApplicationHostConfig = $E19_Configured_ApplicationHost
             }
             TestSupportedConfiguredExtendedProtection (Get-ExtendedProtectionConfiguration @mockParams)
+        }
+    }
+
+    Context "Extended Protection Is Configured On Supported Exchange Version And IP Filter Is Configured" {
+        It "Exchange 2016 - IPs filtered: Exchange Back End/EWS" {
+            $epMockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.2.1118.29"
+                ApplicationHostConfig = $E16_Configured_IPFilter_ApplicationHost
+            }
+            $e16ExtendedProtectionResults = Get-ExtendedProtectionConfiguration @epMockParams
+
+            $mockParams = @{
+                TestingExtendedProtectionResults = $e16ExtendedProtectionResults
+                ExtendedProtectionNoneCount      = 20
+                SkipAutoDiscover                 = $true
+                IPFilterEnabled                  = $true
+                IPFilteredvDir                   = "Exchange Back End/EWS"
+                AllowedIpAddresses               = "192.168.100.5", "fe80::de2:4f45:21dc:6c5a%14", "::1", "127.0.0.1"
+            }
+            TestSupportedConfiguredExtendedProtection @mockParams
+        }
+
+        It "Exchange 2019 - IPs filtered: Exchange Back End/EWS" {
+            $epMockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.2.1118.29"
+                ApplicationHostConfig = $E19_Configured_IPFilter_ApplicationHost
+            }
+            $e19ExtendedProtectionResults = Get-ExtendedProtectionConfiguration @epMockParams
+
+            $mockParams = @{
+                TestingExtendedProtectionResults = $e19ExtendedProtectionResults
+                ExtendedProtectionNoneCount      = 20
+                SkipAutoDiscover                 = $true
+                IPFilterEnabled                  = $true
+                IPFilteredvDir                   = "Exchange Back End/EWS"
+                AllowedIpAddresses               = "192.168.100.5", "fe80::de2:4f45:21dc:6c5a%14", "::1", "127.0.0.1"
+            }
+            TestSupportedConfiguredExtendedProtection @mockParams
         }
     }
 

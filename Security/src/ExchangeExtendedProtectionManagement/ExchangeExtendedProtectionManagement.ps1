@@ -294,22 +294,31 @@ begin {
 
             foreach ($configuration in $extendedProtectionConfigurations) {
                 Write-Verbose "Working on server $($configuration.ComputerName)"
-                $epOutputObjectDisplayValue = New-Object 'System.Collections.Generic.List[object]'
+                $epFrontEndList = New-Object 'System.Collections.Generic.List[object]'
+                $epBackEndList = New-Object 'System.Collections.Generic.List[object]'
                 foreach ($entry in $configuration.ExtendedProtectionConfiguration) {
+                    $vDirArray = $entry.VirtualDirectoryName.Split("/", 2)
                     $ssl = $entry.Configuration.SslSettings
 
-                    $epOutputObjectDisplayValue.Add(([PSCustomObject]@{
-                                VirtualDirectory  = $entry.VirtualDirectoryName
+                    $listToAdd = $epFrontEndList
+                    if ($vDirArray[0] -eq "Exchange Back End") {
+                        $listToAdd = $epBackEndList
+                    }
+
+                    $listToAdd.Add(([PSCustomObject]@{
+                                $vDirArray[0]     = $vDirArray[1]
                                 Value             = $entry.ExtendedProtection
-                                SupportedValue    = $entry.ExpectedExtendedConfiguration
-                                ConfigSupported   = $entry.SupportedExtendedProtection
+                                SupportedValue    = if ($entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
+                                ConfigSupported   = $entry.ProperlySecuredConfiguration
                                 RequireSSL        = "$($ssl.RequireSSL) $(if($ssl.Ssl128Bit) { "(128-bit)" })".Trim()
                                 ClientCertificate = $ssl.ClientCertificate
+                                IPFilterEnabled   = $entry.MitigationEnabled
                             }))
                 }
 
                 Write-Host "Results for Server: $($configuration.ComputerName)"
-                $epOutputObjectDisplayValue | Format-Table | Out-String | Write-Host
+                $epFrontEndList | Format-Table | Out-String | Write-Host
+                $epBackEndList | Format-Table | Out-String | Write-Host
                 Write-Host ""
                 Write-Host ""
             }
