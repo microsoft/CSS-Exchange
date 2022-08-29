@@ -251,7 +251,6 @@ try {
     SetWriteHostAction ${Function:Write-LogInformation}
     SetWriteVerboseAction ${Function:Write-LogInformation}
     SetWriteWarningAction ${Function:Write-LogInformation}
-    SetWriteWarningManipulateMessageAction { param($Message) "WARNING: $Message" }
 
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/TMS-VersionsUrl")) {
         Write-Warning "Script was updated. Please rerun the command."

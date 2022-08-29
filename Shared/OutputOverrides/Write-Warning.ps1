@@ -16,6 +16,9 @@ function Write-Warning {
 
         Microsoft.PowerShell.Utility\Write-Warning $Message
 
+        # Add WARNING to beginning of the message by default.
+        $Message = "WARNING: $Message"
+
         if ($null -ne $Script:WriteWarningDebugAction) {
             & $Script:WriteWarningDebugAction $Message
         }
