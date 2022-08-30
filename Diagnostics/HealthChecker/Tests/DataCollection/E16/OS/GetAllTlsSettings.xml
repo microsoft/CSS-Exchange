@@ -24,10 +24,12 @@
                     <I32 N="ServerEnabledValue">1</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <I32 N="ServerDisabledByDefaultValue">0</I32>
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server</S>
                     <B N="ClientEnabled">true</B>
                     <Nil N="ClientEnabledValue" />
                     <B N="ClientDisabledByDefault">false</B>
                     <Nil N="ClientDisabledByDefaultValue" />
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client</S>
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
                     <B N="TLSHalfDisabled">false</B>
@@ -45,10 +47,12 @@
                     <I32 N="ServerEnabledValue">1</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <I32 N="ServerDisabledByDefaultValue">0</I32>
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server</S>
                     <B N="ClientEnabled">true</B>
                     <Nil N="ClientEnabledValue" />
                     <B N="ClientDisabledByDefault">false</B>
                     <Nil N="ClientDisabledByDefaultValue" />
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client</S>
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
                     <B N="TLSHalfDisabled">false</B>
@@ -66,10 +70,12 @@
                     <I32 N="ServerEnabledValue">1</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <Nil N="ServerDisabledByDefaultValue" />
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server</S>
                     <B N="ClientEnabled">true</B>
                     <Nil N="ClientEnabledValue" />
                     <B N="ClientDisabledByDefault">false</B>
                     <Nil N="ClientDisabledByDefaultValue" />
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client</S>
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
                     <B N="TLSHalfDisabled">false</B>
@@ -91,9 +97,13 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
+                    <Nil N="SchUseStrongCryptoValue" />
+                    <S N="MicrosoftRegistryLocation">SOFTWARE\Microsoft\.NETFramework\v4.0.30319</S>
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
+                    <Nil N="WowSchUseStrongCryptoValue" />
+                    <S N="WowRegistryLocation">SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319</S>
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -108,9 +118,13 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <Nil N="SystemDefaultTlsVersionsValue" />
                     <B N="SchUseStrongCrypto">false</B>
+                    <Nil N="SchUseStrongCryptoValue" />
+                    <S N="MicrosoftRegistryLocation">SOFTWARE\Microsoft\.NETFramework\v2.0.50727</S>
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <Nil N="WowSystemDefaultTlsVersionsValue" />
                     <B N="WowSchUseStrongCrypto">false</B>
+                    <Nil N="WowSchUseStrongCryptoValue" />
+                    <S N="WowRegistryLocation">SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v2.0.50727</S>
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>

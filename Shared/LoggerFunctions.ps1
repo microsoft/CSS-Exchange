@@ -62,7 +62,8 @@ function Write-LoggerInstance {
             $Object = "[$([System.DateTime]::Now)] : $Object"
         }
 
-        $Object | Out-File $LoggerInstance.FullPath -Append
+        # Doing WhatIf:$false to support -WhatIf in main scripts but still log the information
+        $Object | Out-File $LoggerInstance.FullPath -Append -WhatIf:$false
 
         #Upkeep of the logger information
         if ($LoggerInstance.NextFileCheckTime -gt [System.DateTime]::Now) {

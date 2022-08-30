@@ -32,72 +32,116 @@ function Invoke-AnalyzerSecuritySettings {
     ##############
     Write-Verbose "Working on TLS Settings"
 
-    $tlsVersions = @("1.0", "1.1", "1.2")
+    function NewDisplayObject {
+        param (
+            [string]$RegistryKey,
+            [string]$Location,
+            [object]$Value
+        )
+        return [PSCustomObject]@{
+            RegistryKey = $RegistryKey
+            Location    = $Location
+            Value       = if ($null -eq $Value) { "NULL" } else { $Value }
+        }
+    }
+
+    $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
-    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
     $misconfiguredClientServerSettings = ($tlsSettings.Values | Where-Object { $_.TLSMisconfigured -eq $true }).Count -ne 0
     $displayLinkToDocsPage = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
     $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and $_.TLSVersion -ne "1.2" }).Count -ne 0
+    $tls13NotDisabled = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Disabled" -and $_.TLSVersion -eq "1.3" }).Count -gt 0
 
-    foreach ($tlsKey in $tlsVersions) {
-        $currentTlsVersion = $osInformation.TLSSettings.Registry.TLS[$tlsKey]
-        $outputObjectDisplayValue.Add(([PSCustomObject]@{
-                    TLSVersion    = $tlsKey
-                    ServerEnabled = $currentTlsVersion.ServerEnabled
-                    ServerDbD     = $currentTlsVersion.ServerDisabledByDefault
-                    ClientEnabled = $currentTlsVersion.ClientEnabled
-                    ClientDbD     = $currentTlsVersion.ClientDisabledByDefault
-                    Configuration = $currentTlsVersion.TLSConfiguration
-                })
-        )
-    }
-
-    $sbConfiguration = {
+    $sbValue = {
         param ($o, $p)
-        if ($p -eq "Configuration") {
-            if ($o.$p -eq "Misconfigured" -or $o.$p -eq "Half Disabled") {
+        if ($p -eq "Value") {
+            if ($o.$p -eq "NULL" -and -not $o.Location.Contains("1.3")) {
                 "Red"
-            } elseif ($o.$p -eq "Disabled") {
-                if ($o.TLSVersion -eq "1.2") {
-                    "Red"
-                } else {
-                    "Green"
-                }
-            } else {
-                "Green"
+            } elseif ($o.$p -ne "NULL" -and
+                $o.$p -ne 1 -and
+                $o.$p -ne 0) {
+                "Red"
             }
         }
     }
 
+    foreach ($tlsKey in $tlsVersions) {
+        $currentTlsVersion = $osInformation.TLSSettings.Registry.TLS[$tlsKey]
+        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+        $outputObjectDisplayValue.Add((NewDisplayObject "Enabled" -Location $currentTlsVersion.ServerRegistryPath -Value $currentTlsVersion.ServerEnabledValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "DisabledByDefault" -Location $currentTlsVersion.ServerRegistryPath -Value $currentTlsVersion.ServerDisabledByDefaultValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "Enabled" -Location $currentTlsVersion.ClientRegistryPath -Value $currentTlsVersion.ClientEnabledValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "DisabledByDefault" -Location $currentTlsVersion.ClientRegistryPath -Value $currentTlsVersion.ClientDisabledByDefaultValue))
+        $displayWriteType = "Green"
+
+        # Any TLS version is Misconfigured or Half Disabled is Red
+        # Only TLS 1.2 being Disabled is Red
+        # Currently TLS 1.3 being Enabled is Red
+        if (($currentTlsVersion.TLSConfiguration -eq "Misconfigured" -or
+                $currentTlsVersion.TLSConfiguration -eq "Half Disabled") -or
+                ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
+                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled")) {
+            $displayWriteType = "Red"
+        }
+
+        $params = $baseParams + @{
+            Name             = "TLS $tlsKey"
+            Details          = $currentTlsVersion.TLSConfiguration
+            DisplayWriteType = $displayWriteType
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            OutColumns           = ([PSCustomObject]@{
+                    DisplayObject      = $outputObjectDisplayValue
+                    ColorizerFunctions = @($sbValue)
+                    IndentSpaces       = 8
+                })
+            OutColumnsColorTests = @($sbValue)
+            HtmlName             = "TLS Settings $tlsKey"
+            TestingName          = "TLS Settings Group $tlsKey"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    $netVersions = @("NETv4", "NETv2")
+    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+
+    $sbValue = {
+        param ($o, $p)
+        if ($p -eq "Value") {
+            if ($o.$p -eq "NULL" -and $o.Location -like "*v4.0.30319") {
+                "Red"
+            }
+        }
+    }
+
+    foreach ($netVersion in $netVersions) {
+        $currentNetVersion = $osInformation.TLSSettings.Registry.NET[$netVersion]
+        $outputObjectDisplayValue.Add((NewDisplayObject "SystemDefaultTlsVersions" -Location $currentNetVersion.MicrosoftRegistryLocation -Value $currentNetVersion.SystemDefaultTlsVersionsValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "SchUseStrongCrypto" -Location $currentNetVersion.MicrosoftRegistryLocation -Value $currentNetVersion.SchUseStrongCryptoValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "SystemDefaultTlsVersions" -Location $currentNetVersion.WowRegistryLocation -Value $currentNetVersion.WowSystemDefaultTlsVersionsValue))
+        $outputObjectDisplayValue.Add((NewDisplayObject "SchUseStrongCrypto" -Location $currentNetVersion.WowRegistryLocation -Value $currentNetVersion.WowSchUseStrongCryptoValue))
+    }
+
     $params = $baseParams + @{
-        OutColumns           = ([PSCustomObject]@{
+        OutColumns  = ([PSCustomObject]@{
                 DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($sbConfiguration)
+                ColorizerFunctions = @($sbValue)
                 IndentSpaces       = 8
             })
-        OutColumnsColorTests = @($sbConfiguration)
-        HtmlName             = "TLS Settings"
-        TestingName          = "TLS Settings Group"
+        HtmlName    = "TLS NET Settings"
+        TestingName = "NET TLS Settings Group"
     }
     Add-AnalyzedResultInformation @params
 
-    function GetBadTlsValueSetting {
-        [CmdletBinding()]
-        param(
-            [Parameter(ValueFromPipeline = $true)]
-            $TlsSetting,
-            $PropertyName
-        )
-        process {
-            return $TlsSetting | Where-Object { $null -ne $_."$PropertyName" -and $_."$PropertyName" -ne 0 -and $_."$PropertyName" -ne 1 }
-        }
-    }
     $testValues = @("ServerEnabledValue", "ClientEnabledValue", "ServerDisabledByDefaultValue", "ClientDisabledByDefaultValue")
 
     foreach ($testValue in $testValues) {
-        $results = $tlsSettings.Values | GetBadTlsValueSetting -PropertyName $testValue
+        # If value not set to a 0 or a 1.
+        $results = $tlsSettings.Values | Where-Object { $null -ne $_."$testValue" -and $_."$testValue" -ne 0 -and $_."$testValue" -ne 1 }
 
         if ($null -ne $results) {
             $displayLinkToDocsPage = $true
@@ -110,13 +154,48 @@ function Invoke-AnalyzerSecuritySettings {
                 Add-AnalyzedResultInformation @params
             }
         }
+
+        # if value not defined, we should call that out.
+        $results = $tlsSettings.Values | Where-Object { $null -eq $_."$testValue" -and $_.TLSVersion -ne "1.3" }
+
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.TLSVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+    }
+
+    # Check for NULL values on NETv4 registry settings
+    $testValues = @("SystemDefaultTlsVersionsValue", "SchUseStrongCryptoValue", "WowSystemDefaultTlsVersionsValue", "WowSchUseStrongCryptoValue")
+
+    foreach ($testValue in $testValues) {
+        $results = $osInformation.TLSSettings.Registry.NET["NETv4"] | Where-Object { $null -eq $_."$testValue" }
+        if ($null -ne $results) {
+            $displayLinkToDocsPage = $true
+            foreach ($result in $results) {
+                $params = $baseParams + @{
+                    Name             = "$($result.NetVersion) $testValue"
+                    Details          = "NULL --- Error: Value should be defined in registry for consistent results."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
     }
 
     if ($lowerTlsVersionDisabled -and
-        ($currentNetVersion.SystemDefaultTlsVersions -eq $false -or
-        $currentNetVersion.WowSystemDefaultTlsVersions -eq $false)) {
+        ($osInformation.TLSSettings.Registry.NET["NETv4"].SystemDefaultTlsVersions -eq $false -or
+        $osInformation.TLSSettings.Registry.NET["NETv4"].WowSystemDefaultTlsVersions -eq $false -or
+        $osInformation.TLSSettings.Registry.NET["NETv4"].SchUseStrongCrypto -eq $false -or
+        $osInformation.TLSSettings.Registry.NET["NETv4"].WowSchUseStrongCrypto -eq $false)) {
         $params = $baseParams + @{
-            Details                = "Error: SystemDefaultTlsVersions is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSPart2"
+            Details                = "Error: SystemDefaultTlsVersions or SchUseStrongCrypto is not set to the recommended value. Please visit on how to properly enable TLS 1.2 https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Red"
             DisplayCustomTabNumber = 2
         }
@@ -131,27 +210,26 @@ function Invoke-AnalyzerSecuritySettings {
         }
         Add-AnalyzedResultInformation @params
 
-        $displayValues = @("Exchange Server TLS guidance Part 1: Getting Ready for TLS 1.2: https://aka.ms/HC-TLSPart1",
-            "Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It: https://aka.ms/HC-TLSPart2",
-            "Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1: https://aka.ms/HC-TLSPart3")
-
         $params = $baseParams + @{
-            Details                = "For More Information on how to properly set TLS follow these blog posts:"
+            Details                = "For More Information on how to properly set TLS follow this guide: https://aka.ms/HC-TLSGuide"
             DisplayWriteType       = "Yellow"
             DisplayTestingValue    = $true
             DisplayCustomTabNumber = 2
             TestingName            = "Detected TLS Mismatch Display More Info"
         }
         Add-AnalyzedResultInformation @params
+    }
 
-        foreach ($displayValue in $displayValues) {
-            $params = $baseParams + @{
-                Details                = $displayValue
-                DisplayWriteType       = "Yellow"
-                DisplayCustomTabNumber = 3
-            }
-            Add-AnalyzedResultInformation @params
+    if ($tls13NotDisabled) {
+        $displayLinkToDocsPage = $true
+        $params = $baseParams + @{
+            Details                = "Error: TLS 1.3 is not disabled and not supported currently on Exchange and is known to cause issues within the cluster."
+            DisplayWriteType       = "Red"
+            DisplayTestingValue    = $true
+            DisplayCustomTabNumber = 2
+            TestingName            = "TLS 1.3 not disabled"
         }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($displayLinkToDocsPage) {
@@ -164,31 +242,6 @@ function Invoke-AnalyzerSecuritySettings {
         }
         Add-AnalyzedResultInformation @params
     }
-
-    $netVersions = @("NETv4", "NETv2")
-    $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
-
-    foreach ($netVersion in $netVersions) {
-        $currentNetVersion = $osInformation.TLSSettings.Registry.NET[$netVersion]
-        $outputObjectDisplayValue.Add(([PSCustomObject]@{
-                    FrameworkVersion                    = $netVersion
-                    SystemDefaultTlsVersions            = $currentNetVersion.SystemDefaultTlsVersions
-                    Wow6432NodeSystemDefaultTlsVersions = $currentNetVersion.WowSystemDefaultTlsVersions
-                    SchUseStrongCrypto                  = $currentNetVersion.SchUseStrongCrypto
-                    Wow6432NodeSchUseStrongCrypto       = $currentNetVersion.WowSchUseStrongCrypto
-                })
-        )
-    }
-
-    $params = $baseParams + @{
-        OutColumns  = ([PSCustomObject]@{
-                DisplayObject = $outputObjectDisplayValue
-                IndentSpaces  = 8
-            })
-        HtmlName    = "TLS NET Settings"
-        TestingName = "NET TLS Settings Group"
-    }
-    Add-AnalyzedResultInformation @params
 
     $params = $baseParams + @{
         Name    = "SecurityProtocol"

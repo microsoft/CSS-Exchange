@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Security\src\ExchangeExtendedProtectionManagement\DataCollection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
@@ -12,7 +13,7 @@
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
-. $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
+. $PSScriptRoot\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -476,12 +477,27 @@ function Get-ExchangeInformation {
                 -ComputerName $Script:Server `
                 -CertificateObject $exchangeInformation.ExchangeCertificates
 
-            $exchangeInformation.IISConfigurationSettings = Get-ExchangeIISConfigSettings -MachineName $Script:Server `
-                -ExchangeInstallPath $serverExchangeInstallDirectory `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            $exchangeServerIISParams = @{
+                ComputerName        = $Script:Server
+                ExchangeInstallPath = $serverExchangeInstallDirectory
+                IsLegacyOS          = ($OSMajorVersion -lt [HealthChecker.OSServerVersion]::Windows2016)
+                CatchActionFunction = ${Function:Invoke-CatchActions}
+            }
+
+            Write-Verbose "Trying to query Exchange Server IIS settings"
+            $exchangeInformation.IISSettings = Get-ExchangeServerIISSettings @exchangeServerIISParams
 
             Write-Verbose "Query Exchange AD permissions for CVE-2022-21978 testing"
             $exchangeInformation.ExchangeAdPermissions = Get-ExchangeAdPermissions -ExchangeVersion $buildInformation.MajorVersion -OSVersion $OSMajorVersion
+
+            Write-Verbose "Query extended protection configuration for multiple CVEs testing"
+            $getExtendedProtectionConfigurationParams = @{
+                ComputerName        = $Script:Server
+                ExSetupVersion      = $buildInformation.ExchangeSetup.FileVersion
+                CatchActionFunction = ${Function:Invoke-CatchActions}
+            }
+
+            $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
         }
 
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)

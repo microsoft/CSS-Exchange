@@ -35,7 +35,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Operating System Information" {
@@ -124,7 +124,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 60
+            $Script:ActiveGrouping.Count | Should -Be 67
         }
 
         It "Display Results - Security Vulnerability" {
@@ -132,7 +132,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 13
+            $cveTests.Count | Should -Be 15
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
         }
@@ -216,7 +216,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 5
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 10
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
@@ -235,6 +235,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeAdPermissions -Exactly 1
+            Assert-MockCalled Get-ExtendedProtectionConfiguration -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
@@ -253,6 +254,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
+            Assert-MockCalled Get-IISModules -Exactly 1
         }
     }
 
@@ -345,55 +347,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            $tlsSettings = GetObject "TLS Settings Group"
-            $tls10 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.0" }
-            $tls11 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.1" }
-            $tls12 = $tlsSettings | Where-Object { $_.TLSVersion.Value -eq "1.2" }
-
-            $tls10CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $false)
-                ServerDbd     = (NewOutColumnCompareValue $true)
-                ClientEnabled = (NewOutColumnCompareValue $true)
-                ClientDbd     = (NewOutColumnCompareValue $true)
-                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
-            }
-
-            $tls11CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $true)
-                ServerDbd     = (NewOutColumnCompareValue $true)
-                ClientEnabled = (NewOutColumnCompareValue $false)
-                ClientDbd     = (NewOutColumnCompareValue $true)
-                Configuration = (NewOutColumnCompareValue "Misconfigured" "Red")
-            }
-
-            $tls12CompareObject = [PSCustomObject]@{
-                ServerEnabled = (NewOutColumnCompareValue $true)
-                ServerDbd     = (NewOutColumnCompareValue $false)
-                ClientEnabled = (NewOutColumnCompareValue $true)
-                ClientDbd     = (NewOutColumnCompareValue $false)
-                Configuration = (NewOutColumnCompareValue "Enabled" "Green")
-            }
-
-            TestOutColumnObjectCompare $tls10CompareObject $tls10
-
-            TestOutColumnObjectCompare $tls11CompareObject $tls11
-
-            TestOutColumnObjectCompare $tls12CompareObject $tls12
+            TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.1" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.2" "Enabled" -WriteType "Green"
+            TestObjectMatch "TLS 1.3" "Disabled" -WriteType "Green"
 
             TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
 
             TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
-
-            $netTlsSettings = (GetObject "NET TLS Settings Group") | Where-Object { $_.FrameworkVersion.Value -eq "NETv4" }
-
-            $netv4CompareObject = [PSCustomObject]@{
-                SystemDefaultTlsVersions            = (NewOutColumnCompareValue $false)
-                Wow6432NodeSystemDefaultTlsVersions = (NewOutColumnCompareValue $false)
-                SchUseStrongCrypto                  = (NewOutColumnCompareValue $false)
-                Wow6432NodeSchUseStrongCrypto       = (NewOutColumnCompareValue $false)
-            }
-
-            TestOutColumnObjectCompare $netv4CompareObject $netTlsSettings
 
             $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
             $tlsCipherSuite.Count | Should -Be 8
@@ -431,6 +392,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
+            Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings2.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
@@ -456,6 +418,23 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Disable Async Notification" {
             TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
+        }
+
+        It "TLS Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.1" "Misconfigured" -WriteType "Red"
+            TestObjectMatch "TLS 1.2" "Enabled" -WriteType "Green"
+            TestObjectMatch "TLS 1.3" "Enabled" -WriteType "Red"
+
+            TestObjectMatch "TLS 1.3 not disabled" $true -WriteType "Red"
+
+            TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
+
+            TestObjectMatch "Detected TLS Mismatch Display More Info" "True" -WriteType "Yellow"
+
+            $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
+            $tlsCipherSuite.Count | Should -Be 8
         }
 
         It "Enabled Domains" {

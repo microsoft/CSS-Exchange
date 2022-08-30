@@ -24,10 +24,12 @@
                     <I32 N="ServerEnabledValue">0</I32>
                     <B N="ServerDisabledByDefault">true</B>
                     <I32 N="ServerDisabledByDefaultValue">1</I32>
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server</S>
                     <B N="ClientEnabled">false</B>
                     <I32 N="ClientEnabledValue">0</I32>
                     <B N="ClientDisabledByDefault">true</B>
                     <I32 N="ClientDisabledByDefaultValue">1</I32>
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client</S>
                     <B N="TLSVersionDisabled">true</B>
                     <B N="TLSMisconfigured">true</B>
                     <B N="TLSHalfDisabled">false</B>
@@ -45,10 +47,12 @@
                     <I32 N="ServerEnabledValue">1</I32>
                     <B N="ServerDisabledByDefault">false</B>
                     <I32 N="ServerDisabledByDefaultValue">0</I32>
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server</S>
                     <B N="ClientEnabled">true</B>
                     <I32 N="ClientEnabledValue">1</I32>
                     <B N="ClientDisabledByDefault">false</B>
                     <I32 N="ClientDisabledByDefaultValue">0</I32>
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client</S>
                     <B N="TLSVersionDisabled">false</B>
                     <B N="TLSMisconfigured">false</B>
                     <B N="TLSHalfDisabled">false</B>
@@ -66,14 +70,39 @@
                     <I32 N="ServerEnabledValue">0</I32>
                     <B N="ServerDisabledByDefault">true</B>
                     <I32 N="ServerDisabledByDefaultValue">1</I32>
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server</S>
                     <B N="ClientEnabled">true</B>
                     <I32 N="ClientEnabledValue">-1</I32>
                     <B N="ClientDisabledByDefault">true</B>
                     <I32 N="ClientDisabledByDefaultValue">1</I32>
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client</S>
                     <B N="TLSVersionDisabled">true</B>
                     <B N="TLSMisconfigured">true</B>
                     <B N="TLSHalfDisabled">false</B>
                     <S N="TLSConfiguration">Misconfigured</S>
+                  </MS>
+                </Obj>
+              </En>
+              <En>
+                <S N="Key">1.3</S>
+                <Obj N="Value" RefId="5">
+                  <TNRef RefId="0" />
+                  <MS>
+                    <S N="TLSVersion">1.3</S>
+                    <B N="ServerEnabled">false</B>
+                    <Nil N="ServerEnabledValue" />
+                    <B N="ServerDisabledByDefault">false</B>
+                    <Nil N="ServerDisabledByDefaultValue" />
+                    <S N="ServerRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server</S>
+                    <B N="ClientEnabled">false</B>
+                    <Nil N="ClientEnabledValue" />
+                    <B N="ClientDisabledByDefault">false</B>
+                    <Nil N="ClientDisabledByDefaultValue" />
+                    <S N="ClientRegistryPath">SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client</S>
+                    <B N="TLSVersionDisabled">true</B>
+                    <B N="TLSMisconfigured">true</B>
+                    <B N="TLSHalfDisabled">false</B>
+                    <S N="TLSConfiguration">Disabled</S>
                   </MS>
                 </Obj>
               </En>
@@ -91,9 +120,13 @@
                     <B N="SystemDefaultTlsVersions">false</B>
                     <I32 N="SystemDefaultTlsVersionsValue">1</I32>
                     <B N="SchUseStrongCrypto">false</B>
+                    <I32 N="SchUseStrongCryptoValue">0</I32>
+                    <S N="MicrosoftRegistryLocation">SOFTWARE\Microsoft\.NETFramework\v4.0.30319</S>
                     <B N="WowSystemDefaultTlsVersions">false</B>
                     <I32 N="WowSystemDefaultTlsVersionsValue">1</I32>
                     <B N="WowSchUseStrongCrypto">false</B>
+                    <I32 N="WowSchUseStrongCryptoValue">0</I32>
+                    <S N="WowRegistryLocation">SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319</S>
                     <B N="SdtvConfiguredCorrectly">false</B>
                     <B N="SdtvEnabled">false</B>
                   </MS>
@@ -108,9 +141,13 @@
                     <B N="SystemDefaultTlsVersions">true</B>
                     <I32 N="SystemDefaultTlsVersionsValue">1</I32>
                     <B N="SchUseStrongCrypto">true</B>
+                    <I32 N="SchUseStrongCryptoValue">1</I32>
+                    <S N="MicrosoftRegistryLocation">SOFTWARE\Microsoft\.NETFramework\v2.0.50727</S>
                     <B N="WowSystemDefaultTlsVersions">true</B>
                     <I32 N="WowSystemDefaultTlsVersionsValue">1</I32>
                     <B N="WowSchUseStrongCrypto">true</B>
+                    <I32 N="WowSchUseStrongCryptoValue">1</I32>
+                    <S N="WowRegistryLocation">SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v2.0.50727</S>
                     <B N="SdtvConfiguredCorrectly">true</B>
                     <B N="SdtvEnabled">true</B>
                   </MS>

@@ -1,16 +1,10 @@
 # Default owners
-*   @bill-long @dpaulson45 @lusassl-msft
-
-# Everything in Security is owned by those folks
-/Security/src/   @dbacon247 @bill-long @dpaulson45
-
-# Except these which are owned by Exchange
-/Security/src/Test-ProxyLogon.ps1   @bill-long @dpaulson45 @lusassl-msft
-/Security/src/Test-CVE-2021-34470.ps1   @bill-long @dpaulson45 @lusassl-msft
+*   @microsoft/css-exchange-admins
 
 # Rob Whaley owns these
-/Hybrid/        @tweekerz @bill-long @dpaulson45 @lusassl-msft
-/Retention/     @tweekerz @bill-long @dpaulson45 @lusassl-msft
+/Hybrid/                                @tweekerz @microsoft/css-exchange-admins
+/Retention/                             @tweekerz @microsoft/css-exchange-admins
+/docs/Security/Extended-Protection.md   @tweekerz @microsoft/css-exchange-admins
 
 # Supportability owns this doc
-/docs/Emerging-Issues.md    @Batre-MSFT @tweekerz @ninobb @nasir1786 @bill-long @dpaulson45 @lusassl-msft
+/docs/Emerging-Issues.md    @Batre-MSFT @tweekerz @ninobb @nasir1786 @microsoft/css-exchange-admins

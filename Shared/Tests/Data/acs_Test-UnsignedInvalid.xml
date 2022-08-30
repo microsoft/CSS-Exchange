@@ -1,0 +1,36 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.Signature</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Management.Automation.Signature</ToString>
+    <Props>
+      <Nil N="SignerCertificate" />
+      <Nil N="TimeStamperCertificate" />
+      <Obj N="Status" RefId="1">
+        <TN RefId="1">
+          <T>System.Management.Automation.SignatureStatus</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>UnknownError</ToString>
+        <I32>1</I32>
+      </Obj>
+      <S N="StatusMessage">The form specified for the subject is not one supported or known by the specified trust provider</S>
+      <S N="Path">C:\Temp\Test-UnsignedInvalid.dll</S>
+      <Obj N="SignatureType" RefId="2">
+        <TN RefId="2">
+          <T>System.Management.Automation.SignatureType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>None</ToString>
+        <I32>0</I32>
+      </Obj>
+      <B N="IsOSBinary">false</B>
+    </Props>
+  </Obj>
+</Objs>
