@@ -1766,6 +1766,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#faqs" class="md-nav__link">
+    FAQs
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2296,6 +2303,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#faqs" class="md-nav__link">
+    FAQs
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2347,10 +2361,22 @@
 <p><strong>SSL Flags</strong>: Configuration of SSL settings is required to ensure that clients connect to IIS virtual directories in a specific way with client certificates. To enable Extended Protection, the required SSL flags are SSL and SSL128.</p>
 <p><strong>SSL offloading</strong> terminates the connection on a device between the client and the Exchange Server and then uses a non-encrypted connection to connect to the Exchange Server.</p>
 <p>Example:</p>
-<p><em>Client --[HTTPS]-> [Device (e.g., Load Balancer) terminates the connection] --[HTTP]-> Web Server</em></p>
+<div class="highlight"><pre><span></span><code>flowchart LR;
+A[&quot;Client&quot;];
+B[&quot;Device (e.g., Load Balancer) terminates the connection&quot;];
+C[&quot;Web Server&quot;]
+A ==&gt;|HTTPS| B;
+B ==&gt;|HTTP| C;
+</code></pre></div>
 <p><strong>SSL bridging</strong> is a process where a device, usually located at the edge of a network, decrypts SSL traffic, and then re-encrypts it before sending it on to the Web server.</p>
 <p>Example:</p>
-<p><em>Client --[HTTPS]-> [Device (e.g., Load Balancer) terminates the connection] --[HTTPS]-> Web Server</em></p>
+<div class="highlight"><pre><span></span><code>flowchart LR;
+A[&quot;Client&quot;];
+B[&quot;Device (e.g., Load Balancer) terminates the connection&quot;];
+C[&quot;Web Server&quot;]
+A ==&gt;|HTTPS| B;
+B ==&gt;|HTTPS| C;
+</code></pre></div>
 <p><strong>Modern Hybrid</strong> or <strong>Hybrid Agent</strong> is a mode of configuring Exchange Hybrid that removes some of the configuration requirements for Classic Hybrid (like Inbound network connections through your firewall) to enable Exchange hybrid features. You can learn more about this <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent">here</a>.</p>
 <p><strong>Public Folders</strong> are designed for shared access and to help make content in a deep hierarchy easier to browse. You can learn more about Public Folders <a href="https://docs.microsoft.com/exchange/collaboration/public-folders/public-folders?view=exchserver-2019">here</a>.</p>
 <h2 id="prerequisites-for-enabling-extended-protection-on-exchange-servers">Prerequisites for enabling Extended Protection on Exchange servers</h2>
@@ -2427,22 +2453,18 @@
 <p>In case you don’t have a list of servers published via Hybrid Agent, you can use the following steps to identify them:</p>
 <ol>
 <li>Log into a machine where the Hybrid Agent is installed and running. Open the <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent#hybrid-agent-powershell-module">PowerShell module</a> of the Hybrid Agent and run <em>Get-HybridApplication</em> to identify the <em>TargetUri</em> used by the Hybrid Agent.</li>
-<li>The <em>TargetUri</em> parameter gives you the FQDN of the Exchange Server that is configured to use Hybrid Agent.<ol>
+<li>The <em>TargetUri</em> parameter gives you the FQDN of the Exchange Server that is configured to use Hybrid Agent.</li>
 <li>Deduce the Exchange Server identity using the FQDN and make a note of this Exchange Server.</li>
 <li>If you are using a Load Balancer URL in <em>TargetUri</em>, you need to identify all the Exchange servers running the Client Access role behind the load balancer URL.</li>
-</ol>
-</li>
 </ol>
 <p>Extended Protection <strong>should not be enabled for hybrid servers that are published using Hybrid Agent</strong>. You need to identify these hybrid servers and ensure you skip enabling Extended Protection on them using the SkipExchangeServerNames parameter of the script.</p>
 <h4 id="steps-to-safeguard-hybrid-servers-using-modern-hybrid">Steps to safeguard hybrid servers using Modern Hybrid</h4>
 <ol>
 <li>Inbound connections to Exchange servers in a Modern Hybrid configuration should be restricted via firewall to allow connections only from Hybrid Agent machines.</li>
 <li>No mailboxes should be hosted on the hybrid server, and if any mailbox exists, they should be migrated to other mailbox servers.</li>
-<li>
-<p>You can enable Extended Protection on all virtual directories except Front End EWS on the hybrid Exchange server.</p>
-<p><strong>Note</strong>: Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
-</li>
+<li>You can enable Extended Protection on all virtual directories except Front End EWS on the hybrid Exchange server.</li>
 </ol>
+<p><strong>Note</strong>: Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
 <h3 id="ntlmv1-is-not-supported-when-extended-protection-is-enabled">NTLMv1 is not supported when Extended Protection is enabled</h3>
 <blockquote>
 <p><strong>Note:</strong> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
@@ -2457,7 +2479,6 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <p>More information: <a href="https://docs.microsoft.com/windows/security/threat-protection/security-policy-settings/network-security-lan-manager-authentication-level">Network security: LAN Manager authentication level</a></p>
 <h3 id="ssl-offloading-scenarios-are-not-supported">SSL Offloading scenarios are not supported</h3>
 <p>Extended Protection is not supported in environments that use SSL offloading. SSL termination during SSL offloading causes Extended Protection to fail. To enable Extended Protection in your Exchange environment, <strong>you must not be using SSL offloading</strong> with your Load Balancers.</p>
-<p><strong>Note:</strong> We will provide additional guidance for this scenario in the near future.</p>
 <h3 id="ssl-bridging-supported-scenarios">SSL Bridging supported scenarios</h3>
 <p>Extended Protection is supported in environments that use SSL Bridging under certain conditions. To enable Extended Protection in your Exchange environment using SSL Bridging, <strong>you must use the same SSL certificate on Exchange and your Load Balancers</strong>. If not this will cause Extended Protection to fail.</p>
 <h3 id="tls-configuration-must-be-consistent-across-all-exchange-servers">TLS configuration must be consistent across all Exchange servers</h3>
@@ -2465,7 +2486,7 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <p>In addition to this, the value of <em>SchUseStrongCrypto</em> registry key should be either set to 1 (recommended) or 0 across all the Exchange Servers in the organization. If this value is not explicitly set, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries. This can cause TLS mismatch, leading to client connectivity issues.</p>
 <p>Please refer to this <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration?view=exchserver-2019">guide</a> to configure the required TLS settings on your Exchange servers.</p>
 <h3 id="third-party-software-compatibility">Third-party software compatibility</h3>
-<p>Please ensure to test all third-party products in your Exchange Server environment to ensure that they work properly when Extended Protection is enabled.</p>
+<p>Please ensure to test all third-party products in your Exchange Server environment to ensure that they work properly when Extended Protection is enabled. For example we have seen AntiVirus solutions send connections through a proxy in order to protect the client machine, this would prevent communication to the Exchange Server and would need to be disabled.</p>
 <h2 id="enabling-extended-protection">Enabling Extended Protection</h2>
 <p>Extended Protection can be enabled manually through IIS Manager or via a script (strongly recommended). To correctly configure Extended Protection, each virtual directory on all Exchange servers in the organization (excluding Edge Transport servers) should be set to prescribed value of Extended Protection as well as sslFlags. The following table summarizes the settings needed for each virtual directory on the supported versions of Microsoft Exchange.</p>
 <p>Enabling Extended Protection involves making many changes on all Exchange servers, so <strong>we strongly recommend using the ExchangeExtendedProtectionManagement.ps1 script</strong> that can be downloaded from <a href="https://aka.ms/ExchangeEPScript">https://aka.ms/ExchangeEPScript</a>.</p>
@@ -2619,6 +2640,7 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 </tr>
 </tbody>
 </table>
+<p>SSL offloading for Outlook Anywhere is enabled by default and must be disabled for extended protection by following the steps shown <a href="https://docs.microsoft.com/powershell/module/exchange/set-outlookanywhere?view=exchange-ps#example-3">here</a>.</p>
 <h3 id="enabling-extended-protection-using-the-script">Enabling Extended Protection using the script</h3>
 <p>Before enabling Extended Protection in your Exchange environment, ensure you meet all the prerequisites listed in this document.</p>
 <p>To enable Extended Protection on all your Exchange Servers, you can use the <a href="https://aka.ms/ExchangeEPScript">ExchangeExtendedProtectionManagement.ps1</a> script, which is hosted on the Microsoft Exchange-CSS repository on GitHub.</p>
@@ -2666,27 +2688,25 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <h4 id="troubleshooting-warnings-and-errors-during-script-execution">Troubleshooting warnings and errors during script execution</h4>
 <ol>
 <li><strong>Script gives a cursory warning of known issues before enabling Extended Protection</strong>
-    To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should <strong>read and evaluate this list carefully</strong> before enabling Extended Protection.
-    You can proceed to turn on Extended Protection by pressing Y.
-    <img alt="Text Description automatically generated" src="../attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png" /></li>
-<li><strong>Script does not enable Extended Protection because of Failed Prerequisite Check</strong><ol>
+   To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should <strong>read and evaluate this list carefully</strong> before enabling Extended Protection.
+   You can proceed to turn on Extended Protection by pressing Y.
+   <img alt="Text Description automatically generated" src="../attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png" /></li>
+<li><strong>Script does not enable Extended Protection because of Failed Prerequisite Check</strong></li>
 <li>No Exchange server runs an Extended Protection supported build:
-    If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
-    To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.</li>
+      If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
+      To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.</li>
 <li>TLS mismatch
-        A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
-        <img alt="Text Description automatically generated" src="../attachments/fca12d63a89e230c7f3cfaf67b642330.png" />
-        To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.</li>
-</ol>
-</li>
+      A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
+      <img alt="Text Description automatically generated" src="../attachments/fca12d63a89e230c7f3cfaf67b642330.png" />
+      To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.</li>
 <li><strong>Some Exchange servers are not reachable</strong>
-    <strong>Cause</strong>
-    The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
-    <img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" />
-    If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</li>
+   <strong>Cause</strong>
+   The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
+   <img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" />
+   If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</li>
 </ol>
 <h4 id="rolling-back-extended-protection-settings">Rolling back Extended Protection settings</h4>
-<p>You can also use the script to roll back the Extended Protection settings from one or more servers. When Extended Protection settings are modified by the script, an applicationHost.cep.*.bak file is created on each server, which contains a backup of pre-existing settings before the script is run. Those files are going to be local to each individual server that the script modifies. Therefore, the rollback of Extended Protection settings can be rolled back from any machine where the script will run using the <em>earliest</em> version of the .bak file to roll back the changes. The following command initiates a rollback of Extended Protection on any Exchange server where it was enabled using the script:</p>
+<p>You can also use the script to rollback the Extended Protection settings from one or more servers. When Extended Protection settings are modified by the script, an applicationHost.cep.*.bak file is created on each server, which contains a backup of pre-existing settings before the script is run. Those files are going to be local to each individual server that the script modifies. Therefore, the rollback of Extended Protection settings can be rolled back from any machine where the script will run using the <em>earliest</em> version of the .bak file to rollback the changes. The following command initiates a rollback of Extended Protection on any Exchange server where it was enabled using the script:</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"</code></p>
 <h3 id="enabling-extended-protection-manually-via-iis-settings">Enabling Extended Protection manually via IIS settings</h3>
 <p>If you want to enable Extended Protection in your environment manually without using the script, you can use the following steps.</p>
@@ -2698,43 +2718,41 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <li>Select the Virtual Directory for which you want to change.</li>
 <li>Go to <em>Authentication.</em></li>
 <li>If Windows Authentication is enabled, then select <em>Windows Authentication.</em>
-    <img alt="Graphical user interface, application Description automatically generated" src="../attachments/001f52d47d532f8ac8aa1aa3edb97520.png" /></li>
+   <img alt="Graphical user interface, application Description automatically generated" src="../attachments/001f52d47d532f8ac8aa1aa3edb97520.png" /></li>
 <li>Select <em>Advanced Settings</em> (on the right side) and in Advanced Settings window, select the suitable value from the <em>Extended Protection Dropdown.</em>
-    <img alt="Graphical user interface, text, application Description automatically generated" src="../attachments/4794e9f5b4d1e129ea38c0d2c2bd89fa.png" /></li>
+   <img alt="Graphical user interface, text, application Description automatically generated" src="../attachments/4794e9f5b4d1e129ea38c0d2c2bd89fa.png" /></li>
 </ol>
 <h4 id="set-require-ssl-settings-to-either-required-or-accept-for-an-exchange-virtual-directory">Set Require SSL settings to either Required or Accept for an Exchange Virtual Directory</h4>
 <ol>
 <li>Go to the Virtual Directory’s home page.
-    <img alt="Graphical user interface, text, application, Word Description automatically generated" src="../attachments/0d05a67039245dde885522e84ca74bc3.png" /></li>
+   <img alt="Graphical user interface, text, application, Word Description automatically generated" src="../attachments/0d05a67039245dde885522e84ca74bc3.png" /></li>
 <li>Go to <em>SSL Settings</em>.</li>
 <li>Check the <em>Require SSL</em> checkbox to make sure that Require SSL is enabled for this Virtual Directory.</li>
 <li>Click <em>Apply</em>.
-    <img alt="Graphical user interface, text, application, Word Description automatically generated" src="../attachments/1663e8c2fdea930b47f01c6ab30b3aa8.png" /></li>
+   <img alt="Graphical user interface, text, application, Word Description automatically generated" src="../attachments/1663e8c2fdea930b47f01c6ab30b3aa8.png" /></li>
 </ol>
 <h2 id="known-issues-and-workarounds">Known issues and workarounds</h2>
 <ol>
 <li>Customers using a <em>Retention Policy</em> containing <em>Retention Tags</em> which perform <em>Move to Archive</em> actions should not configure Extended Protection, as enabling Extended Protection will cause automated archiving to stop working. We are actively working to resolve this issue.</li>
-<li>
-<p>In Exchange Server 2013, one of the MAPI over HTTP probes (OutlookMapiHttpCtpProbe, used to check if the MAPI/HTTP endpoint is working on the Mailbox server) can show false <em>FAILED</em> status after enabling Extended Protection.</p>
-<p>For example: running Test-OutlookConnectivity -ProbeIdentity OutlookMapiHttp.Protocol\OutlookMapiHttpCtpProbe may show the probe as failed, although Outlook functionality is working properly.</p>
-</li>
+<li>In Exchange Server 2013, one of the MAPI over HTTP probes (OutlookMapiHttpCtpProbe, used to check if the MAPI/HTTP endpoint is working on the Mailbox server) can show false <em>FAILED</em> status after enabling Extended Protection.</li>
 </ol>
+<p>For example: running Test-OutlookConnectivity -ProbeIdentity OutlookMapiHttp.Protocol\OutlookMapiHttpCtpProbe may show the probe as failed, although Outlook functionality is working properly.</p>
 <h2 id="troubleshooting-issues-after-enabling-extended-protection">Troubleshooting issues after enabling Extended Protection</h2>
 <h3 id="users-cannot-access-their-mailbox-through-one-or-more-clients">Users cannot access their mailbox through one or more clients</h3>
 <p>There may be multiple reasons why some or all clients may start giving authentication errors to users after enabling Extended Protection. If this happens, check the following:</p>
 <ol>
 <li>If the TLS configuration across the Exchange organization is not the same (e.g., the TLS configuration was changed on one of the Exchange servers after Extended Protection was enabled), this may cause client connections to fail. To resolve this, refer to earlier instructions to configure the same TLS version across all Exchange servers and then use the script to configure Extended Protection again.</li>
 <li>Check if SSL offload is enabled. Any SSL termination causes the Extended Protection to fail for client connections. Usually if this is the case, users will be able to access their mailbox using Outlook on the Web but Outlook for Windows, Mac or mobile will fail.
-    To resolve this issue, disable SSL offloading and then use the script to configure Extended Protection.</li>
-<li>
-<p>Users can access their emails using Outlook for Windows and Outlook on the Web, but not through non-Windows clients like Outlook for Mac, Outlook on iOS, the iOS native email app, etc. This can happen if the Extended Protection setting for EWS and/or Exchange ActiveSync is set to <strong>Required</strong> on one or all Front-End servers.
-    To resolve this issue, either run the ExchangeExtendedProtectionManagement.ps1 script with the –ExchangeServerNames parameter and pass the name of the Exchange server which has the problem. You can also run the script without any parameter and configure Extended Protection for all servers.</p>
+   To resolve this issue, disable SSL offloading and then use the script to configure Extended Protection.</li>
+<li>Users can access their emails using Outlook for Windows and Outlook on the Web, but not through non-Windows clients like Outlook for Mac, Outlook on iOS, the iOS native email app, etc. This can happen if the Extended Protection setting for EWS and/or Exchange ActiveSync is set to <strong>Required</strong> on one or all Front-End servers.
+   To resolve this issue, either run the ExchangeExtendedProtectionManagement.ps1 script with the –ExchangeServerNames parameter and pass the name of the Exchange server which has the problem. You can also run the script without any parameter and configure Extended Protection for all servers.</li>
+</ol>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1</code></p>
 <p>or</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -ExchangeServerNames Server1, Server2</code></p>
-<p>Alternatively, you can also use InetMgr.exe and change the Extended Protection setting for those virtual Directories to the "Accept" value. However, we recommend using the script as it checks for the correct values and automatically performs a reconfiguration if the values are not set as expected.
-4. If after doing the above, some clients are still not working properly, you can roll back Extended Protection temporarily and report the issue to us. If script was used to configure Extended Protection, you can use the <em>-RollbackType "RestoreIISAppConfig"</em> parameter to revert any changes. If Extended Protection was enabled manually (through IIS Manager) you need to revert the settings manually.</p>
-</li>
+<p>Alternatively, you can also use InetMgr.exe and change the Extended Protection setting for those virtual Directories to the "Accept" value. However, we recommend using the script as it checks for the correct values and automatically performs a reconfiguration if the values are not set as expected.</p>
+<ol>
+<li>If after doing the above, some clients are still not working properly, you can rollback Extended Protection temporarily and report the issue to us. If script was used to configure Extended Protection, you can use the <em>-RollbackType "RestoreIISAppConfig"</em> parameter to revert any changes. If Extended Protection was enabled manually (through IIS Manager) you need to revert the settings manually.</li>
 </ol>
 <h3 id="hybrid-freebusy-or-mailbox-migration-is-not-working">Hybrid Free/Busy or mailbox migration is not working</h3>
 <p>If you are using Modern Hybrid or the Hybrid Agent enabling Extended Protection will cause Hybrid features like Free/Busy and mailbox migration to stop working. To resolve this issue, identify the hybrid servers that are published using Hybrid Agent and disable Extended Protection on the Front-End EWS endpoints for these servers.</p>
@@ -2744,13 +2762,18 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <p>If Public Folders exist on Exchange 2013 servers and Extended Protection is enabled, they will no longer appear and end users will be unable to access them. To resolve the issue in a coexistence environment, migrate all Public Folders to Exchange Server 2016 or Exchange Server 2019. If you have an environment containing only Exchange 2013 servers with Public Folders, you can manually remove the SSL flag from the Backend RPC virtual directory to make Public Folders accessible.</p>
 <h4 id="exchange-server-2016-cu22-exchange-server-2019-cu11-or-older">Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or Older</h4>
 <p>If you have an environment containing Exchange Server 2016 CU22 or Exchange Server 2019 CU11 or older and are utilizing Public Folders, before enabling extended protection you must confirm the version of the server hosting the Public Folder hierarchy. <strong>Ensure the server hosting the Public Folder hierarchy is upgraded to Exchange Server 2016 CU23 or Exchange Server 2019 CU12 with the latest Security Updates</strong> or move the hierarchy to one with these latest versions and updates.</p>
+<h2 id="faqs">FAQs</h2>
+<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?</br>
+A: Yes, ADFS is not impacted by this change.</p>
+<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Hybrid Modern Auth (HMA)?</br>
+A: Yes, HMA is not impacted by this change.</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 23, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 30, 2022</span>
       
     
   </small>
