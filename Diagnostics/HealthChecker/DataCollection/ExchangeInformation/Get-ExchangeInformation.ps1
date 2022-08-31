@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Security\src\ExchangeExtendedProtectionManagement\DataCollection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
@@ -530,6 +531,7 @@ function Get-ExchangeInformation {
 
         $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
+        $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {

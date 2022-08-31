@@ -1,0 +1,20 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="Server">ADT-E19A</S>
+      <S N="LastUpdated">2022-08-31T15:21:00.0167306Z</S>
+      <Nil N="SettingOverrides" />
+      <Obj N="SimpleSettingOverrides" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.Generic.List`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

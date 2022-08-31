@@ -137,7 +137,6 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
 . $PSScriptRoot\Helpers\Class.ps1
 . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
-. $PSScriptRoot\Writers\Write-Verbose.ps1
 . $PSScriptRoot\Writers\Write-Functions.ps1
 . $PSScriptRoot\Features\Get-HtmlServerReport.ps1
 . $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
@@ -147,8 +146,9 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Shared\Write-Host.ps1
 
 function Main {
 
@@ -282,6 +282,7 @@ try {
         -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
+    SetWriteVerboseAction ${Function:Write-DebugLog}
     Main
 } finally {
     Get-ErrorsThatOccurred

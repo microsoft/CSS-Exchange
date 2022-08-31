@@ -35,7 +35,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 12
+            TestObjectMatch "Setting Overrides Detected" $false
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Operating System Information" {
@@ -255,6 +256,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
             Assert-MockCalled Get-IISModules -Exactly 1
+            Assert-MockCalled Get-ExchangeSettingOverride -Exactly 1
         }
     }
 
@@ -272,6 +274,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
             Mock Get-ExchangeIISConfigSettings { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeIISConfigSettings1.xml" }
+            Mock Get-ExchangeSettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride1.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -292,6 +295,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Critical Pla" ($displayFormat -f "pla", "Stopped", "Manual") -WriteType "Red"
             TestObjectMatch "Critical HostControllerService" ($displayFormat -f "HostControllerService", "Stopped", "Disabled") -WriteType "Red"
             TestObjectMatch "Common MSExchangeDagMgmt" ($displayFormat -f "MSExchangeDagMgmt", "Stopped", "Automatic") -WriteType "Yellow"
+            TestObjectMatch "Setting Overrides Detected" $true
         }
 
         It "Http Proxy Settings" {
