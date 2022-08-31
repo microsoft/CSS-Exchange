@@ -1786,7 +1786,7 @@
 <p>We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.</p>
 <p>An invalid TLS configuration can cause issues within Exchange for communication.</p>
 <p>Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.</p>
-<p>By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible.</p>
+<p>By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible. To correct this, you create the missing <code>DWORD</code> registry key with the value you wish to have.</p>
 <p>The <code>Configuration</code> result can provide a value of <code>Enabled</code>, <code>Disabled</code>, <code>Half Disabled</code>, or <code>Misconfigured</code>. They are defined by the following conditions:</p>
 <table>
 <thead>
@@ -1823,7 +1823,7 @@
 <code>SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server</code>
 <code>SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client</code>
 <code>SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server</code></p>
-<p>At each location, we are looking at the value of <code>Enabled</code> and <code>DisabledByDefault</code>. If the key isn't present, <code>Enabled</code> is set to <code>true</code> and <code>DisabledByDefault</code> is set to <code>false</code>.</p>
+<p>At each location, we are looking at the value of <code>Enabled</code> and <code>DisabledByDefault</code>. If the key isn't present, <code>Enabled</code> is set to <code>true</code> and <code>DisabledByDefault</code> is set to <code>false</code>. With the exception of TLS 1.3, if that isn't present it is disabled by default.</p>
 <p>The location for the .NET Framework TLS related settings are located here:</p>
 <p><code>SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319</code>
 <code>SOFTWARE\Microsoft\.NETFramework\v4.0.30319</code>
@@ -1843,7 +1843,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 24, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 26, 2022</span>
       
     
   </small>
