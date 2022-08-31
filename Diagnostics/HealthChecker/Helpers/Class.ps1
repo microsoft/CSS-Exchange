@@ -44,6 +44,7 @@ using System.Collections;
             public Hashtable ApplicationConfigFileStatus = new Hashtable();
             public object DependentServices; // store the results for the dependent services of Exchange.
             public object IISSettings;  //Stores the IISConfigurationSettings, applicationHostConfig and IISModulesInformation
+            public object SettingOverrides; //Stores the information regarding the Exchange Setting Overrides on the server.
         }
 
         public class ExchangeBuildInformation
