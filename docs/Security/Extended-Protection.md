@@ -141,7 +141,9 @@ Extended Protection is supported in environments that use SSL Bridging under cer
 
 Before enabling Extended Protection, you must ensure that all TLS configurations are consistent across all Exchange servers. For example, if one of the servers uses TLS 1.2, you must ensure that all the servers in the organization are configured using TLS 1.2. Any variation in TLS version use across servers can cause client connections to fail.
 
-In addition to this, the value of _SchUseStrongCrypto_ registry key should be either set to 1 (recommended) or 0 across all the Exchange Servers in the organization. If this value is not explicitly set, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries. This can cause TLS mismatch, leading to client connectivity issues.
+In addition to this, the value of _SchUseStrongCrypto_ registry value must be set to 1 across all the Exchange Servers in the organization.
+If this value is not explicitly set to 1, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries.
+The same applies to the _SystemDefaultTlsVersions_ registry value which must also be explicitly set to 1. If they aren't set as expected, this can cause TLS mismatch and so, leading to client connectivity issues.
 
 Please refer to this [guide](https://docs.microsoft.com/Exchange/exchange-tls-configuration?view=exchserver-2019) to configure the required TLS settings on your Exchange servers.
 
