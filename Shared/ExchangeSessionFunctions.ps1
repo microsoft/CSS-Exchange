@@ -37,12 +37,12 @@ function Switch-ExchangeConnectedServer {
     process {
         try {
             if (-not ($Script:CachedExchangePsSession.Sessions.ContainsKey($ServerFqdn))) {
-                Write-Verbose "Need to use Connect-ExchangeServer to connect to $ServerFqdn"
+                Write-Verbose "Calling Connect-ExchangeServer to connect to $ServerFqdn"
                 Connect-ExchangeServer $ServerFqdn -AllowClobber
                 $Script:CachedExchangePsSession.ActiveSessionKey = $ServerFqdn
                 $Script:CachedExchangePsSession.Sessions.Add(($remoteSession.ComputerName), $remoteSession)
             } elseif ($Script:CachedExchangePsSession.ActiveSessionKey -ne $ServerFqdn) {
-                Write-Verbose "Load the module on the server as we already have it cached."
+                Write-Verbose "Calling Import-Module as we already have it cached."
                 $switchToSession = $Script:CachedExchangePsSession.Sessions[$ServerFqdn]
                 $serverName = $switchToSession.ComputerName
                 $modulePath = "$env:APPDATA\Microsoft\Exchange\RemotePowerShell\$serverName"
@@ -76,7 +76,7 @@ function Invoke-RevertExchangeConnectServerToPrimary {
                 $primarySession = $Script:CachedExchangePsSession.PrimarySession
 
                 if ($Script:CachedExchangePsSession.ActiveSessionKey -ne $Script:CachedExchangePsSession.PrimarySession.ComputerName) {
-                    Write-Verbose "Connect-ExchangeServer to primary session"
+                    Write-Verbose "Calling Connect-ExchangeServer to primary session"
                     Connect-ExchangeServer $primarySession.ComputerName -AllowClobber
                     Remove-PSSession $remoteSession
                 }
