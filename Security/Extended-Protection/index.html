@@ -2483,7 +2483,9 @@ If you want to manage the setting centrally, you can do so via Group Policy:</p>
 <p>Extended Protection is supported in environments that use SSL Bridging under certain conditions. To enable Extended Protection in your Exchange environment using SSL Bridging, <strong>you must use the same SSL certificate on Exchange and your Load Balancers</strong>. If not this will cause Extended Protection to fail.</p>
 <h3 id="tls-configuration-must-be-consistent-across-all-exchange-servers">TLS configuration must be consistent across all Exchange servers</h3>
 <p>Before enabling Extended Protection, you must ensure that all TLS configurations are consistent across all Exchange servers. For example, if one of the servers uses TLS 1.2, you must ensure that all the servers in the organization are configured using TLS 1.2. Any variation in TLS version use across servers can cause client connections to fail.</p>
-<p>In addition to this, the value of <em>SchUseStrongCrypto</em> registry key should be either set to 1 (recommended) or 0 across all the Exchange Servers in the organization. If this value is not explicitly set, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries. This can cause TLS mismatch, leading to client connectivity issues.</p>
+<p>In addition to this, the value of <em>SchUseStrongCrypto</em> registry value must be set to 1 across all the Exchange Servers in the organization.
+If this value is not explicitly set to 1, the default value of this key may be interpreted as 0 or 1 depending on the .NET version in use by the Exchange binaries.
+The same applies to the <em>SystemDefaultTlsVersions</em> registry value which must also be explicitly set to 1. If they aren't set as expected, this can cause TLS mismatch and so, leading to client connectivity issues.</p>
 <p>Please refer to this <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration?view=exchserver-2019">guide</a> to configure the required TLS settings on your Exchange servers.</p>
 <h3 id="third-party-software-compatibility">Third-party software compatibility</h3>
 <p>Please ensure to test all third-party products in your Exchange Server environment to ensure that they work properly when Extended Protection is enabled. For example we have seen AntiVirus solutions send connections through a proxy in order to protect the client machine, this would prevent communication to the Exchange Server and would need to be disabled.</p>
@@ -2773,7 +2775,7 @@ A: Yes, HMA is not impacted by this change.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 30, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 31, 2022</span>
       
     
   </small>
