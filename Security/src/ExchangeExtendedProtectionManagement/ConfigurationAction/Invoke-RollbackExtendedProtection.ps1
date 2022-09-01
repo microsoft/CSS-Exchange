@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\InvokeCommand\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
 function Invoke-RollbackExtendedProtection {

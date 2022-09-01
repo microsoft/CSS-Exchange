@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-AppPool.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\InvokeCommand\Invoke-ScriptBlockHandler.ps1
 function Get-ExchangeAppPoolsInformation {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"

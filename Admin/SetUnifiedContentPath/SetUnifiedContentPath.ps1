@@ -33,7 +33,7 @@ begin {
     . $PSScriptRoot\Get-UnifiedContentInformation.ps1
     . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
-    . $PSScriptRoot\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+    . $PSScriptRoot\..\..\Shared\InvokeCommand\Invoke-ScriptBlockHandler.ps1
     . $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
 
     $computerNames = New-Object System.Collections.ArrayList

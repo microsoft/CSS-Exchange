@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 # Common method used to handle Invoke-Command within a script.
 # Avoids using Invoke-Command when running locally on a server.

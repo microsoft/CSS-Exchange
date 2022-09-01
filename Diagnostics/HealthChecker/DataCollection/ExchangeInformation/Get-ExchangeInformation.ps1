@@ -5,7 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\InvokeCommand\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\InvokeCommand\Invoke-ScriptBlockHandler.ps1
 
 function Get-ApplicationHostConfig {
     [CmdletBinding()]
