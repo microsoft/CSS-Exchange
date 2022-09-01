@@ -2361,22 +2361,18 @@
 <p><strong>SSL Flags</strong>: Configuration of SSL settings is required to ensure that clients connect to IIS virtual directories in a specific way with client certificates. To enable Extended Protection, the required SSL flags are SSL and SSL128.</p>
 <p><strong>SSL offloading</strong> terminates the connection on a device between the client and the Exchange Server and then uses a non-encrypted connection to connect to the Exchange Server.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>flowchart LR;
-A[&quot;Client&quot;];
-B[&quot;Device (e.g., Load Balancer) terminates the connection&quot;];
-C[&quot;Web Server&quot;]
-A ==&gt;|HTTPS| B;
-B ==&gt;|HTTP| C;
-</code></pre></div>
+<p>:::mermaid
+flowchart LR;
+A["Client"] ==&gt;|HTTPS| B;
+B["Device (e.g., Load Balancer) terminates the connection"] ==&gt;|HTTP| C["Web Server"];
+:::</p>
 <p><strong>SSL bridging</strong> is a process where a device, usually located at the edge of a network, decrypts SSL traffic, and then re-encrypts it before sending it on to the Web server.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>flowchart LR;
-A[&quot;Client&quot;];
-B[&quot;Device (e.g., Load Balancer) terminates the connection&quot;];
-C[&quot;Web Server&quot;]
-A ==&gt;|HTTPS| B;
-B ==&gt;|HTTPS| C;
-</code></pre></div>
+<p>:::mermaid
+flowchart LR;
+A["Client"] ==&gt;|HTTPS| B;
+B["Device (e.g., Load Balancer) terminates the connection"] ==&gt;|HTTPS| C["Web Server"];
+:::</p>
 <p><strong>Modern Hybrid</strong> or <strong>Hybrid Agent</strong> is a mode of configuring Exchange Hybrid that removes some of the configuration requirements for Classic Hybrid (like Inbound network connections through your firewall) to enable Exchange hybrid features. You can learn more about this <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent">here</a>.</p>
 <p><strong>Public Folders</strong> are designed for shared access and to help make content in a deep hierarchy easier to browse. You can learn more about Public Folders <a href="https://docs.microsoft.com/exchange/collaboration/public-folders/public-folders?view=exchserver-2019">here</a>.</p>
 <h2 id="prerequisites-for-enabling-extended-protection-on-exchange-servers">Prerequisites for enabling Extended Protection on Exchange servers</h2>
@@ -2775,7 +2771,7 @@ A: Yes, HMA is not impacted by this change.</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 31, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 1, 2022</span>
       
     
   </small>
