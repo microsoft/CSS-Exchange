@@ -26,21 +26,21 @@ While Extended Protection can be enabled on each virtual directory manually, we 
 
 Example:
 
-:::mermaid
-flowchart LR;
-A["Client"] ==>|HTTPS| B;
-B["Device (e.g., Load Balancer) terminates the connection"] ==>|HTTP| C["Web Server"];
-:::
+```mermaid
+flowchart LR
+    A[Client] ==>|HTTPS| B
+    B["Device (e.g., Load Balancer) terminates the connection"] ==>|HTTP| C["Web Server"]
+```
 
 **SSL bridging** is a process where a device, usually located at the edge of a network, decrypts SSL traffic, and then re-encrypts it before sending it on to the Web server.
 
 Example:
 
-:::mermaid
-flowchart LR;
-A["Client"] ==>|HTTPS| B;
-B["Device (e.g., Load Balancer) terminates the connection"] ==>|HTTPS| C["Web Server"];
-:::
+```mermaid
+flowchart LR
+    A[Client] ==>|HTTPS| B
+    B["Device (e.g., Load Balancer) terminates the connection"] ==>|HTTPS| C["Web Server"]
+```
 
 **Modern Hybrid** or **Hybrid Agent** is a mode of configuring Exchange Hybrid that removes some of the configuration requirements for Classic Hybrid (like Inbound network connections through your firewall) to enable Exchange hybrid features. You can learn more about this [here](https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent).
 
