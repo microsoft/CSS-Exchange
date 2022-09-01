@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 # Injects Verbose and Debug Preferences and other passed variables into the script block
 # It will also inject any additional script blocks into the main script block.
@@ -17,8 +17,7 @@ function Add-ScriptBlockInjection {
 
         [scriptblock[]]$IncludeScriptBlock,
 
-        [scriptblock]
-        $CatchActionFunction
+        [scriptblock]$CatchActionFunction
     )
     process {
         try {
