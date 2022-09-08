@@ -44,10 +44,25 @@ function Test-FolderLimit {
                 Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.IpmSubtree.Count)
             }
 
-            $stats = $FolderData.StatisticsDictionary[$folder.EntryId]
-            [int]$itemCount = $stats.ItemCount
-            [Int64]$totalItemSize = $stats.TotalItemSize
+            # If we failed to get statistics for some reason, assume we have content
+            [int]$itemCount = 1
+            [Int64]$totalItemSize = 0
             $aggregateChildItemCount = $aggregateChildItemCounts[$folder.EntryId]
+
+            $stats = $FolderData.StatisticsDictionary[$folder.EntryId]
+            if ($null -ne $stats) {
+                [int]$itemCount = $stats.ItemCount
+                [Int64]$totalItemSize = $stats.TotalItemSize
+            } else {
+                $noStatisticsResult = @{
+                    TestName       = "Limit"
+                    Severity       = "Warning"
+                    ResultType     = "NoStatistics"
+                    FolderIdentity = $folder.Identity.ToString()
+                    FolderEntryId  = $folder.EntryId.ToString()
+                }
+                New-TestResult @noStatisticsResult
+            }
 
             $parent = $FolderData.EntryIdDictionary[$folder.ParentEntryId]
             if ($null -ne $parent) {

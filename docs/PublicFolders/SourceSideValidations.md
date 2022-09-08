@@ -48,6 +48,7 @@ Limit|FolderPathDepth|The folder path is greater than 299 folders deep.
 Limit|HierarchyCount|There are more than 250,000 total folders in the hierarchy.
 Limit|HierarchyAndDumpsterCount|There are more than 250,000 total folders if you count both the folders and their dumpsters.
 Limit|ItemCount|The folder has more than 1,000,000 items.
+Limit|NoStatistics|Get-PublicFolderStatistics did not return any statistics for these folders. ItemCount, TotalItemSize, and EmptyFolder tests were skipped.
 Limit|TotalItemSize|The items directly in this folder (not child folders) add up to more than 25 GB.
 MailEnabledFolder|MailDisabledWithProxyGuid|The folder is not mail-enabled, but it has the GUID of an Active Directory object in its MailRecipientGuid property.
 MailEnabledFolder|MailEnabledSystemFolder|The folder is a system folder, which should not be mail-enabled.
