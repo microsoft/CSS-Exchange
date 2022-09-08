@@ -47,10 +47,14 @@ function Test-FolderLimit {
             $stats = $FolderData.StatisticsDictionary[$folder.EntryId]
             [int]$itemCount = $stats.ItemCount
             [Int64]$totalItemSize = $stats.TotalItemSize
+            $aggregateChildItemCount = $aggregateChildItemCounts[$folder.EntryId]
 
             $parent = $FolderData.EntryIdDictionary[$folder.ParentEntryId]
             if ($null -ne $parent) {
                 $aggregateChildItemCounts[$parent.EntryId] += $itemCount
+                if ($null -ne $aggregateChildItemCount) {
+                    $aggregateChildItemCounts[$parent.EntryId] += $aggregateChildItemCount
+                }
             }
 
             if ($itemCount -lt 1 -and $aggregateChildItemCounts[$folder.EntryId] -lt 1 -and $folder.FolderPathDepth -gt 0) {
