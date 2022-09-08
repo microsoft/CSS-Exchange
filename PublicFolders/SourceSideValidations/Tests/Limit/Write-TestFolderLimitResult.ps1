@@ -17,6 +17,7 @@ function Write-TestFolderLimitResult {
         $itemCountResults = New-Object System.Collections.ArrayList
         $totalItemSizeResults = New-Object System.Collections.ArrayList
         $emptyFolderResults = New-Object System.Collections.ArrayList
+        $noStatisticsResults = New-Object System.Collections.ArrayList
         $hierarchyCountResult = $null
         $hierarchyAndDumpsterCountResult = $null
         $folderCountMigrationLimit = 250000
@@ -32,6 +33,7 @@ function Write-TestFolderLimitResult {
                 "TotalItemSize" { [void]$totalItemSizeResults.Add($TestResult) }
                 "HierarchyCount" { $hierarchyCountResult = $TestResult }
                 "HierarchyAndDumpsterCount" { $hierarchyAndDumpsterCountResult = $TestResult }
+                "NoStatistics" { [void]$noStatisticsResults.Add($TestResult) }
             }
         }
     }
@@ -78,6 +80,12 @@ function Write-TestFolderLimitResult {
             Get-ResultSummary -ResultType $emptyFolderResults[0].ResultType -Severity $emptyFolderResults[0].Severity -Count $emptyFolderResults.Count -Action (
                 "Folders contain no items and have only empty subfolders. " +
                 "These will not cause a migration issue, but they may be pruned if desired.")
+        }
+
+        if ($noStatisticsResults.Count -gt 0) {
+            Get-ResultSummary -ResultType $noStatisticsResults[0].ResultType -Severity $noStatisticsResults[0].Severity -Count $noStatisticsResults.Count -Action (
+                "Public folder statistics could not be retreived for these folders. " +
+                "ItemCount, TotalItemSize, and EmptyFolder tests were skipped for these folders.")
         }
     }
 }
