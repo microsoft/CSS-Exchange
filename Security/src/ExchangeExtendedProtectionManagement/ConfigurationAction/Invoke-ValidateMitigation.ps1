@@ -186,7 +186,7 @@ function Invoke-ValidateMitigation {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
 
             if ($null -eq $resultsInvoke) {
-                $line = "Server Unreachable: Unable to validate ip filtering rules on server $($Server)."
+                $line = "Server Unreachable: Unable to validate IP filtering rules on server $($Server)."
                 Write-Verbose $line
                 Write-Warning $line
                 $SiteVDirLocations | ForEach-Object { $FailedServersEP[$_].Add($Server) }

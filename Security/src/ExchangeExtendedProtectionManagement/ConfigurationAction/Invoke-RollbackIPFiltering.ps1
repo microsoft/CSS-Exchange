@@ -166,7 +166,7 @@ function Invoke-RollbackIPFiltering {
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
 
             if ($null -eq $resultsInvoke) {
-                $line = "Server Unreachable: Unable to rollback ip filtering rules on server $($Server.Name)."
+                $line = "Server Unreachable: Unable to rollback IP filtering rules on server $($Server.Name)."
                 Write-Verbose $line
                 Write-Warning $line
                 $SiteVDirLocations | ForEach-Object { $FailedServers[$_].Add($Server.Name) }
