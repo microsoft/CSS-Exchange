@@ -36,6 +36,10 @@
         #scenariosDiv {
             column-count: 5;
         }
+
+        .btn {
+            margin-top: 15px;
+        }
     </style>
 </head>
 
@@ -51,11 +55,15 @@
                 <input id="tagFilter" onchange="tagFilterChanged(event)" onkeyup="tagFilterChanged(event)" />
                 <label for="tagFilter" class="active">Tag Filter</label>
             </div>
-            <label for="showOnlySelectedCheckbox" class="col s3">
-                <input id="showOnlySelectedCheckbox" class="filled-in" type="checkbox"
-                    onchange="updateVisibility(event)" />
-                <span>Only Show Selected</span>
-            </label>
+            <div class="col s3">
+                <label for="showOnlySelectedCheckbox">
+                    <input id="showOnlySelectedCheckbox" class="filled-in" type="checkbox"
+                        onchange="updateVisibility(event)" />
+                    <span>Only Show Selected</span>
+                </label>
+                <button class="btn waves-effect waves-light" onclick="clearAllSelections()">Clear All
+                    Selections</button>
+            </div>
             <button class="btn waves-effect waves-light col s3" onclick="save()">Save</button>
         </div>
 
@@ -81,6 +89,18 @@
             }
 
             function tagFilterChanged(event) {
+                updateVisibility();
+            }
+
+            function clearAllSelections(event) {
+                selectionTable.forEach(category => {
+                    category.tags.forEach(tag => {
+                        setSelectedOnTag(tag, false, false);
+                    });
+
+                    checkCategorySelectionState(category);
+                });
+
                 updateVisibility();
             }
 
