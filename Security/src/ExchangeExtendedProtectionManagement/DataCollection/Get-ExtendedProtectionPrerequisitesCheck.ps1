@@ -10,6 +10,10 @@ function Get-ExtendedProtectionPrerequisitesCheck {
     param(
         [Parameter(Mandatory = $true)]
         [object[]]$ExchangeServers,
+
+        [Parameter(Mandatory = $false)]
+        [string[]]$SiteVDirLocations,
+
         [Parameter(Mandatory = $false)]
         [bool]$SkipEWS
     )
@@ -39,6 +43,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS
+                SiteVDirLocations    = $SiteVDirLocations
             }
             $extendedProtectionConfiguration = Get-ExtendedProtectionConfiguration @params
 
