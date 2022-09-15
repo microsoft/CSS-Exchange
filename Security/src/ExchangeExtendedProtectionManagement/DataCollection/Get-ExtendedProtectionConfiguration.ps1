@@ -10,16 +10,25 @@ function Get-ExtendedProtectionConfiguration {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ComputerName,
+
         [Parameter(Mandatory = $false)]
         [System.Xml.XmlNode]$ApplicationHostConfig,
+
         [Parameter(Mandatory = $false)]
         [System.Version]$ExSetupVersion,
+
         [Parameter(Mandatory = $false)]
         [bool]$IsMailboxServer = $true,
+
         [Parameter(Mandatory = $false)]
         [bool]$IsClientAccessServer = $true,
+
         [Parameter(Mandatory = $false)]
         [bool]$ExcludeEWS = $false,
+
+        [Parameter(Mandatory = $false)]
+        [string[]]$SiteVDirLocations,
+
         [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
@@ -56,6 +65,17 @@ function Get-ExtendedProtectionConfiguration {
                 # Set EWS Vdir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
 
+                if ($null -ne $SiteVDirLocations -and
+                    $SiteVDirLocations.Count -gt 0) {
+                    foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                        if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
+                            Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
+                            $ExtendedProtection[$i] = "None"
+                            break;
+                        }
+                    }
+                }
+
                 [PSCustomObject]@{
                     VirtualDirectory   = $virtualDirectory
                     WebSite            = $WebSite[$i]
@@ -90,6 +110,7 @@ function Get-ExtendedProtectionConfiguration {
                 try {
                     $nodePath = [string]::Empty
                     $extendedProtection = "None"
+                    $ipRestictionsHashTable = @{}
                     $pathIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), $Path.ToLower())
                     $rootIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Split("/")[0]).ToLower())
 
@@ -97,6 +118,7 @@ function Get-ExtendedProtectionConfiguration {
                         $configNode = $Xml.configuration.location[$pathIndex]
                         $nodePath = $configNode.Path
                         $ep = $configNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking
+                        $ipRestrictions = $configNode.'system.webServer'.security.ipSecurity
 
                         if (-not ([string]::IsNullOrEmpty($ep))) {
                             Write-Verbose "Found tokenChecking: $ep"
@@ -114,6 +136,13 @@ function Get-ExtendedProtectionConfiguration {
                                 Write-Verbose "Found root path."
                                 $rootConfigNode = $Xml.configuration.location[$rootIndex]
                                 [string]$sslSettings = $rootConfigNode.'system.webServer'.security.access.sslFlags
+                            }
+                        }
+
+                        if (-not([string]::IsNullOrEmpty($ipRestrictions))) {
+                            Write-Verbose "IP-filtered restrictions detected"
+                            foreach ($restriction in $ipRestrictions.add) {
+                                $ipRestictionsHashTable.Add($restriction.ipAddress, $restriction.allowed)
                             }
                         }
 
@@ -160,6 +189,10 @@ function Get-ExtendedProtectionConfiguration {
                         Ssl128Bit         = $ssl128Bit
                         ClientCertificate = $clientCertificate
                         Value             = $sslSettings
+                    }
+                    MitigationSettings = [PScustomObject]@{
+                        AllowUnlisted = $ipRestrictions.allowUnlisted
+                        Restrictions  = $ipRestictionsHashTable
                     }
                 }
             }
@@ -303,6 +336,11 @@ function Get-ExtendedProtectionConfiguration {
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
+                            MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false)
+                            ProperlySecuredConfiguration  = ((($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false) -and
+                                                              ($extendedConfiguration.ExtendedProtection -eq "None")) -or
+                                                             (($extendedConfiguration.MitigationSettings.AllowUnlisted -ne $false) -and
+                                                              ($expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection)))
                             ExpectedSslFlags              = $matchEntry.SslFlags
                             SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
