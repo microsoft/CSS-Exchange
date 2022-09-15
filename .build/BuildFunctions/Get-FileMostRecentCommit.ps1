@@ -19,7 +19,7 @@ function Get-FileMostRecentCommit {
     }
 
     try {
-        $commitTime = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $File))
+        $commitTime = [DateTime]::Parse((git log -n 1 --format="%ad" --date=rfc $File)).ToUniversalTime()
         Write-Verbose "Commit time $commitTime for file $File"
         return $commitTime
     } catch {

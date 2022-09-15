@@ -87,7 +87,11 @@ theme:
     - navigation.indexes
 markdown_extensions:
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 repo_url: https://github.com/microsoft/CSS-Exchange
 edit_uri: edit/main/docs/
 site_url: https://microsoft.github.io/CSS-Exchange
