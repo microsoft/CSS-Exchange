@@ -10,16 +10,25 @@ function Get-ExtendedProtectionConfiguration {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ComputerName,
+
         [Parameter(Mandatory = $false)]
         [System.Xml.XmlNode]$ApplicationHostConfig,
+
         [Parameter(Mandatory = $false)]
         [System.Version]$ExSetupVersion,
+
         [Parameter(Mandatory = $false)]
         [bool]$IsMailboxServer = $true,
+
         [Parameter(Mandatory = $false)]
         [bool]$IsClientAccessServer = $true,
+
         [Parameter(Mandatory = $false)]
         [bool]$ExcludeEWS = $false,
+
+        [Parameter(Mandatory = $false)]
+        [string[]]$SiteVDirLocations,
+
         [Parameter(Mandatory = $false)]
         [scriptblock]$CatchActionFunction
     )
@@ -55,6 +64,17 @@ function Get-ExtendedProtectionConfiguration {
                 }
                 # Set EWS Vdir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
+
+                if ($null -ne $SiteVDirLocations -and
+                    $SiteVDirLocations.Count -gt 0) {
+                    foreach ($SiteVDirLocation in $SiteVDirLocations) {
+                        if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
+                            Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
+                            $ExtendedProtection[$i] = "None"
+                            break;
+                        }
+                    }
+                }
 
                 [PSCustomObject]@{
                     VirtualDirectory   = $virtualDirectory

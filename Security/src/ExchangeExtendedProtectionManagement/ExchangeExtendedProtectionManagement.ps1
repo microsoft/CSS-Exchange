@@ -25,24 +25,70 @@
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+
 param(
-    [Parameter (Mandatory = $false, ValueFromPipeline, HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
-    [Parameter (Mandatory = $false, HelpMessage = "Enter the list of servers on which the script should not execute on")]
-    [string[]]$SkipExchangeServerNames = $null,
-    [Parameter (Mandatory = $false, HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
-    [switch]$ShowExtendedProtection,
-    [Parameter (Mandatory = $false, HelpMessage = "Used for internal options")]
-    [string]$InternalOption,
+
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'ValidateMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
-    [ValidateSet("RestoreIISAppConfig")]
-    [string]$RollbackType
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [string[]]$SkipExchangeServerNames = $null,
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
+    [switch]$ShowExtendedProtection,
+
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
+    [string]$InternalOption,
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to get the list of IPs used by Exchange Servers.")]
+    [switch]$FindExchangeServerIPAddresses,
+
+    [Parameter (Mandatory = $false, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to specify the path to the output file.")]
+    [ValidateScript({
+        (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((Split-Path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
+        })]
+    [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to apply IP filters.")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to validate IP filters.")]
+    [ValidateScript({
+        (Test-Path -Path $_)
+        })]
+    [string]$IPRangeFilePath,
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
+    [ValidateSet('EWSBackend')]
+    [ValidateScript({
+        ($null -ne $_) -and ($_.Length -gt 0)
+        })]
+    [string[]]$RestrictType,
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
+    [ValidateSet('RestrictTypeEWSBackend')]
+    [ValidateScript({
+        ($null -ne $_) -and ($_.Length -gt 0)
+        })]
+    [string[]]$ValidateType,
+
+    [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
+    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
+    [string[]]$RollbackType
 )
 
 begin {
     . $PSScriptRoot\WriteFunctions.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureMitigation.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-ValidateMitigation.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-RollbackIPFiltering.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackExtendedProtection.ps1
+    . $PSScriptRoot\DataCollection\Get-ExchangeServerIPs.ps1
+    . $PSScriptRoot\DataCollection\Get-IPRangeAllowListFromFile.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Host.ps1
@@ -55,11 +101,95 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
+    . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
+
+    # TODO: Move this so it isn't duplicated
+    # matching restrictions
+    $restrictionToSite = @{
+        "APIFrontend"                         = "Default Web Site/API"
+        "AutodiscoverFrontend"                = "Default Web Site/Autodiscover"
+        "ECPFrontend"                         = "Default Web Site/ECP"
+        "EWSFrontend"                         = "Default Web Site/EWS"
+        "Microsoft-Server-ActiveSyncFrontend" = "Default Web Site/Microsoft-Server-ActiveSync"
+        "OABFrontend"                         = "Default Web Site/OAB"
+        "PowershellFrontend"                  = "Default Web Site/Powershell"
+        "OWAFrontend"                         = "Default Web Site/OWA"
+        "RPCFrontend"                         = "Default Web Site/RPC"
+        "MAPIFrontend"                        = "Default Web Site/MAPI"
+        "APIBackend"                          = "Exchange Back End/API"
+        "AutodiscoverBackend"                 = "Exchange Back End/Autodiscover"
+        "ECPBackend"                          = "Exchange Back End/ECP"
+        "EWSBackend"                          = "Exchange Back End/EWS"
+        "Microsoft-Server-ActiveSyncBackend"  = "Exchange Back End/Microsoft-Server-ActiveSync"
+        "OABBackend"                          = "Exchange Back End/OAB"
+        "PowershellBackend"                   = "Exchange Back End/Powershell"
+        "OWABackend"                          = "Exchange Back End/OWA"
+        "RPCBackend"                          = "Exchange Back End/RPC"
+        "PushNotificationsBackend"            = "Exchange Back End/PushNotifications"
+        "RPCWithCertBackend"                  = "Exchange Back End/RPCWithCert"
+        "MAPI-emsmdbBackend"                  = "Exchange Back End/MAPI/emsmdb"
+        "MAPI-nspiBackend"                    = "Exchange Back End/MAPI/nspi"
+    }
+
+    $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
+        -AppendDateTimeToFileName $false `
+        -ErrorAction SilentlyContinue
+
+    SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteVerboseAction ${Function:Write-VerboseLog}
+    SetWriteWarningAction ${Function:Write-HostLog}
+    SetWriteProgressAction ${Function:Write-HostLog}
+
+    # The ParameterSetName options
+    $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
+    $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType.Contains("RestoreIISAppConfig")
+    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig)
+    $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
+    $ConfigureEPSelected = $ConfigureMitigationSelected -or
+        ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
+    $ValidateTypeSelected = $PsCmdlet.ParameterSetName -eq "ValidateMitigation"
+
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
-    if ($PsCmdlet.ParameterSetName -eq "Rollback") {
-        $RollbackSelected = $true
-        if ($RollbackType -eq "RestoreIISAppConfig") {
-            $RollbackRestoreIISAppConfig = $true
+
+    if ($RollbackRestoreIISAppConfig -and $RollbackType.Length -gt 1) {
+        Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+        exit
+    }
+
+    if ($RollbackRestrictType) {
+        $RestrictType = $RollbackType.Replace("RestrictType", "")
+    }
+
+    if ($ConfigureMitigationSelected) {
+        $RestrictType = $RestrictType | Get-Unique
+    }
+
+    if ($ValidateTypeSelected) {
+        $RestrictType = New-Object 'System.Collections.Generic.List[string]'
+        $ValidateType | Get-Unique | ForEach-Object { $RestrictType += $_.Replace("RestrictType", "") }
+    }
+
+    if (($ConfigureMitigationSelected -or $ValidateTypeSelected)) {
+        # Get list of IPs in object form from the file specified
+        $ipResults = Get-IPRangeAllowListFromFile -FilePath $IPRangeFilePath
+        if ($ipResults.IsError) {
+            exit
+        }
+
+        $ipRangeAllowListRules = $ipResults.ipRangeAllowListRules
+    }
+
+    if ($InternalOption -eq "SkipEWS") {
+        Write-Verbose "SkipEWS option enabled."
+        $Script:SkipEWS = $true
+    } else {
+        $Script:SkipEWS = $false
+    }
+
+    if ($null -ne $RestrictType -and $RestrictType.Count -gt 0) {
+        $SiteVDirLocations = New-Object 'System.Collections.Generic.List[string]'
+        foreach ($key in $RestrictType) {
+            $SiteVDirLocations += $restrictionToSite[$key]
         }
     }
 } process {
@@ -73,25 +203,7 @@ begin {
     }
 
     try {
-
-        $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeExtendedProtectionManagement-$((Get-Date).ToString("yyyyMMddhhmmss"))-Debug" `
-            -AppendDateTimeToFileName $false `
-            -ErrorAction SilentlyContinue
-
-        SetWriteHostAction ${Function:Write-HostLog}
-        SetWriteVerboseAction ${Function:Write-VerboseLog}
-        SetWriteWarningAction ${Function:Write-HostLog}
-        SetWriteProgressAction ${Function:Write-HostLog}
-
-        if ($InternalOption -eq "SkipEWS") {
-            Write-Verbose "SkipEWS option enabled."
-            $Script:SkipEWS = $true
-        } else {
-            $Script:SkipEWS = $false
-        }
-
-        $exchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
-        if (-not($exchangeShell.ShellLoaded)) {
+        if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
             exit
         } elseif (-not ($exchangeShell.EMS)) {
@@ -104,17 +216,22 @@ begin {
 
         if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
             Write-Warning "Script was updated. Please rerun the command."
-            return
+            exit
         }
 
-        if (-not($RollbackSelected) -and
-            -not($ShowExtendedProtection)) {
+        if ($ConfigureEPSelected) {
+
+            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy"
+            if ($ConfigureMitigationSelected) {
+                $ArchivingKnownIssueString = ""
+            }
+
             $params = @{
                 Message   = "Display Warning about Extended Protection"
                 Target    = "Extended Protection is recommended to be enabled for security reasons. " +
                 "Known Issues: Following scenarios will not work when Extended Protection is enabled." +
                 "`r`n    - SSL offloading or SSL termination via Layer 7 load balancing." +
-                "`r`n    - Automated Archiving using Archive policy" +
+                $ArchivingKnownIssueString +
                 "`r`n    - Exchange Hybrid Features if using Modern Hybrid." +
                 "`r`n    - Access to Public folders on Exchange 2013 Servers." +
                 "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"
@@ -127,6 +244,16 @@ begin {
         Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
         Set-ADServerSettings -ViewEntireForest $true
         $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
+
+        if ($FindExchangeServerIPAddresses) {
+            Get-ExchangeServerIPs -OutputFilePath $OutputFilePath -ExchangeServers $ExchangeServers
+            Write-Warning ("The file generated contains all the IPv4 and IPv6 addresses of all Exchange Servers in the organization." +
+                " This file should be used as a reference. Please change the file to include/remove IP addresses for the IP filtering allow list." +
+                " If the number of Exchange Servers in your organization is high (>100), consider using a IPRange file with IP Range Subnets [x.x.x.x/n] instead of IP addresses which is more efficient." +
+                "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc.")
+            return
+        }
+
         $ExchangeServersPrerequisitesCheckSettingsCheck = $ExchangeServers
 
         if ($null -ne $includeExchangeServerNames -and $includeExchangeServerNames.Count -gt 0) {
@@ -139,6 +266,17 @@ begin {
 
             # Remove all the servers present in the SkipExchangeServerNames list
             $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
+        }
+
+        if ($null -eq $ExchangeServers) {
+            Write-Host "No exchange servers to process. Please specify server filters correctly"
+            exit
+        }
+
+        if ($ValidateTypeSelected) {
+            # Validate mitigation
+            $ExchangeServers = $ExchangeServers | Where-Object { -not ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Major -eq 15 -and (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Minor -eq 0 -and $_.IsClientAccessServer) }
+            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
         }
 
         if ($ShowExtendedProtection) {
@@ -179,11 +317,10 @@ begin {
             return
         }
 
-        if (-not($RollbackSelected)) {
-            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS
+        if ($ConfigureEPSelected) {
+            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -SiteVDirLocations $SiteVDirLocations
 
             if ($null -ne $prerequisitesCheck) {
-
                 Write-Host ""
                 # Remove the down servers from $ExchangeServers list.
                 $downServerName = New-Object 'System.Collections.Generic.List[string]'
@@ -419,26 +556,38 @@ begin {
                 Write-Warning "Failed to get Extended Protection Prerequisites Information to be able to continue"
                 exit
             }
-        } else {
+
+            # Configure Extended Protection based on given parameters
+            # Prior to executing, add back any unsupported versions back into the list
+            # for onlineSupportedServers, because the are online and we want to revert them.
+            $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
+            $extendedProtectionConfigurations = ($onlineSupportedServers |
+                    Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
+
+            if ($null -ne $extendedProtectionConfigurations) {
+                Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
+            } else {
+                Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
+            }
+
+            if ($ConfigureMitigationSelected) {
+                # Apply rules
+                $ExchangeServers = $ExchangeServers | Where-Object { -not ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Major -eq 15 -and (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Minor -eq 0 -and $_.IsClientAccessServer) }
+                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
+            }
+        } elseif ($RollbackSelected) {
             Write-Host "Prerequisite check will be skipped due to Rollback"
 
             if ($RollbackRestoreIISAppConfig) {
                 Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
             }
+
+            if ($RollbackRestrictType) {
+                $ExchangeServers = $ExchangeServers | Where-Object { -not ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Major -eq 15 -and (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).Minor -eq 0 -and $_.IsClientAccessServer) }
+                Invoke-RollbackIPFiltering -ExchangeServers $ExchangeServers -SiteVDirLocations $SiteVDirLocations
+            }
+
             return
-        }
-
-        # Configure Extended Protection based on given parameters
-        # Prior to executing, add back any unsupported versions back into the list
-        # for onlineSupportedServers, because the are online and we want to revert them.
-        $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
-        $extendedProtectionConfigurations = ($onlineSupportedServers |
-                Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
-
-        if ($null -ne $extendedProtectionConfigurations) {
-            Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
-        } else {
-            Write-Host "No servers are online or no Exchange Servers Support Extended Protection."
         }
     } finally {
         Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com."
