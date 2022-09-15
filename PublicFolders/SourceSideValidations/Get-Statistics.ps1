@@ -114,7 +114,7 @@ function Get-Statistics {
                     if ($finishedJob.Server -eq $serverWithHierarchy) {
                         Write-Host "Permanent failure on root mailbox server is not retryable."
                     } else {
-                        $entryIdsProcessed = New-Object 'System.Collections.HashSet[string]'
+                        $entryIdsProcessed = New-Object 'System.Collections.Generic.HashSet[string]'
                         $finishedJob.Statistics | ForEach-Object { [void]$entryIdsProcessed.Add($_.EntryId) }
                         $foldersRemaining = @($finishedJob.Folders | Where-Object { -not $entryIdsProcessed.Contains($_.EntryId) })
                         if ($foldersRemaining.Count -gt 0) {

@@ -16,7 +16,6 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-DomainMultiActiveSyncVirtualDirectories.ps1
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainOtherWellKnownObjects.ps1
-. $PSScriptRoot\Checks\Domain\Test-ReadOnlyDomainControllerLocation.ps1
 . $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
@@ -27,9 +26,11 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
-. $PSScriptRoot\..\..\Shared\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\WriteFunctions.ps1
 
 $BuildVersion = ""
@@ -49,7 +50,6 @@ function RunAllTests {
         "Test-MissingDirectory",
         "Test-MsiCacheFiles",
         "Test-PrerequisiteInstalled",
-        "Test-ReadOnlyDomainControllerLocation",
         "Test-DomainOtherWellKnownObjects",
         "Test-PendingReboot",
         "Test-ValidHomeMDB",
@@ -154,6 +154,8 @@ try {
         -AppendDateTimeToFileName $false `
         -ErrorAction SilentlyContinue
     SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteWarningAction ${Function:Write-DebugLog}
 
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/SA-VersionsUrl")) {
         Write-Host "Script was updated. Please rerun the script."

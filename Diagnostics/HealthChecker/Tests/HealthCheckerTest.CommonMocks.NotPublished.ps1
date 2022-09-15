@@ -157,6 +157,10 @@ Mock Get-IISModules {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModules.xml"
 }
 
+Mock Get-ExchangeSettingOverride {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 

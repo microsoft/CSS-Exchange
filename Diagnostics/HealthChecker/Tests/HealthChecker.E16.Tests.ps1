@@ -34,7 +34,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 12
+            TestObjectMatch "Setting Overrides Detected" $false
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Operating System Information" {
@@ -122,7 +123,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 73
+            $Script:ActiveGrouping.Count | Should -Be 79
         }
 
         It "Display Results - Security Vulnerability" {

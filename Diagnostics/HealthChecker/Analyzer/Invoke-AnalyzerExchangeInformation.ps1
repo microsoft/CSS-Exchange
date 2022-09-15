@@ -308,6 +308,27 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
+    if ($null -ne $exchangeInformation.SettingOverrides) {
+
+        $overridesDetected = $null -ne $exchangeInformation.SettingOverrides.SettingOverrides
+        $params = $baseParams + @{
+            Name    = "Setting Overrides Detected"
+            Details = $overridesDetected
+        }
+        Add-AnalyzedResultInformation @params
+
+        if ($overridesDetected) {
+            $params = $baseParams + @{
+                OutColumns = ([PSCustomObject]@{
+                        DisplayObject = $exchangeInformation.SettingOverrides.SimpleSettingOverrides
+                        IndentSpaces  = 12
+                    })
+                HtmlName   = "Setting Overrides"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
     Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
     $getMailboxServer = $exchangeInformation.GetMailboxServer

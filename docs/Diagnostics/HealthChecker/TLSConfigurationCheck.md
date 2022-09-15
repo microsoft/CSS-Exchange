@@ -1,6 +1,8 @@
 # TLS Configuration Check
 
-We check and validate Exchange servers TLS 1.0 - 1.2 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.
+We check and validate Exchange servers TLS 1.0 - 1.3 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.
+
+At this time TLS 1.3 is **not** supported by Exchange and has been known to cause issues if enabled. If detected to be anything but disabled on Exchange, it will be thrown as an error and needs to be addressed right away.
 
 We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.
 
@@ -8,7 +10,7 @@ An invalid TLS configuration can cause issues within Exchange for communication.
 
 Only the values 0 or 1 are accepted and determined to be properly configured. The reason being is this is how our documentation provides to configure the value only and it then depends on how the code reads the value from the registry interpret the value.
 
-By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible.
+By not having the registry value defined, different versions of .NET Frameworks for what the code is compiled for will treat TLS options differently. Therefore, we throw an error if the key isn't defined and action should be taken to correct this as soon as possible. To correct this, you create the missing `DWORD` registry key with the value you wish to have.
 
 The `Configuration` result can provide a value of `Enabled`, `Disabled`, `Half Disabled`, or `Misconfigured`. They are defined by the following conditions:
 
@@ -27,8 +29,10 @@ The location where we are checking for the TLS values are here:
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server`
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client`
 `SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server`
+`SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client`
+`SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server`
 
-At each location, we are looking at the value of `Enabled` and `DisabledByDefault`. If the key isn't present, `Enabled` is set to `true` and `DisabledByDefault` is set to `false`.
+At each location, we are looking at the value of `Enabled` and `DisabledByDefault`. If the key isn't present, `Enabled` is set to `true` and `DisabledByDefault` is set to `false`. With the exception of TLS 1.3, if that isn't present it is disabled by default.
 
 The location for the .NET Framework TLS related settings are located here:
 

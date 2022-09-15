@@ -1,0 +1,24 @@
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- pwsh: |
+    cd .\.build
+    .\docs.ps1
+  displayName: "Docs Check"
+
+- pwsh: |
+    cd .\.build
+    .\CodeFormatter.ps1
+  displayName: "Code Formatting Script"
+  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
+
+- pwsh: |
+    cd .\.build
+    .\Build.ps1
+  displayName: "Build Script"
+
+- pwsh: |
+    cd .\.build
+    .\Pester.ps1
+  displayName: "Running Invoke-Pester"

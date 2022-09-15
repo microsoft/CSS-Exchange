@@ -2,33 +2,6 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
-function Write-Verbose {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Verbose')]
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 1, ValueFromPipeline)]
-        [string]$Message
-    )
-
-    process {
-        Write-DebugLog $Message
-        Microsoft.PowerShell.Utility\Write-Verbose $Message
-    }
-}
-
-function Write-Warning {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Waring')]
-    [CmdletBinding()]
-    param(
-        [Parameter(Position = 1, ValueFromPipeline)]
-        [string]$Message
-    )
-
-    process {
-        Write-DebugLog $Message
-        Microsoft.PowerShell.Utility\Write-Warning $Message
-    }
-}
 
 function Write-DebugLog($Message) {
     $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $Message

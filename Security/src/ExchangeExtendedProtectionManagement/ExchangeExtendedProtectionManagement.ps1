@@ -81,7 +81,6 @@ param(
 )
 
 begin {
-    . $PSScriptRoot\Write-Verbose.ps1
     . $PSScriptRoot\WriteFunctions.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureMitigation.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ValidateMitigation.ps1
@@ -92,12 +91,16 @@ begin {
     . $PSScriptRoot\DataCollection\Get-IPRangeAllowListFromFile.ps1
     . $PSScriptRoot\DataCollection\Get-ExtendedProtectionPrerequisitesCheck.ps1
     . $PSScriptRoot\DataCollection\Invoke-ExtendedProtectionTlsPrerequisitesCheck.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Host.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Progress.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Warning.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
-    . $PSScriptRoot\..\..\..\Shared\Write-Host.ps1
     . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 
     # TODO: Move this so it isn't duplicated
@@ -133,6 +136,9 @@ begin {
         -ErrorAction SilentlyContinue
 
     SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteVerboseAction ${Function:Write-VerboseLog}
+    SetWriteWarningAction ${Function:Write-HostLog}
+    SetWriteProgressAction ${Function:Write-HostLog}
 
     # The ParameterSetName options
     $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
@@ -199,6 +205,9 @@ begin {
     try {
         if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
+            exit
+        } elseif (-not ($exchangeShell.EMS)) {
+            Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
             exit
         }
 
@@ -423,10 +432,12 @@ begin {
                                 $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
                                 $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.WowRegistryLocation -Value $_.WowSchUseStrongCryptoValue
                             }
+                        $stringOutput = [string]::Empty
+                        SetWriteHostAction $null
                         $displayObject | Sort-Object Location, RegistryName |
-                            Format-Table |
-                            Out-String |
-                            Write-Host
+                            Out-Columns -StringOutput ([ref]$stringOutput)
+                        Write-HostLog $stringOutput
+                        SetWriteHostAction ${Function:Write-HostLog}
                     }
 
                     # If TLS Prerequisites Check passed, then we are good to go.
@@ -470,7 +481,8 @@ begin {
                     $counter = 0
                     $totalCount = $ExchangeServers.Count
                     $outlookAnywhereCount = 0
-                    $outlookAnywhereTotalCount = ($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }).Count
+                    $outlookAnywhereServers = $ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }
+                    $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
 
                     $progressParams = @{
                         Id              = 1
@@ -487,8 +499,8 @@ begin {
 
                     Write-Progress @progressParams
                     Write-Progress @outlookAnywhereProgressParams
-                    # Needs to be SilentlyContinue to handle down servers
-                    $outlookAnywhere = Get-OutlookAnywhere -ErrorAction SilentlyContinue |
+                    # Needs to be SilentlyContinue to handle down servers, we must also exclude pre Exchange 2013 servers
+                    $outlookAnywhere = $outlookAnywhereServers | Get-OutlookAnywhere -ErrorAction SilentlyContinue |
                         ForEach-Object {
                             $outlookAnywhereCount++
                             $outlookAnywhereProgressParams.PercentComplete = ($outlookAnywhereCount / $outlookAnywhereTotalCount * 100)

@@ -33,7 +33,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            $Script:ActiveGrouping.Count | Should -Be 15
+            TestObjectMatch "Setting Overrides Detected" $false
+            $Script:ActiveGrouping.Count | Should -Be 16
         }
 
         It "Display Results - Operating System Information" {
@@ -118,7 +119,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 62
+            $Script:ActiveGrouping.Count | Should -Be 69
         }
 
         It "Display Results - Security Vulnerability" {
