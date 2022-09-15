@@ -10,7 +10,7 @@ While Extended Protection can be enabled on each virtual directory manually, we 
 
 ## Terminology used in this document
 
-**Virtual Directory, or vdir,** is used by Exchange Server to allow access to web applications such as Exchange ActiveSync, Outlook on the Web, and the Autodiscover service. Several virtual directory settings can be configured by an admin, including authentication, security, and reporting settings. Extended Protection is one such authentication setting.
+**Virtual Directory, or vDir,** is used by Exchange Server to allow access to web applications such as Exchange ActiveSync, Outlook on the Web, and the Autodiscover service. Several virtual directory settings can be configured by an admin, including authentication, security, and reporting settings. Extended Protection is one such authentication setting.
 
 **The Extended Protection setting** controls the behavior for checking of CBTs. Possible values for this setting are listed in the following table:
 
@@ -197,11 +197,11 @@ If the script is executed without any parameters, it will enable Extended Protec
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ExchangeServerNames           | Used to specify which Exchange servers should be **included in the scope of script execution**. It can be either a single Exchange server hostname or a comma separated list of hostnames. Parameter values: **Exchange Server Hostname (NetBIOS or FQDN)**                                                                                                                                  |
 | SkipExchangeServerNames       | Used to specify which Exchange servers should be **excluded from the scope of script execution**. It can be either a single Exchange Server hostname or a comma separated list of hostnames. Parameter values: **Exchange Server Hostname (NetBIOS or FQDN)**                                                                                                                                |
-| RollbackType                  | Used to revert changes made by the Extended Protection script. Parameter Values: **"RestoreIISAppConfig**"                                                                                                                                                                                                                                                                                   |
+| RollbackType                  | Used to revert changes made by the Extended Protection script. Parameter Values: **"RestoreIISAppConfig, RestrictTypeEWSBackend"**"                                                                                                                                                                                                                                                                                   |
 | ShowExtendedProtection        | Used to display the current Extended Protection configuration state in your organization or on a specific computer (use the _ExchangeServerNames_ or _SkipExchangeServerNames_ parameter to show the configuration for a subset of Exchange servers).                                                                                                                                        |
-| RestrictType                  | Used to restrict incoming IP connections on specified vdir Parameter Value: **EWSBackend**: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. **Note**: This parameter should only be used if automated archiving via retention tags is enabled in the Exchange environment. |
+| RestrictType                  | Used to restrict incoming IP connections on specified vDir Parameter Value: **EWSBackend**: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. **Note**: This parameter should only be used if automated archiving via retention tags is enabled in the Exchange environment. |
 | IPRangeFilePath               | This is a mandatory parameter which must be used to provide an allow list of IP ranges when RestrictType parameter is used. The filepath provides should be of a .TXT file with IP addresses or subnets.                                                                                                                                                                                     |
-| ValidateType                  | Used to cross check allow list of IP addresses on vdir against IPList file provided in IPRangeFilePath. Parameter Value: **RestrictTypeEWSBackend**: should be used to cross check allow list of IP addresses on EWS Backend vdir against IPList file provided in IPRangeFilePath.                                                                                                           |
+| ValidateType                  | Used to cross check allow list of IP addresses on vDir against IPList file provided in IPRangeFilePath. Parameter Value: **RestrictTypeEWSBackend**: should be used to cross check allow list of IP addresses on EWS Backend vDir against IPList file provided in IPRangeFilePath.                                                                                                           |
 | FindExchangeServerIPAddresses | Used to create list of IPv4 and IPv6 addresses of all Exchange Servers in the organization.                                                                                                                                                                                                                                                                                                  |
 
 #### Enabling Extended Protection on all Exchange servers
@@ -230,29 +230,31 @@ After the prerequisites checks have been passed, the script will enable Extended
 
 If you are using a _Retention Policy_ containing _Retention Tags_ which perform _Move to Archive_ actions, you should use the script as follows:
 
-.\\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"
+`.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"`
 
-Executing the script this way, configures extended protection on all vdirs like scenario 1 barring Exchange Back End/EWS vdir, where it sets the Extended Protection setting to OFF. The Extended Protection setting is required to be turned OFF to ensure automated archiving works without any hinderance.
+Executing the script this way, configures extended protection on all vDirs like scenario 1 barring Exchange Back End/EWS vDir, where it sets the Extended Protection setting to OFF. The Extended Protection setting is required to be turned OFF to ensure automated archiving works without any hinderance.
 
-As turning OFF Extended Protection settings in Backend EWS vdir is not recommended, this command mitigates the risk by limiting the incoming connections to Backend EWS vdir. The script does this by installing an IIS module called **IP Address and Domain Restriction** and adding allow rules for IP addresses of Exchange Servers. It then adds a deny rule for any incoming connections which is not present in the list.
+As turning OFF Extended Protection settings in Backend EWS vDir is not recommended, this command mitigates the risk by limiting the incoming connections to Backend EWS vDir. The script does this by installing an IIS module called **IP Address and Domain Restriction** and adding allow rules for IP addresses of Exchange Servers. It then adds a deny rule for any incoming connections which is not present in the list.
 
 While using this command customers must provide the list of IPv4 addresses (and IPv6 if used) of all Exchange Servers in the organization.
 
 This list of addresses should be provided in a TXT file in this way:
 
-10.68.12.48
+```text
+  10.68.12.48
 
-2001:4898:5808:14:3938:7838:67ab:cdfb
+  2001:4898:5808:14:3938:7838:67ab:cdfb
 
-10.128.4.204
+  10.128.4.204
 
-10.231.234.140/20
+  10.231.234.140/20
+```
 
 File should contain only IP addresses or IP subnets of Exchange servers separated by newline character. For customers who have more than 100 servers, it is recommended to use IP subnets instead of IP addresses, so that the list is short and efficient.
 
 To help get all the IP addresses of all Exchange Servers in the organization, customers can use the following command.
 
-.\\ExchangeExtendedProtectionManagement.ps1 -FindExchangeServerIPAddresses
+`.\ExchangeExtendedProtectionManagement.ps1 -FindExchangeServerIPAddresses`
 
 The above command will generate a file IPList.txt in the directory where script is stored.
 
@@ -262,11 +264,11 @@ The above command will generate a file IPList.txt in the directory where script 
 
 In case you have Modern Hybrid configuration, you need to skip Exchange servers published using the Hybrid Agent. This can be done by using the _SkipExchangeServerNames_ parameter:
 
-.\\ExchangeExtendedProtectionManagement.ps1 -SkipExchangeServerNames HybridServer1, HybridServer2
+`.\ExchangeExtendedProtectionManagement.ps1 -SkipExchangeServerNames HybridServer1, HybridServer2`
 
 Or
 
-.\\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt" -SkipExchangeServerNames HybridServer1, HybridServer2
+`.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt" -SkipExchangeServerNames HybridServer1, HybridServer2`
 
 #### Troubleshooting warnings and errors during script execution
 
@@ -294,17 +296,17 @@ You can also use the script to roll back the **Extended Protection settings and 
 
 The following command initiates a full rollback of **Extended Protection settings** and **IP restriction rules** on any Exchange server where it was enabled using the script:
 
-.\\ExchangeExtendedProtectionManagement.ps1 –RollbackType RestoreIISAppConfig
+`.\ExchangeExtendedProtectionManagement.ps1 –RollbackType RestoreIISAppConfig`
 
 #### Roll back of IP Restrictions
 
-You can use the script to **only** roll back **Allow and Deny rules** set in Backend EWS vdir’s IP Address and Domain Restriction module in the following way.
+You can use the script to **only** roll back **Allow and Deny rules** set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.
 
-.\\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend
+`.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend`
 
-**Note:** To safeguard Backend EWS vdir against NTLM relay, executing above command will set Extended Protection setting back to Required. If automated archiving is enabled, executing this command can cause automated archiving to stop working till the time Allow and Deny rules are not added back using the following command.
+**Note:** To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required. If automated archiving is enabled, executing this command can cause automated archiving to stop working till the time Allow and Deny rules are not added back using the following command.
 
-.\\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"
+.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"
 
 `.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"`
 
@@ -346,18 +348,11 @@ If you want to enable Extended Protection in your environment manually without u
    5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
    6. ComplianceOutlookLogonToArchiveRpcCtpProbe
 
-You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/en-us/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
+You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
 
 **Impact of these failures**: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.
 
-You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/en-us/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
-
-Microsoft is working on a fix and will provide more information soon.
-
-1.  Issue with accessing Admin Audit logs
-
-    \<To be updated\>
-    For example: running Test-OutlookConnectivity -ProbeIdentity OutlookMapiHttp.Protocol\OutlookMapiHttpCtpProbe may show the probe as failed, although Outlook functionality is working properly.
+You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
 
 ## Troubleshooting issues after enabling Extended Protection
 
