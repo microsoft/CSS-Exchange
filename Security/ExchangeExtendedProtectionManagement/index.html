@@ -1906,9 +1906,22 @@ that the TLS settings are correct on all servers with Extended Protection enable
 servers being enabled.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SkipExchangeServerNames</span> <span class="p">&lt;</span><span class="n">Array_of_Server_Names</span><span class="p">&gt;</span>
 </code></pre></div>
+<p>This syntax collects the possible IP addresses to be used for the IP restriction for a virtual directory. Plus the location to store the file.</p>
+<p><strong>NOTE:</strong> This is only to assist you with the IP collections. You must verify the list to make sure it is accurate and contains all the required IP addresses.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-FindExchangeServerIPAddresses</span> <span class="n">-OutputFilePath</span> <span class="s2">&quot;C:\temp\ExchangeIPs.txt&quot;</span>
+</code></pre></div>
+<p>This syntax will enable Extended Protection for all virtual directories and set EWS Backend virtual directory to None and then proceed to set IP restriction for the EWS Backend virtual directory for all servers online, while providing the IP address list.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RestrictType</span> <span class="s2">&quot;EWSBackend&quot;</span> <span class="n">-IPRangeFilePath</span> <span class="s2">&quot;C:\temp\ExchangeIPs.txt&quot;</span>
+</code></pre></div>
+<p>This syntax will verify the IP restrictions for the EWS Backend virtual directory.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateType</span> <span class="s2">&quot;RestrictTypeEWSBackend&quot;</span> <span class="n">-IPRangeFilePath</span> <span class="s2">&quot;C:\temp\ExchangeIPs.txt&quot;</span>
+</code></pre></div>
 <p>This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.</p>
 <p><strong>NOTE:</strong> This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackType</span> <span class="s2">&quot;RestoreIISAppConfig&quot;</span>
+</code></pre></div>
+<p>This syntax rolls back the Extended Protection mitigation of IP restriction for the EWS Backend virtual directory of all the Exchange Server that are online where Extended Protection was previously configured.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackType</span> <span class="s2">&quot;RestrictTypeEWSBackend&quot;</span>
 </code></pre></div>
 <p>This syntax displays the current Extended Protection configuration for all the Exchange Servers that are online.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ShowExtendedProtection</span>
@@ -1935,24 +1948,28 @@ servers being enabled.</p>
 <td>Show the current configuration of Extended Protection for the passed server list.</td>
 </tr>
 <tr>
-<td>RollbackType</td>
-<td>Using this parameter will allow you to rollback using the type you specified. The follow values are allowed: <code>RestoreIISAppConfig</code></td>
+<td>FindExchangeServerIPAddresses</td>
+<td>Use this to collect a list of the Exchange Server IPs that should be used for IP Restriction.</td>
 </tr>
 <tr>
-<td>RestrictType</td>
-<td>Using this parameter to restrict incoming IP connections on specified vDir.</td>
+<td>OutputFilePath</td>
+<td>Is a custom file path to be used to export the list of Exchange Server IPs collected from <code>FindExchangeServerIPAddresses</code>. Default value is the local location <code>IPList.txt</code>.</td>
 </tr>
 <tr>
 <td>IPRangeFilePath</td>
-<td>This is a mandatory parameter which must be used to provide an allow list of IP ranges when <code>RestrictType</code> parameter is used.</td>
+<td>Is the path to the file that contains all the IP Addresses or subnets that are needed to be in the IP Allow list for Mitigation.</td>
+</tr>
+<tr>
+<td>RestrictType</td>
+<td>To enable a IP Restriction on a virtual directory. Must be used with <code>IPRangeFilePath</code>. The following values are allowed: <code>EWSBackend</code></td>
 </tr>
 <tr>
 <td>ValidateType</td>
-<td>Used to cross check allow list of IP addresses on vDir against IPList file provided in <code>IPRangeFilePath</code>.</td>
+<td>To verify if the IP Restrictions have been applied correctly. Must be used with <code>IPRangeFilePath</code>. The following values are allowed: <code>RestrictTypeEWSBackend</code></td>
 </tr>
 <tr>
-<td>FindExchangeServerIPAddresses</td>
-<td>Used to create list of IPv4 and IPv6 addresses of all Exchange Servers in the organization.</td>
+<td>RollbackType</td>
+<td>Using this parameter will allow you to rollback using the type you specified. The following values are allowed: <code>RestoreIISAppConfig</code>, <code>RestrictTypeEWSBackend</code></td>
 </tr>
 </tbody>
 </table>
