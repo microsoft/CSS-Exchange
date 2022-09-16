@@ -203,10 +203,11 @@ begin {
     }
 
     try {
-        if (-not((Confirm-ExchangeShell -Identity $env:COMPUTERNAME).ShellLoaded)) {
+        $exchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+        if (-not($exchangeShell.ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
             exit
-        } elseif (-not ($exchangeShell.EMS)) {
+        } elseif (-not($exchangeShell.EMS)) {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
             exit
         }
