@@ -155,6 +155,11 @@ function Get-ADReplicationStatus {
                         }
                     }
                 }
+
+                $resultObject = [PSCustomObject]@{
+                    ReplLinks = New-Object System.Collections.ArrayList
+                    Errors    = New-Object System.Collections.ArrayList
+                }
             }
 
             process {
@@ -189,7 +194,7 @@ function Get-ADReplicationStatus {
                         $nc = [ADSI]($ncDN)
 
                         foreach ($val in $nc.Properties["repsFrom"]) {
-                            Get-ReplLink $val | ForEach-Object {
+                            $repLink = Get-ReplLink $val | ForEach-Object {
                                 [PSCustomObject]@{
                                     Server              = $Server
                                     NamingContext       = $namingContext
@@ -200,6 +205,8 @@ function Get-ADReplicationStatus {
                                     ResultLastAttempt   = $_.ResultLastAttempt
                                 }
                             }
+
+                            [void]$resultObject.ReplLinks.Add($repLink)
                         }
                     }
                 } catch {
@@ -212,8 +219,12 @@ function Get-ADReplicationStatus {
                         }
                     }
 
-                    Write-Warning "Failed to get AD replication information from server $Server. Error: $errorToShow"
+                    [void]$resultObject.Errors.Add("Failed to get AD replication information from server $Server. Error: $errorToShow")
                 }
+            }
+
+            end {
+                $resultObject
             }
         }
     }
@@ -247,14 +258,20 @@ function Get-ADReplicationStatus {
         }
 
         Wait-QueuedJob | ForEach-Object {
-            try {
-                # Convert GUID._msdcs CNAME to server FQDN
-                $_.OtherDraServer = [System.Net.Dns]::GetHostByName($_.OtherDraServer).Hostname
-            } catch {
-                # Do nothing, we'll just keep the _msdcs name
+            $_.Errors | ForEach-Object {
+                Write-Warning $_
             }
 
-            $_
+            $_.ReplLinks | ForEach-Object {
+                try {
+                    # Convert GUID._msdcs CNAME to server FQDN
+                    $_.OtherDraServer = [System.Net.Dns]::GetHostByName($_.OtherDraServer).Hostname
+                } catch {
+                    # Do nothing, we'll just keep the _msdcs name
+                }
+
+                $_
+            }
         }
     }
 }
