@@ -1685,8 +1685,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#roll-back-of-ip-restrictions" class="md-nav__link">
-    Roll back of IP Restrictions
+  <a href="#rolling-back-ip-restriction-settings" class="md-nav__link">
+    Rolling back IP Restriction settings
   </a>
   
 </li>
@@ -2243,8 +2243,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#roll-back-of-ip-restrictions" class="md-nav__link">
-    Roll back of IP Restrictions
+  <a href="#rolling-back-ip-restriction-settings" class="md-nav__link">
+    Rolling back IP Restriction settings
   </a>
   
 </li>
@@ -2487,7 +2487,7 @@
 <p>Extended Protection cannot be enabled on Hybrid Servers which uses Modern Hybrid configuration. In Modern Hybrid configuration, Hybrid Server are published to Exchange Online via Hybrid Agent which proxies the Exchange Online call to Exchange Server.</p>
 <p>Enabling Extended Protection on Hybrid servers using Modern Hybrid configuration will lead to disruption of hybrid features like mailbox migrations and Free/Busy. Hence, it is important to identify all the Hybrid Servers in the organization published via Hybrid Agent and not enable Extended Protection specifically on these servers.</p>
 <h4 id="identifying-hybrid-exchange-servers-published-using-hybrid-agent">Identifying hybrid Exchange servers published using Hybrid Agent</h4>
-<p><strong>Note</strong>: This step is not required if you are using classic Hybrid configuration.</p>
+<p><strong>Note:</strong> This step is not required if you are using classic Hybrid configuration.</p>
 <p>In case you don’t have a list of servers published via Hybrid Agent, you can use the following steps to identify them:</p>
 <ol>
 <li>Log into a machine where the Hybrid Agent is installed and running. Open the <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent#hybrid-agent-powershell-module">PowerShell module</a> of the Hybrid Agent and run <em>Get-HybridApplication</em> to identify the <em>TargetUri</em> used by the Hybrid Agent.</li>
@@ -2502,7 +2502,7 @@
 <li>No mailboxes should be hosted on the hybrid server, and if any mailbox exists, they should be migrated to other mailbox servers.</li>
 <li>You can enable Extended Protection on all virtual directories except Front End EWS on the hybrid Exchange server.</li>
 </ol>
-<p><strong>Note</strong>: Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
+<p><strong>Note:</strong> Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
 <h3 id="ntlmv1-is-not-supported-when-extended-protection-is-enabled">NTLMv1 is not supported when Extended Protection is enabled</h3>
 <blockquote>
 <p><strong>Note:</strong> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
@@ -2685,7 +2685,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>Before enabling Extended Protection in your Exchange environment, ensure you meet all the prerequisites listed in this document.</p>
 <p>To enable Extended Protection on all your Exchange Servers, you can use the <a href="https://aka.ms/ExchangeEPScript">ExchangeExtendedProtectionManagement.ps1</a> script, which is hosted on the Microsoft Exchange-CSS repository on GitHub.</p>
 <p>It’s not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.</p>
-<p><strong>Note</strong> Over time, we will be updating the script and documentation. The script will attempt to auto-update when it is run. If the computer where the script is run is not connected to the Internet, this update check will fail. You should always check for the latest version of the script before running it.</p>
+<p><strong>Note:</strong> Over time, we will be updating the script and documentation. The script will attempt to auto-update when it is run. If the computer where the script is run is not connected to the Internet, this update check will fail. You should always check for the latest version of the script before running it.</p>
 <h4 id="parameters">Parameters</h4>
 <p>If the script is executed without any parameters, it will enable Extended Protection on any Exchange Server that can be reached from the machine where the script was run. You can use the following parameters to specify the scope of script operations:</p>
 <table>
@@ -2714,7 +2714,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </tr>
 <tr>
 <td>RestrictType</td>
-<td>Used to restrict incoming IP connections on specified vDir Parameter Value: <strong>EWSBackend</strong>: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. <strong>Note</strong>: This parameter should only be used if automated archiving via retention tags is enabled in the Exchange environment.</td>
+<td>Used to restrict incoming IP connections on specified vDir Parameter Value: <strong>EWSBackend</strong>: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. <strong>Note:</strong> This parameter should only be used if automated archiving via retention tags is enabled in the Exchange environment.</td>
 </tr>
 <tr>
 <td>IPRangeFilePath</td>
@@ -2790,7 +2790,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>You can also use the script to roll back the <strong>Extended Protection settings and any IP restriction rules</strong> added via script from one or more servers. When Extended Protection settings are modified by the script, an applicationHost.cep.*.bak file is created on each server, which contains a backup of pre-existing settings before the script is run. Those files are going to be local to each individual server that the script modifies. Therefore, the rollback of Extended Protection settings can be rolled back from any machine where the script will run using the <em>earliest</em> version of the .bak file to roll back the changes.</p>
 <p>The following command initiates a full rollback of <strong>Extended Protection settings</strong> and <strong>IP restriction rules</strong> on any Exchange server where it was enabled using the script:</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType RestoreIISAppConfig</code></p>
-<h4 id="roll-back-of-ip-restrictions">Roll back of IP Restrictions</h4>
+<h4 id="rolling-back-ip-restriction-settings">Rolling back IP Restriction settings</h4>
 <p>You can use the script to <strong>only</strong> roll back <strong>Allow and Deny rules</strong> set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend</code></p>
 <p><strong>Note:</strong> To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required. If automated archiving is enabled, executing this command can cause automated archiving to stop working till the time Allow and Deny rules are not added back using the following command.</p>
@@ -2798,7 +2798,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"</code></p>
 <h3 id="enabling-extended-protection-manually-via-iis-settings">Enabling Extended Protection manually via IIS settings</h3>
 <p>If you want to enable Extended Protection in your environment manually without using the script, you can use the following steps.</p>
-<p><strong>Note</strong> When manually enabling Extended Protection, ensure that all virtual directories on the Exchange servers have Extended Protected configured according to the table above.</p>
+<p><strong>Note:</strong> When manually enabling Extended Protection, ensure that all virtual directories on the Exchange servers have Extended Protected configured according to the table above.</p>
 <h4 id="set-extended-protection-to-either-required-or-accept-for-an-exchange-virtual-directory">Set Extended Protection to either Required or Accept for an Exchange Virtual Directory</h4>
 <ol>
 <li>Launch IIS Manager on the Exchange server where you want to configure Extended Protection.</li>
@@ -2863,18 +2863,18 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <h4 id="exchange-server-2016-cu22-exchange-server-2019-cu11-or-older">Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or Older</h4>
 <p>If you have an environment containing Exchange Server 2016 CU22 or Exchange Server 2019 CU11 or older and are utilizing Public Folders, before enabling extended protection you must confirm the version of the server hosting the Public Folder hierarchy. <strong>Ensure the server hosting the Public Folder hierarchy is upgraded to Exchange Server 2016 CU23 or Exchange Server 2019 CU12 with the latest Security Updates</strong> or move the hierarchy to one with these latest versions and updates.</p>
 <h2 id="faqs">FAQs</h2>
-<p>Q: Is it required to install the August 2022 Security Update (SU) if it was already installed on the previous Cumulative Update (CU)?
+<p>Q: Is it required to install the August 2022 Security Update (SU) if it was already installed on the previous Cumulative Update (CU)?<br>
 A: Yes, it's required to install the August 2022 SU again if you update to a newer CU build (e.g., Exchange Server 2019 CU11 --&gt; Exchange Server 2019 CU12).
 Please remember:
 If you plan to do the update immediately (means CU + SU installation) Extended Protection does not need to be switched off
-If you plan to stay on the CU without installing the SU immediately, you must disable Extended Protection [link to the rollback documentation] as the CU without the SU being installed doesn't support Extended Protection and therefore, you'll experience client connectivity issues.</p>
-<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?</br>
+If you plan to stay on the CU without installing the SU immediately, you must disable Extended Protection (find the required steps above) as the CU without the SU being installed doesn't support Extended Protection and therefore, you'll experience client connectivity issues.</p>
+<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?<br>
 A: Yes, ADFS is not impacted by this change.</p>
-<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Hybrid Modern Auth (HMA)?</br>
+<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Hybrid Modern Auth (HMA)?<br>
 A: Yes, HMA is not impacted by this change. While EP does not further enhance HMA, windows auth may still be used for applications that do not support Hybrid Modern Auth. Considering this, the enablement of Extended Protection would be recommended in any environment eligible that still has Exchange on-premises services.</p>
-<p>Q: Does Extended Protection Impact Hybrid Modern Auth or Teams Integration?
+<p>Q: Does Extended Protection Impact Hybrid Modern Auth or Teams Integration?<br>
 A: Extended Protection will not influence Teams Integration or Hybrid Modern Auth.</p>
-<p>Q: While we understand that preventing MitM attacks is important, can we have our own devices in the middle with our own certificates?
+<p>Q: While we understand that preventing MitM attacks is important, can we have our own devices in the middle with our own certificates?<br>
 A: If the device uses the same certificate as the Exchange Server, they can be used.</p>
 
   <hr>
@@ -2882,7 +2882,7 @@ A: If the device uses the same certificate as the Exchange Server, they can be u
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 15, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 16, 2022</span>
       
     
   </small>
