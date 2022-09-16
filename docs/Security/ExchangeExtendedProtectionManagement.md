@@ -60,3 +60,7 @@ ExchangeServerNames | A list of servers to pass that you want to run the script 
 SkipExchangeServerNames | A list of server to pass that you don't want to execute the script for configuration or rollback.
 ShowExtendedProtection | Show the current configuration of Extended Protection for the passed server list.
 RollbackType | Using this parameter will allow you to rollback using the type you specified. The follow values are allowed: `RestoreIISAppConfig`
+RestrictType | Using this parameter to restrict incoming IP connections on specified vDir.
+IPRangeFilePath | This is a mandatory parameter which must be used to provide an allow list of IP ranges when `RestrictType` parameter is used.
+ValidateType | Used to cross check allow list of IP addresses on vDir against IPList file provided in `IPRangeFilePath`.
+FindExchangeServerIPAddresses | Used to create list of IPv4 and IPv6 addresses of all Exchange Servers in the organization.
