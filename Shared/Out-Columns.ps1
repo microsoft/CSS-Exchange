@@ -73,7 +73,7 @@ function Out-Columns {
                                 [void]$lines.Add($split[$i])
                             } else {
                                 [void]$lines.Add($split[$i].Substring(0, $width))
-                                $split[$i] = $split[$i].Substring($width + 1)
+                                $split[$i] = $split[$i].Substring($width)
                                 $i--
                             }
                         }
