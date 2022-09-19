@@ -10,14 +10,12 @@ function Get-CASLoadBalancingReport {
 
     if ($null -ne $CasServerList) {
         Write-Grey("Custom CAS server list is being used.  Only servers specified after the -CasServerList parameter will be used in the report.")
-        foreach ($cas in $CasServerList) {
-            $CASServers += (Get-ExchangeServer $cas)
-        }
+        $CASServers = Get-ExchangeServer | Where-Object { ($_.Name -in $CasServerList) -or ($_.FQDN -in $CasServerList) }
     } elseif ($SiteName -ne [string]::Empty) {
         Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in {0} will be used in the report." -f $SiteName)
-        $CASServers = Get-ExchangeServer | Where-Object { `
-            ($_.IsClientAccessServer -eq $true) -and `
-            ($_.AdminDisplayVersion -Match "^Version 15") -and `
+        $CASServers = Get-ExchangeServer | Where-Object {
+            ($_.IsClientAccessServer -eq $true) -and
+            ($_.AdminDisplayVersion -Match "^Version 15") -and
             ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) }
     } else {
         Write-Grey("Site filtering OFF.  All Exchange 2013/2016 CAS servers will be used in the report.")
