@@ -59,7 +59,7 @@ function Get-ExchangeServerCertificates {
         # These certificates can be deleted. The Azure VM Agent re-creates certificates if needed.
         # https://docs.microsoft.com/azure/virtual-machines/extensions/features-windows
         $certificatesToExclude = @(
-            NewCertificateExclusionEntry "CN=MS-Organization-P2P-Access \[[12][0-9]{3}\]$" $true
+            NewCertificateExclusionEntry "CN=MS-Organization-P2P-Access \[[12][0-9]{3}\]$" $false
             NewCertificateExclusionEntry "DC=Windows Azure CRP Certificate Generator" $true
         )
         Write-Verbose "Trying to receive certificates from Exchange server: $($Script:Server)"
