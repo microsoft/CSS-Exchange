@@ -150,7 +150,8 @@ function Get-CASLoadBalancingReport {
 
     $htmlLoadDetails += "$([System.Environment]::NewLine)</table></p>"
     $htmlReport = $htmlHeader + $htmlLoadDetails + "</body></html>"
-    $htmlReport | Out-File "$Script:OutputFilePath\HtmlLoadBalancerReport.html"
+    $htmlFile = "$Script:OutputFilePath\HtmlLoadBalancerReport.html"
+    $htmlReport | Out-File $htmlFile
 
     foreach ($key in $keyOrders) {
         $currentDisplayKey = $displayKeys[$key]
@@ -169,4 +170,6 @@ function Get-CASLoadBalancingReport {
             }
         }
     }
+
+    Write-Grey "HTML File Report Written to $htmlFile"
 }
