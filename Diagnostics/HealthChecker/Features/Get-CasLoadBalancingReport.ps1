@@ -10,16 +10,16 @@ function Get-CASLoadBalancingReport {
 
     if ($null -ne $CasServerList) {
         Write-Grey("Custom CAS server list is being used.  Only servers specified after the -CasServerList parameter will be used in the report.")
-        $CASServers = Get-ExchangeServer | Where-Object { ($_.Name -in $CasServerList) -or ($_.FQDN -in $CasServerList) }
+        $CASServers = Get-ExchangeServer | Where-Object { ($_.Name -in $CasServerList) -or ($_.FQDN -in $CasServerList) } | Sort-Object Name
     } elseif ($SiteName -ne [string]::Empty) {
         Write-Grey("Site filtering ON.  Only Exchange 2013/2016 CAS servers in {0} will be used in the report." -f $SiteName)
         $CASServers = Get-ExchangeServer | Where-Object {
             ($_.IsClientAccessServer -eq $true) -and
             ($_.AdminDisplayVersion -Match "^Version 15") -and
-            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) }
+            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
     } else {
         Write-Grey("Site filtering OFF.  All Exchange 2013/2016 CAS servers will be used in the report.")
-        $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") }
+        $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
     }
 
     if ($CASServers.Count -eq 0) {
@@ -100,7 +100,7 @@ function Get-CASLoadBalancingReport {
     <body>
     <h1 align=""center"">Exchange Health Checker v$($BuildVersion)</h1>
     <h1 align=""center"">Domain : $(($(Get-ADDomain).DNSRoot).toUpper())</h1>
-    <h2 align=""center"">Load balancer run finished : $((Get-Date).ToString("yyyy-MM-dd-HH-mm"))</h2><br>"
+    <h2 align=""center"">Load balancer run finished : $((Get-Date).ToString("yyyy-MM-dd HH:mm"))</h2><br>"
 
     [array]$htmlLoadDetails += "<table>
     <tr><th>Server</th>
