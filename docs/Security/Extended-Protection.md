@@ -341,12 +341,12 @@ If you want to enable Extended Protection in your environment manually without u
 1. Customers using a _Retention Policy_ containing _Retention Tags_ which perform _Move to Archive_ can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.
 
 2. In Exchange Server 2013, 2016 and 2019 the following probes will show _FAILED_ status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:
-   1. OutlookMapiHttpCtpProbe
-   2. OutlookRpcCtpProbe
-   3. OutlookRpcDeepTestProbe
-   4. OutlookRpcSelfTestProbe
-   5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
-   6. ComplianceOutlookLogonToArchiveRpcCtpProbe
+    1. OutlookMapiHttpCtpProbe
+    2. OutlookRpcCtpProbe
+    3. OutlookRpcDeepTestProbe
+    4. OutlookRpcSelfTestProbe
+    5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
+    6. ComplianceOutlookLogonToArchiveRpcCtpProbe
 
 You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
 
