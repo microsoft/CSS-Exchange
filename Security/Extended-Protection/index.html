@@ -2826,13 +2826,15 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </li>
 <li>
 <p>In Exchange Server 2013, 2016 and 2019 the following probes will show <em>FAILED</em> status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:</p>
-</li>
+<ol>
 <li>OutlookMapiHttpCtpProbe</li>
 <li>OutlookRpcCtpProbe</li>
 <li>OutlookRpcDeepTestProbe</li>
 <li>OutlookRpcSelfTestProbe</li>
 <li>ComplianceOutlookLogonToArchiveMapiHttpCtpProbe</li>
 <li>ComplianceOutlookLogonToArchiveRpcCtpProbe</li>
+</ol>
+</li>
 </ol>
 <p>You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "<em>An Error occurred during Logon</em>" and status <em>0xC000035B</em> which is related to the failed probes. <a href="https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health"><strong>Get-ServerHealth</strong></a> command will also show RPC and Mapi monitors as Unhealthy.</p>
 <p><strong>Impact of these failures</strong>: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.</p>
@@ -2882,7 +2884,7 @@ A: If the device uses the same certificate as the Exchange Server, they can be u
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 16, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 21, 2022</span>
       
     
   </small>
