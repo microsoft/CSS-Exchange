@@ -1,17 +1,21 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-ExchAVExclusions {
+function Get-ExchAVExclusionsPaths {
     [CmdletBinding()]
     [OutputType([Collections.Generic.List[string]])]
     param (
         [Parameter(Mandatory = $true)]
         [ValidateScript({
-                if (Test-Path $_) { $true }
+                if (Test-Path $_ -PathType Container ) { $true }
                 else { throw "Path $_ is not valid" }
             })]
         [string]
-        $ExchangePath
+        $ExchangePath,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet(0, 1, 2)]
+        [byte]
+        $MsiProductMinor
     )
     # Create the Array List
     $BaseFolders = New-Object Collections.Generic.List[string]
@@ -33,7 +37,7 @@ function Get-ExchAVExclusions {
         $BaseFolders.Add((Join-Path $ExchangePath '\FIP-FS').tolower())
         $BaseFolders.Add((Join-Path $ExchangePath '\GroupMetrics').tolower())
         $BaseFolders.Add((Join-Path $ExchangePath '\Logging').tolower())
-        if ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 ) {
+        if ($MsiProductMinor -eq 0 ) {
             $BaseFolders.Add((Join-Path $ExchangePath '\Mailbox\MDBTEMP').tolower())
         }
 
@@ -147,13 +151,13 @@ function Get-ExchAVExclusions {
         $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
         $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
 
-        if ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 ) {
+        if ($MsiProductMinor -eq 0 ) {
             #E13MBX  By default, content conversions are performed in the Exchange server's %TMP% folder.
             $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp').tolower())
         }
     }
 
-    if ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 ) {
+    if ($MsiProductMinor -eq 0 ) {
         #E13 Exchange Server setup temporary files.
         $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp\ExchangeSetup').tolower())
 
@@ -170,7 +174,80 @@ function Get-ExchAVExclusions {
     # Remove any Duplicates
     $BaseFolders = $BaseFolders | Select-Object -Unique
 
-    #'$env:SystemRoot\Temp\OICE_<GUID>'
-    #'$env:SystemDrive\DAGFileShareWitnesses\<DAGFQDN>'
     $BaseFolders
+}
+
+function Get-ExchAVExclusionsExtensions {
+    [CmdletBinding()]
+    [OutputType([Collections.Generic.List[string]])]
+    param (
+        [ValidateScript({
+                if (Test-Path $_ -PathType Container ) { $true }
+                else { throw "Path $_ is not valid" }
+            })]
+        [string]
+        $ExchangePath,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet(0, 1, 2)]
+        [byte]
+        $MsiProductMinor
+    )
+    # Create the Array List
+    $ExtensionsList = New-Object Collections.Generic.List[string]
+
+    if ($MsiProductMinor -eq 0 ) {
+        #Application-related extensions:
+        $ExtensionsList.Add("config")
+        $ExtensionsList.Add("dia")
+        $ExtensionsList.Add("wsb")
+        #Database-related extensions:
+        $ExtensionsList.Add("chk")
+        $ExtensionsList.Add("edb")
+        $ExtensionsList.Add("jrs")
+        $ExtensionsList.Add("jsl")
+        $ExtensionsList.Add("log")
+        $ExtensionsList.Add("que")
+        #Offline address book-related extensions:
+        $ExtensionsList.Add("lzx")
+        #Content Index-related extensions:
+        $ExtensionsList.Add("ci")
+        $ExtensionsList.Add("dir")
+        $ExtensionsList.Add("wid")
+        $ExtensionsList.Add("000")
+        $ExtensionsList.Add("001")
+        $ExtensionsList.Add("002")
+        #Unified Messaging-related extensions:
+        $ExtensionsList.Add("cfg")
+        $ExtensionsList.Add("grxml")
+        #Group Metrics-related extensions:
+        $ExtensionsList.Add("dsc")
+        $ExtensionsList.Add("txt")
+    }
+
+    if ($MsiProductMinor -eq 1 -or $MsiProductMinor -eq 2 ) {
+        if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
+            #Application-related extensions
+            $ExtensionsList.Add("config")
+            #Database-related extensions
+            $ExtensionsList.Add("chk")
+            $ExtensionsList.Add("edb")
+            $ExtensionsList.Add("jfm")
+            $ExtensionsList.Add("jrs")
+            $ExtensionsList.Add("log")
+            $ExtensionsList.Add("que")
+        }
+        if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
+            #Group Metrics-related extensions
+            $ExtensionsList.Add("dsc")
+            $ExtensionsList.Add("txt")
+            #Offline address book-related extensions
+            $ExtensionsList.Add("lzx")
+        }
+        if ((Get-ExchangeServer $env:COMPUTERNAME).IsUnifiedMessagingServer) {
+            #Unified Messaging-related extensions
+            $ExtensionsList.Add("cfg")
+            $ExtensionsList.Add("grxml")
+        }
+    }
+    $ExtensionsList
 }
