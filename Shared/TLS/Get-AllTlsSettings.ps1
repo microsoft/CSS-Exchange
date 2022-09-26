@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
+. $PSScriptRoot\Get-TlsCipherSuiteInformation.ps1
 
 # Gets all related TLS Settings, from registry or other factors
 function Get-AllTlsSettings {
@@ -18,7 +19,7 @@ function Get-AllTlsSettings {
         return [PSCustomObject]@{
             Registry         = (Get-AllTlsSettingsFromRegistry -MachineName $MachineName -CatchActionFunction $CatchActionFunction)
             SecurityProtocol = (Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock { ([System.Net.ServicePointManager]::SecurityProtocol).ToString() } -CatchActionFunction $CatchActionFunction)
-            TlsCipherSuite   = (Invoke-ScriptBlockHandler -ComputerName $MachineName -ScriptBlock { Get-TlsCipherSuite } -CatchActionFunction $CatchActionFunction)
+            TlsCipherSuite   = (Get-TlsCipherSuiteInformation -MachineName $MachineName -CatchActionFunction $CatchActionFunction)
         }
     }
 }

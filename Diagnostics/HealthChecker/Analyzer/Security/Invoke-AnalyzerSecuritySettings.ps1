@@ -250,7 +250,7 @@ function Invoke-AnalyzerSecuritySettings {
     Add-AnalyzedResultInformation @params
 
     if ($null -ne $osInformation.TLSSettings.TlsCipherSuite) {
-        $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+        $outputObjectDisplayValue = New-Object 'System.Collections.Generic.List[object]'
 
         foreach ($tlsCipher in $osInformation.TLSSettings.TlsCipherSuite) {
             $outputObjectDisplayValue.Add(([PSCustomObject]@{
