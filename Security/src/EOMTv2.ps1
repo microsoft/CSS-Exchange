@@ -1,7 +1,4 @@
-﻿# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
-<#
+﻿<#
     MIT License
 
     Copyright (c) Microsoft Corporation.
@@ -54,7 +51,6 @@
 
 [Cmdletbinding()]
 param (
-    [switch]$RunFullScan,
     [switch]$RollbackMitigation,
     [switch]$DoNotAutoUpdateEOMTv2
 )
@@ -232,9 +228,9 @@ function Run-Mitigate {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
         $mitigationFound = $false
-        if (Get-WebConfiguration -Filter $filter -PSPath $site) {
-            $mitigationFound = $true
-            Clear-WebConfiguration -Filter $filter -PSPath $site
+		if (Get-WebConfiguration -Filter $filter -PSPath $site) {
+                $mitigationFound = $true
+                Clear-WebConfiguration -Filter $filter -PSPath $site
         }
 
         if ($mitigationFound) {
@@ -359,33 +355,36 @@ function Write-Log {
 }
 
 function Set-LogActivity {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
-    [CmdletBinding(SupportsShouldProcess)]
-    param (
-        $Stage,
-        $RegMessage,
-        $Message,
-        [switch]$Notice,
-        [switch]$Error
-    )
-    if ($Notice) {
-        $Level = "Notice"
-    } elseif ($Error) {
-        $Level = "Error"
-    } else {
-        $Level = "Info"
-    }
-    if ($Level -eq "Info") {
-        Write-Verbose -Message $Message -Verbose
-    } elseif ($Level -eq "Notice") {
-        Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
-    } else {
-        Write-Error -Message $Message
-    }
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
+	[CmdletBinding(SupportsShouldProcess)]
+	param (
+		$Stage,
+		$RegMessage,
+		$Message,
+		[switch]$Notice,
+		[switch]$Error
+	)
+	if ($Notice) {
+		$FullRegMessage = "1 $RegMessage"
+		$Level = "Notice"
+	} elseif ($Error) {
+		$FullRegMessage = "0 $RegMessage"
+		$Level = "Error"
+	} else {
+		$FullRegMessage = "1 $RegMessage"
+		$Level = "Info"
+	}
+	if ($Level -eq "Info") {
+		Write-Verbose -Message $Message -Verbose
+	} elseif ($Level -eq "Notice") {
+		Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
+	} else {
+		Write-Error -Message $Message
+	}
 
-    Write-Log -Message $Message -Level $Level
+	Write-Log -Message $Message -Level $Level
 }
-
+	
 function Confirm-Signature {
     param(
         [string]$Filepath,
@@ -460,6 +459,11 @@ function Write-Summary {
     $RemediationText = ""
     if (!$NoRemediation) {
         $RemediationText = " and clear malicious files"
+    }
+
+    $FailureText = ""
+    if (!$Pass) {
+        $FailureText = " This attempt was unsuccessful."
     }
 
     $summary = @"
@@ -592,10 +596,10 @@ try {
     }
 
     else {
-        $Message = "Applying mitigation on $env:computername"
-        $RegMessage = ""
-        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-        Run-Mitigate
+            $Message = "Applying mitigation on $env:computername"
+            $RegMessage = ""
+            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+            Run-Mitigate
     }
 
     $Message = "EOMTv2.ps1 complete on $env:computername, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile"
