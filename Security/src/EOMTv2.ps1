@@ -37,7 +37,7 @@ $EOMTv2Dir = Join-Path $env:TEMP "EOMTv2"
 $EOMTv2LogFile = Join-Path $EOMTv2Dir "EOMTv2.log"
 $SummaryFile = "$env:SystemDrive\EOMTv2Summary.txt"
 $EOMTv2DownloadUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMTv2.ps1'
-$versionsUrl = 'https://aka.ms/CEP-VersionsUrl'
+$versionsUrl = 'https://aka.ms/EOMTv2-VersionsUri'
 $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 
