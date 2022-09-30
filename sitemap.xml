@@ -286,6 +286,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Security/EOMTv2/</loc>
+         <lastmod>2022-09-30</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Security/ExchangeExtendedProtectionManagement/</loc>
          <lastmod>2022-09-30</lastmod>
          <changefreq>daily</changefreq>
