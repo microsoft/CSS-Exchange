@@ -67,6 +67,7 @@ nav:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
     - EOMT: Security/EOMT.md
+    - EOMTv2: Security/EOMTv2.md
     - Extended Protection: Security/Extended-Protection.md
     - ExchangeExtendedProtectionManagement: Security/ExchangeExtendedProtectionManagement.md
     - ExchangeMitigations: Security/ExchangeMitigations.md
