@@ -1,28 +1,5 @@
-﻿<#
-    MIT License
-
-    Copyright (c) Microsoft Corporation.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE
-#>
-
-# Version 22.05.18.1552
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
 <#
     .SYNOPSIS
@@ -65,7 +42,7 @@ $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Mic
 $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 
 #autopopulated by CSS-Exchange build
-$BuildVersion = "22.05.18.1552"
+$BuildVersion = ""
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -228,9 +205,9 @@ function Run-Mitigate {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
         $mitigationFound = $false
-		if (Get-WebConfiguration -Filter $filter -PSPath $site) {
-                $mitigationFound = $true
-                Clear-WebConfiguration -Filter $filter -PSPath $site
+        if (Get-WebConfiguration -Filter $filter -PSPath $site) {
+            $mitigationFound = $true
+            Clear-WebConfiguration -Filter $filter -PSPath $site
         }
 
         if ($mitigationFound) {
@@ -355,36 +332,33 @@ function Write-Log {
 }
 
 function Set-LogActivity {
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
-	[CmdletBinding(SupportsShouldProcess)]
-	param (
-		$Stage,
-		$RegMessage,
-		$Message,
-		[switch]$Notice,
-		[switch]$Error
-	)
-	if ($Notice) {
-		$FullRegMessage = "1 $RegMessage"
-		$Level = "Notice"
-	} elseif ($Error) {
-		$FullRegMessage = "0 $RegMessage"
-		$Level = "Error"
-	} else {
-		$FullRegMessage = "1 $RegMessage"
-		$Level = "Info"
-	}
-	if ($Level -eq "Info") {
-		Write-Verbose -Message $Message -Verbose
-	} elseif ($Level -eq "Notice") {
-		Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
-	} else {
-		Write-Error -Message $Message
-	}
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Invalid rule result')]
+    [CmdletBinding(SupportsShouldProcess)]
+    param (
+        $Stage,
+        $RegMessage,
+        $Message,
+        [switch]$Notice,
+        [switch]$Error
+    )
+    if ($Notice) {
+        $Level = "Notice"
+    } elseif ($Error) {
+        $Level = "Error"
+    } else {
+        $Level = "Info"
+    }
+    if ($Level -eq "Info") {
+        Write-Verbose -Message $Message -Verbose
+    } elseif ($Level -eq "Notice") {
+        Write-Host -ForegroundColor Cyan -BackgroundColor black "NOTICE: $Message"
+    } else {
+        Write-Error -Message $Message
+    }
 
-	Write-Log -Message $Message -Level $Level
+    Write-Log -Message $Message -Level $Level
 }
-	
+
 function Confirm-Signature {
     param(
         [string]$Filepath,
@@ -459,11 +433,6 @@ function Write-Summary {
     $RemediationText = ""
     if (!$NoRemediation) {
         $RemediationText = " and clear malicious files"
-    }
-
-    $FailureText = ""
-    if (!$Pass) {
-        $FailureText = " This attempt was unsuccessful."
     }
 
     $summary = @"
@@ -596,10 +565,10 @@ try {
     }
 
     else {
-            $Message = "Applying mitigation on $env:computername"
-            $RegMessage = ""
-            Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
-            Run-Mitigate
+        $Message = "Applying mitigation on $env:computername"
+        $RegMessage = ""
+        Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
+        Run-Mitigate
     }
 
     $Message = "EOMTv2.ps1 complete on $env:computername, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile"
