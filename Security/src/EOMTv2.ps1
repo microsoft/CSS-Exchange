@@ -37,7 +37,7 @@ $EOMTv2Dir = Join-Path $env:TEMP "EOMTv2"
 $EOMTv2LogFile = Join-Path $EOMTv2Dir "EOMTv2.log"
 $SummaryFile = "$env:SystemDrive\EOMTv2Summary.txt"
 $EOMTv2DownloadUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMTv2.ps1'
-$versionsUrl = 'https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv'
+$versionsUrl = 'https://aka.ms/CEP-VersionsUrl'
 $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 
@@ -438,7 +438,7 @@ function Write-Summary {
     $summary = @"
 EOMTv2 mitigation summary
 Message: Microsoft attempted to mitigate and protect your Exchange server from CVE-2022-41040 $RemediationText.
-For more information on these vulnerabilities please visit (Provide links)
+For more information on these vulnerabilities please visit (https://aka.ms/Exchangevulns2)
 Please review locations and files as soon as possible and take the recommended action.
 Microsoft saved several files to your system to "$EOMTv2Dir". The only files that should be present in this directory are:
     a - EOMTv2.log
