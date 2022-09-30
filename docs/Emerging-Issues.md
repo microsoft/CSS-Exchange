@@ -7,6 +7,12 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
+**Updated on 9/30/2022**
+
+**Issue** |**Possible reason**| **Workaround/Solution**
+-|-|-
+Zero-day vulnerabilities reported in Microsoft Exchange Server, CVE-2022-41040 and  CVE-2022-41082 | N/A| Follow the guidance on [Exchange team blog](https://techcommunity.microsoft.com/t5/exchange-team-blog/customer-guidance-for-reported-zero-day-vulnerabilities-in/ba-p/3641494) and [MSRC article](https://msrc-blog.microsoft.com/2022/09/29/customer-guidance-for-reported-zero-day-vulnerabilities-in-microsoft-exchange-server/)
+
 **Updated on 5/11/2022**
 
 **Issue** |**Possible reason**| **Workaround/Solution**
