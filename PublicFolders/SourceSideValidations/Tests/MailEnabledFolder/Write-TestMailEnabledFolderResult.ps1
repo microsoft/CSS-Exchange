@@ -40,7 +40,7 @@ function Write-TestMailEnabledFolderResult {
                 "After confirming the accuracy of the results, you can mail-disable them with the following command:`n`n" +
                 "Import-Csv .\ValidationResults.csv |`n" +
                 " ? ResultType -eq MailEnabledSystemFolder |`n" +
-                " % { Disable-MailPublicFolder $_.FolderIdentity }")
+                " % { Disable-MailPublicFolder `$_.FolderIdentity }")
         }
 
         if ($mailEnabledWithNoADObjectResults.Count -gt 0) {
@@ -49,7 +49,7 @@ function Write-TestMailEnabledFolderResult {
                 "After confirming the accuracy of the results, you can mail-disable them with the following command:`n`n" +
                 "Import-Csv .\ValidationResults.csv | `n" +
                 " ? ResultType -eq MailEnabledWithNoADObject |`n" +
-                " % { Disable-MailPublicFolder $_.FolderIdentity }")
+                " % { Disable-MailPublicFolder `$_.FolderIdentity }")
         }
 
         if ($mailDisabledWithProxyGuidResults.Count -gt 0) {
@@ -58,7 +58,7 @@ function Write-TestMailEnabledFolderResult {
                 "After confirming the accuracy of the results, you can mail-enable them with the following command:`n`n" +
                 "Import-Csv .\ValidationResults.csv |`n" +
                 " ? ResultType -eq MailDisabledWithProxyGuid |`n" +
-                " % { Enable-MailPublicFolder $_.FolderIdentity }")
+                " % { Enable-MailPublicFolder `$_.FolderIdentity }")
         }
 
         if ($orphanedMPFResults.Count -gt 0) {
