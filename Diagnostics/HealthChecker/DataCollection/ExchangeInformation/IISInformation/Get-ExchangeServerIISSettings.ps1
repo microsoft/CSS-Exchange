@@ -2,8 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
-. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
-. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
 
 function Get-ExchangeServerIISSettings {
     param(
