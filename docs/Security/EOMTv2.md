@@ -3,6 +3,7 @@
 Download the latest release: [EOMTv2.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMTv2.ps1)
 
 The Exchange On-premises Mitigation Tool v2 script (EOMTv2.ps1) can be used to mitigate **CVE-2022-41040**. This script does the following:
+
 - Check for the latest version of EOMTv2.ps1 and download it.
 - Mitigate against current known attacks using **CVE-2022-41040** via a URL Rewrite configuration
 

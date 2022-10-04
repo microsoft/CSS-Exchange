@@ -6,15 +6,15 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
+. $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
 . $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
-. $PSScriptRoot\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
-. $PSScriptRoot\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1

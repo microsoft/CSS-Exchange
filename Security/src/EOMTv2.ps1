@@ -194,7 +194,7 @@ function Run-Mitigate {
     $root = 'system.webServer/rewrite/rules'
     $inbound = '.*'
     $name = 'PowerShell - inbound'
-    $pattern = '.*autodiscover\.json.*\@.*Powershell.*'
+    $pattern = '.*autodiscover\.json.*Powershell.*'
     $filter = "{0}/rule[@name='{1}']" -f $root, $name
     $site = "IIS:\Sites\$WebSiteName"
     Import-Module WebAdministration
@@ -299,7 +299,7 @@ function Run-Mitigate {
                 Clear-WebConfiguration -Filter $filter -PSPath $site
             }
 
-            Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'False' }
+            Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'True' }
             Set-WebConfigurationProperty -PSPath $site -filter "$filter/match" -name 'url' -value $inbound
             Set-WebConfigurationProperty -PSPath $site -filter "$filter/conditions" -name '.' -value @{input = $HttpRequestInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
             Set-WebConfigurationProperty -PSPath $site -filter "$filter/action" -name 'type' -value 'AbortRequest'
@@ -457,7 +457,7 @@ Microsoft saved several files to your system to "$EOMTv2Dir". The only files tha
                 <rule name="PowerShell - inbound">
                     <match url=".*" />
                     <conditions>
-                        <add input="{REQUEST_URI}" pattern=".*autodiscover\.json.*\@.*Powershell.*" />
+                        <add input="{REQUEST_URI}" pattern=".*autodiscover\.json.*Powershell.*" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
