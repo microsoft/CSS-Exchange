@@ -190,7 +190,7 @@ function Run-Mitigate {
     }
 
     #Configure Rewrite Rule consts
-    $HttpRequestInput = '{REQUEST_URI}'
+    $HttpRequestInput = '{UrlDecode:{REQUEST_URI}}
     $root = 'system.webServer/rewrite/rules'
     $inbound = '.*'
     $name = 'PowerShell - inbound'
@@ -457,7 +457,7 @@ Microsoft saved several files to your system to "$EOMTv2Dir". The only files tha
                 <rule name="PowerShell - inbound">
                     <match url=".*" />
                     <conditions>
-                        <add input="{REQUEST_URI}" pattern=".*autodiscover\.json.*Powershell.*" />
+                        <add input="{UrlDecode:{REQUEST_URI}}" pattern=".*autodiscover\.json.*Powershell.*" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
