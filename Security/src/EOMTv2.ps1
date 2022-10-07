@@ -194,7 +194,7 @@ function Run-Mitigate {
     $root = 'system.webServer/rewrite/rules'
     $inbound = '.*'
     $name = 'PowerShell - inbound'
-    $pattern = '.*autodiscover\.json.*Powershell.*'
+    $pattern = '(?=.*autodiscover)(?=.*powershell)'
     $filter = "{0}/rule[@name='{1}']" -f $root, $name
     $site = "IIS:\Sites\$WebSiteName"
     Import-Module WebAdministration
@@ -457,7 +457,7 @@ Microsoft saved several files to your system to "$EOMTv2Dir". The only files tha
                 <rule name="PowerShell - inbound">
                     <match url=".*" />
                     <conditions>
-                        <add input="{UrlDecode:{REQUEST_URI}}" pattern=".*autodiscover\.json.*Powershell.*" />
+                        <add input="{UrlDecode:{REQUEST_URI}}" pattern="(?=.*autodiscover)(?=.*powershell)" />
                     </conditions>
                     <action type="AbortRequest" />
                 </rule>
