@@ -512,7 +512,7 @@ begin {
                     Write-Progress @progressParams
                     Write-Progress @outlookAnywhereProgressParams
                     # Needs to be SilentlyContinue to handle down servers, we must also exclude pre Exchange 2013 servers
-                    $outlookAnywhere = $outlookAnywhereServers | Get-OutlookAnywhere -ErrorAction SilentlyContinue |
+                    $outlookAnywhere = $outlookAnywhereServers | Get-OutlookAnywhere -ADPropertiesOnly -ErrorAction SilentlyContinue |
                         ForEach-Object {
                             $outlookAnywhereCount++
                             $outlookAnywhereProgressParams.PercentComplete = ($outlookAnywhereCount / $outlookAnywhereTotalCount * 100)
