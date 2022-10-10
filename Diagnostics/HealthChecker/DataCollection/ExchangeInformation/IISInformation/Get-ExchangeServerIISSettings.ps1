@@ -2,22 +2,36 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
+. $PSScriptRoot\Get-IISWebApplication.ps1
+. $PSScriptRoot\Get-IISWebSite.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
 
 function Get-ExchangeServerIISSettings {
     param(
         [string]$ComputerName,
-        [string]$ExchangeInstallPath,
         [bool]$IsLegacyOS = $false,
         [scriptblock]$CatchActionFunction
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
+        $params = @{
+            ComputerName        = $ComputerName
+            CatchActionFunction = $CatchActionFunction
+        }
+
+        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite}
+        $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication}
+
+        $configurationFiles = @($webSite.PhysicalPath)
+        $configurationFiles += $webApplication.PhysicalPath | Select-Object -Unique
+        $configurationFiles = $configurationFiles | ForEach-Object { [System.IO.Path]::Combine($_, "web.config") }
+
         $iisConfigParams = @{
             MachineName         = $ComputerName
-            ExchangeInstallPath = $ExchangeInstallPath
+            FilePath            = $configurationFiles
             CatchActionFunction = $CatchActionFunction
         }
         Write-Verbose "Trying to query the IIS configuration settings"
@@ -42,6 +56,8 @@ function Get-ExchangeServerIISSettings {
             applicationHostConfig    = $applicationHostConfig
             IISModulesInformation    = $iisModulesInformation
             IISConfigurationSettings = $iisConfigurationSettings
+            IISWebSite               = $webSite
+            IISWebApplication        = $webApplication
         }
     }
 }
