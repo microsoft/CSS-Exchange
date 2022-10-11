@@ -29,7 +29,6 @@ Mock Get-WmiObjectHandler {
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Trying to get the System.Environment ProcessorCount" } -MockWith { return 4 }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Current Time Zone" } -MockWith { return "Pacific Standard Time" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_getexchangemitigations.xml" }
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Exchange Install Directory" } -MockWith { return "hi" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetApplicationHostConfig.xml" }
 
 
@@ -50,6 +49,7 @@ Mock Get-RemoteRegistryValue {
         "Enabled" { return 0 }
         "DisableGranularReplication" { return 0 }
         "DisableAsyncNotification" { return 0 }
+        "MsiInstallPath" { return "C:\Program Files\Microsoft\Exchange Server\V15" }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -232,4 +232,16 @@ function Get-ReceiveConnector {
 
 function Get-SendConnector {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml"
+}
+
+function Get-WebSite {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebSite.xml"
+}
+
+function Get-WebBinding {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebBinding.xml"
+}
+
+function Get-WebApplication {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebApplication.xml"
 }

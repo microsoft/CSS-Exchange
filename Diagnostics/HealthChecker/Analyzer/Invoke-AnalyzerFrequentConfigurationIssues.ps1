@@ -198,10 +198,31 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     $_.Location -like "*FrontEnd\HttpProxy*") {
                     return $_
                 }
+            } |
+            Where-Object {
+                # these are locations that don't by default have configuration files.
+                $_.Location -notlike "*\ClientAccess\web.config" -and $_.Location -notlike "*\ClientAccess\exchweb\EWS\bin\web.config" -and
+                $_.Location -notlike "*\ClientAccess\Autodiscover\bin\web.config" -and $_.Location -notlike "*\ClientAccess\Autodiscover\help\web.config"
             }
+
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
-        $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $_.DefaultVariable -eq $true }
-        $binSearchFoldersNotFound = $iisConfigurationSettings | Where-Object { $_.BinSearchFoldersNotFound -eq $true }
+        $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
+        $binSearchFoldersNotFound = $iisConfigurationSettings |
+            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true } |
+            Where-Object {
+                $binSearchFolders = $_.Content | Select-String "BinSearchFolders" | Select-Object -ExpandProperty Line
+                $startIndex = $binSearchFolders.IndexOf("value=`"") + 7
+                $paths = $binSearchFolders.Substring($startIndex, $binSearchFolders.LastIndexOf("`"") - $startIndex).Split(";").Trim().ToLower()
+                $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
+                $installPath = $exchangeInformation.RegistryValues.MisInstallPath
+                foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
+                    $testPath = [System.IO.Path]::Combine($installPath, $binTestPath).ToLower()
+                    Write-Verbose "Testing path: $testPath"
+                    if (-not ($paths.Contains($testPath))) {
+                        return $_
+                    }
+                }
+            }
 
         if ($null -ne $missingConfigFile) {
             $params = $baseParams + @{
