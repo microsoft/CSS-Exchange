@@ -201,7 +201,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             } |
             Where-Object {
                 # these are locations that don't by default have configuration files.
-                $_.Location -notlike "*\ClientAccess\web.config" -and $_.Location -notlike "*\ClientAccess\exchweb\EWS\bin\web.config"
+                $_.Location -notlike "*\ClientAccess\web.config" -and $_.Location -notlike "*\ClientAccess\exchweb\EWS\bin\web.config" -and
+                $_.Location -notlike "*\ClientAccess\Autodiscover\bin\web.config" -and $_.Location -notlike "*\ClientAccess\Autodiscover\help\web.config"
             }
 
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
