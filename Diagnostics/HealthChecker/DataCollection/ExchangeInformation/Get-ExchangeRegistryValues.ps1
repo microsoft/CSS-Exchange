@@ -35,10 +35,16 @@ function Get-ExchangeRegistryValues {
         GetValue = "DisableAsyncNotification"
     }
 
+    $installDirectoryParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup"
+        GetValue = "MsiInstallPath"
+    }
+
     return [PSCustomObject]@{
         CtsProcessorAffinityPercentage = [int](Get-RemoteRegistryValue @ctsParams)
         FipsAlgorithmPolicyEnabled     = [int](Get-RemoteRegistryValue @fipsParams)
         DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
         DisableAsyncNotification       = [int](Get-RemoteRegistryValue @disableAsyncParams)
+        MisInstallPath                 = [string](Get-RemoteRegistryValue @installDirectoryParams)
     }
 }
