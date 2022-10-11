@@ -5,7 +5,6 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAdPermissions.ps1
@@ -455,13 +454,8 @@ function Get-ExchangeInformation {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
-        $serverExchangeInstallDirectory = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
-            -ScriptBlockDescription "Getting Exchange Install Directory" `
-            -CatchActionFunction ${Function:Invoke-CatchActions} `
-            -ScriptBlock {
-            (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup).MsiInstallPath
-        }
-        $serverExchangeBinDirectory = [System.Io.Path]::Combine($serverExchangeInstallDirectory, "Bin\")
+        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($exchangeInformation.RegistryValues.MisInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
@@ -527,8 +521,6 @@ function Get-ExchangeInformation {
         }
 
         $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipfsParams
-
-        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
