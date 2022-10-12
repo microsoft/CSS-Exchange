@@ -348,11 +348,13 @@ If you want to enable Extended Protection in your environment manually without u
     5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
     6. ComplianceOutlookLogonToArchiveRpcCtpProbe
 
-You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
+   You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
 
-**Impact of these failures**: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.
+   **Impact of these failures**: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.
 
-You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
+   You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
+
+   **Fixed:** This issue has been addressed with the [October 2022 Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263).
 
 ## Troubleshooting issues after enabling Extended Protection
 
