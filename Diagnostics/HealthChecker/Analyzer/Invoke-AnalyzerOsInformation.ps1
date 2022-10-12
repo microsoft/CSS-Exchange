@@ -254,7 +254,8 @@ function Invoke-AnalyzerOsInformation {
     $displayWriteType = "Grey"
     $displayValue = $osInformation.NetworkInformation.HttpProxy.ProxyAddress
 
-    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") {
+    if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
         $displayValue = "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues."
         $displayWriteType = "Yellow"
     }
