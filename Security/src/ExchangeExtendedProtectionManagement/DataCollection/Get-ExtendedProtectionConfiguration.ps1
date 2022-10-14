@@ -338,20 +338,30 @@ function Get-ExtendedProtectionConfiguration {
                     $expectedExtendedConfiguration = if ($supportedVersion) { $matchEntry.ExtendedProtection } else { "None" }
                     $virtualDirectoryName = "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
 
+                    # Properly Secured Configuration is only a concern if Required is the Expected value
+                    # If the Expected value is None or Allow, you can have it configured however you would like and from a security standpoint, it shouldn't be a concern.
+                    # For a mitigation scenario, like EWS BE, Required is the Expected value. Therefore, on those directories, we need to verify that IP filtering is set if not set to Require.
+                    if ($expectedExtendedConfiguration -eq "Require") {
+                        $properlySecuredConfiguration = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+
+                        if ($properlySecuredConfiguration -eq $false) {
+                            # Only care about virtual directories that we allow mitigation for
+                            $properlySecuredConfiguration = $mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower()) -and
+                            $extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false"
+                        }
+                    } else {
+                        $properlySecuredConfiguration = $true
+                    }
+
                     $extendedProtectionList.Add([PSCustomObject]@{
                             VirtualDirectoryName          = $virtualDirectoryName
                             Configuration                 = $extendedConfiguration
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
-                            MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false)
+                            MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
                             MitigationSupported           = $mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower())
-                            ProperlySecuredConfiguration  = ((($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false) -and
-                                                              (($extendedConfiguration.ExtendedProtection -eq "None") -and
-                                                              ($mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower()))) -or
-                                                              ($expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection)) -or
-                                                             (($extendedConfiguration.MitigationSettings.AllowUnlisted -ne $false) -and
-                                                              ($expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection)))
+                            ProperlySecuredConfiguration  = $properlySecuredConfiguration
                             ExpectedSslFlags              = $matchEntry.SslFlags
                             SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
