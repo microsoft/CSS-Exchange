@@ -49,17 +49,6 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     # Recommended action: Upgrade to a supported build (Aug 2022 SU+) and enable EP afterwards.
                     $epDetails = "Your Exchange server is at risk. Install the latest SU and enable Extended Protection"
                 } else {
-                    if ($extendedProtection.ExtendedProtectionConfiguration | Where-Object {
-                        (($_.MitigationEnabled) -and
-                         ($_.ProperlySecuredConfiguration -eq $false))
-                        }) {
-                        # This means that EP is supported and configured. On at least 1 vDir is IP filtering configured to mitigate known issues with Extended Protection.
-                        # We've detected that EP was not set to "None" on the EWS Back End vDir for which the IP filtering was turned on. This can cause issues.
-                        # Recommended action: Set EP to "None" on the EWS Back End vDir where IP filtering is enabled and was configured.
-                        $epDetails = "Extended Protection must be set to 'None' on the EWS Back End vDir when IP filtering is enabled`n`t`t"
-                        $epDetails += "On other vDirs it must be set to the supported value regardless of whether IP filtering is enabled or not`n`t`t"
-                    }
-
                     # This means that EP is supported but not configured for at least one vDir.
                     # Recommended action: Enable EP for each vDir on the system by using the script provided by us.
                     $epDetails += "Extended Protection isn't configured as expected"
