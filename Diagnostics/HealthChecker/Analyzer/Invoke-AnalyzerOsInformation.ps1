@@ -254,7 +254,8 @@ function Invoke-AnalyzerOsInformation {
     $displayWriteType = "Grey"
     $displayValue = $osInformation.NetworkInformation.HttpProxy.ProxyAddress
 
-    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") {
+    if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
         $displayValue = "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues."
         $displayWriteType = "Yellow"
     }
@@ -276,8 +277,9 @@ function Invoke-AnalyzerOsInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None" -and
-        $osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) {
+    if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
+        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
+        ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy.Authority)) {
         $params = $baseParams + @{
             Details                = "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy."
             DisplayWriteType       = "Red"
