@@ -54,9 +54,10 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                          ($_.ProperlySecuredConfiguration -eq $false))
                         }) {
                         # This means that EP is supported and configured. On at least 1 vDir is IP filtering configured to mitigate known issues with Extended Protection.
-                        # We've detected that EP was not set to "None" on the vDir for which the IP filtering was turned on. This can cause issues.
-                        # Recommended action: Set EP to "None" on the vDir where IP filtering is enabled and was configured.
-                        $epDetails = "Extended Protection should be set to 'None' on the vDir where IP filtering is enabled`n`t`t"
+                        # We've detected that EP was not set to "None" on the EWS Back End vDir for which the IP filtering was turned on. This can cause issues.
+                        # Recommended action: Set EP to "None" on the EWS Back End vDir where IP filtering is enabled and was configured.
+                        $epDetails = "Extended Protection must be set to 'None' on the EWS Back End vDir when IP filtering is enabled`n`t`t"
+                        $epDetails += "On other vDirs it must be set to the supported value regardless of whether IP filtering is enabled or not`n`t`t"
                     }
 
                     # This means that EP is supported but not configured for at least one vDir.
@@ -93,7 +94,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     $listToAdd.Add(([PSCustomObject]@{
                                 $vDirArray[0]     = $vDirArray[1]
                                 Value             = $entry.ExtendedProtection
-                                SupportedValue    = if ($entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
+                                SupportedValue    = if ($entry.MitigationSupported) { "None" } else { $entry.ExpectedExtendedConfiguration }
                                 ConfigSupported   = $entry.ProperlySecuredConfiguration
                                 RequireSSL        = "$($ssl.RequireSSL) $(if($ssl.Ssl128Bit) { "(128-bit)" })".Trim()
                                 ClientCertificate = $ssl.ClientCertificate

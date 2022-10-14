@@ -288,6 +288,11 @@ function Get-ExtendedProtectionConfiguration {
         } else {
             Write-Verbose "Not on Exchange Version 15"
         }
+
+        # Add all vDirs for which the IP filtering mitigation is supported - make sure to add additional entries are in lower case
+        $mitigationSupportedvDirs = @(
+            "exchange back end/ews"
+        )
     }
     process {
         try {
@@ -329,16 +334,20 @@ function Get-ExtendedProtectionConfiguration {
                     }
 
                     $expectedExtendedConfiguration = if ($supportedVersion) { $matchEntry.ExtendedProtection } else { "None" }
+                    $virtualDirectoryName = "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
 
                     $extendedProtectionList.Add([PSCustomObject]@{
-                            VirtualDirectoryName          = "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
+                            VirtualDirectoryName          = $virtualDirectoryName
                             Configuration                 = $extendedConfiguration
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false)
+                            MitigationSupported           = $mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower())
                             ProperlySecuredConfiguration  = ((($extendedConfiguration.MitigationSettings.AllowUnlisted -eq $false) -and
-                                                              ($extendedConfiguration.ExtendedProtection -eq "None")) -or
+                                                              (($extendedConfiguration.ExtendedProtection -eq "None") -and
+                                                              ($mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower()))) -or
+                                                              ($expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection)) -or
                                                              (($extendedConfiguration.MitigationSettings.AllowUnlisted -ne $false) -and
                                                               ($expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection)))
                             ExpectedSslFlags              = $matchEntry.SslFlags
