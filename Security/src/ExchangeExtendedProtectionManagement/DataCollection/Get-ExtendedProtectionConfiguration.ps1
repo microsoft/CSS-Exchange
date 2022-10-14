@@ -27,6 +27,7 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
+        [ValidateSet("Exchange Back End/EWS")]
         [string[]]$SiteVDirLocations,
 
         [Parameter(Mandatory = $false)]
@@ -289,10 +290,11 @@ function Get-ExtendedProtectionConfiguration {
             Write-Verbose "Not on Exchange Version 15"
         }
 
-        # Add all vDirs for which the IP filtering mitigation is supported - make sure to add additional entries are in lower case
-        $mitigationSupportedvDirs = @(
-            "exchange back end/ews"
-        )
+        # Add all vDirs for which the IP filtering mitigation is supported
+        $mitigationSupportedvDirs = $MyInvocation.MyCommand.Parameters["SiteVDirLocations"].Attributes |
+            Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+            ForEach-Object { return $_.ValidValues.ToLower() }
+        Write-Verbose "Supported mitigated virtual directories: $([string]::Join(",", $mitigationSupportedvDirs))"
     }
     process {
         try {
