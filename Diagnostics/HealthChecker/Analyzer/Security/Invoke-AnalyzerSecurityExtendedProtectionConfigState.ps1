@@ -83,7 +83,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     $listToAdd.Add(([PSCustomObject]@{
                                 $vDirArray[0]     = $vDirArray[1]
                                 Value             = $entry.ExtendedProtection
-                                SupportedValue    = if ($entry.MitigationSupported) { "None" } else { $entry.ExpectedExtendedConfiguration }
+                                SupportedValue    = if ($entry.MitigationSupported -and $entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
                                 ConfigSupported   = $entry.ProperlySecuredConfiguration
                                 RequireSSL        = "$($ssl.RequireSSL) $(if($ssl.Ssl128Bit) { "(128-bit)" })".Trim()
                                 ClientCertificate = $ssl.ClientCertificate
