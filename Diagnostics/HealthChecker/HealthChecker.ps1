@@ -90,7 +90,7 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
     [string]$Server = ($env:COMPUTERNAME),
     [Parameter(Mandatory = $false)]
-    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$OutputFilePath = ".",
+    [ValidateScript( { -not $_.ToString().EndsWith('\') -and (Test-Path $_) })][string]$OutputFilePath = ".",
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
     [switch]$MailboxReport,
     [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
@@ -173,11 +173,6 @@ function Main {
         $importData = Import-MyData -FilePaths $fullPaths
         Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
         Start-Sleep 2;
-        return
-    }
-
-    if ((Test-Path $OutputFilePath) -eq $false) {
-        Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
         return
     }
 
