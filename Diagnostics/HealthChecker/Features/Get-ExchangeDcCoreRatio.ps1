@@ -41,7 +41,8 @@ function Get-ComputerCoresObject {
 
 function Get-ExchangeDCCoreRatio {
 
-    Invoke-ScriptLogFileLocation -FileName "HealthChecker-ExchangeDCCoreRatio"
+    Invoke-SetOutputInstanceLocation -FileName "HealthChecker-ExchangeDCCoreRatio"
+    Invoke-ConfirmExchangeShell
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     Write-Grey("Exchange Server Health Checker Report - AD GC Core to Exchange Server Core Ratio - v{0}" -f $BuildVersion)
     $coreRatioObj = New-Object PSCustomObject

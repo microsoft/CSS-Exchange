@@ -133,7 +133,8 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
 . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
 . $PSScriptRoot\Helpers\Import-MyData.ps1
-. $PSScriptRoot\Helpers\Invoke-ScriptLogFileLocation.ps1
+. $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
+. $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
 . $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
 . $PSScriptRoot\Helpers\Class.ps1
 . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
@@ -171,7 +172,7 @@ function Main {
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
     if ($BuildHtmlServersReport) {
-        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-HTMLServerReport"
+        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-HTMLServerReport"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
@@ -181,7 +182,8 @@ function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-LoadBalancingReport"
+        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-LoadBalancingReport"
+        Invoke-ConfirmExchangeShell
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -202,14 +204,15 @@ function Main {
     }
 
     if ($MailboxReport) {
-        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+        Invoke-ConfirmExchangeShell
         Get-MailboxDatabaseAndMailboxStatistics -Server $ServerInstance
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
     }
 
     if ($AnalyzeDataOnly) {
-        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-Analyzer"
+        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-Analyzer"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
@@ -226,7 +229,7 @@ function Main {
     }
 
     if ($ScriptUpdateOnly) {
-        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-ScriptUpdateOnly"
+        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-ScriptUpdateOnly"
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
             ($true) { Write-Green("Script was successfully updated.") }
             ($false) { Write-Yellow("No update of the script performed.") }
@@ -235,7 +238,8 @@ function Main {
         return
     }
 
-    Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker" -IncludeServerName $true
+    Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker" -IncludeServerName $true
+    Invoke-ConfirmExchangeShell
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and

@@ -10,10 +10,8 @@ function Invoke-ScriptLogFileLocation {
         [Parameter(Mandatory = $true)]
         [string]$FileName,
 
-        [Parameter(Mandatory = $false)]
-        [bool]$IncludeServerName = $false
-    )
-    $endName = "-{0}.txt" -f $dateTimeStringFormat
+    #TODO: Fix $Server
+    $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($IncludeServerName) {
         $endName = "-{0}{1}" -f $Server, $endName
@@ -39,7 +37,7 @@ function Invoke-ScriptLogFileLocation {
 
     if ($Script:ExchangeShellComputer.ToolsOnly -and
         $env:COMPUTERNAME -eq $Server -and
-        !($LoadBalancingReport)) {
+        -not ($LoadBalancingReport)) {
         Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
         $Script:Logger.PreventLogCleanup = $true
         exit
