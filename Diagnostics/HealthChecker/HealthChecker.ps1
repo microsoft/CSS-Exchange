@@ -151,6 +151,10 @@ if ($PSBoundParameters["Verbose"]) {
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 function Main {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ServerInstance
+    )
 
     if (-not (Confirm-Administrator) -and
         (-not $AnalyzeDataOnly -and
@@ -167,7 +171,7 @@ function Main {
     $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
     if ($BuildHtmlServersReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
+        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-HTMLServerReport"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
@@ -177,7 +181,7 @@ function Main {
     }
 
     if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
+        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-LoadBalancingReport"
         Write-Green("Client Access Load Balancing Report on " + $date)
         Get-CASLoadBalancingReport
         Write-Grey("Output file written to " + $OutputFullPath)
@@ -198,14 +202,14 @@ function Main {
     }
 
     if ($MailboxReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
-        Get-MailboxDatabaseAndMailboxStatistics
+        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+        Get-MailboxDatabaseAndMailboxStatistics -Server $ServerInstance
         Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
         return
     }
 
     if ($AnalyzeDataOnly) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
+        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-Analyzer"
         $files = Get-HealthCheckFilesItemsFromLocation
         $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
         $importData = Import-MyData -FilePaths $fullPaths
@@ -222,7 +226,7 @@ function Main {
     }
 
     if ($ScriptUpdateOnly) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
+        Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker-ScriptUpdateOnly"
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
             ($true) { Write-Green("Script was successfully updated.") }
             ($false) { Write-Yellow("No update of the script performed.") }
@@ -231,7 +235,7 @@ function Main {
         return
     }
 
-    Invoke-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true
+    Invoke-ScriptLogFileLocation -Server $ServerInstance -FileName "HealthChecker" -IncludeServerName $true
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
@@ -244,8 +248,8 @@ function Main {
     }
 
     Invoke-ErrorCatchActionLoopFromIndex $currentErrors
-    Test-RequiresServerFqdn
-    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
+    Test-RequiresServerFqdn -Server $ServerInstance
+    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerInstance $ServerInstance
     $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
     Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
     $currentErrors = $Error.Count
@@ -272,13 +276,13 @@ function Main {
 }
 
 try {
-    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-$($Script:Server)-Debug" `
+    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-Debug" `
         -LogDirectory $OutputFilePath `
         -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
-    Main
+    Main -ServerInstance $Server
 } finally {
     Get-ErrorsThatOccurred
     if ($Script:VerboseEnabled) {

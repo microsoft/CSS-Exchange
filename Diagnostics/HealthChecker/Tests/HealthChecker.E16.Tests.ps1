@@ -16,7 +16,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
     Context "Basic Exchange 2016 CU22 Testing" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -144,7 +144,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\HyperV_Win32_Processor1.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }

@@ -32,7 +32,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
 
     Context "Valid Exchange Server Certificates Detected" {
         BeforeAll {
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "Valid Auth Certificate (using weak SHA1 Hash Algorithm) Detected" {
@@ -71,7 +71,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "No Matching Auth Certificate Found" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateWithoutAuth.xml }
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "Get Auth Config But No Matching Certificate" {
@@ -87,7 +87,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Auth Configuration Call Failed" {
         BeforeAll {
             Mock Get-AuthConfig -MockWith { throw "Bad thing happened - Get-AuthConfig" }
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "Unable To Find Valid Auth Certificate" {
@@ -104,7 +104,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "No Exchange Server Certificate Returned" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return $null }
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "No Custom Certifiate Object Returned" {
@@ -115,7 +115,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Get-ExchangeCertificate Call Hit An Exception" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { throw "Bad thing happened - Get-ExchangeCertificate" }
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "No Custom Certificate Object Returned And Exception Logged" {
@@ -127,7 +127,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Check If Certificates On Skiplist Are Skipped" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateOnAzure.xml }
-            $Script:results = Get-ExchangeServerCertificates
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
         It "Should Not Return The 'Windows Azure CRP Certificate Generator' Certificate" {

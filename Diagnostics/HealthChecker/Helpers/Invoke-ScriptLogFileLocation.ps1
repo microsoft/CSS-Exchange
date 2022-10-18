@@ -4,13 +4,19 @@
 . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
 function Invoke-ScriptLogFileLocation {
     param(
-        [Parameter(Mandatory = $true)][string]$FileName,
-        [Parameter(Mandatory = $false)][bool]$IncludeServerName = $false
+        [Parameter(Mandatory = $true)]
+        [string]$Server,
+
+        [Parameter(Mandatory = $true)]
+        [string]$FileName,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$IncludeServerName = $false
     )
     $endName = "-{0}.txt" -f $dateTimeStringFormat
 
     if ($IncludeServerName) {
-        $endName = "-{0}{1}" -f $Script:Server, $endName
+        $endName = "-{0}{1}" -f $Server, $endName
     }
 
     $Script:OutputFullPath = "{0}\{1}{2}" -f $OutputFilePath, $FileName, $endName
@@ -32,7 +38,7 @@ function Invoke-ScriptLogFileLocation {
     }
 
     if ($Script:ExchangeShellComputer.ToolsOnly -and
-        $env:COMPUTERNAME -eq $Script:Server -and
+        $env:COMPUTERNAME -eq $Server -and
         !($LoadBalancingReport)) {
         Write-Yellow("Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against.")
         $Script:Logger.PreventLogCleanup = $true

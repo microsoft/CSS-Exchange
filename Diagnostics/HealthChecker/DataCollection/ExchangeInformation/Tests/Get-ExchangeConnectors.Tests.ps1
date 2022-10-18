@@ -33,7 +33,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificate.xml }
         Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnector.xml }
         Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetReceiveConnector.xml }
-        $Script:exchangeCertificates = Get-ExchangeServerCertificates
+        $Script:exchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
     }
 
     Context "Validate Exchange Connectors Return Object" {
@@ -122,7 +122,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Multiple Matching Certificate Found On The System" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateMultipleMatches.xml }
-            $Script:multipleMatchingExchangeCertificates = Get-ExchangeServerCertificates
+            $Script:multipleMatchingExchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $multipleMatchingExchangeCertificates
         }
 
@@ -143,7 +143,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Cloud Mail Enabled And TlsCertificateName Set But Certificate Not On The System" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateIncomplete.xml }
-            $Script:missingExchangeCertificate = Get-ExchangeServerCertificates
+            $Script:missingExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $missingExchangeCertificate
 
             [array]$cloudConnectors = $null
@@ -166,7 +166,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "No Certificate Object Was Passed To The Function" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return $null }
-            $Script:emptyExchangeCertificate = Get-ExchangeServerCertificates
+            $Script:emptyExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $emptyExchangeCertificate
         }
 

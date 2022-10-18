@@ -3,12 +3,16 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 function Get-LmCompatibilityLevelInformation {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.LmCompatibilityLevelInformation]$ServerLmCompatObject = New-Object -TypeName HealthChecker.LmCompatibilityLevelInformation
     $registryValue = Get-RemoteRegistryValue -RegistryHive "LocalMachine" `
-        -MachineName $Script:Server `
+        -MachineName $Server `
         -SubKey "SYSTEM\CurrentControlSet\Control\Lsa" `
         -GetValue "LmCompatibilityLevel" `
         -ValueType "DWord" `

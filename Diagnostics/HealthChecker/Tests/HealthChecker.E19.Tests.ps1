@@ -17,7 +17,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
     Context "Basic Exchange 2019 CU11 Testing HyperV" {
         BeforeAll {
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_HyperV_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -148,7 +148,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -210,7 +210,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
 
             $Error.Clear()
-            Get-HealthCheckerExchangeServer | Out-Null
+            Get-HealthCheckerExchangeServer -ServerInstance $Script:Server | Out-Null
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
             Assert-MockCalled Invoke-CatchActions -Exactly 1
@@ -284,7 +284,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService1.xml"
             }
 
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -401,7 +401,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -464,7 +464,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -504,7 +504,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFile Configured As Expected" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Well_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -523,7 +523,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFile Oversized" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileOverSized.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_OverSized_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -542,7 +542,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFile System-managed" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileSystemManaged.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_SystemManaged_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -561,7 +561,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFiles One System Managed, One Static" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneSystemManaged.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -590,7 +590,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFiles One Correct, One OverSized" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneOverSized.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -621,7 +621,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         BeforeAll {
             #This causes a RuntimeException because of issue #743 when not fixed
             Mock Get-MailboxServer { throw "Pester testing" }
-            $hc = Get-HealthCheckerExchangeServer
+            $hc = Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             $hc | Export-Clixml $PSScriptRoot\Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -638,7 +638,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $Error.Clear()
             Mock Get-WmiObjectHandler { return $null }
             try {
-                Get-HealthCheckerExchangeServer
+                Get-HealthCheckerExchangeServer -ServerInstance $Script:Server
             } catch {
                 $_ | Should -Be "Failed to get critical information. Stopping the script. InnerException: "
             }

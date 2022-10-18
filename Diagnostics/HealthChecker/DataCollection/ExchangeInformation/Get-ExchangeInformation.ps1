@@ -23,23 +23,26 @@
 . $PSScriptRoot\Get-ServerRole.ps1
 function Get-ExchangeInformation {
     param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server,
+
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: OSMajorVersion: $OSMajorVersion"
     [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
-    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Script:Server -Status)
-    $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates
+    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
+    $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates -Server $Server
     $buildInformation = $exchangeInformation.BuildInformation
     $buildVersionInfo = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
     $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildVersionInfo.MajorVersion)
     $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $buildVersionInfo.Major, $buildVersionInfo.Minor, $buildVersionInfo.Build, $buildVersionInfo.Revision
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
-    $buildInformation.ExchangeSetup = Get-ExSetupDetails
-    $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Script:Server)
+    $buildInformation.ExchangeSetup = Get-ExSetupDetails -Server $Server
+    $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Server)
 
     if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
         try {
-            $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Script:Server -ErrorAction Stop)
+            $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Server -ErrorAction Stop)
         } catch {
             Write-Verbose "Failed to run Get-MailboxServer"
             Invoke-CatchActions
@@ -51,8 +54,8 @@ function Get-ExchangeInformation {
         ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
             ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
         $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
-        $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Script:Server) -ADPropertiesOnly
-        $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server
+        $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Server) -ADPropertiesOnly
+        $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Server
     }
 
     if ($Script:ExchangeShellComputer.ToolsOnly) {
@@ -424,7 +427,7 @@ function Get-ExchangeInformation {
 
         $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
             -RequiredInformation ([PSCustomObject]@{
-                ComputerName       = $Script:Server
+                ComputerName       = $Server
                 MitigationsEnabled = $mitigationsEnabled
                 GetExchangeServer  = $exchangeInformation.GetExchangeServer
             }) `
@@ -454,12 +457,12 @@ function Get-ExchangeInformation {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
-        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($exchangeInformation.RegistryValues.MisInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
-            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation
+            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Server $Server
             try {
                 $exchangeInformation.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
             } catch {
@@ -469,11 +472,11 @@ function Get-ExchangeInformation {
 
             Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
             $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
-                -ComputerName $Script:Server `
+                -ComputerName $Server `
                 -CertificateObject $exchangeInformation.ExchangeCertificates
 
             $exchangeServerIISParams = @{
-                ComputerName        = $Script:Server
+                ComputerName        = $Server
                 IsLegacyOS          = ($OSMajorVersion -lt [HealthChecker.OSServerVersion]::Windows2016)
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
@@ -486,7 +489,7 @@ function Get-ExchangeInformation {
 
             Write-Verbose "Query extended protection configuration for multiple CVEs testing"
             $getExtendedProtectionConfigurationParams = @{
-                ComputerName        = $Script:Server
+                ComputerName        = $Server
                 ExSetupVersion      = $buildInformation.ExchangeSetup.FileVersion
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
@@ -494,9 +497,9 @@ function Get-ExchangeInformation {
             $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
         }
 
-        $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+        $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
 
-        $buildInformation.KBsInstalled = Get-ExchangeUpdates -ExchangeMajorVersion $buildInformation.MajorVersion
+        $buildInformation.KBsInstalled = Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $buildInformation.MajorVersion
         if (($null -ne $buildInformation.KBsInstalled) -and ($buildInformation.KBsInstalled -like "*KB5000871*")) {
             Write-Verbose "March 2021 SU: KB5000871 was detected on the system"
             $buildInformation.March2021SUInstalled = $true
@@ -515,19 +518,19 @@ function Get-ExchangeInformation {
 
         Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
         $fipfsParams = @{
-            ComputerName   = $Script:Server
+            ComputerName   = $Server
             ExSetupVersion = $buildInformation.ExchangeSetup.FileVersion
             ServerRole     = $buildInformation.ServerRole
         }
 
         $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipfsParams
-        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
-        $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
+        $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
             try {
-                $testServiceHealthResults = Test-ServiceHealth -Server $Script:Server -ErrorAction Stop
+                $testServiceHealthResults = Test-ServiceHealth -Server $Server -ErrorAction Stop
                 foreach ($notRunningService in $testServiceHealthResults.ServicesNotRunning) {
                     if ($exchangeInformation.ExchangeServicesNotRunning -notcontains $notRunningService) {
                         $exchangeInformation.ExchangeServicesNotRunning += $notRunningService
