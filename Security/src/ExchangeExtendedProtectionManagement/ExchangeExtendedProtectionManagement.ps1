@@ -79,7 +79,10 @@ param(
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
-    [string[]]$RollbackType
+    [string[]]$RollbackType,
+
+    [Parameter (Mandatory = $false, HelpMessage = "Using this switch will prevent the script from checking for an updated version.")]
+    [switch]$SkipAutoUpdate
 )
 
 begin {
@@ -217,9 +220,13 @@ begin {
         $BuildVersion = ""
         Write-Host "Version $BuildVersion"
 
-        if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
+        if ($SkipAutoUpdate) {
+            Write-Verbose "Skipping AutoUpdate"
+        } elseif ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CEP-VersionsUrl")) {
             Write-Warning "Script was updated. Please rerun the command."
             exit
+        } else {
+            Write-Verbose "Script is up to date."
         }
 
         if ($ConfigureEPSelected) {
