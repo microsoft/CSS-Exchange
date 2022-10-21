@@ -120,8 +120,8 @@ function Get-ExchangeDCCoreRatio {
         Write-Green("Your Exchange Environment meets the recommended core ratio of 8:1 guidelines.")
     }
 
-    $XMLDirectoryPath = $OutputFullPath.Replace(".txt", ".xml")
+    $XMLDirectoryPath = $Script:OutputFullPath.Replace(".txt", ".xml")
     $coreRatioObj | Export-Clixml $XMLDirectoryPath
-    Write-Grey("Output file written to {0}" -f $OutputFullPath)
+    Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
     Write-Grey("Output XML Object file written to {0}" -f $XMLDirectoryPath)
 }

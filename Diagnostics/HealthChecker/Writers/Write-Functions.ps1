@@ -5,25 +5,25 @@
 function Write-Red($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
-    $message | Out-File ($OutputFullPath) -Append
+    $message | Out-File ($Script:OutputFullPath) -Append
 }
 
 function Write-Yellow($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Yellow
-    $message | Out-File ($OutputFullPath) -Append
+    $message | Out-File ($Script:OutputFullPath) -Append
 }
 
 function Write-Green($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Green
-    $message | Out-File ($OutputFullPath) -Append
+    $message | Out-File ($Script:OutputFullPath) -Append
 }
 
 function Write-Grey($message) {
     Write-DebugLog $message
     Write-Host $message
-    $message | Out-File ($OutputFullPath) -Append
+    $message | Out-File ($Script:OutputFullPath) -Append
 }
 
 function Write-DebugLog($message) {
@@ -40,7 +40,7 @@ function Write-OutColumns($OutColumns) {
                 -ColorizerFunctions $OutColumns.ColorizerFunctions `
                 -IndentSpaces $OutColumns.IndentSpaces `
                 -StringOutput ([ref]$stringOutput)
-        $stringOutput | Out-File ($OutputFullPath) -Append
+        $stringOutput | Out-File ($Script:OutputFullPath) -Append
         Write-DebugLog $stringOutput
     }
 }

@@ -38,7 +38,7 @@ function Get-ErrorsThatOccurred {
             try {
                 $Error |
                     ConvertTo-Json |
-                    Out-File ("$OutputFilePath\HealthChecker-Errors.json")
+                    Out-File ("$Script:OutputFilePath\HealthChecker-Errors.json")
             } catch {
                 Write-Red("Failed to export the HealthChecker-Errors.json")
                 Invoke-CatchActions
