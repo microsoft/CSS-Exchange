@@ -116,189 +116,188 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-$BuildVersion = ""
+begin {
 
-$Script:VerboseEnabled = $false
-#this is to set the verbose information to a different color
-if ($PSBoundParameters["Verbose"]) {
-    #Write verbose output in cyan since we already use yellow for warnings
-    $Script:VerboseEnabled = $true
-    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
-    $Host.PrivateData.VerboseForegroundColor = "Cyan"
-}
+    . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
+    . $PSScriptRoot\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
+    . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
+    . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
+    . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
+    . $PSScriptRoot\Helpers\Import-MyData.ps1
+    . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
+    . $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
+    . $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
+    . $PSScriptRoot\Helpers\Class.ps1
+    . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
+    . $PSScriptRoot\Writers\Write-Functions.ps1
+    . $PSScriptRoot\Features\Get-HtmlServerReport.ps1
+    . $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
+    . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
+    . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
 
-. $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
-. $PSScriptRoot\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
-. $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
-. $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
-. $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
-. $PSScriptRoot\Helpers\Import-MyData.ps1
-. $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
-. $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
-. $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
-. $PSScriptRoot\Helpers\Class.ps1
-. $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
-. $PSScriptRoot\Writers\Write-Functions.ps1
-. $PSScriptRoot\Features\Get-HtmlServerReport.ps1
-. $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
-. $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
-. $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
+    . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+    . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
-. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+    $BuildVersion = ""
 
-function Main {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$ServerInstance
-    )
-
-    if (-not (Confirm-Administrator) -and
-        (-not $AnalyzeDataOnly -and
-        -not $BuildHtmlServersReport -and
-        -not $ScriptUpdateOnly)) {
-        Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
-        $Error.Clear()
-        Start-Sleep -Seconds 2;
-        exit
+    $Script:VerboseEnabled = $false
+    #this is to set the verbose information to a different color
+    if ($PSBoundParameters["Verbose"]) {
+        #Write verbose output in cyan since we already use yellow for warnings
+        $Script:VerboseEnabled = $true
+        $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
+        $Host.PrivateData.VerboseForegroundColor = "Cyan"
     }
 
-    Invoke-ErrorMonitoring
-    $Script:date = (Get-Date)
-    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
-
-    if ($BuildHtmlServersReport) {
-        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-HTMLServerReport"
-        $files = Get-HealthCheckFilesItemsFromLocation
-        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-        $importData = Import-MyData -FilePaths $fullPaths
-        Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
-        Start-Sleep 2;
-        return
-    }
-
-    if ($LoadBalancingReport) {
-        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-LoadBalancingReport"
-        Invoke-ConfirmExchangeShell
-        Write-Green("Client Access Load Balancing Report on " + $date)
-        Get-CASLoadBalancingReport
-        Write-Grey("Output file written to " + $OutputFullPath)
-        Write-Break
-        Write-Break
-        return
-    }
-
-    if ($DCCoreRatio) {
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        try {
-            Get-ExchangeDCCoreRatio
-            return
-        } finally {
-            $ErrorActionPreference = $oldErrorAction
-        }
-    }
-
-    if ($MailboxReport) {
-        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
-        Invoke-ConfirmExchangeShell
-        Get-MailboxDatabaseAndMailboxStatistics -Server $ServerInstance
-        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-        return
-    }
-
-    if ($AnalyzeDataOnly) {
-        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-Analyzer"
-        $files = Get-HealthCheckFilesItemsFromLocation
-        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-        $importData = Import-MyData -FilePaths $fullPaths
-
-        $analyzedResults = @()
-        foreach ($serverData in $importData) {
-            $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
-            Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
-            $analyzedResults += $analyzedServerResults
-        }
-
-        Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
-        return
-    }
-
-    if ($ScriptUpdateOnly) {
-        Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker-ScriptUpdateOnly"
-        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
-            ($true) { Write-Green("Script was successfully updated.") }
-            ($false) { Write-Yellow("No update of the script performed.") }
-            default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
-        }
-        return
-    }
-
-    Invoke-SetOutputInstanceLocation -Server $ServerInstance -FileName "HealthChecker" -IncludeServerName $true
-    Invoke-ConfirmExchangeShell
-    $currentErrors = $Error.Count
-
-    if ((-not $SkipVersionCheck) -and
-        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
-        Write-Yellow "Script was updated. Please rerun the command."
-        return
-    } else {
-        $Script:DisplayedScriptVersionAlready = $true
-        Write-Green "Exchange Health Checker version $BuildVersion"
-    }
-
-    Invoke-ErrorCatchActionLoopFromIndex $currentErrors
-    Test-RequiresServerFqdn -Server $ServerInstance
-    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerInstance $ServerInstance
-    $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
-    Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-    $currentErrors = $Error.Count
-
-    try {
-        $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
-    } catch {
-        Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
-        $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
-
-        $testOuputxml = [PSCustomObject]@{
-            HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
-            HtmlServerValues            = $analyzedResults.HtmlServerValues
-            DisplayResults              = $analyzedResults.DisplayResults
-        }
-
-        $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
-    } finally {
-        Invoke-ErrorCatchActionLoopFromIndex $currentErrors
-
-        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-        Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
-    }
-}
-
-try {
     $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-Debug" `
-        -LogDirectory $OutputFilePath `
+        -LogDirectory $Script:OutputFilePath `
         -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
-    Main -ServerInstance $Server
-} finally {
-    Get-ErrorsThatOccurred
-    if ($Script:VerboseEnabled) {
-        $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+} end {
+    try {
+
+        if (-not (Confirm-Administrator) -and
+            (-not $AnalyzeDataOnly -and
+            -not $BuildHtmlServersReport -and
+            -not $ScriptUpdateOnly)) {
+            Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
+            $Error.Clear()
+            Start-Sleep -Seconds 2;
+            exit
+        }
+
+        Invoke-ErrorMonitoring
+        $Script:date = (Get-Date)
+        $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
+
+        # Features that doesn't require Exchange Shell
+        if ($BuildHtmlServersReport) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-HTMLServerReport"
+            $files = Get-HealthCheckFilesItemsFromLocation
+            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+            $importData = Import-MyData -FilePaths $fullPaths
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
+            Start-Sleep 2;
+            return
+        }
+
+        if ($AnalyzeDataOnly) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-Analyzer"
+            $files = Get-HealthCheckFilesItemsFromLocation
+            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+            $importData = Import-MyData -FilePaths $fullPaths
+
+            $analyzedResults = @()
+            foreach ($serverData in $importData) {
+                $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+                Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
+                $analyzedResults += $analyzedServerResults
+            }
+
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+            return
+        }
+
+        if ($ScriptUpdateOnly) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-ScriptUpdateOnly"
+            switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
+                ($true) { Write-Green("Script was successfully updated.") }
+                ($false) { Write-Yellow("No update of the script performed.") }
+                default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
+            }
+            return
+        }
+
+        # Features that do require Exchange Shell
+        if ($LoadBalancingReport) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-LoadBalancingReport"
+            Invoke-ConfirmExchangeShell
+            Write-Green("Client Access Load Balancing Report on " + $date)
+            Get-CASLoadBalancingReport
+            Write-Grey("Output file written to " + $Script:OutputFullPath)
+            Write-Break
+            Write-Break
+            return
+        }
+
+        if ($DCCoreRatio) {
+            $oldErrorAction = $ErrorActionPreference
+            $ErrorActionPreference = "Stop"
+            try {
+                Get-ExchangeDCCoreRatio
+                return
+            } finally {
+                $ErrorActionPreference = $oldErrorAction
+            }
+        }
+
+        if ($MailboxReport) {
+            Invoke-SetOutputInstanceLocation -Server $Server -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+            Invoke-ConfirmExchangeShell
+            Get-MailboxDatabaseAndMailboxStatistics -Server $Server
+            Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+            return
+        }
+
+        # Main Feature of Health Checker
+        Invoke-SetOutputInstanceLocation -Server $Server -FileName "HealthChecker" -IncludeServerName $true
+        Invoke-ConfirmExchangeShell
+        $currentErrors = $Error.Count
+
+        if ((-not $SkipVersionCheck) -and
+            (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
+            Write-Yellow "Script was updated. Please rerun the command."
+            return
+        } else {
+            $Script:DisplayedScriptVersionAlready = $true
+            Write-Green "Exchange Health Checker version $BuildVersion"
+        }
+
+        Invoke-ErrorCatchActionLoopFromIndex $currentErrors
+        Test-RequiresServerFqdn -Server $ServerInstance
+        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerInstance $ServerInstance
+        $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
+        Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+        $currentErrors = $Error.Count
+
+        try {
+            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
+        } catch {
+            Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
+            $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
+
+            $testOuputxml = [PSCustomObject]@{
+                HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
+                HtmlServerValues            = $analyzedResults.HtmlServerValues
+                DisplayResults              = $analyzedResults.DisplayResults
+            }
+
+            $testOuputxml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
+        } finally {
+            Invoke-ErrorCatchActionLoopFromIndex $currentErrors
+
+            Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+            Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
+        }
+    } finally {
+        Get-ErrorsThatOccurred
+        if ($Script:VerboseEnabled) {
+            $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+        }
+        $Script:Logger | Invoke-LoggerInstanceCleanup
+        if ($Script:Logger.PreventLogCleanup) {
+            Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
+        }
+        if (((Get-Date).Ticks % 2) -eq 1) {
+            Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
+            Write-Host
+        }
+        RevertProperForegroundColor
     }
-    $Script:Logger | Invoke-LoggerInstanceCleanup
-    if ($Script:Logger.PreventLogCleanup) {
-        Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
-    }
-    if (((Get-Date).Ticks % 2) -eq 1) {
-        Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
-        Write-Host
-    }
-    RevertProperForegroundColor
 }

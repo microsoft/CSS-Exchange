@@ -4,10 +4,10 @@
 function Invoke-SetOutputInstanceLocation {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Server,
-
-        [Parameter(Mandatory = $true)]
         [string]$FileName,
+
+        [Parameter(Mandatory = $false)]
+        [string]$Server,
 
         [Parameter(Mandatory = $false)]
         [bool]$IncludeServerName = $false
