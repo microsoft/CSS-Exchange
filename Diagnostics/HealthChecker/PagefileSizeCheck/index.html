@@ -879,6 +879,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#how-to-set-the-pagefile-to-a-static-value" class="md-nav__link">
+    How to set the pagefile to a static value?
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1840,6 +1847,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#how-to-set-the-pagefile-to-a-static-value" class="md-nav__link">
+    How to set the pagefile to a static value?
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1877,6 +1891,11 @@
 <p>32 GB of RAM or more installed: 32GB</p>
 </li>
 </ul>
+<h4 id="how-to-set-the-pagefile-to-a-static-value">How to set the pagefile to a static value?</h4>
+<p>You can set the pagefile to a static size via <code>wmic</code> whereas <code>InitialSize</code> and <code>MaximumSize</code> is the size in megabytes calculated based on the Exchange Server version and memory installed in the server:</p>
+<div class="highlight"><pre><span></span><code>wmic computersystem set AutomaticManagedPagefile=False
+wmic pagefileset set InitialSize=1024,MaximumSize=1024
+</code></pre></div>
 <p><strong>Included in HTML Report?</strong></p>
 <p>Yes</p>
 <p><strong>Additional resources:</strong></p>
@@ -1889,7 +1908,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 19, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 25, 2022</span>
       
     
   </small>
