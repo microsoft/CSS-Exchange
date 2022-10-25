@@ -16,7 +16,7 @@ Set the paging file minimum and maximum value to the same size:
 
 - 32 GB of RAM or more installed: 32GB
 
-#### How to set the pagefile to static?
+#### How to set the pagefile to a static value?
 
 You can set the pagefile to a static size via `wmic` whereas `InitialSize` and `MaximumSize` is the size in megabytes calculated based on the Exchange Server version and memory installed in the server:
 
