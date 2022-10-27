@@ -64,7 +64,7 @@ $BaseFolders = New-Object Collections.Generic.List[string]
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 Write-Host "`nStarting Exclusions Path..."
 foreach ($folder in $BaseFolders) {
-    Write-SimpleLogfile -String ("`tAdding $folder") -name $LogFile -OutHost
+    Write-SimpleLogfile -String ("Adding $folder") -name $LogFile -OutHost
     Add-MpPreference -ExclusionPath $folder
 }
 
@@ -72,7 +72,7 @@ Write-Host "`nStarting Exclusions Extension..."
 $extensionsList = New-Object Collections.Generic.List[string]
 $extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 foreach ($extension in $extensionsList) {
-    Write-SimpleLogfile -String ("`tAdding $extension") -name $LogFile -OutHost
+    Write-SimpleLogfile -String ("Adding $extension") -name $LogFile -OutHost
     Add-MpPreference -ExclusionExtension $extension
 }
 
@@ -81,8 +81,9 @@ $processesList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiPro
 
 Write-Host "`nStarting Exclusions Process..."
 foreach ($process in $processesList) {
-    Write-SimpleLogfile -String ("`tAdding $process") -name $LogFile -OutHost
+    Write-SimpleLogfile -String ("Adding $process") -name $LogFile -OutHost
+    Add-MpPreference -ExclusionPath $process
     Add-MpPreference -ExclusionProcess $process
 }
 
-Write-SimpleLogfile -String ("`nAdding Exclusions Completed") -name $LogFile -OutHost
+Write-SimpleLogfile -String ("Adding Exclusions Completed") -name $LogFile -OutHost

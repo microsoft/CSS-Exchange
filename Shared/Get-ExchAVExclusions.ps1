@@ -23,13 +23,12 @@ function Get-ExchAVExclusionsPaths {
     # List of base Folders
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
         if (Get-DatabaseAvailabilityGroup ) {
-            if ((Get-DatabaseAvailabilityGroup).Servers.name.Contains($env:COMPUTERNAME) ) {
+            if (Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name -contains ($env:COMPUTERNAME) } ) {
                 $BaseFolders.Add((Join-Path $($env:SystemRoot) '\Cluster').tolower())
                 $dag = $null
-                $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name.Contains($env:COMPUTERNAME) }
-                #needs local system rigths
+                $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name -contains ($env:COMPUTERNAME) }
                 if ( $null -ne $dag ) {
-                    $BaseFolders.Add($("\\" + $($dag.WitnessServer.Fqdn) + "\" + $($dag.WitnessDirectory.PathName.Split("\")[-1])).ToLower())
+                    Write-Warning "Remember to add the witeness directory $($dag.WitnessDirectory.PathName) on the server $($dag.WitnessServer.Fqdn)"
                 }
             }
         }
