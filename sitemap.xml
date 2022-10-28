@@ -326,6 +326,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Setup/Set-ExchAVExclusions/</loc>
+         <lastmod>2022-10-28</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Setup/SetupLogReviewer/</loc>
          <lastmod>2022-10-28</lastmod>
          <changefreq>daily</changefreq>

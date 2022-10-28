@@ -1648,6 +1648,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_12">
@@ -1695,11 +1697,25 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
+        Set-ExchAVExclusions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
     
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12_3" type="checkbox" id="__nav_12_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12_4" type="checkbox" id="__nav_12_4" >
       
       
       
@@ -1721,14 +1737,14 @@
         <div class="md-nav__link md-nav__link--index ">
           <a href="../../Setup/SetupAssist/">SetupAssist</a>
           
-            <label for="__nav_12_3">
+            <label for="__nav_12_4">
               <span class="md-nav__icon md-icon"></span>
             </label>
           
         </div>
       
       <nav class="md-nav" aria-label="SetupAssist" data-md-level="2">
-        <label class="md-nav__title" for="__nav_12_3">
+        <label class="md-nav__title" for="__nav_12_4">
           <span class="md-nav__icon md-icon"></span>
           SetupAssist
         </label>
@@ -1875,12 +1891,13 @@
 <h1 id="test-exchavexclusions">Test-ExchAVExclusions</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchAVExclusions.ps1">Test-ExchAVExclusions.ps1</a></p>
 <p>Assists with testing Exchange Servers to determine if AV Exclusions have been properly set according to our documentation.</p>
-<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions</a></p>
+<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a>
+<a href="https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help">AV Exclusions Exchange 2013</a></p>
 <h2 id="usage">Usage</h2>
-<p>Writes an <a href="https://en.wikipedia.org/wiki/EICAR_test_file">EICAR test file</a> to all paths specified in our AV Exclusions documentation.</p>
+<p>Writes an <a href="https://en.wikipedia.org/wiki/EICAR_test_file">EICAR test file</a> to all paths specified in our AV Exclusions documentation and verifies all extensions in the documentation in a temporary folder.</p>
 <p>If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.</p>
-<p>Once the files are created it will wait 60 seconds for AV to "see" and remove the file.</p>
+<p>Once the files are created it will wait 5 minutes for AV to "see" and remove the file.</p>
 <p>...
 .\Test-ExchAVExclusions.ps1
 ...</p>
@@ -1906,15 +1923,15 @@ IF the file is not removed then it should be properly excluded.</p>
 <h2 id="outputs">Outputs</h2>
 <p>Log file:
 $env:LOCALAPPDATA\ExchAvExclusions.log</p>
-<p>List of Folders Scanned by AV:
-$env:LOCALAPPDATA\BadFolders.txt</p>
+<p>List of Folders and extensions Scanned by AV:
+$env:LOCALAPPDATA\BadExclusions.txt</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 24, 2021</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 14, 2022</span>
       
     
   </small>
