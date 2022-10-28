@@ -90,7 +90,7 @@ function Save-ServerInfoData {
     if (!$Script:localServerObject.Edge) {
 
         $params = @{
-            RegistryPath    = "HKLM:\SOFTWARE\Microsoft\Exchange"
+            RegistryPath    = "HKLM:SOFTWARE\Microsoft\Exchange"
             SaveName        = "Exchange_Registry_Hive"
             SaveToPath      = $copyTo
             UseGetChildItem = $true
@@ -98,7 +98,7 @@ function Save-ServerInfoData {
         Save-RegistryHive @params
 
         $params = @{
-            RegistryPath    = "HKLM:\SOFTWARE\Microsoft\ExchangeServer"
+            RegistryPath    = "HKLM:SOFTWARE\Microsoft\ExchangeServer"
             SaveName        = "ExchangeServer_Registry_Hive"
             SaveToPath      = $copyTo
             UseGetChildItem = $true
