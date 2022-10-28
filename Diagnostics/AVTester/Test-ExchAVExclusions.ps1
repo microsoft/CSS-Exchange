@@ -58,9 +58,9 @@ param (
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+. $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
-. $PSScriptRoot\Get-ExchAVExclusions.ps1
 
 # Log file name
 $LogFile = "ExchAvExclusions.log"

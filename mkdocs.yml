@@ -76,6 +76,7 @@ nav:
   - Setup:
     - CopyMissingDlls: Setup/CopyMissingDlls.md
     - FixInstallerCache: Setup/FixInstallerCache.md
+    - Set-ExchAVExclusions: Setup/Set-ExchAVExclusions.md
     - SetupAssist:
       - Setup/SetupAssist/index.md
       - ComputersContainer: Setup/SetupAssist/ComputersContainer.md
