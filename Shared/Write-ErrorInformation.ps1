@@ -8,11 +8,22 @@ function WriteErrorInformationBase {
         [ValidateSet("Write-Host", "Write-Verbose")]
         [string]$Cmdlet
     )
+
+    if ($null -ne $CurrentError.OriginInfo) {
+        & $Cmdlet "Error Origin Info: $($CurrentError.OriginInfo.ToString())"
+    }
+
     & $Cmdlet "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())"
 
     if ($null -ne $CurrentError.Exception -and
         $null -ne $CurrentError.Exception.StackTrace) {
         & $Cmdlet "Inner Exception: $($CurrentError.Exception.StackTrace)"
+    } elseif ($null -ne $CurrentError.Exception) {
+        & $Cmdlet "Inner Exception: $($CurrentError.Exception)"
+    }
+
+    if ($null -ne $CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage) {
+        & $Cmdlet "Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)"
     }
 
     if ($null -ne $CurrentError.ScriptStackTrace) {

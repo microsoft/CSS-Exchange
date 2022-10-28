@@ -43,7 +43,10 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS
-                SiteVDirLocations    = $SiteVDirLocations
+            }
+
+            if ($null -ne $SiteVDirLocations) {
+                $params.Add("SiteVDirLocations", $SiteVDirLocations)
             }
             $extendedProtectionConfiguration = Get-ExtendedProtectionConfiguration @params
 

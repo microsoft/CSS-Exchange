@@ -399,7 +399,7 @@ If you have an environment containing Exchange Server 2016 CU22 or Exchange Serv
 Q: Is it required to install the August 2022 Security Update (SU) if it was already installed on the previous Cumulative Update (CU)?<br>
 A: Yes, it's required to install the August 2022 SU again if you update to a newer CU build (e.g., Exchange Server 2019 CU11 --> Exchange Server 2019 CU12).
 Please remember:
-If you plan to do the update immediately (means CU + SU installation) Extended Protection does not need to be switched off
+If you plan to do the update immediately (means CU + SU installation) Extended Protection does not need to be switched off.
 If you plan to stay on the CU without installing the SU immediately, you must disable Extended Protection (find the required steps above) as the CU without the SU being installed doesn't support Extended Protection and therefore, you'll experience client connectivity issues.
 
 Q: Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?<br>
