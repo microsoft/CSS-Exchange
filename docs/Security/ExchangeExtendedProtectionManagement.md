@@ -91,3 +91,4 @@ IPRangeFilePath | Is the path to the file that contains all the IP Addresses or 
 RestrictType | To enable a IP Restriction on a virtual directory. Must be used with `IPRangeFilePath`. The following values are allowed: `EWSBackend`
 ValidateType | To verify if the IP Restrictions have been applied correctly. Must be used with `IPRangeFilePath`. The following values are allowed: `RestrictTypeEWSBackend`
 RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`
+SkipAutoUpdate | Skips over the Auto Update feature to download the latest version of the script.

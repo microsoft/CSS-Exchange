@@ -50,7 +50,12 @@ function Get-IISModules {
             "$env:windir\system32\inetsrv\validcfg.dll",
             "$env:windir\system32\wsmsvc.dll",
             "$env:windir\system32\inetsrv\iprestr.dll",
-            "$env:windir\system32\inetsrv\diprestr.dll")
+            "$env:windir\system32\inetsrv\diprestr.dll",
+            "$env:windir\system32\inetsrv\iis_ssi.dll",
+            "$env:windir\system32\inetsrv\cgi.dll",
+            "$env:windir\system32\inetsrv\iisfcgi.dll",
+            "$env:windir\system32\inetsrv\iiswsock.dll",
+            "$env:windir\system32\inetsrv\warmup.dll")
 
         function GetModulePath {
             [CmdletBinding()]

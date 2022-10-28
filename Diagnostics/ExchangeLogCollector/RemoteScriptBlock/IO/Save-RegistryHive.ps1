@@ -32,12 +32,12 @@ function Save-RegistryHive {
         reg export $updatedRegistryPath "$baseSaveName.reg" | Out-Null
 
         if ($LASTEXITCODE) {
-            Write-Verbose "Failed to export the registry hive for: $updatedRegistryPath"
+            throw "Failed to export the registry hive for: $updatedRegistryPath"
         }
         reg save $updatedRegistryPath "$baseSaveName.hiv" | Out-Null
 
         if ($LASTEXITCODE) {
-            Write-Verbose "Failed to save the registry hive for: $updatedRegistryPath"
+            throw "Failed to save the registry hive for: $updatedRegistryPath"
         }
         "To read the registry hive. Run 'reg load HKLM\TempHive $SaveName.hiv'. Then Open your regedit then go to HKLM:\TempHive to view the data." |
             Out-File -FilePath "$baseSaveName`_HowToRead.txt"
