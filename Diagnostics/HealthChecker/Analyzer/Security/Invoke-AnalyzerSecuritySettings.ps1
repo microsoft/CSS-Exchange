@@ -85,10 +85,8 @@ function Invoke-AnalyzerSecuritySettings {
                 ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
                 ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled")) {
             $displayWriteType = "Red"
-        } elseif ((($tlsKey -eq "1.0") -and
-            ($currentTlsVersion.TLSConfiguration -eq "Enabled")) -or
-            (($tlsKey -eq "1.1") -and
-            ($currentTlsVersion.TLSConfiguration -eq "Enabled"))) {
+        } elseif ($currentTlsVersion.TLSConfiguration -eq "Enabled" -and
+            ($tlsKey -eq "1.1" -or $tlsKey -eq "1.0")) {
             $displayWriteType = "Yellow"
         }
 
