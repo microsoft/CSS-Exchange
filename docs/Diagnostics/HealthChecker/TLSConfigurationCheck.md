@@ -2,6 +2,8 @@
 
 We check and validate Exchange servers TLS 1.0 - 1.3 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.
 
+We will also show a yellow warning, if TLS 1.0 and/or TLS 1.1 is enabled. Microsoft's TLS 1.0 implementation is free of known security vulnerabilities. Due to the potential for future protocol downgrade attacks and other TLS 1.0 vulnerabilities not specific to Microsoft's implementation, it is recommended that dependencies on all security protocols older than TLS 1.2 be removed where possible (TLS 1.1/1.0/ SSLv3/SSLv2).
+
 At this time TLS 1.3 is **not** supported by Exchange and has been known to cause issues if enabled. If detected to be anything but disabled on Exchange, it will be thrown as an error and needs to be addressed right away.
 
 We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.
@@ -50,6 +52,10 @@ Yes
 **Additional resources:**
 
 [Exchange Server TLS configuration best practices](https://aka.ms/HC-TLSGuide)
+
+[Solving the TLS 1.0 Problem, 2nd Edition](https://learn.microsoft.com/security/engineering/solving-tls1-problem)
+
+[TLS 1.2 support at Microsoft](https://www.microsoft.com/security/blog/2017/06/20/tls-1-2-support-at-microsoft/)
 
 [Exchange Server TLS guidance, part 1: Getting Ready for TLS 1.2](https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649)
 

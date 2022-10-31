@@ -51,7 +51,7 @@ function Invoke-AnalyzerSecuritySettings {
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
     $misconfiguredClientServerSettings = ($tlsSettings.Values | Where-Object { $_.TLSMisconfigured -eq $true }).Count -ne 0
     $displayLinkToDocsPage = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
-    $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and $_.TLSVersion -ne "1.2" }).Count -ne 0
+    $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and ($_.TLSVersion -ne "1.2" -and $_.TLSVersion -ne "1.3") }).Count -ne 0
     $tls13NotDisabled = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Disabled" -and $_.TLSVersion -eq "1.3" }).Count -gt 0
 
     $sbValue = {
@@ -79,11 +79,17 @@ function Invoke-AnalyzerSecuritySettings {
         # Any TLS version is Misconfigured or Half Disabled is Red
         # Only TLS 1.2 being Disabled is Red
         # Currently TLS 1.3 being Enabled is Red
+        # TLS 1.0 or 1.1 being Enabled is Yellow as we recommend to disable this weak protocol versions
         if (($currentTlsVersion.TLSConfiguration -eq "Misconfigured" -or
                 $currentTlsVersion.TLSConfiguration -eq "Half Disabled") -or
                 ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
                 ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled")) {
             $displayWriteType = "Red"
+        } elseif ((($tlsKey -eq "1.0") -and
+            ($currentTlsVersion.TLSConfiguration -eq "Enabled")) -or
+            (($tlsKey -eq "1.1") -and
+            ($currentTlsVersion.TLSConfiguration -eq "Enabled"))) {
+            $displayWriteType = "Yellow"
         }
 
         $params = $baseParams + @{
@@ -228,6 +234,21 @@ function Invoke-AnalyzerSecuritySettings {
             DisplayTestingValue    = $true
             DisplayCustomTabNumber = 2
             TestingName            = "TLS 1.3 not disabled"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    if ($lowerTlsVersionDisabled -eq $false) {
+        $displayLinkToDocsPage = $true
+        $params = $baseParams + @{
+            Name = "TLS hardening recommendations"
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            Details                = "Microsoft recommends customers proactively address weak TLS usage by removing TLS 1.0/1.1 dependencies in their environments and disabling TLS 1.0/1.1 at the operating system level where possible."
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
     }
