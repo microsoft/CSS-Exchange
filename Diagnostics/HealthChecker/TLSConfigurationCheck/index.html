@@ -1818,6 +1818,7 @@
 
 <h1 id="tls-configuration-check">TLS Configuration Check</h1>
 <p>We check and validate Exchange servers TLS 1.0 - 1.3 configuration. We can detect mismatches in TLS versions for client and server. This is important because Exchange can be both a client and a server.</p>
+<p>We will also show a yellow warning, if TLS 1.0 and/or TLS 1.1 is enabled. Microsoft's TLS 1.0 implementation is free of known security vulnerabilities. Due to the potential for future protocol downgrade attacks and other TLS 1.0 vulnerabilities not specific to Microsoft's implementation, it is recommended that dependencies on all security protocols older than TLS 1.2 be removed where possible (TLS 1.1/1.0/ SSLv3/SSLv2).</p>
 <p>At this time TLS 1.3 is <strong>not</strong> supported by Exchange and has been known to cause issues if enabled. If detected to be anything but disabled on Exchange, it will be thrown as an error and needs to be addressed right away.</p>
 <p>We also check for the SystemDefaultTlsVersions registry value which controls if .NET Framework will inherit its defaults from the Windows Schannel DisabledByDefault registry values or not.</p>
 <p>An invalid TLS configuration can cause issues within Exchange for communication.</p>
@@ -1870,6 +1871,8 @@
 <p>Yes</p>
 <p><strong>Additional resources:</strong></p>
 <p><a href="https://aka.ms/HC-TLSGuide">Exchange Server TLS configuration best practices</a></p>
+<p><a href="https://learn.microsoft.com/security/engineering/solving-tls1-problem">Solving the TLS 1.0 Problem, 2nd Edition</a></p>
+<p><a href="https://www.microsoft.com/security/blog/2017/06/20/tls-1-2-support-at-microsoft/">TLS 1.2 support at Microsoft</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-part-1-Getting-Ready-for-TLS-1-2/ba-p/607649">Exchange Server TLS guidance, part 1: Getting Ready for TLS 1.2</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-2-Enabling-TLS-1-2-and/ba-p/607761">Exchange Server TLS guidance Part 2: Enabling TLS 1.2 and Identifying Clients Not Using It</a></p>
 <p><a href="https://techcommunity.microsoft.com/t5/Exchange-Team-Blog/Exchange-Server-TLS-guidance-Part-3-Turning-Off-TLS-1-0-1-1/ba-p/607898">Exchange Server TLS guidance Part 3: Turning Off TLS 1.0/1.1</a></p>
@@ -1879,7 +1882,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 26, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 31, 2022</span>
       
     
   </small>
