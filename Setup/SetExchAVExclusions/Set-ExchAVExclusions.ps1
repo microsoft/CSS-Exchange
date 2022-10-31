@@ -5,6 +5,87 @@
 # https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019 and
 # https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help
 
+<#
+.SYNOPSIS
+The Script will assist in setting the Antivirus Exclusions according to our documentation for Microsoft Exchange Server.
+
+.DESCRIPTION
+The Script will assist in setting the Antivirus Exclusions according to our documentation for Microsoft Exchange Server.
+
+AV Exclusions Exchange 2016/2019
+https://learn.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019
+
+AV Exclusions Exchange 2013
+https://learn.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help
+
+If you use Windows Defender you can Set the exclusions executing the script without parameters but if you have any other Antivirus solution you can get the full list of Expected Exclusions.
+
+Requirements
+Supported Exchange Server Versions:
+The script can be used to validate the configuration of the following Microsoft Exchange Server versions:
+
+Microsoft Exchange Server 2013
+Microsoft Exchange Server 2016
+Microsoft Exchange Server 2019
+The server must have Microsoft Defender to set it and enable it to be effective.
+
+Required Permissions:
+Please make sure that the account used is a member of the Local Administrator group. This should be fulfilled on Exchange servers by being a member of the Organization Management group.
+
+How To Run
+This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You do not need to provide any parameters and the script will set the Windows Defender exclusions for the local Exchange server.
+
+If you want to get the full list of expected exclusions you should use the parameter ListRecommendedExclusions
+
+You can export the Exclusion List with the parameter FileName
+
+
+.PARAMETER -ListRecommendedExclusions
+Show the full list of expected exclusions.
+
+.PARAMETER -FileName
+Export the full list of expected exclusions in the definned FileName.
+
+.INPUTS
+For Set Parameter Set Identifier(Switch):
+Optional Parameter   -FileName
+
+For List Parameter Set Identifier(Switch):
+Required Parameter   -ListRecommendedExclusions
+Optional Parameter   -FileName
+
+
+.EXAMPLE
+.\Set-ExchAVExclusions.ps1
+This will run Set-ExchAVExclusions Script against the local server.
+
+.EXAMPLE
+.\Set-ExchAVExclusions.ps1 -ListRecommendedExclusions
+This will run Set-ExchAVExclusions Script against the local server and show in screen the expected exclusions on screen without setting them.
+
+.EXAMPLE
+.\Set-ExchAVExclusions.ps1 -ListRecommendedExclusions -FileName .\Exclusions.txt
+This will run Set-ExchAVExclusions Script against the local server and show in screen the expected exclusions on screen without setting them and write them in the defined FileName.
+
+.EXAMPLE
+.\Set-ExchAVExclusions.ps1 -FileName .\Exclusions.txt
+This will run Set-ExchAVExclusions Script against the local server and write them in the defined FileName.
+
+#>
+
+
+[CmdletBinding(DefaultParameterSetName = 'Set')]
+param (
+    [Parameter(Mandatory, ParameterSetName = 'List')]
+    [switch]
+    $ListRecommendedExclusions,
+
+    [Parameter(ParameterSetName = 'Set')]
+    [Parameter(ParameterSetName = 'List')]
+    [string]
+    $FileName
+)
+
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
@@ -19,14 +100,16 @@ if (-not (Confirm-Administrator)) {
     exit
 }
 
-if ( $($host.Version.Major) -lt 5 -or ( $($host.Version.Major) -eq 5 -and $($host.Version.Minor) -lt 1) ) {
-    Write-Error "This version of Windows do not have Microsoft Defender"
-    exit
-}
+if (-not $ListRecommendedExclusions) {
+    if ( $($host.Version.Major) -lt 5 -or ( $($host.Version.Major) -eq 5 -and $($host.Version.Minor) -lt 1) ) {
+        Write-Error "This version of Windows do not have Microsoft Defender"
+        exit
+    }
 
-if (-not (Get-MpComputerStatus).AntivirusEnabled ) {
-    Write-Warning "Microsoft Defender is not enabled."
-    Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+    if (-not (Get-MpComputerStatus).AntivirusEnabled ) {
+        Write-Warning "Microsoft Defender is not enabled."
+        Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+    }
 }
 
 $serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
@@ -50,6 +133,13 @@ if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
     exit
 }
 
+if ($FileName -like '*\*') {
+    if (-not (Test-Path $FileName.Substring(0, $FileName.LastIndexOf("\")))) {
+        Write-Warning "FilePath does not exists"
+        exit
+    }
+}
+
 $ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
 
 # Check Exchange Shell and Exchange instalation
@@ -60,30 +150,63 @@ if (-not($exchangeShell.ShellLoaded)) {
 }
 
 # Create the Array List
+Write-Host "`r`nExclusions Paths:" -ForegroundColor DarkGreen
 $BaseFolders = New-Object Collections.Generic.List[string]
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
-Write-Host "`nStarting Exclusions Path..."
+if ($FileName) {
+    "[Paths]" | Out-File $FileName
+}
 foreach ($folder in $BaseFolders) {
-    Write-SimpleLogfile -String ("Adding $folder") -name $LogFile -OutHost
-    Add-MpPreference -ExclusionPath $folder
+    if ($ListRecommendedExclusions) {
+        Write-Host ("$folder")
+    } else {
+        Write-SimpleLogfile -String ("Adding $folder") -name $LogFile -OutHost
+        Add-MpPreference -ExclusionPath $folder
+    }
+    if ($FileName) {
+        $folder | Out-File $FileName -Append
+    }
 }
 
-Write-Host "`nStarting Exclusions Extension..."
+Write-Host "`r`nExclusions Extensions:" -ForegroundColor DarkGreen
 $extensionsList = New-Object Collections.Generic.List[string]
 $extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+if ($FileName) {
+    "`r`n[Extensions]" | Out-File $FileName -Append
+}
 foreach ($extension in $extensionsList) {
-    Write-SimpleLogfile -String ("Adding $extension") -name $LogFile -OutHost
-    Add-MpPreference -ExclusionExtension $extension
+    if ($ListRecommendedExclusions) {
+        Write-Host ("$extension")
+    } else {
+        Write-SimpleLogfile -String ("Adding $extension") -name $LogFile -OutHost
+        Add-MpPreference -ExclusionExtension $extension
+    }
+    if ($FileName) {
+        $extension | Out-File $FileName -Append
+    }
 }
 
+Write-Host "`r`nExclusions Processes:" -ForegroundColor DarkGreen
 $processesList = New-Object Collections.Generic.List[string]
 $processesList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
-
-Write-Host "`nStarting Exclusions Process..."
+if ($FileName) {
+    "`r`n[Processes]" | Out-File $FileName -Append
+}
 foreach ($process in $processesList) {
-    Write-SimpleLogfile -String ("Adding $process") -name $LogFile -OutHost
-    Add-MpPreference -ExclusionPath $process
-    Add-MpPreference -ExclusionProcess $process
+    if ($ListRecommendedExclusions) {
+        Write-Host ("$process")
+    } else {
+        Write-SimpleLogfile -String ("Adding $process") -name $LogFile -OutHost
+        Add-MpPreference -ExclusionPath $process
+        Add-MpPreference -ExclusionProcess $process
+    }
+    if ($FileName) {
+        $process | Out-File $FileName -Append
+    }
 }
 
-Write-SimpleLogfile -String ("Adding Exclusions Completed") -name $LogFile -OutHost
+if ($ListRecommendedExclusions) {
+    Write-Host ('')
+}
+
+Write-SimpleLogfile -String ("Exclusions Completed") -name $LogFile -OutHost
