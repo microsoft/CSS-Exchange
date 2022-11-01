@@ -11,6 +11,11 @@ param(
     [string[]]$MachineName
 )
 
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
 . $PSScriptRoot\WriteFunctions.ps1
@@ -143,9 +148,14 @@ function Main {
 }
 
 try {
+    Invoke-ErrorMonitoring
+    $Script:HostLogger = Get-NewLoggerInstance -LogName "FixInstallerCache"
+    $Script:DebugLogger = Get-NewLoggerInstance -LogName "FixInstallerCache-Debug"
+    SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteWarningAction ${Function:Write-HostLog}
     Main
 } catch {
-    Write-Host "$($_.Exception)"
-    Write-Host "$($_.ScriptStackTrace)"
-    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:scriptLogging)'")
+    Invoke-CatchActions
+    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'")
 }
