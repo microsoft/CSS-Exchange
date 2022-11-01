@@ -28,7 +28,7 @@ function MainIsoCopy {
 
     if (!(Test-Path $cuExchangeMsi)) {
         #We want the root of the install directory, let the script handle the rest
-        Write-Error "Failed to find the root of the Exchange Setup directory. Trying to find $cuExchangeMsi"
+        Write-Host "Failed to find the root of the Exchange Setup directory. Trying to find $cuExchangeMsi" -ForegroundColor "Red"
         exit
     }
 
@@ -39,7 +39,7 @@ function MainIsoCopy {
         Write-Host "Looking for version $installedVersion" -ForegroundColor Red
         Write-Host "Found Version $($cuExchangeFileInfo.Subject.Substring($cuExchangeFileInfo.Subject.LastIndexOf("v")+1))" -ForegroundColor Red
         Start-Sleep 1
-        Write-Error "Failed to find correct ISO version"
+        Write-Host "Failed to find correct ISO version" -ForegroundColor "Red"
         exit
     }
 
@@ -105,7 +105,7 @@ function MainMachineCopy {
                     return Get-FileInformation -File $_.FullName
                 }
         } catch {
-            Write-Error "Failed to get files from the following path: $remoteInstallerCache"
+            Write-Host "Failed to get files from the following path: $remoteInstallerCache" -ForegroundColor "Red"
             continue
         }
 
