@@ -11,6 +11,9 @@ function Test-ExchangeADSetupLevel {
         param(
             [string]$ExchangeVersion
         )
+        # Make sure this gets called first before any other returns can occur
+        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
+
         $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         $params = @{
             TestName = "Prepare AD Requirements"
@@ -61,7 +64,6 @@ function Test-ExchangeADSetupLevel {
             "Local Server Site:    $localSite")
 
         New-TestResult @params -Details $details -ReferenceInfo $runPrepareAD
-        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
     }
 
     function TestMismatchLevel {
@@ -221,8 +223,10 @@ function Test-ExchangeADSetupLevel {
         if ($adLevel.MESO.Value -eq 13237 -and
             $adLevel.Org.Value -eq 16133) {
             New-TestResult -TestName $testName -Result "Passed" -Details "Exchange 2013 CU23 Ready"
+            Test-UserGroupMemberOf
         } else {
             New-TestResult -TestName $testName -Result "Failed" -Details "Exchange 2013 CU23 Not Ready"
+            Test-UserGroupMemberOf
         }
     } elseif ($adLevel.Schema.Value -eq 15332) {
         #Exchange 2016 CU10+
