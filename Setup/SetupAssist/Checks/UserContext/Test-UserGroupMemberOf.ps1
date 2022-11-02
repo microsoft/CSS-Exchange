@@ -59,8 +59,9 @@ function Test-UserGroupMemberOf {
     $principal = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent()))
 
     foreach ($group in $groupRequirements) {
+        $params.TestName = "User Group - $($group.Name)"
+        $params.Details = "$($group.Role)"
         if ($principal.IsInRole($group.Role)) {
-            $params.Details = "$($group.Name) $($group.Role)"
             New-TestResult @params -Result "Passed"
         } else {
             New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
