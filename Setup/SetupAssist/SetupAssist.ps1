@@ -132,7 +132,7 @@ function Main {
     Write-Host "Setup Log Reviewer Results"
     Write-Host "--------------------------"
     Write-Host ""
-    $setupLog = "C:\ExchangeSetupLogs\ExchangeSetup.log"
+    $setupLog = "$env:SystemDrive\ExchangeSetupLogs\ExchangeSetup.log"
     if ((Test-Path $setupLog)) {
         Invoke-SetupLogReviewer -SetupLog $SetupLog
     } else {

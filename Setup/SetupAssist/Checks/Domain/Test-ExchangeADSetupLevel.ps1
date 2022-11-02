@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 . $PSScriptRoot\..\UserContext\Test-UserGroupMemberOf.ps1
+. $PSScriptRoot\..\..\..\Shared\SetupLogReviewerFunctions.ps1
 function Test-ExchangeADSetupLevel {
 
     # Extract for Pester Testing - Start
@@ -10,6 +11,9 @@ function Test-ExchangeADSetupLevel {
         param(
             [string]$ExchangeVersion
         )
+        # Make sure this gets called first before any other returns can occur
+        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
+
         $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         $params = @{
             TestName = "Prepare AD Requirements"
@@ -60,7 +64,6 @@ function Test-ExchangeADSetupLevel {
             "Local Server Site:    $localSite")
 
         New-TestResult @params -Details $details -ReferenceInfo $runPrepareAD
-        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
     }
 
     function TestMismatchLevel {
@@ -73,8 +76,8 @@ function Test-ExchangeADSetupLevel {
             Result        = "Failed"
             ReferenceInfo = "Mismatch detected `n    More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchangeVersion"
         }
-        New-TestResult @params -Details ("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)`n`n" +
-            "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)`n`n" +
+        New-TestResult @params -Details @("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)" +
+            "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)" +
             "DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
         TestPrepareAD -ExchangeVersion $ExchangeVersion
     }
@@ -157,11 +160,61 @@ function Test-ExchangeADSetupLevel {
 
     $adLevel = GetExchangeADSetupLevel
     $testName = "Exchange AD Latest Level"
+    $setupLog = "$env:SystemDrive\ExchangeSetupLogs\ExchangeSetup.log"
     $currentSchemaValue = $adLevel.Schema.Value
+    $currentInstallingExchangeVersion = $null
+
+    if (Test-Path $setupLog) {
+        $logReviewer = Get-SetupLogReviewer -SetupLog $setupLog
+        $setupBuildNumber = $logReviewer.SetupBuildNumber
+        Write-Verbose "User: $($logReviewer.User) SetupBuildNumber: $setupBuildNumber"
+
+        if ($setupBuildNumber -like "15.0.*") {
+            $currentInstallingExchangeVersion = "2013"
+        } elseif ($setupBuildNumber -like "15.1.*") {
+            $currentInstallingExchangeVersion = "2016"
+        } elseif ($setupBuildNumber -like "15.2.*") {
+            $currentInstallingExchangeVersion = "2019"
+        } else {
+            Write-Verbose "Couldn't determine the build number. This shouldn't occur."
+        }
+
+        Write-Verbose "currentInstallingExchangeVersion: $currentInstallingExchangeVersion"
+    } else {
+        Write-Verbose "No Setup Log to test against."
+    }
 
     #Less than the known Exchange 2013 schema version
     if ($adLevel.Schema.Value -lt 15137) {
         New-TestResult -TestName $testName -Result "Failed" -Details "Unknown Exchange Schema Version"
+
+        if ($null -ne $currentInstallingExchangeVersion) {
+            TestMismatchLevel -ExchangeVersion $currentInstallingExchangeVersion -ADSetupLevel $adLevel
+        } else {
+            TestMismatchLevel -ExchangeVersion "2019" -ADSetupLevel $adLevel
+        }
+        return
+    }
+
+    # Test if not on schema version of install attempt
+    if ($null -eq $currentInstallingExchangeVersion) {
+        Write-Verbose "No current install exchange version detected. Skipping over this logic."
+    } elseif ($adLevel.Schema.Value -le 15312 -and
+        $currentInstallingExchangeVersion -ne "2013") {
+        Write-Verbose "Determined that we are trying install a newer version of Exchange than what schema level is at for 2013"
+        TestMismatchLevel -ExchangeVersion $currentInstallingExchangeVersion -ADSetupLevel $adLevel
+        return
+    } elseif ($adLevel.Schema.Value -gt 15312 -and
+        $adLevel.Schema.Value -le 15334 -and
+        $currentInstallingExchangeVersion -ne "2016") {
+        Write-Verbose "Determined that we are trying install a newer version of Exchange than what schema level is at for 2016"
+        TestMismatchLevel -ExchangeVersion $currentInstallingExchangeVersion -ADSetupLevel $adLevel
+        return
+    } elseif ($adLevel.Schema.Value -gt 15334 -and
+        $adLevel.Schema.Value -le 17003 -and
+        $currentInstallingExchangeVersion -ne "2019") {
+        Write-Verbose "Determined that we are trying install a newer version of Exchange than what schema level is at for 2019"
+        TestMismatchLevel -ExchangeVersion $currentInstallingExchangeVersion -ADSetupLevel $adLevel
         return
     }
 
@@ -170,8 +223,10 @@ function Test-ExchangeADSetupLevel {
         if ($adLevel.MESO.Value -eq 13237 -and
             $adLevel.Org.Value -eq 16133) {
             New-TestResult -TestName $testName -Result "Passed" -Details "Exchange 2013 CU23 Ready"
+            Test-UserGroupMemberOf
         } else {
             New-TestResult -TestName $testName -Result "Failed" -Details "Exchange 2013 CU23 Not Ready"
+            Test-UserGroupMemberOf
         }
     } elseif ($adLevel.Schema.Value -eq 15332) {
         #Exchange 2016 CU10+

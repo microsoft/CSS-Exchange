@@ -119,7 +119,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 69
+            $Script:ActiveGrouping.Count | Should -Be 71
         }
 
         It "Display Results - Security Vulnerability" {
