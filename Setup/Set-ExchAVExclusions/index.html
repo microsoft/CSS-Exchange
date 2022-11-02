@@ -1956,26 +1956,39 @@
 
 <h1 id="set-exchavexclusions">Set-ExchAVExclusions</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Set-ExchAVExclusions.ps1">Set-ExchAVExclusions.ps1</a></p>
-<p>The Script will assist on setting Microsoft Defender Exclusions according to our documentation for Microsoft Exchange Server.</p>
+<p>The Script will assist in setting the Antivirus Exclusions according to our documentation for Microsoft Exchange Server.</p>
 <p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a></p>
 <p><a href="https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help">AV Exclusions Exchange 2013</a></p>
+<p>If you use Windows Defender you can Set the exclusions executing the script without parameters but if you have any other Antivirus solution you can get the full list of Expected Exclusions.</p>
 <h2 id="requirements">Requirements</h2>
 <h4 id="supported-exchange-server-versions">Supported Exchange Server Versions:</h4>
 <p>The script can be used to validate the configuration of the following Microsoft Exchange Server versions:
 - Microsoft Exchange Server 2013
 - Microsoft Exchange Server 2016
 - Microsoft Exchange Server 2019</p>
-<p>The server must have Microsoft Defender enabled.</p>
+<p>The server must have Microsoft Defender to set it and enable it to be effective.</p>
 <h4 id="required-permissions">Required Permissions:</h4>
 <p>Please make sure that the account used is a member of the <code>Local Administrator</code> group. This should be fulfilled on Exchange servers by being a member of the  <code>Organization Management</code> group.</p>
 <h2 id="how-to-run">How To Run</h2>
 <p>This script <strong>must</strong> be run as Administrator in Exchange Management Shell on an Exchange Server. You do not need to provide any parameters and the script will set the Windows Defender exclusions for the local Exchange server.</p>
+<p>If you want to get the full list of expected exclusions you should use the parameter <code>ListRecommendedExclusions</code></p>
+<p>You can export the Exclusion List with the parameter <code>FileName</code></p>
 <h4 id="examples">Examples:</h4>
-<p>This will run Set-ExchAVExclusions Script against the local server.
-It will show the exclusions on screen and write them on the log file.</p>
+<p>This will run Set-ExchAVExclusions Script against the local server.</p>
 <div class="highlight"><pre><span></span><code>.\Set-ExchAVExclusions.ps1
 </code></pre></div>
+<p>This will run Set-ExchAVExclusions Script against the local server and show in screen the expected exclusions on screen without setting them.</p>
+<div class="highlight"><pre><span></span><code>.\Set-ExchAVExclusions.ps1 -ListRecommendedExclusions
+</code></pre></div>
+<p>This will run Set-ExchAVExclusions Script against the local server and show in screen the expected exclusions on screen without setting them and write them in the defined <code>FileName</code>.</p>
+<div class="highlight"><pre><span></span><code>.\Set-ExchAVExclusions.ps1 -ListRecommendedExclusions -FileName .\Exclusions.txt
+</code></pre></div>
+<p>This will run Set-ExchAVExclusions Script against the local server and write them in the defined <code>FileName</code>.</p>
+<div class="highlight"><pre><span></span><code>.\Set-ExchAVExclusions.ps1 -FileName .\Exclusions.txt
+</code></pre></div>
 <h2 id="outputs">Outputs</h2>
+<p>Exclusions List File:
+<code>FileName</code></p>
 <p>Log file:
 $env:LOCALAPPDATA\SetExchAvExclusions.log</p>
 
@@ -1984,7 +1997,7 @@ $env:LOCALAPPDATA\SetExchAvExclusions.log</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 14, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 31, 2022</span>
       
     
   </small>
