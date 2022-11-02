@@ -6,7 +6,9 @@
 function Invoke-IsoCopy {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$CurrentCuRootDirectory
+        [string]$CurrentCuRootDirectory,
+        [Parameter(Mandatory = $false)]
+        [bool]$RemoteDebug
     )
 
     $installedVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction SilentlyContinue).PostSetupVersion
@@ -42,6 +44,17 @@ function Invoke-IsoCopy {
         return
     }
 
+    # Don't need to export out the information if 0 missing files were found
+    if ($RemoteDebug) {
+        Write-Verbose "Save out the Get-InstallerPackages information"
+        try {
+            $msiInstallerPackages | Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerPackages.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export the Installer Packages Information"
+            Invoke-CatchActions
+        }
+    }
+
     Write-Host "Number of missing packages detected: $currentMissingPackages"
     $missingPackages |
         ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, FoundFileInCache } |
@@ -52,6 +65,16 @@ function Invoke-IsoCopy {
         Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
         ForEach-Object { return Get-FileInformation -File $_.FullName }
     $fixedFiles = 0
+
+    if ($RemoteDebug) {
+        Write-Verbose "Save out Packages Information in the ISO"
+        try {
+            $packagesInIso | Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-IsoPackages.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export the ISO Packages Information"
+            Invoke-CatchActions
+        }
+    }
 
     Invoke-TryCopyMissingPackages -MissingPackages $missingPackages -PossiblePackages $packagesInIso -FixedCount ([ref]$fixedFiles)
 

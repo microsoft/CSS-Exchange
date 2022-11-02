@@ -5,7 +5,9 @@
 function Invoke-MachineCopy {
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$MachineName
+        [string[]]$MachineName,
+        [Parameter(Mandatory = $false)]
+        [bool]$RemoteDebug
     )
 
     $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
@@ -15,6 +17,17 @@ function Invoke-MachineCopy {
     if ($currentMissingPackages -eq 0) {
         Write-Host "No missing packages detected."
         return
+    }
+
+    # Don't need to export out the information if 0 missing files were found
+    if ($RemoteDebug) {
+        Write-Verbose "Save out the Get-InstallerPackages information"
+        try {
+            $msiInstallerPackages | Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerPackages.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export the Installer Packages Information"
+            Invoke-CatchActions
+        }
     }
 
     Write-Host "Number of missing packages detected: $currentMissingPackages"
@@ -42,6 +55,16 @@ function Invoke-MachineCopy {
         } catch {
             Write-Host "Failed to get files from the following path: $remoteInstallerCache" -ForegroundColor "Red"
             continue
+        }
+
+        if ($RemoteDebug) {
+            Write-Verbose "Save out Installer Information from $machine"
+            try {
+                $remoteFiles | Export-Clixml -Path "$((Get-Location).Path)\$machine-InstallerPackages.xml" -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to export the ISO Packages Information"
+                Invoke-CatchActions
+            }
         }
 
         Invoke-TryCopyMissingPackages -MissingPackages $missingPackages -PossiblePackages $remoteFiles ([ref]$totalFixedCount)

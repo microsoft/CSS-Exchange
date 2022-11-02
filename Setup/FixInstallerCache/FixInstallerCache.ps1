@@ -8,7 +8,9 @@ param(
     [string]$CurrentCuRootDirectory,
     [Parameter(Mandatory = $true, ParameterSetName = "CopyFromServer")]
     [ValidateNotNullOrEmpty()]
-    [string[]]$MachineName
+    [string[]]$MachineName,
+    [Parameter(Mandatory = $false)]
+    [switch]$RemoteDebug
 )
 
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
@@ -30,15 +32,48 @@ try {
     SetWriteHostAction ${Function:Write-HostLog}
     SetWriteWarningAction ${Function:Write-HostLog}
 
+    if ($RemoteDebug) {
+        Write-Verbose "Remote Debug detected, saving out the installer cache location."
+        try {
+            $installerCacheFiles = Get-ChildItem "$env:SystemPath\Windows\Installer" -ErrorAction Stop |
+                Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
+                ForEach-Object {
+                    return Get-FileInformation -File $_.FullName
+                }
+        } catch {
+            Write-Verbose "Failed to get the installer cache information."
+            Invoke-CatchActions
+        }
+
+        try {
+            Write-Verbose "Exporting out the Installer Cache Information"
+            $installerCacheFiles | Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerCache.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export the Installer Cache Information"
+            Invoke-CatchActions
+        }
+
+        try {
+            Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer" -Recurse |
+                Where-Object { $_.Property -eq "LocalPackage" } |
+                Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerRegistry.xml" -ErrorAction Stop
+            Get-ChildItem -Path "Registry::HKEY_CLASSES_ROOT\Installer\Products\" -Recurse |
+                Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerRegistryProducts.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export out the registry information."
+            Invoke-CatchActions
+        }
+    }
+
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
         Write-Host "Starting Fix Installer Cache from CU ISO."
         Write-Verbose "Using CU Root: $CurrentCuRootDirectory"
-        Invoke-IsoCopy $CurrentCuRootDirectory
+        Invoke-IsoCopy $CurrentCuRootDirectory $RemoteDebug
         return
     } else {
         Write-Host "Starting Fix Installer Cache from machine."
         Write-Verbose "Using the following machine names: $([string]::Join(",", $MachineName))"
-        Invoke-MachineCopy $MachineName
+        Invoke-MachineCopy $MachineName $RemoteDebug
         return
     }
 } catch {
@@ -48,7 +83,8 @@ try {
 } finally {
     if ($PSBoundParameters["Verbose"] -or
     (Test-UnhandledErrorsOccurred) -or
-        $Script:MainCatchOccurred) {
+        $Script:MainCatchOccurred -or
+        $RemoteDebug) {
         $Script:DebugLogger.PreventLogCleanup = $true
     }
     Invoke-WriteDebugErrorsThatOccurred
