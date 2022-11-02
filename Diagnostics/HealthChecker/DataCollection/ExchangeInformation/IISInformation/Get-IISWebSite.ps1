@@ -2,9 +2,22 @@
 # Licensed under the MIT License.
 
 function Get-IISWebSite {
-    $webSites = Get-WebSite
-    $bindings = Get-WebBinding
+    param(
+        [array]$WebSitesToProcess
+    )
+
     $returnList = New-Object 'System.Collections.Generic.List[object]'
+    $webSites = New-Object 'System.Collections.Generic.List[object]'
+
+    if ($null -eq $WebSitesToProcess) {
+        $webSites.AddRange((Get-WebSite))
+    } else {
+        foreach ($iisWebSite in $WebSitesToProcess) {
+            $webSites.Add((Get-WebSite -Name $($iisWebSite)))
+        }
+    }
+
+    $bindings = Get-WebBinding
 
     foreach ($site in $webSites) {
         $siteBindings = $bindings |
