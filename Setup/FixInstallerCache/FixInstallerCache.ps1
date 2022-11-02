@@ -44,4 +44,18 @@ try {
 } catch {
     Invoke-CatchActions
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'")
+    $Script:MainCatchOccurred = $true
+} finally {
+    if ($PSBoundParameters["Verbose"] -or
+    (Test-UnhandledErrorsOccurred) -or
+        $Script:MainCatchOccurred) {
+        $Script:DebugLogger.PreventLogCleanup = $true
+    }
+    Invoke-WriteDebugErrorsThatOccurred
+    $Script:DebugLogger | Invoke-LoggerInstanceCleanup
+
+    if ((Test-UnhandledErrorsOccurred) -and
+    (-not($Script:MainCatchOccurred))) {
+        Write-Warning "Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'"
+    }
 }
