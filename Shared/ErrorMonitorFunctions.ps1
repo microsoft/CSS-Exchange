@@ -83,3 +83,32 @@ function Invoke-ErrorMonitoring {
     $Error.Clear()
     $Script:ErrorsExcluded = @()
 }
+
+function Invoke-WriteDebugErrorsThatOccurred {
+
+    function WriteErrorInformation {
+        [CmdletBinding()]
+        param(
+            [object]$CurrentError
+        )
+        Write-VerboseErrorInformation $CurrentError
+        Write-Verbose "-----------------------------------`r`n`r`n"
+    }
+
+    if ($Error.Count -gt 0) {
+        Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
+
+        Get-UnhandledErrors | ForEach-Object {
+            Write-Verbose "Error Index: $($_.Index)"
+            WriteErrorInformation $_.ErrorInformation
+        }
+
+        Write-Verbose "`r`n`r`nErrors that were handled"
+        Get-HandledErrors | ForEach-Object {
+            Write-Verbose "Error Index: $($_.Index)"
+            WriteErrorInformation $_.ErrorInformation
+        }
+    } else {
+        Write-Verbose "No errors occurred in the script."
+    }
+}

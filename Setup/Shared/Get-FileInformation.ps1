@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
 function Get-FileInformation {
     [CmdletBinding()]
     param(
@@ -12,6 +13,7 @@ function Get-FileInformation {
         $installerCOM = New-Object -ComObject "WindowsInstaller.Installer"
         $subject = [string]::Empty
         $revNumber = [string]::Empty
+        Write-Verbose "Calling $($MyInvocation.MyCommand)"
     }
     process {
 
@@ -31,6 +33,8 @@ function Get-FileInformation {
                 #https://docs.microsoft.com/en-us/windows/win32/msi/summaryinfo-summaryinfo
                 $subject = $summaryInformation.GetType().InvokeMember("Property", [System.Reflection.BindingFlags]::GetProperty, $null, $summaryInformation, @(3))
                 $revNumber = $summaryInformation.GetType().InvokeMember("Property", [System.Reflection.BindingFlags]::GetProperty, $null, $summaryInformation, @(9))
+                Write-Verbose "Subject: $Subject"
+                Write-Verbose "RevNumber: $revNumber"
                 return
             }
 
@@ -48,8 +52,7 @@ TODO: Fix this code. Clearly didn't finish it.
         $subject = $shellFolder.GetDetailsOf($shellFolder.ParseName($fileItem.Name), 22)
 #>
         } catch {
-            Write-Host "$($_.Exception)"
-            Write-Host "$($_.ScriptStackTrace)"
+            Write-HostErrorInformation
             throw "Failed to properly process file $($File.FullName) to get required MSI information"
         }
     }
