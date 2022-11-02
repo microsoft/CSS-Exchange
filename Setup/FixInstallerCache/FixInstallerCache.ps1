@@ -8,144 +8,90 @@ param(
     [string]$CurrentCuRootDirectory,
     [Parameter(Mandatory = $true, ParameterSetName = "CopyFromServer")]
     [ValidateNotNullOrEmpty()]
-    [string[]]$MachineName
+    [string[]]$MachineName,
+    [Parameter(Mandatory = $false)]
+    [switch]$RemoteDebug
 )
 
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\Shared\Get-FileInformation.ps1
 . $PSScriptRoot\..\Shared\Get-InstallerPackages.ps1
 . $PSScriptRoot\WriteFunctions.ps1
+. $PSScriptRoot\Invoke-IsoCopy.ps1
+. $PSScriptRoot\Invoke-MachineCopy.ps1
 
-function MainIsoCopy {
-    $installedVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction SilentlyContinue).PostSetupVersion
-    $filterDisplayNames = @("Microsoft Lync Server", "Exchange", "Microsoft Server Speech", "Microsoft Unified Communications")
+try {
+    Invoke-ErrorMonitoring
+    $Script:HostLogger = Get-NewLoggerInstance -LogName "FixInstallerCache"
+    $Script:DebugLogger = Get-NewLoggerInstance -LogName "FixInstallerCache-Debug"
+    SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteWarningAction ${Function:Write-HostLog}
 
-    [IO.FileInfo]$cuExchangeMsi = "$CurrentCuRootDirectory\EXCHANGESERVER.msi"
-
-    if (!(Test-Path $cuExchangeMsi)) {
-        #We want the root of the install directory, let the script handle the rest
-        Write-Error "Failed to find the root of the Exchange Setup directory. Trying to find $cuExchangeMsi"
-        exit
-    }
-
-    $cuExchangeFileInfo = Get-FileInformation -File $cuExchangeMsi
-
-    if (!($cuExchangeFileInfo.Subject.Contains($installedVersion))) {
-        Write-Host "Failed to find the correct version of the ISO" -ForegroundColor Red
-        Write-Host "Looking for version $installedVersion" -ForegroundColor Red
-        Write-Host "Found Version $($cuExchangeFileInfo.Subject.Substring($cuExchangeFileInfo.Subject.LastIndexOf("v")+1))" -ForegroundColor Red
-        Start-Sleep 1
-        Write-Error "Failed to find correct ISO version"
-        exit
-    }
-
-    $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
-    $missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
-    $currentMissingPackages = $missingPackages.Count
-    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Write-Host
-    $packagesInIso = Get-ChildItem -Recurse $CurrentCuRootDirectory |
-        Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
-        ForEach-Object { return Get-FileInformation -File $_.FullName }
-    $fixedFiles = 0
-
-    foreach ($missingMsi in $missingPackages) {
-        $fileFound = $packagesInIso | Where-Object { $_.RevisionNumber -eq $missingMsi.RevisionNumber }
-
-        if ($null -eq $fileFound) {
-            "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Write-Host
-        } elseif ($fileFound.Count -gt 1) {
-            "Found more than 1 MSI file that matched our revision number." | Write-Host
-            $hashes = $fileFound |
-                ForEach-Object { Get-FileHash $_.FilePath } |
-                Group-Object Hash
-            if ($hashes.Count -eq 1) {
-                "All files have the same hash value. $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber) - $($missingMsi.DisplayVersion)" | Write-Host
-                $fileFound = $fileFound[0]
-                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
-                Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
-                $fixedFiles++
-            } else {
-                "Not all found files had the same hash" | Write-Host
-                $fileFound | ForEach-Object { "$($fileFound.FilePath) - $($fileFound.RevisionNumber)" | Write-Host }
-            }
-        } else {
-            "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
-            Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
-            $fixedFiles++
-        }
-    }
-
-    "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
-}
-
-function MainMachineCopy {
-
-    $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
-    [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
-    $currentMissingPackages = $missingPackages.Count
-
-    "Current Missing Files" | Write-Host
-    #Fix later, figure out how to log this better.
-    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Write-Host
-
-    $runAgain = $false
-
-    foreach ($machine in $MachineName) {
-
-        $remoteInstallerCache = "\\$machine\c$\Windows\Installer"
-
+    if ($RemoteDebug) {
+        Write-Verbose "Remote Debug detected, saving out the installer cache location."
         try {
-            $remoteFiles = Get-ChildItem $remoteInstallerCache -ErrorAction Stop |
+            $installerCacheFiles = Get-ChildItem "$env:SystemPath\Windows\Installer" -ErrorAction Stop |
                 Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
                 ForEach-Object {
                     return Get-FileInformation -File $_.FullName
                 }
         } catch {
-            Write-Error "Failed to get files from the following path: $remoteInstallerCache"
-            continue
+            Write-Verbose "Failed to get the installer cache information."
+            Invoke-CatchActions
         }
 
-        if ($runAgain) {
-            $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
-            [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
+        try {
+            Write-Verbose "Exporting out the Installer Cache Information"
+            $installerCacheFiles | Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerCache.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export the Installer Cache Information"
+            Invoke-CatchActions
         }
 
-        foreach ($missingMsi in $missingPackages) {
-
-            $fileFound = $remoteFiles | Where-Object { $_.RevisionNumber -eq $missingMsi.RevisionNumber }
-
-            if ($null -eq $fileFound) {
-                "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber)" | Write-Host
-            } elseif ($fileFound.Count -gt 1) {
-                Write-Host "Found more than 1 MSI file that matched our revision number." | Write-Host
-            } else {
-                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
-                Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
-                $fixedFiles++
-            }
+        try {
+            Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer" -Recurse |
+                Where-Object { $_.Property -eq "LocalPackage" } |
+                Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerRegistry.xml" -ErrorAction Stop
+            Get-ChildItem -Path "Registry::HKEY_CLASSES_ROOT\Installer\Products\" -Recurse |
+                Export-Clixml -Path "$((Get-Location).Path)\$env:ComputerName-InstallerRegistryProducts.xml" -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to export out the registry information."
+            Invoke-CatchActions
         }
-        $runAgain = $true
     }
-
-    "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
-}
-
-function Main {
 
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
         Write-Host "Starting Fix Installer Cache from CU ISO."
-        MainIsoCopy
+        Write-Verbose "Using CU Root: $CurrentCuRootDirectory"
+        Invoke-IsoCopy $CurrentCuRootDirectory $RemoteDebug
         return
     } else {
         Write-Host "Starting Fix Installer Cache from machine."
-        MainMachineCopy
+        Write-Verbose "Using the following machine names: $([string]::Join(",", $MachineName))"
+        Invoke-MachineCopy $MachineName $RemoteDebug
         return
     }
-}
-
-try {
-    Main
 } catch {
-    Write-Host "$($_.Exception)"
-    Write-Host "$($_.ScriptStackTrace)"
-    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:scriptLogging)'")
+    Invoke-CatchActions
+    Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'")
+    $Script:MainCatchOccurred = $true
+} finally {
+    if ($PSBoundParameters["Verbose"] -or
+    (Test-UnhandledErrorsOccurred) -or
+        $Script:MainCatchOccurred -or
+        $RemoteDebug) {
+        $Script:DebugLogger.PreventLogCleanup = $true
+    }
+    Invoke-WriteDebugErrorsThatOccurred
+    $Script:DebugLogger | Invoke-LoggerInstanceCleanup
+
+    if ((Test-UnhandledErrorsOccurred) -and
+    (-not($Script:MainCatchOccurred))) {
+        Write-Warning "Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'"
+    }
 }
