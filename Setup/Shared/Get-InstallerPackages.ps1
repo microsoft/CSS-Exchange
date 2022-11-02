@@ -10,6 +10,7 @@ function Get-InstallerPackages {
         [string[]]$FilterDisplayName
     )
     begin {
+        Write-Verbose "Calling $($MyInvocation.MyCommand)"
         $localPackageChildItems = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer" -Recurse |
             Where-Object { $_.Property -eq "LocalPackage" }
         $installerList = New-Object 'System.Collections.Generic.List[PSObject]'
@@ -18,15 +19,33 @@ function Get-InstallerPackages {
 
         foreach ($regKey in $localPackageChildItems) {
 
+            $displayName = $regKey.GetValue("DisplayName")
+            Write-Verbose "Display Name: $displayName"
+
+            if ($null -ne $FilterDisplayName -and
+                -not ([string]::IsNullOrEmpty($displayName))) {
+
+                $inFilter = ($FilterDisplayName | Where-Object { $displayName -like "*$($_)*" }).Count -gt 0
+
+                if (-not ($inFilter)) {
+                    Write-Verbose "Not in current filter. Skipping Item."
+                    continue
+                }
+            }
+
             $filePackagePath = [IO.FileInfo] $regKey.GetValue("LocalPackage")
+            Write-Verbose "Reviewing File Path $filePacakgePath"
             $item = $null
 
             if ($filePackagePath.Extension -eq ".msp") {
+                Write-Verbose "File is an msp"
                 $revisionGuid = Get-GuidProductCodeFromString -GuidString $regKey.PSChildName
             } else {
+                Write-Verbose "File is not an MSP"
                 $productRegKey = "Registry::HKEY_CLASSES_ROOT\Installer\Products\$($regKey.PSParentPath.Split("\")[-1])"
 
                 if (Test-Path $productRegKey) {
+                    Write-Verbose "Found item $productRegKey"
                     $item = Get-Item $productRegKey
                     try {
                         $revisionGuid = Get-GuidProductCodeFromString -GuidString ($item.GetValue("PackageCode"))
@@ -38,49 +57,33 @@ function Get-InstallerPackages {
                 }
             }
 
-            $displayName = $regKey.GetValue("DisplayName")
-            if ($null -ne $FilterDisplayName -and
-                -not ([string]::IsNullOrEmpty($displayName))) {
-                $inFilter = $false
-
-                foreach ($filter in $FilterDisplayName) {
-                    if ($displayName -like "*$filter*") {
-                        $inFilter = $true
-                        break
-                    }
-                }
-
-                if (!$inFilter) {
-                    continue
-                }
-            }
-
             #Go one more step to see if the package is set with what we want.
             $filePackageInfo = $null
             $foundFile = Test-Path $filePackagePath
             $correctRevisionValue = $false
             if ($foundFile) {
                 $filePackageInfo = Get-FileInformation -File $filePackagePath
+
+                if ($null -ne $filePackageInfo) {
+                    $correctRevisionValue = $filePackageInfo.RevisionNumber.Contains($revisionGuid.ToString().ToUpper())
+                }
             }
 
-            if ($foundFile -and
-                $null -ne $filePackageInfo) {
-                $correctRevisionValue = $filePackageInfo.RevisionNumber.Contains($revisionGuid.ToString().ToUpper())
+            $object = [PSCustomObject]@{
+                DisplayName      = $displayName
+                DisplayVersion   = $regKey.GetValue("DisplayVersion")
+                CacheLocation    = $filePackagePath
+                FoundFileInCache = $foundFile
+                ValidMsi         = $correctRevisionValue
+                UninstallString  = $regKey.GetValue("UninstallString")
+                RevisionGuid     = $revisionGuid
+                RevisionNumber   = "{$($revisionGuid.ToString().ToUpper())}"
+                PackageInfo      = $filePackageInfo
+                ProductItem      = $item
+                InstallerItem    = $regKey
             }
-
-            $installerList.Add([PSCustomObject]@{
-                    DisplayName      = $displayName
-                    DisplayVersion   = $regKey.GetValue("DisplayVersion")
-                    CacheLocation    = $filePackagePath
-                    FoundFileInCache = $foundFile
-                    ValidMsi         = $correctRevisionValue
-                    UninstallString  = $regKey.GetValue("UninstallString")
-                    RevisionGuid     = $revisionGuid
-                    RevisionNumber   = "{$($revisionGuid.ToString().ToUpper())}"
-                    PackageInfo      = $filePackageInfo
-                    ProductItem      = $item
-                    InstallerItem    = $regKey
-                })
+            $object | Format-List | Out-String | Write-Verbose
+            $installerList.Add($object)
         }
     }
     end {

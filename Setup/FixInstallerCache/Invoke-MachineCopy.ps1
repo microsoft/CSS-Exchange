@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Invoke-TryCopyMissingPackages.ps1
 function Invoke-MachineCopy {
     param(
         [Parameter(Mandatory = $true)]
@@ -11,15 +12,26 @@ function Invoke-MachineCopy {
     [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
     $currentMissingPackages = $missingPackages.Count
 
-    "Current Missing Files" | Write-Host
-    #Fix later, figure out how to log this better.
-    $missingPackages | ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, ValidMsi, FoundFileInCache } | Write-Host
+    if ($currentMissingPackages -eq 0) {
+        Write-Host "No missing packages detected."
+        return
+    }
 
-    $runAgain = $false
+    Write-Host "Number of missing packages detected: $currentMissingPackages"
+
+    $missingPackages |
+        ForEach-Object { $_ | Select-Object DisplayName, DisplayVersion, RevisionNumber, FoundFileInCache } |
+        Format-Table |
+        Out-String |
+        Write-Host
+
+    # foreach machine, need to try to fix the cache till the fixed count reached original missing packages count
+    $totalFixedCount = 0
 
     foreach ($machine in $MachineName) {
 
         $remoteInstallerCache = "\\$machine\c$\Windows\Installer"
+        Write-Verbose "Getting cache information from $remoteInstallerCache"
 
         try {
             $remoteFiles = Get-ChildItem $remoteInstallerCache -ErrorAction Stop |
@@ -32,27 +44,16 @@ function Invoke-MachineCopy {
             continue
         }
 
-        if ($runAgain) {
-            $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
-            [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
+        Invoke-TryCopyMissingPackages -MissingPackages $missingPackages -PossiblePackages $remoteFiles ([ref]$totalFixedCount)
+
+        if ($totalFixedCount -ge $currentMissingPackages) {
+            Write-Verbose "Found all missing packages, break out of loop."
+            break
         }
 
-        foreach ($missingMsi in $missingPackages) {
-
-            $fileFound = $remoteFiles | Where-Object { $_.RevisionNumber -eq $missingMsi.RevisionNumber }
-
-            if ($null -eq $fileFound) {
-                "Failed to find MSI - $($missingMsi.DisplayName) - $($missingMsi.RevisionNumber)" | Write-Host
-            } elseif ($fileFound.Count -gt 1) {
-                Write-Host "Found more than 1 MSI file that matched our revision number." | Write-Host
-            } else {
-                "Copying file $($fileFound.FilePath) to $($missingMsi.CacheLocation)" | Write-Host
-                Copy-Item $fileFound.FilePath $missingMsi.CacheLocation
-                $fixedFiles++
-            }
-        }
-        $runAgain = $true
+        $msiInstallerPackages = Get-InstallerPackages -FilterDisplayName $filterDisplayNames
+        [System.Collections.Generic.List[PSObject]]$missingPackages = $msiInstallerPackages | Where-Object { $_.ValidMsi -eq $false }
     }
 
-    "Fixed $fixedFiles out of $currentMissingPackages" | Write-Host
+    "Fixed $totalFixedCount out of $currentMissingPackages" | Write-Host
 }

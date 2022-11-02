@@ -32,10 +32,12 @@ try {
 
     if ($PsCmdlet.ParameterSetName -eq "CopyFromCu") {
         Write-Host "Starting Fix Installer Cache from CU ISO."
+        Write-Verbose "Using CU Root: $CurrentCuRootDirectory"
         Invoke-IsoCopy $CurrentCuRootDirectory
         return
     } else {
         Write-Host "Starting Fix Installer Cache from machine."
+        Write-Verbose "Using the following machine names: $([string]::Join(",", $MachineName))"
         Invoke-MachineCopy $MachineName
         return
     }
