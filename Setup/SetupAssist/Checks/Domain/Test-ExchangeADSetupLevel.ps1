@@ -160,7 +160,7 @@ function Test-ExchangeADSetupLevel {
 
     $adLevel = GetExchangeADSetupLevel
     $testName = "Exchange AD Latest Level"
-    $setupLog = "C:\ExchangeSetupLogs\ExchangeSetup.log"
+    $setupLog = "$env:SystemDrive\ExchangeSetupLogs\ExchangeSetup.log"
     $currentSchemaValue = $adLevel.Schema.Value
     $currentInstallingExchangeVersion = $null
 
