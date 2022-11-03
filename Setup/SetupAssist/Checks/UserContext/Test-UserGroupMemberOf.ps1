@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-TokenGroupsGlobalAndUniversal.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-WellKnownGroupSid.ps1
 . $PSScriptRoot\..\New-TestResult.ps1
@@ -19,6 +20,8 @@ function Test-UserGroupMemberOf {
         TestName = "User Administrator"
         Details  = "$whoami $userSid"
     }
+
+    $tokenGroups = Get-TokenGroupsGlobalAndUniversal -UserSid $userSid
 
     if (Confirm-Administrator) {
         New-TestResult @params -Result "Passed"
@@ -64,7 +67,17 @@ function Test-UserGroupMemberOf {
         if ($principal.IsInRole($group.Role)) {
             New-TestResult @params -Result "Passed"
         } else {
-            New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
+            # If not running under admin, IsInRole doesn't work properly provide error on this.
+            # Then check to see if they are in a token group, if they are need to sign out to have it applied.
+            # Otherwise, they are not in the group.
+            if (-not (Confirm-Administrator)) {
+                New-TestResult @params -Result "Failed" -ReferenceInfo "Must run as Administrator to properly test"
+            } elseif ($null -ne $tokenGroups -and
+            ($tokenGroups.SID.Contains($group.Role.ToString()))) {
+                New-TestResult @params -Result "Warning" -ReferenceInfo "Need to log off and log back in"
+            } else {
+                New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
+            }
         }
     }
 }
