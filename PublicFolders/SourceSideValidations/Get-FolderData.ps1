@@ -20,7 +20,7 @@ function Get-FolderData {
     begin {
         Write-Verbose "$($MyInvocation.MyCommand) called."
         $startTime = Get-Date
-        $serverName = (Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.HierarchyMailboxGuid.ToString()).ServerName
+        $serverName = (Get-MailboxDatabase (Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.HierarchyMailboxGuid.ToString()).Database).Server.Name
         $folderData = [PSCustomObject]@{
             IpmSubtree              = $null
             IpmSubtreeByMailbox     = $null
