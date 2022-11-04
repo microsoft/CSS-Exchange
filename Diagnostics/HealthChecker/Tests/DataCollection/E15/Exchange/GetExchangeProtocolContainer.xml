@@ -1,0 +1,214 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.DirectoryServices.DirectoryEntry</T>
+      <T>System.ComponentModel.Component</T>
+      <T>System.MarshalByRefObject</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.DirectoryServices.DirectoryEntry</ToString>
+    <Props>
+      <Obj N="objectClass" RefId="1">
+        <TN RefId="1">
+          <T>System.DirectoryServices.PropertyValueCollection</T>
+          <T>System.Collections.CollectionBase</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>top</S>
+          <S>protocolCfgShared</S>
+          <S>protocolCfgSharedServer</S>
+        </LST>
+      </Obj>
+      <Obj N="cn" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Protocols</S>
+        </LST>
+      </Obj>
+      <Obj N="distinguishedName" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CN=Protocols,CN=E1501,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=Exchangelabs,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=exchangelabs,DC=lab</S>
+        </LST>
+      </Obj>
+      <Obj N="instanceType" RefId="4">
+        <TNRef RefId="1" />
+        <LST>
+          <I32>4</I32>
+        </LST>
+      </Obj>
+      <Obj N="whenCreated" RefId="5">
+        <TNRef RefId="1" />
+        <LST>
+          <DT>2021-11-05T08:36:35</DT>
+        </LST>
+      </Obj>
+      <Obj N="whenChanged" RefId="6">
+        <TNRef RefId="1" />
+        <LST>
+          <DT>2021-11-05T08:36:35</DT>
+        </LST>
+      </Obj>
+      <Obj N="uSNCreated" RefId="7">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="8">
+            <TN RefId="2">
+              <T>System.__ComObject</T>
+              <T>System.MarshalByRefObject</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>System.__ComObject</ToString>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="uSNChanged" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="10">
+            <TNRef RefId="2" />
+            <ToString>System.__ComObject</ToString>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="showInAdvancedViewOnly" RefId="11">
+        <TNRef RefId="1" />
+        <LST>
+          <B>true</B>
+        </LST>
+      </Obj>
+      <Obj N="adminDisplayName" RefId="12">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Protocols</S>
+        </LST>
+      </Obj>
+      <Obj N="nTSecurityDescriptor" RefId="13">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="14">
+            <TNRef RefId="2" />
+            <ToString>System.__ComObject</ToString>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="name" RefId="15">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Protocols</S>
+        </LST>
+      </Obj>
+      <Obj N="objectGUID" RefId="16">
+        <TNRef RefId="1" />
+        <LST>
+          <BA>7Gw2GoxsSUeWeeZjy0KjLQ==</BA>
+        </LST>
+      </Obj>
+      <Obj N="systemFlags" RefId="17">
+        <TNRef RefId="1" />
+        <LST>
+          <I32>1073741824</I32>
+        </LST>
+      </Obj>
+      <Obj N="objectCategory" RefId="18">
+        <TNRef RefId="1" />
+        <LST>
+          <S>CN=ms-Exch-Protocol-Cfg-Shared-Server,CN=Schema,CN=Configuration,DC=exchangelabs,DC=lab</S>
+        </LST>
+      </Obj>
+      <Obj N="dSCorePropagationData" RefId="19">
+        <TNRef RefId="1" />
+        <LST>
+          <DT>2021-11-05T08:43:18</DT>
+          <DT>2021-11-05T08:40:10</DT>
+          <DT>2021-11-05T08:40:09</DT>
+          <DT>2021-11-05T08:36:36</DT>
+          <DT>1601-07-14T22:36:49</DT>
+        </LST>
+      </Obj>
+      <Obj N="availableAuthorizationPackages" RefId="20">
+        <TNRef RefId="1" />
+        <LST>
+          <S>MCIS Membership System using SSL§DPA§DPASSL</S>
+          <S>MCIS Membership System§DPA§DPA</S>
+          <S>Windows Challenge/Response Using SSL§NTLM§NTLMSSL</S>
+          <S>Windows Challenge/Response§NTLM§NTLM</S>
+          <S>Basic (Clear Text) Using SSL§CLEARTEXT§CLEARTEXTSSL</S>
+          <S>Basic (Clear Text)§CLEARTEXT§CLEARTEXT</S>
+        </LST>
+      </Obj>
+      <Obj N="characterSetList" RefId="21">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Thai (Windows 874)§WINDOWS-874</S>
+          <S>Japanese (EUC)§X-EUC</S>
+          <S>Baltic (Windows 1257)§WINDOWS-1257</S>
+          <S>Arabic (Windows 1256)§WINDOWS-1256</S>
+          <S>Hebrew (Windows 1255)§WINDOWS-1255</S>
+          <S>Turkish (Windows 1254)§WINDOWS-1254</S>
+          <S>Greek (Windows 1253)§WINDOWS-1253</S>
+          <S>Latin I (Windows 1252)§WINDOWS-1252</S>
+          <S>Cyrillic (Windows 1251)§WINDOWS-1251</S>
+          <S>Central European (Windows 1250)§WINDOWS-1250</S>
+          <S>Korean (EUC)§EUC-KR</S>
+          <S>US ASCII§US-ASCII</S>
+          <S>Unicode (UTF-8)§utf-8</S>
+          <S>Unicode (UTF-7)§utf-7</S>
+          <S>Japanese (Shift-JIS)§SHIFT-JIS</S>
+          <S>IA5 (Swedish)§SEN_850200_B</S>
+          <S>IA5 (Norwegian)§NS_4551-1</S>
+          <S>Korean§KS_C_5601-1987</S>
+          <S>Russian (KOI8-R)§KOI8-R</S>
+          <S>Latin 9 (ISO-8859-15)§ISO-8859-15</S>
+          <S>Turkish (ISO-8859-9)§ISO-8859-9</S>
+          <S>Hebrew (ISO-8859-8)§ISO-8859-8</S>
+          <S>Greek (ISO-8859-7)§ISO-8859-7</S>
+          <S>Arabic (ISO-8859-6)§ISO-8859-6</S>
+          <S>Cyrillic (ISO-8859-5)§ISO-8859-5</S>
+          <S>Baltic (ISO-8859-4)§ISO-8859-4</S>
+          <S>Turkish (ISO-8859-3)§ISO-8859-3</S>
+          <S>Central European (ISO-8859-2)§ISO-8859-2</S>
+          <S>Western European (ISO-8859-1)§ISO-8859-1</S>
+          <S>Korean (ISO 2022 KR, 7 bit)§ISO-2022-KR</S>
+          <S>Japanese (JIS-SIO)§ISO-2022-JPSIO</S>
+          <S>Japanese (JIS-ESC)§ISO-2022-JPESC</S>
+          <S>Japanese (JIS)§ISO-2022-JPDBCS</S>
+          <S>Chinese Simplified (HZ)§hz-gb-2312</S>
+          <S>Chinese Simplified (GB18030)§GB18030</S>
+          <S>Chinese Simplified (GB2312)§GB2312</S>
+          <S>IA5 (German)§DIN_66003</S>
+          <S>Chinese Traditional (Big5)§BIG5</S>
+          <S>Untranslated ("ANSI")§ANSI</S>
+        </LST>
+      </Obj>
+      <Obj N="useSiteValues" RefId="22">
+        <TNRef RefId="1" />
+        <LST>
+          <B>false</B>
+        </LST>
+      </Obj>
+      <Obj N="msExchMinAdminVersion" RefId="23">
+        <TNRef RefId="1" />
+        <LST>
+          <I32>-2147453113</I32>
+        </LST>
+      </Obj>
+      <Obj N="msExchVersion" RefId="24">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="25">
+            <TNRef RefId="2" />
+            <ToString>System.__ComObject</ToString>
+          </Obj>
+        </LST>
+      </Obj>
+      <Obj N="connectionListFilterType" RefId="26">
+        <TNRef RefId="1" />
+        <LST>
+          <I32>0</I32>
+        </LST>
+      </Obj>
+    </Props>
+  </Obj>
+</Objs>
