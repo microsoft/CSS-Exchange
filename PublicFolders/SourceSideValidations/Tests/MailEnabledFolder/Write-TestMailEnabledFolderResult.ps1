@@ -70,7 +70,7 @@ function Write-TestMailEnabledFolderResult {
                 "Import-Csv .\ValidationResults.csv |`n" +
                 " ? ResultType -eq OrphanedMPF |`n" +
                 " % {`n" +
-                "  `$folder = ([ADSI](`"LDAP://`$_`"))`n" +
+                "  `$folder = ([ADSI](`"LDAP://`$(`$_.FolderIdentity)`"))`n" +
                 "  `$parent = ([ADSI]`"`$(`$folder.Parent)`")`n" +
                 "  `$parent.Children.Remove(`$folder)`n" +
                 " }")
