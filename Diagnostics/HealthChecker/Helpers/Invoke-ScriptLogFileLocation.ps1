@@ -22,7 +22,7 @@ function Invoke-ScriptLogFileLocation {
         return
     }
 
-    $Script:ExchangeShellComputer = Confirm-ExchangeShell -Identity $Script:Server `
+    $Script:ExchangeShellComputer = Confirm-ExchangeShell `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if (!($Script:ExchangeShellComputer.ShellLoaded)) {

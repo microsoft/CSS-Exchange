@@ -143,7 +143,7 @@ if ($FileName -like '*\*') {
 $ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
 
 # Check Exchange Shell and Exchange instalation
-$exchangeShell = Confirm-ExchangeShell -Identity $env:computerName
+$exchangeShell = Confirm-ExchangeShell
 if (-not($exchangeShell.ShellLoaded)) {
     Write-Warning "Failed to load Exchange Shell Module..."
     exit

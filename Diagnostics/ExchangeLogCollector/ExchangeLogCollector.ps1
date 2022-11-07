@@ -185,7 +185,7 @@ function Main {
         exit
     }
 
-    $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+    $Script:LocalExchangeShell = Confirm-ExchangeShell
 
     if (!($Script:LocalExchangeShell.ShellLoaded)) {
         Write-Host "It appears that you are not on an Exchange 2010 or newer server. Sorry I am going to quit."

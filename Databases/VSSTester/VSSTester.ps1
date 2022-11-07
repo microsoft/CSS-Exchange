@@ -59,7 +59,7 @@ function Main {
     Write-Host "****************************************************************************************"
     Write-Host "****************************************************************************************"
 
-    $Script:LocalExchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+    $Script:LocalExchangeShell = Confirm-ExchangeShell
 
     if (!$Script:LocalExchangeShell.ShellLoaded) {
         Write-Host "Failed to load Exchange Shell. Stopping the script."
