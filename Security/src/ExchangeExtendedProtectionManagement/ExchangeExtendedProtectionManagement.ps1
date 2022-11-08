@@ -231,7 +231,7 @@ begin {
 
         if ($ConfigureEPSelected) {
 
-            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy"
+            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy."
             if ($ConfigureMitigationSelected) {
                 $ArchivingKnownIssueString = ""
             }

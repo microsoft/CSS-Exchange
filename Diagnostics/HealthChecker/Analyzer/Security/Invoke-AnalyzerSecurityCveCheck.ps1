@@ -6,7 +6,6 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-1730.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-41040.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
@@ -50,7 +49,7 @@ function Invoke-AnalyzerSecurityCveCheck {
                         AnalyzedInformation = $AnalyzeResults
                         DisplayGroupingKey  = $DisplayGroupingKey
                         Name                = "Security Vulnerability"
-                        Details             = ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/en-us/security-guidance/advisory/{0} for more information." -f $cveName)
+                        Details             = ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information." -f $cveName)
                         DisplayWriteType    = "Red"
                         DisplayTestingValue = $cveName
                         AddHtmlDetailRow    = $false
@@ -159,6 +158,9 @@ function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "1497.33" `
                 -CVENames "CVE-2022-23277"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "1497.44" `
+                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
 
@@ -298,6 +300,9 @@ function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "2375.31", "2507.12" `
                 -CVENames "CVE-2022-34692"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "2375.37", "2507.16" `
+                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
 
@@ -410,6 +415,9 @@ function Invoke-AnalyzerSecurityCveCheck {
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
                 -SecurityFixedBuilds "986.29", "1118.12" `
                 -CVENames "CVE-2022-34692"
+            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
+                -SecurityFixedBuilds "986.36", "1118.20" `
+                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
         }
     } else {
         Write-Verbose "Unknown Version of Exchange"
@@ -430,7 +438,6 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2021-1730 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-34470 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2022-21978 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2022-41040 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
