@@ -87,9 +87,9 @@ function Test-ExchangeADSetupLevel {
             Result        = "Failed"
             ReferenceInfo = "Mismatch detected `n    More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchangeVersion"
         }
-        New-TestResult @params -Details @("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)" +
-            "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)" +
-            "DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
+        New-TestResult @params -Details @("Org DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)",
+            "Schema DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)",
+            "MESO DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
         TestPrepareAD -ExchangeVersion $ExchangeVersion -ADSetupLevel $ADSetupLevel
     }
 
