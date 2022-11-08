@@ -9,15 +9,26 @@ function Test-ExchangeADSetupLevel {
     # Extract for Pester Testing - Start
     function TestPrepareAD {
         param(
-            [string]$ExchangeVersion
+            [string]$ExchangeVersion,
+            [object]$ADSetupLevel
         )
         # Make sure this gets called first before any other returns can occur
-        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue)
+        #TODO Fix this logic. This isn't going to work if local domain needs to be prepared if local domain has been prepared at least once before.
+        #To make this an easier fix, need to complete #1314 first.
+        # If UNKNOWN user must be in the Enterprise Admin, otherwise setup will fail
+        $localDomainPrep = $null -ne $ADSetupLevel -and $ADSetupLevel.MESO.DN -eq "Unknown"
+        Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue) # -PrepareDomainOnly $localDomainPrep
 
         $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
         $params = @{
             TestName = "Prepare AD Requirements"
             Result   = "Failed"
+        }
+
+        # Need to prepare the local domain domain
+        if ($localDomainPrep) {
+            New-TestResult @params -Details "Run /PrepareDomain from this computer with Domain Admins and Enterprise Admin account"
+            return
         }
 
         if ($null -eq $forest) {
@@ -76,10 +87,10 @@ function Test-ExchangeADSetupLevel {
             Result        = "Failed"
             ReferenceInfo = "Mismatch detected `n    More Info: https://docs.microsoft.com/en-us/Exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-$ExchangeVersion"
         }
-        New-TestResult @params -Details @("DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)" +
-            "DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)" +
-            "DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
-        TestPrepareAD -ExchangeVersion $ExchangeVersion
+        New-TestResult @params -Details @("Org DN Value: $($ADSetupLevel.Org.DN) Version: $($ADSetupLevel.Org.Value)",
+            "Schema DN Value: $($ADSetupLevel.Schema.DN) Version: $($ADSetupLevel.Schema.Value)",
+            "MESO DN Value: $($ADSetupLevel.MESO.DN) Version: $($ADSetupLevel.MESO.Value)")
+        TestPrepareAD -ExchangeVersion $ExchangeVersion -ADSetupLevel $ADSetupLevel
     }
 
     function TestReadyLevel {
@@ -110,6 +121,12 @@ function Test-ExchangeADSetupLevel {
             [object]$SearchResults,
             [string]$VersionValueName = "ObjectVersion"
         )
+        if ($null -eq $SearchResults.Properties) {
+            return [PSCustomObject]@{
+                DN    = "Unknown"
+                Value = -1
+            }
+        }
         return [PSCustomObject]@{
             DN    = $SearchResults.Properties["DistinguishedName"]
             Value = ($SearchResults.Properties[$VersionValueName]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
@@ -128,8 +145,9 @@ function Test-ExchangeADSetupLevel {
         $directorySearcher.Filter = "(&(name=ms-Exch-Schema-Version-Pt)(objectCategory=attributeSchema))"
         $schemaFindAll = $directorySearcher.FindAll()
 
+        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $directorySearcher.SearchScope = "OneLevel"
-        $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.rootDomainNamingContext.ToString())
+        $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.defaultNamingContext.ToString())
         $directorySearcher.Filter = "(objectCategory=msExchSystemObjectsContainer)"
         $mesoFindAll = $directorySearcher.FindAll()
 
