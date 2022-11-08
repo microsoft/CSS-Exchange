@@ -12,8 +12,22 @@ using System.Collections;
             public HardwareInformation HardwareInformation;  // Hardware Object Information
             public OperatingSystemInformation  OSInformation; // OS Version Object Information
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
+            public OrganizationInformation OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
             public string HealthCheckerVersion; //To determine the version of the script on the object.
             public DateTime GenerationTime; //Time stamp of running the script
+        }
+
+        // Organization Information - Things that only need to be collected once
+        public class OrganizationInformation
+        {
+            public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+            public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
+            public object AdSchemaInformation;   //Stores the properties of from the Schema class
+            public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
+            public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
+            public object WildCardAcceptedDomain; // for issues with * accepted domain.
+            public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
+            public bool MapiHttpEnabled; //Stored from organization config
         }
 
         // ExchangeInformation
