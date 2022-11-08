@@ -153,7 +153,7 @@ begin {
         $Host.PrivateData.VerboseForegroundColor = "Cyan"
     }
 
-    $Script:ServerInstanceList = New-Object System.Collections.Generic.List[string]
+    $Script:ServerNameList = New-Object System.Collections.Generic.List[string]
     $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-Debug" `
         -LogDirectory $Script:OutputFilePath `
         -AppendDateTime $false `
@@ -161,7 +161,7 @@ begin {
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
 } process {
-    $Server | ForEach-Object { $Script:ServerInstanceList.Add($_.ToUpper()) }
+    $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
 } end {
     try {
 
@@ -243,9 +243,9 @@ begin {
         if ($MailboxReport) {
             Invoke-ConfirmExchangeShell
 
-            foreach ($serverInstance in $Script:ServerInstanceList) {
-                Invoke-SetOutputInstanceLocation -Server $serverInstance -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
-                Get-MailboxDatabaseAndMailboxStatistics -Server $serverInstance
+            foreach ($serverName in $Script:ServerNameList) {
+                Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+                Get-MailboxDatabaseAndMailboxStatistics -Server $serverName
                 Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
             }
             return
@@ -266,11 +266,11 @@ begin {
 
         Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
-        foreach ($serverInstance in $Script:ServerInstanceList) {
-            Invoke-SetOutputInstanceLocation -Server $serverInstance -FileName "HealthChecker" -IncludeServerName $true
+        foreach ($serverName in $Script:ServerNameList) {
+            Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
             Write-HostLog "Exchange Health Checker version $BuildVersion"
-            Test-RequiresServerFqdn -Server $serverInstance
-            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerInstance $serverInstance
+            Test-RequiresServerFqdn -Server $serverName
+            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverName
             $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
             Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
 
