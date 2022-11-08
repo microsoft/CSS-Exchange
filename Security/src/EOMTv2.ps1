@@ -29,7 +29,8 @@
 [Cmdletbinding()]
 param (
     [switch]$RollbackMitigation,
-    [switch]$DoNotAutoUpdateEOMTv2
+    [switch]$DoNotAutoUpdateEOMTv2,
+    [switch]$SkipDisclaimer
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -46,6 +47,41 @@ $BuildVersion = ""
 
 # Force TLS1.2 to make sure we can download from HTTPS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+. $PSScriptRoot\..\..\Shared\Show-Disclaimer.ps1
+
+function Test-ExchangeMitigationRequired {
+    param()
+
+    $mitigationRequired = $true
+
+    try {
+        $exchangeBuildInformation = Get-Command Exsetup.exe | ForEach-Object { $_.FileVersionInfo }
+        [System.Version]$fullBuildNumber = $exchangeBuildInformation.FileVersion
+
+        if ($exchangeBuildInformation.FileMinorPart -eq 0) {
+            $mitigationRequired = $fullBuildNumber -lt "15.00.1497.044"
+        } elseif ($exchangeBuildInformation.FileMinorPart -eq 1) {
+            if ($exchangeBuildInformation.ProductBuildPart -gt 2375) {
+                $mitigationRequired = $fullBuildNumber -lt "15.01.2507.016"
+            } else {
+                $mitigationRequired = $fullBuildNumber -lt "15.01.2375.037"
+            }
+        } elseif ($exchangeBuildInformation.FileMinorPart -eq 2) {
+            if ($exchangeBuildInformation.ProductBuildPart -gt 986) {
+                $mitigationRequired = $fullBuildNumber -lt "15.02.1118.020"
+            } else {
+                $mitigationRequired = $fullBuildNumber -lt "15.02.0986.036"
+            }
+        } else {
+            throw "Exchange Server version is not supported by this script. Build number returned was: {0}" -f $fullBuildNumber
+        }
+    } catch {
+        throw "Failed to get Exchange Server build number. The error was: {0}." -f $_
+    }
+
+    return $mitigationRequired
+}
 
 function Run-Mitigate {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Invalid rule result')]
@@ -486,6 +522,21 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 # Main
 try {
+    if (($SkipDisclaimer -eq $false) -and
+        ($RollbackMitigation -eq $false)) {
+        $params = @{
+            Message   = "Display Warning about CVE-2022-41040 mitigation"
+            Target    = "The CVE-2022-41040 security vulnerability has been addressed with the November 2022 Exchange Server Security Update." +
+            "`r`nTherefore, it's no longer required to apply the mitigation in case the update has been installed." +
+            "`r`nSee: https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2022-exchange-server-security-updates/ba-p/3669045" +
+            "`r`nDo you want to proceed?"
+            Operation = "Applying CVE-2022-41040 mitigation"
+        }
+
+        Show-Disclaimer @params
+        Write-Host ""
+    }
+
     $Stage = "CheckEOMTv2Version"
 
     if (!(Test-Path $EOMTv2Dir)) {
@@ -562,9 +613,10 @@ try {
 
     if ($RollbackMitigation) {
         Run-Mitigate -RollbackMitigation
-    }
-
-    else {
+    } elseif ((Test-ExchangeMitigationRequired) -eq $false) {
+        $Message = "CVE-2022-41040 vulnerability has been fixed for the Exchange build running on this computer - mitigation will not be applied"
+        Set-LogActivity -Stage $Stage -Message $Message -Notice
+    } else {
         $Message = "Applying mitigation on $env:computername"
         $RegMessage = ""
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message

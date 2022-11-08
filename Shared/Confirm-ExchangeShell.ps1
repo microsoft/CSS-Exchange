@@ -4,13 +4,12 @@
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 . $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 
+# Confirm that either Remote Shell or EMS is loaded from an Edge Server, Exchange Server, or a Tools box.
+# It does this by also initializing the session and running Get-EventLogLevel. (Server Management RBAC right)
+# All script that require Confirm-ExchangeShell should be at least using Server Management RBAC right for the user running the script.
 function Confirm-ExchangeShell {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Identity = $env:COMPUTERNAME,
-
         [Parameter(Mandatory = $false)]
         [bool]$LoadExchangeShell = $true,
 
@@ -19,59 +18,29 @@ function Confirm-ExchangeShell {
     )
 
     begin {
-        function Test-GetExchangeServerCmdletError {
-            param(
-                [Parameter(Mandatory = $true)]
-                [object]$ThisError
-            )
-
-            if ($ThisError.FullyQualifiedErrorId -ne "CommandNotFoundException") {
-                Write-Warning "Failed to find '$Identity' as an Exchange Server."
-                return $true
-            }
-            return $false
-        }
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell"
         $currentErrors = $Error.Count
         $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
-        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell | Identity: $Identity"
-        $params = @{
-            Identity    = $Identity
-            ErrorAction = "Stop"
-        }
-
+        $remoteShell = (!(Test-Path $setupKey))
         $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
         ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
-        $remoteShell = (!(Test-Path $setupKey))
-
-        if ($toolsServer -or $remoteShell) {
-            Write-Verbose "Exchange Server Check against local: $env:ComputerName"
-            if ($env:ComputerName -eq $Identity -or
-                $env:ComputerName -eq $Identity.Split(".")[0]) {
-                Write-Verbose "Removing Identity from Get-ExchangeServer cmdlet due to passed value isn't an Exchange Server"
-                $params.Remove("Identity")
-            } else {
-                Write-Verbose "Didn't remove Identity"
-            }
-        }
-
         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
     }
     process {
         try {
             $currentErrors = $Error.Count
-            $isEMS = Get-ExchangeServer @params |
+            $isEMS = Get-EventLogLevel -ErrorAction Stop |
                 Select-Object -First 1 |
-                ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
+                ForEach-Object { if ($_.GetType().Name -eq "EventCategoryObject") { return $true } return $false }
             Write-Verbose "Exchange PowerShell Module already loaded."
             $passed = $true
             Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
         } catch {
-            Write-Verbose "Failed to run Get-ExchangeServer"
+            Write-Verbose "Failed to run Get-EventLogLevel"
             Invoke-CatchActionError $CatchActionFunction
-            if (Test-GetExchangeServerCmdletError $_) { return }
             if (-not ($LoadExchangeShell)) { return }
 
             #Test 32 bit process, as we can't see the registry if that is the case.
@@ -100,18 +69,17 @@ function Confirm-ExchangeShell {
                         Connect-ExchangeServer -Auto -ClientApplication:ManagementShell
                     }
 
-                    Write-Verbose "Imported Module. Trying Get-Exchange Server Again"
+                    Write-Verbose "Imported Module. Trying Get-EventLogLevel Again"
                     try {
-                        $isEMS = Get-ExchangeServer @params |
+                        $isEMS = Get-EventLogLevel -ErrorAction Stop |
                             Select-Object -First 1 |
-                            ForEach-Object { if ($_.GetType().Name -eq "ExchangeServer") { return $true } return $false }
+                            ForEach-Object { if ($_.GetType().Name -eq "EventCategoryObject") { return $true } return $false }
                         $passed = $true
                         Write-Verbose "Successfully loaded Exchange Management Shell"
                         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
                     } catch {
-                        Write-Verbose "Failed to run Get-ExchangeServer again"
+                        Write-Verbose "Failed to run Get-EventLogLevel again"
                         Invoke-CatchActionError $CatchActionFunction
-                        if (Test-GetExchangeServerCmdletError $_) { return }
                     }
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."

@@ -208,7 +208,7 @@ begin {
     }
 
     try {
-        $exchangeShell = Confirm-ExchangeShell -Identity $env:COMPUTERNAME
+        $exchangeShell = Confirm-ExchangeShell
         if (-not($exchangeShell.ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
             exit
@@ -231,7 +231,7 @@ begin {
 
         if ($ConfigureEPSelected) {
 
-            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy"
+            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy."
             if ($ConfigureMitigationSelected) {
                 $ArchivingKnownIssueString = ""
             }
