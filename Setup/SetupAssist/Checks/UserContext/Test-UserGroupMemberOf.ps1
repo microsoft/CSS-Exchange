@@ -9,7 +9,8 @@ function Test-UserGroupMemberOf {
     [CmdletBinding()]
     param(
         [bool]$PrepareAdRequired,
-        [bool]$PrepareSchemaRequired
+        [bool]$PrepareSchemaRequired,
+        [bool]$PrepareDomainOnly
     )
 
     $whoami = whoami
@@ -46,10 +47,13 @@ function Test-UserGroupMemberOf {
     }
 
     if ($PrepareAdRequired) {
-        $groupRequirements += @{
-            Name   = "Enterprise Admins"
-            Role   = (Get-WellKnownGroupSid "Enterprise Admins")
-            Reason = "User must be Enterprise Admins to do PrepareSchema or PrepareAD."
+
+        if (-not ($PrepareDomainOnly)) {
+            $groupRequirements += @{
+                Name   = "Enterprise Admins"
+                Role   = (Get-WellKnownGroupSid "Enterprise Admins")
+                Reason = "User must be Enterprise Admins to do PrepareSchema or PrepareAD."
+            }
         }
 
         $groupRequirements += @{
