@@ -245,3 +245,9 @@ function Get-WebBinding {
 function Get-WebApplication {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebApplication.xml"
 }
+function Get-ExchangeProtocolContainer {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeProtocolContainer.xml"
+}
+function Get-ExchangeWebSitesFromAd {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
+}

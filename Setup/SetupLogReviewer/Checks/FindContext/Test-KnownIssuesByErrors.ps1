@@ -11,6 +11,7 @@
 . $PSScriptRoot\..\ErrorContext\Test-MissingHomeMdb.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MountDatabaseFailure.ps1
 . $PSScriptRoot\..\ErrorContext\Test-MSExchangeSecurityGroupsContainerDeleted.ps1
+. $PSScriptRoot\..\ErrorContext\Test-ServiceControlReverse.ps1
 . $PSScriptRoot\..\ErrorContext\Test-VirtualDirectoryFailure.ps1
 . $PSScriptRoot\..\ErrorReference\Test-FipsUpgradeConfiguration.ps1
 . $PSScriptRoot\..\ErrorReference\Test-InitializePermissionsOfDomain.ps1
@@ -67,6 +68,7 @@ function Test-KnownIssuesByErrors {
             "Test-MissingHomeMdb",
             "Test-MountDatabaseFailure",
             "Test-MSExchangeSecurityGroupsContainerDeleted",
+            "Test-ServiceControlReverse",
             "Test-VirtualDirectoryFailure",
             "Test-InstallFromBin"
         )

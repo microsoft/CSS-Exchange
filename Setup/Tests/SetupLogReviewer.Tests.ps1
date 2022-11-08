@@ -319,6 +319,24 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Do NOT remove the arbitration mailboxes/accounts as they may contain critical information for your environment." }
         }
+
+        It "ServiceControl Reverse Error" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_ServiceControl_Reverse.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*System.Management.Automation.MethodInvocationException*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*1. Find the ServiceControl.ps1 in the Exchange Bin Directory" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*2. Find the following line in the script, within the StopServices function:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*`$services = Get-ServiceToControl `$Roles -Active" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*3. Add in the following:" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*if (`$services -eq `$null) { return `$true }" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*4. Save the file and try to run Setup again." }
+        }
     }
 
     Context "Good Test Case" {
