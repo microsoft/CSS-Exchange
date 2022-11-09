@@ -15,5 +15,6 @@ function Get-ExchangeProtocolContainer {
     $organizationContainer = Get-OrganizationContainer
     $protocolContainerPath = ("CN=Protocols,CN=" + $ComputerName + ",CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups," + $organizationContainer.distinguishedName)
     $protocolContainer = [ADSI]("LDAP://" + $protocolContainerPath)
+    Write-Verbose "Protocol Container Path: $($protocolContainer.Path)"
     return $protocolContainer
 }
