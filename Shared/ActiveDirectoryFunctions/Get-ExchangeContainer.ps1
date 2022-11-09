@@ -9,5 +9,6 @@ function Get-ExchangeContainer {
     $rootDSE = [ADSI]("LDAP://RootDSE")
     $exchangeContainerPath = ("CN=Microsoft Exchange,CN=Services," + $rootDSE.configurationNamingContext)
     $exchangeContainer = [ADSI]("LDAP://" + $exchangeContainerPath)
+    Write-Verbose "Exchange Container Path: $($exchangeContainer.path)"
     return $exchangeContainer
 }
