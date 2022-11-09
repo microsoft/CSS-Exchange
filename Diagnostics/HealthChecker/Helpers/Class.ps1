@@ -21,7 +21,8 @@ using System.Collections;
         public class OrganizationInformation
         {
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
-            public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
+            public object DomainsAclPermissions; //Stores the ACLs that we care about from Exchange Domain that contains the MESO container
+            public object WellKnownSecurityGroups; //Stores the well known Exchange Security Groups information
             public object AdSchemaInformation;   //Stores the properties of from the Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
             public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level

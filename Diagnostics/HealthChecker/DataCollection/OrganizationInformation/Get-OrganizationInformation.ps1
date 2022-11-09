@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
+. $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
+. $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
 function Get-OrganizationInformation {
     [CmdletBinding()]
     param(
@@ -43,13 +45,14 @@ function Get-OrganizationInformation {
             Invoke-CatchActions
         }
 
-        #TODO: Move ExchangeAdPermissions here.
         #TODO: Move and Update AMSIConfiguration here. Need to do a global Get-SettingOverride instead of a filter like what is in Get-ExchangeAMSIConfigurationState
 
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
             $orgInfo.AdSchemaInformation = Get-ExchangeAdSchemaInformation
+            $orgInfo.ExchangeDomainsPermissions = Get-ExchangeDomainsAclPermissions
+            $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
 
             try {
                 $orgInfo.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
