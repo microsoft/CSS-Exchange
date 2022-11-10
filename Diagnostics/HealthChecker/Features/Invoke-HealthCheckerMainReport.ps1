@@ -11,7 +11,10 @@ function Invoke-HealthCheckerMainReport {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$ServerNames
+        [string[]]$ServerNames,
+
+        [Parameter(Mandatory = $true)]
+        [bool]$EdgeServer
     )
 
     $currentErrors = $Error.Count
@@ -27,8 +30,7 @@ function Invoke-HealthCheckerMainReport {
 
     Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
-    #TODO: Fix Edge Server logic
-    $organizationInformation = Get-OrganizationInformation -EdgeServer $false
+    $organizationInformation = Get-OrganizationInformation -EdgeServer $EdgeServer
 
     foreach ($serverName in $ServerNames) {
         Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true

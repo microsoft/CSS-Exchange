@@ -12,6 +12,14 @@ function Invoke-ConfirmExchangeShell {
         exit
     }
 
+    if ($Script:ExchangeShellComputer.EdgeServer -and
+        ($Script:ServerNameList.Count -gt 1 -or
+        (-not ($Script:ServerNameList.ToLower().Contains($env:COMPUTERNAME.ToLower()))))) {
+        Write-Warning "Can't run Exchange Health Checker from an Edge Server against anything but the local Edge Server."
+        $Script:Logger.PreventLogCleanup = $true
+        exit
+    }
+
     if ($Script:ExchangeShellComputer.ToolsOnly -and
         $Script:ServerNameList.ToLower().Contains($env:COMPUTERNAME.ToLower()) -and
         -not ($LoadBalancingReport)) {

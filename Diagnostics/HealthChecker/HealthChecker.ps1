@@ -252,7 +252,7 @@ begin {
 
         # Main Feature of Health Checker
         Invoke-ConfirmExchangeShell
-        Invoke-HealthCheckerMainReport -ServerNames $Script:ServerNameList
+        Invoke-HealthCheckerMainReport -ServerNames $Script:ServerNameList -EdgeServer $Script:ExchangeShellComputer.EdgeServer
     } finally {
         Get-ErrorsThatOccurred
         if ($Script:VerboseEnabled) {
