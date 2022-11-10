@@ -25,10 +25,9 @@ $repoRoot = Get-Item "$PSScriptRoot\.."
 $distFolder = Join-Path $repoRoot "dist"
 
 $deps = Import-Clixml $distFolder\dependencyHashtable.xml
-$times = Import-Clixml $distFolder\commitTimeHashtable.xml
 
-if ($null -eq $deps -or $null -eq $times) {
-    throw "Dependency or commit time hashtable not found. Run .build\Build.ps1 first."
+if ($null -eq $deps) {
+    throw "Dependency hashtable not found. Run .build\Build.ps1 first."
 }
 
 $preventMergeFiles = @()
