@@ -30,17 +30,28 @@ if ($null -eq $deps) {
     throw "Dependency hashtable not found. Run .build\Build.ps1 first."
 }
 
+# Files with commit times that are older than one or more dependent files in main.
 $preventMergeFiles = @()
+
+# Files with commit times that are newer than all dependents in main.
 $allowMergeFiles = @()
+
+# Files we already checked. We only want to check each file once.
 $filesAlreadyChecked = New-Object 'System.Collections.Generic.HashSet[string]'
 
+# Get all the commits between origin/main and HEAD.
 $gitlog = git log --format="%H %cd" --date=rfc origin/main..HEAD
 $m = $gitlog | Select-String "^(\S+) (.*)$"
+
 foreach ($commitMatch in $m) {
     $commitHash = $commitMatch.Matches.Groups[1].Value
     $commitTime = [DateTime]::Parse($commitMatch.Matches.Groups[2].Value).ToUniversalTime()
     Write-Host "Commit $commitHash at $commitTime"
+
+    # All files affected by this one commit. Affected files means not just the file
+    # that was modified, but also any files that are dependent on that file.
     $allAffectedFiles = New-Object 'System.Collections.Generic.HashSet[string]'
+
     $filesChangedInCommit = git diff-tree --no-commit-id --name-only -r $commitHash
     foreach ($fileChanged in $filesChangedInCommit) {
         $filesAffectedByThisChange = 0
@@ -54,6 +65,11 @@ foreach ($commitMatch in $m) {
         [void]$filesAlreadyChecked.Add($fullPath)
         $stack = New-Object 'System.Collections.Generic.Stack[string]'
         $stack.Push($fullPath)
+
+        # On each iteration of this loop, we pop a file from the stack and add it to
+        # $allAffectedFiles, and then we look up all files that have a dependency on that file.
+        # We add those files to the stack. In this way, we walk the dependency tree from the bottom up,
+        # finding all files that are affected by this file, and add them to $allAffectedFiles.
         while ($stack.Count -gt 0) {
             $currentFile = $stack.Pop()
             [void]$allAffectedFiles.Add($currentFile)
