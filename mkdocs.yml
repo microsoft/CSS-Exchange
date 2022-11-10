@@ -12,6 +12,8 @@ nav:
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
   - Databases:
+    - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
+    - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
     - VSSTester: Databases/VSSTester.md
   - Diagnostics:
     - ExchangeLogCollector: Diagnostics/ExchangeLogCollector.md
@@ -49,6 +51,7 @@ nav:
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
+    - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
@@ -83,6 +86,8 @@ nav:
       - ReadOnlyDomainControllerContainer: Setup/SetupAssist/ReadOnlyDomainControllerContainer.md
       - RebootPending: Setup/SetupAssist/RebootPending.md
     - SetupLogReviewer: Setup/SetupLogReviewer.md
+  - Transport:
+    - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
 theme:
   name: 'material'
   features:
