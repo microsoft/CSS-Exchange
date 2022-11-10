@@ -134,7 +134,7 @@ function Test-ExchangeADSetupLevel {
     }
 
     function GetExchangeADSetupLevel {
-        $rootDSE = [ADSI]("LDAP://RootDSE")
+        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
         $directorySearcher.SearchScope = "Subtree"
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())

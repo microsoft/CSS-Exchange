@@ -8,7 +8,7 @@ function Get-ExchangeAdSchemaClass {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand) to query $SchemaClassName schema class"
 
-    $rootDSE = [ADSI]("LDAP://RootDSE")
+    $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
 
     if ([string]::IsNullOrEmpty($rootDSE.schemaNamingContext)) {
         return $null
