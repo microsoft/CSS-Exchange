@@ -54,11 +54,12 @@ foreach ($commitMatch in $m) {
 
     $filesChangedInCommit = git diff-tree --no-commit-id --name-only -r $commitHash
     foreach ($fileChanged in $filesChangedInCommit) {
-        $filesAffectedByThisChange = 0
+        $filesAffectedByThisChange = New-Object 'System.Collections.Generic.HashSet[string]'
         $fullPath = Join-Path $repoRoot $fileChanged
         if ($filesAlreadyChecked.Contains($fullPath)) {
             # If we have several commits that modify the same file, we only need to check it once,
             # on the latest commit.
+            Write-Host "  $fileChanged was modified in a later commit."
             continue
         }
 
@@ -73,7 +74,7 @@ foreach ($commitMatch in $m) {
         while ($stack.Count -gt 0) {
             $currentFile = $stack.Pop()
             [void]$allAffectedFiles.Add($currentFile)
-            $filesAffectedByThisChange++
+            [void]$filesAffectedByThisChange.Add($currentFile)
             foreach ($k in $deps.Keys) {
                 if ($deps[$k].Contains($currentFile)) {
                     $stack.Push($k)
@@ -81,7 +82,7 @@ foreach ($commitMatch in $m) {
             }
         }
 
-        Write-Host "$fileChanged is included directly or transitively in $($filesAffectedByThisChange - 1) files."
+        Write-Host "  $fileChanged is included directly or transitively in $($filesAffectedByThisChange.Count - 1) files."
     }
 
     foreach ($affectedFile in $allAffectedFiles) {
@@ -108,6 +109,8 @@ foreach ($commitMatch in $m) {
         }
     }
 }
+
+Write-Host
 
 if ($preventMergeFiles.Count -gt 0) {
     Write-Host "The following files have a commit time earlier than main branch. Please rebase your branch to update the commit times."

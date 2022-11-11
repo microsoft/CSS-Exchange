@@ -4,7 +4,7 @@
 [CmdletBinding()]
 param (
     [string]
-    $GCName = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().FindGlobalCatalog().Name,
+    $GCName = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest.FindGlobalCatalog().Name,
 
     [bool]
     $IgnoreWellKnown = $true
