@@ -26,7 +26,7 @@ function Get-TokenGroupsGlobalAndUniversal {
     process {
         try {
             if ([string]::IsNullOrEmpty($GCName)) {
-                $rootDSE = [ADSI]("GC://RootDSE")
+                $rootDSE = [ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
                 $GCName = $rootDSE.dnsHostName
             }
 
