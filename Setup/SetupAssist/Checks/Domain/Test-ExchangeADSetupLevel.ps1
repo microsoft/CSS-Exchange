@@ -145,7 +145,6 @@ function Test-ExchangeADSetupLevel {
         $directorySearcher.Filter = "(&(name=ms-Exch-Schema-Version-Pt)(objectCategory=attributeSchema))"
         $schemaFindAll = $directorySearcher.FindAll()
 
-        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $directorySearcher.SearchScope = "OneLevel"
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.defaultNamingContext.ToString())
         $directorySearcher.Filter = "(objectCategory=msExchSystemObjectsContainer)"
