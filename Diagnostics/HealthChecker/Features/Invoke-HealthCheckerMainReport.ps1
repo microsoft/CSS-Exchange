@@ -37,7 +37,7 @@ function Invoke-HealthCheckerMainReport {
         Write-HostLog "Exchange Health Checker version $BuildVersion"
         #TODO Fix this as Test-RequiresServerFqdn I am sure doesn't work correctly right now.
         Test-RequiresServerFqdn -Server $serverName
-        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverName
+        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverName -OrganizationConfig $organizationInformation.GetOrganizationConfig
         $HealthObject.OrganizationInformation = $organizationInformation
         $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
         Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults

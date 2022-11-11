@@ -15,7 +15,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
     Context "Basic Exchange 2013 CU23 Testing" {
         BeforeAll {
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E15_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }

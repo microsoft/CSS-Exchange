@@ -39,10 +39,9 @@ function Get-ExchangeDomainsAclPermissions {
                 Invoke-CatchActions
                 continue
             }
-            # Must use lower case off of properties
-            [int]$mesoObjectVersion = $mesoResult.Properties.objectversion[0]
-            $mesoWhenChangedInfo = $mesoResult.Properties.whenchanged
-            $mesoDN = $mesoResult.Properties.distinguishedname
+            [int]$mesoObjectVersion = $mesoResult.Properties["ObjectVersion"][0]
+            $mesoWhenChangedInfo = $mesoResult.Properties["WhenChanged"]
+            $mesoDN = $mesoResult.Properties["DistinguishedName"]
             Write-Verbose "Object Version: $mesoObjectVersion"
             Write-Verbose "When Changed: $mesoWhenChangedInfo"
             Write-Verbose "MESO DN: $mesoDN"

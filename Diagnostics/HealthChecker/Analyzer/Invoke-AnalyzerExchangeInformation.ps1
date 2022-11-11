@@ -159,7 +159,7 @@ function Invoke-AnalyzerExchangeInformation {
 
     $params = $baseParams + @{
         Name    = "MAPI/HTTP Enabled"
-        Details = $exchangeInformation.MapiHttpEnabled
+        Details = $HealthServerObject.OrganizationInformation.MapiHttpEnabled
     }
     Add-AnalyzedResultInformation @params
 

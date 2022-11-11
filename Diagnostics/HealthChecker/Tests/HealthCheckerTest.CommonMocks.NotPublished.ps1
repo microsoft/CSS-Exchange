@@ -133,7 +133,7 @@ Mock Get-ExchangeAdSchemaClass {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Storage-Group.xml"
 }
 
-Mock Get-ExchangeAdPermissions {
+Mock Get-ExchangeDomainsAclPermissions {
     return $null
 }
 

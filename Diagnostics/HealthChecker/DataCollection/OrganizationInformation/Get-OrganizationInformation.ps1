@@ -46,12 +46,12 @@ function Get-OrganizationInformation {
         }
 
         #TODO: Move and Update AMSIConfiguration here. Need to do a global Get-SettingOverride instead of a filter like what is in Get-ExchangeAMSIConfigurationState
-
+        #TODO: Handle Get-ExchangeEmergencyMitigationServiceState
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
             $orgInfo.AdSchemaInformation = Get-ExchangeAdSchemaInformation
-            $orgInfo.ExchangeDomainsPermissions = Get-ExchangeDomainsAclPermissions
+            $orgInfo.DomainsAclPermissions = Get-ExchangeDomainsAclPermissions
             $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
 
             try {

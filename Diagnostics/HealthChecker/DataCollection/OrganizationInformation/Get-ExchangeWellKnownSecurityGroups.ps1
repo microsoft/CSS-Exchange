@@ -25,7 +25,7 @@ function Get-ExchangeWellKnownSecurityGroups {
                 $wkObject | Add-Member -MemberType NoteProperty -Name SID -Value ((New-Object System.Security.Principal.SecurityIdentifier($entry.objectSid.Value, 0)).Value)
                 $exchangeGroups.Add($wkObject)
             } catch {
-                Write-Verbose "Failed to SID"
+                Write-Verbose "Failed to find SID"
                 Invoke-CatchActions
             }
         }

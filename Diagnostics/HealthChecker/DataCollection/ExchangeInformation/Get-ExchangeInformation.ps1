@@ -24,6 +24,9 @@ function Get-ExchangeInformation {
         [Parameter(Mandatory = $true)]
         [string]$Server,
 
+        [Parameter(Mandatory = $false)]
+        [object]$OrganizationConfig,
+
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: OSMajorVersion: $OSMajorVersion"
@@ -410,43 +413,13 @@ function Get-ExchangeInformation {
             }
         }
 
-        try {
-            $organizationConfig = Get-OrganizationConfig -ErrorAction Stop
-            $exchangeInformation.GetOrganizationConfig = $organizationConfig
-        } catch {
-            Write-Yellow "Failed to run Get-OrganizationConfig."
-            Invoke-CatchActions
-        }
-
-        $mitigationsEnabled = $null
-        if ($null -ne $organizationConfig) {
-            $mitigationsEnabled = $organizationConfig.MitigationsEnabled
-        }
-
         $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
             -RequiredInformation ([PSCustomObject]@{
                 ComputerName       = $Server
-                MitigationsEnabled = $mitigationsEnabled
+                MitigationsEnabled = if ($null -ne $OrganizationConfig) { $OrganizationConfig.MitigationsEnabled } else { $null }
                 GetExchangeServer  = $exchangeInformation.GetExchangeServer
             }) `
             -CatchActionFunction ${Function:Invoke-CatchActions}
-
-        if ($null -ne $organizationConfig) {
-            $exchangeInformation.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled
-            if ($null -ne $organizationConfig.EnableDownloadDomains) {
-                $exchangeInformation.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
-            }
-        } else {
-            Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
-        }
-
-        try {
-            $exchangeInformation.WildCardAcceptedDomain = Get-AcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
-        } catch {
-            Write-Verbose "Failed to run Get-AcceptedDomain"
-            $exchangeInformation.WildCardAcceptedDomain = "Unknown"
-            Invoke-CatchActions
-        }
 
         if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
@@ -461,12 +434,6 @@ function Get-ExchangeInformation {
 
         if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Server $Server
-            try {
-                $exchangeInformation.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
-            } catch {
-                Write-Yellow "Failed to run Get-HybridConfiguration"
-                Invoke-CatchActions
-            }
 
             Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
             $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
@@ -501,14 +468,6 @@ function Get-ExchangeInformation {
         } else {
             Write-Verbose "March 2021 SU: KB5000871 was not detected on the system"
             $buildInformation.March2021SUInstalled = $false
-        }
-
-        Write-Verbose "Query schema class information for CVE-2021-34470 testing"
-        try {
-            $exchangeInformation.msExchStorageGroup = Get-ExchangeAdSchemaClass -SchemaClassName "ms-Exch-Storage-Group"
-        } catch {
-            Write-Verbose "Failed to run Get-ExchangeAdSchemaClass"
-            Invoke-CatchActions
         }
 
         Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
