@@ -19,7 +19,7 @@ function Test-ExchangeADSetupLevel {
         $localDomainPrep = $null -ne $ADSetupLevel -and $ADSetupLevel.MESO.DN -eq "Unknown"
         Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue) # -PrepareDomainOnly $localDomainPrep
 
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+        $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
         $params = @{
             TestName = "Prepare AD Requirements"
             Result   = "Failed"
@@ -134,7 +134,7 @@ function Test-ExchangeADSetupLevel {
     }
 
     function GetExchangeADSetupLevel {
-        $rootDSE = [ADSI]("LDAP://RootDSE")
+        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
         $directorySearcher.SearchScope = "Subtree"
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
@@ -145,7 +145,6 @@ function Test-ExchangeADSetupLevel {
         $directorySearcher.Filter = "(&(name=ms-Exch-Schema-Version-Pt)(objectCategory=attributeSchema))"
         $schemaFindAll = $directorySearcher.FindAll()
 
-        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $directorySearcher.SearchScope = "OneLevel"
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.defaultNamingContext.ToString())
         $directorySearcher.Filter = "(objectCategory=msExchSystemObjectsContainer)"
