@@ -220,7 +220,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Hard coded to know if this ever changes.
             Assert-MockCalled Invoke-CatchActions -Exactly 1
 
-            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 11
@@ -242,7 +241,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
             Assert-MockCalled Get-ExtendedProtectionConfiguration -Exactly 1
-            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 1
+            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1

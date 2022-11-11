@@ -20,10 +20,25 @@ function Get-ExchangeDomainsAclPermissions {
 
             $domainName = $domain.Name
             Write-Verbose "Working on $domainName"
+
+            $domainObject = [PSCustomObject]@{
+                DomainName  = $domainName
+                DomainDN    = $null
+                Permissions = New-Object 'System.Collections.Generic.List[object]'
+                MesoObject  = [PSCustomObject]@{
+                    DN            = $null
+                    ObjectVersion = 0
+                    ACL           = $null
+                    WhenChanged   = $null
+                }
+            }
+
             try {
                 $domainDN = $domain.GetDirectoryEntry().distinguishedName
+                $domainObject.DomainDN = $domainDN.ToString()
             } catch {
                 Write-Verbose "Domain: $domainName - seems to be offline and will be skipped"
+                $domainObject.DomainDN = "Unknown" # Set the domain to unknown vs not knowing it is there.
                 Invoke-CatchActions
                 continue
             }
@@ -54,17 +69,10 @@ function Get-ExchangeDomainsAclPermissions {
                 Write-Verbose "Failed to get the MESO ACL"
                 Invoke-CatchActions
             }
-
-            $domainObject = [PSCustomObject]@{
-                DomainName  = $domainName
-                Permissions = New-Object 'System.Collections.Generic.List[object]'
-                MesoObject  = [PSCustomObject]@{
-                    DN            = $mesoDN
-                    ObjectVersion = $mesoObjectVersion
-                    ACL           = $mesoAcl
-                    WhenChanged   = $mesoWhenChangedInfo
-                }
-            }
+            $domainObject.MesoObject.DN = $mesoDN
+            $domainObject.MesoObject.ObjectVersion = $mesoObjectVersion
+            $domainObject.MesoObject.ACL = $mesoAcl
+            $domainObject.MesoObject.WhenChanged = $mesoWhenChangedInfo
 
             $permissionsCheckList = @($domainDN.ToString(), "CN=AdminSDHolder,CN=System,$domainDN")
 

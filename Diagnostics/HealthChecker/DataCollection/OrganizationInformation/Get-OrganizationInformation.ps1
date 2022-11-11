@@ -4,6 +4,7 @@
 . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
 . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
 . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
+. $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
 function Get-OrganizationInformation {
     [CmdletBinding()]
     param(
@@ -53,6 +54,26 @@ function Get-OrganizationInformation {
             $orgInfo.AdSchemaInformation = Get-ExchangeAdSchemaInformation
             $orgInfo.DomainsAclPermissions = Get-ExchangeDomainsAclPermissions
             $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
+
+            $schemaRangeUpper = (($orgInfo.AdSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+
+            if ($schemaRangeUpper -lt 15323) {
+                $schemaLevel = "2013"
+            } elseif ($schemaRangeUpper -lt 17000) {
+                $schemaLevel = "2016"
+            } else {
+                $schemaLevel = "2019"
+            }
+
+            $cve21978Params = @{
+                DomainsAcls                     = $orgInfo.DomainsAclPermissions
+                ExchangeWellKnownSecurityGroups = $orgInfo.WellKnownSecurityGroups
+                ExchangeSchemaLevel             = $schemaLevel
+            }
+
+            $orgInfo.SecurityResults = [PSCustomObject]@{
+                CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
+            }
 
             try {
                 $orgInfo.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop

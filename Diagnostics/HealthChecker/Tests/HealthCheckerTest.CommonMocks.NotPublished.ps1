@@ -129,12 +129,20 @@ Mock Get-ExchangeUpdates {
     return $null
 }
 
-Mock Get-ExchangeAdSchemaClass {
+Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Storage-Group" } {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Storage-Group.xml"
 }
 
+Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Schema-Version-Pt" } {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Schema-Version-Pt.xml"
+}
+
 Mock Get-ExchangeDomainsAclPermissions {
-    return $null
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDomainsAclPermissions.xml"
+}
+
+Mock Get-ExchangeWellKnownSecurityGroups {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWellKnownSecurityGroups.xml"
 }
 
 Mock Get-ExtendedProtectionConfiguration {

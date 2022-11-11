@@ -6,16 +6,22 @@
 function Get-ExchangeAdSchemaInformation {
 
     process {
-        Write-Verbose "Query schema class information for CVE-2021-34470 testing"
-        try {
-            $msExchStorageGroup = Get-ExchangeAdSchemaClass -SchemaClassName "ms-Exch-Storage-Group"
-        } catch {
-            Write-Verbose "Failed to run Get-ExchangeAdSchemaClass"
-            Invoke-CatchActions
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $returnObject = New-Object PSCustomObject
+        $schemaClasses = @("ms-Exch-Storage-Group", "ms-Exch-Schema-Version-Pt")
+
+        foreach ($name in $schemaClasses) {
+            $propertyName = $name.Replace("-", "")
+            $value = $null
+            try {
+                $value = Get-ExchangeAdSchemaClass -SchemaClassName $name
+            } catch {
+                Write-Verbose "Failed to get $name"
+                Invoke-CatchActions
+            }
+            $returnObject | Add-Member -MemberType NoteProperty -Name $propertyName -Value $value
         }
     } end {
-        return [PSCustomObject]@{
-            MsExchStorageGroup = $msExchStorageGroup
-        }
+        return $returnObject
     }
 }
