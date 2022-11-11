@@ -29,7 +29,7 @@ function Get-WellKnownGroupSid {
         $GroupType
     )
 
-    $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
 
     $rootDomainSidBytes = [byte[]] $forest.RootDomain.GetDirectoryEntry().Properties["objectSid"][0]
     $rootDomainSid = New-Object System.Security.Principal.SecurityIdentifier($rootDomainSidBytes, 0)

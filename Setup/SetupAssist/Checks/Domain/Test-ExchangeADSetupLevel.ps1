@@ -19,7 +19,7 @@ function Test-ExchangeADSetupLevel {
         $localDomainPrep = $null -ne $ADSetupLevel -and $ADSetupLevel.MESO.DN -eq "Unknown"
         Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired ($latestExchangeVersion.$ExchangeVersion.UpperRange -ne $currentSchemaValue) # -PrepareDomainOnly $localDomainPrep
 
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+        $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
         $params = @{
             TestName = "Prepare AD Requirements"
             Result   = "Failed"

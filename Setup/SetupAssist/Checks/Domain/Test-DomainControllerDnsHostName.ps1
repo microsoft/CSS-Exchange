@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\New-TestResult.ps1
 function Test-DomainControllerDnsHostName {
-    $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
     foreach ($domain in $forest.Domains) {
         foreach ($dc in $domain.DomainControllers) {
             $firstDotIndex = $dc.Name.IndexOf(".")

@@ -73,7 +73,7 @@ function Get-ExchangeAdPermissions {
 
     try {
         Write-Verbose "Getting the domain information"
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+        $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
         Write-Verbose ("Detected: $($forest.Domains.Count) domain(s)")
         $otherWellKnownObjects = Get-ExchangeOtherWellKnownObjects
 
