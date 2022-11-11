@@ -59,6 +59,7 @@ foreach ($commitMatch in $m) {
         if ($filesAlreadyChecked.Contains($fullPath)) {
             # If we have several commits that modify the same file, we only need to check it once,
             # on the latest commit.
+            Write-Host "  $fileChanged was modified in a later commit."
             continue
         }
 
@@ -81,7 +82,7 @@ foreach ($commitMatch in $m) {
             }
         }
 
-        Write-Host "$fileChanged is included directly or transitively in $($filesAffectedByThisChange.Count - 1) files."
+        Write-Host "  $fileChanged is included directly or transitively in $($filesAffectedByThisChange.Count - 1) files."
     }
 
     foreach ($affectedFile in $allAffectedFiles) {
@@ -108,6 +109,8 @@ foreach ($commitMatch in $m) {
         }
     }
 }
+
+Write-Host
 
 if ($preventMergeFiles.Count -gt 0) {
     Write-Host "The following files have a commit time earlier than main branch. Please rebase your branch to update the commit times."
