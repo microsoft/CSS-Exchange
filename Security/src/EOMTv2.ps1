@@ -83,6 +83,21 @@ function Test-ExchangeMitigationRequired {
     return $mitigationRequired
 }
 
+function Test-ExchangeMitigationExists {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [string]$Site = "IIS:\Sites\Default Web Site",
+        [string]$Filter = "*"
+    )
+
+    try {
+        return ($null -ne (Get-WebConfiguration -Filter $Filter -PSPath $Site -ErrorAction Stop))
+    } catch {
+        return $false
+    }
+}
+
 function Run-Mitigate {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Invalid rule result')]
     param(
@@ -241,13 +256,13 @@ function Run-Mitigate {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
         $mitigationFound = $false
-        if (Get-WebConfiguration -Filter $filter -PSPath $site) {
+        if (Test-ExchangeMitigationExists -Filter $filter -Site $site) {
             $mitigationFound = $true
             Clear-WebConfiguration -Filter $filter -PSPath $site
         }
 
         if ($mitigationFound) {
-            $Rules = Get-WebConfiguration -Filter 'system.webServer/rewrite/rules/rule' -Recurse
+            $Rules = Get-WebConfiguration -Filter 'system.webServer/rewrite/rules/rule' -PSPath $site -Recurse
             if ($null -eq $Rules) {
                 Clear-WebConfiguration -PSPath $site -Filter 'system.webServer/rewrite/rules'
             }
@@ -332,6 +347,7 @@ function Run-Mitigate {
 
         try {
             if ((Get-WebConfiguration -Filter $filter -PSPath $site).name -eq $name) {
+                Set-LogActivity -Stage $Stage -Message "Mitigation already exists - start cleanup to apply the latest mitigation"
                 Clear-WebConfiguration -Filter $filter -PSPath $site
             }
 
@@ -614,8 +630,28 @@ try {
     if ($RollbackMitigation) {
         Run-Mitigate -RollbackMitigation
     } elseif ((Test-ExchangeMitigationRequired) -eq $false) {
-        $Message = "CVE-2022-41040 vulnerability has been fixed for the Exchange build running on this computer - mitigation will not be applied"
-        Set-LogActivity -Stage $Stage -Message $Message -Notice
+        if (Test-ExchangeMitigationExists -Filter "system.webServer/rewrite/rules/rule[@name='PowerShell - inbound']") {
+            if ($SkipDisclaimer -eq $false) {
+                $params = @{
+                    Message   = "Display Warning about CVE-2022-41040 mitigation"
+                    Target    = "This computer is running the November 2022 (or higher) Exchange Server build and the mitigation has been detected." +
+                    "`r`nThe mitigation is no longer required on this machine." +
+                    "`r`nDo you want to rollback the mitigation on this computer?"
+                    Operation = "Rollback CVE-2022-41040 mitigation"
+                }
+
+                Show-Disclaimer @params
+                Write-Host ""
+                Run-Mitigate -RollbackMitigation
+            } else {
+                $Message = "CVE-2022-41040 mitigation has already been applied on this computer. However, the Exchange build running on this computer" +
+                "`r`nis no longer vulnerable to this vulnerability and so, the mitigation can be removed."
+                Set-LogActivity -Stage $Stage -Message $Message -Notice
+            }
+        } else {
+            $Message = "CVE-2022-41040 vulnerability has been fixed for the Exchange build running on this computer - mitigation will not be applied"
+            Set-LogActivity -Stage $Stage -Message $Message -Notice
+        }
     } else {
         $Message = "Applying mitigation on $env:computername"
         $RegMessage = ""
