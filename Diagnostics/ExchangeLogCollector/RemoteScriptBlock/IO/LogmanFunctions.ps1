@@ -19,12 +19,12 @@ function CopyLogmanData {
 
     if ([DateTime]$filterDate -lt [DateTime]$copyFromDate) {
         $filterDate = $copyFromDate
-        Write-Verbose "Updating Copy From Date to: $filterDate"
+        Write-Verbose "Updating Copy From Date: $filterDate"
     }
 
     if ([DateTime]$filterToDate -lt [DateTime]$copyToDate) {
         $filterToDate = $copyToDate
-        Write-Verbose "Updating Copy From Date to: $filterToDate"
+        Write-Verbose "Updating Copy to Date: $filterToDate"
     }
 
     if ((Test-Path $directory)) {

@@ -67,7 +67,7 @@ function Copy-LogsBasedOnTime {
         $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
         $copyToDate = [DateTime]::Now - $PassedInfo.EndTimeSpan
         Write-Verbose "Copy From Date: $copyFromDate"
-        Write-Verbose "Copy From Date: $copyToDate"
+        Write-Verbose "Copy To Date: $copyToDate"
     }
     process {
 

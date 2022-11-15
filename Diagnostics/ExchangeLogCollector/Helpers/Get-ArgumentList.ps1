@@ -52,7 +52,7 @@ function Get-ArgumentList {
         IISLogs                        = $IISLogs
         ImapLogs                       = $ImapLogs
         TimeSpan                       = $LogAge
-        EndTimeSpan                    = $EndLogAge
+        EndTimeSpan                    = $LogEndAge
         MailboxAssistantsLogs          = $MailboxAssistantsLogs
         MailboxConnectivityLogs        = $MailboxConnectivityLogs
         MailboxDeliveryThrottlingLogs  = $MailboxDeliveryThrottlingLogs

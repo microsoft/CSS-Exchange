@@ -64,21 +64,15 @@ param (
     [int]$DaysWorth = 3,
     [Parameter(ParameterSetName = "Worth")]
     [int]$HoursWorth = 0,
-    [Parameter(ParameterSetName = "Worth")]
-    [int]$EndDaysWorth = 0,
-    [Parameter(ParameterSetName = "Worth")]
-    [int]$EndHoursWorth = 0,
     [switch]$DisableConfigImport,
     [string]$ExmonLogmanName = "Exmon_Trace",
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz", "SimplePerf"),
     [Parameter(ParameterSetName = "LogAge")]
     [timespan]$LogAge = "3.00:00:00",
-    [Parameter(ParameterSetName = "LogAge")]
-    [timespan]$EndLogAge = "0.00:00:00",
     [Parameter(ParameterSetName = "LogPeriod")]
-    [datetime]$LogDate = (Get-Date).AddDays(-3),
+    [datetime]$LogStartDate = (Get-Date).AddDays(-3),
     [Parameter(ParameterSetName = "LogPeriod")]
-    [datetime]$EndLogDate = (Get-Date),
+    [datetime]$LogEndDate = (Get-Date),
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
@@ -93,12 +87,13 @@ if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
 if ($PSCmdlet.ParameterSetName -eq "Worth") {
     $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth
-    $Script:EndLogAge = New-TimeSpan -Days $EndDaysWorth -Hours $EndHoursWorth
 }
 
 if ($PSCmdlet.ParameterSetName -eq "LogPeriod") {
-    $Script:LogAge = ((Get-Date) - $LogDate)
-    $Script:EndLogAge = ((Get-Date) - $EndLogDate)
+    $Script:LogAge = ((Get-Date) - $LogStartDate)
+    $Script:LogEndAge = ((Get-Date) - $LogEndDate)
+} else {
+    $Script:LogEndAge = New-TimeSpan -Days 0 -Hours 0
 }
 
 function Invoke-RemoteFunctions {
@@ -198,16 +193,8 @@ function Main {
         Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
     }
 
-    if ( ( $LogAge.CompareTo($EndLogAge) ) -ne 1 ) {
-        if ( $PSCmdlet.ParameterSetName -eq "Worth" ) {
-            Write-Host "Starting Worth time should bigger than Ending Worth time." -ForegroundColor "Yellow"
-        }
-        if ( $PSCmdlet.ParameterSetName -eq "LogAge" ) {
-            Write-Host "Starting LogAge time should bigger than Ending LogAge time." -ForegroundColor "Yellow"
-        }
-        if ( $PSCmdlet.ParameterSetName -eq "LogPeriod" ) {
-            Write-Host "Starting LogDate time should smaller than Ending LogDate time." -ForegroundColor "Yellow"
-        }
+    if ( ( $PSCmdlet.ParameterSetName -eq "LogPeriod" -and $LogAge.CompareTo($LogEndAge) ) -ne 1 ) {
+        Write-Host "LogStartDate time should smaller than LogEndDate time." -ForegroundColor "Yellow"
         exit
     }
 
