@@ -22,3 +22,8 @@ steps:
     cd .\.build
     .\Pester.ps1
   displayName: "Running Invoke-Pester"
+
+- pwsh: |
+    cd .\.build
+    .\ValidateMerge.ps1
+  displayName: "Validate commit times"

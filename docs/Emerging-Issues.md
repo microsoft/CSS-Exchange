@@ -7,11 +7,11 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
-**Updated on 9/30/2022**
+**Updated on 11/8/2022**
 
 **Issue** |**Possible reason**| **Workaround/Solution**
 -|-|-
-Zero-day vulnerabilities reported in Microsoft Exchange Server, CVE-2022-41040 and  CVE-2022-41082 | N/A| Follow the guidance on [Exchange team blog](https://techcommunity.microsoft.com/t5/exchange-team-blog/customer-guidance-for-reported-zero-day-vulnerabilities-in/ba-p/3641494) and [MSRC article](https://msrc-blog.microsoft.com/2022/09/29/customer-guidance-for-reported-zero-day-vulnerabilities-in-microsoft-exchange-server/)
+Zero-day vulnerabilities reported in Microsoft Exchange Server, CVE-2022-41040 and  CVE-2022-41082 | N/A| Install [November 2022 Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2022-exchange-server-security-updates/ba-p/3669045) to address the vulnerability
 
 **Updated on 5/11/2022**
 
@@ -25,7 +25,7 @@ After installing [March 2022 Security Update For Exchange Server 2013, 2016, 201
 **Issue** |**Possible reason**| **Workaround/Solution**
 -|-|-
 After installing [March 2022 Security Update For Exchange Server 2013, 2016, 2019](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2022-exchange-server-security-updates/ba-p/3247586), the Microsoft Exchange Service Host service may crash repeatedly with Event ID 7031 in system log and Event ID 4999 in application log. <BR><BR>  Event ID 4999 <BR> Watson report about to be sent for process id: 4564, with parameters: E12IIS, c-RTL-AMD64, 15.01.2375.024, M.Exchange.ServiceHost, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.LoadType, M.E.Diagnostics.BlockedDeserializeTypeException, c0e9-dumptidset, 15.01.2375.024.|The issue can occur if there are any expired certificates present on or any certificates nearing expiry on the server| **Update 3/16/2022** <BR><BR> Follow the steps from [KB 5013118](https://support.microsoft.com/kb/5013118) to resolve the issue | NA | 1) Run the Get-MailboxDatabaseCopyStatus command from Exchange 2016/2019 servers <BR> 2) For Exchange Admin Center issue, make sure the mailbox of admin account is on Exchange 2016/2019 servers.
-  
+
 ## Old Issues
 
 ### [Email Stuck in Transport Queues](https://techcommunity.microsoft.com/t5/exchange-team-blog/email-stuck-in-transport-queues/ba-p/3049447)

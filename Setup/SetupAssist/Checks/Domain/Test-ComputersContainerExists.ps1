@@ -5,7 +5,7 @@
 
 function Test-ComputersContainerExists {
     try {
-        $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+        $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
         foreach ($domain in $forest.Domains) {
             try {
                 $domainDN = $domain.GetDirectoryEntry().distinguishedName

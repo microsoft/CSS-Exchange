@@ -1,0 +1,24 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Object[]</T>
+      <T>System.Array</T>
+      <T>System.Object</T>
+    </TN>
+    <LST>
+      <S>Default Web Site</S>
+    </LST>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <LST>
+      <S>Exchange Back End</S>
+    </LST>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <LST>
+      <S>OWA_Secondary</S>
+    </LST>
+  </Obj>
+</Objs>

@@ -354,7 +354,7 @@ If you want to enable Extended Protection in your environment manually without u
 
    You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
 
-   **Fixed:** This issue has been addressed with the [October 2022 Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263).
+   **Fixed:** This issue has been addressed with the [October 2022 (and later) Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263).
 
 ## Troubleshooting issues after enabling Extended Protection
 

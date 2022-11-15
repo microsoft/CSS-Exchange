@@ -4,6 +4,8 @@
 . $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
 . $PSScriptRoot\Get-IISWebApplication.ps1
 . $PSScriptRoot\Get-IISWebSite.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
@@ -22,7 +24,20 @@ function Get-ExchangeServerIISSettings {
             CatchActionFunction = $CatchActionFunction
         }
 
-        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite}
+        try {
+            $exchangeWebSites = Get-ExchangeWebSitesFromAd -ComputerName $ComputerName
+            if ($exchangeWebSites.Count -gt 2) {
+                Write-Verbose "Multiple OWA/ECP virtual directories detected"
+            }
+            Write-Verbose "Exchange websites detected: $([string]::Join(", " ,$exchangeWebSites))"
+        } catch {
+            Write-Verbose "Failed to get the Exchange Web Sites from Ad."
+            $exchangeWebSites = $null
+            Invoke-CatchActions
+        }
+
+        # We need to wrap the array into another array as the -WebSitesToProcess parameter expects an array object
+        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites)
         $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication}
 
         $configurationFiles = @($webSite.PhysicalPath)

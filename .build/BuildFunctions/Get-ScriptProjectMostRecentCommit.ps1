@@ -1,9 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-EmbeddedFileList.ps1
-. $PSScriptRoot\Get-FileMostRecentCommit.ps1
-
 <#
 .SYNOPSIS
     Gets the most recent commit, considering all files related to the specified script,
@@ -15,21 +12,45 @@ function Get-ScriptProjectMostRecentCommit {
     param (
         [Parameter()]
         [string]
-        $File
+        $File,
+
+        [Parameter()]
+        [hashtable]
+        $CommitTimeHashtable,
+
+        [Parameter()]
+        [hashtable]
+        $DependencyHashtable
     )
 
     process {
-        Write-Verbose "Get-ScriptProjectMostRecentCommit called for file $File"
-        $mostRecentCommit = Get-FileMostRecentCommit $File
-        foreach ($embeddedFile in (Get-EmbeddedFileList $File)) {
-            Write-Verbose "Getting commit time for $embeddedFile"
-            $commitTime = Get-FileMostRecentCommit $embeddedFile
-            if ($commitTime -gt $mostRecentCommit) {
-                $mostRecentCommit = $commitTime
-                Write-Host ("Changing commit time to: $($commitTime.ToString("yy.MM.dd.HHmm"))")
+        Write-Host "Get-ScriptProjectMostRecentCommit called for file $File"
+
+        $mostRecentCommitTime = [DateTime]::MinValue
+
+        $filesAlreadyChecked = New-Object 'System.Collections.Generic.HashSet[string]'
+        $stack = New-Object 'System.Collections.Generic.Stack[string]'
+        $stack.Push($File)
+
+        while ($stack.Count -gt 0) {
+            $scriptFile = $stack.Pop()
+            if ($filesAlreadyChecked.Contains($scriptFile)) {
+                continue
             }
+
+            $commitTimeForThisFile = $CommitTimeHashtable[$scriptFile]
+            if ($commitTimeForThisFile -gt $mostRecentCommitTime) {
+                $mostRecentCommitTime = $commitTimeForThisFile
+                Write-Host ("Changing commit time to $($mostRecentCommitTime.ToString("yy.MM.dd.HHmm")) from file $($scriptFile)")
+            }
+
+            foreach ($dep in $DependencyHashtable[$scriptFile]) {
+                $stack.Push($dep)
+            }
+
+            [void]$filesAlreadyChecked.Add($scriptFile)
         }
 
-        $mostRecentCommit
+        return $mostRecentCommitTime
     }
 }

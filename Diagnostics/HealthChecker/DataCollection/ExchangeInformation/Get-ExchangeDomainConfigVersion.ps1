@@ -19,7 +19,7 @@ function Get-ExchangeDomainConfigVersion {
     }
 
     Write-Verbose "Getting domain information for domain: $Domain"
-    $forest = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()
+    $forest = [System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest
 
     Write-Verbose "Checking if domain is present"
     if ($forest.Domains.Name.Contains($Domain)) {

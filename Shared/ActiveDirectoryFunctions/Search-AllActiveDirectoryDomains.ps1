@@ -17,7 +17,7 @@ function Search-AllActiveDirectoryDomains {
         $CacheResults = $false
     )
 
-    $rootDSE = [ADSI]("GC://RootDSE")
+    $rootDSE = [ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
     $container = [ADSI]("GC://$($rootDSE.dnsHostName)")
     $searcher = $null
     if ($null -ne $PropertiesToLoad) {

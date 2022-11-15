@@ -230,7 +230,7 @@ function Get-ADReplicationStatus {
     }
 
     process {
-        $rootDSE = [ADSI]("LDAP://RootDSE")
+        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $sitesContainerPath = ("CN=Sites," + $rootDSE.configurationNamingContext)
         $sitesContainer = [ADSI]("LDAP://" + $sitesContainerPath)
         $ntdsaSearcher = New-Object System.DirectoryServices.DirectorySearcher($sitesContainer, "(objectClass=nTDSDSA)", @("distinguishedName", "options"))
