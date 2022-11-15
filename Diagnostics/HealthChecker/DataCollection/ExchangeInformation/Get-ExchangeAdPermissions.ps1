@@ -4,6 +4,7 @@
 . $PSScriptRoot\Get-ExchangeDomainConfigVersion.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ActiveDirectoryAcl.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOtherWellKnownObjects.ps1
 
 function Get-ExchangeAdPermissions {
@@ -112,10 +113,15 @@ function Get-ExchangeAdPermissions {
 
             try {
                 try {
+                    # Check if AD split permissions is enabled and if so, throw to check for objectVersion instead ACE
+                    if (Get-ExchangeADSplitPermissionsEnabled) {
+                        throw "Active Directory split permissions enabled. Fallback to 'objectVersion (Default)' validation initiated."
+                    }
+
                     # Where() method became available with PowerShell 4.0 (default PS on Server 2012 R2),
                     # throw to initiate objectVersion (Default) testing, as we can't use Where() to check ACE below
                     if ($OSVersion -le [HealthChecker.OSServerVersion]::Windows2012) {
-                        throw "Legacy server OS detected, fallback to 'objectVersion (Default)' validation initiated"
+                        throw "Legacy server OS detected, fallback to 'objectVersion (Default)' validation initiated."
                     }
                     $domainAcl = Get-ActiveDirectoryAcl $domainDN.ToString()
                     $adminSdHolderAcl = Get-ActiveDirectoryAcl $adminSdHolderDN
@@ -148,9 +154,11 @@ function Get-ExchangeAdPermissions {
                     foreach ($entry in $group.AceEntry) {
                         Write-Verbose "Trying to find the entry GUID: $($entry.ObjectTypeGuid)"
                         if ($entry.TargetObject -eq "AdminSDHolder") {
+                            Write-Verbose "Looking for AdminSDHolder target object"
                             $objectAcl = $adminSdHolderAcl
                             $objectDN = $adminSdHolderDN
                         } else {
+                            Write-Verbose "Looking for Domain target object"
                             $objectAcl = $domainAcl
                             $objectDN = $domainDN
                         }
