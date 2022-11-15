@@ -251,3 +251,6 @@ function Get-ExchangeProtocolContainer {
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
 }
+function Get-ExchangeADSplitPermissionsEnabled {
+    return $false
+}
