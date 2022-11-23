@@ -27,28 +27,35 @@ function Get-AllNicInformation {
                 Write-Verbose "Probing started to detect NIC adapter registry path"
             }
             process {
-                $registrySubKey = Get-RemoteRegistrySubKey -MachineName $ComputerName `
-                    -SubKey $nicAdapterBasicPath
-                $optionalKeys = $registrySubKey.GetSubKeyNames() | Where-Object { $_ -like "0*" }
-                do {
-                    $nicAdapterPnPCapabilitiesProbingKey = "$nicAdapterBasicPath\$($optionalKeys[$i])"
-                    $netCfgInstanceId = Get-RemoteRegistryValue -MachineName $ComputerName `
-                        -SubKey $nicAdapterPnPCapabilitiesProbingKey `
-                        -GetValue "NetCfgInstanceId" `
-                        -CatchActionFunction $CatchActionFunction
+                $registrySubKey = Get-RemoteRegistrySubKey -MachineName $ComputerName -SubKey $nicAdapterBasicPath
+                if ($null -ne $registrySubKey) {
+                    $optionalKeys = $registrySubKey.GetSubKeyNames() | Where-Object { $_ -like "0*" }
+                    do {
+                        $nicAdapterPnPCapabilitiesProbingKey = "$nicAdapterBasicPath\$($optionalKeys[$i])"
+                        $netCfgRemoteRegistryParams = @{
+                            MachineName         = $ComputerName
+                            SubKey              = $nicAdapterPnPCapabilitiesProbingKey
+                            GetValue            = "NetCfgInstanceId"
+                            CatchActionFunction = $CatchActionFunction
+                        }
+                        $netCfgInstanceId = Get-RemoteRegistryValue @netCfgRemoteRegistryParams
 
-                    if ($netCfgInstanceId -eq $NicAdapterComponentId) {
-                        Write-Verbose "Matching ComponentId found - now checking for PnPCapabilitiesValue"
-                        $nicAdapterPnPCapabilitiesValue = Get-RemoteRegistryValue -MachineName $ComputerName `
-                            -SubKey $nicAdapterPnPCapabilitiesProbingKey `
-                            -GetValue "PnPCapabilities" `
-                            -CatchActionFunction $CatchActionFunction
-                        break
-                    } else {
-                        Write-Verbose "No matching ComponentId found"
-                        $i++
-                    }
-                } while ($i -lt $optionalKeys.Count)
+                        if ($netCfgInstanceId -eq $NicAdapterComponentId) {
+                            Write-Verbose "Matching ComponentId found - now checking for PnPCapabilitiesValue"
+                            $pnpRemoteRegistryParams = @{
+                                MachineName         = $ComputerName
+                                SubKey              = $nicAdapterPnPCapabilitiesProbingKey
+                                GetValue            = "PnPCapabilities"
+                                CatchActionFunction = $CatchActionFunction
+                            }
+                            $nicAdapterPnPCapabilitiesValue = Get-RemoteRegistryValue @pnpRemoteRegistryParams
+                            break
+                        } else {
+                            Write-Verbose "No matching ComponentId found"
+                            $i++
+                        }
+                    } while ($i -lt $optionalKeys.Count)
+                }
             }
             end {
                 return [PSCustomObject]@{
@@ -113,10 +120,13 @@ function Get-AllNicInformation {
             }
             process {
                 if ($WmiObject) {
-                    $networkAdapterConfigurations = Get-WmiObjectHandler -ComputerName $ComputerName `
-                        -Class "Win32_NetworkAdapterConfiguration" `
-                        -Filter "IPEnabled = True" `
-                        -CatchActionFunction $CatchActionFunction
+                    $networkAdapterConfigurationsParams = @{
+                        ComputerName        = $ComputerName
+                        Class               = "Win32_NetworkAdapterConfiguration"
+                        Filter              = "IPEnabled = True"
+                        CatchActionFunction = $CatchActionFunction
+                    }
+                    $networkAdapterConfigurations = Get-WmiObjectHandler @networkAdapterConfigurationsParams
                 }
 
                 foreach ($networkConfig in $NetworkConfiguration) {
@@ -334,10 +344,13 @@ function Get-AllNicInformation {
                 Invoke-CatchActionError $CatchActionFunction
             }
 
-            $wmiNetworkCards = Get-WmiObjectHandler -ComputerName $ComputerName `
-                -Class "Win32_NetworkAdapter" `
-                -Filter "NetConnectionStatus ='2'" `
-                -CatchActionFunction $CatchActionFunction
+            $wmiNetworkCardsParams = @{
+                ComputerName        = $ComputerName
+                Class               = "Win32_NetworkAdapter"
+                Filter              = "NetConnectionStatus ='2'"
+                CatchActionFunction = $CatchActionFunction
+            }
+            $wmiNetworkCards = Get-WmiObjectHandler @wmiNetworkCardsParams
 
             return (Get-NicInformation -NetworkConfiguration $wmiNetworkCards -WmiObject $true)
         }
