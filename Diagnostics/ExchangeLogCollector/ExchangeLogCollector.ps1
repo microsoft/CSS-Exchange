@@ -87,6 +87,7 @@ if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
 if ($PSCmdlet.ParameterSetName -eq "Worth") {
     $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth
+    $Script:LogEndAge = New-TimeSpan -Days 0 -Hours 0
 }
 
 if ($PSCmdlet.ParameterSetName -eq "LogPeriod") {
@@ -193,7 +194,7 @@ function Main {
         Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
     }
 
-    if ( ( $PSCmdlet.ParameterSetName -eq "LogPeriod" -and $LogAge.CompareTo($LogEndAge) ) -ne 1 ) {
+    if ( $PSCmdlet.ParameterSetName -eq "LogPeriod" -and ( $LogAge.CompareTo($LogEndAge) -ne 1 ) ) {
         Write-Host "LogStartDate time should smaller than LogEndDate time." -ForegroundColor "Yellow"
         exit
     }
