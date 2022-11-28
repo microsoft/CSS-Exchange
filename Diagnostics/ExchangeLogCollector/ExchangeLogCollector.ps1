@@ -69,6 +69,10 @@ param (
     [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz", "SimplePerf"),
     [Parameter(ParameterSetName = "LogAge")]
     [timespan]$LogAge = "3.00:00:00",
+    [Parameter(ParameterSetName = "LogPeriod")]
+    [datetime]$LogStartDate = (Get-Date).AddDays(-3),
+    [Parameter(ParameterSetName = "LogPeriod")]
+    [datetime]$LogEndDate = (Get-Date),
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailflowIssues,
@@ -81,7 +85,17 @@ $BuildVersion = ""
 
 if ($PSBoundParameters["Verbose"]) { $Script:ScriptDebug = $true }
 
-if ($PSCmdlet.ParameterSetName -eq "Worth") { $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth }
+if ($PSCmdlet.ParameterSetName -eq "Worth") {
+    $Script:LogAge = New-TimeSpan -Days $DaysWorth -Hours $HoursWorth
+    $Script:LogEndAge = New-TimeSpan -Days 0 -Hours 0
+}
+
+if ($PSCmdlet.ParameterSetName -eq "LogPeriod") {
+    $Script:LogAge = ((Get-Date) - $LogStartDate)
+    $Script:LogEndAge = ((Get-Date) - $LogEndDate)
+} else {
+    $Script:LogEndAge = New-TimeSpan -Days 0 -Hours 0
+}
 
 function Invoke-RemoteFunctions {
     param(
@@ -178,6 +192,11 @@ function Main {
 
     if (-not($AcceptEULA)) {
         Enter-YesNoLoopAction -Question "Do you wish to continue? " -YesAction {} -NoAction { exit }
+    }
+
+    if ( $PSCmdlet.ParameterSetName -eq "LogPeriod" -and ( $LogAge.CompareTo($LogEndAge) -ne 1 ) ) {
+        Write-Host "LogStartDate time should smaller than LogEndDate time." -ForegroundColor "Yellow"
+        exit
     }
 
     if (-not (Confirm-Administrator)) {
