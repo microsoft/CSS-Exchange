@@ -5,7 +5,6 @@
 # Collect information and report it to the screen and export out the results.
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Get-OrganizationInformation.ps1
-. $PSScriptRoot\..\Helpers\Test-RequiresServerFqdn.ps1
 
 function Invoke-HealthCheckerMainReport {
     [CmdletBinding()]
@@ -33,11 +32,18 @@ function Invoke-HealthCheckerMainReport {
     $organizationInformation = Get-OrganizationInformation -EdgeServer $EdgeServer
 
     foreach ($serverName in $ServerNames) {
+
+        try {
+            $fqdn = (Get-ExchangeServer $serverName -ErrorAction Stop).FQDN
+        } catch {
+            Write-Host "Unable to find server: $serverName" -ForegroundColor Yellow
+            Invoke-CatchActions
+            continue
+        }
+
         Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
         Write-HostLog "Exchange Health Checker version $BuildVersion"
-        #TODO Fix this as Test-RequiresServerFqdn I am sure doesn't work correctly right now.
-        Test-RequiresServerFqdn -Server $serverName
-        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverName -OrganizationConfig $organizationInformation.GetOrganizationConfig
+        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -OrganizationConfig $organizationInformation.GetOrganizationConfig
         $HealthObject.OrganizationInformation = $organizationInformation
         $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
         Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
