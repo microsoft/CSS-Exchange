@@ -5,6 +5,7 @@
 . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
 . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
 . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
 function Get-OrganizationInformation {
     [CmdletBinding()]
     param(
@@ -54,6 +55,7 @@ function Get-OrganizationInformation {
             $orgInfo.AdSchemaInformation = Get-ExchangeAdSchemaInformation
             $orgInfo.DomainsAclPermissions = Get-ExchangeDomainsAclPermissions
             $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
+            $orgInfo.IsSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
             $schemaRangeUpper = (($orgInfo.AdSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
 
@@ -69,6 +71,7 @@ function Get-OrganizationInformation {
                 DomainsAcls                     = $orgInfo.DomainsAclPermissions
                 ExchangeWellKnownSecurityGroups = $orgInfo.WellKnownSecurityGroups
                 ExchangeSchemaLevel             = $schemaLevel
+                SplitADPermissions              = $orgInfo.IsSplitADPermissions
             }
 
             $orgInfo.SecurityResults = [PSCustomObject]@{

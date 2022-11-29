@@ -30,6 +30,7 @@ using System.Collections;
             public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
             public bool MapiHttpEnabled; //Stored from organization config
             public object SecurityResults; // Stores different CVE results that are secured against Setup.exe /PrepareAD /PrepareDomain /PrepareSchema
+            public bool IsSplitADPermissions = new bool(); // Used to determine if split permissions are detected.
         }
 
         // ExchangeInformation
