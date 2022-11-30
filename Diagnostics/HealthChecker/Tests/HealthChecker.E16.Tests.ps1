@@ -32,12 +32,19 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 13
+            $Script:ActiveGrouping.Count | Should -Be 12
+        }
+
+        It "Display Results - Organization Information" {
+            SetActiveDisplayGrouping "Organization Information"
+
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "Enable Download Domains" "False"
+            TestObjectMatch "AD Split Permissions" "False"
         }
 
         It "Display Results - Operating System Information" {

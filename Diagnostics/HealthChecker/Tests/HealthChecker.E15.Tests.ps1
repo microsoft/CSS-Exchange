@@ -31,12 +31,19 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Server Role" "MultiRole"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 16
+            $Script:ActiveGrouping.Count | Should -Be 15
+        }
+
+        It "Display Results - Organization Information" {
+            SetActiveDisplayGrouping "Organization Information"
+
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "Enable Download Domains" "Unknown"
+            TestObjectMatch "AD Split Permissions" "False"
         }
 
         It "Display Results - Operating System Information" {

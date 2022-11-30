@@ -157,12 +157,6 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    $params = $baseParams + @{
-        Name    = "MAPI/HTTP Enabled"
-        Details = $HealthServerObject.OrganizationInformation.MapiHttpEnabled
-    }
-    Add-AnalyzedResultInformation @params
-
     if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
         ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Hub) -and
         ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
