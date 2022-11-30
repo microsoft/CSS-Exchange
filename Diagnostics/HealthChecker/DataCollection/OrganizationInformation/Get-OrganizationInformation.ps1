@@ -29,7 +29,7 @@ function Get-OrganizationInformation {
         if ($null -ne $organizationConfig) {
             $orgInfo.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled
             # Enabled Download Domains will not be there if running EMS from Exchange 2013.
-            # TODO: Address this. Need to determine if higher than Exchange 2013 exchange has been installed and that we shouldn't be running HC from that session.
+            # By default, EnableDownloadDomains is set to Unknown in case this is run on 2013 server.
             if ($null -ne $organizationConfig.EnableDownloadDomains) {
                 $orgInfo.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
             } else {

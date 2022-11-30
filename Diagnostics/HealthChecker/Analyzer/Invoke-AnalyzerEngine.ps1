@@ -9,6 +9,7 @@
 . $PSScriptRoot\Invoke-AnalyzerOsInformation.ps1
 . $PSScriptRoot\Invoke-AnalyzerHardwareInformation.ps1
 . $PSScriptRoot\Invoke-AnalyzerNicSettings.ps1
+. $PSScriptRoot\Invoke-AnalyzerOrganizationInformation.ps1
 . $PSScriptRoot\Invoke-AnalyzerFrequentConfigurationIssues.ps1
 . $PSScriptRoot\Invoke-AnalyzerWebAppPools.ps1
 . $PSScriptRoot\Security\Invoke-AnalyzerSecuritySettings.ps1
@@ -64,7 +65,9 @@ For further details, please review the virtualization recommendations on Microso
         Add-AnalyzedResultInformation @params
     }
 
+    # Can't do a Hash Table pass param due to [ref]
     Invoke-AnalyzerExchangeInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
+    Invoke-AnalyzerOrganizationInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerHybridInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerOsInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerHardwareInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
