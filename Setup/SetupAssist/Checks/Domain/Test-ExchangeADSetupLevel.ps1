@@ -127,9 +127,12 @@ function Test-ExchangeADSetupLevel {
                 Value = -1
             }
         }
-        return [PSCustomObject]@{
-            DN    = $SearchResults.Properties["DistinguishedName"]
-            Value = ($SearchResults.Properties[$VersionValueName]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+
+        foreach ($result in $SearchResults) {
+            [PSCustomObject]@{
+                DN    = $result.Properties["DistinguishedName"]
+                Value = ($result.Properties[$VersionValueName]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+            }
         }
     }
 
@@ -140,15 +143,18 @@ function Test-ExchangeADSetupLevel {
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
         $directorySearcher.Filter = "(objectCategory=msExchOrganizationContainer)"
         $orgFindAll = $directorySearcher.FindAll()
+        Write-Verbose "Found $($orgFindAll.Count) ORG object(s)"
 
+        # Should only be 1 schema
         $directorySearcher.SearchRoot = [ADSI]("LDAP://CN=Schema," + $rootDSE.configurationNamingContext.ToString())
         $directorySearcher.Filter = "(&(name=ms-Exch-Schema-Version-Pt)(objectCategory=attributeSchema))"
         $schemaFindAll = $directorySearcher.FindAll()
+        Write-Verbose "Found $($schemaFindAll.Count) Schema object(s)"
 
-        $directorySearcher.SearchScope = "OneLevel"
         $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.defaultNamingContext.ToString())
         $directorySearcher.Filter = "(objectCategory=msExchSystemObjectsContainer)"
         $mesoFindAll = $directorySearcher.FindAll()
+        Write-Verbose "Found $($mesoFindAll.Count) MESO object(s)"
 
         return [PSCustomObject]@{
             Org    = (GetVersionObject -SearchResults $orgFindAll)
@@ -199,6 +205,19 @@ function Test-ExchangeADSetupLevel {
         Write-Verbose "currentInstallingExchangeVersion: $currentInstallingExchangeVersion"
     } else {
         Write-Verbose "No Setup Log to test against."
+    }
+
+    # Two MESO containers found in domain, that could prevent you from installing Exchange in it.
+    if ($adLevel.MESO.Count -gt 1) {
+
+        $problemMesos = @($adLevel.MESO | Where-Object { $_.Value -lt 12433 })
+
+        if ($problemMesos.Count -ge 1) {
+            $problemMesos | ForEach-Object {
+                New-TestResult -TestName $testName -Result "Failed" -Details "Problem MESO Container: $($_.DN)" -ReferenceInfo "Must update or delete container"
+            }
+            return
+        }
     }
 
     #Less than the known Exchange 2013 schema version
