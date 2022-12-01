@@ -139,7 +139,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 83
+            $Script:ActiveGrouping.Count | Should -Be 91
         }
 
         It "Display Results - Security Vulnerability" {
@@ -147,11 +147,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 20
+            $cveTests.Count | Should -Be 25
             $downlaodDomains = GetObject "CVE-2021-1730"
             $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 27
+            $Script:ActiveGrouping.Count | Should -Be 32
         }
     }
 

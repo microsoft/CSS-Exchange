@@ -8,6 +8,7 @@ nav:
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
+    - MonitorExchangeAuthCertificate: Admin/MonitorExchangeAuthCertificate.md
     - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
@@ -43,6 +44,9 @@ nav:
       - CloudConnectorCheck: Diagnostics/HealthChecker/CloudConnectorCheck.md
       - TLSConfigurationCheck: Diagnostics/HealthChecker/TLSConfigurationCheck.md
       - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
+      - AuthCertificateCheck: Diagnostics/HealthChecker/AuthCertificateCheck.md
+      - SerializedDataSigningCheck: Diagnostics/HealthChecker/SerializedDataSigningCheck.md
+      - InternalTransportCertificateCheck: Diagnostics/HealthChecker/InternalTransportCertificateCheck.md
       - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
       - EEMSCheck: Diagnostics/HealthChecker/EEMSCheck.md
       - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
