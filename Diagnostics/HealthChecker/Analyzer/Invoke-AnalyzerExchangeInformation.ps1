@@ -44,7 +44,7 @@ function Invoke-AnalyzerExchangeInformation {
 
     $params = $baseParams + @{
         Name                  = "Version"
-        Details               = $exchangeInformation.BuildInformation.FriendlyName
+        Details               = $exchangeInformation.BuildInformation.VersionInformation.FriendlyName
         AddHtmlOverviewValues = $true
         HtmlName              = "Exchange Version"
     }
@@ -56,9 +56,8 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($exchangeInformation.BuildInformation.SupportedBuild -eq $false) {
-        $daysOld = ($date - ([System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ReleaseDate,
-                    [System.Globalization.DateTimeFormatInfo]::InvariantInfo))).Days
+    if ($exchangeInformation.BuildInformation.VersionInformation.Supported -eq $false) {
+        $daysOld = ($date - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
 
         $params = $baseParams + @{
             Name                   = "Error"
@@ -72,8 +71,7 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    $extendedSupportDate = [System.Convert]::ToDateTime([DateTime]$exchangeInformation.BuildInformation.ExtendedSupportDate,
-        [System.Globalization.DateTimeFormatInfo]::InvariantInfo)
+    $extendedSupportDate = $exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate
     if ($extendedSupportDate -le ([DateTime]::Now.AddYears(1))) {
         $displayWriteType = "Yellow"
 
@@ -81,10 +79,10 @@ function Invoke-AnalyzerExchangeInformation {
             $displayWriteType = "Red"
         }
 
-        $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Please note of the End Of Life date and plan to migrate soon."
+        $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MM/dd/yyyy")) - Please note of the End Of Life date and plan to migrate soon."
 
         if ($extendedSupportDate -le ([DateTime]::Now)) {
-            $displayValue = "$($exchangeInformation.BuildInformation.ExtendedSupportDate) - Error: You are past the End Of Life of Exchange."
+            $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MM/dd/yyyy")) - Error: You are past the End Of Life of Exchange."
         }
 
         $params = $baseParams + @{
@@ -97,11 +95,11 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if (-not ([string]::IsNullOrEmpty($exchangeInformation.BuildInformation.LocalBuildNumber))) {
+    if ($null -ne $exchangeInformation.BuildInformation.LocalBuildNumber) {
         $local = $exchangeInformation.BuildInformation.LocalBuildNumber
-        $remote = $exchangeInformation.BuildInformation.BuildNumber
+        $remote = [system.version]$exchangeInformation.BuildInformation.ExchangeSetup.FileVersion
 
-        if ($local.Substring(0, $local.LastIndexOf(".")) -ne $remote.Substring(0, $remote.LastIndexOf("."))) {
+        if ($local -ne $remote) {
             $params = $baseParams + @{
                 Name                   = "Warning"
                 Details                = "Running commands from a different version box can cause issues. Local Tools Server Version: $local"

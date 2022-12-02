@@ -64,12 +64,8 @@ using System.Collections;
             public ExchangeServerRole ServerRole; //Roles that are currently set and installed.
             public ExchangeMajorVersion MajorVersion; //Exchange Version (Exchange 2010/2013/2019)
             public ExchangeCULevel CU;             // Exchange CU Level
-            public string FriendlyName;     //Exchange Friendly Name is provided
-            public string BuildNumber;      //Exchange Build Number
-            public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
-            public string ReleaseDate;      // Exchange release date for which the CU they are currently on
-            public string ExtendedSupportDate; // End of Life Support Date.
-            public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
+            public object VersionInformation; // Stores results from Get-ExchangeBuildVersionInformation
+            public System.Version LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
             public object ExchangeSetup;    //Stores the Get-Command ExSetup object
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
             public bool March2021SUInstalled;    //True if March 2021 SU is installed

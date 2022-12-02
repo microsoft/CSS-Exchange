@@ -34,9 +34,9 @@ function Get-ExchangeInformation {
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates -Server $Server
     $buildInformation = $exchangeInformation.BuildInformation
-    $buildVersionInfo = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
-    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildVersionInfo.MajorVersion)
-    $buildInformation.BuildNumber = "{0}.{1}.{2}.{3}" -f $buildVersionInfo.Major, $buildVersionInfo.Minor, $buildVersionInfo.Build, $buildVersionInfo.Revision
+    $buildInformation.VersionInformation = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
+    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildInformation.VersionInformation.MajorVersion)
+    $buildInformation.CU = ([HealthChecker.ExchangeCULevel]$buildInformation.VersionInformation.CU)
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails -Server $Server
     $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Server)
@@ -68,71 +68,8 @@ function Get-ExchangeInformation {
     #Exchange 2013 or greater
     if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkExchange = $exchangeInformation.NETFramework
-        [System.Version]$adminDisplayVersionFullBuildNumber = $buildInformation.BuildNumber
-        Write-Verbose "The AdminDisplayVersion build number is: $adminDisplayVersionFullBuildNumber"
-        #Build Numbers: https://docs.microsoft.com/en-us/Exchange/new-features/build-numbers-and-release-dates?view=exchserver-2019
         if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-            Write-Verbose "Exchange 2019 is detected. Checking build number..."
-            $buildInformation.FriendlyName = "Exchange 2019 "
-            $buildInformation.ExtendedSupportDate = "10/14/2025"
-
-            #Exchange 2019 Information
-            if ($adminDisplayVersionFullBuildNumber -lt "15.2.330.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::RTM
-                $buildInformation.FriendlyName += "RTM"
-                $buildInformation.ReleaseDate = "10/22/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.397.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
-                $buildInformation.FriendlyName += "CU1"
-                $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.464.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
-                $buildInformation.FriendlyName += "CU2"
-                $buildInformation.ReleaseDate = "06/18/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.529.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
-                $buildInformation.FriendlyName += "CU3"
-                $buildInformation.ReleaseDate = "09/17/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.595.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
-                $buildInformation.FriendlyName += "CU4"
-                $buildInformation.ReleaseDate = "12/17/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.659.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
-                $buildInformation.FriendlyName += "CU5"
-                $buildInformation.ReleaseDate = "03/17/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.721.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
-                $buildInformation.FriendlyName += "CU6"
-                $buildInformation.ReleaseDate = "06/16/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.792.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
-                $buildInformation.FriendlyName += "CU7"
-                $buildInformation.ReleaseDate = "09/15/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.858.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
-                $buildInformation.FriendlyName += "CU8"
-                $buildInformation.ReleaseDate = "12/15/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.922.7") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
-                $buildInformation.FriendlyName += "CU9"
-                $buildInformation.ReleaseDate = "03/16/2021"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.986.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
-                $buildInformation.FriendlyName += "CU10"
-                $buildInformation.ReleaseDate = "06/29/2021"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.2.1118.7") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
-                $buildInformation.FriendlyName += "CU11"
-                $buildInformation.ReleaseDate = "09/28/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.2.1118.7") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
-                $buildInformation.FriendlyName += "CU12"
-                $buildInformation.ReleaseDate = "04/20/2022"
-                $buildInformation.SupportedBuild = $true
-            }
-
+            Write-Verbose "Exchange 2019 is detected. Setting Supported .NET Builds"
             #Exchange 2019 .NET Information
             if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
@@ -145,107 +82,7 @@ function Get-ExchangeInformation {
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
             }
         } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-            Write-Verbose "Exchange 2016 is detected. Checking build number..."
-            $buildInformation.FriendlyName = "Exchange 2016 "
-            $buildInformation.ExtendedSupportDate = "10/14/2025"
-
-            #Exchange 2016 Information
-            if ($adminDisplayVersionFullBuildNumber -lt "15.1.466.34") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
-                $buildInformation.FriendlyName += "CU1"
-                $buildInformation.ReleaseDate = "03/15/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.544.27") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
-                $buildInformation.FriendlyName += "CU2"
-                $buildInformation.ReleaseDate = "06/21/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.669.32") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
-                $buildInformation.FriendlyName += "CU3"
-                $buildInformation.ReleaseDate = "09/20/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.845.34") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
-                $buildInformation.FriendlyName += "CU4"
-                $buildInformation.ReleaseDate = "12/13/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1034.26") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
-                $buildInformation.FriendlyName += "CU5"
-                $buildInformation.ReleaseDate = "03/21/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1261.35") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
-                $buildInformation.FriendlyName += "CU6"
-                $buildInformation.ReleaseDate = "06/24/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1415.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
-                $buildInformation.FriendlyName += "CU7"
-                $buildInformation.ReleaseDate = "09/16/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1466.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
-                $buildInformation.FriendlyName += "CU8"
-                $buildInformation.ReleaseDate = "12/19/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1531.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
-                $buildInformation.FriendlyName += "CU9"
-                $buildInformation.ReleaseDate = "03/20/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1591.10") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
-                $buildInformation.FriendlyName += "CU10"
-                $buildInformation.ReleaseDate = "06/19/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1713.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
-                $buildInformation.FriendlyName += "CU11"
-                $buildInformation.ReleaseDate = "10/16/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1779.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
-                $buildInformation.FriendlyName += "CU12"
-                $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1847.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU13
-                $buildInformation.FriendlyName += "CU13"
-                $buildInformation.ReleaseDate = "06/18/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1913.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU14
-                $buildInformation.FriendlyName += "CU14"
-                $buildInformation.ReleaseDate = "09/17/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.1979.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU15
-                $buildInformation.FriendlyName += "CU15"
-                $buildInformation.ReleaseDate = "12/17/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2044.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU16
-                $buildInformation.FriendlyName += "CU16"
-                $buildInformation.ReleaseDate = "03/17/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2106.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17
-                $buildInformation.FriendlyName += "CU17"
-                $buildInformation.ReleaseDate = "06/16/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2176.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18
-                $buildInformation.FriendlyName += "CU18"
-                $buildInformation.ReleaseDate = "09/15/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2242.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19
-                $buildInformation.FriendlyName += "CU19"
-                $buildInformation.ReleaseDate = "12/15/2020"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2308.8") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
-                $buildInformation.FriendlyName += "CU20"
-                $buildInformation.ReleaseDate = "03/16/2021"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2375.7") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
-                $buildInformation.FriendlyName += "CU21"
-                $buildInformation.ReleaseDate = "06/29/2021"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.1.2507.6") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
-                $buildInformation.FriendlyName += "CU22"
-                $buildInformation.ReleaseDate = "09/28/2021"
-                $buildInformation.SupportedBuild = $true
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.1.2507.6") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
-                $buildInformation.FriendlyName += "CU23"
-                $buildInformation.ReleaseDate = "04/20/2022"
-                $buildInformation.SupportedBuild = $true
-            }
-
+            Write-Verbose "Exchange 2016 is detected. Setting Supported .NET Builds"
             #Exchange 2016 .NET Information
             if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
@@ -285,106 +122,7 @@ function Get-ExchangeInformation {
                 $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
             }
         } else {
-            Write-Verbose "Exchange 2013 is detected. Checking build number..."
-            $buildInformation.FriendlyName = "Exchange 2013 "
-            $buildInformation.ExtendedSupportDate = "04/11/2023"
-
-            #Exchange 2013 Information
-            if ($adminDisplayVersionFullBuildNumber -lt "15.0.712.24") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU1
-                $buildInformation.FriendlyName += "CU1"
-                $buildInformation.ReleaseDate = "04/02/2013"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.775.38") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU2
-                $buildInformation.FriendlyName += "CU2"
-                $buildInformation.ReleaseDate = "07/09/2013"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.847.32") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU3
-                $buildInformation.FriendlyName += "CU3"
-                $buildInformation.ReleaseDate = "11/25/2013"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.913.22") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU4
-                $buildInformation.FriendlyName += "CU4"
-                $buildInformation.ReleaseDate = "02/25/2014"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.995.29") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU5
-                $buildInformation.FriendlyName += "CU5"
-                $buildInformation.ReleaseDate = "05/27/2014"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1044.25") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU6
-                $buildInformation.FriendlyName += "CU6"
-                $buildInformation.ReleaseDate = "08/26/2014"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1076.9") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU7
-                $buildInformation.FriendlyName += "CU7"
-                $buildInformation.ReleaseDate = "12/09/2014"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1104.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU8
-                $buildInformation.FriendlyName += "CU8"
-                $buildInformation.ReleaseDate = "03/17/2015"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1130.7") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU9
-                $buildInformation.FriendlyName += "CU9"
-                $buildInformation.ReleaseDate = "06/17/2015"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1156.6") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU10
-                $buildInformation.FriendlyName += "CU10"
-                $buildInformation.ReleaseDate = "09/15/2015"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1178.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU11
-                $buildInformation.FriendlyName += "CU11"
-                $buildInformation.ReleaseDate = "12/15/2015"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1210.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU12
-                $buildInformation.FriendlyName += "CU12"
-                $buildInformation.ReleaseDate = "03/15/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1236.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU13
-                $buildInformation.FriendlyName += "CU13"
-                $buildInformation.ReleaseDate = "06/21/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1263.5") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU14
-                $buildInformation.FriendlyName += "CU14"
-                $buildInformation.ReleaseDate = "09/20/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1293.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU15
-                $buildInformation.FriendlyName += "CU15"
-                $buildInformation.ReleaseDate = "12/13/2016"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1320.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU16
-                $buildInformation.FriendlyName += "CU16"
-                $buildInformation.ReleaseDate = "03/21/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1347.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU17
-                $buildInformation.FriendlyName += "CU17"
-                $buildInformation.ReleaseDate = "06/24/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1365.1") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU18
-                $buildInformation.FriendlyName += "CU18"
-                $buildInformation.ReleaseDate = "09/16/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1367.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU19
-                $buildInformation.FriendlyName += "CU19"
-                $buildInformation.ReleaseDate = "12/19/2017"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1395.4") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU20
-                $buildInformation.FriendlyName += "CU20"
-                $buildInformation.ReleaseDate = "03/20/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1473.3") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU21
-                $buildInformation.FriendlyName += "CU21"
-                $buildInformation.ReleaseDate = "06/19/2018"
-            } elseif ($adminDisplayVersionFullBuildNumber -lt "15.0.1497.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU22
-                $buildInformation.FriendlyName += "CU22"
-                $buildInformation.ReleaseDate = "02/12/2019"
-            } elseif ($adminDisplayVersionFullBuildNumber -ge "15.0.1497.2") {
-                $buildInformation.CU = [HealthChecker.ExchangeCULevel]::CU23
-                $buildInformation.FriendlyName += "CU23"
-                $buildInformation.ReleaseDate = "06/18/2019"
-                $buildInformation.SupportedBuild = $true
-            }
-
+            Write-Verbose "Exchange 2013 is detected. Setting Supported .NET Builds"
             #Exchange 2013 .NET Information
             if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU4) {
                 $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
