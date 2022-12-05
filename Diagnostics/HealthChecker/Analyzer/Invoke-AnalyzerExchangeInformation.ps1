@@ -123,6 +123,15 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    if ($exchangeInformation.BuildInformation.VersionInformation.LatestSU -eq $false) {
+        $params = $baseParams + @{
+            Details                = "Not on the latest SU. More Information: https://aka.ms/HC-ExBuilds"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     $params = @{
         AnalyzeResults     = $AnalyzeResults
         DisplayGroupingKey = $keyExchangeInformation

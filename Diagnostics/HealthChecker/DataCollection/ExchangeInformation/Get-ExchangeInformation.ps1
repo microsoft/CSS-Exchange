@@ -34,12 +34,12 @@ function Get-ExchangeInformation {
     $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
     $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates -Server $Server
     $buildInformation = $exchangeInformation.BuildInformation
-    $buildInformation.VersionInformation = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $exchangeInformation.GetExchangeServer.AdminDisplayVersion
-    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildInformation.VersionInformation.MajorVersion)
-    $buildInformation.CU = ([HealthChecker.ExchangeCULevel]$buildInformation.VersionInformation.CU)
     $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
     $buildInformation.ExchangeSetup = Get-ExSetupDetails -Server $Server
     $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Server)
+    $buildInformation.VersionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($buildInformation.ExchangeSetup.FileVersion))
+    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildInformation.VersionInformation.MajorVersion)
+    $buildInformation.CU = ([HealthChecker.ExchangeCULevel]$buildInformation.VersionInformation.CU)
 
     if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
         try {
