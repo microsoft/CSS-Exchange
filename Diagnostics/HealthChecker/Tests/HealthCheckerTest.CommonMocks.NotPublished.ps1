@@ -171,6 +171,10 @@ Mock Get-ExchangeSettingOverride {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride.xml"
 }
 
+Mock Get-ExchangeADSplitPermissionsEnabled {
+    return $false
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 
@@ -260,7 +264,4 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
-}
-function Get-ExchangeADSplitPermissionsEnabled {
-    return $false
 }
