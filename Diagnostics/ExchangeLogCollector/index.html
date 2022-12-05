@@ -2135,7 +2135,7 @@
 </tr>
 <tr>
 <td>IISLogs</td>
-<td>Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: <code>C:\inetpub\logs\LogFiles\W3SVC1</code>, <code>C:\inetpub\logs\LogFiles\W3SVC1</code>, and <code>C:\Windows\System32\LogFiles\HTTPERR</code>. Only able to collect on <code>LogAge</code>.</td>
+<td>Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: <code>C:\inetpub\logs\LogFiles\W3SVC1</code>, <code>C:\inetpub\logs\LogFiles\W3SVC2</code>, and <code>C:\Windows\System32\LogFiles\HTTPERR</code>. IISlogs do not collect all logs on CollectAllLogsBasedOnLogAge:$false, just works based on log age.</td>
 </tr>
 <tr>
 <td>ImapLogs</td>
@@ -2262,6 +2262,14 @@
 <td>The number of hours to go back to be included in the time span for the log collection. Default Value 0.</td>
 </tr>
 <tr>
+<td>LogStartDate</td>
+<td>Set the starting time for the log collection (DateTime).</td>
+</tr>
+<tr>
+<td>LogEndDate</td>
+<td>Set the ending time for the log collection (DateTime).</td>
+</tr>
+<tr>
 <td>DisableConfigImport</td>
 <td>Enable to not import the <code>ExchangeLogCollector.ps1.json</code> file if it exists.</td>
 </tr>
@@ -2309,7 +2317,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 13, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 29, 2022</span>
       
     
   </small>
