@@ -46,7 +46,7 @@ function Copy-LogsBasedOnTime {
                 Write-Verbose "No items were found in the directory."
                 NoFilesInLocation
             } else {
-                $timeRangeFiles = $AllItems | Where-Object { $_.LastWriteTime -ge $copyFromDate }
+                $timeRangeFiles = $AllItems | Where-Object { $_.LastWriteTime -ge $copyFromDate -and $_.LastWriteTime -le $copyToDate }
 
                 if ($null -eq $timeRangeFiles) {
                     Write-Verbose "no files found in the range. Getting the last file."
@@ -65,7 +65,9 @@ function Copy-LogsBasedOnTime {
         Write-Verbose "LogPath: '$LogPath' | CopyToThisLocation: '$CopyToThisLocation'"
         New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
         $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
+        $copyToDate = [DateTime]::Now - $PassedInfo.EndTimeSpan
         Write-Verbose "Copy From Date: $copyFromDate"
+        Write-Verbose "Copy To Date: $copyToDate"
     }
     process {
 

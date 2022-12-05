@@ -13,11 +13,18 @@ function CopyLogmanData {
     $directory = $LogmanObject.RootPath
     $filterDate = $LogmanObject.StartDate
     $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
+    $copyToDate = [DateTime]::Now - $PassedInfo.EndTimeSpan
     Write-Verbose "Copy From Date: $filterDate"
+    Write-Verbose "Copy To Date: $filterToDate"
 
     if ([DateTime]$filterDate -lt [DateTime]$copyFromDate) {
         $filterDate = $copyFromDate
-        Write-Verbose "Updating Copy From Date to: $filterDate"
+        Write-Verbose "Updating Copy From Date: $filterDate"
+    }
+
+    if ([DateTime]$filterToDate -lt [DateTime]$copyToDate) {
+        $filterToDate = $copyToDate
+        Write-Verbose "Updating Copy to Date: $filterToDate"
     }
 
     if ((Test-Path $directory)) {
@@ -27,7 +34,7 @@ function CopyLogmanData {
 
         if ($null -ne $childItems) {
             $items = $childItems |
-                Where-Object { $_.CreationTime -ge $filterDate } |
+                Where-Object { $_.CreationTime -ge $filterDate -and $_.CreationTime -le $filterToDate } |
                 ForEach-Object { $_.VersionInfo.FileName }
 
             if ($null -ne $items) {
@@ -35,13 +42,13 @@ function CopyLogmanData {
                 Invoke-ZipFolder -Folder $copyTo
                 return
             } else {
-                Write-Host "Failed to find any files in the directory: $directory that was greater than or equal to this time: $filterDate" -ForegroundColor "Yellow"
+                Write-Host "Failed to find any files in the directory: $directory that was greater than or equal to this time: $filterDate and lower than $filterToDate" -ForegroundColor "Yellow"
                 $filterDate = ($childItems |
                         Sort-Object CreationTime -Descending |
                         Select-Object -First 1).CreationTime.AddDays(-1)
                 Write-Verbose "Updated filter time to $filterDate"
                 $items = $childItems |
-                    Where-Object { $_.CreationTime -ge $filterDate } |
+                    Where-Object { $_.CreationTime -ge $filterDate -and $_.CreationTime -le $filterToDate } |
                     ForEach-Object { $_.VersionInfo.FileName }
 
                 if ($null -ne $items) {
