@@ -67,6 +67,18 @@ function Get-OrganizationInformation {
                 $schemaLevel = "2019"
             }
 
+            try {
+                $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
+                $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
+                $directorySearcher.SearchScope = "Subtree"
+                $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
+                $directorySearcher.Filter = "(objectCategory=site)"
+                $orgInfo.ADSiteCount = ($directorySearcher.FindAll()).Count
+            } catch {
+                Write-Verbose "Failed to collect AD Site Count information"
+                Invoke-CatchActions
+            }
+
             $cve21978Params = @{
                 DomainsAcls                     = $orgInfo.DomainsAclPermissions
                 ExchangeWellKnownSecurityGroups = $orgInfo.WellKnownSecurityGroups

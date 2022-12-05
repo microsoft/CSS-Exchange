@@ -52,4 +52,28 @@ function Invoke-AnalyzerOrganizationInformation {
         Details = $organizationInformation.IsSplitADPermissions
     }
     Add-AnalyzedResultInformation @params
+
+    $displayWriteType = "Green"
+
+    if ($organizationInformation.ADSiteCount -ge 750) {
+        $displayWriteType = "Yellow"
+    } elseif ( $organizationInformation.ADSiteCount -ge 1000) {
+        $displayWriteType = "Red"
+    }
+
+    $params = $baseParams + @{
+        Name             = "Total AD Site Count"
+        Details          = $organizationInformation.ADSiteCount
+        DisplayWriteType = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
+
+    if ($displayWriteType -ne "Green") {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-ADSiteCount"
+            DisplayCustomTabNumber = 2
+            DisplayWriteType       = $displayWriteType
+        }
+        Add-AnalyzedResultInformation @params
+    }
 }
