@@ -293,6 +293,18 @@ function Invoke-AnalyzerSecuritySettings {
     }
 
     $params = $baseParams + @{
+        Name    = "AllowInsecureRenegoClients Value"
+        Details = $osInformation.RegistryValues.AllowInsecureRenegoClients
+    }
+    Add-AnalyzedResultInformation @params
+
+    $params = $baseParams + @{
+        Name    = "AllowInsecureRenegoServers Value"
+        Details = $osInformation.RegistryValues.AllowInsecureRenegoServers
+    }
+    Add-AnalyzedResultInformation @params
+
+    $params = $baseParams + @{
         Name    = "LmCompatibilityLevel Settings"
         Details = $osInformation.RegistryValues.LmCompatibilityLevel
     }

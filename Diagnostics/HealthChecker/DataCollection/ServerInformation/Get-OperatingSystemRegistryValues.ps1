@@ -41,6 +41,18 @@ function Get-OperatingSystemRegistryValues {
         GetValue = "MinimumConnectionTimeout"
     }
 
+    $renegoClientsParams = $baseParams + @{
+        SubKey    = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL"
+        GetValue  = "AllowInsecureRenegoClients"
+        ValueType = "DWord"
+    }
+
+    $renegoServersParams = $baseParams + @{
+        SubKey    = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL"
+        GetValue  = "AllowInsecureRenegoServers"
+        ValueType = "DWord"
+    }
+
     $lmCompParams = $baseParams + @{
         SubKey    = "SYSTEM\CurrentControlSet\Control\Lsa"
         GetValue  = "LmCompatibilityLevel"
@@ -57,5 +69,7 @@ function Get-OperatingSystemRegistryValues {
         IPv6DisabledComponents          = [int](Get-RemoteRegistryValue @ipv6ComponentsParams)
         TCPKeepAlive                    = [int](Get-RemoteRegistryValue @tcpKeepAliveParams)
         RpcMinConnectionTimeout         = [int](Get-RemoteRegistryValue @rpcMinParams)
+        AllowInsecureRenegoServers      = [int](Get-RemoteRegistryValue @renegoServersParams)
+        AllowInsecureRenegoClients      = [int](Get-RemoteRegistryValue @renegoClientsParams)
     }
 }

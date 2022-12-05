@@ -50,6 +50,8 @@ Mock Get-RemoteRegistryValue {
         "DisableGranularReplication" { return 0 }
         "DisableAsyncNotification" { return 0 }
         "MsiInstallPath" { return "C:\Program Files\Microsoft\Exchange Server\V15" }
+        "AllowInsecureRenegoClients" { return 0 }
+        "AllowInsecureRenegoServers" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }

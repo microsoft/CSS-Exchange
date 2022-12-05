@@ -134,7 +134,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 67
+            $Script:ActiveGrouping.Count | Should -Be 69
         }
 
         It "Display Results - Security Vulnerability" {
@@ -229,7 +229,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 11
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 13
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
