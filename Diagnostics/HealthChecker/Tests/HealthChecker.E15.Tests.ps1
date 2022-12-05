@@ -44,6 +44,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Enable Download Domains" "Unknown"
             TestObjectMatch "AD Split Permissions" "False"
+
+            $Script:ActiveGrouping.Count | Should -Be 5
         }
 
         It "Display Results - Operating System Information" {
