@@ -19,7 +19,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
-    $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
+    $tcpKeepAlive = $osInformation.RegistryValues.TCPKeepAlive
     $organizationInformation = $HealthServerObject.OrganizationInformation
 
     $baseParams = @{
@@ -50,8 +50,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     $params = $baseParams + @{
         Name                = "RPC Min Connection Timeout"
-        Details             = "$($osInformation.NetworkInformation.RpcMinConnectionTimeout) `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting"
-        DisplayTestingValue = $osInformation.NetworkInformation.RpcMinConnectionTimeout
+        Details             = "$($osInformation.RegistryValues.RpcMinConnectionTimeout) `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting"
+        DisplayTestingValue = $osInformation.RegistryValues.RpcMinConnectionTimeout
         HtmlName            = "RPC Minimum Connection Timeout"
     }
     Add-AnalyzedResultInformation @params

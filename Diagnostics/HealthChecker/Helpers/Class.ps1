@@ -148,7 +148,6 @@ using System.Collections;
             public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
             public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
             public object PageFile;             //stores the page file information
-            public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public object ServerPendingReboot; // determine if server is pending a reboot.
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
             public object TLSSettings;            // stores the TLS settings on the server.
@@ -157,7 +156,7 @@ using System.Collections;
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
             public bool CredentialGuardEnabled;
-            public OSRegistryValues RegistryValues = new OSRegistryValues();
+            public object RegistryValues; // stores generic registry values
             public object Smb1ServerSettings;
         }
 
@@ -171,11 +170,8 @@ using System.Collections;
 
         public class NetworkInformation
         {
-            public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry
-            public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout.
             public object HttpProxy;                // holds the setting for HttpProxy if one is set.
             public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
-            public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents
             public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
             public System.Array NetworkAdapters;           //stores all the NICs on the servers.
             public string PnPCapabilities;      //Value from PnPCapabilities registry
@@ -187,18 +183,6 @@ using System.Collections;
             public bool HighPerformanceSet;      // If the power plan is High Performance
             public string PowerPlanSetting;      //value for the power plan that is set
             public object PowerPlan;            //object to store the power plan information
-        }
-
-        public class OSRegistryValues
-        {
-            public int CurrentVersionUbr; // stores SOFTWARE\Microsoft\Windows NT\CurrentVersion\UBR
-            public int LanManServerDisabledCompression; // stores SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\DisabledCompression
-        }
-
-        public class LmCompatibilityLevelInformation
-        {
-            public int RegistryValue;       //The LmCompatibilityLevel for the server (INT 1 - 5)
-            public string Description;      //description of the LmCompat that the server is set to
         }
 
         public class TimeZoneInformation

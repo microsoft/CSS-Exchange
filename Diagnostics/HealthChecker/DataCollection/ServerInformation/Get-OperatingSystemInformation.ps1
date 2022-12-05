@@ -9,7 +9,7 @@
 . $PSScriptRoot\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-CredentialGuardEnabled.ps1
 . $PSScriptRoot\Get-HttpProxySetting.ps1
-. $PSScriptRoot\Get-LmCompatibilityLevelInformation.ps1
+. $PSScriptRoot\Get-OperatingSystemRegistryValues.ps1
 . $PSScriptRoot\Get-PageFileInformation.ps1
 . $PSScriptRoot\Get-ServerOperatingSystemVersion.ps1
 . $PSScriptRoot\Get-Smb1ServerSettings.ps1
@@ -61,22 +61,8 @@ function Get-OperatingSystemInformation {
         }
     }
 
-    $osInformation.NetworkInformation.IPv6DisabledComponents = Get-RemoteRegistryValue -MachineName $Server `
-        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" `
-        -GetValue "DisabledComponents" `
-        -ValueType "DWord" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.TCPKeepAlive = Get-RemoteRegistryValue -MachineName $Server `
-        -SubKey "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" `
-        -GetValue "KeepAliveTime" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-    $osInformation.NetworkInformation.RpcMinConnectionTimeout = Get-RemoteRegistryValue -MachineName $Server `
-        -SubKey "Software\Policies\Microsoft\Windows NT\RPC\" `
-        -GetValue "MinimumConnectionTimeout" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.NetworkInformation.HttpProxy = Get-HttpProxySetting -Server $Server
     $osInformation.InstalledUpdates.HotFixes = (Get-HotFix -ComputerName $Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
-    $osInformation.LmCompatibility = Get-LmCompatibilityLevelInformation -Server $Server
     $counterSamples = (Get-LocalizedCounterSamples -MachineName $Server -Counter "\Network Interface(*)\Packets Received Discarded")
 
     if ($null -ne $counterSamples) {
@@ -98,19 +84,8 @@ function Get-OperatingSystemInformation {
     $osInformation.TLSSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.VcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
     $osInformation.CredentialGuardEnabled = Get-CredentialGuardEnabled -Server $Server
-    $osInformation.RegistryValues.CurrentVersionUbr = Get-RemoteRegistryValue `
-        -MachineName $Server `
-        -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion" `
-        -GetValue "UBR" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-
-    $osInformation.RegistryValues.LanManServerDisabledCompression = Get-RemoteRegistryValue `
-        -MachineName $Server `
-        -SubKey "SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
-        -GetValue "DisableCompression" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-
     $osInformation.Smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $osInformation.RegistryValues = Get-OperatingSystemRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $osInformation

@@ -140,7 +140,7 @@ function Invoke-AnalyzerNicSettings {
         $displayWriteType = "Grey"
         $testingValue = $adapter.IPv6Enabled
 
-        if ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255 -and
+        if ($osInformation.RegistryValues.IPv6DisabledComponents -ne 255 -and
             $adapter.IPv6Enabled -eq $false) {
             $displayValue = "{0} --- Warning" -f $adapter.IPv6Enabled
             $displayWriteType = "Yellow"
@@ -302,14 +302,14 @@ function Invoke-AnalyzerNicSettings {
         $displayValue = "True"
         $testingValue = $true
 
-        if ($osInformation.NetworkInformation.IPv6DisabledComponents -eq -1) {
+        if ($osInformation.RegistryValues.IPv6DisabledComponents -eq -1) {
             $displayWriteType = "Red"
             $testingValue = $false
             $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not correctly disabled via DisabledComponents registry value. It is currently set to '-1'. `r`n`t`tThis setting cause a system startup delay of 5 seconds. For details please refer to: `r`n`t`thttps://aka.ms/HC-ConfigureIPv6"
-        } elseif ($osInformation.NetworkInformation.IPv6DisabledComponents -ne 255) {
+        } elseif ($osInformation.RegistryValues.IPv6DisabledComponents -ne 255) {
             $displayWriteType = "Red"
             $testingValue = $false
-            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry value currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://aka.ms/HC-DisableIPv6`r`n`t`thttps://aka.ms/HC-ConfigureIPv6" -f $osInformation.NetworkInformation.IPv6DisabledComponents
+            $displayValue = "False `r`n`t`tError: IPv6 is disabled on some NIC level settings but not fully disabled. DisabledComponents registry value currently set to '{0}'. For details please refer to the following articles: `r`n`t`thttps://aka.ms/HC-DisableIPv6`r`n`t`thttps://aka.ms/HC-ConfigureIPv6" -f $osInformation.RegistryValues.IPv6DisabledComponents
         }
 
         $params = $baseParams + @{
