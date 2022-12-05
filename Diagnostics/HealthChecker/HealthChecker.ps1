@@ -22,8 +22,7 @@
 
 	Informational items are reported in Grey.  Settings found to match the recommendations are
 	reported in Green.  Warnings are reported in yellow.  Settings that can cause performance
-	problems are reported in red.  Please note that most of these recommendations only apply to Exchange
-	2013/2016.  The script will run against Exchange 2010/2007 but the output is more limited.
+	problems are reported in red.  Please note that most of these recommendations only apply to latest Support Exchange versions.
 .PARAMETER Server
 	This optional parameter allows the target Exchange server to be specified.  If it is not the
 	local server is assumed.
@@ -36,11 +35,11 @@
 	mailboxes on the server.
 .PARAMETER LoadBalancingReport
     This optional parameter will check the connection count of the Default Web Site for every server
-    running Exchange 2013/2016 with the Client Access role in the org.  It then breaks down servers by percentage to
+    running Exchange 2013+ with the Client Access role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
 .PARAMETER CasServerList
     Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without
-    this switch the report will use all 2013/2016 Client Access servers in the organization.
+    this switch the report will use all 2013+ Client Access servers in the organization.
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
     in the organization.
@@ -67,14 +66,17 @@
 	.\HealthChecker.ps1 -Server SERVERNAME
 	Run against a single remote Exchange server
 .EXAMPLE
+	.\HealthChecker.ps1 -Server SERVERNAME1,SERVERNAME2
+	Run against a list of servers
+.EXAMPLE
 	.\HealthChecker.ps1 -Server SERVERNAME -MailboxReport -Verbose
 	Run against a single remote Exchange server with verbose logging and mailbox report enabled.
 .EXAMPLE
-    Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | %{.\HealthChecker.ps1 -Server $_.Name}
-    Run against all Exchange 2013/2016 servers in the Organization.
+	Get-ExchangeServer | .\HealthChecker.ps1
+	Run against all the Exchange servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport
-    Run a load balancing report comparing all Exchange 2013/2016 CAS servers in the Organization.
+    Run a load balancing report comparing all Exchange 2013+ CAS servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
     Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
