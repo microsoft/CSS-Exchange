@@ -298,6 +298,20 @@ function Invoke-AnalyzerExchangeInformation {
                 Add-AnalyzedResultInformation @params
             }
         }
+
+        if ($exchangeInformation.DependentServices.Misconfigured.Count -gt 0) {
+            Write-Verbose "Misconfigured Services found."
+            Add-AnalyzedResultInformation -Name "Misconfigured Services" @baseParams
+
+            foreach ($service in $exchangeInformation.DependentServices.Misconfigured) {
+                $params = $baseParams + @{
+                    Details                = "$($service.Name) - Status: $($service.Status) - StartType: $($service.StartType) - CorrectStartType: $($service.CorrectStartType)"
+                    DisplayCustomTabNumber = 2
+                    DisplayWriteType       = "Yellow"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
     }
 
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
