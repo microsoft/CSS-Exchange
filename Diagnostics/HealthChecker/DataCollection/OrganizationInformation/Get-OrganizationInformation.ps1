@@ -4,6 +4,7 @@
 . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
 . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
 . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
+. $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
 . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
 function Get-OrganizationInformation {
@@ -84,8 +85,13 @@ function Get-OrganizationInformation {
                 SplitADPermissions              = $orgInfo.IsSplitADPermissions
             }
 
+            $cve34470Params = @{
+                MsExchStorageGroup = $orgInfo.AdSchemaInformation.MsExchStorageGroup
+            }
+
             $orgInfo.SecurityResults = [PSCustomObject]@{
                 CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
+                CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
             }
 
             try {
