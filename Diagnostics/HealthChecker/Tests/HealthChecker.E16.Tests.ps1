@@ -165,6 +165,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
                 SettingOverride    = $org.GetSettingOverride
             }
             $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }

@@ -25,7 +25,7 @@ using System.Collections;
             public object WellKnownSecurityGroups; //Stores the well known Exchange Security Groups information
             public object AdSchemaInformation;   //Stores the properties of from the Schema class
             public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
-            public object EnableDownloadDomains = "Unknown"; //True if Download Domains are enabled on org level
+            public object EnableDownloadDomains; //True if Download Domains are enabled on org level
             public object WildCardAcceptedDomain; // for issues with * accepted domain.
             public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
             public bool MapiHttpEnabled; //Stored from organization config

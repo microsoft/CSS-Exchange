@@ -499,6 +499,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 SettingOverride    = $org.GetSettingOverride
             }
             $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_OverSized_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 

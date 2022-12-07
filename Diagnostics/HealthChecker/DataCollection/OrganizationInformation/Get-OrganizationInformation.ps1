@@ -35,6 +35,7 @@ function Get-OrganizationInformation {
                 $orgInfo.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
             } else {
                 Write-Verbose "No EnableDownloadDomains detected on Get-OrganizationConfig"
+                $orgInfo.EnableDownloadDomains = "Unknown"
             }
         } else {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
