@@ -38,7 +38,7 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "AMSI Configuration Disabled On Organizational Level" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideDisabledOnOrg.xml }
+            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideDisabledOnOrg.xml }
             $Script:results = Get-ExchangeAMSIConfigurationState
         }
 
@@ -58,7 +58,7 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "AMSI Configuration Disabled On Server Level State" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideDisabledOnSrv.xml }
+            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideDisabledOnSrv.xml }
             $Script:results = Get-ExchangeAMSIConfigurationState
         }
 
@@ -78,7 +78,7 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "Multiple AMSI Configurations" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideMultiConfigs.xml }
+            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideMultiConfigs.xml }
             $Script:results = Get-ExchangeAMSIConfigurationState
         }
 
