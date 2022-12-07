@@ -56,16 +56,6 @@ function Get-OrganizationInformation {
             $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
             $orgInfo.IsSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
-            $schemaRangeUpper = (($orgInfo.AdSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
-
-            if ($schemaRangeUpper -lt 15323) {
-                $schemaLevel = "2013"
-            } elseif ($schemaRangeUpper -lt 17000) {
-                $schemaLevel = "2016"
-            } else {
-                $schemaLevel = "2019"
-            }
-
             try {
                 $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
                 $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
@@ -76,6 +66,17 @@ function Get-OrganizationInformation {
             } catch {
                 Write-Verbose "Failed to collect AD Site Count information"
                 Invoke-CatchActions
+            }
+
+            $schemaRangeUpper = (
+                ($orgInfo.AdSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+
+            if ($schemaRangeUpper -lt 15323) {
+                $schemaLevel = "2013"
+            } elseif ($schemaRangeUpper -lt 17000) {
+                $schemaLevel = "2016"
+            } else {
+                $schemaLevel = "2019"
             }
 
             $cve21978Params = @{
