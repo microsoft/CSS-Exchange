@@ -11,8 +11,8 @@ function Get-HealthCheckerExchangeServer {
         [Parameter(Mandatory = $true)]
         [string]$ServerName,
 
-        [Parameter(Mandatory = $false)]
-        [object]$OrganizationConfig
+        [Parameter(Mandatory = $true)]
+        [object]$PassedOrganizationInformation
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -21,7 +21,7 @@ function Get-HealthCheckerExchangeServer {
     $HealthExSvrObj.ServerName = $ServerName
     $HealthExSvrObj.HardwareInformation = Get-HardwareInformation -Server $ServerName
     $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation -Server $ServerName
-    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -Server $ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion -OrganizationConfig $OrganizationConfig
+    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -Server $ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion -PassedOrganizationInformation $PassedOrganizationInformation
 
     if ($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
         $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $ServerName -CatchActionFunction ${Function:Invoke-CatchActions}

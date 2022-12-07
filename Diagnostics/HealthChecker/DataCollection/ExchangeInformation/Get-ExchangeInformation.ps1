@@ -24,8 +24,8 @@ function Get-ExchangeInformation {
         [Parameter(Mandatory = $true)]
         [string]$Server,
 
-        [Parameter(Mandatory = $false)]
-        [object]$OrganizationConfig,
+        [Parameter(Mandatory = $true)]
+        [object]$PassedOrganizationInformation,
 
         [HealthChecker.OSServerVersion]$OSMajorVersion
     )
@@ -154,14 +154,14 @@ function Get-ExchangeInformation {
         $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
             -RequiredInformation ([PSCustomObject]@{
                 ComputerName       = $Server
-                MitigationsEnabled = if ($null -ne $OrganizationConfig) { $OrganizationConfig.MitigationsEnabled } else { $null }
+                MitigationsEnabled = if ($null -ne $PassedOrganizationInformation.OrganizationConfig) { $PassedOrganizationInformation.OrganizationConfig.MitigationsEnabled } else { $null }
                 GetExchangeServer  = $exchangeInformation.GetExchangeServer
             }) `
             -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
             ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
-            $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState
+            $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
         } else {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }

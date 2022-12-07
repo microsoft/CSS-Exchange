@@ -17,7 +17,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -155,7 +159,12 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\HyperV_Win32_Processor1.xml" }
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }

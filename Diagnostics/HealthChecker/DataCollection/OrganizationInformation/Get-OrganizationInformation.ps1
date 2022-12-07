@@ -47,8 +47,6 @@ function Get-OrganizationInformation {
             Invoke-CatchActions
         }
 
-        #TODO: Move and Update AMSIConfiguration here. Need to do a global Get-SettingOverride instead of a filter like what is in Get-ExchangeAMSIConfigurationState
-        #TODO: Handle Get-ExchangeEmergencyMitigationServiceState
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
@@ -94,6 +92,14 @@ function Get-OrganizationInformation {
                 $orgInfo.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
             } catch {
                 Write-Yellow "Failed to run Get-HybridConfiguration"
+                Invoke-CatchActions
+            }
+
+            try {
+                $orgInfo.GetSettingOverride = Get-SettingOverride -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Get-SettingOverride"
+                $orgInfo.GetSettingOverride = "Unknown"
                 Invoke-CatchActions
             }
         }

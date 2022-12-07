@@ -41,7 +41,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $Error.Clear()
             $org = Get-OrganizationInformation -EdgeServer $false
-            Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig | Out-Null
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation | Out-Null
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
             # Not sure why, but in the build pipeline this has now changed to 2. Where as on my computer it is 1

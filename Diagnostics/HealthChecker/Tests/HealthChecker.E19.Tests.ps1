@@ -18,7 +18,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
     Context "Basic Exchange 2019 CU11 Testing HyperV" {
         BeforeAll {
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_HyperV_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -160,7 +164,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -223,7 +231,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             }
 
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -342,7 +354,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -407,7 +423,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -449,7 +469,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Well_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -469,7 +493,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "PageFile Oversized" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileOverSized.xml" }
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_OverSized_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
 
@@ -489,7 +518,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileSystemManaged.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_SystemManaged_Scenario_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -510,7 +543,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneSystemManaged.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -541,7 +578,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_MultiplePageFilesOneOverSized.xml" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_PageFile_Multiple_PageFiles_Scenario1_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -574,7 +615,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             #This causes a RuntimeException because of issue #743 when not fixed
             Mock Get-MailboxServer { throw "Pester testing" }
             $org = Get-OrganizationInformation -EdgeServer $false
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -OrganizationConfig $org.GetOrganizationConfig
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_TestingThrow_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
@@ -592,7 +637,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $Error.Clear()
             Mock Get-WmiObjectHandler { return $null }
             try {
-                Get-HealthCheckerExchangeServer -ServerName $Script:Server
+                $org = Get-OrganizationInformation -EdgeServer $true
+                $passedOrganizationInformation = @{
+                    OrganizationConfig = $org.GetOrganizationConfig
+                    SettingOverride    = $org.GetSettingOverride
+                }
+                Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation | Out-Null
             } catch {
                 $_ | Should -Be "Failed to get critical information. Stopping the script. InnerException: "
             }

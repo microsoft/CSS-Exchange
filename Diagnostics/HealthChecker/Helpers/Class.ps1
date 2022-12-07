@@ -32,6 +32,7 @@ using System.Collections;
             public object SecurityResults; // Stores different CVE results that are secured against Setup.exe /PrepareAD /PrepareDomain /PrepareSchema
             public bool IsSplitADPermissions = new bool(); // Used to determine if split permissions are detected.
             public int ADSiteCount; // Count for the numbers of sites the environment has.
+            public object GetSettingOverride; // Stores the Get-SettingOverride
         }
 
         // ExchangeInformation

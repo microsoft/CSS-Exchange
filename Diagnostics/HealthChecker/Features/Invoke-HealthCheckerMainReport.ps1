@@ -31,6 +31,11 @@ function Invoke-HealthCheckerMainReport {
 
     $organizationInformation = Get-OrganizationInformation -EdgeServer $EdgeServer
 
+    $passedOrganizationInformation = @{
+        OrganizationConfig = $organizationInformation.GetOrganizationConfig
+        SettingOverride    = $organizationInformation.GetSettingOverride
+    }
+
     foreach ($serverName in $ServerNames) {
 
         try {
@@ -43,7 +48,7 @@ function Invoke-HealthCheckerMainReport {
 
         Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
         Write-HostLog "Exchange Health Checker version $BuildVersion"
-        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -OrganizationConfig $organizationInformation.GetOrganizationConfig
+        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -PassedOrganizationInformation $passedOrganizationInformation
         $HealthObject.OrganizationInformation = $organizationInformation
         $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
         Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
