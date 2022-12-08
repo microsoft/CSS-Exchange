@@ -79,10 +79,12 @@ function Invoke-AnalyzerExchangeInformation {
             $displayWriteType = "Red"
         }
 
-        $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MM/dd/yyyy")) - Please note of the End Of Life date and plan to migrate soon."
+        $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
+            [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Please note of the End Of Life date and plan to migrate soon."
 
         if ($extendedSupportDate -le ([DateTime]::Now)) {
-            $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MM/dd/yyyy")) - Error: You are past the End Of Life of Exchange."
+            $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
+            [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Error: You are past the End Of Life of Exchange."
         }
 
         $params = $baseParams + @{
