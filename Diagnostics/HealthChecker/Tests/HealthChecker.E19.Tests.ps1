@@ -631,22 +631,4 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "DAG Name" "Standalone Server"
         }
     }
-
-    Context "Failing HC" {
-        It "WMI Critical" {
-
-            $Error.Clear()
-            Mock Get-WmiObjectHandler { return $null }
-            try {
-                $org = Get-OrganizationInformation -EdgeServer $true
-                $passedOrganizationInformation = @{
-                    OrganizationConfig = $org.GetOrganizationConfig
-                    SettingOverride    = $org.GetSettingOverride
-                }
-                Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation | Out-Null
-            } catch {
-                $_ | Should -Be "Failed to get critical information. Stopping the script. InnerException: "
-            }
-        }
-    }
 }

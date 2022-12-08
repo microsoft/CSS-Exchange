@@ -36,6 +36,8 @@ function Invoke-HealthCheckerMainReport {
         SettingOverride    = $organizationInformation.GetSettingOverride
     }
 
+    $failedServerList = New-Object "System.Collections.Generic.List[string]"
+
     foreach ($serverName in $ServerNames) {
 
         try {
@@ -46,12 +48,18 @@ function Invoke-HealthCheckerMainReport {
             continue
         }
 
-        Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
-        Write-HostLog "Exchange Health Checker version $BuildVersion"
-        [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -PassedOrganizationInformation $passedOrganizationInformation
-        $HealthObject.OrganizationInformation = $organizationInformation
-        $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
-        Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+        try {
+            Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
+            Write-HostLog "Exchange Health Checker version $BuildVersion"
+            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -PassedOrganizationInformation $passedOrganizationInformation
+            $HealthObject.OrganizationInformation = $organizationInformation
+            $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
+            Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+        } catch {
+            Write-Red "Failed to Health Checker against $serverName"
+            $failedServerList.Add($serverName)
+            continue
+        }
 
         $currentErrors = $Error.Count
 
@@ -75,4 +83,5 @@ function Invoke-HealthCheckerMainReport {
             Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
         }
     }
+    Write-Verbose "Failed Server List: $([string]::Join(",", $failedServerList))"
 }
