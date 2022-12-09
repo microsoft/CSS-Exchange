@@ -88,33 +88,59 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
 [CmdletBinding(DefaultParameterSetName = "HealthChecker", SupportsShouldProcess)]
 param(
-    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", ValueFromPipeline = $true)]
-    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", ValueFromPipeline = $true)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "HealthChecker", HelpMessage = "Enter the list of servers names on which the script should execute against.")]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "MailboxReport", HelpMessage = "Enter the list of servers names on which the script should execute against.")]
     [string[]]$Server = ($env:COMPUTERNAME),
-    [Parameter(Mandatory = $false)]
-    [ValidateScript( { -not $_.ToString().EndsWith('\') -and (Test-Path $_) })][string]$OutputFilePath = ".",
-    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
+
+    [Parameter(Mandatory = $false, HelpMessage = "Provide the location of where the output files should go.")]
+    [ValidateScript( {
+            -not $_.ToString().EndsWith('\') -and (Test-Path $_)
+        })]
+    [string]$OutputFilePath = ".",
+
+    [Parameter(Mandatory = $true, ParameterSetName = "MailboxReport", HelpMessage = "Enable the MailboxReport feature data collection against the server.")]
     [switch]$MailboxReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReport", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
     [switch]$LoadBalancingReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
-    [array]$CasServerList = $null,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of servers to run against for the LoadBalancingReport.")]
+    [string[]]$CasServerList = $null,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
     [string]$SiteName = ([string]::Empty),
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
-    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
-    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$XMLDirectoryPath = ".",
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
+    [ValidateScript( {
+            -not $_.ToString().EndsWith('\')
+        })]
+    [string]$XMLDirectoryPath = ".",
+
+    [Parameter(Mandatory = $true, ParameterSetName = "HTMLReport", HelpMessage = "Enable the HTMLReport feature to run against the XML files from previous runs of the Health Checker script.")]
     [switch]$BuildHtmlServersReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the name of the Report to be created.")]
     [string]$HtmlReportFile = "ExchangeAllServersReport.html",
-    [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "DCCoreReport", HelpMessage = "Enable the DCCoreReport feature data collection against the current server's AD Site.")]
     [switch]$DCCoreRatio,
-    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Enable to reprocess the data that was previously collected and display to the screen")]
     [switch]$AnalyzeDataOnly,
-    [Parameter(Mandatory = $false)][switch]$SkipVersionCheck,
-    [Parameter(Mandatory = $false)][switch]$SaveDebugLog,
-    [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [switch]$SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Always keep the debug log output at the end of the script.")]
+    [switch]$SaveDebugLog,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly", HelpMessage = "Only attempt to update the script.")]
     [switch]$ScriptUpdateOnly
 )
 
