@@ -186,25 +186,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($null -ne $exchangeInformation.IISSettings.IISConfigurationSettings) {
-        $iisConfigurationSettings = $exchangeInformation.IISSettings.IISConfigurationSettings |
-            Where-Object {
-                if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -or
-                    $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole) {
-                    return $_
-                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Mailbox -and
-                    $_.Location -like "*ClientAccess*") {
-                    return $_
-                } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -and
-                    $_.Location -like "*FrontEnd\HttpProxy*") {
-                    return $_
-                }
-            } |
-            Where-Object {
-                # these are locations that don't by default have configuration files.
-                $_.Location -notlike "*\ClientAccess\web.config" -and $_.Location -notlike "*\ClientAccess\exchweb\EWS\bin\web.config" -and
-                $_.Location -notlike "*\ClientAccess\Autodiscover\bin\web.config" -and $_.Location -notlike "*\ClientAccess\Autodiscover\help\web.config"
-            }
+    if ($null -ne $exchangeInformation.IISSettings.IISWebApplication -or
+        $null -ne $exchangeInformation.IISSettings.IISWebSite -or
+        $null -ne $exchangeInformation.IISSettings.IISSharedWebConfig) {
+        $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
+        $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
+        $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
 
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
         $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
