@@ -30,10 +30,10 @@ BeforeAll {
 Describe "Testing Get-ExchangeConnectors.ps1" {
     BeforeAll {
         Mock Get-Date -MockWith { return ([System.Convert]::ToDateTime("01/01/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo).ToUniversalTime()) }
-        Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificate.xml }
-        Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnector.xml }
-        Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetReceiveConnector.xml }
-        $Script:exchangeCertificates = Get-ExchangeServerCertificates
+        Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificate.xml }
+        Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSendConnector.xml }
+        Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetReceiveConnector.xml }
+        $Script:exchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
     }
 
     Context "Validate Exchange Connectors Return Object" {
@@ -121,8 +121,8 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
     Context "Multiple Matching Certificate Found On The System" {
         BeforeAll {
-            Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateMultipleMatches.xml }
-            $Script:multipleMatchingExchangeCertificates = Get-ExchangeServerCertificates
+            Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateMultipleMatches.xml }
+            $Script:multipleMatchingExchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $multipleMatchingExchangeCertificates
         }
 
@@ -142,8 +142,8 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
     Context "Cloud Mail Enabled And TlsCertificateName Set But Certificate Not On The System" {
         BeforeAll {
-            Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\GetExchangeCertificateIncomplete.xml }
-            $Script:missingExchangeCertificate = Get-ExchangeServerCertificates
+            Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateIncomplete.xml }
+            $Script:missingExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $missingExchangeCertificate
 
             [array]$cloudConnectors = $null
@@ -166,7 +166,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "No Certificate Object Was Passed To The Function" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return $null }
-            $Script:emptyExchangeCertificate = Get-ExchangeServerCertificates
+            $Script:emptyExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $emptyExchangeCertificate
         }
 
@@ -185,7 +185,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
     Context "Cloud Mail Enabled But No TlsCertificateName Set On Receive Connector" {
         BeforeAll {
-            Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetReceiveConnectorEmptyTlsCertificateName.xml }
+            Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetReceiveConnectorEmptyTlsCertificateName.xml }
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
 
             [array]$cloudConnectors = $null
@@ -237,7 +237,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
     Context "Relay Mails To The Internet Via M365 Send Connector" {
         BeforeAll {
-            Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSendConnectorConfiguredToRelayToM365.xml }
+            Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSendConnectorConfiguredToRelayToM365.xml }
             $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
         }
 

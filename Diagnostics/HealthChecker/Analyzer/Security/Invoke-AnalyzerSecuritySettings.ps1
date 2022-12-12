@@ -293,14 +293,36 @@ function Invoke-AnalyzerSecuritySettings {
     }
 
     $params = $baseParams + @{
-        Name    = "LmCompatibilityLevel Settings"
-        Details = $osInformation.LmCompatibility.RegistryValue
+        Name    = "AllowInsecureRenegoClients Value"
+        Details = $osInformation.RegistryValues.AllowInsecureRenegoClients
     }
     Add-AnalyzedResultInformation @params
 
     $params = $baseParams + @{
+        Name    = "AllowInsecureRenegoServers Value"
+        Details = $osInformation.RegistryValues.AllowInsecureRenegoServers
+    }
+    Add-AnalyzedResultInformation @params
+
+    $params = $baseParams + @{
+        Name    = "LmCompatibilityLevel Settings"
+        Details = $osInformation.RegistryValues.LmCompatibilityLevel
+    }
+    Add-AnalyzedResultInformation @params
+
+    $description = [string]::Empty
+    switch ($osInformation.RegistryValues.LmCompatibilityLevel) {
+        0 { $description = "Clients use LM and NTLM authentication, but they never use NTLMv2 session security. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        1 { $description = "Clients use LM and NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        2 { $description = "Clients use only NTLM authentication, and they use NTLMv2 session security if the server supports it. Domain controller accepts LM, NTLM, and NTLMv2 authentication." }
+        3 { $description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controllers accept LM, NTLM, and NTLMv2 authentication." }
+        4 { $description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM authentication responses, but it accepts NTLM and NTLMv2." }
+        5 { $description = "Clients use only NTLMv2 authentication, and they use NTLMv2 session security if the server supports it. Domain controller refuses LM and NTLM authentication responses, but it accepts NTLMv2." }
+    }
+
+    $params = $baseParams + @{
         Name                   = "Description"
-        Details                = $osInformation.LmCompatibility.Description
+        Details                = $description
         DisplayCustomTabNumber = 2
         AddHtmlDetailRow       = $false
     }

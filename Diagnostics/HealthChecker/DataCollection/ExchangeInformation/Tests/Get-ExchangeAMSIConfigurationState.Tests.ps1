@@ -9,26 +9,13 @@ BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\Get-ExchangeAMSIConfigurationState.ps1
-
-    function Get-SettingOverride {
-        param()
-    }
-
-    function Invoke-CatchActions {
-        param()
-    }
 }
 
 Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "AMSI Configuration Default State" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return $null }
-            $Script:results = Get-ExchangeAMSIConfigurationState
-        }
-
-        It "AMSI Query Successful" {
-            $results.QuerySuccessful | Should -Be $true
+            $Script:results = Get-ExchangeAMSIConfigurationState -GetSettingOverride $null
         }
 
         It "AMSI Interface Enabled" {
@@ -38,12 +25,8 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "AMSI Configuration Disabled On Organizational Level" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideDisabledOnOrg.xml }
-            $Script:results = Get-ExchangeAMSIConfigurationState
-        }
-
-        It "AMSI Query Successful" {
-            $results.QuerySuccessful | Should -Be $true
+            $r = Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideDisabledOnOrg.xml
+            $Script:results = Get-ExchangeAMSIConfigurationState -GetSettingOverride $r
         }
 
         It "AMSI Interface Disabled" {
@@ -58,12 +41,8 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "AMSI Configuration Disabled On Server Level State" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideDisabledOnSrv.xml }
-            $Script:results = Get-ExchangeAMSIConfigurationState
-        }
-
-        It "AMSI Query Successful" {
-            $results.QuerySuccessful | Should -Be $true
+            $r = Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideDisabledOnSrv.xml
+            $Script:results = Get-ExchangeAMSIConfigurationState -GetSettingOverride $r
         }
 
         It "AMSI Interface Disabled" {
@@ -78,8 +57,8 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "Multiple AMSI Configurations" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { return Import-Clixml $Script:parentPath\Tests\GetSettingOverrideMultiConfigs.xml }
-            $Script:results = Get-ExchangeAMSIConfigurationState
+            $r = Import-Clixml $Script:parentPath\Tests\DataCollection\GetSettingOverrideMultiConfigs.xml
+            $Script:results = Get-ExchangeAMSIConfigurationState -GetSettingOverride $r
         }
 
         It "Multiple AMSI Configuration States Returned" {
@@ -89,16 +68,11 @@ Describe "Testing Get-ExchangeAMSIConfigurationState.ps1" {
 
     Context "Exception While Calling AMSI Configuration" {
         BeforeAll {
-            Mock Get-SettingOverride -MockWith { throw "Bad thing happened" }
-            $Script:results = Get-ExchangeAMSIConfigurationState
+            $Script:results = Get-ExchangeAMSIConfigurationState -GetSettingOverride "Unknown"
         }
 
         It "AMSI Query Failed" {
-            $results.QuerySuccessful | Should -Be $false
-        }
-
-        It "AMSI State Unknown" {
-            $results.Enabled | Should -Be "Unknown"
+            $results.FailedQuery | Should -Be $true
         }
     }
 }

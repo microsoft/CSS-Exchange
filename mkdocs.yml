@@ -51,6 +51,7 @@ nav:
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
+      - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:

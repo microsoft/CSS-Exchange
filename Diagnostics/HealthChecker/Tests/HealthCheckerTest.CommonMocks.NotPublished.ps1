@@ -50,6 +50,8 @@ Mock Get-RemoteRegistryValue {
         "DisableGranularReplication" { return 0 }
         "DisableAsyncNotification" { return 0 }
         "MsiInstallPath" { return "C:\Program Files\Microsoft\Exchange Server\V15" }
+        "AllowInsecureRenegoClients" { return 0 }
+        "AllowInsecureRenegoServers" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -129,12 +131,20 @@ Mock Get-ExchangeUpdates {
     return $null
 }
 
-Mock Get-ExchangeAdSchemaClass {
+Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Storage-Group" } {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Storage-Group.xml"
 }
 
-Mock Get-ExchangeAdPermissions {
-    return $null
+Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Schema-Version-Pt" } {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAdSchemaClass_ms-Exch-Schema-Version-Pt.xml"
+}
+
+Mock Get-ExchangeDomainsAclPermissions {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDomainsAclPermissions.xml"
+}
+
+Mock Get-ExchangeWellKnownSecurityGroups {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWellKnownSecurityGroups.xml"
 }
 
 Mock Get-ExtendedProtectionConfiguration {
@@ -159,6 +169,10 @@ Mock Get-IISModules {
 
 Mock Get-ExchangeSettingOverride {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride.xml"
+}
+
+Mock Get-ExchangeADSplitPermissionsEnabled {
+    return $false
 }
 
 # Do nothing
@@ -250,7 +264,4 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
-}
-function Get-ExchangeADSplitPermissionsEnabled {
-    return $false
 }
