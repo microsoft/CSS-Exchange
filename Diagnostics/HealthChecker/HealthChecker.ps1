@@ -22,8 +22,7 @@
 
 	Informational items are reported in Grey.  Settings found to match the recommendations are
 	reported in Green.  Warnings are reported in yellow.  Settings that can cause performance
-	problems are reported in red.  Please note that most of these recommendations only apply to Exchange
-	2013/2016.  The script will run against Exchange 2010/2007 but the output is more limited.
+	problems are reported in red.  Please note that most of these recommendations only apply to latest Support Exchange versions.
 .PARAMETER Server
 	This optional parameter allows the target Exchange server to be specified.  If it is not the
 	local server is assumed.
@@ -36,11 +35,11 @@
 	mailboxes on the server.
 .PARAMETER LoadBalancingReport
     This optional parameter will check the connection count of the Default Web Site for every server
-    running Exchange 2013/2016 with the Client Access role in the org.  It then breaks down servers by percentage to
+    running Exchange 2013+ with the Client Access role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
 .PARAMETER CasServerList
     Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without
-    this switch the report will use all 2013/2016 Client Access servers in the organization.
+    this switch the report will use all 2013+ Client Access servers in the organization.
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
     in the organization.
@@ -67,14 +66,17 @@
 	.\HealthChecker.ps1 -Server SERVERNAME
 	Run against a single remote Exchange server
 .EXAMPLE
+	.\HealthChecker.ps1 -Server SERVERNAME1,SERVERNAME2
+	Run against a list of servers
+.EXAMPLE
 	.\HealthChecker.ps1 -Server SERVERNAME -MailboxReport -Verbose
 	Run against a single remote Exchange server with verbose logging and mailbox report enabled.
 .EXAMPLE
-    Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | %{.\HealthChecker.ps1 -Server $_.Name}
-    Run against all Exchange 2013/2016 servers in the Organization.
+	Get-ExchangeServer | .\HealthChecker.ps1
+	Run against all the Exchange servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport
-    Run a load balancing report comparing all Exchange 2013/2016 CAS servers in the Organization.
+    Run a load balancing report comparing all Exchange 2013+ CAS servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
     Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
@@ -86,216 +88,212 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
 [CmdletBinding(DefaultParameterSetName = "HealthChecker", SupportsShouldProcess)]
 param(
-    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker")]
-    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
-    [string]$Server = ($env:COMPUTERNAME),
-    [Parameter(Mandatory = $false)]
-    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$OutputFilePath = ".",
-    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport")]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "HealthChecker", HelpMessage = "Enter the list of servers names on which the script should execute against.")]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "MailboxReport", HelpMessage = "Enter the list of servers names on which the script should execute against.")]
+    [string[]]$Server = ($env:COMPUTERNAME),
+
+    [Parameter(Mandatory = $false, HelpMessage = "Provide the location of where the output files should go.")]
+    [ValidateScript( {
+            -not $_.ToString().EndsWith('\') -and (Test-Path $_)
+        })]
+    [string]$OutputFilePath = ".",
+
+    [Parameter(Mandatory = $true, ParameterSetName = "MailboxReport", HelpMessage = "Enable the MailboxReport feature data collection against the server.")]
     [switch]$MailboxReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReport", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
     [switch]$LoadBalancingReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
-    [array]$CasServerList = $null,
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of servers to run against for the LoadBalancingReport.")]
+    [string[]]$CasServerList = $null,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
     [string]$SiteName = ([string]::Empty),
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
-    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
-    [ValidateScript( { -not $_.ToString().EndsWith('\') })][string]$XMLDirectoryPath = ".",
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
+    [ValidateScript( {
+            -not $_.ToString().EndsWith('\')
+        })]
+    [string]$XMLDirectoryPath = ".",
+
+    [Parameter(Mandatory = $true, ParameterSetName = "HTMLReport", HelpMessage = "Enable the HTMLReport feature to run against the XML files from previous runs of the Health Checker script.")]
     [switch]$BuildHtmlServersReport,
-    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the name of the Report to be created.")]
     [string]$HtmlReportFile = "ExchangeAllServersReport.html",
-    [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "DCCoreReport", HelpMessage = "Enable the DCCoreReport feature data collection against the current server's AD Site.")]
     [switch]$DCCoreRatio,
-    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly")]
+
+    [Parameter(Mandatory = $true, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Enable to reprocess the data that was previously collected and display to the screen")]
     [switch]$AnalyzeDataOnly,
-    [Parameter(Mandatory = $false)][switch]$SkipVersionCheck,
-    [Parameter(Mandatory = $false)][switch]$SaveDebugLog,
-    [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
+
+    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [switch]$SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Always keep the debug log output at the end of the script.")]
+    [switch]$SaveDebugLog,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly", HelpMessage = "Only attempt to update the script.")]
     [switch]$ScriptUpdateOnly
 )
 
-$BuildVersion = ""
+begin {
 
-$Script:VerboseEnabled = $false
-#this is to set the verbose information to a different color
-if ($PSBoundParameters["Verbose"]) {
-    #Write verbose output in cyan since we already use yellow for warnings
-    $Script:VerboseEnabled = $true
-    $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
-    $Host.PrivateData.VerboseForegroundColor = "Cyan"
-}
+    . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
+    . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
+    . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
+    . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
+    . $PSScriptRoot\Helpers\Import-MyData.ps1
+    . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
+    . $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
+    . $PSScriptRoot\Helpers\Class.ps1
+    . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
+    . $PSScriptRoot\Writers\Write-Functions.ps1
+    . $PSScriptRoot\Features\Get-HtmlServerReport.ps1
+    . $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
+    . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
+    . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
+    . $PSScriptRoot\Features\Invoke-HealthCheckerMainReport.ps1
 
-. $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
-. $PSScriptRoot\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1
-. $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
-. $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
-. $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
-. $PSScriptRoot\Helpers\Import-MyData.ps1
-. $PSScriptRoot\Helpers\Invoke-ScriptLogFileLocation.ps1
-. $PSScriptRoot\Helpers\Test-RequiresServerFqdn.ps1
-. $PSScriptRoot\Helpers\Class.ps1
-. $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
-. $PSScriptRoot\Writers\Write-Functions.ps1
-. $PSScriptRoot\Features\Get-HtmlServerReport.ps1
-. $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
-. $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
-. $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
+    . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
+    . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
-. $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
-. $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+    $BuildVersion = ""
 
-function Main {
-
-    if (-not (Confirm-Administrator) -and
-        (-not $AnalyzeDataOnly -and
-        -not $BuildHtmlServersReport -and
-        -not $ScriptUpdateOnly)) {
-        Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
-        $Error.Clear()
-        Start-Sleep -Seconds 2;
-        exit
+    $Script:VerboseEnabled = $false
+    #this is to set the verbose information to a different color
+    if ($PSBoundParameters["Verbose"]) {
+        #Write verbose output in cyan since we already use yellow for warnings
+        $Script:VerboseEnabled = $true
+        $VerboseForeground = $Host.PrivateData.VerboseForegroundColor
+        $Host.PrivateData.VerboseForegroundColor = "Cyan"
     }
 
-    Invoke-ErrorMonitoring
-    $Script:date = (Get-Date)
-    $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
-
-    if ($BuildHtmlServersReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-HTMLServerReport"
-        $files = Get-HealthCheckFilesItemsFromLocation
-        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-        $importData = Import-MyData -FilePaths $fullPaths
-        Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
-        Start-Sleep 2;
-        return
-    }
-
-    if ((Test-Path $OutputFilePath) -eq $false) {
-        Write-Host "Invalid value specified for -OutputFilePath." -ForegroundColor Red
-        return
-    }
-
-    if ($LoadBalancingReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-LoadBalancingReport"
-        Write-Green("Client Access Load Balancing Report on " + $date)
-        Get-CASLoadBalancingReport
-        Write-Grey("Output file written to " + $OutputFullPath)
-        Write-Break
-        Write-Break
-        return
-    }
-
-    if ($DCCoreRatio) {
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Stop"
-        try {
-            Get-ExchangeDCCoreRatio
-            return
-        } finally {
-            $ErrorActionPreference = $oldErrorAction
-        }
-    }
-
-    if ($MailboxReport) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
-        Get-MailboxDatabaseAndMailboxStatistics
-        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-        return
-    }
-
-    if ($AnalyzeDataOnly) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-Analyzer"
-        $files = Get-HealthCheckFilesItemsFromLocation
-        $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-        $importData = Import-MyData -FilePaths $fullPaths
-
-        $analyzedResults = @()
-        foreach ($serverData in $importData) {
-            $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
-            Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
-            $analyzedResults += $analyzedServerResults
-        }
-
-        Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
-        return
-    }
-
-    if ($ScriptUpdateOnly) {
-        Invoke-ScriptLogFileLocation -FileName "HealthChecker-ScriptUpdateOnly"
-        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
-            ($true) { Write-Green("Script was successfully updated.") }
-            ($false) { Write-Yellow("No update of the script performed.") }
-            default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
-        }
-        return
-    }
-
-    Invoke-ScriptLogFileLocation -FileName "HealthChecker" -IncludeServerName $true
-    $currentErrors = $Error.Count
-
-    if ((-not $SkipVersionCheck) -and
-        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
-        Write-Yellow "Script was updated. Please rerun the command."
-        return
-    } else {
-        $Script:DisplayedScriptVersionAlready = $true
-        Write-Green "Exchange Health Checker version $BuildVersion"
-    }
-
-    Invoke-ErrorCatchActionLoopFromIndex $currentErrors
-    Test-RequiresServerFqdn
-    [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer
-    $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
-    Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-    $currentErrors = $Error.Count
-
-    try {
-        $analyzedResults | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
-    } catch {
-        Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
-        $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
-
-        $testOuputxml = [PSCustomObject]@{
-            HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
-            HtmlServerValues            = $analyzedResults.HtmlServerValues
-            DisplayResults              = $analyzedResults.DisplayResults
-        }
-
-        $testOuputxml | Export-Clixml -Path $OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
-    } finally {
-        Invoke-ErrorCatchActionLoopFromIndex $currentErrors
-
-        Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
-        Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
-    }
-}
-
-try {
-    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-$($Script:Server)-Debug" `
-        -LogDirectory $OutputFilePath `
+    $Script:ServerNameList = New-Object System.Collections.Generic.List[string]
+    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-Debug" `
+        -LogDirectory $Script:OutputFilePath `
         -AppendDateTime $false `
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
-    Main
-} finally {
-    Get-ErrorsThatOccurred
-    if ($Script:VerboseEnabled) {
-        $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+} process {
+    $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
+} end {
+    try {
+
+        if (-not (Confirm-Administrator) -and
+            (-not $AnalyzeDataOnly -and
+            -not $BuildHtmlServersReport -and
+            -not $ScriptUpdateOnly)) {
+            Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
+            $Error.Clear()
+            Start-Sleep -Seconds 2;
+            exit
+        }
+
+        Invoke-ErrorMonitoring
+        $Script:date = (Get-Date)
+        $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
+
+        # Features that doesn't require Exchange Shell
+        if ($BuildHtmlServersReport) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-HTMLServerReport"
+            $files = Get-HealthCheckFilesItemsFromLocation
+            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+            $importData = Import-MyData -FilePaths $fullPaths
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
+            Start-Sleep 2;
+            return
+        }
+
+        if ($AnalyzeDataOnly) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-Analyzer"
+            $files = Get-HealthCheckFilesItemsFromLocation
+            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
+            $importData = Import-MyData -FilePaths $fullPaths
+
+            $analyzedResults = @()
+            foreach ($serverData in $importData) {
+                $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+                Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
+                $analyzedResults += $analyzedServerResults
+            }
+
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+            return
+        }
+
+        if ($ScriptUpdateOnly) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-ScriptUpdateOnly"
+            switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
+                ($true) { Write-Green("Script was successfully updated.") }
+                ($false) { Write-Yellow("No update of the script performed.") }
+                default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
+            }
+            return
+        }
+
+        # Features that do require Exchange Shell
+        if ($LoadBalancingReport) {
+            Invoke-SetOutputInstanceLocation -FileName "HealthChecker-LoadBalancingReport"
+            Invoke-ConfirmExchangeShell
+            Write-Green("Client Access Load Balancing Report on " + $date)
+            Get-CASLoadBalancingReport
+            Write-Grey("Output file written to " + $Script:OutputFullPath)
+            Write-Break
+            Write-Break
+            return
+        }
+
+        if ($DCCoreRatio) {
+            $oldErrorAction = $ErrorActionPreference
+            $ErrorActionPreference = "Stop"
+            try {
+                Get-ExchangeDCCoreRatio
+                return
+            } finally {
+                $ErrorActionPreference = $oldErrorAction
+            }
+        }
+
+        if ($MailboxReport) {
+            Invoke-ConfirmExchangeShell
+
+            foreach ($serverName in $Script:ServerNameList) {
+                Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker-MailboxReport" -IncludeServerName $true
+                Get-MailboxDatabaseAndMailboxStatistics -Server $serverName
+                Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
+            }
+            return
+        }
+
+        # Main Feature of Health Checker
+        Invoke-ConfirmExchangeShell
+        Invoke-HealthCheckerMainReport -ServerNames $Script:ServerNameList -EdgeServer $Script:ExchangeShellComputer.EdgeServer
+    } finally {
+        Get-ErrorsThatOccurred
+        if ($Script:VerboseEnabled) {
+            $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
+        }
+        $Script:Logger | Invoke-LoggerInstanceCleanup
+        if ($Script:Logger.PreventLogCleanup) {
+            Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
+        }
+        if (((Get-Date).Ticks % 2) -eq 1) {
+            Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
+            Write-Host
+        }
+        RevertProperForegroundColor
     }
-    $Script:Logger | Invoke-LoggerInstanceCleanup
-    if ($Script:Logger.PreventLogCleanup) {
-        Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
-    }
-    if (((Get-Date).Ticks % 2) -eq 1) {
-        Write-Host("Do you like the script? Visit https://aka.ms/HC-Feedback to rate it and to provide feedback.") -ForegroundColor Green
-        Write-Host
-    }
-    RevertProperForegroundColor
 }

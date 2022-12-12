@@ -1,12 +1,14 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 function Get-ExchangeADSplitPermissionsEnabled {
     [CmdletBinding()]
     [OutputType([bool])]
-    param ()
+    param (
+        [scriptblock]$CatchActionFunction
+    )
 
     <#
         The following bullets are AD split permissions indicators:
@@ -34,7 +36,7 @@ function Get-ExchangeADSplitPermissionsEnabled {
         }
     } catch {
         Write-Verbose "OU 'Microsoft Exchange Protected Groups' was not found - AD split permissions not enabled"
-        Invoke-CatchActions
+        Invoke-CatchActionError $CatchActionFunction
     }
 
     return $isADSplitPermissionsEnabled

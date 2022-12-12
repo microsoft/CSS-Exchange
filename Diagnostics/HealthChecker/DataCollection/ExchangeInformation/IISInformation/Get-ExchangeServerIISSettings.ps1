@@ -58,7 +58,7 @@ function Get-ExchangeServerIISSettings {
         if ($null -ne $applicationHostConfig) {
             Write-Verbose "Trying to query the modules which are loaded by IIS"
             $iisModulesParams = @{
-                ApplicationHostConfig    = $applicationHostConfig
+                ApplicationHostConfig    = ([xml]$applicationHostConfig)
                 SkipLegacyOSModulesCheck = $IsLegacyOS
                 CatchActionFunction      = $CatchActionFunction
             }

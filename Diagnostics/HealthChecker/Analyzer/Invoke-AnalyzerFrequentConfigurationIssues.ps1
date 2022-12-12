@@ -19,7 +19,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
-    $tcpKeepAlive = $osInformation.NetworkInformation.TCPKeepAlive
+    $tcpKeepAlive = $osInformation.RegistryValues.TCPKeepAlive
+    $organizationInformation = $HealthServerObject.OrganizationInformation
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -49,8 +50,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     $params = $baseParams + @{
         Name                = "RPC Min Connection Timeout"
-        Details             = "$($osInformation.NetworkInformation.RpcMinConnectionTimeout) `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting"
-        DisplayTestingValue = $osInformation.NetworkInformation.RpcMinConnectionTimeout
+        Details             = "$($osInformation.RegistryValues.RpcMinConnectionTimeout) `r`n`t`tMore Information: https://aka.ms/HC-RPCSetting"
+        DisplayTestingValue = $osInformation.RegistryValues.RpcMinConnectionTimeout
         HtmlName            = "RPC Minimum Connection Timeout"
     }
     Add-AnalyzedResultInformation @params
@@ -147,14 +148,14 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $displayValue = "Not Set"
     $additionalDisplayValue = [string]::Empty
 
-    if ($null -ne $exchangeInformation.WildCardAcceptedDomain) {
+    if ($null -ne $organizationInformation.WildCardAcceptedDomain) {
 
-        if ($exchangeInformation.WildCardAcceptedDomain -eq "Unknown") {
+        if ($organizationInformation.WildCardAcceptedDomain -eq "Unknown") {
             $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
             $displayWriteType = "Yellow"
         } else {
             $displayWriteType = "Red"
-            $domain = $exchangeInformation.WildCardAcceptedDomain
+            $domain = $organizationInformation.WildCardAcceptedDomain
             $displayValue = "Error --- Accepted Domain `"$($domain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($domain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
 
             if ($domain.DomainType.ToString() -eq "InternalRelay" -and

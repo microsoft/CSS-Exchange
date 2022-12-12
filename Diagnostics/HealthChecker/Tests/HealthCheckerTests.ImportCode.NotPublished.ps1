@@ -12,6 +12,7 @@ $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
 $scriptContent = Get-PesterScriptContent -FilePath @(
     "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1",
     "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
+    "$Script:parentPath\DataCollection\OrganizationInformation\Get-OrganizationInformation.ps1"
 )
 
 Invoke-Expression $scriptContent

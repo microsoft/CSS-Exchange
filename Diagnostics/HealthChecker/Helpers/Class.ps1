@@ -12,8 +12,27 @@ using System.Collections;
             public HardwareInformation HardwareInformation;  // Hardware Object Information
             public OperatingSystemInformation  OSInformation; // OS Version Object Information
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
+            public OrganizationInformation OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
             public string HealthCheckerVersion; //To determine the version of the script on the object.
             public DateTime GenerationTime; //Time stamp of running the script
+        }
+
+        // Organization Information - Things that only need to be collected once
+        public class OrganizationInformation
+        {
+            public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
+            public object DomainsAclPermissions; //Stores the ACLs that we care about from Exchange Domain that contains the MESO container
+            public object WellKnownSecurityGroups; //Stores the well known Exchange Security Groups information
+            public object AdSchemaInformation;   //Stores the properties of from the Schema class
+            public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
+            public object EnableDownloadDomains; //True if Download Domains are enabled on org level
+            public object WildCardAcceptedDomain; // for issues with * accepted domain.
+            public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
+            public bool MapiHttpEnabled; //Stored from organization config
+            public object SecurityResults; // Stores different CVE results that are secured against Setup.exe /PrepareAD /PrepareDomain /PrepareSchema
+            public bool IsSplitADPermissions = new bool(); // Used to determine if split permissions are detected.
+            public int ADSiteCount; // Count for the numbers of sites the environment has.
+            public object GetSettingOverride; // Stores the Get-SettingOverride
         }
 
         // ExchangeInformation
@@ -27,14 +46,9 @@ using System.Collections;
             public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
             public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
             public object ExtendedProtectionConfig; //Stores the extended protection configuration
-            public object msExchStorageGroup;   //Stores the properties of the 'ms-Exch-Storage-Group' Schema class
-            public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
             public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
-            public bool EnableDownloadDomains = new bool(); //True if Download Domains are enabled on org level
-            public object WildCardAcceptedDomain; // for issues with * accepted domain.
             public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
             public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
-            public bool MapiHttpEnabled; //Stored from organization config
             public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
             public Hashtable ApplicationPools = new Hashtable();
             public object RegistryValues; //stores all Exchange Registry values
@@ -52,12 +66,8 @@ using System.Collections;
             public ExchangeServerRole ServerRole; //Roles that are currently set and installed.
             public ExchangeMajorVersion MajorVersion; //Exchange Version (Exchange 2010/2013/2019)
             public ExchangeCULevel CU;             // Exchange CU Level
-            public string FriendlyName;     //Exchange Friendly Name is provided
-            public string BuildNumber;      //Exchange Build Number
-            public string LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
-            public string ReleaseDate;      // Exchange release date for which the CU they are currently on
-            public string ExtendedSupportDate; // End of Life Support Date.
-            public bool SupportedBuild;     //Determines if we are within the correct build of Exchange.
+            public object VersionInformation; // Stores results from Get-ExchangeBuildVersionInformation
+            public System.Version LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
             public object ExchangeSetup;    //Stores the Get-Command ExSetup object
             public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
             public bool March2021SUInstalled;    //True if March 2021 SU is installed
@@ -140,7 +150,6 @@ using System.Collections;
             public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
             public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
             public object PageFile;             //stores the page file information
-            public LmCompatibilityLevelInformation LmCompatibility; // stores Lm Compatibility Level Information
             public object ServerPendingReboot; // determine if server is pending a reboot.
             public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
             public object TLSSettings;            // stores the TLS settings on the server.
@@ -149,7 +158,7 @@ using System.Collections;
             public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
             public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
             public bool CredentialGuardEnabled;
-            public OSRegistryValues RegistryValues = new OSRegistryValues();
+            public object RegistryValues; // stores generic registry values
             public object Smb1ServerSettings;
         }
 
@@ -163,11 +172,8 @@ using System.Collections;
 
         public class NetworkInformation
         {
-            public double TCPKeepAlive;           // value used for the TCP/IP keep alive value in the registry
-            public double RpcMinConnectionTimeout;  //holds the value for the RPC minimum connection timeout.
             public object HttpProxy;                // holds the setting for HttpProxy if one is set.
             public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
-            public double IPv6DisabledComponents;    //value stored in the registry HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters\DisabledComponents
             public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
             public System.Array NetworkAdapters;           //stores all the NICs on the servers.
             public string PnPCapabilities;      //Value from PnPCapabilities registry
@@ -179,18 +185,6 @@ using System.Collections;
             public bool HighPerformanceSet;      // If the power plan is High Performance
             public string PowerPlanSetting;      //value for the power plan that is set
             public object PowerPlan;            //object to store the power plan information
-        }
-
-        public class OSRegistryValues
-        {
-            public int CurrentVersionUbr; // stores SOFTWARE\Microsoft\Windows NT\CurrentVersion\UBR
-            public int LanManServerDisabledCompression; // stores SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\DisabledCompression
-        }
-
-        public class LmCompatibilityLevelInformation
-        {
-            public int RegistryValue;       //The LmCompatibilityLevel for the server (INT 1 - 5)
-            public string Description;      //description of the LmCompat that the server is set to
         }
 
         public class TimeZoneInformation

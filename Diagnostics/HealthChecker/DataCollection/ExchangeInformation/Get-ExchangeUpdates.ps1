@@ -4,7 +4,11 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 function Get-ExchangeUpdates {
     param(
-        [Parameter(Mandatory = $true)][HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
+        [Parameter(Mandatory = $true)]
+        [string]$Server,
+
+        [Parameter(Mandatory = $true)]
+        [HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
     )
     Write-Verbose("Calling: $($MyInvocation.MyCommand) Passed: $ExchangeMajorVersion")
     $RegLocation = [string]::Empty
@@ -17,7 +21,7 @@ function Get-ExchangeUpdates {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2019"
     }
 
-    $RegKey = Get-RemoteRegistrySubKey -MachineName $Script:Server `
+    $RegKey = Get-RemoteRegistrySubKey -MachineName $Server `
         -SubKey $RegLocation `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 

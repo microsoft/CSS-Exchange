@@ -24,10 +24,10 @@ function Get-ExchangeBasicServerObject {
     Write-Verbose("AdminDisplayVersion: {0} | ServerRole: {1}" -f $exchAdminDisplayVersion.ToString(), $exchServerRole.ToString())
     $buildVersionInformation = Get-ExchangeBuildVersionInformation $exchAdminDisplayVersion
 
-    if ($buildVersionInformation.Major -eq 15) {
-        if ($buildVersionInformation.Minor -eq 0) {
+    if ($buildVersionInformation.BuildVersion.Major -eq 15) {
+        if ($buildVersionInformation.BuildVersion.Minor -eq 0) {
             $exchVersion = 15
-        } elseif ($buildVersionInformation.Minor -eq 1) {
+        } elseif ($buildVersionInformation.BuildVersion.Minor -eq 1) {
             $exchVersion = 16
         } else {
             $exchVersion = 19
