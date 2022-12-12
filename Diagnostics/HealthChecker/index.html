@@ -614,6 +614,8 @@
         
           
         
+          
+        
       
       
         
@@ -1064,6 +1066,20 @@
     <li class="md-nav__item">
       <a href="RunHCViaSchedTask/" class="md-nav__link">
         HCScheduledTask
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ADSiteCount/" class="md-nav__link">
+        ADSiteCount
       </a>
     </li>
   
@@ -1921,33 +1937,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#how-to-run" class="md-nav__link">
-    How To Run
-  </a>
-  
-    <nav class="md-nav" aria-label="How To Run">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    Examples:
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    Parameters
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1983,35 +1972,81 @@
 <li>Organization Management</li>
 <li>Domain Admins (only necessary for the <code>DCCoreRatio</code> parameter)</li>
 </ul>
+<h1 id="syntax">Syntax</h1>
+<div class="highlight"><pre><span></span><code><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-Server</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-Server</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
+  <span class="p">[</span><span class="n">-MailboxReport</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-LoadBalancingReport</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-CasServerList</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
+  <span class="p">[</span><span class="n">-SiteName</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-BuildHtmlServersReport</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-XMLDirectoryPath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-HtmlReportFile</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-AnalyzeDataOnly</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-XMLDirectoryPath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-HtmlReportFile</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-DCCoreRatio</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-ScriptUpdateOnly</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+</code></pre></div>
 <h2 id="how-to-run">How To Run</h2>
 <p>This script <strong>must</strong> be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server.</p>
 <h4 id="examples">Examples:</h4>
 <p>This cmdlet with run Health Checker Script by default and run against the local server.</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Script against the specified server.</p>
-<p><div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -Server EXCH1
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Server</span> <span class="n">EXCH1</span>
 </code></pre></div>
-This cmdlet will build the HTML report for all the XML files located in the same location as the Health Checker Script.</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -BuildHtmlServersReport
+<p>This cmdlet will run the Health Checker Script against a list of servers.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Server</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span><span class="p">,</span><span class="n">EXCH3</span>
+</code></pre></div>
+<p>This cmdlet will build the HTML report for all the XML files located in the same location as the Health Checker Script.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span>
 </code></pre></div>
 <p>This cmdlet will build the HTML report for all the XML files located in the directory specified in the XMLDirectoryPath Parameter.</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -BuildHtmlServersReport -XMLDirectoryPath C:\Location
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span> <span class="n">-XMLDirectoryPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Location</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013/2016 CAS (Front End connections only) in the Organization.</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -LoadBalancingReport
+<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) in the Organization.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -LoadBalancingReport -CasServerList EXCH1,EXCH2,EXCH3
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-CasServerList</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span><span class="p">,</span><span class="n">EXCH3</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013/2016 CAS (Front End connections only) in the site SiteA.</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -LoadBalancingReport -SiteName SiteA
+<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ CAS (Front End connections only) in the site SiteA.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-SiteName</span> <span class="n">SiteA</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Mailbox Report against the Server EXCH1</p>
-<div class="highlight"><pre><span></span><code>.\HealthChecker.ps1 -MailboxReport -Server EXCH1
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MailboxReport</span> <span class="n">-Server</span> <span class="n">EXCH1</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.</p>
-<div class="highlight"><pre><span></span><code>Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match &quot;^Version 15&quot;} | %{.\HealthChecker.ps1 -Server $_.Name}; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">?{</span><span class="nv">$_</span><span class="p">.</span><span class="n">AdminDisplayVersion</span> <span class="o">-Match</span> <span class="s2">&quot;^Version 15&quot;</span><span class="p">}</span> <span class="p">|</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span><span class="p">;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span><span class="p">;</span> <span class="p">.\</span><span class="n">ExchangeAllServersReport</span><span class="p">.</span><span class="n">html</span>
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -2086,7 +2121,7 @@ This cmdlet will build the HTML report for all the XML files located in the same
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 18, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 9, 2022</span>
       
     
   </small>
