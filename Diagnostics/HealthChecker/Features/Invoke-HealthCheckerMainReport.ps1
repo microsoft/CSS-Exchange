@@ -16,6 +16,26 @@ function Invoke-HealthCheckerMainReport {
         [bool]$EdgeServer
     )
 
+    function TestComputerName {
+        [CmdletBinding()]
+        [OutputType([bool])]
+        param(
+            [string]$ComputerName
+        )
+        try {
+            Write-Verbose "Testing $ComputerName"
+            Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-Date } -ErrorAction Stop | Out-Null
+            $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey(“LocalMachine”, $ComputerName)
+            $reg.OpenSubKey(“SOFTWARE\Microsoft\Windows NT\CurrentVersion”) | Out-Null
+            Write-Verbose "Returning true back"
+            return $true
+        } catch {
+            Write-Verbose "Failed to run against $ComputerName"
+            Invoke-CatchActions
+        }
+        return $false
+    }
+
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
@@ -40,18 +60,37 @@ function Invoke-HealthCheckerMainReport {
 
     foreach ($serverName in $ServerNames) {
 
+        # Set serverName to be not be FQDN if that is what is passed.
+        $serverName = $serverName.Split(".")[0]
+
         try {
             $fqdn = (Get-ExchangeServer $serverName -ErrorAction Stop).FQDN
+            Write-Verbose "Set FQDN to $fqdn"
         } catch {
             Write-Host "Unable to find server: $serverName" -ForegroundColor Yellow
             Invoke-CatchActions
             continue
         }
 
+        # Test out serverName and FQDN to determine if we can properly reach the server.
+        # It appears in some environments, you can't do both.
+        $serverNameParam = $fqdn
+
+        if (-not (TestComputerName $fqdn)) {
+            if (-not (TestComputerName $serverName)) {
+                $line = "Unable to connect to server $serverName. Please run locally"
+                Write-Verbose $line
+                Write-Host $line -ForegroundColor Yellow
+                continue
+            }
+            Write-Verbose "Set serverNameParam to $serverName"
+            $serverNameParam = $serverName
+        }
+
         try {
             Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
             Write-HostLog "Exchange Health Checker version $BuildVersion"
-            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $fqdn -PassedOrganizationInformation $passedOrganizationInformation
+            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
             $HealthObject.OrganizationInformation = $organizationInformation
             $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
             Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
