@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-ExchangeIISConfigSettings.ps1
 . $PSScriptRoot\Get-IISWebApplication.ps1
 . $PSScriptRoot\Get-IISWebSite.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
@@ -37,20 +36,21 @@ function Get-ExchangeServerIISSettings {
         }
 
         # We need to wrap the array into another array as the -WebSitesToProcess parameter expects an array object
-        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites)
-        $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication}
+        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites) -ScriptBlockDescription "Get-IISWebSite"
+        $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication} -ScriptBlockDescription "Get-IISWebApplication"
 
-        $configurationFiles = @($webSite.PhysicalPath)
-        $configurationFiles += $webApplication.PhysicalPath | Select-Object -Unique
-        $configurationFiles = $configurationFiles | ForEach-Object { [System.IO.Path]::Combine($_, "web.config") }
-
-        $iisConfigParams = @{
-            MachineName         = $ComputerName
-            FilePath            = $configurationFiles
-            CatchActionFunction = $CatchActionFunction
-        }
-        Write-Verbose "Trying to query the IIS configuration settings"
-        $iisConfigurationSettings = Get-ExchangeIISConfigSettings @iisConfigParams
+        # Get the shared web configuration files
+        $sharedWebConfigPaths = $webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique
+        $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
+            param ($ConfigFiles)
+            $ConfigFiles | ForEach-Object {
+                [PSCustomObject]@{
+                    Location = $_
+                    Exist    = $(Test-Path $_)
+                    Content  = if (Test-Path $_) { Get-Content $_ } else { $null }
+                }
+            }
+        } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"
 
         Write-Verbose "Trying to query the 'applicationHost.config' file"
         $applicationHostConfig = Get-ApplicationHostConfig $ComputerName $CatchActionFunction
@@ -68,11 +68,12 @@ function Get-ExchangeServerIISSettings {
         }
     } end {
         return [PSCustomObject]@{
-            applicationHostConfig    = $applicationHostConfig
+            ApplicationHostConfig    = $applicationHostConfig
             IISModulesInformation    = $iisModulesInformation
             IISConfigurationSettings = $iisConfigurationSettings
             IISWebSite               = $webSite
             IISWebApplication        = $webApplication
+            IISSharedWebConfig       = $sharedWebConfig
         }
     }
 }

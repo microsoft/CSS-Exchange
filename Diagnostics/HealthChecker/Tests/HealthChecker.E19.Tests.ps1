@@ -219,7 +219,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
-            Mock Get-ExchangeIISConfigSettings { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeIISConfigSettings1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Shared Web Config Files" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISSharedWebConfig1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get-IISWebApplication" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISWebApplication1.xml" }
             Mock Get-ExchangeSettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride1.xml" }
             Mock Get-Service {
                 param(
