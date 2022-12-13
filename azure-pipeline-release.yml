@@ -110,7 +110,7 @@ steps:
       dist\*.zip
       dist\*.txt
       dist\*.csv
-    addChangeLog: true
+    addChangeLog: false
     isDraft: true
 
 - task: GitHubRelease@0
@@ -127,5 +127,5 @@ steps:
     releaseNotesSource: 'file'
     releaseNotesFile: dist\ScriptVersions.txt
     assetUploadMode: replace
-    addChangeLog: true
+    addChangeLog: false
     isDraft: false
