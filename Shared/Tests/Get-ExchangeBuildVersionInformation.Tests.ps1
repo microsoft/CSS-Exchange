@@ -74,4 +74,25 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $results.ADLevel.OrgValue | Should -Be 16760
         }
     }
+
+    Context "Testing Unsupported CU Exchange 2019 CU 10 Jul21SU" {
+        BeforeAll {
+            [string]$fileVersion = "15.02.0922.013"
+            $Script:results = Get-ExchangeBuildVersionInformation -FileVersion $fileVersion
+        }
+
+        It "Return the final E19CU12 Oct22SU version object" {
+            $results.MajorVersion | Should -Be "Exchange2019"
+            $results.FriendlyName = "Exchange 2019 CU10 Jul21SU"
+            $results.BuildVersion.ToString() | Should -Be "15.2.922.13"
+            $results.CU | Should -Be "CU10"
+            $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"06/29/2021", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.Supported | Should -Be $false
+            $results.LatestSU | Should -Be $false
+            $results.ADLevel.SchemaValue | Should -Be 17003
+            $results.ADLevel.MESOValue | Should -Be 13241
+            $results.ADLevel.OrgValue | Should -Be 16758
+        }
+    }
 }
