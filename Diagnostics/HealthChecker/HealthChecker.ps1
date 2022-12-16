@@ -38,12 +38,12 @@
     running Exchange 2013+ with the Client Access role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
 .PARAMETER CasServerList
-    Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without
+    Used with -LoadBalancingReport.  A comma separated list of servers to operate against.  Without
     this switch the report will use all 2013+ Client Access servers in the organization.
 .PARAMETER SiteName
-	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
+	Used with -LoadBalancingReport.  Specifies a site to pull  servers from instead of querying every server
     in the organization.
-.PARAMETER MbxServerList
+.PARAMETER ServerList
     Used with -LoadBalancingReport.  A comma separated list of MBX servers to operate against.  Without
     this switch the report will use all 2013+ Mailbox servers in the organization.
 .PARAMETER XMLDirectoryPath
@@ -108,11 +108,9 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
     [switch]$LoadBalancingReport,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of CAS servers to run against for the LoadBalancingReport.")]
-    [string[]]$CasServerList = $null,
-
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of MBX servers to run against for the LoadBalancingReport")]
-    [array]$MbxServerList = $null,
+    [Alias("CASServerList")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of servers to run against for the LoadBalancingReport.")]
+    [string[]]$ServerList = $null,
 
     [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
     [string]$SiteName = ([string]::Empty),

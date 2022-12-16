@@ -20,20 +20,14 @@ function Get-LoadBalancingReport {
                 ($_.AdminDisplayVersion -Match "^Version 15") -and
                 ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
     } else {
-        if ( ($null -eq $CasServerList) ) {
-            Write-Grey("Filtering OFF.  All Exchange 2013+ CAS servers will be used in the report.")
+        if ( ($null -eq $ServerList) ) {
+            Write-Grey("Filtering OFF.  All Exchange 2013+ servers will be used in the report.")
             $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
-        } else {
-            Write-Grey("Custom CAS server list is being used.  Only servers specified after the -CasServerList parameter will be used in the report.")
-            $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $CasServerList) -or ($_.FQDN -in $CasServerList) ) } | Sort-Object Name
-        }
-
-        if ($null -eq $MbxServerList) {
-            Write-Grey("All Exchange 2013+ servers will be used in the report.")
             $MBXServers = Get-ExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
         } else {
-            Write-Grey("Custom MBX server list is being used.  Only servers specified after the -MbxServerList parameter will be used in the report.")
-            $MBXServers = Get-ExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $MbxServerList) -or ($_.FQDN -in $MbxServerList) ) } | Sort-Object Name
+            Write-Grey("Custom server list is being used.  Only servers specified after the -ServerList parameter will be used in the report.")
+            $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
+            $MBXServers = Get-ExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
         }
     }
 
