@@ -35,17 +35,14 @@
 	mailboxes on the server.
 .PARAMETER LoadBalancingReport
     This optional parameter will check the connection count of the Default Web Site for every server
-    running Exchange 2013+ with the Client Access role in the org.  It then breaks down servers by percentage to
+    running Exchange 2013+ with the role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
-.PARAMETER CasServerList
-    Used with -LoadBalancingReport.  A comma separated list of servers to operate against.  Without
-    this switch the report will use all 2013+ Client Access servers in the organization.
+.PARAMETER ServerList
+    Used with -LoadBalancingReport. A comma separated list of servers to operate against. Without
+    this switch the report will use all 2013+ servers in the organization.
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull  servers from instead of querying every server
     in the organization.
-.PARAMETER ServerList
-    Used with -LoadBalancingReport.  A comma separated list of MBX servers to operate against.  Without
-    this switch the report will use all 2013+ Mailbox servers in the organization.
 .PARAMETER XMLDirectoryPath
     Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers
     which you want to be included in the report. Default location is the current directory.
@@ -79,10 +76,10 @@
 	Run against all the Exchange servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport
-    Run a load balancing report comparing all Exchange 2013+ CAS servers in the Organization.
+    Run a load balancing report comparing all Exchange 2013+ servers in the Organization.
 .EXAMPLE
-    .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
-    Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
+    .\HealthChecker.ps1 -LoadBalancingReport -ServerList EX01,EX02,EXS03
+    Run a load balancing report comparing servers named EX01, EX02, and EX03.
 .LINK
     https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
     https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization
