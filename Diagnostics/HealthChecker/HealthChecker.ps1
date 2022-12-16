@@ -114,6 +114,7 @@ param(
 
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
     [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "VulnerabilityReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
     [ValidateScript( {
             -not $_.ToString().EndsWith('\')
         })]
@@ -131,12 +132,16 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Enable to reprocess the data that was previously collected and display to the screen")]
     [switch]$AnalyzeDataOnly,
 
+    [Parameter(Mandatory = $true, ParameterSetName = "VulnerabilityReport", HelpMessage = "Enable to collect data on the entire environment and report only the security vulnerabilities.")]
+    [switch]$VulnerabilityReport,
+
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "DCCoreReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Skip over checking for a new updated version of the script.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "VulnerabilityReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [switch]$SkipVersionCheck,
 
     [Parameter(Mandatory = $false, HelpMessage = "Always keep the debug log output at the end of the script.")]
@@ -163,6 +168,7 @@ begin {
     . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
     . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
     . $PSScriptRoot\Features\Invoke-HealthCheckerMainReport.ps1
+    . $PSScriptRoot\Features\Invoke-VulnerabilityReport.ps1
 
     . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
@@ -277,6 +283,12 @@ begin {
                 Get-MailboxDatabaseAndMailboxStatistics -Server $serverName
                 Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
             }
+            return
+        }
+
+        if ($VulnerabilityReport) {
+            Invoke-ConfirmExchangeShell
+            Invoke-VulnerabilityReport
             return
         }
 
