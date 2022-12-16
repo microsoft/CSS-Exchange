@@ -43,6 +43,9 @@
 .PARAMETER SiteName
 	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
     in the organization.
+.PARAMETER MbxServerList
+    Used with -LoadBalancingReport.  A comma separated list of MBX servers to operate against.  Without
+    this switch the report will use all 2013+ Mailbox servers in the organization.
 .PARAMETER XMLDirectoryPath
     Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers
     which you want to be included in the report. Default location is the current directory.
@@ -102,12 +105,16 @@ param(
     [switch]$MailboxReport,
 
     [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReport", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
     [switch]$LoadBalancingReport,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of servers to run against for the LoadBalancingReport.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of CAS servers to run against for the LoadBalancingReport.")]
     [string[]]$CasServerList = $null,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
+    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of MBX servers to run against for the LoadBalancingReport")]
+    [array]$MbxServerList = $null,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
     [string]$SiteName = ([string]::Empty),
 
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
@@ -157,7 +164,7 @@ begin {
     . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
     . $PSScriptRoot\Writers\Write-Functions.ps1
     . $PSScriptRoot\Features\Get-HtmlServerReport.ps1
-    . $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
+    . $PSScriptRoot\Features\Get-LoadBalancingReport.ps1
     . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
     . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
     . $PSScriptRoot\Features\Invoke-HealthCheckerMainReport.ps1
@@ -248,8 +255,8 @@ begin {
         if ($LoadBalancingReport) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-LoadBalancingReport"
             Invoke-ConfirmExchangeShell
-            Write-Green("Client Access Load Balancing Report on " + $date)
-            Get-CASLoadBalancingReport
+            Write-Green("Load Balancing Report on " + $date)
+            Get-LoadBalancingReport
             Write-Grey("Output file written to " + $Script:OutputFullPath)
             Write-Break
             Write-Break
