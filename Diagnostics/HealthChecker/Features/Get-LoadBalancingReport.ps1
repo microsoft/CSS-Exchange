@@ -7,27 +7,28 @@ function Get-LoadBalancingReport {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $CASServers = @()
     $MBXServers = @()
+    $getExchangeServer  = Get-ExchangeServer
 
     if ($SiteName -ne [string]::Empty) {
         Write-Grey("Site filtering ON.  Only Exchange 2013+ CAS servers in {0} will be used in the report." -f $SiteName)
-        $CASServers = Get-ExchangeServer | Where-Object {
+        $CASServers = $getExchangeServer | Where-Object {
             ($_.IsClientAccessServer -eq $true) -and
             ($_.AdminDisplayVersion -Match "^Version 15") -and
             ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
         Write-Grey("Site filtering ON.  Only Exchange 2013+ MBX servers in {0} will be used in the report." -f $SiteName)
-        $MBXServers = Get-ExchangeServer | Where-Object {
+        $MBXServers = $getExchangeServer | Where-Object {
                 ($_.IsMailboxServer -eq $true) -and
                 ($_.AdminDisplayVersion -Match "^Version 15") -and
                 ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
     } else {
         if ( ($null -eq $ServerList) ) {
             Write-Grey("Filtering OFF.  All Exchange 2013+ servers will be used in the report.")
-            $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
-            $MBXServers = Get-ExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
+            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
+            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
         } else {
             Write-Grey("Custom server list is being used.  Only servers specified after the -ServerList parameter will be used in the report.")
-            $CASServers = Get-ExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
-            $MBXServers = Get-ExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
+            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
+            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
         }
     }
 
