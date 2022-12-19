@@ -1026,9 +1026,9 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckObjects) {
         exit
     }
 
-    $CSV2 | ForEach-Object {
-        $SourceIdentity = $_.SourceUser
-        $TargetIdentity = $_.SourceUser.Split('@')[0]
+    foreach ($c in $CSV2) {
+        $SourceIdentity = $c.SourceUser
+        $TargetIdentity = $c.SourceUser.Split('@')[0]
         CheckObjectsSourceOffline
     }
     LoggingOff
