@@ -26,6 +26,13 @@ function Get-HealthCheckerData {
         )
         try {
             Write-Verbose "Testing $ComputerName"
+
+            # If local computer, we should just assume that it should work.
+            if ($ComputerName -eq $env:COMPUTERNAME) {
+                Write-Verbose "Local computer, returning true"
+                return $true
+            }
+
             Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-Date } -ErrorAction Stop | Out-Null
             $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey(“LocalMachine”, $ComputerName)
             $reg.OpenSubKey(“SOFTWARE\Microsoft\Windows NT\CurrentVersion”) | Out-Null
