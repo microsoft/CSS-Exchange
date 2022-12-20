@@ -4,10 +4,14 @@
 . $PSScriptRoot\Get-AppPool.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 function Get-ExchangeAppPoolsInformation {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $appPool = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock ${Function:Get-AppPool} `
+    $appPool = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-AppPool} `
         -ScriptBlockDescription "Getting App Pool information" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -16,7 +20,7 @@ function Get-ExchangeAppPoolsInformation {
     $appPool |
         Where-Object { $_.add.name -like "MSExchange*" } |
         ForEach-Object {
-            $configContent = Invoke-ScriptBlockHandler -ComputerName $Script:Server -ScriptBlock {
+            $configContent = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock {
                 param(
                     $FilePath
                 )

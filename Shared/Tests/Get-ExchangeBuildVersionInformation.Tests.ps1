@@ -16,22 +16,20 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
         BeforeAll {
             [object]$e19CU11ServerVersion = Import-Clixml $Script:parentPath\Tests\E19CU11AdminDisplayVersion.xml
             $Script:results = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $e19CU11ServerVersion
-            [System.Version]$Script:fullAdminDisplayVersionBuildNumber = "{0}.{1}.{2}.{3}" -f $results.Major, $results.Minor, $results.Build, $results.Revision
         }
 
         It "Return the final E19CU11 version object" {
             $results.MajorVersion | Should -Be "Exchange2019"
-            $results.Major | Should -Be 15
-            $results.Minor | Should -Be 2
-            $results.Build | Should -Be 986
-            $results.Revision | Should -Be 5
-            $results.Product | Should -Be 15.2
-            $results.BuildVersion | Should -Be 986.5
-        }
-
-        It "Perform version comparison E19CU11" {
-            $fullAdminDisplayVersionBuildNumber -lt "15.2.986.5" | Should -Be $false
-            $fullAdminDisplayVersionBuildNumber -ge "15.2.986.5" | Should -Be $true
+            $results.FriendlyName = "Exchange 2019 CU11"
+            $results.BuildVersion.ToString() | Should -Be "15.2.986.5"
+            $results.CU | Should -Be "CU11"
+            $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"9/28/2021", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.Supported | Should -Be $true
+            $results.LatestSU | Should -Be $false
+            $results.ADLevel.SchemaValue | Should -Be 17003
+            $results.ADLevel.MESOValue | Should -Be 13242
+            $results.ADLevel.OrgValue | Should -Be 16759
         }
     }
 
@@ -39,46 +37,62 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
         BeforeAll {
             [string]$e19CU11 = "Version 15.2 (Build 986.5)"
             $Script:results = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $e19CU11
-            [System.Version]$Script:fullAdminDisplayVersionBuildNumber = "{0}.{1}.{2}.{3}" -f $results.Major, $results.Minor, $results.Build, $results.Revision
         }
 
         It "Return the final E19CU11 version object" {
             $results.MajorVersion | Should -Be "Exchange2019"
-            $results.Major | Should -Be 15
-            $results.Minor | Should -Be 2
-            $results.Build | Should -Be 986
-            $results.Revision | Should -Be 5
-            $results.Product | Should -Be 15.2
-            $results.BuildVersion | Should -Be 986.5
-        }
-
-        It "Perform version comparison E19CU11" {
-            $fullAdminDisplayVersionBuildNumber -lt "15.2.986.5" | Should -Be $false
-            $fullAdminDisplayVersionBuildNumber -ge "15.2.986.5" | Should -Be $true
+            $results.FriendlyName = "Exchange 2019 CU11"
+            $results.BuildVersion.ToString() | Should -Be "15.2.986.5"
+            $results.CU | Should -Be "CU11"
+            $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"9/28/2021", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.Supported | Should -Be $true
+            $results.LatestSU | Should -Be $false
+            $results.ADLevel.SchemaValue | Should -Be 17003
+            $results.ADLevel.MESOValue | Should -Be 13242
+            $results.ADLevel.OrgValue | Should -Be 16759
         }
     }
 
-    Context "Parse AdminDisplayVersion CU + SU Build String Object" {
+    Context "Parse FileVersion String Object" {
         BeforeAll {
-            [string]$e19CU10Jan22SU = "Version 15.2 (Build 922.20)"
-            $Script:results = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $e19CU10Jan22SU
-            [System.Version]$Script:fullAdminDisplayVersionBuildNumber = "{0}.{1}.{2}.{3}" -f $results.Major, $results.Minor, $results.Build, $results.Revision
+            [string]$fileVersion = "15.2.1118.15"
+            $Script:results = Get-ExchangeBuildVersionInformation -FileVersion $fileVersion
         }
 
-        It "Return the final E19CU10Jan22SU version object" {
+        It "Return the final E19CU12 Oct22SU version object" {
             $results.MajorVersion | Should -Be "Exchange2019"
-            $results.Major | Should -Be 15
-            $results.Minor | Should -Be 2
-            $results.Build | Should -Be 922
-            $results.Revision | Should -Be 20
-            $results.Product | Should -Be 15.2
-            $results.BuildVersion | Should -Be 922.20
+            $results.FriendlyName = "Exchange 2019 CU12 Oct22SU"
+            $results.BuildVersion.ToString() | Should -Be "15.2.1118.15"
+            $results.CU | Should -Be "CU12"
+            $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"04/20/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.Supported | Should -Be $true
+            $results.LatestSU | Should -Be $false
+            $results.ADLevel.SchemaValue | Should -Be 17003
+            $results.ADLevel.MESOValue | Should -Be 13243
+            $results.ADLevel.OrgValue | Should -Be 16760
+        }
+    }
+
+    Context "Testing Unsupported CU Exchange 2019 CU 10 Jul21SU" {
+        BeforeAll {
+            [string]$fileVersion = "15.02.0922.013"
+            $Script:results = Get-ExchangeBuildVersionInformation -FileVersion $fileVersion
         }
 
-        It "Perform version comparison E19CU10Jan22SU" {
-            $fullAdminDisplayVersionBuildNumber -lt "15.2.922.7" | Should -Be $false
-            $fullAdminDisplayVersionBuildNumber -lt "15.2.986.5" | Should -Be $true
-            $fullAdminDisplayVersionBuildNumber -ge "15.2.986.5" | Should -Be $false
+        It "Return the final E19CU12 Oct22SU version object" {
+            $results.MajorVersion | Should -Be "Exchange2019"
+            $results.FriendlyName = "Exchange 2019 CU10 Jul21SU"
+            $results.BuildVersion.ToString() | Should -Be "15.2.922.13"
+            $results.CU | Should -Be "CU10"
+            $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"06/29/2021", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            $results.Supported | Should -Be $false
+            $results.LatestSU | Should -Be $false
+            $results.ADLevel.SchemaValue | Should -Be 17003
+            $results.ADLevel.MESOValue | Should -Be 13241
+            $results.ADLevel.OrgValue | Should -Be 16758
         }
     }
 }

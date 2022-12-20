@@ -28,6 +28,11 @@ steps:
     .\Pester.ps1
   displayName: "Running Invoke-Pester"
 
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '2.1.x'
+
 - task: EsrpCodeSigning@1
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
   inputs:

@@ -3,6 +3,10 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 function Get-HttpProxySetting {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -39,13 +43,13 @@ function Get-HttpProxySetting {
         }
     }
 
-    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Server `
         -ScriptBlock ${Function:GetWinHttpSettings} `
         -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
         -ScriptBlockDescription "Getting 32 Http Proxy Value" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Script:Server `
+    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Server `
         -ScriptBlock ${Function:GetWinHttpSettings} `
         -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
         -ScriptBlockDescription "Getting 64 Http Proxy Value" `

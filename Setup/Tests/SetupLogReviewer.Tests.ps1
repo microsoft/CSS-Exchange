@@ -138,6 +138,14 @@ Describe "Testing SetupLogReviewer" {
             Test-GeneralAdditionalContext
         }
 
+        It "Domain Prep Required" {
+            & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_DomainPrepRequired.log"
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -eq "Local Domain Is Not Prepped or might have duplicate MESO Containers" -and $ForegroundColor -eq "Red" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Run SetupAssist on the server to determine the problem and correct action plan." }
+        }
+
         It "DC Out of Site - 1" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\DCOutOfSite\ExchangeSetup_DC_Site_1.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `

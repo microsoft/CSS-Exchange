@@ -2,9 +2,13 @@
 # Licensed under the MIT License.
 
 function Get-MailboxDatabaseAndMailboxStatistics {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $AllDBs = Get-MailboxDatabaseCopyStatus -server $Script:Server -ErrorAction SilentlyContinue
+    $AllDBs = Get-MailboxDatabaseCopyStatus -server $Server -ErrorAction SilentlyContinue
     $MountedDBs = $AllDBs | Where-Object { $_.ActiveCopy -eq $true }
 
     if ($MountedDBs.Count -gt 0) {
@@ -16,9 +20,9 @@ function Get-MailboxDatabaseAndMailboxStatistics {
         Write-Grey("`tTotal Active User Mailboxes on server: " + $TotalActiveUserMailboxCount)
         $MountedDBs.DatabaseName | ForEach-Object { Write-Verbose "Calculating Public Mailbox Total for Active Database: $_"; $TotalActivePublicFolderMailboxCount += (Get-Mailbox -Database $_ -ResultSize Unlimited -PublicFolder).Count }
         Write-Grey("`tTotal Active Public Folder Mailboxes on server: " + $TotalActivePublicFolderMailboxCount)
-        Write-Grey("`tTotal Active Mailboxes on server " + $Script:Server + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
+        Write-Grey("`tTotal Active Mailboxes on server " + $Server + ": " + ($TotalActiveUserMailboxCount + $TotalActivePublicFolderMailboxCount).ToString())
     } else {
-        Write-Grey("`tNo Active Mailbox Databases found on server " + $Script:Server + ".")
+        Write-Grey("`tNo Active Mailbox Databases found on server " + $Server + ".")
     }
 
     $HealthyDbs = $AllDBs | Where-Object { $_.Status -match 'Healthy' }
@@ -34,6 +38,6 @@ function Get-MailboxDatabaseAndMailboxStatistics {
         Write-Grey("`tTotal Passive Public Mailboxes on server: " + $TotalPassivePublicFolderMailboxCount)
         Write-Grey("`tTotal Passive Mailboxes on server: " + ($TotalPassiveUserMailboxCount + $TotalPassivePublicFolderMailboxCount).ToString())
     } else {
-        Write-Grey("`tNo Passive Mailboxes found on server " + $Script:Server + ".")
+        Write-Grey("`tNo Passive Mailboxes found on server " + $Server + ".")
     }
 }

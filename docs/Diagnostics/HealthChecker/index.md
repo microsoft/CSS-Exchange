@@ -18,6 +18,52 @@ Please make sure that the account used is a member of the `Local Administrator` 
 - Organization Management
 - Domain Admins (only necessary for the `DCCoreRatio` parameter)
 
+# Syntax
+
+```powershell
+HealthChecker.ps1
+  [-Server <string[]>]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-Server <string[]>]
+  [-MailboxReport]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-LoadBalancingReport]
+  [-ServerList <string[]>]
+  [-SiteName <string>]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-BuildHtmlServersReport]
+  [-XMLDirectoryPath <string>]
+  [-HtmlReportFile <string>]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-AnalyzeDataOnly]
+  [-XMLDirectoryPath <string>]
+  [-HtmlReportFile <string>]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-DCCoreRatio]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
+HealthChecker.ps1
+  [-ScriptUpdateOnly]
+  [-OutputFilePath <string>]
+  [-SaveDebugLog]
+```
+
 ## How To Run
 This script **must** be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server.
 
@@ -25,55 +71,62 @@ This script **must** be run as Administrator in Exchange Management Shell on an 
 
 This cmdlet with run Health Checker Script by default and run against the local server.
 
-```
-.\HealthChecker.ps1
+```powershell
+PS C:\> .\HealthChecker.ps1
 ```
 
 This cmdlet will run the Health Checker Script against the specified server.
 
+```powershell
+PS C:\> .\HealthChecker.ps1 -Server EXCH1
 ```
-.\HealthChecker.ps1 -Server EXCH1
+
+This cmdlet will run the Health Checker Script against a list of servers.
+
+```powershell
+PS C:\> .\HealthChecker.ps1 -Server EXCH1,EXCH2,EXCH3
 ```
+
 This cmdlet will build the HTML report for all the XML files located in the same location as the Health Checker Script.
 
-```
-.\HealthChecker.ps1 -BuildHtmlServersReport
+```powershell
+PS C:\> .\HealthChecker.ps1 -BuildHtmlServersReport
 ```
 
 This cmdlet will build the HTML report for all the XML files located in the directory specified in the XMLDirectoryPath Parameter.
 
-```
-.\HealthChecker.ps1 -BuildHtmlServersReport -XMLDirectoryPath C:\Location
-```
-
-This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013/2016 CAS (Front End connections only) in the Organization.
-
-```
-.\HealthChecker.ps1 -LoadBalancingReport
+```powershell
+PS C:\> .\HealthChecker.ps1 -BuildHtmlServersReport -XMLDirectoryPath C:\Location
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3
+This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.
 
-```
-.\HealthChecker.ps1 -LoadBalancingReport -CasServerList EXCH1,EXCH2,EXCH3
+```powershell
+PS C:\> .\HealthChecker.ps1 -LoadBalancingReport
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013/2016 CAS (Front End connections only) in the site SiteA.
+This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3 CAS (Front End connections) and MBX  (BackEnd Connections)
 
+```powershell
+PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -ServerList EXCH1,EXCH2,EXCH3
 ```
-.\HealthChecker.ps1 -LoadBalancingReport -SiteName SiteA
+
+This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ servers in the site SiteA.
+
+```powershell
+PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -SiteName SiteA
 ```
 
 This cmdlet will run the Health Checker Mailbox Report against the Server EXCH1
 
-```
-.\HealthChecker.ps1 -MailboxReport -Server EXCH1
+```powershell
+PS C:\> .\HealthChecker.ps1 -MailboxReport -Server EXCH1
 ```
 
 This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.
 
-```
-Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | %{.\HealthChecker.ps1 -Server $_.Name}; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
+```powershell
+PS C:\> Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | .\HealthChecker.ps1; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
 ```
 
 ## Parameters
@@ -84,7 +137,7 @@ Server | The server that you would like to run the Health Checker Script against
 OutputFilePath | The output location for the log files that the script produces. Default is the current directory.
 MailboxReport | Produces the Mailbox Report for the server provided.
 LoadBalancingReport | Runs the Load Balancing Report for the Script
-CasServerList | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against.
+ServerList | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against.
 SiteName | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against in the site.
 XMLDirectoryPath | Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers which you want to be included in the report. Default location is the current directory.
 BuildHtmlServersReport | Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location.

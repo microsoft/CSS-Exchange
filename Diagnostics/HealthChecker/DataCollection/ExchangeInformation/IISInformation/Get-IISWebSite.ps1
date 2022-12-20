@@ -22,6 +22,14 @@ function Get-IISWebSite {
     foreach ($site in $webSites) {
         $siteBindings = $bindings |
             Where-Object { $_.ItemXPath -like "*@name='$($site.name)' and @id='$($site.id)'*" }
+        $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
+        $webConfigExists = Test-Path $configurationFilePath
+        $webConfigContent = $null
+
+        if ($webConfigExists) {
+            $webConfigContent = Get-Content $configurationFilePath
+        }
+
         $returnList.Add([PSCustomObject]@{
                 Name                       = $site.Name
                 Id                         = $site.Id
@@ -37,6 +45,11 @@ function Get-IISWebSite {
                 ApplicationPool            = $site.applicationPool
                 EnabledProtocols           = $site.enabledProtocols
                 PhysicalPath               = $site.physicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
+                ConfigurationFileInfo      = [PSCustomObject]@{
+                    Location = $configurationFilePath
+                    Content  = $webConfigContent
+                    Exist    = $webConfigExists
+                }
             }
         )
     }

@@ -1,0 +1,195 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Deserialized.System.Management.Automation.PSCustomObject</T>
+      <T>Deserialized.System.Object</T>
+    </TN>
+    <MS>
+      <S N="WellKnownName">ExchangeLegacyInterop</S>
+      <S N="WellKnownGuid">9C5B963F67F14A4B936CB8EFB19C4784</S>
+      <S N="DistinguishedName">CN=ExchangeLegacyInterop,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:9C5B963F67F14A4B936CB8EFB19C4784:CN=ExchangeLegacyInterop,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1123</S>
+    </MS>
+  </Obj>
+  <Obj RefId="1">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Exchange Windows Permissions</S>
+      <S N="WellKnownGuid">4C17D0117EBE6642AFAEE03BC66D381F</S>
+      <S N="DistinguishedName">CN=Exchange Windows Permissions,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:4C17D0117EBE6642AFAEE03BC66D381F:CN=Exchange Windows Permissions,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1122</S>
+    </MS>
+  </Obj>
+  <Obj RefId="2">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Managed Availability Servers</S>
+      <S N="WellKnownGuid">02522ECF9985984A9232056FC704CC8B</S>
+      <S N="DistinguishedName">CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:02522ECF9985984A9232056FC704CC8B:CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1121</S>
+    </MS>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Exchange Trusted Subsystem</S>
+      <S N="WellKnownGuid">EA876A58DB6DD04C9006939818F800EB</S>
+      <S N="DistinguishedName">CN=Exchange Trusted Subsystem,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:EA876A58DB6DD04C9006939818F800EB:CN=Exchange Trusted Subsystem,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1120</S>
+    </MS>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Exchange Servers</S>
+      <S N="WellKnownGuid">A7D2016C83F003458132789EEB127B84</S>
+      <S N="DistinguishedName">CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:A7D2016C83F003458132789EEB127B84:CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1119</S>
+    </MS>
+  </Obj>
+  <Obj RefId="5">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Security Administrator</S>
+      <S N="WellKnownGuid">03D7F0316EF4B3498AC434B6E16F09D9</S>
+      <S N="DistinguishedName">CN=Security Administrator,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:03D7F0316EF4B3498AC434B6E16F09D9:CN=Security Administrator,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1118</S>
+    </MS>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Security Reader</S>
+      <S N="WellKnownGuid">776B176BD3CB2A4DA7829EA963693013</S>
+      <S N="DistinguishedName">CN=Security Reader,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:776B176BD3CB2A4DA7829EA963693013:CN=Security Reader,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1117</S>
+    </MS>
+  </Obj>
+  <Obj RefId="7">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Compliance Management</S>
+      <S N="WellKnownGuid">B30A449BA9B420458C4BB22F33C52766</S>
+      <S N="DistinguishedName">CN=Compliance Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:B30A449BA9B420458C4BB22F33C52766:CN=Compliance Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1116</S>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Hygiene Management</S>
+      <S N="WellKnownGuid">03B709F451F3BF4388E33495369B6771</S>
+      <S N="DistinguishedName">CN=Hygiene Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:03B709F451F3BF4388E33495369B6771:CN=Hygiene Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1115</S>
+    </MS>
+  </Obj>
+  <Obj RefId="9">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Delegated Setup</S>
+      <S N="WellKnownGuid">D1281926D1F55B44866D1D6B5BD87A09</S>
+      <S N="DistinguishedName">CN=Delegated Setup,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:D1281926D1F55B44866D1D6B5BD87A09:CN=Delegated Setup,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1114</S>
+    </MS>
+  </Obj>
+  <Obj RefId="10">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Server Management</S>
+      <S N="WellKnownGuid">4DB8E7754EB6C1439565612E69A80A4F</S>
+      <S N="DistinguishedName">CN=Server Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:4DB8E7754EB6C1439565612E69A80A4F:CN=Server Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1113</S>
+    </MS>
+  </Obj>
+  <Obj RefId="11">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Discovery Management</S>
+      <S N="WellKnownGuid">C67FDE2E8339674490FBAFDCA3DFDC95</S>
+      <S N="DistinguishedName">CN=Discovery Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:C67FDE2E8339674490FBAFDCA3DFDC95:CN=Discovery Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1112</S>
+    </MS>
+  </Obj>
+  <Obj RefId="12">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Records Management</S>
+      <S N="WellKnownGuid">BEA432C94E1D254EAF99B40573360D5B</S>
+      <S N="DistinguishedName">CN=Records Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:BEA432C94E1D254EAF99B40573360D5B:CN=Records Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1111</S>
+    </MS>
+  </Obj>
+  <Obj RefId="13">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Help Desk</S>
+      <S N="WellKnownGuid">B3DDC6BE2A3BE84B97EB2DCE9477E389</S>
+      <S N="DistinguishedName">CN=Help Desk,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:B3DDC6BE2A3BE84B97EB2DCE9477E389:CN=Help Desk,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1110</S>
+    </MS>
+  </Obj>
+  <Obj RefId="14">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">UM Management</S>
+      <S N="WellKnownGuid">E80CDFB75697934981C898B4DBC5A0C6</S>
+      <S N="DistinguishedName">CN=UM Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:E80CDFB75697934981C898B4DBC5A0C6:CN=UM Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1109</S>
+    </MS>
+  </Obj>
+  <Obj RefId="15">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Public Folder Management</S>
+      <S N="WellKnownGuid">45FA417B3574DC4E929BC4B059699792</S>
+      <S N="DistinguishedName">CN=Public Folder Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:45FA417B3574DC4E929BC4B059699792:CN=Public Folder Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1108</S>
+    </MS>
+  </Obj>
+  <Obj RefId="16">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">View-Only Organization Management</S>
+      <S N="WellKnownGuid">1A9E39D35ABE5747B979FFC0C6E5EA26</S>
+      <S N="DistinguishedName">CN=View-Only Organization Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:1A9E39D35ABE5747B979FFC0C6E5EA26:CN=View-Only Organization Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1107</S>
+    </MS>
+  </Obj>
+  <Obj RefId="17">
+    <TNRef RefId="0" />
+    <MS>
+      <S N="WellKnownName">Recipient Management</S>
+      <S N="WellKnownGuid">DB72C41D49580A4DB304FE6981E56297</S>
+      <S N="DistinguishedName">CN=Recipient Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:DB72C41D49580A4DB304FE6981E56297:CN=Recipient Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1106</S>
+    </MS>
+  </Obj>
+  <Obj RefId="18">
+    <TNRef RefId="0" />
+    <MS>
+      <Nil N="WellKnownName" />
+      <S N="WellKnownGuid">C262A929D691B74A9E068728F8F842EA</S>
+      <S N="DistinguishedName">CN=Organization Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="RawValue">B:32:C262A929D691B74A9E068728F8F842EA:CN=Organization Management,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+      <S N="SID">S-1-5-21-1281225956-1072373970-2205875210-1105</S>
+    </MS>
+  </Obj>
+</Objs>
