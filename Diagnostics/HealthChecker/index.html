@@ -1986,7 +1986,7 @@
   <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
 <span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
   <span class="p">[</span><span class="n">-LoadBalancingReport</span><span class="p">]</span>
-  <span class="p">[</span><span class="n">-CasServerList</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
+  <span class="p">[</span><span class="n">-ServerList</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
   <span class="p">[</span><span class="n">-SiteName</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
@@ -2033,13 +2033,13 @@
 <p>This cmdlet will build the HTML report for all the XML files located in the directory specified in the XMLDirectoryPath Parameter.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span> <span class="n">-XMLDirectoryPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Location</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) in the Organization.</p>
+<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3</p>
-<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-CasServerList</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span><span class="p">,</span><span class="n">EXCH3</span>
+<p>This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3 CAS (Front End connections) and MBX  (BackEnd Connections)</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-ServerList</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span><span class="p">,</span><span class="n">EXCH3</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ CAS (Front End connections only) in the site SiteA.</p>
+<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ servers in the site SiteA.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-SiteName</span> <span class="n">SiteA</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Mailbox Report against the Server EXCH1</p>
@@ -2074,7 +2074,7 @@
 <td>Runs the Load Balancing Report for the Script</td>
 </tr>
 <tr>
-<td>CasServerList</td>
+<td>ServerList</td>
 <td>Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against.</td>
 </tr>
 <tr>
@@ -2121,7 +2121,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 9, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 16, 2022</span>
       
     
   </small>
