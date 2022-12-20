@@ -199,6 +199,15 @@ function Invoke-AnalyzerHardwareInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($displayWriteType -ne "Green") {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-NUMA"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     $params = $baseParams + @{
         Name    = "Max Processor Speed"
         Details = $hardwareInformation.Processor.MaxMegacyclesPerCore

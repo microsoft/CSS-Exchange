@@ -194,7 +194,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Manufacturer" "My Custom PC"
             TestObjectMatch "Model" "CHG-GG"
 
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - NIC Settings" {
