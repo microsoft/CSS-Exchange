@@ -34,7 +34,7 @@ HealthChecker.ps1
   [-SaveDebugLog]
 HealthChecker.ps1
   [-LoadBalancingReport]
-  [-CasServerList <string[]>]
+  [-ServerList <string[]>]
   [-SiteName <string>]
   [-OutputFilePath <string>]
   [-SkipVersionCheck]
@@ -99,19 +99,19 @@ This cmdlet will build the HTML report for all the XML files located in the dire
 PS C:\> .\HealthChecker.ps1 -BuildHtmlServersReport -XMLDirectoryPath C:\Location
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) in the Organization.
+This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.
 
 ```powershell
 PS C:\> .\HealthChecker.ps1 -LoadBalancingReport
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3
+This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3 CAS (Front End connections) and MBX  (BackEnd Connections)
 
 ```powershell
-PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -CasServerList EXCH1,EXCH2,EXCH3
+PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -ServerList EXCH1,EXCH2,EXCH3
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ CAS (Front End connections only) in the site SiteA.
+This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ servers in the site SiteA.
 
 ```powershell
 PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -SiteName SiteA
@@ -137,7 +137,7 @@ Server | The server that you would like to run the Health Checker Script against
 OutputFilePath | The output location for the log files that the script produces. Default is the current directory.
 MailboxReport | Produces the Mailbox Report for the server provided.
 LoadBalancingReport | Runs the Load Balancing Report for the Script
-CasServerList | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against.
+ServerList | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against.
 SiteName | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against in the site.
 XMLDirectoryPath | Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers which you want to be included in the report. Default location is the current directory.
 BuildHtmlServersReport | Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location.

@@ -35,13 +35,13 @@
 	mailboxes on the server.
 .PARAMETER LoadBalancingReport
     This optional parameter will check the connection count of the Default Web Site for every server
-    running Exchange 2013+ with the Client Access role in the org.  It then breaks down servers by percentage to
+    running Exchange 2013+ with the role in the org.  It then breaks down servers by percentage to
     give you an idea of how well the load is being balanced.
-.PARAMETER CasServerList
-    Used with -LoadBalancingReport.  A comma separated list of CAS servers to operate against.  Without
-    this switch the report will use all 2013+ Client Access servers in the organization.
+.PARAMETER ServerList
+    Used with -LoadBalancingReport. A comma separated list of servers to operate against. Without
+    this switch the report will use all 2013+ servers in the organization.
 .PARAMETER SiteName
-	Used with -LoadBalancingReport.  Specifies a site to pull CAS servers from instead of querying every server
+	Used with -LoadBalancingReport.  Specifies a site to pull  servers from instead of querying every server
     in the organization.
 .PARAMETER XMLDirectoryPath
     Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers
@@ -76,10 +76,10 @@
 	Run against all the Exchange servers in the Organization.
 .EXAMPLE
     .\HealthChecker.ps1 -LoadBalancingReport
-    Run a load balancing report comparing all Exchange 2013+ CAS servers in the Organization.
+    Run a load balancing report comparing all Exchange 2013+ servers in the Organization.
 .EXAMPLE
-    .\HealthChecker.ps1 -LoadBalancingReport -CasServerList CAS01,CAS02,CAS03
-    Run a load balancing report comparing servers named CAS01, CAS02, and CAS03.
+    .\HealthChecker.ps1 -LoadBalancingReport -ServerList EX01,EX02,EXS03
+    Run a load balancing report comparing servers named EX01, EX02, and EX03.
 .LINK
     https://docs.microsoft.com/en-us/exchange/exchange-2013-sizing-and-configuration-recommendations-exchange-2013-help
     https://docs.microsoft.com/en-us/exchange/exchange-2013-virtualization-exchange-2013-help#requirements-for-hardware-virtualization
@@ -102,12 +102,14 @@ param(
     [switch]$MailboxReport,
 
     [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReport", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Enable the LoadBalancingReport feature data collection.")]
     [switch]$LoadBalancingReport,
 
+    [Alias("CASServerList")]
     [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide a list of servers to run against for the LoadBalancingReport.")]
-    [string[]]$CasServerList = $null,
+    [string[]]$ServerList = $null,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
+    [Parameter(Mandatory = $true, ParameterSetName = "LoadBalancingReportBySite", HelpMessage = "Provide the AD SiteName to run the LoadBalancingReport against.")]
     [string]$SiteName = ([string]::Empty),
 
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
@@ -157,7 +159,7 @@ begin {
     . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
     . $PSScriptRoot\Writers\Write-Functions.ps1
     . $PSScriptRoot\Features\Get-HtmlServerReport.ps1
-    . $PSScriptRoot\Features\Get-CasLoadBalancingReport.ps1
+    . $PSScriptRoot\Features\Get-LoadBalancingReport.ps1
     . $PSScriptRoot\Features\Get-ExchangeDcCoreRatio.ps1
     . $PSScriptRoot\Features\Get-MailboxDatabaseAndMailboxStatistics.ps1
     . $PSScriptRoot\Features\Invoke-HealthCheckerMainReport.ps1
@@ -248,8 +250,8 @@ begin {
         if ($LoadBalancingReport) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-LoadBalancingReport"
             Invoke-ConfirmExchangeShell
-            Write-Green("Client Access Load Balancing Report on " + $date)
-            Get-CASLoadBalancingReport
+            Write-Green("Load Balancing Report on " + $date)
+            Get-LoadBalancingReport
             Write-Grey("Output file written to " + $Script:OutputFullPath)
             Write-Break
             Write-Break
