@@ -146,10 +146,6 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 23
         }
 
-        It "Should Return The applicationHost.config As Xml" {
-            $extendedProtectionResults.ApplicationHostConfig.GetType() | Should -Be "xml"
-        }
-
         It "TestUnsupportedNotConfiguredExtendedProtection" {
             TestUnsupportedNotConfiguredExtendedProtection $extendedProtectionResults
         }

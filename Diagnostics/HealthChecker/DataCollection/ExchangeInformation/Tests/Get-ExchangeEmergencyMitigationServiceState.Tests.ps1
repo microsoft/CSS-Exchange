@@ -27,8 +27,8 @@ BeforeAll {
 Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
 
     BeforeAll {
-        Mock Invoke-WebRequest -MockWith { return Import-Clixml $Script:parentPath\Tests\InvokeWebRequestEEMS.xml }
-        Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationRunning.xml } `
+        Mock Invoke-WebRequest -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\InvokeWebRequestEEMS.xml }
+        Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetServiceMSExchangeMitigationRunning.xml } `
             -ParameterFilter { $ComputerName -eq $Script:Server }
 
         $Script:customObject = ([PSCustomObject]@{
@@ -78,7 +78,7 @@ Describe "Testing Get-ExchangeEmergencyMitigationServiceState.ps1" {
     Context "Exchange Emergency Mitigation Service Disabled State" {
 
         BeforeAll {
-            Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\GetServiceMSExchangeMitigationDisabled.xml } `
+            Mock Get-Service -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetServiceMSExchangeMitigationDisabled.xml } `
                 -ParameterFilter { $ComputerName -eq $Script:Server }
 
             $Script:customObject.MitigationsEnabled = $false

@@ -6,12 +6,16 @@
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
 function Get-HardwareInformation {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObjectCriticalHandler -ComputerName $Script:Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Script:Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $system = Get-WmiObjectCriticalHandler -ComputerName $Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
 
     if ($null -eq $hardware_obj.MemoryInformation) {
         Write-Verbose "Using memory from Win32_ComputerSystem class instead. This may cause memory calculation issues."
@@ -25,7 +29,7 @@ function Get-HardwareInformation {
     $hardware_obj.System = $system
     $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
     $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $processorInformation = Get-ProcessorInformation -MachineName $Script:Server -CatchActionFunction ${Function:Invoke-CatchActions}
+    $processorInformation = Get-ProcessorInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
     #Need to do it this way because of Windows 2012R2
     $processor = New-Object HealthChecker.ProcessorInformation

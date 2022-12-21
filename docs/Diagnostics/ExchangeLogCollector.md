@@ -85,7 +85,7 @@ GetVdirs | Enable to collect the Virtual Directories of the environment.
 HighAvailabilityLogs | Enable to collect High Availability Logs. Windows Event Logs like: `Microsoft-Exchange-HighAvailability`, `Microsoft-Exchange-MailboxDatabaseFailureItems`, and `Microsoft-Windows-FailoverClustering`
 HubConnectivityLogs | Enable to collect the Hub connectivity logging. Location: `(Get-TransportService $server).ConnectivityLogPath`
 HubProtocolLogs | Enable to collect the protocol logging. Location: `(Get-TransportService $server).ReceiveProtocolLogPath` and `(Get-TransportService $server).SendProtocolLogPath`
-IISLogs | Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: `C:\inetpub\logs\LogFiles\W3SVC1`, `C:\inetpub\logs\LogFiles\W3SVC1`, and `C:\Windows\System32\LogFiles\HTTPERR`. Only able to collect on `LogAge`.
+IISLogs | Enable to collect IIS Logs and HTTPErr Logs from the Exchange Server. Default Location: `C:\inetpub\logs\LogFiles\W3SVC1`, `C:\inetpub\logs\LogFiles\W3SVC2`, and `C:\Windows\System32\LogFiles\HTTPERR`. IISlogs do not collect all logs on CollectAllLogsBasedOnLogAge:$false, just works based on log age.
 ImapLogs | Enable to collect IMAP logging. Location: `(Get-ImapSettings -Server $server).LogFileLocation`
 MailboxAssistantsLogs | Enable to collect Mailbox Assistants logging. Location: `V15\Logging\MailboxAssistantsLog`, `V15\Logging\MailboxAssistantsSlaReportLog`, and `V15\Logging\MailboxAssistantsDatabaseSlaLog`
 MailboxConnectivityLogs | Enable to collect the connectivity logging on the mailbox server. Location: `(Get-MailboxTransportService $server).ConnectivityLogPath`
@@ -117,6 +117,8 @@ ConnectivityLogs | Enables the following switches and their logs to be collected
 DatabaseFailoverIssue | Enables the following switches and their logs to be collected. `DAGInformation`, `DailyPerformanceLogs`, `ExchangeServerInformation`, `Experfwiz`, `HighAvailabilityLogs`, `ManagedAvailabilityLogs`, and `ServerInformation`.
 DaysWorth | The number of days to go back to be included int the time span for log collection. Default value: 3
 HoursWorth | The number of hours to go back to be included in the time span for the log collection. Default Value 0.
+LogStartDate | Set the starting time for the log collection (DateTime).
+LogEndDate | Set the ending time for the log collection (DateTime).
 DisableConfigImport | Enable to not import the `ExchangeLogCollector.ps1.json` file if it exists.
 ExmonLogmanName | A list of names that we want to collect for Exmon data. The default name is `Exmon_Trace`.
 ExperfwizLogmanName | A list of names that we want to collect performance data logs from. The default names are `Exchange_Perfwiz`, `ExPerfwiz`, and `SimplePerf`. (For both styles of Experfwiz)
