@@ -1935,7 +1935,7 @@
 <h1 id="ad-site-count-check">AD Site Count Check</h1>
 <p>In large environments that contains a lot of sites, can cause a performance issue with Exchange. In particular Autodiscover app pool will peg the CPU at 4-hour intervals when there are many AD sites.</p>
 <p>It is recommended to reduce the number of AD Sites within the environment to address this issue. However, there is a workaround that would prevent the issue from occurring every 4-hours and just every 24-hours.</p>
-<p>In the <code>%ExchangeInstallPath%\Bin\Microsoft.Exchange.Directory.TopologyService.exe.config</code> file, change the <code>ExchangeTopologyCacheLifetime</code> value to be <code>24:00:00,00:20:00</code> instead to have the cache lifetime increase from 4-hours to 24-hours. It is not recommended to go beyond 24-hours.</p>
+<p>In the <code>%ExchangeInstallPath%\Bin\Microsoft.Exchange.Directory.TopologyService.exe.config</code> file, change the <code>ExchangeTopologyCacheLifetime</code> value to be <code>1.00:00:00,00:20:00</code> instead to have the cache lifetime increase from 4-hours to 24-hours. It is not recommended to go beyond 24-hours.</p>
 <p><strong>Included in HTML Report?</strong></p>
 <p>Yes</p>
 <p><strong>Additional resources:</strong></p>
@@ -1946,7 +1946,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 5, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 21, 2022</span>
       
     
   </small>
