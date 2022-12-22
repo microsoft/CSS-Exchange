@@ -11,6 +11,7 @@ nav:
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
+    - Get-MigrationReport: Admin/Get-MigrationReport.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
