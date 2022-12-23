@@ -40,53 +40,49 @@ The script also exports a report containing statistics for the specified mailbox
 
 [CmdletBinding()]
 param (
-    [Parameter( Mandatory = $true, HelpMessage = 'You must specify the name of a mailbox or mailboxes:')] [array] $Identity,
-    [Parameter(Mandatory = $false, HelpMessage = 'Specify the folder where the reports should be saved')] [string] $OutputFolder
+    [Parameter( Mandatory = $true, HelpMessage = 'You must specify the name of a mailbox or mailboxes:')] [string[]] $Identity,
+    [string] $OutputFolder = "Get-MigrationReports"
 )
 
-# Set the default output folder if none is specified
-if (-not $OutputFolder) {
-    $OutputFolder = 'Get-MigrationReports'
-}
 # Set the log file path
 $logFile = "$OutputFolder\LogFile.txt"
 
 function Export-XMLReports {
     # Export XML reports:
     try {
-        if (-not $null -eq $MoveRequest) {
+        if ($null -ne $MoveRequest) {
             $MoveRequest | Export-Clixml "$OutputFolder\MoveRequest_$Mailbox.xml"
             Add-Content -Path $logFile -Value " [INFO] The Move Request Report has been generated successfully."
         } else {
             Add-Content -Path $logFile -Value " [Error] The Move Request not exist."
         }
-        if (-not $null -eq $MoveRequestStatistics) {
+        if ($null -ne $MoveRequestStatistics) {
             $MoveRequestStatistics | Export-Clixml "$OutputFolder\MoveRequestStatistics_$Mailbox.xml"
             Add-Content -Path $logFile -Value " [INFO] The Move Request Statistics Report has been generated successfully."
         } else {
             Add-Content -Path $logFile -Value " [Error] The Move Request Statistics not exist."
         }
-        if (-not $null -eq $UserMigration) {
+        if ($null -ne $UserMigration) {
             $UserMigration | Export-Clixml "$OutputFolder\MigrationUser_$Mailbox.xml"
             Add-Content -Path $logFile -Value " [INFO] The User Migration Report has been generated successfully."
         } else {
             Add-Content -Path $logFile -Value " [Error] The Migration User not exist."
         }
 
-        if (-not $null -eq $UserMigrationStatistics) {
+        if ($null -ne $UserMigrationStatistics) {
             $UserMigrationStatistics | Export-Clixml "$OutputFolder\MigrationUserStatistics_$Mailbox.xml"
             Add-Content -Path $logFile -Value " [INFO] The Migration User Statistics Report has been generated successfully."
         } else {
             Add-Content -Path $logFile -Value " [Error] The Migration User Stistics Report not exist."
         }
 
-        if (-not $null -eq $MigrationBatch) {
+        if ($null -ne $MigrationBatch) {
             $MigrationBatch | Export-Clixml "$OutputFolder\MigrationBatch_$Mailbox.xml"
             Add-Content -Path $logFile -Value " [INFO] The Migration Batch Report has been generated successfully."
         } else {
             Add-Content -Path $logFile -Value " [Error] The Migration Batch not exist."
         }
-        if (-not $null -eq $MigrationEndPoint) {
+        if ($null -ne $MigrationEndPoint) {
             $MigrationEndPoint | Export-Clixml "$OutputFolder\MigrationEndpoint_$MigrationEndpoint.xml"
             Add-Content -Path $logFile -Value " [INFO] The Migration EndPoint Report has been generated successfully."
         } else {
@@ -142,28 +138,6 @@ function Export-Summary {
     "" >> ($File)
     $detailedFailure >> ($File)
     Add-Content -Path $logFile -Value "[INFO] the summary report has been created successfully."
-
-
-
-    <#  [int]       $Percent = $MoveRequestStatistics.PercentComplete
-    [string]    $Status  = $MoveRequestStatistics.Status
-    [string]    $Message = $MoveRequestStatistics.Message
-    $value = "This Move Request has the following infomration:" >> ($File)
-    $value = "-----------------------------------------------------------------------" >> ($File)
-    $value = "the status of this Move Request is " + $MoveRequestStatistics.Status.tostring() + " with " + $MoveRequestStatistics.Status + " Percent"  >> ($File)
-    $value = "" >> ($File)
-    $value = $MoveRequestStatistics.Message.ToString() >> ($File)
-    $value = "" >> ($File)
-    $value = "-----------------------------------------------------------------------" >> ($File)
-    $value = "" >> ($File)
-    $value = "The Move Request has the following Failures:" >> ($File)
-    $value = $MoveRequestStatistics.Report.Failures | Group-Object  FailureType | ft Count, Name >> ($File)
-    $value = "-----------------------------------------------------------------------" >> ($File)
-    $value = "" >> ($File)
-    $value = "Here is more details about each Failure (Note that only the last error is selected in more details):" >> ($File)
-    $value = "" >> ($File)
-    $detailedFailure >> ($File)
-    #>
 }
 
 #===================MAIN======================
@@ -193,7 +167,7 @@ foreach ($Mailbox in $Identity) {
     New-Item $file   -Type File -Force -ErrorAction SilentlyContinue | Out-Null
 
     try {
-        if (-not $null -eq $MoveRequestStatistics ) {
+        if ($null -ne $MoveRequestStatistics ) {
             Export-XMLReports
             Export-Summary
             Write-Host -ForegroundColor "Green" "The MoveRequest reports for $Mailbox exported successfully!"
@@ -205,10 +179,3 @@ foreach ($Mailbox in $Identity) {
         throw
     }
 }
-
-$compress = @{
-    Path             = $OutputFolder
-    CompressionLevel = "Fastest"
-    DestinationPath  = "Migration-Reports.Zip"
-}
-Compress-Archive @compress
