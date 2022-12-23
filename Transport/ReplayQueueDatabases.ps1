@@ -1,0 +1,227 @@
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
+  When Transport crashes, in some scenarios it will move the current queue
+  database to Messaging.old-<date> and create a new empty database. The old
+  database is usually not needed, unless shadow redundancy was failing. In
+  that case, it can be useful to drain the old queue file to recover those
+  messages.
+
+  This script automates the process of replaying many old queue files created
+  by a series of crashes.
+#>
+
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+param (
+    [Parameter()]
+    [int]
+    $MaxAgeInDays = 7,
+
+    [Parameter()]
+    [switch]
+    $RemoveDeliveryDelayedMessages
+)
+
+begin {
+    function Get-ExchangeInstallPath {
+        return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+    }
+
+    function Get-TransportConfigPath {
+        $installPath = Get-ExchangeInstallPath
+        return Join-Path $installPath "Bin\EdgeTransport.exe.config"
+    }
+
+    function Get-QueueDatabasePath {
+        $transportConfigPath = Get-TransportConfigPath
+        [xml]$TransportConfig = Get-Content $transportConfigPath
+        $queueDatabasePath = ($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value
+        $queueDatabaseLoggingPath = ($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value
+        if ($queueDatabasePath -ne $queueDatabaseLoggingPath) {
+            Write-Warning "QueueDatabasePath and QueueDatabaseLoggingPath are not the same. This script does not yet support this scenario."
+            exit
+        }
+
+        return $queueDatabasePath
+    }
+
+    function Get-BackupConfigPath {
+        $installPath = Get-ExchangeInstallPath
+        return Join-Path $installPath "bin\EdgeTransport.exe.config.before-replay"
+    }
+
+    function Backup-TransportConfig {
+        $transportConfigPath = Get-TransportConfigPath
+        $backupPath = Get-BackupConfigPath
+        if (Test-Path $backupPath) {
+            Remove-Item $backupPath
+        }
+
+        Copy-Item $transportConfigPath $backupPath
+    }
+
+    function Restore-TransportConfig {
+        [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+        param()
+
+        $transportConfigPath = Get-TransportConfigPath
+        $backupPath = Get-BackupConfigPath
+        if (Test-Path $backupPath) {
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Copy-Item $backupPath $transportConfigPath -Force", $null)) {
+                Copy-Item $backupPath $transportConfigPath -Force
+            } else {
+                exit
+            }
+        }
+    }
+
+    function Set-QueueDatabasePath {
+        [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]
+            $Path
+        )
+
+        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Point paths in EdgeTransport.exe.config to folder $Path", $null) -eq $false) {
+            exit
+        }
+
+        $transportConfigPath = Get-TransportConfigPath
+        [xml]$TransportConfig = Get-Content $transportConfigPath
+        ($TransportConfig.configuration.appSettings.Add | Where-Object key -EQ "QueueDatabasePath").value = $Path
+        ($TransportConfig.configuration.appSettings.Add | Where-Object key -EQ "QueueDatabaseLoggingPath").value = $Path
+        $TransportConfig.Save($transportConfigPath)
+    }
+
+    function Stop-Transport {
+        [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+        param()
+
+        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeFrontEndTransport")) {
+            Stop-Service MSExchangeFrontEndTransport
+        } else {
+            exit
+        }
+
+        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeTransport")) {
+            Stop-Service MSExchangeTransport
+        } else {
+            exit
+        }
+    }
+
+    function Start-Transport {
+        [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+        param()
+
+        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Start-Service MSExchangeTransport")) {
+            Start-Service MSExchangeTransport
+        }
+
+        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Start-Service MSExchangeFrontEndTransport")) {
+            Start-Service MSExchangeFrontEndTransport
+        }
+    }
+
+    $foldersToProcess = @()
+    $foldersToSkip = @()
+    $dateThreshold = (Get-Date).AddDays(-$MaxAgeInDays)
+}
+
+process {
+    $queueDatabasePath = Get-QueueDatabasePath
+    $oldQueueDatabaseFolders = Get-ChildItem -Path $queueDatabasePath -Filter "Messaging.old.*" -Recurse -Directory
+    [Array]::Reverse($oldQueueDatabaseFolders) # Start with the innermost first
+    foreach ($folder in $oldQueueDatabaseFolders) {
+        $folderName = $folder.Name
+        $folderDate = [DateTime]::ParseExact($folderName.Substring(14), "yyyyMMddHHmmss", $null)
+        if ($folderDate -lt $dateThreshold) {
+            $foldersToSkip += $folder
+            continue
+        }
+
+        $foldersToProcess += $folder
+    }
+
+    Write-Host "Found $($foldersToProcess.Count) folders to process."
+    foreach ($folder in $foldersToProcess) {
+        $folder.FullName
+    }
+
+    Write-Host
+
+    if ($foldersToSkip.Count -gt 0) {
+        Write-Host "Found $($foldersToSkip.Count) folders to skip due to age."
+        foreach ($folder in $foldersToSkip) {
+            $folder.FullName
+        }
+
+        Write-Host
+    }
+
+    Backup-TransportConfig
+
+    try {
+        for ($i = 0; $i -lt $foldersToProcess.Count; $i++) {
+            $folder = $foldersToProcess[$i]
+            if (Test-Path (Join-Path $folder.FullName "replay-completed.txt")) {
+                Write-Host "Skipping folder $($i + 1) of $($foldersToProcess.Count): $($folder.FullName) because it has already been processed."
+                Write-Host "To force reprocessing of this folder, delete the file $(Join-Path $folder "replay-completed.txt")"
+                continue
+            }
+
+            Write-Host "Processing folder $($i + 1) of $($foldersToProcess.Count): $($folder.FullName)"
+            $componentState = Get-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport
+            if ($componentState.State -ne "Draining") {
+                if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance")) {
+                    Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance
+                }
+            }
+
+            Stop-Transport
+
+            Set-QueueDatabasePath -Path $folder.FullName
+
+            Start-Transport
+
+            $removeDelayedDeliveryInterval = [TimeSpan]::FromMinutes(1)
+            $lastRemovedDelayedDelivery = [DateTime]::MinValue
+
+            while ($true) {
+                Start-Sleep -Seconds 5
+                if ($RemoveDeliveryDelayedMessages -and (Get-Date) -gt $lastRemovedDelayedDelivery.Add($removeDelayedDeliveryInterval)) {
+                    if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Remove-Message -Filter 'Subject -like 'Delivery Delayed:*'' -Server $server -Confirm:\$false", $null)) {
+                        Remove-Message -Filter "Subject -like 'Delivery Delayed:*'" -Server $server -Confirm:$false
+                        $lastRemovedDelayedDelivery = Get-Date
+                    }
+                }
+
+                $q = Get-Queue | Where-Object { $_.DeliveryType -ne "ShadowRedundancy" }
+                Write-Host "$(Get-Date): Queue state:"
+                $q | Out-Host
+                $queuesWithMessages = $q | Where-Object { $_.MessageCount -gt 0 }
+                if ($queuesWithMessages.Count -eq 0) {
+                    Write-Host "Queues are cleared."
+                    Write-Host
+                    if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop replaying this database", $null)) {
+                        break
+                    }
+                }
+            }
+
+            Set-Content (Join-Path $folder.FullName "replay-completed.txt") "Replay completed at $(Get-Date)"
+        }
+    } finally {
+        Stop-Transport
+
+        Restore-TransportConfig
+
+        Start-Transport
+
+        Write-Host "Replay complete."
+        Write-Host "HubTransport was left in a Draining state. You should run the following command to return it to an Active state when ready:"
+        Write-Host "Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Active -Requester Maintenance"
+    }
+}
