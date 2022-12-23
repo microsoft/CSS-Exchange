@@ -99,16 +99,20 @@ begin {
         [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
         param()
 
-        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeFrontEndTransport")) {
-            Stop-Service MSExchangeFrontEndTransport
-        } else {
-            exit
+        if ((Get-Service MSExchangeFrontEndTransport).Status -ne "Stopped") {
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeFrontEndTransport")) {
+                Stop-Service MSExchangeFrontEndTransport -ErrorAction Stop
+            } else {
+                exit
+            }
         }
 
-        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeTransport")) {
-            Stop-Service MSExchangeTransport
-        } else {
-            exit
+        if ((Get-Service MSExchangeTransport).Status -ne "Stopped") {
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Stop-Service MSExchangeTransport")) {
+                Stop-Service MSExchangeTransport -ErrorAction Stop
+            } else {
+                exit
+            }
         }
     }
 
@@ -117,11 +121,11 @@ begin {
         param()
 
         if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Start-Service MSExchangeTransport")) {
-            Start-Service MSExchangeTransport
+            Start-Service MSExchangeTransport -ErrorAction Stop
         }
 
         if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Start-Service MSExchangeFrontEndTransport")) {
-            Start-Service MSExchangeFrontEndTransport
+            Start-Service MSExchangeFrontEndTransport -ErrorAction Stop
         }
     }
 
@@ -132,8 +136,14 @@ begin {
 
 process {
     $queueDatabasePath = Get-QueueDatabasePath
-    $oldQueueDatabaseFolders = Get-ChildItem -Path $queueDatabasePath -Filter "Messaging.old.*" -Recurse -Directory
-    [Array]::Reverse($oldQueueDatabaseFolders) # Start with the innermost first
+
+    $oldQueueDatabaseFolders = Get-ChildItem "\\?\$queueDatabasePath" -Directory -Recurse | Where-Object { $_.Name -like "Messaging.old*" }
+    if ($oldQueueDatabaseFolders.Count -lt 1) {
+        Write-Host "No old queue database folders found."
+        exit
+    }
+
+    [Array]::Reverse($oldQueueDatabaseFolders)
     foreach ($folder in $oldQueueDatabaseFolders) {
         $folderName = $folder.Name
         $folderDate = [DateTime]::ParseExact($folderName.Substring(14), "yyyyMMddHHmmss", $null)
@@ -161,28 +171,34 @@ process {
         Write-Host
     }
 
+    $replayPath = Join-Path $queueDatabasePath "OldQueueReplay"
+    if (Test-Path $replayPath) {
+        Write-Warning "OldQueueReplay folder already exists. Manual cleanup required."
+        exit
+    }
+
     Backup-TransportConfig
 
     try {
+        $componentState = Get-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport
+        if ($componentState.State -ne "Draining") {
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance")) {
+                Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance
+            }
+        }
+
+        Stop-Transport
+
+        Set-QueueDatabasePath -Path $replayPath
+
         for ($i = 0; $i -lt $foldersToProcess.Count; $i++) {
             $folder = $foldersToProcess[$i]
-            if (Test-Path (Join-Path $folder.FullName "replay-completed.txt")) {
-                Write-Host "Skipping folder $($i + 1) of $($foldersToProcess.Count): $($folder.FullName) because it has already been processed."
-                Write-Host "To force reprocessing of this folder, delete the file $(Join-Path $folder "replay-completed.txt")"
-                continue
-            }
 
             Write-Host "Processing folder $($i + 1) of $($foldersToProcess.Count): $($folder.FullName)"
-            $componentState = Get-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport
-            if ($componentState.State -ne "Draining") {
-                if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance")) {
-                    Set-ServerComponentState -Identity $env:COMPUTERNAME -Component HubTransport -State Draining -Requester Maintenance
-                }
+
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Move-Item $($folder.FullName) $replayPath", $null)) {
+                Move-Item $folder.FullName $replayPath
             }
-
-            Stop-Transport
-
-            Set-QueueDatabasePath -Path $folder.FullName
 
             Start-Transport
 
@@ -192,7 +208,7 @@ process {
             while ($true) {
                 Start-Sleep -Seconds 5
                 if ($RemoveDeliveryDelayedMessages -and (Get-Date) -gt $lastRemovedDelayedDelivery.Add($removeDelayedDeliveryInterval)) {
-                    if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Remove-Message -Filter 'Subject -like 'Delivery Delayed:*'' -Server $server -Confirm:\$false", $null)) {
+                    if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Remove-Message -Filter 'Subject -like 'Delivery Delayed:*'' -Server $server -Confirm:`$false", $null)) {
                         Remove-Message -Filter "Subject -like 'Delivery Delayed:*'" -Server $server -Confirm:$false
                         $lastRemovedDelayedDelivery = Get-Date
                     }
@@ -211,7 +227,12 @@ process {
                 }
             }
 
-            Set-Content (Join-Path $folder.FullName "replay-completed.txt") "Replay completed at $(Get-Date)"
+            Stop-Transport
+
+            $backupPath = Join-Path $queueDatabasePath "Replayed-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Move-Item $replayPath $backupPath", $null)) {
+                Move-Item $replayPath $backupPath
+            }
         }
     } finally {
         Stop-Transport
