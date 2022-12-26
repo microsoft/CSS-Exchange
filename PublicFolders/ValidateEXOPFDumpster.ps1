@@ -2,7 +2,11 @@
 # Licensed under the MIT License.
 param(
     [Parameter(Mandatory = $false)]
-    [String]$ExportPath)
+    [String]$ExportPath,
+    [Parameter(Mandatory = $true)]
+    [String]$Pfolder,
+    [Parameter(Mandatory = $false)]
+    [String]$Affecteduser)
 $Script:ReportName = "ValidatePFDumpsterREPORT.txt"
 #Requires -Modules @{ModuleName="ExchangeOnlineManagement"; ModuleVersion="2.0.0" }
 function logerror {
@@ -48,9 +52,14 @@ function Connect2EXO {
         logerror -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
         Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
     } catch {
+        $Errorencountered=$Global:error[0].Exception
         $CurrentDescription = "Connecting to EXO V2"
         $CurrentStatus = "Failure"
         logerror -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
+        Write-Host "Error encountered during executing the script!"-ForegroundColor Red
+        Write-Host $Errorencountered -ForegroundColor Red
+        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
         break
     }
 }
@@ -98,7 +107,6 @@ function GetPublicFolderInfo {
         Write-Host $Errorencountered -ForegroundColor Red
         Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
         Start-Sleep -Seconds 3
-        Read-Key
         break
         #write log and exit function
     }
@@ -198,94 +206,89 @@ function ValidateUserPermissions {
     return "sync issue exist"
 }
 function ValidatePublicFolderIssue {
-    param([PSCustomObject]$PublicFolderInfo)
-    $ItemORFolder=Read-Host "Please specify if the issue is related to a user who is not able to delete an item inside a public folder or neither a user with owner permissions nor the admin are not able to delete the Public folder, Type (I) for Item or (F) for Folder"
-    if ($ItemORFolder.ToLower() -eq "i") {
-        #validate explict permission & default permission if item
-        $Affecteduser=Read-Host("Please provide an affected user smtp!")
-        try {
-            $User=Get-Mailbox $Affecteduser -ErrorAction stop
-            $Userpfmbx=Get-mailbox -PublicFolder $($User.EffectivePublicFolderMailbox) -ErrorAction stop
-            $Explicitperms=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.EntryId -User $User.Guid.Guid.tostring() -ErrorAction SilentlyContinue
-            $Defaultperms=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.EntryId -User Default -ErrorAction SilentlyContinue
-            #Validate if there's no perm sync issue
-            $Explicitpermsuserpfmbx=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.Identity -User $User.Guid.Guid.tostring() -ErrorAction SilentlyContinue -Mailbox $userpfmbx.ExchangeGuid.Guid
-            $Defaultpermsuserpfmbx=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.Identity -User Default -ErrorAction SilentlyContinue -Mailbox $userpfmbx.ExchangeGuid.Guid
-            $Userpermsyncissue=ValidateUserPermissions -Permsuserpfmbx $Explicitpermsuserpfmbx -Perms $Explicitperms
-            $Defaultuserpermsyncissue=ValidateUserPermissions -Permsuserpfmbx $Defaultpermsuserpfmbx -Perms $Defaultperms
-            $Explicitpermsresult=GetUserPermissions($Explicitperms)
-            $Defaultpermsresult=GetUserPermissions($Defaultperms)
-            if ($Userpermsyncissue -eq "sync issue exist") {
-                #explicituser sync perm issue
-                #validate that user has sufficient perms
-                if ($Explicitpermsresult -match "user has no permission") {
-                    #user has no sufficient perm
-                    $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
-                    $Issue="$($User.PrimarySmtpAddress) have no sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
-                    WritetoScreenANDlog -Issue $Issue -Fix $fix
-                }
-                #user has sufficient perm
-                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) permissions are synced properly over his EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
-                $Issue="$($User.PrimarySmtpAddress) has permissions sync problems over EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
+    param([Parameter(Mandatory = $true)]
+        [PSCustomObject]$PublicFolderInfo,
+        [Parameter(Mandatory = $false)]
+        [string]$Affecteduser)
+    #validate explict permission & default permission if item
+    try {
+        $User=Get-Mailbox $Affecteduser -ErrorAction stop
+        $Userpfmbx=Get-mailbox -PublicFolder $($User.EffectivePublicFolderMailbox) -ErrorAction stop
+        $Explicitperms=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.EntryId -User $User.Guid.Guid.tostring() -ErrorAction SilentlyContinue
+        $Defaultperms=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.EntryId -User Default -ErrorAction SilentlyContinue
+        #Validate if there's no perm sync issue
+        $Explicitpermsuserpfmbx=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.Identity -User $User.Guid.Guid.tostring() -ErrorAction SilentlyContinue -Mailbox $userpfmbx.ExchangeGuid.Guid
+        $Defaultpermsuserpfmbx=Get-PublicFolderClientPermission $PublicFolderInfo.Publicfolder.Identity -User Default -ErrorAction SilentlyContinue -Mailbox $userpfmbx.ExchangeGuid.Guid
+        $Userpermsyncissue=ValidateUserPermissions -Permsuserpfmbx $Explicitpermsuserpfmbx -Perms $Explicitperms
+        $Defaultuserpermsyncissue=ValidateUserPermissions -Permsuserpfmbx $Defaultpermsuserpfmbx -Perms $Defaultperms
+        $Explicitpermsresult=GetUserPermissions($Explicitperms)
+        $Defaultpermsresult=GetUserPermissions($Defaultperms)
+        if ($Userpermsyncissue -eq "sync issue exist") {
+            #explicituser sync perm issue
+            #validate that user has sufficient perms
+            if ($Explicitpermsresult -match "user has no permission") {
+                #user has no sufficient perm
+                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
+                $Issue="$($User.PrimarySmtpAddress) have no sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
                 WritetoScreenANDlog -Issue $Issue -Fix $fix
             }
-            if ($Defaultuserpermsyncissue -eq "sync issue exist" -and $Explicitpermsresult -match "user has no permission") {
-                #Defaultuser sync perm issue
-                #validate that Default has sufficient perms
-                if ($Defaultpermsresult -match "user has no permission") {
-                    #Default user has no sufficient perm
-                    $FIX="FIX --> Please ensure that either $($User.PrimarySmtpAddress) or Default user has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
-                    $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
-                    WritetoScreenANDlog -Issue $Issue -Fix $fix
-                }
-                #Default user has sufficient perm
-                $FIX="FIX --> Please ensure that Default user permissions are synced properly over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
-                $Issue="Default user has permissions sync problems over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
+            #user has sufficient perm
+            $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) permissions are synced properly over his EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
+            $Issue="$($User.PrimarySmtpAddress) has permissions sync problems over EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
+            WritetoScreenANDlog -Issue $Issue -Fix $fix
+        }
+        if ($Defaultuserpermsyncissue -eq "sync issue exist" -and $Explicitpermsresult -match "user has no permission") {
+            #Defaultuser sync perm issue
+            #validate that Default has sufficient perms
+            if ($Defaultpermsresult -match "user has no permission") {
+                #Default user has no sufficient perm
+                $FIX="FIX --> Please ensure that either $($User.PrimarySmtpAddress) or Default user has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
+                $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
                 WritetoScreenANDlog -Issue $Issue -Fix $fix
             }
-            if ($Userpermsyncissue -eq "no sync issue exist" -or $Defaultuserpermsyncissue -eq "no sync issue exist") {
-                #No sync issue found
-                #if Default/user has sufficient permission might be perm is corrupted, we might need to re-add default/user permission again
-                if ($Explicitpermsresult -match "user has permission") {
-                    #user has sufficient permission to delete but might be corrupted acl
-                    $FIX="FIX --> Please re-grant user $($User.PrimarySmtpAddress) permissions over the affected public folder, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
-                    $Issue="$($User.PrimarySmtpAddress) user has corrupted permission over public folder $($PublicFolderInfo.publicfolder.identity)"
-                    WritetoScreenANDlog -Issue $Issue -Fix $fix
-                }
-                if ($Defaultpermsresult -match "user has permission" -and $Explicitpermsresult -match "user has no permission") {
-                    #user has sufficient permission to delete but might be corrupted acl
-                    $FIX="FIX --> Please re-grant Default user permissions over the affected public folder or add the permission for the affected user explicitly, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
-                    $Issue="Default user has corrupted permission over public folder $($PublicFolderInfo.publicfolder.identity)"
-                    WritetoScreenANDlog -Issue $Issue -Fix $fix
-                }
+            #Default user has sufficient perm
+            $FIX="FIX --> Please ensure that Default user permissions are synced properly over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
+            $Issue="Default user has permissions sync problems over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
+            WritetoScreenANDlog -Issue $Issue -Fix $fix
+        }
+        if ($Userpermsyncissue -eq "no sync issue exist" -or $Defaultuserpermsyncissue -eq "no sync issue exist") {
+            #No sync issue found
+            #if Default/user has sufficient permission might be perm is corrupted, we might need to re-add default/user permission again
+            if ($Explicitpermsresult -match "user has permission") {
+                #user has sufficient permission to delete but might be corrupted acl
+                $FIX="FIX --> Please re-grant user $($User.PrimarySmtpAddress) permissions over the affected public folder, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
+                $Issue="$($User.PrimarySmtpAddress) user has corrupted permission over public folder $($PublicFolderInfo.publicfolder.identity)"
+                WritetoScreenANDlog -Issue $Issue -Fix $fix
             }
-            if ($Userpermsyncissue -eq "no sync issue exist" -and $Defaultuserpermsyncissue -eq "no sync issue exist") {
-                if ($Explicitpermsresult -match "user has no permission" -and $Defaultpermsresult -match "user has no permission") {
-                    #user has no permission to delete
-                    $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
-                    $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
-                    WritetoScreenANDlog -Issue $Issue -Fix $fix
-                }
+            if ($Defaultpermsresult -match "user has permission" -and $Explicitpermsresult -match "user has no permission") {
+                #user has sufficient permission to delete but might be corrupted acl
+                $FIX="FIX --> Please re-grant Default user permissions over the affected public folder or add the permission for the affected user explicitly, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
+                $Issue="Default user has corrupted permission over public folder $($PublicFolderInfo.publicfolder.identity)"
+                WritetoScreenANDlog -Issue $Issue -Fix $fix
             }
         }
-
-        catch {
-            #log the error and quit
-            $Errorencountered=$Global:error[0].Exception
-            $CurrentDescription = "Validating if user has sufficient permissions to delete"
-            $CurrentStatus = "Failure with error: "+$Errorencountered
-            logerror -Function "Validate user permissions" -CurrentStatus $CurrentStatus -Description $CurrentDescription
-            Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
-            Start-Sleep -Seconds 3
-            Read-Key
-            break
+        if ($Userpermsyncissue -eq "no sync issue exist" -and $Defaultuserpermsyncissue -eq "no sync issue exist") {
+            if ($Explicitpermsresult -match "user has no permission" -and $Defaultpermsresult -match "user has no permission") {
+                #user has no permission to delete
+                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
+                $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.publicfolder.identity)"
+                WritetoScreenANDlog -Issue $Issue -Fix $fix
+            }
         }
-    } elseif ($ItemORFolder.ToLower() -ne "f") {
-        Write-Host "You didn't provide an expected input!" -ForegroundColor Red
-        Write-Warning "Relaunching again!"
-        ValidatePublicFolderIssue($PublicFolderInfo)
+    } catch {
+        #log the error and quit
+        $Errorencountered=$Global:error[0].Exception
+        $CurrentDescription = "Validating if user has sufficient permissions to delete"
+        $CurrentStatus = "Failure with error: "+$Errorencountered
+        logerror -Function "Validate user permissions" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        Write-Host "Error encountered during executing the script!"-ForegroundColor Red
+        Write-Host $Errorencountered -ForegroundColor Red
+        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
+        break
     }
 }
+
 function ValidatePublicFolderQuota {
     param([PSCustomObject]$PublicFolderInfo)
     #Validate if DefaultPublicFolderProhibitPostQuota at the organization level applies
@@ -331,6 +334,11 @@ function ValidateDumpsterChildren {
         $CurrentDescription = "Validating if dumpster folder:$($PublicFolderInfo.Publicfolderdumpster.EntryId) has children"
         $CurrentStatus = "Failure with error: "+$Errorencountered
         logerror -Function "Validate if dumpster folder has children" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        Write-Host "Error encountered during executing the script!"-ForegroundColor Red
+        Write-Host $Errorencountered -ForegroundColor Red
+        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
+        break
     }
     if ($null -ne $Haschildren) {
         $Fix= "FIX --> Please follow the following article https://aka.ms/setpf to move $($PublicFolderInfo.Publicfolder.Identity) dumpster children found to under NON_IPM_SUBTREE scope e.g. \NON_IPM_SUBTREE\DUMPSTER_ROOT\DUMPSTER_EXTEND\RESERVED_1\RESERVED_1"
@@ -374,7 +382,7 @@ if ($null -eq $ExportPath -or $ExportPath -eq "") {
     }
 }
 
-$Pfolder=Read-Host "Please enter affected public folder EntryID or Identity: e.g \PF1"
+
 [string]$Description = "This script illustrates issues related to deleting public folder items or removing the public folder on Publicfolder $Pfolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\$Script:ReportName -Append
@@ -387,7 +395,10 @@ if ($null -eq $Sessioncheck) {
 
 #Main Function
 $PublicFolderInfo=GetPublicFolderInfo($Pfolder)
-ValidatePublicFolderIssue($PublicFolderInfo)
+#if the issue is related to a user who is not able to delete an item inside a public folder
+if ($Affecteduser -notlike "" -or $Affecteduser -notlike $null) {
+    ValidatePublicFolderIssue -PublicFolderInfo $PublicFolderInfo -Affecteduser $Affecteduser
+}
 ValidateContentMBXUniqueness($PublicFolderInfo)
 ValidateEntryIDMapping($PublicFolderInfo)
 ValidateContentMBXQuota($PublicFolderInfo)
@@ -412,12 +423,17 @@ if ($null -eq $Sessioncheck) {
         $CurrentStatus = "Success"
         logerror -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO V2" -CurrentDescription $CurrentDescription
     } catch {
+        $Errorencountered=$Global:error[0].Exception
         $CurrentDescription = "Disconnecting from EXO V2"
         $CurrentStatus = "Failure"
         logerror -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO V2" -CurrentDescription $CurrentDescription
+        Write-Host "Error encountered during executing the script!"-ForegroundColor Red
+        Write-Host $Errorencountered -ForegroundColor Red
+        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+        Start-Sleep -Seconds 3
+        break
     }
 }
 # End of the Diag
 Write-Host "`nlog file was exported in the following location: $ExportPath" -ForegroundColor Yellow
-#TODO add cleanup session function
 Start-Sleep -Seconds 3

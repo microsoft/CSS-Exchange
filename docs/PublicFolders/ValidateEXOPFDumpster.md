@@ -21,6 +21,8 @@ Checks run:
 
 ```powershell
 ValidateEXOPFDumpster.ps1
+  [-Pfolder <string[]>]
+  [-Affecteduser <string[]>]
   [-ExportPath <string[]>]
 ```
 
@@ -37,34 +39,33 @@ PublicFolderInfo.xml|All required information about the affected public folder|T
 
 ## Usage
 
-Typically, the script should be run with no parameters:
+Typically, the script should run with Pfolder identity parameter as illustrated below:
 
 ```powershell
-.\ValidateEXOPFDumpster.ps1
+.\ValidateEXOPFDumpster.ps1 -Pfolder \pf1
 ```
 
-The script will ask for affected public folder identity/EntryID then it will prompt for global administrator username & password to connect to EXO
+The script will prompt for affected public folder identity/EntryID if it wasn't provided using Pfolder parameter then it will prompt for global administrator username & password to connect to EXO by default it validates if the issue is specific to the Public folder "e.g. all users are affected"
 
 ![Picture of script intro](PFDumps.jpg)
+![Picture of script intro without use Pfolder parameter](PFDumpswithoutparam.jpg)
 
-The script then prompts for either whether the issue was public folder related "Admin should enter letter f" or it happens only with a specific user "Admin should enter letter i" & on that case an affected user smtp address is required to be provided
+If the issue happens only with a specific user on that case an affected user smtp address is required to be provided
 
-![Picture of public folder issue type](PFDumps1.jpg)
 ![Picture of user specific issue type](PFDumps2.jpg)
 
+In this example output, the script calls out two blockers.
 
-In this example output, the script calls out two issues.
-
-It points out the below issues:
+It points out the below blockers:
     Neither user nor Default user have sufficient permissions to delete items inside the public folder
     Public folder size has exceeded Individual Public Folder ProhibitPostQuota value
 
 ![Picture of example](PFDumps3.jpg)
 
-In this example output, the script calls out four issues.
+In this example output, the script calls out four blockers.
 
 It points out the below issues:
-    Public folder  & its dumpster doesn't have the same content public folder mailbox
+    Public folder & its dumpster doesn't have the same content public folder mailbox
     Public folder EntryId & DumpsterEntryID values are not mapped properly
     Public folder size has exceeded Organization DefaultPublicFolderProhibitPostQuota value
     Public folder dumpster has 1 subfolder
