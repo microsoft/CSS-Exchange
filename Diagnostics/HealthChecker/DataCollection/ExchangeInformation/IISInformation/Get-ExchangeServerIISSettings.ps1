@@ -57,8 +57,16 @@ function Get-ExchangeServerIISSettings {
 
         if ($null -ne $applicationHostConfig) {
             Write-Verbose "Trying to query the modules which are loaded by IIS"
+            try {
+                [xml]$xmlApplicationHostConfig = [xml]$applicationHostConfig
+            } catch {
+                Write-Verbose "Failed to convert the Application Host Config to XML"
+                Invoke-CatchActions
+                # Don't attempt to run Get-IISModules
+                return
+            }
             $iisModulesParams = @{
-                ApplicationHostConfig    = ([xml]$applicationHostConfig)
+                ApplicationHostConfig    = $xmlApplicationHostConfig
                 SkipLegacyOSModulesCheck = $IsLegacyOS
                 CatchActionFunction      = $CatchActionFunction
             }
