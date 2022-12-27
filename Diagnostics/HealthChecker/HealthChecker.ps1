@@ -155,9 +155,7 @@ begin {
 
     . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
     . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
-    . $PSScriptRoot\Helpers\Get-HealthCheckFilesItemsFromLocation.ps1
-    . $PSScriptRoot\Helpers\Get-OnlyRecentUniqueServersXmls.ps1
-    . $PSScriptRoot\Helpers\Import-MyData.ps1
+    . $PSScriptRoot\Helpers\Get-ExportedHealthCheckerFiles.ps1
     . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
     . $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
     . $PSScriptRoot\Helpers\Class.ps1
@@ -217,9 +215,12 @@ begin {
         # Features that doesn't require Exchange Shell
         if ($BuildHtmlServersReport) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-HTMLServerReport"
-            $files = Get-HealthCheckFilesItemsFromLocation
-            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-            $importData = Import-MyData -FilePaths $fullPaths
+            $importData = Get-ExportedHealthCheckerFiles -Directory $XMLDirectoryPath
+
+            if ($null -eq $importData) {
+                Write-Host "Doesn't appear to be any Health Check XML files here....stopping the script"
+                exit
+            }
             Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
             Start-Sleep 2;
             return
@@ -227,9 +228,12 @@ begin {
 
         if ($AnalyzeDataOnly) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-Analyzer"
-            $files = Get-HealthCheckFilesItemsFromLocation
-            $fullPaths = Get-OnlyRecentUniqueServersXMLs $files
-            $importData = Import-MyData -FilePaths $fullPaths
+            $importData = Get-ExportedHealthCheckerFiles -Directory $XMLDirectoryPath
+
+            if ($null -eq $importData) {
+                Write-Host "Doesn't appear to be any Health Check XML files here....stopping the script"
+                exit
+            }
 
             $analyzedResults = @()
             foreach ($serverData in $importData) {
