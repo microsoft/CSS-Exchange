@@ -2,22 +2,32 @@
 # Licensed under the MIT License.
 
 <#
-  When Transport crashes, in some scenarios it will move the current queue
-  database to Messaging.old-<date> and create a new empty database. The old
-  database is usually not needed, unless shadow redundancy was failing. In
-  that case, it can be useful to drain the old queue file to recover those
-  messages.
+.SYNOPSIS
+    Replay queue databases from Messages.old-<date> folders.
+.DESCRIPTION
+    When Transport crashes, in some scenarios it will move the current queue
+    database to Messaging.old-<date> and create a new empty database. The old
+    database is usually not needed, unless shadow redundancy was failing. In
+    that case, it can be useful to drain the old queue file to recover those
+    messages.
 
-  This script automates the process of replaying many old queue files created
-  by a series of crashes.
+    This script automates the process of replaying many old queue files created
+    by a series of crashes.
+.EXAMPLE
+    PS> .\ReplayQueueDatabases
+    Replays all queue databases newer than 7 days.
+.EXAMPLE
+    PS> .\ReplayQueueDatabases -RemoveDeliveryDelayedMessages
+    Replays all queue databases newer than 7 days and removes delivery delay notifications.
 #>
-
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
 param (
+    # Only replay queue databases newer than this date
     [Parameter()]
     [int]
     $MaxAgeInDays = 7,
 
+    # Attempt to remove delivery delay notifications so user mailboxes do not fill up with these while we replay old messages
     [Parameter()]
     [switch]
     $RemoveDeliveryDelayedMessages
@@ -132,11 +142,12 @@ begin {
     $foldersToProcess = @()
     $foldersToSkip = @()
     $dateThreshold = (Get-Date).AddDays(-$MaxAgeInDays)
+    $queueDatabasePath = Get-QueueDatabasePath
+    $replayedFoldersPath = Join-Path $queueDatabasePath "QueuesReplayed"
+    $skippedFoldersPath = Join-Path $queueDatabasePath "QueuesSkipped"
 }
 
 process {
-    $queueDatabasePath = Get-QueueDatabasePath
-
     $oldQueueDatabaseFolders = Get-ChildItem "\\?\$queueDatabasePath" -Directory -Recurse | Where-Object { $_.Name -like "Messaging.old*" }
     if ($oldQueueDatabaseFolders.Count -lt 1) {
         Write-Host "No old queue database folders found."
@@ -160,12 +171,24 @@ process {
         $folder.FullName
     }
 
+    if ($foldersToProcess.Count -gt 0) {
+        if (-not (Test-Path $replayedFoldersPath)) {
+            New-Item $replayedFoldersPath -ItemType Directory | Out-Null
+        }
+    }
+
     Write-Host
 
     if ($foldersToSkip.Count -gt 0) {
+        if (-not (Test-Path $skippedFoldersPath)) {
+            New-Item $skippedFoldersPath -ItemType Directory | Out-Null
+        }
+
         Write-Host "Found $($foldersToSkip.Count) folders to skip due to age."
         foreach ($folder in $foldersToSkip) {
             $folder.FullName
+
+            Move-Item $folder $skippedFoldersPath
         }
 
         Write-Host
@@ -229,9 +252,9 @@ process {
 
             Stop-Transport
 
-            $backupPath = Join-Path $queueDatabasePath "Replayed-$([DateTime]::Now.ToString('yyyyMMddHHmmss'))"
-            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Move-Item $replayPath $backupPath", $null)) {
-                Move-Item $replayPath $backupPath
+            $replayedPath = Join-Path $replayedFoldersPath $folder.Name.Replace("Messaging.old", "Replayed")
+            if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Move-Item $replayPath $replayedPath", $null)) {
+                Move-Item $replayPath $replayedPath
             }
         }
     } finally {
