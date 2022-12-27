@@ -194,7 +194,16 @@ function Get-ExchangeInformation {
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
 
-            $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
+            if ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
+                $getExtendedProtectionConfigurationParams.ApplicationHostConfig = $exchangeInformation.IISSettings.ApplicationHostConfig
+            }
+
+            try {
+                $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
+            } catch {
+                Write-Verbose "Failed to get the ExtendedProtectionConfig"
+                Invoke-CatchActions
+            }
         }
 
         $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
