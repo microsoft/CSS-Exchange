@@ -34,6 +34,10 @@ param (
 )
 
 begin {
+    . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+
+    . $PSScriptRoot\..\Shared\Confirm-ExchangeManagementShell.ps1
+
     function Get-ExchangeInstallPath {
         return (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     }
@@ -148,6 +152,16 @@ begin {
 }
 
 process {
+    if (-not (Confirm-Administrator)) {
+        Write-Host "This script must be run as an administrator."
+        exit
+    }
+
+    if (-not (Confirm-ExchangeManagementShell)) {
+        Write-Host "This script must be run from Exchange Management Shell."
+        exit
+    }
+
     $oldQueueDatabaseFolders = Get-ChildItem "\\?\$queueDatabasePath" -Directory -Recurse | Where-Object { $_.Name -like "Messaging.old*" }
     if ($oldQueueDatabaseFolders.Count -lt 1) {
         Write-Host "No old queue database folders found."
@@ -175,6 +189,8 @@ process {
         if (-not (Test-Path $replayedFoldersPath)) {
             New-Item $replayedFoldersPath -ItemType Directory | Out-Null
         }
+    } else {
+        exit
     }
 
     Write-Host
