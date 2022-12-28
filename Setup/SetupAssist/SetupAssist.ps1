@@ -24,6 +24,7 @@ param(
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PrerequisiteInstalled.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-VirtualDirectoryConfiguration.ps1
+. $PSScriptRoot\Checks\UserContext\Test-UserGroupMemberOf.ps1
 . $PSScriptRoot\..\Shared\SetupLogReviewerLogic.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\Write-ErrorInformation.ps1
@@ -41,7 +42,8 @@ function WriteCatchInfo {
 }
 
 function RunAllTests {
-    $tests = @("Test-ExchangeADSetupLevel",
+    $tests = @("Test-UserIsAdministrator",
+        "Test-ExchangeADSetupLevel",
         "Test-ExecutionPolicy",
         "Test-ExchangeServices",
         "Test-ComputersContainerExists",
