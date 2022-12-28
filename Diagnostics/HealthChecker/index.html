@@ -2014,6 +2014,11 @@
   <span class="p">[</span><span class="n">-ScriptUpdateOnly</span><span class="p">]</span>
   <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
+<span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="p">[</span><span class="n">-VulnerabilityReport</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-OutputFilePath</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SaveDebugLog</span><span class="p">]</span>
 </code></pre></div>
 <h2 id="how-to-run">How To Run</h2>
 <p>This script <strong>must</strong> be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against the local server and provide the detail output of the configuration of the server.</p>
@@ -2047,6 +2052,9 @@
 </code></pre></div>
 <p>This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">?{</span><span class="nv">$_</span><span class="p">.</span><span class="n">AdminDisplayVersion</span> <span class="o">-Match</span> <span class="s2">&quot;^Version 15&quot;</span><span class="p">}</span> <span class="p">|</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span><span class="p">;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span><span class="p">;</span> <span class="p">.\</span><span class="n">ExchangeAllServersReport</span><span class="p">.</span><span class="n">html</span>
+</code></pre></div>
+<p>This cmdlet will run Health Checker Vulnerability Report feature against all your Exchange Servers. Then Export out the data to a json file.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-VulnerabilityReport</span>
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -2102,6 +2110,10 @@
 <td>Switch to analyze the existing HealthChecker XML files. The results are displayed on the screen and an HTML report is generated.</td>
 </tr>
 <tr>
+<td>VulnerabilityReport</td>
+<td>Switch to collect the Vulnerability Information for all the servers in the environment and export it out to json file.</td>
+</tr>
+<tr>
 <td>SkipVersionCheck</td>
 <td>No version check is performed when this switch is used.</td>
 </tr>
@@ -2121,7 +2133,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 16, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 27, 2022</span>
       
     
   </small>
