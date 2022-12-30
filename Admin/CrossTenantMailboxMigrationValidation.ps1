@@ -119,6 +119,7 @@ param (
     [System.Management.Automation.SwitchParameter]$SourceIsOffline
 )
 
+. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject Wscript.Shell
 
 function ConnectToEXOTenants {
