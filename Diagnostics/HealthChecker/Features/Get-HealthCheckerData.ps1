@@ -149,4 +149,8 @@ function Get-HealthCheckerData {
         }
     }
     Write-Verbose "Failed Server List: $([string]::Join(",", $failedServerList))"
+
+    if ($ReturnDataCollectionOnly) {
+        return $returnDataList
+    }
 }
