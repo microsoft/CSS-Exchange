@@ -89,6 +89,7 @@ nav:
     - SetupLogReviewer: Setup/SetupLogReviewer.md
   - Transport:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
+    - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
 theme:
   name: 'material'
   features:

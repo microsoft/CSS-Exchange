@@ -3,13 +3,13 @@ name: Limit Pull Requests
 on:
   pull_request:
     branches:
-      - release
+      - microsoft:release
 
 jobs:
   limit_release_pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: LukBukkit/action-pr-limits@v1.2.0
+      - uses: bill-long/action-pr-limits@v1.0
         with:
           allowlist: |
-            main
+            microsoft:main

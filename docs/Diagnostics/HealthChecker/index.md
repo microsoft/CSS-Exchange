@@ -62,6 +62,11 @@ HealthChecker.ps1
   [-ScriptUpdateOnly]
   [-OutputFilePath <string>]
   [-SaveDebugLog]
+HealthChecker.ps1
+  [-VulnerabilityReport]
+  [-OutputFilePath <string>]
+  [-SkipVersionCheck]
+  [-SaveDebugLog]
 ```
 
 ## How To Run
@@ -129,6 +134,12 @@ This cmdlet will run the Health Checker against all your Exchange Servers, then 
 PS C:\> Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | .\HealthChecker.ps1; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
 ```
 
+This cmdlet will run Health Checker Vulnerability Report feature against all your Exchange Servers. Then Export out the data to a json file.
+
+```powershell
+PS C:\> .\HealthChecker.ps1 -VulnerabilityReport
+```
+
 ## Parameters
 
 Parameter | Description
@@ -144,6 +155,7 @@ BuildHtmlServersReport | Switch to enable the script to build the HTML report fo
 HtmlReportFile | Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
 DCCoreRatio | Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.
 AnalyzeDataOnly | Switch to analyze the existing HealthChecker XML files. The results are displayed on the screen and an HTML report is generated.
+VulnerabilityReport | Switch to collect the Vulnerability Information for all the servers in the environment and export it out to json file.
 SkipVersionCheck | No version check is performed when this switch is used.
 SaveDebugLog | The debug log is kept even if the script is executed successfully.
 ScriptUpdateOnly | Switch to check for the latest version of the script and perform an auto update if a newer version was found. Can be run on any machine with internet connectivity. No elevated permissions or EMS are required.
