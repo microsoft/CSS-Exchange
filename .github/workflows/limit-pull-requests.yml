@@ -3,7 +3,7 @@ name: Limit Pull Requests
 on:
   pull_request:
     branches:
-      - microsoft:release
+      - release
 
 jobs:
   limit_release_pr:
