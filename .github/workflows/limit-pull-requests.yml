@@ -9,7 +9,7 @@ jobs:
   limit_release_pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: bill-long/action-pr-limits@v1.02
+      - uses: bill-long/action-pr-limits@v1.0
         with:
           allowlist: |
             microsoft:main
