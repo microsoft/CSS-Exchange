@@ -40,6 +40,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 13
         }
