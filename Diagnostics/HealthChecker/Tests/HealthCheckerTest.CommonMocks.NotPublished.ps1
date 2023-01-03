@@ -170,6 +170,10 @@ Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
 
+Mock Get-ExSetupDetails {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 
@@ -184,10 +188,6 @@ function Get-ExchangeCertificate {
 
 function Get-AuthConfig {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAuthConfig.xml"
-}
-
-function Get-ExSetupDetails {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
 function Get-MailboxServer {

@@ -149,9 +149,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 21
+            $cveTests.Count | Should -Be 20
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
+            TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
+            TestObjectMatch "Extended Protection Vulnerable Details" "Your Exchange server is at risk. Install the latest SU and enable Extended Protection" -WriteType "Red"
         }
     }
 
@@ -164,6 +166,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
+            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\GetApplicationHostConfig2.config" }
             $org = Get-OrganizationInformation -EdgeServer $false
             $passedOrganizationInformation = @{
                 OrganizationConfig = $org.GetOrganizationConfig
@@ -173,6 +177,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Extended Protection Enabled" {
+            SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
         }
 
         It "Display Results - Operating System Information" {
@@ -205,6 +214,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $Script:ActiveGrouping.Count | Should -Be 18
         }
+
+        It "Extended Protection" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
+            TestObjectMatch "Extended Protection Vulnerable Details" "Extended Protection isn't configured as expected" -WriteType "Red"
+        }
     }
 
     Context "Checking Scenarios 1" {
@@ -222,6 +237,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Shared Web Config Files" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISSharedWebConfig1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get-IISWebApplication" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISWebApplication1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\GetApplicationHostConfig1.config" }
             Mock Get-ExchangeSettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride1.xml" }
             Mock Get-Service {
                 param(
@@ -243,13 +259,17 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $Script:results = Invoke-AnalyzerEngine $hc
         }
 
-        It "Dependent Services" {
+        It "Generic Exchange Information" {
             SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "Setting Overrides Detected" $true
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
+        }
+
+        It "Dependent Services" {
             $displayFormat = "{0} - Status: {1} - StartType: {2}"
             TestObjectMatch "Critical Pla" ($displayFormat -f "pla", "Stopped", "Manual") -WriteType "Red"
             TestObjectMatch "Critical HostControllerService" ($displayFormat -f "HostControllerService", "Stopped", "Disabled") -WriteType "Red"
             TestObjectMatch "Common MSExchangeDagMgmt" ($displayFormat -f "MSExchangeDagMgmt", "Stopped", "Automatic") -WriteType "Yellow"
-            TestObjectMatch "Setting Overrides Detected" $true
         }
 
         It "Http Proxy Settings" {
@@ -331,6 +351,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.InternalDownloadHostName | Should -Be "Set to the same as Internal Or External URL as OWA."
         }
 
+        It "Extended Protection" {
+            TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
+            TestObjectMatch "Extended Protection Vulnerable Details" "Extended Protection is configured, but not supported on this Exchange Server build" -WriteType "Red"
+        }
+
         It "AMSI Enabled" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
@@ -355,6 +380,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
+            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\GetApplicationHostConfig1.config" }
+
             $org = Get-OrganizationInformation -EdgeServer $false
             $passedOrganizationInformation = @{
                 OrganizationConfig = $org.GetOrganizationConfig
@@ -364,6 +392,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario2_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Generic Exchange Information" {
+            SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
         }
 
         It "TCP Keep Alive Time" {
@@ -409,6 +442,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $downloadDomains.InternalDownloadHostName | Should -Be "Not Configured"
         }
 
+        It "Extended Protection" {
+            $testFind = GetObject "Extended Protection Vulnerable"
+            $testFind | Should -Be $null
+        }
+
         It "No Register in DNS" {
             SetActiveDisplayGrouping "NIC Settings Per Active Adapter"
             TestObjectMatch "No NIC Registered In DNS" "Error: This will cause server to crash and odd mail flow issues. Exchange Depends on the primary NIC to have the setting Registered In DNS set." -WriteType "Red"
@@ -424,6 +462,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
+            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\GetApplicationHostConfig2.config" }
             $org = Get-OrganizationInformation -EdgeServer $false
             $passedOrganizationInformation = @{
                 OrganizationConfig = $org.GetOrganizationConfig
@@ -433,6 +473,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_Scenario3_Physical_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
+        }
+
+        It "Extended Protection Enabled" {
+            SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
         }
 
         It "Number of Processors" {
@@ -462,6 +507,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "HighPerformanceSet" {
             TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+
+        It "Extended Protection" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
+            TestObjectMatch "Extended Protection Vulnerable Details" "Extended Protection isn't configured as expected" -WriteType "Red"
         }
     }
 
