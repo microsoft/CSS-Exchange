@@ -55,14 +55,18 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 }
 
                 $epCveParams = $baseParams + @{
-                    Name             = "Security Vulnerability"
-                    Details          = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
-                    DisplayWriteType = "Red"
+                    Name                = "Security Vulnerability"
+                    Details             = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    DisplayWriteType    = "Red"
+                    TestingName         = "Extended Protection Vulnerable"
+                    DisplayTestingValue = $true
                 }
                 $epBasicParams = $baseParams + @{
                     DisplayWriteType       = "Red"
                     DisplayCustomTabNumber = 2
                     Details                = "$epDetails"
+                    TestingName            = "Extended Protection Vulnerable Details"
+                    DisplayTestingValue    = $epDetails
                 }
                 Add-AnalyzedResultInformation @epCveParams
                 Add-AnalyzedResultInformation @epBasicParams

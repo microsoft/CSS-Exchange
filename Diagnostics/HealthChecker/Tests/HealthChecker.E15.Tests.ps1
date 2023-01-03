@@ -38,6 +38,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 16
         }
@@ -142,7 +143,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.Gettype().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 49
+            $cveTests.Count | Should -Be 48
         }
     }
 }
