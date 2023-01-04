@@ -16,6 +16,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Admin/CrossTenantMailboxMigrationValidation/</loc>
+         <lastmod>2023-01-04</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Admin/Find-AmbiguousSids/</loc>
          <lastmod>2023-01-04</lastmod>
          <changefreq>daily</changefreq>
