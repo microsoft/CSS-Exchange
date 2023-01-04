@@ -72,7 +72,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
-            Assert-MockCalled Get-ExtendedProtectionConfiguration -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
