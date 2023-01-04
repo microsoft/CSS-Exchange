@@ -194,11 +194,12 @@ function Get-ExchangeInformation {
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
 
-            if ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
-                $getExtendedProtectionConfigurationParams.ApplicationHostConfig = $exchangeInformation.IISSettings.ApplicationHostConfig
-            }
-
             try {
+                if ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
+                    $getExtendedProtectionConfigurationParams.ApplicationHostConfig = [xml]$exchangeInformation.IISSettings.ApplicationHostConfig
+                }
+                Write-Verbose "Was able to convert the ApplicationHost.Config to XML"
+
                 $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
             } catch {
                 Write-Verbose "Failed to get the ExtendedProtectionConfig"

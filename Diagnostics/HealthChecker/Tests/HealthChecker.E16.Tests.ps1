@@ -39,6 +39,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 13
         }
@@ -146,7 +147,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 21
+            $cveTests.Count | Should -Be 20
             $downlaodDomains = GetObject "CVE-2021-1730"
             $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
 
