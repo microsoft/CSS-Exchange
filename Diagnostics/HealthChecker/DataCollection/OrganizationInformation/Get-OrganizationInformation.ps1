@@ -63,6 +63,7 @@ function Get-OrganizationInformation {
                 $directorySearcher.SearchScope = "Subtree"
                 $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
                 $directorySearcher.Filter = "(objectCategory=site)"
+                $directorySearcher.PageSize = 100
                 $orgInfo.ADSiteCount = ($directorySearcher.FindAll()).Count
             } catch {
                 Write-Verbose "Failed to collect AD Site Count information"
