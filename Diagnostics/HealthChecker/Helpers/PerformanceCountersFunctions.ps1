@@ -69,6 +69,10 @@ function Get-LocalizedPerformanceCounterName {
         [string]$PerformanceCounterName
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    $baseParams = @{
+        MachineName         = $ComputerName
+        CatchActionFunction = ${Function:Invoke-CatchActions}
+    }
 
     if ($null -eq $Script:EnglishOnlyOSCache) {
         $Script:EnglishOnlyOSCache = @{}
@@ -83,12 +87,23 @@ function Get-LocalizedPerformanceCounterName {
     }
 
     if (-not ($Script:EnglishOnlyOSCache.ContainsKey($ComputerName))) {
-        $perfLib = Get-RemoteRegistrySubKey -MachineName $ComputerName `
-            -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
-        $englishOnlyOS = ($perfLib.GetSubKeyNames() |
-                Where-Object { $_ -like "0*" }).Count -eq 1
-        $Script:EnglishOnlyOSCache.Add($ComputerName, $englishOnlyOS)
+        $perfLib = Get-RemoteRegistrySubKey @baseParams -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib"
+
+        if ($null -eq $perfLib) {
+            Write-Verbose "No Perflib on computer. Assume EnglishOnlyOS for Get-Counter attempt"
+            $Script:EnglishOnlyOSCache.Add($ComputerName, $true)
+        } else {
+            try {
+                $englishOnlyOS = ($perfLib.GetSubKeyNames() |
+                        Where-Object { $_ -like "0*" }).Count -eq 1
+                Write-Verbose "Determined computer '$ComputerName' is englishOnlyOS: $englishOnlyOS"
+                $Script:EnglishOnlyOSCache.Add($ComputerName, $englishOnlyOS)
+            } catch {
+                Write-Verbose "Failed to run GetSubKeyNames() on the opened key. Assume EnglishOnlyOS for Get-Counter attempt"
+                $Script:EnglishOnlyOSCache.Add($ComputerName, $true)
+                Invoke-CatchActions
+            }
+        }
     }
 
     if ($Script:EnglishOnlyOSCache[$ComputerName]) {
@@ -97,30 +112,36 @@ function Get-LocalizedPerformanceCounterName {
     }
 
     if (-not ($Script:Counter009Cache.ContainsKey($ComputerName))) {
-        $enUSCounterKeys = Get-RemoteRegistryValue -MachineName $ComputerName `
-            -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009" `
-            -GetValue "Counter" `
-            -ValueType "MultiString" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
+        $params = $baseParams + @{
+            SubKey    = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009"
+            GetValue  = "Counter"
+            ValueType = "MultiString"
+        }
+        $enUSCounterKeys = Get-RemoteRegistryValue @params
 
         if ($null -eq $enUSCounterKeys) {
             Write-Verbose "No 'en-US' (009) 'Counter' registry value found."
-            return $null
+            Write-Verbose "Set Computer to English OS to just return PerformanceCounterName"
+            $Script:EnglishOnlyOSCache[$ComputerName] = $true
+            return $PerformanceCounterName
         } else {
             $Script:Counter009Cache.Add($ComputerName, $enUSCounterKeys)
         }
     }
 
     if (-not ($Script:CounterCurrentLanguageCache.ContainsKey($ComputerName))) {
-        $currentCounterKeys = Get-RemoteRegistryValue -MachineName $ComputerName `
-            -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\CurrentLanguage" `
-            -GetValue "Counter" `
-            -ValueType "MultiString" `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
+        $params = $baseParams + @{
+            SubKey    = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\CurrentLanguage"
+            GetValue  = "Counter"
+            ValueType = "MultiString"
+        }
+        $currentCounterKeys = Get-RemoteRegistryValue @params
 
         if ($null -eq $currentCounterKeys) {
             Write-Verbose "No 'localized' (CurrentLanguage) 'Counter' registry value found"
-            return $null
+            Write-Verbose "Set Computer to English OS to just return PerformanceCounterName"
+            $Script:EnglishOnlyOSCache[$ComputerName] = $true
+            return $PerformanceCounterName
         } else {
             $Script:CounterCurrentLanguageCache.Add($ComputerName, $currentCounterKeys)
         }
@@ -146,9 +167,11 @@ function Get-LocalizedPerformanceCounterName {
             return $localCounterName
         } else {
             Write-Verbose "Failed to find Localized Counter Index"
+            return $PerformanceCounterName
         }
     } else {
         Write-Verbose "Failed to find the counter ID."
+        return $PerformanceCounterName
     }
 }
 
