@@ -84,7 +84,7 @@ function Get-LocalizedPerformanceCounterName {
 
     if (-not ($Script:EnglishOnlyOSCache.ContainsKey($ComputerName))) {
         $perfLib = Get-RemoteRegistrySubKey -MachineName $ComputerName `
-            -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009" `
+            -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib" `
             -CatchActionFunction ${Function:Invoke-CatchActions}
         $englishOnlyOS = ($perfLib.GetSubKeyNames() |
                 Where-Object { $_ -like "0*" }).Count -eq 1
