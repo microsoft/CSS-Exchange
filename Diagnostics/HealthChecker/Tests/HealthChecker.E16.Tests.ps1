@@ -16,7 +16,13 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
     Context "Basic Exchange 2016 CU22 Testing" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
-            $hc = Get-HealthCheckerExchangeServer
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -30,12 +36,22 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 13
+        }
+
+        It "Display Results - Organization Information" {
+            SetActiveDisplayGrouping "Organization Information"
+
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "Enable Download Domains" "False"
+            TestObjectMatch "AD Split Permissions" "False"
+
+            $Script:ActiveGrouping.Count | Should -Be 4
         }
 
         It "Display Results - Operating System Information" {
@@ -77,7 +93,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - NIC Settings" {
@@ -123,7 +139,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 81
+            $Script:ActiveGrouping.Count | Should -Be 83
         }
 
         It "Display Results - Security Vulnerability" {
@@ -131,7 +147,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 21
+            $cveTests.Count | Should -Be 20
             $downlaodDomains = GetObject "CVE-2021-1730"
             $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
 
@@ -144,7 +160,13 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\HyperV_Win32_Processor1.xml" }
-            $hc = Get-HealthCheckerExchangeServer
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }

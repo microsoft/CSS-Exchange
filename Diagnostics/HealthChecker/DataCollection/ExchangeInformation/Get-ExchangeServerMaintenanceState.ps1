@@ -4,15 +4,19 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ExchangeServerMaintenanceState {
     param(
-        [Parameter(Mandatory = $false)][array]$ComponentsToSkip
+        [Parameter(Mandatory = $true)]
+        [string]$Server,
+
+        [Parameter(Mandatory = $false)]
+        [array]$ComponentsToSkip
     )
     Write-Verbose "Calling Function: $($MyInvocation.MyCommand)"
 
     [HealthChecker.ExchangeServerMaintenance]$serverMaintenance = New-Object -TypeName HealthChecker.ExchangeServerMaintenance
-    $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Script:Server -ErrorAction SilentlyContinue
+    $serverMaintenance.GetServerComponentState = Get-ServerComponentState -Identity $Server -ErrorAction SilentlyContinue
 
     try {
-        $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Script:Server -ErrorAction Stop
+        $serverMaintenance.GetClusterNode = Get-ClusterNode -Name $Server -ErrorAction Stop
     } catch {
         Write-Verbose "Failed to run Get-ClusterNode"
         Invoke-CatchActions

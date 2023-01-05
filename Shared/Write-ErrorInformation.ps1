@@ -22,8 +22,12 @@ function WriteErrorInformationBase {
         & $Cmdlet "Inner Exception: $($CurrentError.Exception)"
     }
 
+    if ($null -ne $CurrentError.InvocationInfo.PositionMessage) {
+        & $Cmdlet "Position Message: $($CurrentError.InvocationInfo.PositionMessage)"
+    }
+
     if ($null -ne $CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage) {
-        & $Cmdlet "Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)"
+        & $Cmdlet "Remote Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)"
     }
 
     if ($null -ne $CurrentError.ScriptStackTrace) {

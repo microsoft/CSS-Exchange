@@ -17,5 +17,6 @@ Yes
 **Additional Information**
 
 [Large packet loss in the guest OS using VMXNET3 in ESXi (2039495)](https://kb.vmware.com/s/article/2039495)
+
 [Disable "adaptive rx ring sizing" to avoid random interface reset (78343)](https://kb.vmware.com/s/article/78343)
 

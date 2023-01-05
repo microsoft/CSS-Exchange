@@ -22,9 +22,10 @@ function Invoke-AnalyzerHybridInformation {
         DisplayGroupingKey  = Get-DisplayResultsGroupingKey -Name "Hybrid Information"  -DisplayOrder $Order
     }
     $exchangeInformation = $HealthServerObject.ExchangeInformation
+    $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
 
     if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
-        $null -ne $exchangeInformation.GetHybridConfiguration) {
+        $null -ne $getHybridConfiguration) {
 
         $params = $baseParams + @{
             Name    = "Organization Hybrid Enabled"
@@ -32,8 +33,8 @@ function Invoke-AnalyzerHybridInformation {
         }
         Add-AnalyzedResultInformation @params
 
-        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost))) {
-            $onPremSmartHostDomain = ($exchangeInformation.GetHybridConfiguration.OnPremisesSmartHost).ToString()
+        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.OnPremisesSmartHost))) {
+            $onPremSmartHostDomain = ($getHybridConfiguration.OnPremisesSmartHost).ToString()
             $onPremSmartHostWriteType = "Grey"
         } else {
             $onPremSmartHostDomain = "No on-premises smart host domain configured for hybrid use"
@@ -47,8 +48,8 @@ function Invoke-AnalyzerHybridInformation {
         }
         Add-AnalyzedResultInformation @params
 
-        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Domains))) {
-            $domainsConfiguredForHybrid = $exchangeInformation.GetHybridConfiguration.Domains
+        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Domains))) {
+            $domainsConfiguredForHybrid = $getHybridConfiguration.Domains
             $domainsConfiguredForHybridWriteType = "Grey"
         } else {
             $domainsConfiguredForHybridWriteType = "Yellow"
@@ -78,10 +79,10 @@ function Invoke-AnalyzerHybridInformation {
             Add-AnalyzedResultInformation @params
         }
 
-        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.EdgeTransportServers))) {
+        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.EdgeTransportServers))) {
             Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" @baseParams
 
-            foreach ($edgeServer in $exchangeInformation.GetHybridConfiguration.EdgeTransportServers) {
+            foreach ($edgeServer in $getHybridConfiguration.EdgeTransportServers) {
                 $params = $baseParams + @{
                     Details                = $edgeServer
                     DisplayCustomTabNumber = 2
@@ -89,8 +90,8 @@ function Invoke-AnalyzerHybridInformation {
                 Add-AnalyzedResultInformation @params
             }
 
-            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers)) -or
-            (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers)))) {
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers)) -or
+            (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
                 $params = $baseParams + @{
                     Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
                     DisplayWriteType       = "Yellow"
@@ -101,8 +102,8 @@ function Invoke-AnalyzerHybridInformation {
         } else {
             Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" @baseParams
 
-            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.ReceivingTransportServers))) {
-                foreach ($receivingTransportSrv in $exchangeInformation.GetHybridConfiguration.ReceivingTransportServers) {
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers))) {
+                foreach ($receivingTransportSrv in $getHybridConfiguration.ReceivingTransportServers) {
                     $params = $baseParams + @{
                         Details                = $receivingTransportSrv
                         DisplayCustomTabNumber = 2
@@ -120,8 +121,8 @@ function Invoke-AnalyzerHybridInformation {
 
             Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" @baseParams
 
-            if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.SendingTransportServers))) {
-                foreach ($sendingTransportSrv in $exchangeInformation.GetHybridConfiguration.SendingTransportServers) {
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers))) {
+                foreach ($sendingTransportSrv in $getHybridConfiguration.SendingTransportServers) {
                     $params = $baseParams + @{
                         Details                = $sendingTransportSrv
                         DisplayCustomTabNumber = 2
@@ -138,16 +139,16 @@ function Invoke-AnalyzerHybridInformation {
             }
         }
 
-        if ($exchangeInformation.GetHybridConfiguration.ServiceInstance -eq 1) {
+        if ($getHybridConfiguration.ServiceInstance -eq 1) {
             $params = $baseParams + @{
                 Name    = "Service Instance"
                 Details = "Office 365 operated by 21Vianet"
             }
             Add-AnalyzedResultInformation @params
-        } elseif ($exchangeInformation.GetHybridConfiguration.ServiceInstance -ne 0) {
+        } elseif ($getHybridConfiguration.ServiceInstance -ne 0) {
             $params = $baseParams + @{
                 Name             = "Service Instance"
-                Details          = $exchangeInformation.GetHybridConfiguration.ServiceInstance
+                Details          = $getHybridConfiguration.ServiceInstance
                 DisplayWriteType = "Red"
             }
             Add-AnalyzedResultInformation @params
@@ -159,10 +160,10 @@ function Invoke-AnalyzerHybridInformation {
             Add-AnalyzedResultInformation @params
         }
 
-        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) {
+        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) {
             $params = $baseParams + @{
                 Name    = "TLS Certificate Name"
-                Details = ($exchangeInformation.GetHybridConfiguration.TlsCertificateName).ToString()
+                Details = ($getHybridConfiguration.TlsCertificateName).ToString()
             }
             Add-AnalyzedResultInformation @params
         } else {
@@ -176,8 +177,8 @@ function Invoke-AnalyzerHybridInformation {
 
         Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" @baseParams
 
-        if (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.Features))) {
-            foreach ($feature in $exchangeInformation.GetHybridConfiguration.Features) {
+        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Features))) {
+            foreach ($feature in $getHybridConfiguration.Features) {
                 $params = $baseParams + @{
                     Details                = $feature
                     DisplayCustomTabNumber = 2
@@ -416,8 +417,8 @@ function Invoke-AnalyzerHybridInformation {
                             $connectorCertificateMatchesHybridCertificate = $false
                             $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
                             if (($connector.CertificateDetails.TlsCertificateSet) -and
-                                (-not([System.String]::IsNullOrEmpty($exchangeInformation.GetHybridConfiguration.TlsCertificateName))) -and
-                                ($connector.CertificateDetails.TlsCertificateName -eq $exchangeInformation.GetHybridConfiguration.TlsCertificateName)) {
+                                (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) -and
+                                ($connector.CertificateDetails.TlsCertificateName -eq $getHybridConfiguration.TlsCertificateName)) {
                                 $connectorCertificateMatchesHybridCertificate = $true
                                 $connectorCertificateMatchesHybridCertificateWritingType = "Green"
                             }
