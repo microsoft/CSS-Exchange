@@ -154,7 +154,6 @@ $documentedScriptFiles | ForEach-Object {
         }
     }
 
-
     #Remove common comments
     $linesToRemove = @("# Copyright (c) Microsoft Corporation.", "# Licensed under the MIT License.")
 

@@ -34,7 +34,6 @@ Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "G
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get-IISWebApplication" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISWebApplication.xml" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get-IISWebSite" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISWebSite.xml" }
 
-
 Mock Get-RemoteRegistryValue {
     param(
         [string]$SubKey,

@@ -106,7 +106,6 @@ function Main {
     }
     while ($Selection -notmatch $matchCondition)
 
-
     try {
 
         $nl

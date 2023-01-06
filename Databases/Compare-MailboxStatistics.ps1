@@ -94,7 +94,6 @@ Write-Host "=================" -ForegroundColor Green
     }
 ) | Out-Host
 
-
 $created = $afterComparables | Where-Object { $beforeHash[$_.MailboxGuid] -eq $null }
 $createdSizeSum = 0
 $createdDeletedSum = 0

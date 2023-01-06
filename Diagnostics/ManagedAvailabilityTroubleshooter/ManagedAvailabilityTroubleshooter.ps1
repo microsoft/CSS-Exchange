@@ -86,7 +86,6 @@ function ParseProbeResult2 {
     if ($Script:KnownIssueDetectionAlreadydone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
 }
 
-
 function InvestigateProbe {
     [cmdletbinding()]
     param([String]$ProbeToInvestigate , [String]$MonitorToInvestigate , [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource )
@@ -436,7 +435,6 @@ function InvestigateResponder {
     }
 }
 
-
 function KnownIssueDetection {
     [cmdletbinding()]
     param( [String]$MonitorToInvestigate , [String]$ResponderToInvestigate)
@@ -749,7 +747,6 @@ function CollectMaLogs {
     Write-Host ("The logs have been zipped in " + $zipfilename)
     exit
 }
-
 
 $ScriptUsage = "Run this script without parameter using Exchange Powershell to do the analysis on the Exchange server directly or collect the logs for analysis (option C in the menu).`nUse this link for the documentation http://blogs.technet.com/b/jcoiffin/archive/2015/10/21/troubleshoot-exchange-2013-2016-managed-availability.aspx"
 if ($Help) {
@@ -1112,7 +1109,6 @@ if ($Investigationchoose -eq 0 -or $Investigationchoose -eq 1) {
             $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
     }
-
 
     $CheckRecoveryActionForMultipleMachines = $RecoveryActionResultscmd -like "*Foreach-Object*"
     $RecoveryActions = $null

@@ -94,7 +94,6 @@ function global:Set-ExPerfWiz {
         else { $StartTime = (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring() }
     }
 
-
     process {
 
         Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPerfWiz.log"

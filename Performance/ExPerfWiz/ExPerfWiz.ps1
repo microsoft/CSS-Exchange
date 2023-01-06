@@ -369,7 +369,6 @@ $message = "Create the default ExPerfWiz on this server?"
 $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Creates the default Perfwiz: 5s Interval; 8 Hour Run time; C:\EXPerfWiz Path"
 $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Returns to a prompt."
 
-
 # Create ChoiceDescription with answers
 $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
 
