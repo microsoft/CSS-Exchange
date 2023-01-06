@@ -156,9 +156,3 @@ try {
 if (Test-Path $outputPath) {
     ShowCommandToHost
 }
-
-if ($MyInvocation.InvocationName -eq "&") {
-    # This was most likely run with right-click on the script.
-    # Pause so the user can read the output.
-    Read-Host "Hit Enter to exit"
-}
