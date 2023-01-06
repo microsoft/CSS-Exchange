@@ -110,7 +110,13 @@ $maxRetries = 5
 foreach ($fileInfo in $filesToCheck) {
     for ($i = 0; $i -lt $maxRetries; $i++) {
         try {
-            $analyzerResults = Invoke-ScriptAnalyzer -Path $FileInfo.FullName -Settings $repoRoot\PSScriptAnalyzerSettings.psd1 -ErrorAction Stop
+            $params = @{
+                Path                = ($fileInfo.FullName)
+                Settings            = "$repoRoot\PSScriptAnalyzerSettings.psd1"
+                CustomRulePath      = "$repoRoot\.build\CodeFormatterChecks\CustomRules.psm1"
+                IncludeDefaultRules = $true
+            }
+            $analyzerResults = Invoke-ScriptAnalyzer @params
             if ($null -ne $analyzerResults) {
                 $errorCount++
                 $analyzerResults | Format-Table -AutoSize

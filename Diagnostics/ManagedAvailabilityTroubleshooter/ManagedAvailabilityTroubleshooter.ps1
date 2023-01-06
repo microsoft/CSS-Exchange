@@ -6,6 +6,7 @@
 
 #  Provide your feedback to ExToolsFeedback@microsoft.com
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeExpression', '', Justification = 'Override for now')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
 [cmdletbinding()]
 param([string]$pathforlogs, [switch]$Collect , [switch] $AllServers , [switch] $OnlyThisServer , [switch]$Help)
 

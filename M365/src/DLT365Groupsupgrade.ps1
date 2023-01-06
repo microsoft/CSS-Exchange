@@ -1,5 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
+[CmdletBiding()]
+param()
+
 #Create working folder on the logged user desktop
 $ts = Get-Date -Format yyyyMMdd_HHmmss
 $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgradeChecks_$ts"

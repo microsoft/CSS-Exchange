@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Value is used')]
-[CmdletBinding(DefaultParameterSetName = "LogAge")]
+[CmdletBinding(DefaultParameterSetName = "LogAge", SupportsShouldProcess, ConfirmImpact = "High")]
 param (
     [string]$FilePath = "C:\MS_Logs_Collection",
     [array]$Servers = @($env:COMPUTERNAME),
