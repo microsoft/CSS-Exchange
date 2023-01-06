@@ -409,7 +409,6 @@ function Run-MSERT {
         break
     }
 
-
     if ((Get-Item $env:TEMP).PSDrive.Free -ge 314572800) {
         if ([System.Environment]::Is64BitOperatingSystem) {
             $MSERTUrl = "https://go.microsoft.com/fwlink/?LinkId=212732"

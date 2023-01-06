@@ -47,7 +47,6 @@ Describe "Testing Get-ServerRebootPending" {
         }
     }
 
-
     Context "Full Test on Get-PendingSCCMReboot" {
 
         BeforeEach {

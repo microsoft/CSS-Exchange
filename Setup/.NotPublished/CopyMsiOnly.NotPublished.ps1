@@ -7,10 +7,8 @@ param(
     [string]$CopyToRoot
 )
 
-
 $msiFromCU = Get-ChildItem $CuRoot -Recurse |
     Where-Object { $_.Name.ToLower().EndsWith(".msi") }
-
 
 foreach ($msi in $msiFromCU) {
 

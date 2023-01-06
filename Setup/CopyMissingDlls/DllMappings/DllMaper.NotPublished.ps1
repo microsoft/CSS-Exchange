@@ -67,7 +67,6 @@ function Find-BestObject {
                 Select-Object -First 1).Group[0].Path
     }
 
-
     #see if we have more than 1 location in Exchange
     $installedFound = $installedDlls |
         Where-Object {
@@ -78,7 +77,6 @@ function Find-BestObject {
     function Get-BestFromMultiIsoFound {
 
         $testingDirectory = $InstallChildObject.Directory.ToString().ToLower()
-
 
         if ($Overrides.ContainsKey($testingDirectory)) {
 
@@ -140,10 +138,6 @@ function Find-BestObject {
     }
     Write-Debug("hmmm...") -Debug
 }
-
-
-
-
 
 $Script:installedDlls = Get-ChildItem -Recurse $ExInstall |
     Where-Object { $_.Name.ToLower().EndsWith(".dll") -and

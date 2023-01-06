@@ -709,8 +709,6 @@ function CheckOrgs {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
     }
 
-
-
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
         Write-Host "Organization relationship on SOURCE tenant is enabled for moves" -ForegroundColor Green
@@ -773,8 +771,6 @@ function CheckOrgsSourceOffline {
     } else {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
     }
-
-
 
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
@@ -980,8 +976,6 @@ if ($CollectSourceOnly -and $CSV) {
                 Write-Host "Informational: $($_.Identity) organization relationship doesn't match for a cross tenant mailbox migration scenario" -ForegroundColor Yellow
             }
         }
-
-
 
         foreach ($object in $Objects) {
             $SourceIdentity = $object.SourceUser

@@ -73,7 +73,6 @@ This will run Set-ExchAVExclusions Script against the local server and write the
 
 #>
 
-
 [CmdletBinding(DefaultParameterSetName = 'Set')]
 param (
     [Parameter(Mandatory, ParameterSetName = 'List')]
