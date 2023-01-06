@@ -45,7 +45,7 @@
         https://aka.ms/privacy
 #>
 
-[Cmdletbinding()]
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
 param (
     [switch]$RunFullScan,
     [switch]$RollbackMitigation,
@@ -362,6 +362,7 @@ function Run-Mitigate {
 
 function Run-MSERT {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Invalid rule result')]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = "High")]
     param(
         [switch]$RunFullScan,
         [switch]$DoNotRemediate
@@ -496,16 +497,9 @@ function Run-MSERT {
     $ScanMode = ""
     if ($RunFullScan) {
         Write-Warning -Message "Running a full scan can take hours or days to complete."
-        Write-Warning -Message "Would you like to continue with the Full MSERT Scan?"
 
-        while ($true) {
-            $Confirm = Read-Host "(Y/N)"
-            if ($Confirm -like "N") {
-                return
-            }
-            if ($Confirm -like "Y") {
-                break
-            }
+        if (-not ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Would you like to continue with the Full MSERT Scan?"))) {
+            return
         }
 
         $ScanMode = "Full Scan"
