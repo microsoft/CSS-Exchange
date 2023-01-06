@@ -32,7 +32,7 @@ if (-not (Load-Module -Name EncodingAnalyzer)) {
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 $optimizeCodeFormatter = $AllFiles -eq $false
-$filesFullPath = New-Object 'System.Collections.Generic.List[string]'
+$filesFullPath = New-Object 'System.Collections.Generic.HashSet[string]'
 # Get only the files that are changed in this PR
 if ($optimizeCodeFormatter) {
 
@@ -47,13 +47,8 @@ if ($optimizeCodeFormatter) {
 
         foreach ($fileChanged in $filesChangedInCommit) {
             $fullPath = Join-Path $repoRoot $fileChanged
-
-            if ($filesFullPath.Contains($fullPath)) {
-                Write-Host "  $fileChanged was modified in a later commit."
-                continue
-            }
-
-            $filesFullPath.Add($fullPath)
+            Write-Verbose "Adding commit file to list: $fullPath"
+            [void]$filesFullPath.Add($fullPath)
         }
     }
 
@@ -64,11 +59,8 @@ if ($optimizeCodeFormatter) {
         $file = $match.Matches.Groups[1].Value.Trim()
         $fullPath = Join-Path $PSScriptRoot $file
 
-        if ($filesFullPath.Contains($fullPath)) {
-            Write-Host " $file was modified in a commit already."
-            continue
-        }
-        $filesFullPath.Add($fullPath)
+        Write-Verbose "Adding modified file to list: $fullPath"
+        [void]$filesFullPath.Add($fullPath)
     }
 
     Write-Verbose "Files changed or modified"
