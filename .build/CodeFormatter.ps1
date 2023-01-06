@@ -3,7 +3,10 @@
 [CmdletBinding()]
 param(
     [Switch]
-    $Save
+    $Save,
+
+    [Switch]
+    $AllFiles
 )
 
 #Requires -Version 7
@@ -28,9 +31,63 @@ if (-not (Load-Module -Name EncodingAnalyzer)) {
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
-$filesToCheck = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
-    $_.Name -ne "dist" } | ForEach-Object {
-    Get-ChildItem -Path $_.FullName -Include "*.ps1", "*.psm1", "*.md" -Recurse
+$optimizeCodeFormatter = $AllFiles -eq $false
+$filesFullPath = New-Object 'System.Collections.Generic.List[string]'
+# Get only the files that are changed in this PR
+if ($optimizeCodeFormatter) {
+
+    Write-Verbose "Checking commits only"
+    # Get all the commits between origin/main and HEAD.
+    $gitlog = git log --format="%H %cd" --date=rfc origin/main..HEAD
+    $m = $gitlog | Select-String "^(\S+) (.*)$"
+
+    foreach ($commitMatch in $m) {
+        $commitHash = $commitMatch.Matches.Groups[1].Value
+        $filesChangedInCommit = git diff-tree --no-commit-id --name-only -r $commitHash
+
+        foreach ($fileChanged in $filesChangedInCommit) {
+            $fullPath = Join-Path $repoRoot $fileChanged
+
+            if ($filesFullPath.Contains($fullPath)) {
+                Write-Host "  $fileChanged was modified in a later commit."
+                continue
+            }
+
+            $filesFullPath.Add($fullPath)
+        }
+    }
+
+    # Also include modified files, but not committed yet for local work.
+    $gitStatus = git status --short
+    $m = $gitStatus | Select-String "M (.*)"
+    foreach ($match in $m) {
+        $file = $match.Matches.Groups[1].Value.Trim()
+        $fullPath = Join-Path $PSScriptRoot $file
+
+        if ($filesFullPath.Contains($fullPath)) {
+            Write-Host " $file was modified in a commit already."
+            continue
+        }
+        $filesFullPath.Add($fullPath)
+    }
+
+    Write-Verbose "Files changed or modified"
+    $filesFullPath | Write-Verbose
+
+    # Only optimize CodeFormatter IF any CodeFormatter related files were not modified or PSScriptAnalyzerSettings.psd1
+    $optimizeCodeFormatter = $null -eq ($filesFullPath | Where-Object { $_ -like "*.build\CodeFormatter*" -or $_ -like "*\PSScriptAnalyzerSettings.psd1" })
+    Write-Host "Optimize Code: $optimizeCodeFormatter"
+}
+
+if ($optimizeCodeFormatter) {
+    $filesToCheck = Get-ChildItem -Path $filesFullPath -Include "*.ps1", "*.psm1", "*.md"
+    Write-Host "Files that we are looking at for code formatting:"
+    $filesToCheck.FullName | Write-Host
+} else {
+    $filesToCheck = Get-ChildItem -Path $repoRoot -Directory | Where-Object {
+        $_.Name -ne "dist" } | ForEach-Object {
+        Get-ChildItem -Path $_.FullName -Include "*.ps1", "*.psm1", "*.md" -Recurse
+    }
 }
 
 $errorCount = 0
