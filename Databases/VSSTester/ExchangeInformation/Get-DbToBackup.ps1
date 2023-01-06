@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 function Get-DBtoBackup {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
+    param()
     $maxDbIndexRange = $script:databases.length - 1
     $matchCondition = "^([0-9]|[1-9][0-9])$"
     Write-Debug "matchCondition: $matchCondition"

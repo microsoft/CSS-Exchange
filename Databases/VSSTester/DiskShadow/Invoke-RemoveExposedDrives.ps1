@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 function Invoke-RemoveExposedDrives {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
+    param()
 
     function Out-removeDHSFile {
         param ([string]$fileline)
