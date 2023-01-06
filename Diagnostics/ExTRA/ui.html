@@ -40,12 +40,16 @@
         .btn {
             margin-top: 15px;
         }
+
+        .code {
+            padding: 20px;
+        }
     </style>
 </head>
 
 <body onload="showTags()">
     <div class="container">
-        <div class="row toolbar">
+        <div class="row toolbar tagSelectionElement">
             <div class="input-field col s3">
                 <input id="categoryFilter" onchange="categoryFilterChanged(event)"
                     onkeyup="categoryFilterChanged(event)" />
@@ -67,18 +71,46 @@
             <button class="btn waves-effect waves-light col s3" onclick="save()">Save</button>
         </div>
 
-        <div class="row">
-            <div class="col s12"><h5>Scenarios</h5></div>
+        <div class="row tagSelectionElement">
+            <div class="col s12">
+                <h5>Scenarios</h5>
+            </div>
         </div>
-        <div class="row" id="scenariosDiv">
+        <div class="row tagSelectionElement" id="scenariosDiv">
 
         </div>
 
-        <div class="row">
-            <div class="col s12"><h5>Tags</h5></div>
+        <div class="row tagSelectionElement">
+            <div class="col s12">
+                <h5>Tags</h5>
+            </div>
         </div>
-        <div id="checkboxesDiv">
+        <div class="tagSelectionElement" id="checkboxesDiv">
 
+        </div>
+        <div class="row hidden" id="syntaxDiv">
+            <p>The trace can be created, started, and stopped from the command line or PowerShell.</p>
+            <p>To create a data collector which is non-circular and stops at 1 GB:</p>
+            <p class="black green-text code">
+                <code>logman create trace ExchangeDebugTraces -p "{79bb49e6-2a2c-46e4-9167-fa122525d540}" -o c:\tracing\trace.etl -ow -f bin -max 1024 -mode globalsequence</code>
+            </p>
+            <p>To create a data collector which is circular and stops at 2 GB:</p>
+            <p class="black green-text code">
+                <code>logman create trace ExchangeDebugTraces -p "{79bb49e6-2a2c-46e4-9167-fa122525d540}" -o c:\tracing\trace.etl -ow -f bincirc -max 2048 -mode globalsequence</code>
+            </p>
+            <p>To create a data collector which is non-circular and creates a new file every 512 MB until you stop it manually:</p>
+            <p class="black green-text code">
+                <code>logman create trace ExchangeDebugTraces -p `"{79bb49e6-2a2c-46e4-9167-fa122525d540}`" -o c:\tracing\trace.etl -ow -f bin -max 512 -cnf 0 -mode globalsequence</code>
+            </p>
+            <p>To start the trace:</p>
+            <p class="black green-text code">
+                <code>logman start ExchangeDebugTraces</code>
+            </p>
+            <p>To stop the trace:</p>
+            <p class="black green-text code">
+                <code>logman stop ExchangeDebugTraces</code>
+            </p>
+            <p>The collector can also be started and stopped from Perfmon.</p>
         </div>
         <script>
             var selectionTable = [];
@@ -113,7 +145,11 @@
                     body: JSON.stringify(selectionTable, ['name', 'isSelected', 'tags'])
                 });
 
-                window.close();
+                [...document.getElementsByClassName('tagSelectionElement')].forEach(e => {
+                    e.classList.add('hidden');
+                });
+
+                document.getElementById('syntaxDiv').classList.remove('hidden');
             }
 
             function getScenarioNames() {
