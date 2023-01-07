@@ -5,7 +5,6 @@ param(
     [string]$IsoRoot = "D:"
 )
 
-
 $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
 $installedVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction SilentlyContinue).ConfiguredVersion
 $isoRootItem = Get-Item "$IsoRoot\Setup.exe"

@@ -17,7 +17,6 @@
     version to increment as expected.
 #>
 
-
 [CmdletBinding()]
 param ()
 

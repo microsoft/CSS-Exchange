@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 function Get-WindowsEventLogs {
 
     function Get-WindowEventsPerServer {
