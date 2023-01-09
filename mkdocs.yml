@@ -64,7 +64,7 @@ nav:
   - PublicFolders:
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
-    - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md
+    - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpste.md
   - Retention:
     - Get-MRMDetails: Retention/Get-MRMDetails.md
   - Search:
