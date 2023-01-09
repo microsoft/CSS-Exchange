@@ -5,11 +5,8 @@ param(
     [Switch]
     $Save,
 
-    [Switch]
-    $AllFiles,
-
     [string]
-    $Branch = "main"
+    $Branch
 )
 
 #Requires -Version 7
@@ -35,7 +32,7 @@ if (-not (Load-Module -Name EncodingAnalyzer)) {
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
-$optimizeCodeFormatter = $AllFiles -eq $false
+$optimizeCodeFormatter = [string]::IsNullOrEmpty($Branch) -eq $false
 $filesFullPath = New-Object 'System.Collections.Generic.HashSet[string]'
 # Get only the files that are changed in this PR
 if ($optimizeCodeFormatter) {
