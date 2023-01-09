@@ -6,7 +6,10 @@ param(
     $Save,
 
     [Switch]
-    $AllFiles
+    $AllFiles,
+
+    [string]
+    $Branch = "main"
 )
 
 #Requires -Version 7
@@ -38,8 +41,8 @@ $filesFullPath = New-Object 'System.Collections.Generic.HashSet[string]'
 if ($optimizeCodeFormatter) {
 
     Write-Verbose "Checking commits only"
-    # Get all the commits between origin/main and HEAD.
-    $gitlog = git log --format="%H %cd" --date=rfc origin/main..HEAD
+    # Get all the commits between origin/$Branch and HEAD.
+    $gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
     $m = $gitlog | Select-String "^(\S+) (.*)$"
 
     foreach ($commitMatch in $m) {

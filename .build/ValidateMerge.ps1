@@ -18,7 +18,9 @@
 #>
 
 [CmdletBinding()]
-param ()
+param (
+    [string]$Branch = "main"
+)
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 $distFolder = Join-Path $repoRoot "dist"
@@ -38,8 +40,8 @@ $allowMergeFiles = @()
 # Files we already checked. We only want to check each file once.
 $filesAlreadyChecked = New-Object 'System.Collections.Generic.HashSet[string]'
 
-# Get all the commits between origin/main and HEAD.
-$gitlog = git log --format="%H %cd" --date=rfc origin/main..HEAD
+# Get all the commits between origin/$Branch and HEAD.
+$gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
 $m = $gitlog | Select-String "^(\S+) (.*)$"
 
 foreach ($commitMatch in $m) {
@@ -85,7 +87,7 @@ foreach ($commitMatch in $m) {
     }
 
     foreach ($affectedFile in $allAffectedFiles) {
-        $commitTimeOnMainString = git log origin/main -n 1 --format="%cd" --date=rfc -- $affectedFile
+        $commitTimeOnMainString = git log origin/$Branch -n 1 --format="%cd" --date=rfc -- $affectedFile
         $commitTimeOnMain = $null
         if (-not [string]::IsNullOrEmpty($commitTimeOnMainString)) {
             $commitTimeOnMain = [DateTime]::Parse($commitTimeOnMainString).ToUniversalTime()
