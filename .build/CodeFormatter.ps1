@@ -5,8 +5,8 @@ param(
     [Switch]
     $Save,
 
-    [Switch]
-    $AllFiles
+    [string]
+    $Branch
 )
 
 #Requires -Version 7
@@ -32,14 +32,14 @@ if (-not (Load-Module -Name EncodingAnalyzer)) {
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
-$optimizeCodeFormatter = $AllFiles -eq $false
+$optimizeCodeFormatter = [string]::IsNullOrEmpty($Branch) -eq $false
 $filesFullPath = New-Object 'System.Collections.Generic.HashSet[string]'
 # Get only the files that are changed in this PR
 if ($optimizeCodeFormatter) {
 
     Write-Verbose "Checking commits only"
-    # Get all the commits between origin/main and HEAD.
-    $gitlog = git log --format="%H %cd" --date=rfc origin/main..HEAD
+    # Get all the commits between origin/$Branch and HEAD.
+    $gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
     $m = $gitlog | Select-String "^(\S+) (.*)$"
 
     foreach ($commitMatch in $m) {
