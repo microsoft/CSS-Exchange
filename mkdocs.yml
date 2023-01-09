@@ -4,6 +4,7 @@ nav:
   - Emerging Issues: Emerging-Issues.md
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
+    - Cross-TenantMailboxMigrationValidation: Admin/CrossTenantMailboxMigrationValidation.md
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
@@ -51,6 +52,7 @@ nav:
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
+      - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
@@ -89,6 +91,7 @@ nav:
     - SetupLogReviewer: Setup/SetupLogReviewer.md
   - Transport:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
+    - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
 theme:
   name: 'material'
   features:

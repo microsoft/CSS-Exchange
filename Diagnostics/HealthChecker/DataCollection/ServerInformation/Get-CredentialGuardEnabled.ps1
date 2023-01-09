@@ -3,9 +3,13 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 function Get-CredentialGuardEnabled {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $registryValue = Get-RemoteRegistryValue -MachineName $Script:Server `
+    $registryValue = Get-RemoteRegistryValue -MachineName $Server `
         -SubKey "SYSTEM\CurrentControlSet\Control\LSA" `
         -GetValue "LsaCfgFlags" `
         -CatchActionFunction ${Function:Invoke-CatchActions}

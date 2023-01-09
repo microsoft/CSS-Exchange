@@ -4,81 +4,58 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ExchangeAMSIConfigurationState {
     [CmdletBinding()]
-    param ()
+    param (
+        [object]$GetSettingOverride
+    )
 
     begin {
-        function Get-AMSIStatusFlag {
-            [CmdletBinding()]
-            [OutputType([bool])]
-            param (
-                [Parameter(Mandatory = $true)]
-                [object]$AMSIParameters
-            )
-
-            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-            try {
-                switch ($AMSIParameters.Split("=")[1]) {
-                    ("False") { return $false }
-                    ("True") { return $true }
-                    default { return $null }
-                }
-            } catch {
-                Write-Verbose "Ran into an issue when calling Split method. Parameters passed: $AMSIParameters"
-                throw
-            }
-        }
-
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $amsiState = "Unknown"
-        $amsiOrgWideSetting = $true
-        $amsiConfigurationQuerySuccessful = $false
+        $amsiSettingResults = New-Object "System.Collections.Generic.List[object]"
     } process {
-        try {
-            Write-Verbose "Trying to query AMSI configuration state"
-            $amsiConfiguration = Get-SettingOverride -ErrorAction Stop | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }
-            $amsiConfigurationQuerySuccessful = $true
+        if ($null -ne $GetSettingOverride -and
+            $GetSettingOverride -ne "Unknown") {
+            Write-Verbose "Filtering for AMSI configuration state"
+            $amsiConfiguration = $GetSettingOverride | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }
 
             if ($null -ne $amsiConfiguration) {
                 Write-Verbose "$($amsiConfiguration.Count) override(s) detected for AMSI configuration"
-                $amsiMultiConfigObject = @()
                 foreach ($amsiConfig in $amsiConfiguration) {
                     try {
-                        $amsiState = Get-AMSIStatusFlag -AMSIParameters $amsiConfig.Parameters -ErrorAction Stop
+                        # currently only 1 possible parameter here of Enabled
+                        $value = $amsiConfig.Parameters.Substring("Enabled=".Length)
+                        if ($value -eq "True") { $amsiState = $true }
+                        elseif ($value -eq "False") { $amsiState = $false }
+                        else { $amsiState = "Unknown" }
                     } catch {
                         Write-Verbose "Unable to process: $($amsiConfig.Parameters) to determine status flags"
                         $amsiState = "Unknown"
                         Invoke-CatchActions
                     }
-                    $amsiOrgWideSetting = ($null -eq $amsiConfig.Server)
-                    $amsiConfigTempCustomObject = [PSCustomObject]@{
-                        Id              = $amsiConfig.Id
-                        Name            = $amsiConfig.Name
-                        Reason          = $amsiConfig.Reason
-                        Server          = $amsiConfig.Server
-                        ModifiedBy      = $amsiConfig.ModifiedBy
-                        Enabled         = $amsiState
-                        OrgWideSetting  = $amsiOrgWideSetting
-                        QuerySuccessful = $amsiConfigurationQuerySuccessful
-                    }
-
-                    $amsiMultiConfigObject += $amsiConfigTempCustomObject
+                    $amsiSettingResults.Add([PSCustomObject]@{
+                            Id             = $amsiConfig.Id
+                            Name           = $amsiConfig.Name
+                            Reason         = $amsiConfig.Reason
+                            Server         = $amsiConfig.Server
+                            ModifiedBy     = $amsiConfig.ModifiedBy
+                            Enabled        = $amsiState
+                            OrgWideSetting = ($null -eq $amsiConfig.Server)
+                        })
                 }
             } else {
                 Write-Verbose "No setting override found that overrides AMSI configuration"
-                $amsiState = $true
             }
-        } catch {
-            Write-Verbose "Unable to query AMSI configuration state"
-            Invoke-CatchActions
+        } elseif ($GetSettingOverride -eq "Unknown") {
+            $amsiSettingResults.Add([PSCustomObject]@{
+                    FailedQuery = $true
+                })
         }
     } end {
-        if ($amsiMultiConfigObject) {
-            return $amsiMultiConfigObject
+        if ($amsiSettingResults.Count -eq 0) {
+            $amsiSettingResults.Add([PSCustomObject]@{
+                    Enabled = $true
+                })
         }
 
-        return [PSCustomObject]@{
-            Enabled         = $amsiState
-            QuerySuccessful = $amsiConfigurationQuerySuccessful
-        }
+        return $amsiSettingResults
     }
 }

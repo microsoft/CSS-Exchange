@@ -3,7 +3,10 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Get-ExchangeServerCertificates {
-    param()
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server
+    )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -62,8 +65,8 @@ function Get-ExchangeServerCertificates {
             NewCertificateExclusionEntry "CN=MS-Organization-P2P-Access \[[12][0-9]{3}\]$" $false
             NewCertificateExclusionEntry "DC=Windows Azure CRP Certificate Generator" $true
         )
-        Write-Verbose "Trying to receive certificates from Exchange server: $($Script:Server)"
-        $exchangeServerCertificates = Get-ExchangeCertificate -Server $Script:Server -ErrorAction Stop
+        Write-Verbose "Trying to receive certificates from Exchange server: $($Server)"
+        $exchangeServerCertificates = Get-ExchangeCertificate -Server $Server -ErrorAction Stop
 
         if ($null -ne $exchangeServerCertificates) {
             try {

@@ -430,6 +430,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         BuildRevision       = $buildRevision
         ExchangeInformation = $exchangeInformation
         OsInformation       = $osInformation
+        OrgInformation      = $HealthServerObject.OrganizationInformation
     }
 
     Invoke-AnalyzerSecurityIISModules -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey

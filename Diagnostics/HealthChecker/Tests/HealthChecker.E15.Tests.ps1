@@ -15,7 +15,13 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
     Context "Basic Exchange 2013 CU23 Testing" {
         BeforeAll {
-            $hc = Get-HealthCheckerExchangeServer
+            $org = Get-OrganizationInformation -EdgeServer $false
+            $passedOrganizationInformation = @{
+                OrganizationConfig = $org.GetOrganizationConfig
+                SettingOverride    = $org.GetSettingOverride
+            }
+            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
+            $hc.OrganizationInformation = $org
             $hc | Export-Clixml $PSScriptRoot\Debug_E15_Results.xml -Depth 6 -Encoding utf8
             $Script:results = Invoke-AnalyzerEngine $hc
         }
@@ -29,12 +35,22 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Server Role" "MultiRole"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
-            TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
+            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 16
+        }
+
+        It "Display Results - Organization Information" {
+            SetActiveDisplayGrouping "Organization Information"
+
+            TestObjectMatch "MAPI/HTTP Enabled" "True"
+            TestObjectMatch "Enable Download Domains" "Unknown"
+            TestObjectMatch "AD Split Permissions" "False"
+
+            $Script:ActiveGrouping.Count | Should -Be 5
         }
 
         It "Display Results - Operating System Information" {
@@ -119,7 +135,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 71
+            $Script:ActiveGrouping.Count | Should -Be 73
         }
 
         It "Display Results - Security Vulnerability" {
@@ -127,7 +143,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.Gettype().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 49
+            $cveTests.Count | Should -Be 48
         }
     }
 }
