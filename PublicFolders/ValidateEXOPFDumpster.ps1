@@ -382,7 +382,6 @@ if ($null -eq $ExportPath -or $ExportPath -eq "") {
     }
 }
 
-
 [string]$Description = "This script illustrates issues related to deleting public folder items or removing the public folder on Publicfolder $Pfolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\$Script:ReportName -Append
@@ -407,7 +406,6 @@ ValidateDumpsterFlag($PublicFolderInfo)
 ValidateDumpsterChildren($PublicFolderInfo)
 ValidateMEPFGuid($PublicFolderInfo)
 ValidateParentPublicFolder($PublicFolderInfo)
-
 
 #Ask for feedback
 Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!" -ForegroundColor Cyan
