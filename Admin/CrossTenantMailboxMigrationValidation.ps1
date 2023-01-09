@@ -95,6 +95,7 @@
         This will connect to the Source tenant against AAD and EXO, and will collect all the relevant information (config and user wise) so it can be used passed to the Target tenant admin for the Target validation to be done without the need to connect to the source tenant at the same time.
 .#>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
 param (
     [Parameter(Mandatory = $True, ParameterSetName = "ObjectsValidation", HelpMessage = "Validate source Mailbox and Target MailUser objects. If used alone you will be prompted to introduce the identities you want to validate")]
     [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode", HelpMessage = "Validate source Mailbox and Target MailUser objects. If used alone you will be prompted to introduce the identities you want to validate")]
@@ -708,8 +709,6 @@ function CheckOrgs {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
     }
 
-
-
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
         Write-Host "Organization relationship on SOURCE tenant is enabled for moves" -ForegroundColor Green
@@ -772,8 +771,6 @@ function CheckOrgsSourceOffline {
     } else {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
     }
-
-
 
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
@@ -979,8 +976,6 @@ if ($CollectSourceOnly -and $CSV) {
                 Write-Host "Informational: $($_.Identity) organization relationship doesn't match for a cross tenant mailbox migration scenario" -ForegroundColor Yellow
             }
         }
-
-
 
         foreach ($object in $Objects) {
             $SourceIdentity = $object.SourceUser

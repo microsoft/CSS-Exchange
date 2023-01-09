@@ -42,7 +42,6 @@ param (
 
 $ErrorActionPreference = 'SilentlyContinue'
 
-
 function funcRetentionProperties {
     # Export's All Retention Policies and Retention Policy Tags for the entire tenant
     Get-RetentionPolicy | Select-Object * | Export-Clixml "$Mailbox - MRM Retention Policies for entire Tenant.xml"
@@ -93,7 +92,6 @@ function funcRetentionProperties {
     $ELCRunLastData = $xmlprops.Properties.MailboxTable.Property | Where-Object { $_.Name -like "*elc*" }
     [datetime]$ELCLastSuccess = [datetime](($ELCRunLastData | Where-Object { $_.name -eq "ELCLastSuccessTimestamp" }).value)
 
-
     # Get the Component Diagnostic Logs for user
     $error.Clear()
     $ELCLastRunFailure = (Export-MailboxDiagnosticLogs $Mailbox -ComponentName MRM).MailboxLog
@@ -127,8 +125,6 @@ function funcRetentionProperties {
       " | Out-File "$Mailbox - Mailbox Diagnostic Logs.txt"
         $ELCRunLastData | Out-File "$Mailbox - Mailbox Diagnostic Logs.txt" -Append
     }
-
-
 
     Search-AdminAuditLog -Cmdlets Start-ManagedFolderAssistant, Set-RetentionPolicy, Set-RetentionPolicyTag, Set-MailboxPlan, Set-Mailbox | Export-Csv "$Mailbox - MRM Component Audit Logs.csv" -NoTypeInformation
     # Get the Mailbox Folder Statistics

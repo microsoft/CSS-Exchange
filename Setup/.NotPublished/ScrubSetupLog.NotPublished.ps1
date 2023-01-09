@@ -9,7 +9,6 @@ param(
     [System.IO.FileInfo]$SetupLog
 )
 
-
 function Get-EvaluatedSettingOrRule {
     param(
         [string]$SettingName,

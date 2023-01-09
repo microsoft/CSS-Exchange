@@ -16,6 +16,7 @@
 #
 #################################################################################
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Justification = 'Allowing empty catch blocks for now as we need to be able to handle the exceptions.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
 [CmdletBinding()]
 param(
 )
@@ -104,7 +105,6 @@ function Main {
         }
     }
     while ($Selection -notmatch $matchCondition)
-
 
     try {
 

@@ -30,7 +30,6 @@ function Get-WmiObjectCriticalHandler {
         CatchActionFunction = $CatchActionFunction
     }
 
-
     $wmi = Get-WmiObjectHandler @params
 
     if ($null -eq $wmi) {

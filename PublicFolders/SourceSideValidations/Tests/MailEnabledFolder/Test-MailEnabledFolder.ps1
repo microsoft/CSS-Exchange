@@ -89,7 +89,6 @@ function Test-MailEnabledFolder {
             NewTestMailEnabledFolderResult @params
         }
 
-
         $mailPublicFoldersLinked = New-Object 'System.Collections.Generic.Dictionary[string, object]'
         $progressParams.CurrentOperation = "Checking for missing AD objects"
         $startTimeForThisCheck = Get-Date
@@ -130,7 +129,6 @@ function Test-MailEnabledFolder {
                 $_
             })
 
-
         $progressCount = 0
         $progressParams.CurrentOperation = "Checking for orphaned MailPublicFolders"
         $orphanedMailPublicFolders = @($allMailPublicFolders | ForEach-Object {
@@ -144,7 +142,6 @@ function Test-MailEnabledFolder {
                     $_
                 }
             })
-
 
         $progressParams.CurrentOperation = "Building EntryId HashSets"
         Write-Progress @progressParams
