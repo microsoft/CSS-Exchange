@@ -73,7 +73,7 @@ if ($optimizeCodeFormatter) {
 }
 
 if ($optimizeCodeFormatter) {
-    $filesToCheck = Get-ChildItem -Path $filesFullPath -Include "*.ps1", "*.psm1", "*.md"
+    $filesToCheck = $filesFullPath | Get-ChildItem -Include "*.ps1", "*.psm1", "*.md"
     Write-Host "Files that we are looking at for code formatting:"
     $filesToCheck.FullName | Write-Host
 } else {
