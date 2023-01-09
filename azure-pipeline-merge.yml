@@ -9,9 +9,11 @@ steps:
 
 - pwsh: |
     cd .\.build
-    .\CodeFormatter.ps1
+    .\CodeFormatter.ps1 -Branch $env:TargetBranchName
   displayName: "Code Formatting Script"
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
+  env:
+    TargetBranchName: $(System.PullRequest.TargetBranch)
 
 - pwsh: |
     cd .\.build
@@ -25,5 +27,7 @@ steps:
 
 - pwsh: |
     cd .\.build
-    .\ValidateMerge.ps1
+    .\ValidateMerge.ps1 -Branch $env:TargetBranchName
   displayName: "Validate commit times"
+  env:
+    TargetBranchName: $(System.PullRequest.TargetBranch)
