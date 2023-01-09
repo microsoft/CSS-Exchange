@@ -291,6 +291,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/PublicFolders/ValidateEXOPFDumpster/</loc>
+         <lastmod>2023-01-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/PublicFolders/ValidateMailEnabledPublicFolders/</loc>
          <lastmod>2023-01-09</lastmod>
          <changefreq>daily</changefreq>
