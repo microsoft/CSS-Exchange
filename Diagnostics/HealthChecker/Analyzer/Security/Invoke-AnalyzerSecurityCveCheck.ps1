@@ -162,7 +162,7 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "1497.44" `
                 -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.46" `
+                -SecurityFixedBuilds "1497.45" `
                 -CVENames "CVE-2023-21762"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
@@ -307,7 +307,7 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "2375.37", "2507.16" `
                 -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2507.18" `
+                -SecurityFixedBuilds "2507.17" `
                 -CVENames "CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21762", "CVE-2023-21763", "CVE-2023-21764"
         }
     } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
@@ -425,7 +425,7 @@ function Invoke-AnalyzerSecurityCveCheck {
                 -SecurityFixedBuilds "986.36", "1118.20" `
                 -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
             TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "986.38", "1118.22" `
+                -SecurityFixedBuilds "986.37", "1118.21" `
                 -CVENames "CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21762", "CVE-2023-21763", "CVE-2023-21764"
         }
     } else {
