@@ -29,6 +29,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml" }
             Mock Get-WebServicesVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
+            Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
             # do not need to match the function. Only needed really to test the Assert-MockCalled
             Mock Get-Service { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
@@ -54,7 +55,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 7
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 13
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 14
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1

@@ -54,6 +54,7 @@ Mock Get-RemoteRegistryValue {
         "MsiInstallPath" { return "C:\Program Files\Microsoft\Exchange Server\V15" }
         "AllowInsecureRenegoClients" { return 0 }
         "AllowInsecureRenegoServers" { return 0 }
+        "EnableSerializationDataSigning" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }

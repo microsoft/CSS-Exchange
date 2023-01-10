@@ -172,8 +172,22 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
 
         if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
             $params = $baseParams + @{
+                Name                   = "Internal Transport Certificate"
+                Details                = $certificate.IsInternalTransportCertificate
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
                 Name                   = "Current Auth Certificate"
                 Details                = $certificate.IsCurrentAuthConfigCertificate
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Name                   = "Next Auth Certificate"
+                Details                = $certificate.IsNextAuthConfigCertificate
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
@@ -200,9 +214,71 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             Add-AnalyzedResultInformation @params
         }
 
+        if ($certificate.IsInternalTransportCertificate) {
+            $internalTransportCertificate = $certificate
+        }
+
         if ($certificate.IsCurrentAuthConfigCertificate -eq $true) {
             $currentAuthCertificate = $certificate
+        } elseif ($certificate.IsNextAuthConfigCertificate -eq $true) {
+            $nextAuthCertificate = $certificate
+            $nextAuthCertificateEffectiveDate = $certificate.SetAsActiveAuthCertificateOn
         }
+    }
+
+    if ($null -ne $internalTransportCertificate) {
+        if ($internalTransportCertificate.LifetimeInDays -gt 0) {
+            $params = $baseParams + @{
+                Name                   = "Valid Internal Transport Certificate Found On Server"
+                Details                = $true
+                DisplayWriteType       = "Green"
+                DisplayCustomTabNumber = 1
+            }
+            Add-AnalyzedResultInformation @params
+        } else {
+            $params = $baseParams + @{
+                Name                   = "Valid Internal Transport Certificate Found On Server"
+                Details                = $false
+                DisplayWriteType       = "Red"
+                DisplayCustomTabNumber = 1
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Details                = "Internal Transport Certificate has expired `r`n`t`tMore Information: https://aka.ms/HC-InternalTransportCertificate"
+                DisplayWriteType       = "Red"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+        $params = $baseParams + @{
+            Name                   = "Valid Internal Transport Certificate Found On Server"
+            Details                = $false
+            DisplayCustomTabNumber = 1
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            Details                = "We can't check for Internal Transport Certificate on Edge Transport Servers"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    } else {
+        $params = $baseParams + @{
+            Name                   = "Valid Internal Transport Certificate Found On Server"
+            Details                = $false
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 1
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            Details                = "No Internal Transport Certificate found. This may cause several problems. `r`n`t`tMore Information: https://aka.ms/HC-InternalTransportCertificate"
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($null -ne $currentAuthCertificate) {
@@ -227,6 +303,22 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
                 Details                = "Auth Certificate has expired `r`n`t`tMore Information: https://aka.ms/HC-OAuthExpired"
                 DisplayWriteType       = "Red"
                 DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($null -ne $nextAuthCertificate) {
+            $params = $baseParams + @{
+                Name                   = "Next Auth Certificate Staged For Rotation"
+                Details                = $true
+                DisplayCustomTabNumber = 1
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Name                   = "Next Auth Certificate Effective Date"
+                Details                = $nextAuthCertificateEffectiveDate
+                DisplayCustomTabNumber = 1
             }
             Add-AnalyzedResultInformation @params
         }
