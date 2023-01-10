@@ -56,7 +56,22 @@ $allScriptFiles = Get-ChildItem -Path $repoRoot -Directory |
 
 $dependencyHashtable = Get-ScriptDependencyHashtable -FileNames $allScriptFiles
 
+# In this file, the key is the script, and the value is the list of files that it imports.
 $dependencyHashtable | Export-Clixml -Path "$distFolder\dependencyHashtable.xml"
+
+$dependentHashtable = @{}
+foreach ($k in $dependencyHashtable.Keys) {
+    foreach ($script in $dependencyHashtable[$k]) {
+        if ($dependentHashtable.ContainsKey($script)) {
+            $dependentHashtable[$script] += $k
+        } else {
+            $dependentHashtable[$script] = @($k)
+        }
+    }
+}
+
+# In this file, the key is the script, and the value is the list of files that import it.
+$dependentHashtable | Export-Clixml -Path "$distFolder\dependentHashtable.xml"
 
 $commitTimeHashtable = Get-FileTimestampHashtable -DependencyHashtable $dependencyHashtable
 
