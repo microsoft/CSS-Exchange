@@ -8,20 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/NumaBiosCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/SerializedDataSigningCheck/">
       
       
-        <link rel="prev" href="../HyperThreadingCheck/">
+        <link rel="prev" href="../AuthCertificateCheck/">
       
       
-        <link rel="next" href="../ProcessorCheck/">
+        <link rel="next" href="../InternalTransportCertificateCheck/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
     
     
       
-        <title>NumaBiosCheck - Microsoft - CSS-Exchange</title>
+        <title>SerializedDataSigningCheck - Microsoft - CSS-Exchange</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#numa-bios-all-processor-cores-visible-check" class="md-skip">
+        <a href="#powershell-serialization-payload-signing" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NumaBiosCheck
+              SerializedDataSigningCheck
             
           </span>
         </div>
@@ -815,21 +815,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../NumaBiosCheck/" class="md-nav__link">
         NumaBiosCheck
       </a>
-      
     </li>
   
 
@@ -1021,11 +1011,100 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../SerializedDataSigningCheck/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          SerializedDataSigningCheck
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         SerializedDataSigningCheck
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#important" class="md-nav__link">
+    Important
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchange-server-2013" class="md-nav__link">
+    Exchange Server 2013
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchange-server-20162019" class="md-nav__link">
+    Exchange Server 2016/2019
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration" class="md-nav__link">
+    Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2045,6 +2124,69 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#important" class="md-nav__link">
+    Important
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchange-server-2013" class="md-nav__link">
+    Exchange Server 2013
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchange-server-20162019" class="md-nav__link">
+    Exchange Server 2016/2019
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration" class="md-nav__link">
+    Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2062,31 +2204,48 @@
 
 
 
-<h1 id="numa-bios-all-processor-cores-visible-check">NUMA BIOS / All Processor Cores Visible Check</h1>
-<p><strong>Description:</strong></p>
-<p>Check to see if the OS is able to see all the processor cores on the server. What normally happens is the OS is able to see 1 processor socket presented (aka half the number of cores)</p>
-<p>This can become a major problem on a server if you do not see all the processor cores for a few reasons.</p>
-<ul>
-<li>
-<p>Logic is built into the Exchange Code to handle user workload management is based of the how much CPU the user is using or the process itself. When we aren't able to see all the cores on the system, the process can consume a higher amount than what logic dictates. We base this logic off of the number of cores presented to the OS by <code>[System.Environment]::ProcessorCount</code>. Because the underlying hardware has full access to all the processor cores, the process can go above what Exchange calculated out to set the threshold to be at and then throttling can occur.</p>
-</li>
-<li>
-<p>Sometimes the underlying setting isn't able to keep up and doesn't distribute the load between both the processor sockets, thus causing an issue because the application just lost half of its resources. You can see this occur when you look at the performance counter "\Processor Information(0,_Total)\% Processor Time" and "\Processor Information(1,_Total)\% Processor Time" as each one sees their own socket. One will go up while the other goes down. This might only happen for a few seconds, but there are health checks on the server that can be triggered to cause additional issues that will spiral the server.</p>
-</li>
-</ul>
-<p><strong>Included in HTML Report?</strong></p>
+<h1 id="powershell-serialization-payload-signing">PowerShell Serialization Payload Signing</h1>
+<h2 id="description">Description</h2>
+<p>Certificate-based signing of PowerShell Serialization Payload is a Defense-in-Depth security feature to prevent malicious manipulation of serialized data exchanged in Exchange Management Shell (EMS) sessions.</p>
+<p>The Serialized Data Signing feature was introduced with the January 2023 Exchange Server Security Update (SU). It's available on Exchange Server 2013, Exchange Server 2016 and Exchange Server 2019.</p>
+<p>In the first stage of rollout, this feature needs to be manually enabled by the Exchange Server administrator. This can be done by following the steps outlined below.</p>
+<p>The HealthChecker check validates that the feature is enabled on supported Exchange builds. It will also check if multiple <code>SettingOverrides</code> are available that collide with each other.</p>
+<h3 id="important">Important</h3>
+<p>Ensure all the Exchange Servers (Exchange Server 2019, 2016 and 2013) in the environment are running the January 2023 (or later) SU before turning the feature on. Enabling the feature before all servers are updated might lead to failures and errors when managing your organization.</p>
+<p>This features uses the <code>Exchange Server Auth Certificate</code> to sign the serialized data. Therefore, it's very important that the certificate which is configured as Auth Certificate is valid (not expired) and available on all Exchange Servers (except Edge Transport role and Exchange Management Tools role) within the organization.</p>
+<h3 id="exchange-server-2013">Exchange Server 2013</h3>
+<p>The feature must be enabled on a per-server base by creating the following <code>registry value</code>:</p>
+<p>Key: <code>HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics\</code></p>
+<p>ValueType: <code>String</code></p>
+<p>Value: <code>EnableSerializationDataSigning</code></p>
+<p>Data: <code>1</code></p>
+<p>You can create the required string value by running the following PowerShell command:</p>
+<p><code>New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics -Name "EnableSerializationDataSigning" -Value 1 -Type String</code></p>
+<h3 id="exchange-server-20162019">Exchange Server 2016/2019</h3>
+<p>The feature can be enabled on an organizational level (strongly recommended) or per-server base via <code>SettingOverride</code>:</p>
+<p>Organizational-wide: <code>New-SettingOverride -Name "EnableSigningVerification" -Component Data -Section EnableSerializationDataSigning -Parameters @("Enabled=true") -Reason "Enabling Signing Verification"</code></p>
+<p>Per-server base: <code>New-SettingOverride -Name "EnableSigningVerification" -Component Data -Section EnableSerializationDataSigning -Parameters @("Enabled=true") -Reason "Enabling Signing Verification" -Server &lt;ExchangeServerName&gt;</code></p>
+<p>Next, refresh the VariantConfiguration argument by running the following cmdlet:
+<code>Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh</code></p>
+<h3 id="required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration">Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)</h3>
+<p>Restart the <code>World Wide Web Publishing service</code> and the <code>Windows Process Activation Service (WAS)</code> to apply the new settings. To do this, run the following cmdlet:
+<code>Restart-Service -Name W3SVC, WAS -Force</code></p>
+<p><strong>NOTE:</strong></p>
+<p>Exchange 2016/2019: It's sufficient to restart the services on the server where the change was made.</p>
+<p>Exchange 2013: It's required to restart these services on all Exchange 2013 servers whenever the registry value is updated.</p>
+<h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&amp;docId=emr_na-c04650594">CUSTOMER ADVISORY c04650594</a></p>
-<p><a href="https://ingogegenwarth.wordpress.com/2017/07/27/numa-settings/">Exchange performance:HP NUMA BIOS settings</a></p>
-<p><a href="https://docs.microsoft.com/archive/blogs/dannypexchange/exchange-2016-users-unable-to-edit-distribution-group-membership-when-outlook">Exchange 2016 users unable to edit Distribution Group membership using Outlook</a></p>
+<h2 id="additional-resources">Additional resources</h2>
+<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808">Released: January 2023 Exchange Server Security Updates</a></p>
+<p><a href="https://support.microsoft.com/kb/5022988">Certificate signing of PowerShell serialization payload in Exchange Server</a></p>
+<p><a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1 script</a></p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 19, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2022</span>
       
     
   </small>

@@ -8,27 +8,27 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/NumaBiosCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Admin/MonitorExchangeAuthCertificate/">
       
       
-        <link rel="prev" href="../HyperThreadingCheck/">
+        <link rel="prev" href="../Get-SimpleAuditLogReport/">
       
       
-        <link rel="next" href="../ProcessorCheck/">
+        <link rel="next" href="../Remove-CertExpiryNotifications/">
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
     
     
       
-        <title>NumaBiosCheck - Microsoft - CSS-Exchange</title>
+        <title>MonitorExchangeAuthCertificate - Microsoft - CSS-Exchange</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.6b71719e.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6b71719e.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.2505c338.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
       
       
 
@@ -44,7 +44,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#numa-bios-all-processor-cores-visible-check" class="md-skip">
+        <a href="#monitorexchangeauthcertificate" class="md-skip">
           Skip to content
         </a>
       
@@ -83,7 +83,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NumaBiosCheck
+              MonitorExchangeAuthCertificate
             
           </span>
         </div>
@@ -181,7 +181,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -212,7 +212,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Emerging-Issues/" class="md-nav__link">
+      <a href="../../Emerging-Issues/" class="md-nav__link">
         Emerging Issues
       </a>
     </li>
@@ -225,14 +225,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
       
       
         
@@ -258,7 +260,7 @@
         
       
       
-        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="true">
           Admin
           <span class="md-nav__icon md-icon"></span>
         </label>
@@ -276,7 +278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Clear-MailboxPermission/" class="md-nav__link">
+      <a href="../Clear-MailboxPermission/" class="md-nav__link">
         Clear-MailboxPermission
       </a>
     </li>
@@ -290,7 +292,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/CrossTenantMailboxMigrationValidation/" class="md-nav__link">
+      <a href="../CrossTenantMailboxMigrationValidation/" class="md-nav__link">
         Cross-TenantMailboxMigrationValidation
       </a>
     </li>
@@ -304,7 +306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Find-AmbiguousSids/" class="md-nav__link">
+      <a href="../Find-AmbiguousSids/" class="md-nav__link">
         Find-AmbiguousSids
       </a>
     </li>
@@ -318,7 +320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Get-EASMailboxLogs/" class="md-nav__link">
+      <a href="../Get-EASMailboxLogs/" class="md-nav__link">
         Get-EASMailboxLogs
       </a>
     </li>
@@ -332,7 +334,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Get-SimpleAuditLogReport/" class="md-nav__link">
+      <a href="../Get-SimpleAuditLogReport/" class="md-nav__link">
         Get-SimpleAuditLogReport
       </a>
     </li>
@@ -344,11 +346,86 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../../Admin/MonitorExchangeAuthCertificate/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          MonitorExchangeAuthCertificate
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         MonitorExchangeAuthCertificate
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run" class="md-nav__link">
+    How To Run
+  </a>
+  
+    <nav class="md-nav" aria-label="How To Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -360,7 +437,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Remove-CertExpiryNotifications/" class="md-nav__link">
+      <a href="../Remove-CertExpiryNotifications/" class="md-nav__link">
         Remove-CertExpiryNotifications
       </a>
     </li>
@@ -374,7 +451,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Reset-ScanEngineVersion/" class="md-nav__link">
+      <a href="../Reset-ScanEngineVersion/" class="md-nav__link">
         Reset-ScanEngineVersion
       </a>
     </li>
@@ -388,7 +465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/SetUnifiedContentPath/" class="md-nav__link">
+      <a href="../SetUnifiedContentPath/" class="md-nav__link">
         SetUnifiedContentPath
       </a>
     </li>
@@ -402,7 +479,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Test-AMSI/" class="md-nav__link">
+      <a href="../Test-AMSI/" class="md-nav__link">
         Test-AMSI
       </a>
     </li>
@@ -459,7 +536,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/Analyze-SpaceDump/" class="md-nav__link">
+      <a href="../../Databases/Analyze-SpaceDump/" class="md-nav__link">
         Analyze-SpaceDump
       </a>
     </li>
@@ -473,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
+      <a href="../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
         Compare-MailboxStatistics
       </a>
     </li>
@@ -487,7 +564,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/VSSTester/" class="md-nav__link">
+      <a href="../../Databases/VSSTester/" class="md-nav__link">
         VSSTester
       </a>
     </li>
@@ -507,16 +584,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
       
         
@@ -532,7 +607,7 @@
         
       
       
-        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="true">
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
           Diagnostics
           <span class="md-nav__icon md-icon"></span>
         </label>
@@ -550,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ExchangeLogCollector/" class="md-nav__link">
+      <a href="../../Diagnostics/ExchangeLogCollector/" class="md-nav__link">
         ExchangeLogCollector
       </a>
     </li>
@@ -564,7 +639,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ExTRA/" class="md-nav__link">
+      <a href="../../Diagnostics/ExTRA/" class="md-nav__link">
         ExTRA
       </a>
     </li>
@@ -576,16 +651,14 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" checked>
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4_3" type="checkbox" id="__nav_4_3" >
       
       
         
@@ -668,7 +741,7 @@
         
         
         <div class="md-nav__link md-nav__link--index ">
-          <a href="../">HealthChecker</a>
+          <a href="../../Diagnostics/HealthChecker/">HealthChecker</a>
           
             <label for="__nav_4_3">
               <span class="md-nav__icon md-icon"></span>
@@ -691,7 +764,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExchangeServerMaintenanceCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck/" class="md-nav__link">
         MaintenanceCheck
       </a>
     </li>
@@ -705,7 +778,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
         GCModeCheck
       </a>
     </li>
@@ -719,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RebootPending/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RebootPending/" class="md-nav__link">
         RebootPending
       </a>
     </li>
@@ -733,7 +806,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
         CTSProcessorAffinityCheck
       </a>
     </li>
@@ -747,7 +820,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CredentialGuardCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CredentialGuardCheck/" class="md-nav__link">
         CredentialGuardCheck
       </a>
     </li>
@@ -761,7 +834,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RPCMinConnectionTimeoutCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck/" class="md-nav__link">
         RPCMinConnectionTimeoutCheck
       </a>
     </li>
@@ -775,7 +848,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TCPIPSettingsCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TCPIPSettingsCheck/" class="md-nav__link">
         TCPIPSettingsCheck
       </a>
     </li>
@@ -789,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../GeneralHardwareInformation/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/GeneralHardwareInformation/" class="md-nav__link">
         GeneralHardwareInformation
       </a>
     </li>
@@ -803,7 +876,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../HyperThreadingCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/HyperThreadingCheck/" class="md-nav__link">
         HyperThreadingCheck
       </a>
     </li>
@@ -815,21 +888,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../Diagnostics/HealthChecker/NumaBiosCheck/" class="md-nav__link">
         NumaBiosCheck
       </a>
-      
     </li>
   
 
@@ -841,7 +904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ProcessorCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ProcessorCheck/" class="md-nav__link">
         ProcessorCheck
       </a>
     </li>
@@ -855,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IPv6EnabledCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/IPv6EnabledCheck/" class="md-nav__link">
         IPv6EnabledCheck
       </a>
     </li>
@@ -869,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PacketsLossCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/PacketsLossCheck/" class="md-nav__link">
         PacketsLossCheck
       </a>
     </li>
@@ -883,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RSSEnabledCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RSSEnabledCheck/" class="md-nav__link">
         RSSEnabledCheck
       </a>
     </li>
@@ -897,7 +960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SleepyNICCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SleepyNICCheck/" class="md-nav__link">
         SleepyNICCheck
       </a>
     </li>
@@ -911,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NETFrameworkSupportabilityCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck/" class="md-nav__link">
         NETFrameworkCheck
       </a>
     </li>
@@ -925,7 +988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PagefileSizeCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/PagefileSizeCheck/" class="md-nav__link">
         PagefileCheck
       </a>
     </li>
@@ -939,7 +1002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VisualCRedistributableVersionCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/VisualCRedistributableVersionCheck/" class="md-nav__link">
         VisualCCheck
       </a>
     </li>
@@ -953,7 +1016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../LMCompatibilityLevelInformationCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck/" class="md-nav__link">
         LMCompatibilityLevelInformationCheck
       </a>
     </li>
@@ -967,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CloudConnectorCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CloudConnectorCheck/" class="md-nav__link">
         CloudConnectorCheck
       </a>
     </li>
@@ -981,7 +1044,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TLSConfigurationCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TLSConfigurationCheck/" class="md-nav__link">
         TLSConfigurationCheck
       </a>
     </li>
@@ -995,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CertificateCheck/" class="md-nav__link">
         CertificateCheck
       </a>
     </li>
@@ -1009,7 +1072,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AuthCertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/AuthCertificateCheck/" class="md-nav__link">
         AuthCertificateCheck
       </a>
     </li>
@@ -1023,7 +1086,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SerializedDataSigningCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SerializedDataSigningCheck/" class="md-nav__link">
         SerializedDataSigningCheck
       </a>
     </li>
@@ -1037,7 +1100,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../InternalTransportCertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/InternalTransportCertificateCheck/" class="md-nav__link">
         InternalTransportCertificateCheck
       </a>
     </li>
@@ -1051,7 +1114,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SMBv1Check/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SMBv1Check/" class="md-nav__link">
         SMBv1Check
       </a>
     </li>
@@ -1065,7 +1128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../EEMSCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/EEMSCheck/" class="md-nav__link">
         EEMSCheck
       </a>
     </li>
@@ -1079,7 +1142,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AMSIIntegration/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/AMSIIntegration/" class="md-nav__link">
         AMSICheck
       </a>
     </li>
@@ -1093,7 +1156,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VulnerabilityCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/VulnerabilityCheck/" class="md-nav__link">
         VulnerabilityCheck
       </a>
     </li>
@@ -1107,7 +1170,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../DownloadDomainCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/DownloadDomainCheck/" class="md-nav__link">
         DownloadDomainCheck
       </a>
     </li>
@@ -1121,7 +1184,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../OpenRelayDomain/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/OpenRelayDomain/" class="md-nav__link">
         OpenRelayDomainCheck
       </a>
     </li>
@@ -1135,7 +1198,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../FIPFSCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/FIPFSCheck/" class="md-nav__link">
         FIPFSCheck
       </a>
     </li>
@@ -1149,7 +1212,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IISWebConfigCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/IISWebConfigCheck/" class="md-nav__link">
         IISWebConfigCheck
       </a>
     </li>
@@ -1163,7 +1226,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RunHCViaSchedTask/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RunHCViaSchedTask/" class="md-nav__link">
         HCScheduledTask
       </a>
     </li>
@@ -1177,7 +1240,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ADSiteCount/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ADSiteCount/" class="md-nav__link">
         ADSiteCount
       </a>
     </li>
@@ -1198,7 +1261,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ManagedAvailabilityTroubleshooter/" class="md-nav__link">
+      <a href="../../Diagnostics/ManagedAvailabilityTroubleshooter/" class="md-nav__link">
         ManagedAvailabilityTroubleshooter
       </a>
     </li>
@@ -1212,7 +1275,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Test-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../Diagnostics/Test-ExchAVExclusions/" class="md-nav__link">
         Test-ExchAVExclusions
       </a>
     </li>
@@ -1265,7 +1328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Hybrid/Test-HMAEAS/" class="md-nav__link">
+      <a href="../../Hybrid/Test-HMAEAS/" class="md-nav__link">
         Test-HMAEAS
       </a>
     </li>
@@ -1318,7 +1381,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/DLT365Groupsupgrade/" class="md-nav__link">
+      <a href="../../M365/DLT365Groupsupgrade/" class="md-nav__link">
         DLT365Groupsupgrade
       </a>
     </li>
@@ -1375,7 +1438,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/ExPerfWiz/" class="md-nav__link">
+      <a href="../../Performance/ExPerfWiz/" class="md-nav__link">
         ExPerfWiz
       </a>
     </li>
@@ -1389,7 +1452,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/ExPerfAnalyzer/" class="md-nav__link">
+      <a href="../../Performance/ExPerfAnalyzer/" class="md-nav__link">
         ExPerfAnalyzer
       </a>
     </li>
@@ -1403,7 +1466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/SimplePerf/" class="md-nav__link">
+      <a href="../../Performance/SimplePerf/" class="md-nav__link">
         SimplePerf
       </a>
     </li>
@@ -1460,7 +1523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/SourceSideValidations/" class="md-nav__link">
+      <a href="../../PublicFolders/SourceSideValidations/" class="md-nav__link">
         SourceSideValidations
       </a>
     </li>
@@ -1474,7 +1537,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/ValidateMailEnabledPublicFolders/" class="md-nav__link">
+      <a href="../../PublicFolders/ValidateMailEnabledPublicFolders/" class="md-nav__link">
         ValidateMailEnabledPublicFolders
       </a>
     </li>
@@ -1488,7 +1551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/ValidateEXOPFDumpster/" class="md-nav__link">
+      <a href="../../PublicFolders/ValidateEXOPFDumpster/" class="md-nav__link">
         ValidateEXOPFDumpster
       </a>
     </li>
@@ -1541,7 +1604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Retention/Get-MRMDetails/" class="md-nav__link">
+      <a href="../../Retention/Get-MRMDetails/" class="md-nav__link">
         Get-MRMDetails
       </a>
     </li>
@@ -1594,7 +1657,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
+      <a href="../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
         Troubleshoot-ModernSearch
       </a>
     </li>
@@ -1659,7 +1722,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/EOMT/" class="md-nav__link">
+      <a href="../../Security/EOMT/" class="md-nav__link">
         EOMT
       </a>
     </li>
@@ -1673,7 +1736,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/EOMTv2/" class="md-nav__link">
+      <a href="../../Security/EOMTv2/" class="md-nav__link">
         EOMTv2
       </a>
     </li>
@@ -1687,7 +1750,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Extended-Protection/" class="md-nav__link">
+      <a href="../../Security/Extended-Protection/" class="md-nav__link">
         Extended Protection
       </a>
     </li>
@@ -1701,7 +1764,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
+      <a href="../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
         ExchangeExtendedProtectionManagement
       </a>
     </li>
@@ -1715,7 +1778,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/ExchangeMitigations/" class="md-nav__link">
+      <a href="../../Security/ExchangeMitigations/" class="md-nav__link">
         ExchangeMitigations
       </a>
     </li>
@@ -1729,7 +1792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Test-CVE-2021-34470/" class="md-nav__link">
+      <a href="../../Security/Test-CVE-2021-34470/" class="md-nav__link">
         Test-CVE-2021-34470
       </a>
     </li>
@@ -1743,7 +1806,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Test-ProxyLogon/" class="md-nav__link">
+      <a href="../../Security/Test-ProxyLogon/" class="md-nav__link">
         Test-ProxyLogon
       </a>
     </li>
@@ -1804,7 +1867,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/CopyMissingDlls/" class="md-nav__link">
+      <a href="../../Setup/CopyMissingDlls/" class="md-nav__link">
         CopyMissingDlls
       </a>
     </li>
@@ -1818,7 +1881,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/FixInstallerCache/" class="md-nav__link">
+      <a href="../../Setup/FixInstallerCache/" class="md-nav__link">
         FixInstallerCache
       </a>
     </li>
@@ -1832,7 +1895,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
         Set-ExchAVExclusions
       </a>
     </li>
@@ -1870,7 +1933,7 @@
         
         
         <div class="md-nav__link md-nav__link--index ">
-          <a href="../../../Setup/SetupAssist/">SetupAssist</a>
+          <a href="../../Setup/SetupAssist/">SetupAssist</a>
           
             <label for="__nav_12_4">
               <span class="md-nav__icon md-icon"></span>
@@ -1893,7 +1956,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
         ComputersContainer
       </a>
     </li>
@@ -1907,7 +1970,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
         ReadOnlyDomainControllerContainer
       </a>
     </li>
@@ -1921,7 +1984,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
         RebootPending
       </a>
     </li>
@@ -1942,7 +2005,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupLogReviewer/" class="md-nav__link">
+      <a href="../../Setup/SetupLogReviewer/" class="md-nav__link">
         SetupLogReviewer
       </a>
     </li>
@@ -1997,7 +2060,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Transport/Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
+      <a href="../../Transport/Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
         Compute-TopExoRecipientsFromMessageTrace
       </a>
     </li>
@@ -2011,7 +2074,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Transport/ReplayQueueDatabases/" class="md-nav__link">
+      <a href="../../Transport/ReplayQueueDatabases/" class="md-nav__link">
         ReplayQueueDatabases
       </a>
     </li>
@@ -2045,6 +2108,55 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    Logging
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-run" class="md-nav__link">
+    How To Run
+  </a>
+  
+    <nav class="md-nav" aria-label="How To Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples:
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2062,31 +2174,132 @@
 
 
 
-<h1 id="numa-bios-all-processor-cores-visible-check">NUMA BIOS / All Processor Cores Visible Check</h1>
-<p><strong>Description:</strong></p>
-<p>Check to see if the OS is able to see all the processor cores on the server. What normally happens is the OS is able to see 1 processor socket presented (aka half the number of cores)</p>
-<p>This can become a major problem on a server if you do not see all the processor cores for a few reasons.</p>
-<ul>
-<li>
-<p>Logic is built into the Exchange Code to handle user workload management is based of the how much CPU the user is using or the process itself. When we aren't able to see all the cores on the system, the process can consume a higher amount than what logic dictates. We base this logic off of the number of cores presented to the OS by <code>[System.Environment]::ProcessorCount</code>. Because the underlying hardware has full access to all the processor cores, the process can go above what Exchange calculated out to set the threshold to be at and then throttling can occur.</p>
-</li>
-<li>
-<p>Sometimes the underlying setting isn't able to keep up and doesn't distribute the load between both the processor sockets, thus causing an issue because the application just lost half of its resources. You can see this occur when you look at the performance counter "\Processor Information(0,_Total)\% Processor Time" and "\Processor Information(1,_Total)\% Processor Time" as each one sees their own socket. One will go up while the other goes down. This might only happen for a few seconds, but there are health checks on the server that can be triggered to cause additional issues that will spiral the server.</p>
-</li>
-</ul>
-<p><strong>Included in HTML Report?</strong></p>
-<p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&amp;docId=emr_na-c04650594">CUSTOMER ADVISORY c04650594</a></p>
-<p><a href="https://ingogegenwarth.wordpress.com/2017/07/27/numa-settings/">Exchange performance:HP NUMA BIOS settings</a></p>
-<p><a href="https://docs.microsoft.com/archive/blogs/dannypexchange/exchange-2016-users-unable-to-edit-distribution-group-membership-when-outlook">Exchange 2016 users unable to edit Distribution Group membership using Outlook</a></p>
+<h1 id="monitorexchangeauthcertificate">MonitorExchangeAuthCertificate</h1>
+<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/MonitorExchangeAuthCertificate.ps1">MonitorExchangeAuthCertificate.ps1</a></p>
+<p>The <code>MonitorExchangeAuthCertificate.ps1</code> PowerShell script can help you to manage the Auth Certificate used by multiple security features in Exchange Server. The script can be used to renew an already expired Auth Certificate or repair an invalid Auth Configuration in which the current Auth Certificate isn't available on all Exchange Servers running the Mailbox or Client Access Server (CAS) role. It can also manage rotation of the Auth Certificate to ensure a smooth transition to a new Auth Certificate.</p>
+<p>The script comes with a manual execution mode and an automation mode that works using the Windows Task Scheduler.</p>
+<h2 id="requirements">Requirements</h2>
+<p>To run the script, you must be a member of the <code>Organization Management</code> role group. The script must be run from an elevated Exchange Management Shell (EMS) command prompt on an Exchange Server running the Mailbox role. The script cannot be run on an Exchange Management Tools-only machine.</p>
+<h2 id="logging">Logging</h2>
+<p>Each run of the script is logged to the following directory: <code>&lt;ExchangeInstallPath&gt;\Logging\AuthCertificateMonitoring</code></p>
+<p>The naming syntax of the log file is: <code>&lt;AuthCertificateMonitoringLog&gt;_&lt;Timestamp&gt;.txt</code></p>
+<p><strong>NOTE:</strong> If the <code>&lt;ExchangeInstallPath&gt;</code> directory doesn't exists, the log file will be written to the following directory: <code>&lt;$env:TEMP&gt;\Logging\AuthCertificateMonitoring</code></p>
+<h2 id="how-to-run">How To Run</h2>
+<h4 id="examples">Examples:</h4>
+<p>The following syntax runs the script in validation-only mode. It will show you the required Auth Certificate renewal action that would be performed if the script is executed in renewal mode.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div>
+<p>The following syntax executes the script in renewal mode with user interaction. The required Auth Certificate renewal action will be performed, and the administrator might see prompts that need to be confirmed before the script continues:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateAndRenewAuthCertificate</span> <span class="nv">$true</span>
+</code></pre></div>
+<p>If you respond with 'Y', then the script will run in unattended mode and will not prompt you again.</p>
+<p><img alt="Example output" src="../MonitorExchangeAuthCertificate2.png" /></p>
+<p>It's recommended to recycle the WebApp Pools when the active Auth Certificate is replaced. You should respond with 'Y'.</p>
+<p><img alt="Example output" src="../MonitorExchangeAuthCertificate1.png" /></p>
+<p>It's not recommended to replace the internal transport certificate with the newly created Auth Certificate. You should respond with 'N'.</p>
+<p><img alt="Example output" src="../MonitorExchangeAuthCertificate3.png" /></p>
+<p>The following syntax executes the script in renewal mode without user interaction. The required Auth Certificate renewal action will be performed. In unattended mode the internal SMTP certificate is replaced with the new Auth Certificate and then set back to the previous one. The script also restarts the <code>MSExchangeServiceHost</code> service and the <code>MSExchangeOWAAppPool</code> and <code>MSExchangeECPAppPool</code> WebApp Pools when the primary Auth Certificate has been replaced.</p>
+<p><strong>NOTE:</strong> The script creates a new internal transport certificate if the previously configured one wasn’t found on the machine where the script is run.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateAndRenewAuthCertificate</span> <span class="nv">$true</span> <span class="n">-Confirm</span><span class="p">:</span><span class="nv">$false</span>
+</code></pre></div>
+<p>The following syntax runs the script in renewal mode without user interaction. We only take the Exchange servers into account if they are reachable and will perform the renewal action if required.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateAndRenewAuthCertificate</span> <span class="nv">$true</span> <span class="n">-IgnoreUnreachableServers</span> <span class="nv">$true</span> <span class="n">-Confirm</span><span class="p">:</span><span class="nv">$false</span>
+</code></pre></div>
+<p>The following syntax executes the script in renewal mode without user interaction. The renewal action will be performed even when an Exchange hybrid configuration is detected.</p>
+<p><strong>NOTE:</strong> You must re-run the Hybrid Configuration Wizard (HCW) after the active Auth Certificate has been replaced.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateAndRenewAuthCertificate</span> <span class="nv">$true</span> <span class="n">-IgnoreHybridConfig</span> <span class="nv">$true</span> <span class="n">-Confirm</span><span class="p">:</span><span class="nv">$false</span>
+</code></pre></div>
+<p>The following syntax executes the script in scheduled task mode. In this mode, the script performs the following steps:</p>
+<p><strong>NOTE:</strong> It doesn't matter what you type into the <code>Username</code> box, so you can enter, for example <code>abc</code>. Make sure to use a password that complies with the password guidelines of your organization.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureScriptToRunViaScheduledTask</span> <span class="n">-Password</span> <span class="p">(</span><span class="nb">Get-Credential</span><span class="p">).</span><span class="n">Password</span>
+</code></pre></div>
+<p><strong>NOTE:</strong> The <code>ConfigureScriptToRunViaScheduledTask</code> parameter can be combined with the <code>IgnoreHybridConfig</code> and <code>IgnoreUnreachableServers</code> parameter.</p>
+<ol>
+<li>It creates a new Exchange Role Group, <code>Auth Certificate Management</code>, which has the following roles assigned: <code>View-Only Configuration</code>, <code>View-Only Recipients</code>, <code>Exchange Server Certificates</code>, <code>Organization Client Access</code></li>
+<li>It creates a new user account with the following User Principal Name (UPN): <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code></li>
+<li>The user account is mail-enabled and hidden from address lists</li>
+<li>The user account is added to the local Administrators group on the Exchange Server where the script is executed</li>
+<li>The user account is added to the <code>Auth Certificate Management</code> Exchange Role Group</li>
+<li>The script is copied to <code>&lt;ExchangeInstallPath&gt;\Scripts</code></li>
+<li>A new scheduled task is registered to run the script in context of the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> user</li>
+</ol>
+<p>The following syntax runs the script in Active Directory (AD) account creation mode which can be useful when Exchange runs in <a href="https://learn.microsoft.com/exchange/permissions/split-permissions/split-permissions?view=exchserver-2019#active-directory-split-permissions">AD Split Permissions</a> mode. An AD administrator with sufficient permissions to create a user in AD (e.g., a Domain Admin) can run the script in this mode to create the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> account. The account can then be passed by the Exchange administrator via <code>AutomationAccountCredential</code> parameter as outlined in the next example.</p>
+<p>In this mode, the script can be executed from an elevated PowerShell command prompt (no EMS required) running on a non-Exchange Server machine with the ActiveDirectory PowerShell module installed, as it only uses cmdlets which are coming with this module.</p>
+<p><strong>NOTE:</strong> We recommend creating a user account in the same domain where Exchange was installed. You can specify the domain by using the <code>ADAccountDomain</code> parameter.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-PrepareADForAutomationOnly</span> <span class="n">-ADAccountDomain</span> <span class="s2">&quot;root.local&quot;</span>
+</code></pre></div>
+<p>The following syntax executes the script in scheduled task mode, but it doesn't create the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> user account. Instead, the account passed via <code>AutomationAccountCredential</code> parameter is used.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureScriptToRunViaScheduledTask</span> <span class="n">-AutomationAccountCredential</span> <span class="p">(</span><span class="nb">Get-Credential</span><span class="p">)</span>
+</code></pre></div>
+<p>The following syntax runs the script in Auth Certificate export mode. In this mode, the script exports the current and (if configured) the next Auth Certificate as DER (Distinguished Encoding Rules) binary encoded <code>PKCS #12</code> files, using the <code>.pfx</code> file name extension.</p>
+<p>The naming syntax for the exported .pfx file is: <code>&lt;CertificateThumbprint&gt;-&lt;Timestamp&gt;.pfx</code></p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExportAuthCertificatesAsPfx</span>
+</code></pre></div>
+<p>The following syntax executes the script in update-only mode. In this mode, the script only checks for a more current version of the script and downloads it if found.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ScriptUpdateOnly</span>
+</code></pre></div>
+<h2 id="parameters">Parameters</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ValidateAndRenewAuthCertificate</td>
+<td>This optional parameter enables the validation and renewal mode which will perform the required actions to replace an invalid/expired Auth Certificate or configures a new next Auth Certificate if the current Auth Certificate expires in &lt; 60 days or the certificate configured as next Auth Certificate expires in &lt; 120 days.</td>
+</tr>
+<tr>
+<td>IgnoreUnreachableServers</td>
+<td>This optional parameter can be used to ignore if some of the Exchange servers within the organization cannot be reached. If this parameter is used, the script only validates the servers that can be reached and will perform Auth Certificate renewal actions based on the result. Parameter can be combined with the <code>IgnoreHybridConfig</code> parameter and can also be used with the <code>ConfigureScriptToRunViaScheduledTask</code> parameter to configure the script to run via scheduled task.</td>
+</tr>
+<tr>
+<td>IgnoreHybridConfig</td>
+<td>This optional parameter allows you to explicitly perform Auth Certificate renewal actions (if required) even if an Exchange hybrid configuration was detected. You need to run the HCW after the renewed Auth Certificate becomes the one in use. Parameter can be combined with the <code>IgnoreUnreachableServers</code> parameter and can also be used with the <code>ConfigureScriptToRunViaScheduledTask</code> parameter to configure the script to run via scheduled task.</td>
+</tr>
+<tr>
+<td>PrepareADForAutomationOnly</td>
+<td>This optional parameter can be used in AD Split Permission scenarios. It allows you to create the AD account which can then be used to run the Exchange Auth Certificate Monitoring script automatically via Task Scheduler.</td>
+</tr>
+<tr>
+<td>ADAccountDomain</td>
+<td>This optional parameter allows you to specify the domain which is then used by the script to generate the AD account used for automation. Parameter can be combined with the <code>PrepareADForAutomationOnly</code> parameter.</td>
+</tr>
+<tr>
+<td>ConfigureScriptToRunViaScheduledTask</td>
+<td>This optional parameter can be used to automatically prepare the requirements in AD (user account), Exchange (email enable the account, hide the account from address book, create a new role group with limited permissions) and finally it creates the scheduled task on the computer on which the script was executed (it has to be an Exchange server running the mailbox role).</td>
+</tr>
+<tr>
+<td>AutomationAccountCredential</td>
+<td>This optional parameter can be used to provide a different user under whose context the script is then executed via scheduled task.</td>
+</tr>
+<tr>
+<td>Password</td>
+<td>Parameter to provide a password to the script which is required in some scenarios.</td>
+</tr>
+<tr>
+<td>ExportAuthCertificatesAsPfx</td>
+<td>This optional parameter can be used to export all on the system available Auth Certificates as password protected .pfx file.</td>
+</tr>
+<tr>
+<td>ScriptUpdateOnly</td>
+<td>This optional parameter allows you to only update the script without performing any other actions.</td>
+</tr>
+<tr>
+<td>SkipVersionCheck</td>
+<td>This optional parameter can be used to skip the Auto Update feature to download the latest version of the script.</td>
+</tr>
+</tbody>
+</table>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 19, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2022</span>
       
     
   </small>
@@ -2128,10 +2341,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.indexes"], "search": "../../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.ba449ae6.min.js"></script>
+      <script src="../../assets/javascripts/bundle.ba449ae6.min.js"></script>
       
     
   </body>

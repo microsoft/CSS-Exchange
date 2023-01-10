@@ -8,20 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/NumaBiosCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/InternalTransportCertificateCheck/">
       
       
-        <link rel="prev" href="../HyperThreadingCheck/">
+        <link rel="prev" href="../SerializedDataSigningCheck/">
       
       
-        <link rel="next" href="../ProcessorCheck/">
+        <link rel="next" href="../SMBv1Check/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
     
     
       
-        <title>NumaBiosCheck - Microsoft - CSS-Exchange</title>
+        <title>InternalTransportCertificateCheck - Microsoft - CSS-Exchange</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#numa-bios-all-processor-cores-visible-check" class="md-skip">
+        <a href="#internal-transport-certificate" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NumaBiosCheck
+              InternalTransportCertificateCheck
             
           </span>
         </div>
@@ -815,21 +815,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../NumaBiosCheck/" class="md-nav__link">
         NumaBiosCheck
       </a>
-      
     </li>
   
 
@@ -1035,11 +1025,86 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../InternalTransportCertificateCheck/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          InternalTransportCertificateCheck
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         InternalTransportCertificateCheck
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-does-the-check-do" class="md-nav__link">
+    What does the check do?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-create-a-new-internal-transport-certificate" class="md-nav__link">
+    How to create a new Internal Transport Certificate?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2045,6 +2110,55 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-does-the-check-do" class="md-nav__link">
+    What does the check do?
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-create-a-new-internal-transport-certificate" class="md-nav__link">
+    How to create a new Internal Transport Certificate?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2062,31 +2176,39 @@
 
 
 
-<h1 id="numa-bios-all-processor-cores-visible-check">NUMA BIOS / All Processor Cores Visible Check</h1>
-<p><strong>Description:</strong></p>
-<p>Check to see if the OS is able to see all the processor cores on the server. What normally happens is the OS is able to see 1 processor socket presented (aka half the number of cores)</p>
-<p>This can become a major problem on a server if you do not see all the processor cores for a few reasons.</p>
-<ul>
-<li>
-<p>Logic is built into the Exchange Code to handle user workload management is based of the how much CPU the user is using or the process itself. When we aren't able to see all the cores on the system, the process can consume a higher amount than what logic dictates. We base this logic off of the number of cores presented to the OS by <code>[System.Environment]::ProcessorCount</code>. Because the underlying hardware has full access to all the processor cores, the process can go above what Exchange calculated out to set the threshold to be at and then throttling can occur.</p>
-</li>
-<li>
-<p>Sometimes the underlying setting isn't able to keep up and doesn't distribute the load between both the processor sockets, thus causing an issue because the application just lost half of its resources. You can see this occur when you look at the performance counter "\Processor Information(0,_Total)\% Processor Time" and "\Processor Information(1,_Total)\% Processor Time" as each one sees their own socket. One will go up while the other goes down. This might only happen for a few seconds, but there are health checks on the server that can be triggered to cause additional issues that will spiral the server.</p>
-</li>
-</ul>
-<p><strong>Included in HTML Report?</strong></p>
+<h1 id="internal-transport-certificate">Internal Transport Certificate</h1>
+<h2 id="description">Description</h2>
+<p>The Internal Transport Certificate in Exchange Server is used in Exchange Server Front-End to Back-End mailflow scenarios as well as in scenarios in which the Exchange Servers communicate with each other, using the <code>SMTP (Simple Mail Transfer Protocol)</code> protocol. It is generated on a per-server base during the Exchange Server setup process and contains the computers <code>NetBIOS (Network Basic Input/Output System)</code> name as well as the <code>FQDN (Fully Qualified Domain Name)</code>.</p>
+<p>A missing Internal Transport Certificate can lead to a broken mailflow on or with the affected machine. It's therefore essential to have a valid certificate for this purpose on the machine. We recommend to not replace the self-signed certificate which was created by Exchange itself.</p>
+<h3 id="what-does-the-check-do">What does the check do?</h3>
+<p>The check queries the certificate which is marked as Internal Transport Certificate on the server against which the script is currently running. The script will throw a warning if the certificate cannot be found on the machine. It must then be recreated by the Exchange Server administrator and set as new Internal Transport Certificate.</p>
+<h3 id="how-to-create-a-new-internal-transport-certificate">How to create a new Internal Transport Certificate?</h3>
+<p>You can run the following PowerShell code from an elevated Exchange Management Shell (EMS). It will generate a new Internal Transport Certificate which replaces the existing one on the machine where the command was executed.</p>
+<div class="highlight"><pre><span></span><code>$newInternalTransportCertificateParams = @{
+    Server               = $env:COMPUTERNAME
+    KeySize              = 2048
+    PrivateKeyExportable = $true
+    FriendlyName         = $env:COMPUTERNAME
+    DomainName           = $env:COMPUTERNAME
+    IncludeServerFQDN    = $true
+    Services             = &quot;SMTP&quot;
+    Force                = $true
+    ErrorAction          = &quot;Stop&quot;
+}
+
+New-ExchangeCertificate @newInternalTransportCertificateParams
+</code></pre></div>
+<h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&amp;docId=emr_na-c04650594">CUSTOMER ADVISORY c04650594</a></p>
-<p><a href="https://ingogegenwarth.wordpress.com/2017/07/27/numa-settings/">Exchange performance:HP NUMA BIOS settings</a></p>
-<p><a href="https://docs.microsoft.com/archive/blogs/dannypexchange/exchange-2016-users-unable-to-edit-distribution-group-membership-when-outlook">Exchange 2016 users unable to edit Distribution Group membership using Outlook</a></p>
+<h2 id="additional-resources">Additional resources</h2>
+<p>N/A</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 19, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2022</span>
       
     
   </small>

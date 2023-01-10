@@ -8,20 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/NumaBiosCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/AuthCertificateCheck/">
       
       
-        <link rel="prev" href="../HyperThreadingCheck/">
+        <link rel="prev" href="../CertificateCheck/">
       
       
-        <link rel="next" href="../ProcessorCheck/">
+        <link rel="next" href="../SerializedDataSigningCheck/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
     
     
       
-        <title>NumaBiosCheck - Microsoft - CSS-Exchange</title>
+        <title>AuthCertificateCheck - Microsoft - CSS-Exchange</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#numa-bios-all-processor-cores-visible-check" class="md-skip">
+        <a href="#auth-certificate-check" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NumaBiosCheck
+              AuthCertificateCheck
             
           </span>
         </div>
@@ -815,21 +815,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../NumaBiosCheck/" class="md-nav__link">
         NumaBiosCheck
       </a>
-      
     </li>
   
 
@@ -1007,11 +997,79 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../AuthCertificateCheck/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          AuthCertificateCheck
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         AuthCertificateCheck
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-does-the-check-do" class="md-nav__link">
+    What does the check do?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2045,6 +2103,48 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-does-the-check-do" class="md-nav__link">
+    What does the check do?
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    Included in HTML Report?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    Additional resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2062,31 +2162,36 @@
 
 
 
-<h1 id="numa-bios-all-processor-cores-visible-check">NUMA BIOS / All Processor Cores Visible Check</h1>
-<p><strong>Description:</strong></p>
-<p>Check to see if the OS is able to see all the processor cores on the server. What normally happens is the OS is able to see 1 processor socket presented (aka half the number of cores)</p>
-<p>This can become a major problem on a server if you do not see all the processor cores for a few reasons.</p>
+<h1 id="auth-certificate-check">Auth Certificate Check</h1>
+<h2 id="description">Description</h2>
+<p>The Auth Configuration and Auth Certificate are used by Microsoft Exchange server to enable server-to-server authentication using the <code>Open Authorization (OAuth)</code> protocol standard. The Auth Certificate is also used by several Exchange Server security features which makes it important to be valid and available on all servers (except Edge Transport Servers) within the organization.</p>
+<p>An invalid Auth Certificate can lead to these and other issues:</p>
 <ul>
 <li>
-<p>Logic is built into the Exchange Code to handle user workload management is based of the how much CPU the user is using or the process itself. When we aren't able to see all the cores on the system, the process can consume a higher amount than what logic dictates. We base this logic off of the number of cores presented to the OS by <code>[System.Environment]::ProcessorCount</code>. Because the underlying hardware has full access to all the processor cores, the process can go above what Exchange calculated out to set the threshold to be at and then throttling can occur.</p>
+<p>Access to OWA or ECP isn't working</p>
 </li>
 <li>
-<p>Sometimes the underlying setting isn't able to keep up and doesn't distribute the load between both the processor sockets, thus causing an issue because the application just lost half of its resources. You can see this occur when you look at the performance counter "\Processor Information(0,_Total)\% Processor Time" and "\Processor Information(1,_Total)\% Processor Time" as each one sees their own socket. One will go up while the other goes down. This might only happen for a few seconds, but there are health checks on the server that can be triggered to cause additional issues that will spiral the server.</p>
+<p>Management of your Exchange servers via Exchange Management Shell isn't working as expected</p>
 </li>
 </ul>
-<p><strong>Included in HTML Report?</strong></p>
+<h3 id="what-does-the-check-do">What does the check do?</h3>
+<p>The HealthChecker script validates multiple configurations which are having a dependency to the Auth Certificate. The script will show you if the Auth Certificate which is configured, was found on the server against which the script is currently running. It will also highlight if the certificate has been expired.</p>
+<p>HealthChecker will display the certificate, which is configured as the next Auth Certificate (if there is one) and the effective date from which it becomes available for use by the AuthAdmin servicelet (Auth Certificate rotation to ensure a smooth transition to a new one).</p>
+<p><strong>Note:</strong> It's required to run the Hybrid Configuration Wizard (HCW), if you are running an Exchange Server hybrid configuration and the primary Auth Certificate has been replaced by a new one.</p>
+<h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&amp;docId=emr_na-c04650594">CUSTOMER ADVISORY c04650594</a></p>
-<p><a href="https://ingogegenwarth.wordpress.com/2017/07/27/numa-settings/">Exchange performance:HP NUMA BIOS settings</a></p>
-<p><a href="https://docs.microsoft.com/archive/blogs/dannypexchange/exchange-2016-users-unable-to-edit-distribution-group-membership-when-outlook">Exchange 2016 users unable to edit Distribution Group membership using Outlook</a></p>
+<h2 id="additional-resources">Additional resources</h2>
+<p><a href="https://learn.microsoft.com/Exchange/plan-and-deploy/integration-with-sharepoint-and-skype/maintain-oauth-certificate?view=exchserver-2019">Maintain (rotate) the Exchange Server Auth Certificate</a></p>
+<p><a href="https://learn.microsoft.com/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired#resolution">Replace the Auth Certificate if it has already expired or isn't available</a></p>
+<p><a href="https://learn.microsoft.com/exchange/troubleshoot/administration/exchange-oauth-authentication-could-not-find-the-authorization">Exchange OAuth authentication couldn't find the authorization certificate with thumbprint error when running Hybrid Configuration</a></p>
+<p><a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1 script</a></p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 19, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2022</span>
       
     
   </small>
