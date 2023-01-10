@@ -9,6 +9,12 @@ param()
 $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
 . $PSScriptRoot\..\Helpers\Class.ps1
 . $PSScriptRoot\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
+. $PSScriptRoot\..\..\..\.build\Load-Module.ps1
+
+if (-not (Load-Module -Name "Microsoft.PowerShell.Security" -MinimumVersion "7.0.0.0")) {
+    throw "Failed to load required security module"
+}
+
 $scriptContent = Get-PesterScriptContent -FilePath @(
     "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1",
     "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
