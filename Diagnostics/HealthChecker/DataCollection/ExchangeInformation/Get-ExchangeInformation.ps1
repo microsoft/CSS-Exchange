@@ -13,6 +13,7 @@
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
+. $PSScriptRoot\Get-ExchangeSerializedDataSigningState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -226,6 +227,19 @@ function Get-ExchangeInformation {
         }
 
         $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipfsParams
+
+        if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
+        ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+            Write-Verbose "SerializedDataSigning must be configured via SettingOverride"
+            $exchangeInformation.SerializationDataSigningConfiguration = Get-ExchangeSerializedDataSigningState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
+        } elseif (($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) -and
+            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+            Write-Verbose "SerializedDataSigning must be configured via Registry Value"
+            $exchangeInformation.SerializationDataSigningConfiguration = $exchangeInformation.RegistryValues.SerializedDataSigning
+        } else {
+            Write-Verbose "SerializedDataSigning is not supported on this Exchange version & role combination"
+        }
+
         $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
