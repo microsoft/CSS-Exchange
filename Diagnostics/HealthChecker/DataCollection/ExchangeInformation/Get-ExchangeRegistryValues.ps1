@@ -35,6 +35,11 @@ function Get-ExchangeRegistryValues {
         GetValue = "DisableAsyncNotification"
     }
 
+    $serializedDataSigningParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics"
+        GetValue = "EnableSerializationDataSigning"
+    }
+
     $installDirectoryParams = $baseParams + @{
         SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup"
         GetValue = "MsiInstallPath"
@@ -45,6 +50,7 @@ function Get-ExchangeRegistryValues {
         FipsAlgorithmPolicyEnabled     = [int](Get-RemoteRegistryValue @fipsParams)
         DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
         DisableAsyncNotification       = [int](Get-RemoteRegistryValue @disableAsyncParams)
+        SerializedDataSigning          = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
         MisInstallPath                 = [string](Get-RemoteRegistryValue @installDirectoryParams)
     }
 }
