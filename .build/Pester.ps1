@@ -2,7 +2,9 @@
 # Licensed under the MIT License.
 
 [CmdletBinding()]
-param()
+param(
+    [switch]$NoProgress
+)
 
 begin {
     . $PSScriptRoot\Load-Module.ps1
@@ -48,7 +50,10 @@ begin {
 
     $parentProgress.PercentComplete = ($jobsCompleted.Count / $scripts.Count * 100)
     $parentProgress.Status = "Number of Jobs Running $($jobsRunning.Count)"
-    Write-Progress @parentProgress
+
+    if (-not $NoProgress) {
+        Write-Progress @parentProgress
+    }
 
     while ($jobsQueued.Count -gt 0 -or $jobsRunning.Count -gt 0) {
 
@@ -64,7 +69,10 @@ begin {
                 Activity = "Running: $($newJob.Name)"
             }
             $jobsProgress.Add($newJob.Name, $progress)
-            Write-Progress @progress
+
+            if (-not $NoProgress) {
+                Write-Progress @progress
+            }
         }
 
         $justFinished = @($jobsRunning | Where-Object { $_.State -ne "Running" })
@@ -77,7 +85,10 @@ begin {
                         Result = $result
                     })
                 $progress = $jobsProgress[$job.Name]
-                Write-Progress @progress -Completed
+
+                if (-not $NoProgress) {
+                    Write-Progress @progress -Completed
+                }
                 Write-Host $job.Name "job finished."
                 Remove-Job $job -Force
                 $result
@@ -93,7 +104,10 @@ begin {
 
         $parentProgress.PercentComplete = ($jobsCompleted.Count / $scripts.Count * 100)
         $parentProgress.Status = "Number of Jobs Running $($jobsRunning.Count)"
-        Write-Progress @parentProgress
+
+        if (-not $NoProgress) {
+            Write-Progress @parentProgress
+        }
 
         if ($jobsRunning.Count -eq $jobQueueMaxConcurrency -or $jobsQueued.Count -eq 0) {
             Start-Sleep 1
@@ -102,7 +116,10 @@ begin {
 } end {
 
     Write-Host
-    Write-Progress @parentProgress -Completed
+
+    if (-not $NoProgress) {
+        Write-Progress @parentProgress -Completed
+    }
     $sumTotalSeconds = 0
     $sumTotalPesterSeconds = 0
 
