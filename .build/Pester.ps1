@@ -16,7 +16,8 @@ begin {
     $jobsCompleted = @{}
     $jobsProgress = @{}
     $jobsRunning = @()
-    $jobQueueMaxConcurrency = 5
+    $jobQueueMaxConcurrency = [System.Math]::Min([System.Environment]::ProcessorCount, 5)
+    Write-Host "Max Job Threads: $jobQueueMaxConcurrency"
     $failPipeline = $false
     $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 } process {
