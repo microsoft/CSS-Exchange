@@ -43,6 +43,63 @@ function GetEvaluatedSettingOrRule {
     }
 }
 
+function GetMultiEvaluatedSettingOrRule {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [object]$LogReviewer,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$SettingName,
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [string]$SettingOrRule = "Setting",
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [string]$ValueType = "\w"
+    )
+    process {
+        Select-String ("Evaluated \[{0}:{1}\].+\[Value:`"({2}+)`"\] \[ParentValue:" -f $SettingOrRule, $SettingName, $ValueType) $LogReviewer.SetupLog |
+            Where-Object { $_.LineNumber -gt $LogReviewer.LastSetupRunLine }
+    }
+}
+
+function TestMultiEvaluatedSettingOrRule {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true )]
+        [object]$LogReviewer,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$SettingName,
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [string]$SettingOrRule = "Setting",
+
+        [Parameter(Mandatory = $true, Position = 3)]
+        [ValidateSet("True", "False")]
+        [string]$TestValue
+    )
+    process {
+        $results = $LogReviewer | GetMultiEvaluatedSettingOrRule $SettingName $SettingOrRule
+        $testResult = $false
+
+        if ($null -ne $results -and
+            $null -ne $results.Matches) {
+
+            foreach ($result in $results) {
+                if ($result.Matches.Groups[1].Value -eq $TestValue) {
+                    $testResult = $true
+                    return
+                }
+            }
+        }
+    } end {
+        return $testResult
+    }
+}
+
 function TestEvaluatedSettingOrRule {
     [CmdletBinding()]
     param(

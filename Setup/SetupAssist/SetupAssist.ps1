@@ -19,6 +19,7 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
+. $PSScriptRoot\Checks\LocalServer\Test-InstallWatermark.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-MissingDirectory.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-MsiCacheFiles.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-PendingReboot.ps1
@@ -49,6 +50,7 @@ function RunAllTests {
         "Test-ComputersContainerExists",
         "Test-DomainControllerDnsHostName",
         "Test-DomainMultiActiveSyncVirtualDirectories",
+        "Test-InstallWatermark",
         "Test-MissingDirectory",
         "Test-MsiCacheFiles",
         "Test-PrerequisiteInstalled",

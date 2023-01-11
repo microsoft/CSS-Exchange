@@ -77,13 +77,18 @@ function Test-PrerequisiteCheck {
         }
 
         if ((($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "LocalDomainIsPrepped") -eq "False") -and
-            (($SetupLogReviewer |  TestEvaluatedSettingOrRule -SettingName "DomainPrepRequired" -SettingOrRule "Rule") -eq "True")) {
+            (($SetupLogReviewer | TestEvaluatedSettingOrRule -SettingName "DomainPrepRequired" -SettingOrRule "Rule") -eq "True")) {
             New-WriteObject "Local Domain Is Not Prepped or might have duplicate MESO Containers" -ForegroundColor "Red"
             if (Test-SetupAssist) {
                 New-ActionPlan @("Address the problem MESO Containers in 'Exchange AD Latest Level' test above")
             } else {
                 New-ActionPlan @("Run SetupAssist on the server to determine the problem and correct action plan.")
             }
+        }
+
+        if (($SetupLogReviewer | TestMultiEvaluatedSettingOrRule -SettingName "InstallWatermark" -SettingOrRule "Rule" -TestValue "True")) {
+            New-WriteObject "Exchange Setup failure was detected for install or recovery causing a watermark" -ForegroundColor "Red"
+            New-ActionPlan @("More Information: https://aka.ms/SA-InstallWatermark")
         }
 
         if ($returnNow) {
