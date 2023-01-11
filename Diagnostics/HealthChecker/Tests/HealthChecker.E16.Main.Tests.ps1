@@ -8,7 +8,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
     BeforeAll {
         . $PSScriptRoot\HealthCheckerTests.ImportCode.NotPublished.ps1
-        $Script:Server = $env:COMPUTERNAME
         $Script:MockDataCollectionRoot = "$Script:parentPath\Tests\DataCollection\E16"
         . $PSScriptRoot\HealthCheckerTest.CommonMocks.NotPublished.ps1
     }
@@ -16,15 +15,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
     Context "Basic Exchange 2016 CU22 Testing" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
-            $org = Get-OrganizationInformation -EdgeServer $false
-            $passedOrganizationInformation = @{
-                OrganizationConfig = $org.GetOrganizationConfig
-                SettingOverride    = $org.GetSettingOverride
-            }
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
-            $hc.OrganizationInformation = $org
-            $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
-            $Script:results = Invoke-AnalyzerEngine $hc
+            SetDefaultRunOfHealthChecker "Debug_E16_Results.xml"
         }
 
         It "Display Results - Exchange Information" {
@@ -148,8 +139,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Count | Should -Be 25
-            $downlaodDomains = GetObject "CVE-2021-1730"
-            $downlaodDomains.DownloadDomainsEnabled | Should -Be "false"
+            $downloadDomains = GetObject "CVE-2021-1730"
+            $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
             $Script:ActiveGrouping.Count | Should -Be 32
         }
@@ -160,15 +151,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\HyperV_Win32_Processor1.xml" }
-            $org = Get-OrganizationInformation -EdgeServer $false
-            $passedOrganizationInformation = @{
-                OrganizationConfig = $org.GetOrganizationConfig
-                SettingOverride    = $org.GetSettingOverride
-            }
-            $hc = Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation
-            $hc.OrganizationInformation = $org
-            $hc | Export-Clixml $PSScriptRoot\Debug_E16_Results.xml -Depth 6 -Encoding utf8
-            $Script:results = Invoke-AnalyzerEngine $hc
+
+            SetDefaultRunOfHealthChecker "Debug_E16_Results_Scenario_1.xml"
         }
 
         It "Display Results - Process/Hardware Information" {
