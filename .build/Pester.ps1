@@ -18,6 +18,7 @@ begin {
     $jobsRunning = @()
     $jobQueueMaxConcurrency = 5
     $failPipeline = $false
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 } process {
 
     $root = Get-Item "$PSScriptRoot\.."
@@ -99,17 +100,27 @@ begin {
     }
 } end {
 
+    Write-Host
     Write-Progress @parentProgress -Completed
+    $sumTotalSeconds = 0
 
     foreach ($job in $jobsCompleted.Keys) {
         $value = $jobsCompleted[$job]
-        Write-Host "$job took $(($value.Job.PSEndTime - $value.Job.PSBeginTime).TotalSeconds) seconds to complete"
+        $totalSeconds = ($value.Job.PSEndTime - $value.Job.PSBeginTime).TotalSeconds
+        Write-Host "$job took $totalSeconds seconds to complete"
+        $sumTotalSeconds += $totalSeconds
 
         if ($value.Result.Result -eq "Failed") {
             Write-Host "Failed Tests"
             $value.Result.Failed | Write-Host
         }
     }
+
+    Write-Host
+    Write-Host
+    Write-Host "Total seconds for jobs: $sumTotalSeconds"
+    Write-Host "Average seconds per threads allowed: $($sumTotalSeconds/ $jobQueueMaxConcurrency)"
+    Write-Host "Total Seconds script took: $($stopWatch.Elapsed.TotalSeconds)"
 
     if ($failPipeline) {
         throw "Failed Pester Testing Results"
