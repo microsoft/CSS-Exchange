@@ -11,6 +11,9 @@ BeforeAll {
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\New-ExchangeAuthCertificate.ps1
 
+    # Don't sleep in pester testing
+    Mock Start-Sleep { return }
+
     function Invoke-CatchActionError {
         param()
     }

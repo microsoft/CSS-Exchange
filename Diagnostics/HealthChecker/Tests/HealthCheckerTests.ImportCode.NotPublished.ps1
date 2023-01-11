@@ -9,6 +9,13 @@ param()
 $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
 . $PSScriptRoot\..\Helpers\Class.ps1
 . $PSScriptRoot\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
+. $PSScriptRoot\..\..\..\.build\Load-Module.ps1
+
+if (-not (Load-Module -Name "Microsoft.PowerShell.Security" -MinimumVersion "7.0.0.0")) {
+    throw "Failed to load required security module"
+}
+
+# Pulls out nested functions required to mock with Pester
 $scriptContent = Get-PesterScriptContent -FilePath @(
     "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1",
     "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
@@ -16,6 +23,29 @@ $scriptContent = Get-PesterScriptContent -FilePath @(
 )
 
 Invoke-Expression $scriptContent
+
+function SetDefaultRunOfHealthChecker {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ExportDebugFileName
+    )
+    $org = Get-OrganizationInformation -EdgeServer $false
+    $passedOrganizationInformation = @{
+        OrganizationConfig = $org.GetOrganizationConfig
+        SettingOverride    = $org.GetSettingOverride
+    }
+    $hc = Get-HealthCheckerExchangeServer -ServerName $env:COMPUTERNAME -PassedOrganizationInformation $passedOrganizationInformation
+    $hc.OrganizationInformation = $org
+
+    # By not exporting, we save a few seconds. If you need to debug set $Script:DebugHCPester = $true
+    # Then run test manually with Invoke-Pester
+    if ($DebugHCPester) {
+        $hc | Export-Clixml $PSScriptRoot\$ExportDebugFileName -Depth 6 -Encoding utf8
+    }
+
+    $Script:results = Invoke-AnalyzerEngine $hc
+}
 
 function SetActiveDisplayGrouping {
     [CmdletBinding()]

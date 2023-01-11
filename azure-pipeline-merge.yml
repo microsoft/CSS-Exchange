@@ -22,7 +22,7 @@ steps:
 
 - pwsh: |
     cd .\.build
-    .\Pester.ps1
+    .\Pester.ps1 -NoProgress
   displayName: "Running Invoke-Pester"
 
 - pwsh: |
