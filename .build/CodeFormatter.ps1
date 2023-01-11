@@ -74,6 +74,11 @@ if ($optimizeCodeFormatter) {
 
 if ($optimizeCodeFormatter) {
     $filesToCheck = $filesFullPath | Get-ChildItem -Include "*.ps1", "*.psm1", "*.md"
+
+    if ($null -eq $filesToCheck) {
+        Write-Host "No scripts or md files were modified. Skipping over check."
+        return
+    }
     Write-Host "Files that we are looking at for code formatting:"
     $filesToCheck.FullName | Write-Host
 } else {
