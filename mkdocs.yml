@@ -93,6 +93,7 @@ nav:
       - ComputersContainer: Setup/SetupAssist/ComputersContainer.md
       - ReadOnlyDomainControllerContainer: Setup/SetupAssist/ReadOnlyDomainControllerContainer.md
       - RebootPending: Setup/SetupAssist/RebootPending.md
+      - InstallWatermark: Setup/SetupAssist/InstallWatermark.md
     - SetupLogReviewer: Setup/SetupLogReviewer.md
   - Transport:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
