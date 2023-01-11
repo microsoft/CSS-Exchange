@@ -100,6 +100,7 @@ theme:
   name: 'material'
   features:
     - navigation.indexes
+    - content.action.edit
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences:
