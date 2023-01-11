@@ -103,10 +103,12 @@ begin {
     Write-Host
     Write-Progress @parentProgress -Completed
     $sumTotalSeconds = 0
+    $sumTotalPesterSeconds = 0
 
     foreach ($job in $jobsCompleted.Keys) {
         $value = $jobsCompleted[$job]
         $totalSeconds = ($value.Job.PSEndTime - $value.Job.PSBeginTime).TotalSeconds
+        $sumTotalPesterSeconds += $value.Result.Duration.TotalSeconds
         Write-Host "$job took $totalSeconds seconds to complete"
         $sumTotalSeconds += $totalSeconds
 
@@ -119,6 +121,7 @@ begin {
     Write-Host
     Write-Host
     Write-Host "Total seconds for jobs: $sumTotalSeconds"
+    Write-Host "Total seconds for pester results: $sumTotalPesterSeconds"
     Write-Host "Average seconds per threads allowed: $($sumTotalSeconds/ $jobQueueMaxConcurrency)"
     Write-Host "Total Seconds script took: $($stopWatch.Elapsed.TotalSeconds)"
 
