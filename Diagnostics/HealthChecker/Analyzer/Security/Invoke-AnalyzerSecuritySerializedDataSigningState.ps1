@@ -38,8 +38,8 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
 
     if ($exchangeMajor -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
         switch ($exchangeCU) {
-            ($_ -eq "CU12") { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.1118.21"); break }
-            ($_ -eq "CU11") { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.986.37"); break }
+            { $_ -eq "CU12" } { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.1118.21"); break }
+            { $_ -eq "CU11" } { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.986.37"); break }
             default { $serializedDataSigningSupportedBuild = $false }
         }
     } elseif ($exchangeMajor -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {

@@ -173,7 +173,7 @@ function Get-ExchangeBuildVersionInformation {
                 { $_ -lt "15.1.2507.6" } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
-                    $supportedBuildNumber = $true
+                    $supportedBuildNumber = $false
                     $mesoValue = 13242
                     $orgValue = 16222
                 }
@@ -190,7 +190,6 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/29/2021"
                     $mesoValue = 13241
                     $orgValue = 16221
-                    $supportedBuildNumber = $false
                 }
                 { $_ -lt "15.1.2308.8" } {
                     $cuLevel = "CU20"

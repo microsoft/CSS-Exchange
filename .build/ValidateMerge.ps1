@@ -22,12 +22,15 @@ param (
     [string]$Branch = "main"
 )
 
+. "$PSScriptRoot\BuildFunctions\Get-ScriptDependencyTree.ps1"
+
 $repoRoot = Get-Item "$PSScriptRoot\.."
 $distFolder = Join-Path $repoRoot "dist"
 
-$deps = Import-Clixml $distFolder\dependencyHashtable.xml
+$dependenciesTable = Import-Clixml $distFolder\dependencyHashtable.xml
+$dependentsTable = Import-Clixml $distFolder\dependentHashtable.xml
 
-if ($null -eq $deps) {
+if ($null -eq $dependenciesTable -or $null -eq $dependentsTable) {
     throw "Dependency hashtable not found. Run .build\Build.ps1 first."
 }
 
@@ -55,35 +58,59 @@ foreach ($commitMatch in $m) {
 
     $filesChangedInCommit = git diff-tree --no-commit-id --name-only -r $commitHash
     foreach ($fileChanged in $filesChangedInCommit) {
-        $filesAffectedByThisChange = New-Object 'System.Collections.Generic.HashSet[string]'
         $fullPath = Join-Path $repoRoot $fileChanged
         if ($filesAlreadyChecked.Contains($fullPath)) {
             # If we have several commits that modify the same file, we only need to check it once,
             # on the latest commit.
             Write-Host "  $fileChanged was modified in a later commit."
             continue
+        } else {
+            [void]$filesAlreadyChecked.Add($fullPath)
         }
 
-        [void]$filesAlreadyChecked.Add($fullPath)
         $stack = New-Object 'System.Collections.Generic.Stack[string]'
-        $stack.Push($fullPath)
+        [void]$stack.Push($fullPath)
 
-        # On each iteration of this loop, we pop a file from the stack and add it to
-        # $allAffectedFiles, and then we look up all files that have a dependency on that file.
-        # We add those files to the stack. In this way, we walk the dependency tree from the bottom up,
-        # finding all files that are affected by this file, and add them to $allAffectedFiles.
+        # On each iteration of this loop, we pop a file from the stack and find its
+        # dependents (scripts that include it), and put those on the stack. We repeat
+        # until we have the top-level scripts that include the file.
+        $topLevelDependents = New-Object 'System.Collections.Generic.HashSet[string]'
         while ($stack.Count -gt 0) {
             $currentFile = $stack.Pop()
-            [void]$allAffectedFiles.Add($currentFile)
-            [void]$filesAffectedByThisChange.Add($currentFile)
-            foreach ($k in $deps.Keys) {
-                if ($deps[$k].Contains($currentFile)) {
-                    $stack.Push($k)
+            $depdendents = $dependentsTable[$currentFile]
+            if ($null -eq $depdendents -or $depdendents.Count -eq 0) {
+                [void]$topLevelDependents.Add($currentFile)
+            } else {
+                foreach ($dependent in $depdendents) {
+                    [void]$stack.Push($dependent)
                 }
             }
         }
 
-        Write-Host "  $fileChanged is included directly or transitively in $($filesAffectedByThisChange.Count - 1) files."
+        Write-Host "  $fileChanged has $($topLevelDependents.Count) top-level dependents:"
+        $topLevelDependents | ForEach-Object { Write-Host "    $_" }
+
+        $filesAffectedByThisChange = New-Object 'System.Collections.Generic.HashSet[string]'
+
+        # Now we walk back down the dependency tree, starting from the top-level dependents.
+        $stack.Clear()
+        $topLevelDependents | ForEach-Object { [void]$stack.Push($_) }
+        while ($stack.Count -gt 0) {
+            $currentFile = $stack.Pop()
+            [void]$filesAffectedByThisChange.Add($currentFile)
+            $dependencies = $dependenciesTable[$currentFile]
+            if ($null -ne $dependencies) {
+                foreach ($dependency in $dependencies) {
+                    [void]$stack.Push($dependency)
+                }
+            }
+        }
+
+        Write-Host "  Those top-level dependents affect $($filesAffectedByThisChange.Count) files:"
+        $filesAffectedByThisChange | ForEach-Object {
+            Write-Host "    $_"
+            [void]$allAffectedFiles.Add($_)
+        }
     }
 
     foreach ($affectedFile in $allAffectedFiles) {
