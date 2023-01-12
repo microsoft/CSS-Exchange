@@ -28,7 +28,7 @@ function Get-ExchAVExclusionsPaths {
                 $dag = $null
                 $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name -contains ($env:COMPUTERNAME) }
                 if ( $null -ne $dag ) {
-                    Write-Warning "Remember to add the witeness directory $($dag.WitnessDirectory.PathName) on the server $($dag.WitnessServer.Fqdn)"
+                    Write-Warning "Remember to add the witness directory $($dag.WitnessDirectory.PathName) on the server $($dag.WitnessServer.Fqdn)"
                 }
             }
         }
@@ -42,7 +42,7 @@ function Get-ExchAVExclusionsPaths {
 
         $mbxS = Get-MailboxServer -Identity $($env:COMPUTERNAME) | Select-Object CalendarRepairLogPath, LogPathForManagedFolders, `
             DataPath, MigrationLogFilePath, TransportSyncLogFilePath, TransportSyncMailboxHealthLogFilePath
-        $mbxS.psobject.Properties.Value.PathName | ForEach-Object {
+        $mbxS.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
                     $BaseFolders.Add($_.tolower())
@@ -55,7 +55,7 @@ function Get-ExchAVExclusionsPaths {
             $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
             $mbdblogs = $Entry | Select-Object TemporaryDataFolderPath, LogFolderPath
 
-            $mbdblogs.psobject.Properties.Value.PathName | ForEach-Object {
+            $mbdblogs.PSObject.Properties.Value.PathName | ForEach-Object {
                 if ( $_ ) {
                     if ( Test-Path $_ -PathType Container ) {
                         $BaseFolders.Add($_.tolower())
@@ -68,7 +68,7 @@ function Get-ExchAVExclusionsPaths {
             ReceiveProtocolLogPath, SendProtocolLogPath, MailboxSubmissionAgentLogPath, MailboxDeliveryAgentLogPath, `
             DnsLogPath, RoutingTableLogPath, SyncDeliveryLogPath, MailboxDeliveryHttpDeliveryLogPath, `
             MailboxDeliveryThrottlingLogPath, AgentGrayExceptionLogPath, PipelineTracingPath
-        $mtsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        $mtsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
                     $BaseFolders.Add($_.tolower())
@@ -102,7 +102,7 @@ function Get-ExchAVExclusionsPaths {
             ReceiveProtocolLogPath, SendProtocolLogPath, AgentLogPath, DnsLogPath, ResourceLogPath, `
             AttributionLogPath, `
             RoutingTableLogPath, ProxyDestinationsLogPath, TopInboundIpSourcesLogPath
-        $fetsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        $fetsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_) {
                 if ( Test-Path $_ -PathType Container ) {
                     $BaseFolders.Add($_.tolower())
@@ -135,7 +135,7 @@ function Get-ExchAVExclusionsPaths {
             RequestBrokerLogPath, StorageRESTLogPath, AgentGrayExceptionLogPath, TransportHttpLogPath, PipelineTracingPath, `
             PickupDirectoryPath, ReplayDirectoryPath, `
             RootDropDirectoryPath
-        $tsLogs.psobject.Properties.Value.PathName | ForEach-Object {
+        $tsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
                     $BaseFolders.Add($_.tolower())
@@ -147,8 +147,8 @@ function Get-ExchAVExclusionsPaths {
 
         # Get transport database path
         [xml]$TransportConfig = Get-Content (Join-Path $ExchangePath "Bin\EdgeTransport.exe.config")
-        $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
-        $BaseFolders.Add(($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
+        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
+        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
 
         if ($MsiProductMinor -eq 0 ) {
             #E13MBX  By default, content conversions are performed in the Exchange server's %TMP% folder.
