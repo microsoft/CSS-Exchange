@@ -186,6 +186,15 @@ function Invoke-AnalyzerKnownBuildIssues {
             -InformationUrl (GetKnownIssueInformation `
                 "Exchange Service Host service fails after installing March 2022 security update (KB5013118)" `
                 "https://support.microsoft.com/kb/5013118")
+
+        Write-Verbose "Working on January 2023 Security Updates - Management issues after SerializedDataSigning is enabled on Exchange Server 2013"
+        TestForKnownBuildIssues -CurrentVersion $currentVersion `
+            -KnownBuildIssuesToFixes @(
+            (GetKnownIssueBuildInformation "15.0.1497.45" $null)
+        ) `
+            -InformationUrl (GetKnownIssueInformation `
+                "Management issues after SerializedDataSigning is enabled on Exchange Server 2013" `
+                "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808")
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
