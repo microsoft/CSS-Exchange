@@ -48,6 +48,7 @@ using System.Collections;
             public object ExtendedProtectionConfig; //Stores the extended protection configuration
             public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
             public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
+            public System.Array SerializationDataSigningConfiguration; //Stores for the SerializationDataSigning feature configuration
             public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
             public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
             public Hashtable ApplicationPools = new Hashtable();

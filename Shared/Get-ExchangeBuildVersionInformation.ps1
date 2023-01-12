@@ -65,7 +65,8 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                "15.2.1118.20" { $suName = "Nov22SU"; $latestSUBuild = $true }
+                "15.2.1118.21" { $suName = "Jan23SU"; $latestSUBuild = $true }
+                "15.2.1118.20" { $suName = "Nov22SU" }
                 "15.2.1118.15" { $suName = "Oct22SU" }
                 "15.2.1118.12" { $suName = "Aug22SU" }
                 "15.2.1118.9" { $suName = "May22SU" }
@@ -76,7 +77,8 @@ function Get-ExchangeBuildVersionInformation {
                     $mesoValue = 13242
                     $orgValue = 16759
                 }
-                "15.2.986.36" { $suName = "Nov22SU"; $latestSUBuild = $true }
+                "15.2.986.37" { $suName = "Jan23SU"; $latestSUBuild = $true }
+                "15.2.986.36" { $suName = "Nov22SU" }
                 "15.2.986.30" { $suName = "Oct22SU" }
                 "15.2.986.29" { $suName = "Aug22SU" }
                 "15.2.986.26" { $suName = "May22SU"; $mesoValue = 13243 }
@@ -163,14 +165,15 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                "15.1.2507.16" { $suName = "Nov22SU"; $latestSUBuild = $true }
+                "15.1.2507.17" { $suName = "Jan23SU"; $latestSUBuild = $true }
+                "15.1.2507.16" { $suName = "Nov22SU" }
                 "15.1.2507.13" { $suName = "Oct22SU" }
                 "15.1.2507.12" { $suName = "Aug22SU" }
                 "15.1.2507.9" { $suName = "May22SU" }
                 { $_ -lt "15.1.2507.6" } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
-                    $supportedBuildNumber = $true
+                    $supportedBuildNumber = $false
                     $mesoValue = 13242
                     $orgValue = 16222
                 }
@@ -187,7 +190,6 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/29/2021"
                     $mesoValue = 13241
                     $orgValue = 16221
-                    $supportedBuildNumber = $false
                 }
                 { $_ -lt "15.1.2308.8" } {
                     $cuLevel = "CU20"
@@ -307,7 +309,8 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/18/2019"
                     $supportedBuildNumber = $true
                 }
-                "15.0.1497.44" { $suName = "Nov22SU"; $latestSUBuild = $true }
+                "15.0.1497.45" { $suName = "Jan23SU"; $latestSUBuild = $true }
+                "15.0.1497.44" { $suName = "Nov22SU" }
                 "15.0.1497.42" { $suName = "Oct22SU" }
                 "15.0.1497.40" { $suName = "Aug22SU" }
                 "15.0.1497.36" { $suName = "May22SU"; $mesoValue = 13238 }
@@ -436,8 +439,8 @@ function Get-ExchangeBuildVersionInformation {
             FriendlyName        = $friendlyName
             BuildVersion        = $exchangeVersion
             CU                  = $cuLevel
-            ReleaseDate         = ([System.Convert]::ToDateTime([DateTime]$cuReleaseDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
-            ExtendedSupportDate = ([System.Convert]::ToDateTime([DateTime]$extendedSupportDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
+            ReleaseDate         = if (-not([System.String]::IsNullOrEmpty($cuReleaseDate))) { ([System.Convert]::ToDateTime([DateTime]$cuReleaseDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) } else { $null }
+            ExtendedSupportDate = if (-not([System.String]::IsNullOrEmpty($extendedSupportDate))) { ([System.Convert]::ToDateTime([DateTime]$extendedSupportDate, [System.Globalization.DateTimeFormatInfo]::InvariantInfo)) } else { $null }
             Supported           = $supportedBuildNumber
             LatestSU            = $latestSUBuild
             ADLevel             = [PSCustomObject]@{
