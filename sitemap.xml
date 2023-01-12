@@ -401,6 +401,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Setup/SetupAssist/InstallWatermark/</loc>
+         <lastmod>2023-01-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Setup/SetupAssist/ReadOnlyDomainControllerContainer/</loc>
          <lastmod>2023-01-12</lastmod>
          <changefreq>daily</changefreq>
