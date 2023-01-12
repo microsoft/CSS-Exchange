@@ -27,7 +27,7 @@ Progress bar to screen
 Start-SleepWithProgress -SleepTime 60 -Message "Waiting on Process to complete"
 
 Creates a Progress bar with the message "Waiting on Process to complete"
-Counts down 60 seconds and updates the Progress bar during the proess.
+Counts down 60 seconds and updates the Progress bar during the process.
 
 #>
 function Start-SleepWithProgress {

@@ -76,28 +76,28 @@ if (-not (Confirm-Administrator)) {
 
 $serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
 
-# Check Exchange regsitry key
+# Check Exchange registry key
 if (-not  $serverExchangeInstallDirectory ) {
-    Write-Warning "Failed to find the Exchage instalation Path registry key"
+    Write-Warning "Failed to find the Exchange installation Path registry key"
     exit
 }
 
 # Check the installation path
 if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container) ) {
-    Write-Warning "Failed to find the Exchage instalation Path"
+    Write-Warning "Failed to find the Exchange installation Path"
     exit
 }
 
 # Check Exchange is 2013, 2016 or 2019
 if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
         ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
-    Write-Warning "This script is desinged for Exchange 2013, 2016 or 2019"
+    Write-Warning "This script is designed for Exchange 2013, 2016 or 2019"
     exit
 }
 
 $ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
 
-# Check Exchange Shell and Exchange instalation
+# Check Exchange Shell and Exchange installation
 $exchangeShell = Confirm-ExchangeShell
 if (-not($exchangeShell.ShellLoaded)) {
     Write-Warning "Failed to load Exchange Shell Module..."
@@ -126,13 +126,13 @@ foreach ($path in $BaseFolders) {
         if ($Recurse) {
 
             # Add the root folder
-            $FolderList.Add($path.tolower())
+            $FolderList.Add($path.ToLower())
 
             # Get the Folder and all subFolders and just return the fullname value as a string
-            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.tolower()) }
+            Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.ToLower()) }
         }
         # Just Add the root folder
-        else { $FolderList.Add($path.tolower()) }
+        else { $FolderList.Add($path.ToLower()) }
     } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
 }
 
@@ -286,7 +286,7 @@ foreach ($extension in $extensionsList) {
     }
 }
 
-#Delete randon Folder
+#Delete Random Folder
 Remove-Item $randomFolder
 
 # Report what we found
@@ -295,7 +295,7 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     $BadFolderList | Out-File $OutputPath
     $BadExtensionList | Out-File $OutputPath -Append
 
-    Write-SimpleLogfile -String "Possbile AV Scanning found" -name $LogFile
+    Write-SimpleLogfile -String "Possible AV Scanning found" -name $LogFile
     if ($BadFolderList.count -gt 0 ) {
         Write-Warning ("Found $($BadFolderList.count) of $($FolderList.Count) folders that are possibly being scanned! ")
     }
