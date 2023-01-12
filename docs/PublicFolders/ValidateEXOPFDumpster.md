@@ -4,11 +4,12 @@ Download the latest release: [ValidateEXOPFDumpster.ps1](https://github.com/micr
 
 This script investigates public folders/items deletion operations failures & propose FIXes for mitigation.
 The script is working to validate the below conditions over the affected public folder
+
 Checks run:
 -----------
 1.	Public folder size issue
-    a)	Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value
-    b)	Public folder size is full
+    - Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value
+    - Public folder size is full
 2.	User permissions are not synced between public folder mailboxes
 3.	Content Public folder mailbox across the public folder & its dumpster is different
 4.	EntryId & DumpsterEntryID values are not mapped properly on the public folder & its dumpster
@@ -57,18 +58,18 @@ If the issue happens only with a specific user on that case an affected user smt
 In this example output, the script calls out two blockers.
 
 It points out the below blockers:
-    Neither user nor Default user have sufficient permissions to delete items inside the public folder
-    Public folder size has exceeded Individual Public Folder ProhibitPostQuota value
+   - Neither user nor Default user have sufficient permissions to delete items inside the public folder
+   - Public folder size has exceeded Individual Public Folder ProhibitPostQuota value
 
 ![Picture of example](PFDumps3.jpg)
 
 In this example output, the script calls out four blockers.
 
 It points out the below issues:
-    Public folder & its dumpster doesn't have the same content public folder mailbox
-    Public folder EntryId & DumpsterEntryID values are not mapped properly
-    Public folder size has exceeded Organization DefaultPublicFolderProhibitPostQuota value
-    Public folder dumpster has 1 subfolder
+   - Public folder & its dumpster doesn't have the same content public folder mailbox
+   - Public folder EntryId & DumpsterEntryID values are not mapped properly
+   - Public folder size has exceeded Organization DefaultPublicFolderProhibitPostQuota value
+   - Public folder dumpster has 1 subfolder
 
 The script created a log file containing all the required information "PublicFolderInfo.xml" to be shared with Microsoft personnel for the first two blockers & provided mitigation for the last two blockers and you can see same results under ValidatePFDumpsterREPORT.txt file.
 
