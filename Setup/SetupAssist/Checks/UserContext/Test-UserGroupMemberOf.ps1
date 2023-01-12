@@ -13,12 +13,8 @@ function Test-UserGroupMemberOf {
         [bool]$PrepareDomainOnly
     )
 
-    if ($null -eq $Script:UserSid) {
-        # Call the test manually
-        Test-UserIsAdministrator
-    }
-
-    $tokenGroups = Get-TokenGroupsGlobalAndUniversal -UserSid $Script:UserSid
+    $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $tokenGroups = Get-TokenGroupsGlobalAndUniversal -UserSid $windowsIdentity.User.Value
 
     $groupRequirements = @(
         @{
@@ -53,7 +49,7 @@ function Test-UserGroupMemberOf {
         }
     }
 
-    $principal = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent()))
+    $principal = (New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity))
     $params = @{
         TestName = [string]::Empty
         Details  = [string]::Empty
@@ -77,22 +73,5 @@ function Test-UserGroupMemberOf {
                 New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason
             }
         }
-    }
-}
-
-function Test-UserIsAdministrator {
-    $whoami = whoami
-    $whoamiAllOutput = whoami /all
-    $Script:UserSid = ($whoamiAllOutput | Select-String $whoami.Replace("\", "\\")).Line.Replace($whoami, "").Trim()
-
-    $params = @{
-        TestName = "User Administrator"
-        Details  = "$whoami $Script:UserSid"
-    }
-
-    if (Confirm-Administrator) {
-        New-TestResult @params -Result "Passed"
-    } else {
-        New-TestResult @params -Result "Failed"
     }
 }
