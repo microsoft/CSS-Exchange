@@ -191,6 +191,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/May22SU/</loc>
+         <lastmod>2023-01-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck/</loc>
          <lastmod>2023-01-12</lastmod>
          <changefreq>daily</changefreq>
