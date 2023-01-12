@@ -17,7 +17,7 @@
         <link rel="next" href="../../Retention/Get-MRMDetails/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.4">
     
     
       
@@ -25,7 +25,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6b71719e.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.9c788c91.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
@@ -1510,6 +1510,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#checks-run" class="md-nav__link">
+    Checks run:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#syntax" class="md-nav__link">
     Syntax
   </a>
@@ -2095,6 +2102,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#checks-run" class="md-nav__link">
+    Checks run:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#syntax" class="md-nav__link">
     Syntax
   </a>
@@ -2142,13 +2156,14 @@
 <h1 id="validateexopfdumpster">ValidateEXOPFDumpster</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/ValidateEXOPFDumpster.ps1">ValidateEXOPFDumpster.ps1</a></p>
 <p>This script investigates public folders/items deletion operations failures &amp; propose FIXes for mitigation.
-The script is working to validate the below conditions over the affected public folder
-Checks run:</p>
-<hr />
+The script is working to validate the below conditions over the affected public folder</p>
+<h2 id="checks-run">Checks run:</h2>
 <ol>
-<li>Public folder size issue
-    a)  Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value
-    b)  Public folder size is full</li>
+<li>Public folder size issue<ul>
+<li>Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value</li>
+<li>Public folder size is full</li>
+</ul>
+</li>
 <li>User permissions are not synced between public folder mailboxes</li>
 <li>Content Public folder mailbox across the public folder &amp; its dumpster is different</li>
 <li>EntryId &amp; DumpsterEntryID values are not mapped properly on the public folder &amp; its dumpster</li>
@@ -2203,15 +2218,15 @@ There are other files generated for either script logging purposes or sometimes 
 <p><img alt="Picture of user specific issue type" src="../PFDumps2.jpg" /></p>
 <p>In this example output, the script calls out two blockers.</p>
 <p>It points out the below blockers:
-    Neither user nor Default user have sufficient permissions to delete items inside the public folder
-    Public folder size has exceeded Individual Public Folder ProhibitPostQuota value</p>
+   - Neither user nor Default user have sufficient permissions to delete items inside the public folder
+   - Public folder size has exceeded Individual Public Folder ProhibitPostQuota value</p>
 <p><img alt="Picture of example" src="../PFDumps3.jpg" /></p>
 <p>In this example output, the script calls out four blockers.</p>
 <p>It points out the below issues:
-    Public folder &amp; its dumpster doesn't have the same content public folder mailbox
-    Public folder EntryId &amp; DumpsterEntryID values are not mapped properly
-    Public folder size has exceeded Organization DefaultPublicFolderProhibitPostQuota value
-    Public folder dumpster has 1 subfolder</p>
+   - Public folder &amp; its dumpster doesn't have the same content public folder mailbox
+   - Public folder EntryId &amp; DumpsterEntryID values are not mapped properly
+   - Public folder size has exceeded Organization DefaultPublicFolderProhibitPostQuota value
+   - Public folder dumpster has 1 subfolder</p>
 <p>The script created a log file containing all the required information "PublicFolderInfo.xml" to be shared with Microsoft personnel for the first two blockers &amp; provided mitigation for the last two blockers and you can see same results under ValidatePFDumpsterREPORT.txt file.</p>
 <p><img alt="Picture of example" src="../PFDumps4.jpg" />
 <img alt="Picture of Log files" src="../PFDumps5.jpg" />
@@ -2222,7 +2237,7 @@ There are other files generated for either script logging purposes or sometimes 
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 8, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 12, 2023</span>
       
     
   </small>
