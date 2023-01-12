@@ -13,22 +13,8 @@ function Test-UserGroupMemberOf {
         [bool]$PrepareDomainOnly
     )
 
-    $whoami = whoami
-    $whoamiAllOutput = whoami /all
-    $userSid = ($whoamiAllOutput | Select-String $whoami.Replace("\", "\\")).Line.Replace($whoami, "").Trim()
-
-    $params = @{
-        TestName = "User Administrator"
-        Details  = "$whoami $userSid"
-    }
-
-    $tokenGroups = Get-TokenGroupsGlobalAndUniversal -UserSid $userSid
-
-    if (Confirm-Administrator) {
-        New-TestResult @params -Result "Passed"
-    } else {
-        New-TestResult @params -Result "Failed"
-    }
+    $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $tokenGroups = Get-TokenGroupsGlobalAndUniversal -UserSid $windowsIdentity.User.Value
 
     $groupRequirements = @(
         @{
@@ -63,7 +49,11 @@ function Test-UserGroupMemberOf {
         }
     }
 
-    $principal = (New-Object System.Security.Principal.WindowsPrincipal([System.Security.Principal.WindowsIdentity]::GetCurrent()))
+    $principal = (New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity))
+    $params = @{
+        TestName = [string]::Empty
+        Details  = [string]::Empty
+    }
 
     foreach ($group in $groupRequirements) {
         $params.TestName = "User Group - $($group.Name)"
