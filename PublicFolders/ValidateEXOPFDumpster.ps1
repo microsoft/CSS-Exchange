@@ -395,7 +395,7 @@ if ($null -eq $Sessioncheck) {
 #Main Function
 $PublicFolderInfo=GetPublicFolderInfo($Pfolder)
 #if the issue is related to a user who is not able to delete an item inside a public folder
-if ([string]::IsNullOrEmpty($Affecteduser)) {
+if (![string]::IsNullOrEmpty($Affecteduser)) {
     ValidatePublicFolderIssue -PublicFolderInfo $PublicFolderInfo -Affecteduser $Affecteduser
 }
 ValidateContentMBXUniqueness($PublicFolderInfo)

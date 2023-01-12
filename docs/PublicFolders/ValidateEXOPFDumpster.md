@@ -4,11 +4,12 @@ Download the latest release: [ValidateEXOPFDumpster.ps1](https://github.com/micr
 
 This script investigates public folders/items deletion operations failures & propose FIXes for mitigation.
 The script is working to validate the below conditions over the affected public folder
+
 Checks run:
 -----------
 1.	Public folder size issue
-    a)	Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value
-    b)	Public folder size is full
+    - Public folder content mailbox TotalDeletedItemSize value has exceeded its RecoverableItemsQuota value
+    - Public folder size is full
 2.	User permissions are not synced between public folder mailboxes
 3.	Content Public folder mailbox across the public folder & its dumpster is different
 4.	EntryId & DumpsterEntryID values are not mapped properly on the public folder & its dumpster
