@@ -12,6 +12,8 @@ The HealthChecker check validates that the feature is enabled on supported Excha
 
 ### Important
 
+ > :warning: **If you have an Exchange Server 2013 in your environment**: Turning on the signing of serialization payload feature might lead to several issues impacting management in your organization. We recommend not to turn on this feature for now. We will address this in the future update. Customers with Exchange Server 2016 / 2019 only can proceed with using the certificate signing of PowerShell serialization payload feature.
+
 Ensure all the Exchange Servers (Exchange Server 2019, 2016 and 2013) in the environment are running the January 2023 (or later) SU before turning the feature on. Enabling the feature before all servers are updated might lead to failures and errors when managing your organization.
 
 This features uses the `Exchange Server Auth Certificate` to sign the serialized data. Therefore, it's very important that the certificate which is configured as Auth Certificate is valid (not expired) and available on all Exchange Servers (except Edge Transport role and Exchange Management Tools role) within the organization.

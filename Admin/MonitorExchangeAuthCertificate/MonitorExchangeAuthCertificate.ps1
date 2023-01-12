@@ -159,6 +159,8 @@ function Main {
     $versionsUrl = "https://aka.ms/MEAC-VersionsUrl"
     Write-Host ("Monitor Exchange Auth Certificate script version $($BuildVersion)") -ForegroundColor Green
 
+    $currentErrors = $Error.Count
+
     if ($ScriptUpdateOnly) {
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl $versionsUrl -Confirm:$false) {
             ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
@@ -173,6 +175,8 @@ function Main {
         Write-Host ("Script was updated. Please rerun the command") -ForegroundColor Yellow
         return
     }
+
+    Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
     if ($PrepareADForAutomationOnly) {
         Write-Host ("Mode: Prepare AD account to run the script as scheduled task")

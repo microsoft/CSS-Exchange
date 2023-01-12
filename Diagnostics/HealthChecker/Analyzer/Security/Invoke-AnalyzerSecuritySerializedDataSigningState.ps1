@@ -115,10 +115,10 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
             Write-Verbose "Checking Registry Value for SerializedDataSigning configuration state"
             if ($serializedDataSigningInformation -eq 1) {
                 Write-Verbose "SerializedDataSigning enabled via Registry Value"
-                $serializedDataSigningWriteType = "Green"
-                $serializedDataSigningState = $true
+                $serializedDataSigningState = ("$($true) - We recommend not to turn on this feature on Exchange 2013 for now")
             } else {
                 Write-Verbose "SerializedDataSigning not configured or explicitly disabled via Registry Value"
+                $serializedDataSigningWriteType = "Grey"
                 $serializedDataSigningState = $false
             }
         }
