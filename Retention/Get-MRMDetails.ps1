@@ -3,9 +3,6 @@
 
 #
 # Get-MRMDetails.ps1
-# Modified 2017/02/13
-# Last Modifier:  Chris Pollitt
-# Project Owner:  Rob Whaley
 # Version: v2.0
 
 # Syntax for running this script:
