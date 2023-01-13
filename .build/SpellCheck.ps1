@@ -1,4 +1,7 @@
-﻿function DoSpellCheck {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function DoSpellCheck {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPositionalParameters', '', Justification = 'This is the correct syntax for cspell')]
     param()
 
