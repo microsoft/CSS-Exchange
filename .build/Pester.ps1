@@ -18,7 +18,8 @@ begin {
     $jobsCompleted = @{}
     $jobsProgress = @{}
     $jobsRunning = @()
-    $jobQueueMaxConcurrency = [System.Math]::Min(([System.Environment]::ProcessorCount - 1), 5)
+    # on Azure pipeline we have noticed 2 or 4 cores available. to get the most of out jobs, need at least a min of 2 threads running.
+    $jobQueueMaxConcurrency = [System.Math]::Max(([System.Math]::Min(([System.Environment]::ProcessorCount - 1), 5)), 2)
     Write-Host "Max Job Threads: $jobQueueMaxConcurrency"
     $failPipeline = $false
     $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
