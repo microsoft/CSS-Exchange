@@ -21,7 +21,14 @@
     "[powershell]": {
         "files.encoding": "utf8bom"
     },
-    "cSpell.words": [
-        "cmdlet"
-    ]
+    "cSpell.customDictionaries": {
+        "cspell-words": {
+            "name": "cspell-words",
+            "path": "${workspaceRoot}/.build/cspell-words.txt",
+            "description": "Words used in this project",
+            "addWords": true
+          },
+          "custom": true, // Enable the `custom` dictionary
+          "internal-terms": false // Disable the `internal-terms` dictionary
+    }
 }
