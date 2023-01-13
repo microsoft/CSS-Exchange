@@ -140,12 +140,12 @@ function Get-FIPFSScanEngineVersionState {
             $serverRoleAffected = IsServerRoleAffected -ServerRole $ServerRole
             if ($serverRoleAffected) {
                 $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName
-                $fipfsIssueFixedBuild = IsFIPFSFixedBuild -BuildNumber $ExSetupVersion
+                $fipFsIssueFixedBuild = IsFIPFSFixedBuild -BuildNumber $ExSetupVersion
 
                 if ($null -eq $highestScanEngineVersionNumber) {
                     Write-Verbose "No scan engine version found on the computer - this can cause issues still with some transport rules"
                 } elseif ($highestScanEngineVersionNumber -ge 2201010000) {
-                    if ($fipfsIssueFixedBuild) {
+                    if ($fipFsIssueFixedBuild) {
                         Write-Verbose "Scan engine: $highestScanEngineVersionNumber detected but Exchange runs a fixed build that doesn't crash"
                     } else {
                         Write-Verbose "Scan engine: $highestScanEngineVersionNumber will cause transport queue or pattern update issues"
@@ -162,7 +162,7 @@ function Get-FIPFSScanEngineVersionState {
         }
     } end {
         return [PSCustomObject]@{
-            FIPFSFixedBuild              = $fipfsIssueFixedBuild
+            FIPFSFixedBuild              = $fipFsIssueFixedBuild
             ServerRoleAffected           = $serverRoleAffected
             HighestVersionNumberDetected = $highestScanEngineVersionNumber
             BadVersionNumberDirDetected  = $isAffectedByFIPFSUpdateIssue

@@ -28,7 +28,7 @@ function New-ExchangeAuthCertificate {
 
         [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
         [Parameter(Mandatory = $false, ParameterSetName = "NewNextAuthCert")]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

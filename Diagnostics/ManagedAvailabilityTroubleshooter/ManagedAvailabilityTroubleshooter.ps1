@@ -504,7 +504,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
     }
 
     if (($MonitorToInvestigate -like "EacBackEndLogonMonitor") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 1) ) {
-        Write-Host -foreground yellow ("EacBackEndLogonMonitor has been seen unhealthy linked uninitialized culture on test mailboxes. You may run this command and check if this helps : get-mailbox -Monitoring -server $env:computername | Set-MailboxRegionalConfiguration -Language En-US -TimeZone ""Pacific Standard Time""" )
+        Write-Host -foreground yellow ("EacBackEndLogonMonitor has been seen unhealthy linked uninitialized culture on test mailboxes. You may run this command and check if this helps : get-mailbox -Monitoring -server $env:COMPUTERNAME | Set-MailboxRegionalConfiguration -Language En-US -TimeZone ""Pacific Standard Time""" )
         $Script:foundIssue = $true; return;
     }
 
@@ -639,7 +639,7 @@ function InvestigateUnhealthyMonitor {
         Start-Sleep -s 1
         $UnhealthyMonitorToInvestigate = $myHealthEntryList | Out-GridView -PassThru -Title $SelectUnhealthyMonitor
         if ( $UnhealthyMonitorToInvestigate) {
-            if (([string]::Compare($UnhealthyMonitorToInvestigate.Server, $env:computername, $true) -eq 0) -or ($pathForLogsSpecified)) {
+            if (([string]::Compare($UnhealthyMonitorToInvestigate.Server, $env:COMPUTERNAME, $true) -eq 0) -or ($pathForLogsSpecified)) {
                 InvestigateMonitor -MonitorToInvestigate $UnhealthyMonitorToInvestigate.Name `
                     -ResourceNameToInvestigate $null `
                     -ResponderTargetResource $UnhealthyMonitorToInvestigate.TargetResource `
@@ -660,7 +660,7 @@ function CollectMaLogs {
     [CmdletBinding()]
     param([String] $InvocationPath )
     try {
-        $ExchangeServerInfo = Get-ExchangeServer -identity $env:computername -status | Format-List
+        $ExchangeServerInfo = Get-ExchangeServer -identity $env:COMPUTERNAME -status | Format-List
     } catch [System.Management.Automation.CommandNotFoundException] {
         Write-Host -ForegroundColor red "Exchange Powershell not loaded.`nYou likely ran the script inside Windows powershell. Run it again inside Exchange powershell"
         exit
@@ -675,14 +675,14 @@ function CollectMaLogs {
     if (-not (Test-Path($OutputPath)))
     { Write-Host "Failed to create $OutputPath to store logs collected"; exit }
 
-    $ExchangeServerInfoFile = $OutputPath + "\" + $env:computername + "_ExchangeServer_FL.TXT"
+    $ExchangeServerInfoFile = $OutputPath + "\" + $env:COMPUTERNAME + "_ExchangeServer_FL.TXT"
     $ExchangeServerInfo | Out-File $ExchangeServerInfoFile
 
     $GlobalMOverride = Get-GlobalMonitoringOverride
     $GlobalMonitoringOverrideFile = $OutputPath + "\GlobalMonitoringOverride.TXT"
     if ($GlobalMOverride.Count -ne 0) { $GlobalMOverride | Format-List > $GlobalMonitoringOverrideFile }
 
-    $ServerMOverride = Get-serverMonitoringOverride -Server $env:computername
+    $ServerMOverride = Get-serverMonitoringOverride -Server $env:COMPUTERNAME
     $ServerMOverrideFile = $OutputPath + "\serverMonitoringOverride.TXT"
     if ($ServerMOverride.Count -ne 0) { $ServerMOverride | Format-List > $ServerMOverrideFile }
 
@@ -690,15 +690,15 @@ function CollectMaLogs {
     reg query HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\ServerComponentStates /s > $ServerComponentStatesFile
 
     Write-Progress "Collecting Get-ServerHealth"
-    $ServerHealthFile = $OutputPath + "\" + $env:computername + "_ServerHealth_FL.TXT"
-    Get-ServerHealth -Identity $env:computername | Format-List > $ServerHealthFile
+    $ServerHealthFile = $OutputPath + "\" + $env:COMPUTERNAME + "_ServerHealth_FL.TXT"
+    Get-ServerHealth -Identity $env:COMPUTERNAME | Format-List > $ServerHealthFile
     Write-Progress "Collecting Get-ServerHealth" -Completed
 
     $EventLogNames = wEvtUtil.exe el | Select-String "Microsoft-Exchange"
     $EventLogNames += "Application", "System"
 
     foreach ($EventLogName in $EventLogNames) {
-        $progressEventLogMessage = "Collecting " + $EventLogName + " eventlog"
+        $progressEventLogMessage = "Collecting " + $EventLogName + " EventLog"
         Write-Progress $progressEventLogMessage
         $evtUtilCmd = $EventLogName -replace "/", ""
         $evtxPath = $OutputPath + '\' + $evtUtilCmd + '.evtx'
@@ -769,7 +769,7 @@ $usingLocalPath = $false
 $exchangeVersion = $false
 if ( -not ($pathForLogs)) {
     try {
-        $exchangeVersion = (get-exchangeServer -identity $env:computername).AdminDisplayVersion.ToString()
+        $exchangeVersion = (get-exchangeServer -identity $env:COMPUTERNAME).AdminDisplayVersion.ToString()
     } catch [System.Management.Automation.CommandNotFoundException] {
         $pathForLogs = (Split-Path -Parent $MyInvocation.MyCommand.Path) + '\'
         if ((Get-ChildItem | Where-Object { ($_.PSIsContainer) -and ( "Exchange_Server_Data", "Windows_Event_Logs" -contains $_.Name) } | Measure-Object).Count -eq 2) {
@@ -810,13 +810,13 @@ if ( -not ($pathForLogs)) {
     }
 
     if ($exchangeVersion) {
-        $ProbeDefinitionEventCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/ProbeDefinition "
-        $ProbeResultEventCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/ProbeResult "
-        $MonitorDefinitionCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/MonitorDefinition "
-        $ResponderDefinitionCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/ResponderDefinition "
-        $MaintenanceDefinitionCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/MaintenanceDefinition "
-        $MaintenanceResultCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ActiveMonitoring/MaintenanceResult "
-        $SystemCmd = "Get-WinEvent –ComputerName $env:computername -LogName System "
+        $ProbeDefinitionEventCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/ProbeDefinition "
+        $ProbeResultEventCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/ProbeResult "
+        $MonitorDefinitionCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/MonitorDefinition "
+        $ResponderDefinitionCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/ResponderDefinition "
+        $MaintenanceDefinitionCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/MaintenanceDefinition "
+        $MaintenanceResultCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ActiveMonitoring/MaintenanceResult "
+        $SystemCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName System "
         $Script:LoggingMonitoringPath = $env:exchangeInstallPath + "\Logging\Monitoring"
 
         if ((((Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion.Major -gt 14 }).Count -lt 20) -or $AllServers) -and ($OnlyThisServer -eq $false)) {
@@ -833,9 +833,9 @@ if ( -not ($pathForLogs)) {
             $ServerHealthCmd = '$ServerList | Get-ServerHealth'
             $ManagedAvailabilityMonitoringCmd = '$ServerList | Foreach-Object { $alertEvents+= Get-WinEvent -ComputerName $_ -LogName Microsoft-Exchange-ManagedAvailability/Monitoring '
         } else {
-            $RecoveryActionResultsCmd = "( Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ManagedAvailability/RecoveryActionResults "
-            $ServerHealthCmd = "Get-ServerHealth -Identity $env:computername"
-            $ManagedAvailabilityMonitoringCmd = "Get-WinEvent –ComputerName $env:computername -LogName Microsoft-Exchange-ManagedAvailability/Monitoring "
+            $RecoveryActionResultsCmd = "( Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ManagedAvailability/RecoveryActionResults "
+            $ServerHealthCmd = "Get-ServerHealth -Identity $env:COMPUTERNAME"
+            $ManagedAvailabilityMonitoringCmd = "Get-WinEvent –ComputerName $env:COMPUTERNAME -LogName Microsoft-Exchange-ManagedAvailability/Monitoring "
         }
     }
 }
@@ -1143,7 +1143,7 @@ if ($InvestigationChoose -eq 0 -or $InvestigationChoose -eq 1) {
             if ($RecoveryActionToInvestigate.Count -gt 1 )
             { $RecoveryActionToInvestigate = $RecoveryActionToInvestigate[0] }
             if ($CheckRecoveryActionForMultipleMachines) {
-                if ([string]::Compare($RecoveryActionToInvestigate.MachineName, $env:computername, $true) -ne 0) {
+                if ([string]::Compare($RecoveryActionToInvestigate.MachineName, $env:COMPUTERNAME, $true) -ne 0) {
                     Write-Host -ForegroundColor yellow ("`nThe RecoveryAction you select is regarding a different server : " + $RecoveryActionToInvestigate.MachineName + " .")
                     Write-Host -ForegroundColor yellow ("Run this script on this server directly to analyze this RecoveryAction further." )
                     exit;

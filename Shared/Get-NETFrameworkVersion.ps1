@@ -8,7 +8,7 @@ function Get-NETFrameworkVersion {
     param(
         [string]$MachineName = $env:COMPUTERNAME,
         [int]$NetVersionKey = -1,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

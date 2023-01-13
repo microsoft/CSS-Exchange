@@ -142,34 +142,34 @@ $FolderList = $FolderList | Select-Object -Unique
 Write-SimpleLogFile -String "Creating EICAR Files" -name $LogFile -OutHost
 
 # Create the EICAR file in each path
-$EicarFileName = "eicar"
-$EicarFileExt = "com"
-$EicarFullFileName = "$EicarFileName.$EicarFileExt"
+$eicarFileName = "eicar"
+$eicarFileExt = "com"
+$eicarFullFileName = "$eicarFileName.$eicarFileExt"
 
-#Base64 of Eicar string
+#Base64 of eicar string
 [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
 
 foreach ($Folder in $FolderList) {
 
-    [string] $FilePath = (Join-Path $Folder $EicarFullFileName)
-    Write-SimpleLogFile -String ("Creating $EicarFullFileName file " + $FilePath) -name $LogFile
+    [string] $FilePath = (Join-Path $Folder $eicarFullFileName)
+    Write-SimpleLogFile -String ("Creating $eicarFullFileName file " + $FilePath) -name $LogFile
 
     if (!(Test-Path -Path $FilePath)) {
 
         # Try writing the encoded string to a the file
         try {
-            [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
-            [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-            [IO.File]::WriteAllText($FilePath, $Eicar)
+            [byte[]] $eicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
+            [string] $eicar = [System.Text.Encoding]::UTF8.GetString($eicarBytes)
+            [IO.File]::WriteAllText($FilePath, $eicar)
         }
 
         catch {
-            Write-Warning "$Folder $EicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
+            Write-Warning "$Folder $eicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
     else {
-        Write-SimpleLogFile -string ("[WARNING] - $EicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogFile -string ("[WARNING] - $eicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }
 
@@ -181,21 +181,21 @@ $extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -Ms
 
 if ($randomFolder) {
     foreach ($extension in $extensionsList) {
-        $filepath = Join-Path $randomFolder "$EicarFileName.$extension"
-        Write-SimpleLogFile -String ("Creating $EicarFileName.$extension file " + $FilePath) -name $LogFile
+        $filepath = Join-Path $randomFolder "$eicarFileName.$extension"
+        Write-SimpleLogFile -String ("Creating $eicarFileName.$extension file " + $FilePath) -name $LogFile
 
         if (!(Test-Path -Path $FilePath)) {
 
             # Try writing the encoded string to a the file
             try {
-                [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
-                [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-                [IO.File]::WriteAllText($FilePath, $Eicar)
+                [byte[]] $eicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
+                [string] $eicar = [System.Text.Encoding]::UTF8.GetString($eicarBytes)
+                [IO.File]::WriteAllText($FilePath, $eicar)
             } catch {
-                Write-Warning "$randomFolder $EicarFileName.$extension file couldn't be created. Either permissions or AV prevented file creation."
+                Write-Warning "$randomFolder $eicarFileName.$extension file couldn't be created. Either permissions or AV prevented file creation."
             }
         } else {
-            Write-SimpleLogFile -string ("[WARNING] - $randomFolder $EicarFileName.$extension  already exists!: ") -name $LogFile -OutHost
+            Write-SimpleLogFile -string ("[WARNING] - $randomFolder $eicarFileName.$extension  already exists!: ") -name $LogFile -OutHost
         }
     }
 } else {
@@ -208,9 +208,9 @@ Write-SimpleLogFile -String "Accessing EICAR Files" -name $LogFile -OutHost
 # Try to open each EICAR file to force detection in paths
 $i = 0
 foreach ($Folder in $FolderList) {
-    $FilePath = (Join-Path $Folder $EicarFullFileName)
+    $FilePath = (Join-Path $Folder $eicarFullFileName)
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogFile -String ("Opening $EicarFullFileName file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFullFileName file " + $FilePath) -name $LogFile
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
@@ -219,9 +219,9 @@ foreach ($Folder in $FolderList) {
 # Try to open extensions:
 $i = 0
 foreach ($extension in $extensionsList) {
-    $FilePath = Join-Path $randomFolder "$EicarFileName.$extension"
+    $FilePath = Join-Path $randomFolder "$eicarFileName.$extension"
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogFile -String ("Opening $EicarFileName.$extension file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFileName.$extension file " + $FilePath) -name $LogFile
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
@@ -240,13 +240,13 @@ Write-SimpleLogFile -string "Testing for EICAR files" -name $LogFile -OutHost
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
-    $FilePath = (Join-Path $Folder $EicarFullFileName)
+    $FilePath = (Join-Path $Folder $eicarFullFileName)
 
     # If the file exists delete it -- this means the folder is not being scanned
     if (Test-Path $FilePath ) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
-        if ($output -eq $Eicar) {
+        if ($output -eq $eicar) {
             Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
             Remove-Item $FilePath -Confirm:$false -Force
         } else {
@@ -265,13 +265,13 @@ $BadExtensionList = New-Object Collections.Generic.List[string]
 # Test each extension for the EICAR file
 foreach ($extension in $extensionsList) {
 
-    $filepath = Join-Path $randomFolder "$EicarFileName.$extension"
+    $filepath = Join-Path $randomFolder "$eicarFileName.$extension"
 
     # If the file exists delete it -- this means the extension is not being scanned
     if (Test-Path $filepath ) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
-        if ($output -eq $Eicar) {
+        if ($output -eq $eicar) {
             Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
             Remove-Item $FilePath -Confirm:$false -Force
         } else {

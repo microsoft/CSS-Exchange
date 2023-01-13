@@ -14,7 +14,7 @@ function Confirm-ExchangeShell {
         [bool]$LoadExchangeShell = $true,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

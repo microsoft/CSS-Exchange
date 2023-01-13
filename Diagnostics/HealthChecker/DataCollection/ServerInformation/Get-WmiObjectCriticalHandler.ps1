@@ -18,7 +18,7 @@ function Get-WmiObjectCriticalHandler {
         [string]
         $Namespace,
 
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"

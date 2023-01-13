@@ -3,7 +3,7 @@
 
 function Get-StringDataForNotEnoughFreeSpaceFile {
     param(
-        [Parameter(Mandatory = $true)][hashtable]$FileSizes
+        [Parameter(Mandatory = $true)][Hashtable]$FileSizes
     )
     Write-Verbose("Calling: Get-StringDataForNotEnoughFreeSpaceFile")
     $reader = [string]::Empty

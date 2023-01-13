@@ -11,7 +11,7 @@
     .PARAMETER RollbackMitigation
         If set, will only reverse the mitigations if present.
     .PARAMETER DoNotAutoUpdateEOMTv2
-        If set, will not attempt to download and run latest EOMTv2 version from github.
+        If set, will not attempt to download and run latest EOMTv2 version from GitHub.
     .EXAMPLE
 		PS C:\> EOMTv2.ps1
 		This will run the default mode which does the following:
@@ -185,7 +185,7 @@ function Run-Mitigate {
     }
 
     function Test-IIS10 {
-        $iisRegPath = "hklm:\SOFTWARE\Microsoft\InetStp"
+        $iisRegPath = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
         if (Test-Path $iisRegPath) {
             $properties = Get-ItemProperty $iisRegPath
@@ -251,7 +251,7 @@ function Run-Mitigate {
     Import-Module WebAdministration
 
     if ($RollbackMitigation) {
-        $Message = "Starting rollback of mitigation on $env:computername"
+        $Message = "Starting rollback of mitigation on $env:COMPUTERNAME"
         $RegMessage = "Starting rollback of mitigation"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
@@ -267,23 +267,23 @@ function Run-Mitigate {
                 Clear-WebConfiguration -PSPath $site -Filter 'system.webServer/rewrite/rules'
             }
 
-            $Message = "Rollback of mitigation complete on $env:computername"
+            $Message = "Rollback of mitigation complete on $env:COMPUTERNAME"
             $RegMessage = "Rollback of mitigation complete"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         } else {
-            $Message = "Mitigation not present on $env:computername"
+            $Message = "Mitigation not present on $env:COMPUTERNAME"
             $RegMessage = "Mitigation not present"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         }
     } else {
-        $Message = "Starting mitigation process on $env:computername"
+        $Message = "Starting mitigation process on $env:COMPUTERNAME"
         $RegMessage = "Starting mitigation process"
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
         $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
 
         if ($RewriteModule) {
-            $Message = "IIS URL Rewrite Module is already installed on $env:computername"
+            $Message = "IIS URL Rewrite Module is already installed on $env:COMPUTERNAME"
             $RegMessage = "IIS URL Rewrite Module already installed"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         } else {
@@ -297,20 +297,20 @@ function Run-Mitigate {
             $MSIProductVersion = Get-MsiProductVersion -filename $DownloadPath
 
             if ($MSIProductVersion -lt "7.2.1993") {
-                $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:computername"
+                $Message = "Incorrect IIS URL Rewrite Module downloaded on $env:COMPUTERNAME"
                 $RegMessage = "Incorrect IIS URL Rewrite Module downloaded"
                 Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
                 throw
             }
             #KB2999226 required for IIS Rewrite 2.1 on IIS ver under 10
             if (!(Test-IIS10) -and !(Get-HotFix -Id "KB2999226" -ErrorAction SilentlyContinue)) {
-                $Message = "Did not detect the KB2999226 on $env:computername. Please review the prerequisite for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
+                $Message = "Did not detect the KB2999226 on $env:COMPUTERNAME. Please review the prerequisite for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
                 $RegMessage = "Did not detect KB299226"
                 Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
                 throw
             }
 
-            $Message = "Installing the IIS URL Rewrite Module on $env:computername"
+            $Message = "Installing the IIS URL Rewrite Module on $env:COMPUTERNAME"
             $RegMessage = "Installing IIS URL Rewrite Module"
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
@@ -330,11 +330,11 @@ function Run-Mitigate {
             $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
 
             if ($RewriteModule) {
-                $Message = "IIS URL Rewrite Module installed on $env:computername"
+                $Message = "IIS URL Rewrite Module installed on $env:COMPUTERNAME"
                 $RegMessage = "IIS URL Rewrite Module installed"
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
             } else {
-                $Message = "Issue installing IIS URL Rewrite Module $env:computername"
+                $Message = "Issue installing IIS URL Rewrite Module $env:COMPUTERNAME"
                 $RegMessage = "Issue installing IIS URL Rewrite Module"
                 Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
                 throw
@@ -523,7 +523,7 @@ Microsoft saved several files to your system to "$EOMTv2Dir". The only files tha
     }
 
     $summary = $summary.Replace("`r`n", "`n").Replace("`n", "`r`n")
-    $summary | Out-File -FilePath $SummaryFile -Encoding ascii -Force
+    $summary | Out-File -FilePath $SummaryFile -Encoding ASCII -Force
 }
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
@@ -532,7 +532,7 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 }
 
 if ($PSVersionTable.PSVersion.Major -lt 3) {
-    Write-Error "Unsupported version of PowerShell on $env:computername - The Exchange On-premises Mitigation Tool supports PowerShell 3 and later"
+    Write-Error "Unsupported version of PowerShell on $env:COMPUTERNAME - The Exchange On-premises Mitigation Tool supports PowerShell 3 and later"
     exit
 }
 
@@ -619,11 +619,11 @@ try {
 
     $Stage = "EOMTv2Start"
 
-    $Message = "Starting EOMTv2.ps1 version $BuildVersion on $env:computername"
+    $Message = "Starting EOMTv2.ps1 version $BuildVersion on $env:COMPUTERNAME"
     $RegMessage = "Starting EOMTv2.ps1 version $BuildVersion"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
-    $Message = "EOMTv2 preCheck complete on $env:computername"
+    $Message = "EOMTv2 preCheck complete on $env:COMPUTERNAME"
     $RegMessage = "EOMTv2 preCheck complete"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
@@ -653,18 +653,18 @@ try {
             Set-LogActivity -Stage $Stage -Message $Message -Notice
         }
     } else {
-        $Message = "Applying mitigation on $env:computername"
+        $Message = "Applying mitigation on $env:COMPUTERNAME"
         $RegMessage = ""
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
         Run-Mitigate
     }
 
-    $Message = "EOMTv2.ps1 complete on $env:computername, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile"
+    $Message = "EOMTv2.ps1 complete on $env:COMPUTERNAME, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile"
     $RegMessage = "EOMTv2.ps1 completed successfully"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
     Write-Summary -Pass -NoRemediation:$DoNotRemediate #Pass
 } catch {
-    $Message = "EOMTv2.ps1 failed to complete on $env:computername, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile - $_"
+    $Message = "EOMTv2.ps1 failed to complete on $env:COMPUTERNAME, please review EOMTv2 logs at $EOMTv2LogFile and the summary file at $SummaryFile - $_"
     $RegMessage = "EOMTv2.ps1 failed to complete"
     Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
     Write-Summary -NoRemediation:$DoNotRemediate #Fail

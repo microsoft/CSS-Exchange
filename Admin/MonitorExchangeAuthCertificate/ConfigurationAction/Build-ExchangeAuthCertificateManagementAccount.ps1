@@ -20,7 +20,7 @@ function Build-ExchangeAuthCertificateManagementAccount {
         [string]$DomainController,
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "CreateNewAccount")]
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "UseExistingAccount")]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

@@ -11,10 +11,10 @@ function Enter-YesNoLoopAction {
         [string]$Target = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $true)]
-        [scriptblock]$YesAction,
+        [ScriptBlock]$YesAction,
 
         [Parameter(Mandatory = $true)]
-        [scriptblock]$NoAction
+        [ScriptBlock]$NoAction
     )
 
     Write-Verbose "Calling: Enter-YesNoLoopAction"

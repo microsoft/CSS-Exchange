@@ -13,7 +13,7 @@ function Invoke-ScriptBlockHandler {
         $ComputerName,
 
         [Parameter(Mandatory = $true)]
-        [scriptblock]
+        [ScriptBlock]
         $ScriptBlock,
 
         [string]
@@ -25,7 +25,7 @@ function Invoke-ScriptBlockHandler {
         [bool]
         $IncludeNoProxyServerOption,
 
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     begin {

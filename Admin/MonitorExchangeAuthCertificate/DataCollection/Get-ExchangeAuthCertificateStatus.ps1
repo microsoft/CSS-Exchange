@@ -9,7 +9,7 @@ function Get-ExchangeAuthCertificateStatus {
     param(
         [bool]$IgnoreUnreachableServers = $false,
         [bool]$IgnoreHybridSetup = $false,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

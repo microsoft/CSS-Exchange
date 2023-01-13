@@ -10,7 +10,7 @@ function Add-AnalyzedResultInformation {
         [string]$Name,
         [string]$TestingName,
         [object]$OutColumns,
-        [scriptblock[]]$OutColumnsColorTests,
+        [ScriptBlock[]]$OutColumnsColorTests,
         [string]$HtmlName,
         [object]$DisplayGroupingKey,
         [int]$DisplayCustomTabNumber = -1,
@@ -33,7 +33,7 @@ function Add-AnalyzedResultInformation {
         function GetOutColumnsColorObject {
             param(
                 [object[]]$OutColumns,
-                [scriptblock[]]$OutColumnsColorTests,
+                [ScriptBlock[]]$OutColumnsColorTests,
                 [string]$DefaultDisplayColor = ""
             )
 

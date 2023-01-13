@@ -31,7 +31,7 @@ function Get-ExtendedProtectionConfiguration {
         [string[]]$SiteVDirLocations,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

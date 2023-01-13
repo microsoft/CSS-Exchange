@@ -56,7 +56,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
 
                 if ($SubKey -eq $Script:tlsServer10) {
@@ -167,7 +167,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 if ($SubKey -eq $Script:tlsServer10) {
                     if ($GetValue -eq $Script:enabledKey) { return 0 }
@@ -250,7 +250,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 return 1
             }
@@ -291,7 +291,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 return 0
             }
@@ -332,7 +332,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 if ($SubKey -eq $Script:tlsServer10) {
                     return 1
@@ -399,7 +399,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 if ($SubKey -eq $Script:tlsServer10) {
                     return 0
@@ -466,7 +466,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 if ($SubKey -eq $Script:tlsServer10) {
                     return 1
@@ -563,7 +563,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 return $null
             }
@@ -613,7 +613,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 return 1
             }
@@ -647,7 +647,7 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                     [string]$SubKey,
                     [string]$GetValue,
                     [string]$ValueType,
-                    [scriptblock]$CatchActionFunction
+                    [ScriptBlock]$CatchActionFunction
                 )
                 if ($SubKey -eq $Script:net4) {
                     return 1

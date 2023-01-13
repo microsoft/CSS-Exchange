@@ -11,7 +11,7 @@ function New-AuthCertificateManagementAccount {
         [SecureString]$Password,
         [string]$DomainToUse = $env:USERDNSDOMAIN,
         [string]$DomainController = $env:USERDNSDOMAIN,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"

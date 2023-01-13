@@ -13,7 +13,7 @@ BeforeAll {
 
     function TestPesterResults {
         param(
-            [hashtable]$TestGroup,
+            [Hashtable]$TestGroup,
             [object]$KnownIssue
         )
 

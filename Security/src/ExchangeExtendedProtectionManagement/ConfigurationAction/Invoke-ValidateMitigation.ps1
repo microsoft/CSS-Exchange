@@ -74,7 +74,7 @@ function Invoke-ValidateMitigation {
                     [Parameter(Mandatory = $true)]
                     [object[]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
-                    [hashtable]$state
+                    [Hashtable]$state
                 )
 
                 $state.IsWindowsFeatureInstalled = (Get-WindowsFeature -Name "Web-IP-Security").InstallState -eq "Installed"
@@ -154,7 +154,7 @@ function Invoke-ValidateMitigation {
             return $results
         }
     } process {
-        $scriptblockArgs = [PSCustomObject]@{
+        $ScriptBlockArgs = [PSCustomObject]@{
             SiteVDirLocations    = $SiteVDirLocations
             IpRangesForFiltering = $ipRangeAllowListRules
         }
@@ -183,7 +183,7 @@ function Invoke-ValidateMitigation {
             $counter ++;
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocations: {1}, ipRangeAllowListRules: {2}" -f $Server, [string]::Join(", ", $SiteVDirLocations), $ipRangeAllowListString)
-            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $scriptblockArgs
+            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $ScriptBlockArgs
 
             if ($null -eq $resultsInvoke) {
                 $line = "Server Unreachable: Unable to validate IP filtering rules on server $($Server)."

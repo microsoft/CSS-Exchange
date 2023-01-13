@@ -1,5 +1,5 @@
 adfs
-ADSI
+Adsi
 amsi
 Antispam
 anob
@@ -23,6 +23,7 @@ DWORD
 eems
 EFORMS
 EICAR
+eicar
 Emotet
 emsmdb
 EOMT
@@ -40,7 +41,7 @@ freb
 FYDIBOHF
 Get-AuthenticodeSignature
 globalsequence
-hashtable
+Hashtable
 HHMM
 HKCR
 HKCU
@@ -82,8 +83,10 @@ mitigations
 msdcs
 MSDTC
 MSERT
+msert
 msrc
 Multiplexor
+nato
 NDIS
 Nego
 Netlogon
@@ -117,9 +120,11 @@ Runtimes
 sccm
 Schannel
 SCOM
+!scriptblock
 SERVERNAME
 Servicehost
 servicelet
+Sids
 Snapin
 SPDLT
 STMP
@@ -131,6 +136,7 @@ unconfigured
 unrequired
 USERDNSDOMAIN
 Vianet
+vmxnet
 vssadmin
 vsstester
 vuln

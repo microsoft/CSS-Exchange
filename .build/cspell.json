@@ -14,5 +14,12 @@
         ".vscode",
         "dist",
         "/cspell-words.txt"
+    ],
+    "caseSensitive": true,
+    "overrides": [
+     {
+      "filename": "**/*.md",
+      "caseSensitive": false
+     }
     ]
   }

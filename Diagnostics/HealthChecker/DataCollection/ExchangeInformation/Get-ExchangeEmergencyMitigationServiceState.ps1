@@ -10,7 +10,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
         [object]
         $RequiredInformation,
         [Parameter(Mandatory = $false)]
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     begin {
@@ -18,7 +18,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
         $emergencyMitigationServiceOrgState = $RequiredInformation.MitigationsEnabled
         $exchangeServerConfiguration = $RequiredInformation.GetExchangeServer
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed - Computername: $ComputerName"
+        Write-Verbose "Passed - ComputerName: $ComputerName"
     }
     process {
         if ($null -ne $emergencyMitigationServiceOrgState) {

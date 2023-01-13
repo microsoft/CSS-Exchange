@@ -247,7 +247,7 @@ using System.Collections;
             WindowsCore
         }
 
-        //enum for the dword value of the .NET frame 4 that we are on
+        //enum for the DWORD value of the .NET frame 4 that we are on
         public enum NetMajorVersion
         {
             Unknown = 0,

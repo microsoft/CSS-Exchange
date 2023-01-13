@@ -354,7 +354,7 @@ function Write-LargeDataObjectsOnMachine {
 
             <#
             To pass an action to Start-JobManager, need to create objects like this.
-                Where ArgumentList is the arguments for the scriptblock that we are running
+                Where ArgumentList is the arguments for the ScriptBlock that we are running
             [array]
                 [PSCustom]
                     [string]ServerName
@@ -378,7 +378,7 @@ function Write-LargeDataObjectsOnMachine {
                 -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory} `
                 -CatchActionFunction ${Function:Invoke-CatchActions}
             Write-Verbose("Creating Script Block")
-            $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
+            $getExchangeInstallDirectoryScriptBlock = [ScriptBlock]::Create($getExchangeInstallDirectoryString)
 
             Write-Verbose("New-Item create Script Block")
             $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }

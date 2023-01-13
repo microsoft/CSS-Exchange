@@ -8,7 +8,7 @@ function Get-ApplicationHostConfig {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ComputerName,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     $params = @{

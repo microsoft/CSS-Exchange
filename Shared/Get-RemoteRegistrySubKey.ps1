@@ -7,7 +7,7 @@ function Get-RemoteRegistrySubKey {
         [string]$RegistryHive = "LocalMachine",
         [string]$MachineName,
         [string]$SubKey,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

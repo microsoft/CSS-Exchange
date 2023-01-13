@@ -19,7 +19,7 @@ function Switch-ExchangeConnectedServer {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ServerFqdn,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -66,7 +66,7 @@ function Switch-ExchangeConnectedServer {
 function Invoke-RevertExchangeConnectServerToPrimary {
     [CmdletBinding()]
     param(
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

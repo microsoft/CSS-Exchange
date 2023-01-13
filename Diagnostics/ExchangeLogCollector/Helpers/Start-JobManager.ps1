@@ -9,7 +9,7 @@ function Start-JobManager {
         [object[]]$ServersWithArguments,
 
         [Parameter(Mandatory = $true)]
-        [scriptblock]$ScriptBlock,
+        [ScriptBlock]$ScriptBlock,
 
         [string]$JobBatchName,
 
@@ -17,12 +17,12 @@ function Start-JobManager {
 
         [bool]$NeedReturnData = $false,
 
-        [scriptblock]$RemotePipelineHandler
+        [ScriptBlock]$RemotePipelineHandler
     )
     <# It needs to be this way incase of different arguments being passed to different machines
         [array]ServersWithArguments
             [string]ServerName
-            [object]ArgumentList #customized for your scriptblock
+            [object]ArgumentList #customized for your ScriptBlock
     #>
 
     function Wait-JobsCompleted {
@@ -50,7 +50,7 @@ function Start-JobManager {
                 }
 
                 # If more things are added to the pipeline than just the desired result (like custom Write-Verbose data to the pipeline)
-                # The caller needs to handle this by having a custom scriptblock to process the data
+                # The caller needs to handle this by having a custom ScriptBlock to process the data
                 # Then return the desired result back
                 if ($null -ne $RemotePipelineHandler -and $receiveJob) {
                     Write-Verbose "Starting to call RemotePipelineHandler"

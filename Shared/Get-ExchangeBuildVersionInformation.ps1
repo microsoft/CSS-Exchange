@@ -13,7 +13,7 @@ function Get-ExchangeBuildVersionInformation {
         [System.Version]$FileVersion,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

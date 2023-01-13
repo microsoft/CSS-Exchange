@@ -9,7 +9,7 @@ function Export-ExchangeAuthCertificate {
     param(
         [Parameter(Mandatory = $true)]
         [SecureString]$Password,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

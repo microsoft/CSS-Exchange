@@ -7,7 +7,7 @@ function Get-ServerRebootPending {
     [CmdletBinding()]
     param(
         [string]$ServerName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
 

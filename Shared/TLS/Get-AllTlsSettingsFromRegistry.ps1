@@ -6,7 +6,7 @@ function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
 

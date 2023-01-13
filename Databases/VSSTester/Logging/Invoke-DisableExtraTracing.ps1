@@ -30,6 +30,6 @@ function Invoke-DisableExTRATracing {
         "Moving ETL file from $dbMountedOn to $serverName..."
         " "
         $etlPath = $path -replace ":\\", "$\"
-        Move-Item "\\$dbMountedOn\$etlPath\vsstester-active_000001.etl" "\\$servername\$etlPath\vsstester-active_000001.etl" -Force
+        Move-Item "\\$dbMountedOn\$etlPath\vsstester-active_000001.etl" "\\$ServerName\$etlPath\vsstester-active_000001.etl" -Force
     }
 }

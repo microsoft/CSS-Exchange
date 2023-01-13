@@ -142,7 +142,7 @@ function Invoke-RollbackIPFiltering {
             return $results
         }
     } process {
-        $scriptblockArgs = [PSCustomObject]@{
+        $ScriptBlockArgs = [PSCustomObject]@{
             SiteVDirLocations = $SiteVDirLocations
             PassedWhatIf      = $WhatIfPreference
         }
@@ -163,7 +163,7 @@ function Invoke-RollbackIPFiltering {
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with Arguments Site: {1}, VDir: {2}" -f $Server.Name, $Site, $VDir)
             Write-Verbose ("Restoring previous state for Server {0}" -f $Server.Name)
-            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $scriptblockArgs
+            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server.Name -ScriptBlock $RollbackIPFiltering -ArgumentList $ScriptBlockArgs
 
             if ($null -eq $resultsInvoke) {
                 $line = "Server Unreachable: Unable to rollback IP filtering rules on server $($Server.Name)."

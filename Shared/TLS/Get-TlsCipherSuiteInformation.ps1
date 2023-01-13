@@ -8,7 +8,7 @@ function Get-TlsCipherSuiteInformation {
     [OutputType("System.Object")]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

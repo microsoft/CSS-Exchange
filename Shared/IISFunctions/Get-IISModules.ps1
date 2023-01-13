@@ -13,7 +13,7 @@ function Get-IISModules {
         [bool]$SkipLegacyOSModulesCheck = $false,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {
