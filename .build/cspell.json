@@ -9,10 +9,10 @@
       }
     ],
     "dictionaries": ["cspell-words"],
+    "useGitignore": true,
     "ignorePaths": [
         ".github",
         ".vscode",
-        "dist",
         "/cspell-words.txt"
     ],
     "caseSensitive": true,
